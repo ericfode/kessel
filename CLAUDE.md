@@ -12,8 +12,10 @@ cards are rejected with a reason and never approximated. `README.md` has the lay
 
 It was `bot/omni-rs` (with `bot/omni-wasm`, `bot/card-compiler` and `bot/cards`) in
 [swu_bot](https://github.com/ericfode/swu_bot), moved here with history. Kessel must not depend on
-swu_bot. swu_bot depends on Kessel and keeps the engine-driving side: the bot harness, reference
-game scenarios and generator, probe fixtures, and trace/pool exporters.
+swu_bot or on [Holocron](https://github.com/ericfode/holocron). Holocron depends on Kessel and keeps
+the engine-driving side in `lab/kessel-reference/` (reference game scenarios and generator, probe
+fixtures, the card pipeline runner) and `bots/omni/rs/` (trace and pool exporters), next to its game
+player and bot harness. The arena (swu_bot) vendors Kessel's Node Wasm package in `vendor/kessel`.
 
 ## Layout
 
@@ -28,6 +30,8 @@ game scenarios and generator, probe fixtures, and trace/pool exporters.
   (`reference/fixtures/`: content-addressed manifest, traces and pools) with `reference/check.js`.
 - `validation/`: old measurement receipts. Keep them as recorded; do not rewrite paths in them.
 - `tools/`: measurement report, runtime admission report, search benchmark.
+- `.agents/skills/swu-card-conversion/SKILL.md`: the card conversion workflow (catalog, named
+  cases, reference recordings in Holocron, review). Read it before converting cards.
 - `forceteki/`: git submodule (`ericfode/forceteki`). The compiler reads its card source and
   its downloaded card JSON.
 
@@ -64,5 +68,6 @@ npm run wasm:build -- --install-tools && npm run wasm:test
 directory; the default is `forceteki/test/json`. One compiler test loads a built forceteki
 (`forceteki/build/server`) and skips when it is absent.
 
-New reference recordings are made in swu_bot and imported here with
+New reference recordings are made in Holocron (`npm run kessel:reference -- generate`, or
+`npm run kessel:pipeline -- run`, with `KESSEL_DIR` pointing here) and imported here with
 `npm run cards:reference -- import --corpus DIR`.

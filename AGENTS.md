@@ -13,6 +13,8 @@ Codex work too.
 - Keep changes to the `forceteki` submodule's source out of this repo's work unless the
   user authorizes them. Dependency installs, card downloads and generated builds are
   ordinary setup operations, not engine source edits.
-- Recording new reference games needs swu_bot's harness; that work happens in swu_bot,
-  and its output is imported here with `npm run cards:reference -- import`.
+- Recording new reference games needs Holocron's game player; that work happens in
+  Holocron's `lab/kessel-reference/`, and its output is imported here with
+  `npm run cards:reference -- import`. Kessel depends on neither Holocron nor swu_bot.
+- `.agents/skills/swu-card-conversion/SKILL.md` is the card conversion workflow.
 - Basic development needs no service credentials. Keep tokens and `.env` files out of Git.

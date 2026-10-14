@@ -7,7 +7,8 @@ the simulator runs. Every supported card is checked against complete games recor
 forceteki engine. Unsupported cards are rejected with a reason; they are never approximated.
 
 It started as `bot/omni-rs` in [swu_bot](https://github.com/ericfode/swu_bot) and was moved here
-with its history (`git filter-repo`). swu_bot depends on Kessel; Kessel does not depend on swu_bot.
+with its history (`git filter-repo`). swu_bot (the arena) and [Holocron](https://github.com/ericfode/holocron)
+(the bots and research) depend on Kessel; Kessel depends on neither.
 
 ## Layout
 
@@ -19,7 +20,7 @@ with its history (`git filter-repo`). swu_bot depends on Kessel; Kessel does not
 | `cards/` | Card catalog CLI, experiment planners, and the accepted reference corpus (`reference/fixtures/`: 2,108 engine recordings and their 41 pools) with its native/Wasm checker. [README](cards/README.md) |
 | `validation/` | Measurement receipts from earlier validation runs (`omni-rs-1`, `omni-wasm-1`, `omni-wasm-2`), kept as recorded. |
 | `tools/` | Measurement report (`omni-rs-report.js`), runtime admission report (`card-runtime-report.js`) and the equal-work search benchmark (`omni-search-bench.js`). |
-| `forceteki/` | Git submodule, pinned to the same commit as swu_bot. The compiler reads its card source; its card data is downloaded at setup. |
+| `forceteki/` | Git submodule, pinned to the same commit as swu_bot and Holocron. The compiler reads its card source; its card data is downloaded at setup. |
 
 Trace and schema identifiers inside data files (`omni-rs-trace-v1`, `omni-rs-pool-v1`,
 `omni-wasm-v1`, ...) keep their original names: committed recordings and pools are
@@ -62,16 +63,20 @@ npm run wasm:pack && npm run wasm:pack:check
 Card browsing: `npm run cards -- summary`, `npm run cards -- show TWI_124`,
 `npm run cards:reference -- verify`, `npm run cards:reference -- list --card TWI_124`.
 
-## What stays in swu_bot
+## What lives in Holocron and the arena
 
-Recording new reference games plays bots through the forceteki engine with swu_bot's headless
-harness (`bot/env.js`, the bot registry, `bot/omni/rs/state.js`). That side stays in swu_bot:
-the reference scenarios and generator (`bot/cards/reference/scenarios/`, `generate.js`, `index.js`),
-the probe fixtures and pipeline runner (`bot/cards/pipeline/*-probe-fixture.js`, `run.js`,
-`prepared.js`, `cli.js`, `fanout.js`), and the trace and pool generators in `bot/omni/rs/`.
-swu_bot generates corpora and Kessel checks and imports them
-(`npm run cards:reference -- import --corpus DIR`). `fromEnvGame` in the Wasm adapter takes the
-forceteki state exporter as an argument for the same reason.
+Recording new reference games plays bots through the forceteki engine with Holocron's game
+player (`engine/env.js`, the bot registry, `bots/omni/rs/state.js`). That side lives in
+[Holocron](https://github.com/ericfode/holocron): the reference scenarios and generator, the probe
+fixtures and the pipeline runner in `lab/kessel-reference/` (`npm run kessel:reference`,
+`npm run kessel:pipeline`, which load this checkout from `KESSEL_DIR`, default `../kessel`), and the
+trace and pool generators in `bots/omni/rs/`. Holocron generates corpora and Kessel checks and
+imports them (`npm run cards:reference -- import --corpus DIR`). `fromEnvGame` in the Wasm adapter
+takes the forceteki state exporter as an argument for the same reason.
+
+The arena (swu_bot) vendors Kessel's Node Wasm package (the `--target node` build of
+`npm run wasm:build`, with `crates/kessel-wasm/js/adapter.mjs` and `node.js`) in `vendor/kessel`, pinned
+to a Kessel commit, for the referee's Rust simulations.
 
 ## Card data
 

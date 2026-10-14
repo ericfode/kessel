@@ -280,8 +280,8 @@ AST-converted.
 ```sh
 target/debug/kessel catalogue compiler/generated/catalog.json --out-pool compiler/generated/runtime-pool.json
 target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
-# in swu_bot (records forceteki games):
-node bot/omni/rs/make-compiled-fixtures.js --out replays/compiled-card-fixtures
+# in Holocron, next to this checkout (records forceteki games):
+node bots/omni/rs/make-compiled-fixtures.js --pool ../kessel/compiler/generated/runtime-pool.json --out replays/compiled-card-fixtures
 ```
 
 `catalogue` emits a deterministic admission report, including named rejection
@@ -316,5 +316,5 @@ The original strict-pool and compiled-runtime integration corpora remain useful
 smoke tests for their loading modes. Current counts come from `npm run cards --
 summary` and `generated/runtime-admission.json`, rather than historical batch totals.
 
-Follow swu_bot's [conversion skill](https://github.com/ericfode/swu_bot/blob/main/.agents/skills/swu-card-conversion/SKILL.md)
+Follow the [conversion skill](../.agents/skills/swu-card-conversion/SKILL.md)
 for implementation, source-derived witnesses, and independent review requirements.

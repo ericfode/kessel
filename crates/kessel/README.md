@@ -53,13 +53,13 @@ Wasm execute the same accepted programs; no TypeScript callback runs inside sear
 
 Building and testing the crate needs only Rust: the generated catalog and every pool are committed. The card JSON
 loader (`$SWU_CARD_JSON`, else `forceteki/test/json`) is `src/cards.rs`. Recording new reference traces needs a
-built forceteki and the swu_bot harness; those commands (`node bot/...`) run in swu_bot.
+built forceteki and Holocron's game player; those commands (`node bots/...`) run in Holocron.
 
 ```sh
 cargo build --release -p kessel
 cargo test --workspace
-# in swu_bot, to regenerate the strict 100-card pool (crates/kessel/data/pool.json):
-node bot/omni/rs/make-pool.js
+# in Holocron, next to this checkout, to regenerate the strict 100-card pool (crates/kessel/data/pool.json):
+node bots/omni/rs/make-pool.js ../kessel/crates/kessel/data/pool.json
 ```
 
 The committed pool includes a reason for every card. It selects plain 30 HP bases, Sabine Wren (`SOR_014`),
@@ -124,7 +124,8 @@ recorded game's end at which a forced winner is found; it is not a prediction th
 the winning line.
 
 ```sh
-# The `node bot/...` commands play bots through forceteki and run in swu_bot.
+# The `node bot/...` commands play bots through forceteki. They ran in swu_bot; the scripts are now
+# Holocron's `bots/omni/...` (run from its root, with this checkout's paths as ../kessel/...).
 # Generate the 300-game corpus, 75 games per pairing.
 for bots in random,random heuristic,heuristic aggro,control tempo,rush; do
   node bot/omni/rs/trace.js --pool crates/kessel/data/pool.json --bots "$bots" --seeds 1-75 --out replays/omni-rs-corpus --gzip
@@ -153,7 +154,7 @@ done
 
 `check` initializes Rust only once per trace and compares every subsequent legal action set, full action-window
 state, and terminal state. It validates pool hashes and sequence receipts and stops at the first difference with
-both sides and a field-level diagnostic. [Trace schema and canonical action identity](https://github.com/ericfode/swu_bot/blob/main/bot/omni/rs/README.md) (in swu_bot, with the trace exporter).
+both sides and a field-level diagnostic. [Trace schema and canonical action identity](https://github.com/ericfode/holocron/blob/main/bots/omni/rs/README.md) (in Holocron, with the trace exporter).
 
 ## Original 100-card results, 2026-10-11
 
