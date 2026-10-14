@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const{compileSource,loadEnums}=require('../compiler');
-const root=path.resolve(__dirname,'../../../forceteki/server'),enums=loadEnums(root);
+const root=path.resolve(__dirname,'../../forceteki/server'),enums=loadEnums(root);
 function compile(predicate,field='matchTarget') {
     return compileSource(`export default class FreshAttack extends NonLeaderUnitCard {
         getImplementationId(){return{id:'fresh-attack',internalName:'fresh-attack'};}

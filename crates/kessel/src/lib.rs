@@ -7,6 +7,7 @@ pub use simulator::{Engine, RulesBackend};
 pub mod ability_ir;
 pub mod check;
 pub mod validation;
+pub mod cards;
 
 fn program_backend(bytes:&[u8])->Result<usize,&'static str> {
     use sha2::{Digest,Sha256};

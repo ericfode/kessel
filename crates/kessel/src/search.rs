@@ -684,7 +684,7 @@ mod tests {
     fn compiled_ability_cancellation_is_skipped_only_before_commitment() {
         use crate::model::Decision;
         let pool: serde_json::Value =
-            serde_json::from_str(include_str!("../../omni/rs/pool.json")).unwrap();
+            serde_json::from_str(include_str!("../data/pool.json")).unwrap();
         let engine = Engine::from_pool_value(&pool).unwrap();
         let cancel = Action::button("Cancel", "cancel");
         let mut state = State::default();

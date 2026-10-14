@@ -12,8 +12,8 @@ const { spawnSync } = require('node:child_process');
 async function verifyPackage() {
     const fs = require('node:fs');
     const assert = require('node:assert/strict');
-    const { createSimulator } = require('@swu-bot/omni-wasm');
-    const manifest = require('@swu-bot/omni-wasm/package.json');
+    const { createSimulator } = require('@kessel/wasm');
+    const manifest = require('@kessel/wasm/package.json');
     assert.deepEqual(manifest.dependencies ?? {}, {});
     const state = JSON.parse(fs.readFileSync('position.json', 'utf8'));
     const node = await createSimulator();
@@ -30,9 +30,9 @@ async function verifyPackage() {
     game.free();
     node.free();
 
-    const browser = await import('@swu-bot/omni-wasm/browser');
-    const wasm = { module_or_path: fs.readFileSync(require.resolve('@swu-bot/omni-wasm/wasm')) };
-    const web = await browser.createSimulator({ poolJson: fs.readFileSync(require.resolve('@swu-bot/omni-wasm/pool.json'), 'utf8'), wasm });
+    const browser = await import('@kessel/wasm/browser');
+    const wasm = { module_or_path: fs.readFileSync(require.resolve('@kessel/wasm/wasm')) };
+    const web = await browser.createSimulator({ poolJson: fs.readFileSync(require.resolve('@kessel/wasm/pool.json'), 'utf8'), wasm });
     const webGame = web.loadState(state);
     assert.deepEqual(webGame.snapshot(), state);
     const webProof = webGame.prove({ depth: 3, nodes: 10000 });
@@ -57,7 +57,7 @@ async function verifyPackage() {
     const allAdmitted = await createSimulator({ catalogueJson });
     assert.ok(allAdmitted.poolHash);
     allAdmitted.free();
-    const { WasmGame } = await import('@swu-bot/omni-wasm/adapter');
+    const { WasmGame } = await import('@kessel/wasm/adapter');
     const draw = new WasmGame({ winner: () => 'draw' }, { names: ['Alice', 'Bob'] });
     assert.deepEqual(draw.winners, ['Alice', 'Bob']);
     console.log(JSON.stringify({ isolatedPackage: true, dependencies: [], nodeProof: proof, webProof, expandedPoolHash: expandedNode.poolHash, expandedProof, expandedWebProof, catalogueOnlyLoaded: true, drawNames: draw.winners }, null, 2));
@@ -75,17 +75,17 @@ function main() {
     const root = path.resolve(__dirname, '../..');
     const receipt = JSON.parse(fs.readFileSync(path.join(__dirname, 'pkg/distribution/receipt.json'), 'utf8'));
     assert.equal(crypto.createHash('sha256').update(fs.readFileSync(receipt.tarball)).digest('hex'), receipt.sha256, 'Tarball differs from its receipt');
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'omni-wasm-package-'));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kessel-wasm-package-'));
     try {
         const unpack = spawnSync('tar', ['-xzf', receipt.tarball, '-C', temp], { encoding: 'utf8' });
         if (unpack.status !== 0) throw new Error(unpack.stderr || 'Cannot unpack local tarball');
-        const scope = path.join(temp, 'node_modules/@swu-bot');
+        const scope = path.join(temp, 'node_modules/@kessel');
         fs.mkdirSync(scope, { recursive: true });
-        fs.renameSync(path.join(temp, 'package'), path.join(scope, 'omni-wasm'));
-        fs.writeFileSync(path.join(temp, 'position.json'), JSON.stringify(lastState(path.join(root, 'bot/omni-rs/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz'))));
-        fs.writeFileSync(path.join(temp, 'expanded-position.json'), JSON.stringify(lastState(path.join(root, 'bot/omni-rs/tests/compiled-fixtures/effect-interactions-4001.jsonl.gz'))));
-        fs.copyFileSync(path.join(root, 'bot/card-compiler/generated/catalog.json'), path.join(temp, 'catalog.json'));
-        fs.copyFileSync(path.join(root, 'bot/omni-rs/tests/compiled-fixtures/pool.json'), path.join(temp, 'expanded-pool.json'));
+        fs.renameSync(path.join(temp, 'package'), path.join(scope, 'wasm'));
+        fs.writeFileSync(path.join(temp, 'position.json'), JSON.stringify(lastState(path.join(root, 'crates/kessel/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz'))));
+        fs.writeFileSync(path.join(temp, 'expanded-position.json'), JSON.stringify(lastState(path.join(root, 'crates/kessel/tests/compiled-fixtures/effect-interactions-4001.jsonl.gz'))));
+        fs.copyFileSync(path.join(root, 'compiler/generated/catalog.json'), path.join(temp, 'catalog.json'));
+        fs.copyFileSync(path.join(root, 'crates/kessel/tests/compiled-fixtures/pool.json'), path.join(temp, 'expanded-pool.json'));
         fs.writeFileSync(path.join(temp, 'verify.cjs'), `(${verifyPackage.toString()})().catch(error => { console.error(error); process.exitCode = 1; });\n`);
         const check = spawnSync(process.execPath, ['verify.cjs'], { cwd: temp, encoding: 'utf8' });
         if (check.stdout) process.stdout.write(check.stdout);

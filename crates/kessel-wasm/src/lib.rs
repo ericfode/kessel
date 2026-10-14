@@ -2,7 +2,7 @@
 //! JavaScript exchanges JSON only at explicit API boundaries; proof-tree state
 //! copies, action generation, transitions, hashing and transpositions stay here.
 
-use omni_rs::{
+use kessel::{
     search::{Limits, Search},
     Engine, Seat, State,
 };
@@ -95,7 +95,7 @@ impl WasmEngine {
     /// Set before loading game handles; existing handles retain their engine.
     #[wasm_bindgen(js_name = setRulesBackend)]
     pub fn set_rules_backend(&mut self, mode: &str) -> Result<(), JsError> {
-        let backend=match mode {"auto"=>omni_rs::RulesBackend::Auto,"interpreter"=>omni_rs::RulesBackend::Interpreter,"aot"=>omni_rs::RulesBackend::Aot,_=>return Err(error("unknown rules backend"))};
+        let backend=match mode {"auto"=>kessel::RulesBackend::Auto,"interpreter"=>kessel::RulesBackend::Interpreter,"aot"=>kessel::RulesBackend::Aot,_=>return Err(error("unknown rules backend"))};
         Rc::get_mut(&mut self.engine).ok_or_else(||error("set rules backend before loading game handles"))?.set_rules_backend(backend).map_err(error)?;
         Ok(())
     }
@@ -116,7 +116,7 @@ impl WasmEngine {
         let value: Value = serde_json::from_str(state_json)
             .map_err(|e| error(format!("invalid state JSON: {e}")))?;
         let state = self.engine.load_state(&value).map_err(error)?;
-        omni_rs::check::compare_states(&value, &self.engine.snapshot(&state)).map_err(error)?;
+        kessel::check::compare_states(&value, &self.engine.snapshot(&state)).map_err(error)?;
         Ok(WasmGame {
             engine: Rc::clone(&self.engine),
             state,

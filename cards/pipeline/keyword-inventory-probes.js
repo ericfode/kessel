@@ -1,6 +1,6 @@
 'use strict';
 const same = require('node:util').isDeepStrictEqual;
-const { parseKeywords } = require('../../omni/rs/make-pool');
+const { parseKeywords } = require('../../compiler/keywords');
 const keys = (v, allowed) => v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).every(k => allowed.includes(k));
 const emptyAbilities = { leader: [], unit: [], card: [] };
 const noPilot = e => e?.piloting == null && e.card?.pilotText == null && e.card?.pilotBox == null && e.card?.pilotingBox == null && e.attachCondition == null;

@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const p = require('../pipeline/weakness-continuation-probes');
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../card-compiler/generated/catalog.json')));
+const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
 const entries = ['HMW_100', 'HMW_199', 'HMW_202', 'HMW_231'].map(id => catalogue.cards.find(e => e.setCode === id));
 const clone = structuredClone;
 test('complete four source modes classify with exact continuation topology', () => {

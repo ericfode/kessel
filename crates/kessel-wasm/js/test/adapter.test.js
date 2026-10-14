@@ -6,9 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const { createSimulator } = require('../node');
 const { records, checkRecords } = require('../check');
-const fixtures = path.resolve(__dirname, '../../../omni-rs/tests/fixtures');
-const compiledFixtures = path.resolve(__dirname, '../../../omni-rs/tests/compiled-fixtures');
-const cataloguePath = path.resolve(__dirname, '../../../card-compiler/generated/catalog.json');
+const fixtures = path.resolve(__dirname, '../../../kessel/tests/fixtures');
+const compiledFixtures = path.resolve(__dirname, '../../../kessel/tests/compiled-fixtures');
+const cataloguePath = path.resolve(__dirname, '../../../../compiler/generated/catalog.json');
 
 test('Wasm adapter matches every engine decision and state in all committed fixtures', async () => {
     const simulator = await createSimulator();
@@ -106,8 +106,8 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
         assert.throws(() => all.loadState(hiddenOnly), /requires explicit Force state version/);
         // Persistent Force identities come from an actual engine recording;
         // they cannot be reconstructed from an older snapshot's arena contents.
-        const referenceFixtures = path.resolve(__dirname, '../../../cards/reference/fixtures');
-        const manifest = require('../../../cards/reference/library').corpus(referenceFixtures);
+        const referenceFixtures = path.resolve(__dirname, '../../../../cards/reference/fixtures');
+        const manifest = require('../../../../cards/reference/library').corpus(referenceFixtures);
         const forceRecording = manifest.recordings.find((row) => row.caseId === 'auto/LOF_193/force-first-gain');
         assert.ok(forceRecording, 'The corpus must retain the versioned Force engine witness');
         const versioned = records(path.join(referenceFixtures, 'traces', forceRecording.traceSha256 + '.jsonl.gz')).find((row) => row.type === 'state').state;

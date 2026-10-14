@@ -1,10 +1,10 @@
-use omni_rs::{check, Engine};
+use kessel::{check, Engine};
 use std::{io::BufRead, path::Path};
 
 #[test]
 fn recorded_engine_games_match_every_decision_and_window() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let engine = Engine::from_pool(&root.join("../omni/rs/pool.json")).unwrap();
+    let engine = Engine::from_pool(&root.join("data/pool.json")).unwrap();
     let mut fixtures = std::fs::read_dir(root.join("tests/fixtures"))
         .unwrap()
         .map(|entry| entry.unwrap().path())
@@ -26,7 +26,7 @@ fn recorded_engine_games_match_every_decision_and_window() {
 #[test]
 fn checker_rejects_missing_receipts_and_tampered_provenance() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let engine = Engine::from_pool(&root.join("../omni/rs/pool.json")).unwrap();
+    let engine = Engine::from_pool(&root.join("data/pool.json")).unwrap();
     let fixture = root.join("tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz");
     let records: Vec<serde_json::Value> = check::open_jsonl(&fixture)
         .unwrap()
@@ -35,7 +35,7 @@ fn checker_rejects_missing_receipts_and_tampered_provenance() {
         .collect();
     let check_modified = |name: &str, altered: Vec<serde_json::Value>, expected: &str| {
         let path =
-            std::env::temp_dir().join(format!("omni-rs-check-{}-{name}.jsonl", std::process::id()));
+            std::env::temp_dir().join(format!("kessel-check-{}-{name}.jsonl", std::process::id()));
         std::fs::write(
             &path,
             altered

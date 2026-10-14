@@ -4,11 +4,11 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { digest } = require('./coverage');
 const { sha256 } = require('../inventory');
-const repo = path.resolve(__dirname, '../../..');
+const repo = path.resolve(__dirname, '../..');
 // Full local import closure is available, instead of pretending an excerpt
 // captures every inherited default. Reviewers navigate its source inventory.
 function sourceBundle(entries, destination, server = path.join(repo, 'forceteki/server')) {
-    const { ts } = require('../../card-compiler/compiler');
+    const { ts } = require('../../compiler/compiler');
     const files = new Map(),
         missing = new Set(),
         visited = new Set();
@@ -74,29 +74,27 @@ function sourceBundle(entries, destination, server = path.join(repo, 'forceteki/
     return { files: [...files.values()].sort((a, b) => a.path.localeCompare(b.path)), unresolved: [...missing].sort() };
 }
 function implementationSnapshot() {
+    // Kessel's own implementation: the simulator, its Wasm build, the compiler and the card tooling.
+    // The forceteki harness that records reference games lives with the generator (swu_bot) and is
+    // snapshotted there.
     const paths = [
         'Cargo.toml',
         'Cargo.lock',
         'package.json',
         'package-lock.json',
-        'bot/env.js',
-        'bot/view.js',
-        'bot/omni-wasm/build.js',
-        'bot/omni-rs/Cargo.toml',
-        'bot/omni-rs/build.rs',
-        'bot/omni-rs/expression_codegen.rs',
-        'bot/omni-wasm/Cargo.toml',
-        'bot/card-compiler/compiler.js',
-        'bot/card-compiler/build.js',
-        'bot/omni/rs/state.js',
-        'bot/omni/rs/make-pool.js',
-    ];
-    for (const file of fs.readdirSync(path.join(repo, 'bot')).filter(f => /\.(js|mjs)$/.test(f))) paths.push('bot/' + file);
-    for (const file of fs.readdirSync(path.join(repo, 'bot/omni')).filter(f => /\.(js|mjs)$/.test(f))) paths.push('bot/omni/' + file);
-    for (const dir of ['bot/omni-rs/src', 'bot/omni-wasm/src', 'bot/cards/pipeline', 'bot/cards/reference', 'bot/omni/wasm', 'bot/omni/rs', 'bot/card-compiler', 'bot/players', 'bot/examples', 'bot/eval', 'bot/learned']) {
+        'crates/kessel-wasm/build.js',
+        'crates/kessel/Cargo.toml',
+        'crates/kessel/build.rs',
+        'crates/kessel/expression_codegen.rs',
+        'crates/kessel-wasm/Cargo.toml',
+        'compiler/compiler.js',
+        'compiler/build.js',
+        'compiler/keywords.js',
+    ].filter((relative) => fs.existsSync(path.join(repo, relative)));
+    for (const dir of ['crates/kessel/src', 'crates/kessel-wasm/src', 'cards/pipeline', 'cards/reference', 'crates/kessel-wasm/js', 'compiler']) {
         for (const file of fs
             .readdirSync(path.join(repo, dir), { recursive: true })
-            .filter((f) => /\.(rs|js|mjs|json)$/.test(f) && !f.startsWith('generated' + path.sep) && !(dir === 'bot/cards/reference' && f.startsWith('fixtures' + path.sep))))
+            .filter((f) => /\.(rs|js|mjs|json)$/.test(f) && !f.startsWith('generated' + path.sep) && !(dir === 'cards/reference' && f.startsWith('fixtures' + path.sep))))
             paths.push(dir + '/' + file);
     }
     return [...new Set(paths)]

@@ -1,25 +1,25 @@
 # Persistent SWU game handles in WebAssembly
 
-This package runs the same `omni-rs` rules and prover in Node or a browser. A `WasmGame` owns its position inside
+This package runs the same `kessel` rules and prover in Node or a browser. A `WasmGame` owns its position inside
 Wasm. `clone()` copies that position there, including unresolved prompts. `prove()` runs the entire AND/OR search
 inside Wasm: JavaScript does not enumerate, serialize, or apply its search nodes.
 
 Build with Rust and Node 22:
 
 ```sh
-node bot/omni-wasm/build.js --install-tools
+node crates/kessel-wasm/build.js --install-tools
 ```
 
 `--install-tools` installs the `wasm32-unknown-unknown` Rust target if missing and the matching `wasm-bindgen`
-CLI in the workspace's ignored `target/wasm-tools`. Subsequent builds need only `node bot/omni-wasm/build.js`.
+CLI in the workspace's ignored `target/wasm-tools`. Subsequent builds need only `node crates/kessel-wasm/build.js`.
 Use `--target node` or `--target web` for one format; the default builds both. `--debug` selects the Rust debug
-profile. Generated packages are ignored under `bot/omni-wasm/pkg/`; no paid service or credentials are involved.
+profile. Generated packages are ignored under `crates/kessel-wasm/pkg/`; no paid service or credentials are involved.
 
-Node loads `pkg/node/omni_wasm.js` as CommonJS:
+Node loads `pkg/node/kessel_wasm.js` as CommonJS:
 
 ```js
 const fs = require('fs');
-const { WasmEngine } = require('./pkg/node/omni_wasm.js');
+const { WasmEngine } = require('./pkg/node/kessel_wasm.js');
 const engine = new WasmEngine(fs.readFileSync('../omni/rs/pool.json', 'utf8'));
 const game = engine.loadState(JSON.stringify(fullState));
 const checkpoint = game.clone();
@@ -31,10 +31,10 @@ checkpoint.free();
 engine.free();
 ```
 
-Browser code imports `pkg/web/omni_wasm.js` and initializes its companion `.wasm` file:
+Browser code imports `pkg/web/kessel_wasm.js` and initializes its companion `.wasm` file:
 
 ```js
-import init, { WasmEngine } from './pkg/web/omni_wasm.js';
+import init, { WasmEngine } from './pkg/web/kessel_wasm.js';
 await init();
 const engine = new WasmEngine(await (await fetch('../omni/rs/pool.json')).text());
 ```

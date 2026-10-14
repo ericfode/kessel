@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const p = require('../pipeline/parent-upgrade-probes');
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../card-compiler/generated/catalog.json')));
+const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
 const get = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('two complete ordinary parent-upgrade source shapes classify', () => {
     assert.equal(p.classifyParentUpgrade(get('HMW_038')).mode, 'parent-trait-beast');

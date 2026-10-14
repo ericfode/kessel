@@ -16,7 +16,7 @@
 //! The belief is uniform over the hidden part given the decklists (both decklists are known, as
 //! in a tournament). It ignores what the opponent's earlier choices reveal about their hand.
 
-use omni_rs::{
+use kessel::{
     check::open_jsonl,
     model::{CardId, Zone},
     search::{Limits, Search},
@@ -30,7 +30,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const HELP: &str = "omni-pimc <trace.jsonl[.gz]>... [--deals 8] [--last 10] [--depth 12] [--nodes 50000] [--seed 1] [--pool FILE]
+const HELP: &str = "kessel-pimc <trace.jsonl[.gz]>... [--deals 8] [--last 10] [--depth 12] [--nodes 50000] [--seed 1] [--pool FILE]
 
 One JSON line per action window among the last --last windows of each trace. --deals counts the
 real deal. Proof limits apply to each (deal, move) solve separately. A window where no move is proven
@@ -298,7 +298,7 @@ fn run() -> Result<(), String> {
     let pool = flags
         .get("pool")
         .map(PathBuf::from)
-        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("../omni/rs/pool.json"));
+        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("data/pool.json"));
     let engine = Engine::from_pool(&pool)?;
     let stdout = std::io::stdout();
     let mut out = stdout.lock();
@@ -317,11 +317,11 @@ fn main() {
     match outcome {
         Ok(Ok(())) => (),
         Ok(Err(e)) => {
-            eprintln!("omni-pimc: {e}");
+            eprintln!("kessel-pimc: {e}");
             std::process::exit(1);
         }
         Err(_) => {
-            eprintln!("omni-pimc: thread panicked");
+            eprintln!("kessel-pimc: thread panicked");
             std::process::exit(1);
         }
     }
@@ -330,7 +330,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use omni_rs::check::first_state;
+    use kessel::check::first_state;
 
     fn sorted(z: &[CardId]) -> Vec<CardId> {
         let mut v = z.to_vec();
@@ -341,7 +341,7 @@ mod tests {
     #[test]
     fn redeal_keeps_everything_the_mover_sees() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let engine = Engine::from_pool(&root.join("../omni/rs/pool.json")).unwrap();
+        let engine = Engine::from_pool(&root.join("data/pool.json")).unwrap();
         let (_, states, _) =
             traces(&root.join("tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz")).unwrap();
         let mut rng = Rng(7);
@@ -351,7 +351,7 @@ mod tests {
             let s = engine.load_state(sj).unwrap();
             let seer = s.active;
             let (o, me) = (s.player(seer.other()), s.player(seer));
-            let unseen = |p: &omni_rs::model::Player| {
+            let unseen = |p: &kessel::model::Player| {
                 sorted(&[p.hand.as_slice(), p.resources.as_slice(), p.deck.as_slice()].concat())
             };
             let tired = |st: &State, z: &Zone| {

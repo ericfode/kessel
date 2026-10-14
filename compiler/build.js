@@ -3,9 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 const { SCHEMA, VERSION, hash, compileSource, loadEnums, ts } = require('./compiler');
-const { parseKeywords } = require('../omni/rs/make-pool');
+const { parseKeywords } = require('./keywords');
 
-const repository = path.resolve(__dirname, '../..');
+const repository = path.resolve(__dirname, '..');
 const codeFor = (card) => card.setId?.number == null ? `TOKEN_${card.internalName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}` : `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
 function files(root, extension) {
     return fs.readdirSync(root, { recursive: true }).filter((f) => f.endsWith(extension)).sort();
@@ -129,7 +129,6 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     for (const source of sources) if (!sourceUsed.has(source.id)) unmatchedSources.push({ sourcePath: source.sourcePath, sourceHash: source.sourceHash, role: 'source-without-card-data', id: source.id, internalName: source.internalName, status: source.status, diagnostics: source.diagnostics });
     inputs.sort((a, b) => a.file.localeCompare(b.file));
     const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
-    compilerFiles.push({ file: '../omni/rs/make-pool.js', sha256: hash(fs.readFileSync(path.join(__dirname, '../omni/rs/make-pool.js'))) });
     const inputHash = hash(JSON.stringify(inputs));
     const compilerHash = hash(JSON.stringify(compilerFiles));
     return { schema: SCHEMA, compilerVersion: VERSION, typescriptVersion: ts.version, sourceTreeHash: inputHash, compilerHash, inputs, sourceSupport: unmatchedSources, cards: definitions, inventory: { knownCards: definitions.length, mockCardsExcluded: mockCount, sourceFiles: files(sourceDir, '.ts').length, sourceDefinitions: sources.length, definitionsWithSource: sourceUsed.size } };
@@ -174,7 +173,7 @@ function main() {
     if (options.check) {
         for (const [name, content] of Object.entries(outputs)) {
             const file = path.join(options.out, name);
-            if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== content) throw new Error(`Stale generated card compiler artifact: ${file}; run node bot/card-compiler/build.js`);
+            if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== content) throw new Error(`Stale generated card compiler artifact: ${file}; run node compiler/build.js`);
         }
     } else {
         fs.mkdirSync(options.out, { recursive: true });

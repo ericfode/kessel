@@ -22,7 +22,7 @@ function options(args) {
         } else if (!a.startsWith('--') && !opts.file) opts.file = a;
         else throw new Error(`Unknown argument ${a}`);
     }
-    if (!opts.file) throw new Error('Usage: node bot/omni/wasm/prove.js positions.jsonl[.gz] [--pool FILE] [--catalogue FILE] [--depth 12] [--nodes N | --ms N | --ms-field jsMs]');
+    if (!opts.file) throw new Error('Usage: node crates/kessel-wasm/js/prove.js positions.jsonl[.gz] [--pool FILE] [--catalogue FILE] [--depth 12] [--nodes N | --ms N | --ms-field jsMs]');
     if (!Number.isInteger(opts.depth) || opts.depth < 0 || opts.depth > 65535) throw new Error('--depth must be an integer in 0..65535');
     if (opts.nodes !== undefined && (!Number.isSafeInteger(opts.nodes) || opts.nodes < 0)) throw new Error('--nodes must be a nonnegative safe integer');
     if (opts.ms !== undefined && (!Number.isFinite(opts.ms) || opts.ms < 0)) throw new Error('--ms must be a nonnegative finite number');

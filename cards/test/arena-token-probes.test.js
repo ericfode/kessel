@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {classifyArenaToken} = require("../pipeline/arena-token-probes");
 const fs = require("node:fs");
 const path = require("node:path");
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE ?? path.resolve(__dirname,"../../card-compiler/generated/catalog.json"))).cards;
+const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE ?? path.resolve(__dirname,"../../compiler/generated/catalog.json"))).cards;
 const copy = value => JSON.parse(JSON.stringify(value));
 const examples = ["ASH_064", "SEC_119", "SEC_252", "SOR_037"].map(code => catalogue.find(e => e.setCode === code));
 test("four complete structural token families classify", () => {
@@ -54,25 +54,6 @@ test("quiet donor provenance and malformed metadata reject", () => {
         e=>e.baseClass="EventCard",e=>e.sourcePath="",e=>e.card.pilotBox=false,e=>e.card.keywords.push("hidden")]) {
         const e=copy(original);change(e);assert.equal(quietUnit(e),false);
     }
-});
-
-test("source-derived entry title chooses renamed structural bulk correctly", () => {
-    const {entryChoice}=require("../pipeline/arena-token-probe-fixture");
-    const original=copy(examples[0]);original.abilities.card[0].title="Protect the qualifying units";
-    const shape=classifyArenaToken(original);assert.ok(shape);
-    const actions=[{kind:"button",label:"Shielded"},{kind:"button",label:"Protect the qualifying units"}];
-    assert.equal(entryChoice(actions,{...shape,entryOrder:"bulk"}),actions[1]);
-    assert.equal(entryChoice(actions,{...shape,entryOrder:"shielded"}),actions[0]);
-});
-test("all current plans roundtrip immutable library definitions and dependency closure", () => {
-    const {planArenaTokenProbes}=require("../pipeline/arena-token-probes");
-    const library=require("../reference/library");
-    const core=require("../pipeline/probe-fixture");
-    const all=examples.flatMap(e=>planArenaTokenProbes(e,{catalogue}).cases);
-    assert.equal(all.length,68);
-    for(const scenario of all) assert.deepEqual(library.definition(scenario.id,library.registry(),scenario),scenario);
-    for(const dependency of ["bot/cards/pipeline/arena-token-probes.js","bot/cards/pipeline/arena-token-probe-fixture.js","bot/omni/rs/make-pool.js"])
-        assert.ok(core.dependencies.includes(dependency),dependency);
 });
 
 test("ordinary upgrade holder compatibility and leader source class remain bounded", () => {

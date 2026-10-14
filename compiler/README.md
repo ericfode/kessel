@@ -20,9 +20,9 @@ Use Node 22 and the normal repository setup. The parser uses the TypeScript
 version already installed by the pinned `forceteki` dependency.
 
 ```sh
-node bot/card-compiler/build.js
-node bot/card-compiler/build.js --check
-node --test bot/card-compiler/test/*.test.js
+node compiler/build.js
+node compiler/build.js --check
+node --test compiler/test/*.test.js
 ```
 
 `--check` recomputes all outputs and exits 1 if a generated file is missing or
@@ -278,8 +278,9 @@ AST-converted.
 ## Runtime admission and conformance
 
 ```sh
-target/debug/omni-rs catalogue bot/card-compiler/generated/catalog.json --out-pool bot/card-compiler/generated/runtime-pool.json
-target/debug/omni-rs check traces.jsonl.gz --catalogue bot/card-compiler/generated/catalog.json --pool bot/card-compiler/generated/runtime-pool.json
+target/debug/kessel catalogue compiler/generated/catalog.json --out-pool compiler/generated/runtime-pool.json
+target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
+# in swu_bot (records forceteki games):
 node bot/omni/rs/make-compiled-fixtures.js --out replays/compiled-card-fixtures
 ```
 
@@ -315,5 +316,5 @@ The original strict-pool and compiled-runtime integration corpora remain useful
 smoke tests for their loading modes. Current counts come from `npm run cards --
 summary` and `generated/runtime-admission.json`, rather than historical batch totals.
 
-Follow the repository-local [conversion skill](../../.agents/skills/swu-card-conversion/SKILL.md)
+Follow swu_bot's [conversion skill](https://github.com/ericfode/swu_bot/blob/main/.agents/skills/swu-card-conversion/SKILL.md)
 for implementation, source-derived witnesses, and independent review requirements.

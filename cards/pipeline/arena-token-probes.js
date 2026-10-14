@@ -74,7 +74,7 @@ function quietUnit(entry, keywords = {}) {
         && /^[a-f0-9]{64}$/.test(entry.sourceHash ?? "");
     const dataOnly = entry.baseClass == null && entry.sourcePath === null && entry.sourceHash === null;
     if (!provenance && !dataOnly) return false;
-    const {parseKeywords} = require("../../omni/rs/make-pool");
+    const {parseKeywords} = require("../../compiler/keywords");
     return same(parseKeywords(c), keywords);
 }
 function nativeExperience(entry) {

@@ -6,7 +6,7 @@ const { createSimulator } = require('./node');
 const { records } = require('./check');
 
 async function main(args) {
-    const file = args[0] ?? 'bot/omni-rs/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz';
+    const file = args[0] ?? 'crates/kessel/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz';
     const nodes = Number(args[1] ?? 1000000);
     const repetitions = Number(args[2] ?? 3);
     if (!Number.isSafeInteger(repetitions) || repetitions < 1) throw new Error('Repetitions must be a positive integer');

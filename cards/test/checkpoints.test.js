@@ -17,15 +17,15 @@ function fixture(count=200) {
     const admissionPath='admission.json';
     const write = (p,o) => fs.writeFileSync(p,JSON.stringify(o));
     write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:[{setCode:'OLD'}]}); fs.writeFileSync(path.join(repo,'impl.js'),'baseline');
-    fs.mkdirSync(path.join(repo,'bot/card-compiler/generated'),{recursive:true}); fs.writeFileSync(path.join(repo,'bot/card-compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned'})); git(['add','.']);git(['commit','-qm','baseline']);const before=git(['rev-parse','HEAD']);
+    fs.mkdirSync(path.join(repo,'compiler/generated'),{recursive:true}); fs.writeFileSync(path.join(repo,'compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned'})); git(['add','.']);git(['commit','-qm','baseline']);const before=git(['rev-parse','HEAD']);
     const cards=Array.from({length:count},(_,i)=>'TST_'+String(i).padStart(3,'0'));
-    write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:['OLD','TOKEN_WEAKNESS',...cards].map(setCode=>({setCode}))}); fs.writeFileSync(path.join(repo,'impl.js'),'candidate'); fs.writeFileSync(path.join(repo,'bot/card-compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned',cards:cards.map(setCode=>({setCode,card:{},abilities:{},sourceHash:null,sourcePath:null}))}));
+    write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:['OLD','TOKEN_WEAKNESS',...cards].map(setCode=>({setCode}))}); fs.writeFileSync(path.join(repo,'impl.js'),'candidate'); fs.writeFileSync(path.join(repo,'compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned',cards:cards.map(setCode=>({setCode,card:{},abilities:{},sourceHash:null,sourcePath:null}))}));
     git(['add','.']);git(['commit','-qm','candidate']);const after=git(['rev-parse','HEAD']);
     const pipelineDirectory=path.join(dir,'pipeline');fs.mkdirSync(path.join(pipelineDirectory,'review'),{recursive:true}); fs.copyFileSync(path.join(repo,admissionPath),path.join(pipelineDirectory,'admission.json'));
     const defs=cards.map(cardId=>({id:'auto/'+cardId+'/case',kind:'probe',focusCardIds:[cardId],source:{module:'../pipeline/probe-fixture.js',scenario:'test'}}));
     const corpus=path.join(pipelineDirectory,'reference'); fs.mkdirSync(path.join(corpus,'traces'),{recursive:true});fs.mkdirSync(path.join(corpus,'pools'));
     const pool=Buffer.from('{}'), poolSha=sha(pool); fs.writeFileSync(path.join(corpus,'pools',poolSha+'.json'),pool);
-    const catalogHash=sha(fs.readFileSync(path.join(repo,'bot/card-compiler/generated/catalog.json')));
+    const catalogHash=sha(fs.readFileSync(path.join(repo,'compiler/generated/catalog.json')));
     const recordings=defs.map(def=>{
         const rows=[{type:'meta',schema:'omni-rs-trace-v1',pool:{sha256:poolSha},seed:1,scenario:'test',referenceCase:{id:def.id,definitionSha256:digest(def)}},{type:'state'},{type:'decision'},{type:'result'}];
         const bytes=require('node:zlib').gzipSync(rows.map(JSON.stringify).join('\n')), traceSha=sha(bytes);fs.writeFileSync(path.join(corpus,'traces',traceSha+'.jsonl.gz'),bytes);
@@ -39,7 +39,7 @@ function fixture(count=200) {
     packet.rules={execution:{auto:[],interpreter:[]}};
     report.plansSha256=digest(packet.cards.map(c=>c.probes));
     for(const backend of ['auto','interpreter']) {
-        const identities={catalogueSha256:catalogHash,nativeSha256:sha('binary'),wasmPackage:{'omni_wasm.js':sha('js'),'omni_wasm_bg.wasm':sha('wasm')}};
+        const identities={catalogueSha256:catalogHash,nativeSha256:sha('binary'),wasmPackage:{'kessel_wasm.js':sha('js'),'kessel_wasm_bg.wasm':sha('wasm')}};
         const rows=comparisons.filter(c=>c.runtime.endsWith('-'+backend));rows.forEach(c=>{c.identities=identities;});
         write(path.join(pipelineDirectory,'check-'+backend+'.json'),{schema:'swu-reference-check/v1',identities,results:rows.map(c=>({caseId:c.caseId,runtime:c.runtime.startsWith('native')?'native':'wasm',traceSha256:c.traceSha256,decisions:c.decisions,windows:c.windows,matched:true}))});
         fs.mkdirSync(path.join(pipelineDirectory,'dispatch-'+backend));

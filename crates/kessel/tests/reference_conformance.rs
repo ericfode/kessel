@@ -1,4 +1,4 @@
-use omni_rs::{check, Engine};
+use kessel::{check, Engine};
 use sha2::{Digest, Sha256};
 use std::{collections::{BTreeMap, BTreeSet}, path::Path, io::Read};
 
@@ -60,8 +60,8 @@ fn reference_manifest_reader_accepts_both_formats_and_rejects_damage() {
 #[test]
 fn every_reference_matches_current_programs_and_immutable_engine_recordings() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let catalogue = std::fs::read(root.join("../card-compiler/generated/catalog.json")).unwrap();
-    let directory = root.join("../cards/reference/fixtures");
+    let catalogue = std::fs::read(root.join("../../compiler/generated/catalog.json")).unwrap();
+    let directory = root.join("../../cards/reference/fixtures");
     let manifest = read_manifest(&directory).unwrap();
     assert_eq!(manifest["schema"], "swu-reference-corpus/v1");
     let recordings = manifest["recordings"].as_array().unwrap();

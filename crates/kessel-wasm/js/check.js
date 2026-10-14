@@ -84,7 +84,7 @@ function options(args) {
         } else if (flag.startsWith('--')) throw new Error(`Unknown option ${flag}`);
         else opts.files.push(flag);
     }
-    if (!opts.files.length) throw new Error('Usage: node bot/omni/wasm/check.js trace.jsonl[.gz]... [--pool FILE] [--catalogue FILE]');
+    if (!opts.files.length) throw new Error('Usage: node crates/kessel-wasm/js/check.js trace.jsonl[.gz]... [--pool FILE] [--catalogue FILE]');
     return opts;
 }
 

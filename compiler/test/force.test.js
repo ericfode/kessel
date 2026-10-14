@@ -10,7 +10,7 @@ test('Force defaults own player only when no inherited resolver override exists'
 });
 const fs=require('node:fs'),path=require('node:path');const {loadEnums}=require('../compiler');
 test('the three pinned source registrations retain use success and gain defaults',()=>{
- const root=path.resolve(__dirname,'../../../forceteki/server'),enums=loadEnums(root);
+ const root=path.resolve(__dirname,'../../forceteki/server'),enums=loadEnums(root);
  function find(dir,fragment){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,e.name);if(e.isDirectory()){const hit=find(file,fragment);if(hit)return hit;}else if(e.name.endsWith('.ts')&&fs.readFileSync(file,'utf8').includes(fragment))return file;}}
  for(const [fragment,kind,optional] of [['kiadimundi#we-must-push-on','useForce',true],['vernestra-rwoh#precocious-knight','useForce',true],['youngling-padawan','gainForce',false]]){
   const file=find(path.join(root,'game/cards'),fragment);assert.ok(file,fragment);const c=compileSource(fs.readFileSync(file,'utf8'),file,enums);assert.equal(c.status,'supported');const a=c.abilities.card[0];assert.equal(a.effect.kind,kind);assert.equal(a.effect.target,'ownPlayer');assert.equal(!!a.optional,optional);if(kind==='useForce')assert.ok(a.ifYouDo);

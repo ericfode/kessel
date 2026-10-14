@@ -33,11 +33,11 @@ cannot preserve are explicitly rejected by the compiler.
 Run from the repository root:
 
 ```sh
-cargo test -p omni-rs --test compiled_conformance
-target/debug/omni-rs check bot/omni-rs/tests/compiled-fixtures/*.jsonl.gz --catalogue bot/card-compiler/generated/catalog.json --pool bot/omni-rs/tests/compiled-fixtures/pool.json
+cargo test -p kessel --test compiled_conformance
+target/debug/kessel check crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated/catalog.json --pool crates/kessel/tests/compiled-fixtures/pool.json
 ```
 
-To create new receipts without overwriting this immutable pool:
+To create new receipts without overwriting this immutable pool (in swu_bot, which records forceteki games):
 
 ```sh
 node bot/omni/rs/make-compiled-fixtures.js --out replays/compiled-card-fixtures --targeted-seeds 4001-4004

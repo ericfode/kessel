@@ -16,19 +16,19 @@ ignored `target/wasm-tools` directory instead of replacing a global installation
 
 The generated-card build passed 300 original-pool games and 16 expanded-pool games with zero mismatches.
 It proved 102/103 sampled endgame positions in 14.00 seconds including imports, versus JavaScript's 66/103
-in 336.23 seconds; all 66 shared proofs agree. See [measurements and limits](../../../results/omni-wasm-2/README.md).
-For a self-contained local npm tarball usable outside this repository, see [packaging](../../omni-wasm/PACKAGING.md).
+in 336.23 seconds; all 66 shared proofs agree. See [measurements and limits](../../../validation/omni-wasm-2/README.md).
+For a self-contained local npm tarball usable outside this repository, see [packaging](../PACKAGING.md).
 
 ## Node
 
 ```js
-const { createSimulator, fromEnvGame } = require('./bot/omni/wasm/node');
+const { createSimulator, fromEnvGame } = require('./crates/kessel-wasm/js/node');
 async function main(exportedPosition) {
 const simulator = await createSimulator(); // default: the committed 100-card pool
 
 // Either import a pool-aware exported position, or a live forceteki action window.
 const game = simulator.loadState(exportedPosition);
-// const game = fromEnvGame(simulator, existingEnvGame, actingPlayerId);
+// const game = fromEnvGame(simulator, existingEnvGame, actingPlayerId, fullState); // exporter from swu_bot's bot/omni/rs/state.js
 
 const checkpoint = game.mark();                 // copied inside Wasm
 const actions = game.legalActions(game.actor);
@@ -54,8 +54,8 @@ the compiler's coverage report retains explicit reasons for unsupported cards.
 
 ```js
 const simulator = await createSimulator({
-    cataloguePath: './bot/card-compiler/generated/catalog.json',
-    poolPath: './bot/omni-rs/tests/compiled-fixtures/pool.json',
+    cataloguePath: './compiler/generated/catalog.json',
+    poolPath: './crates/kessel/tests/compiled-fixtures/pool.json',
 });
 ```
 
@@ -71,8 +71,8 @@ runner still performs setup and mulligans in forceteki, and unsupported cards ar
 ## Browser
 
 ```js
-import { createSimulator } from './bot/omni/wasm/browser.mjs';
-const simulator = await createSimulator({ poolJson: await (await fetch('./bot/omni/rs/pool.json')).text() });
+import { createSimulator } from './crates/kessel-wasm/js/browser.mjs';
+const simulator = await createSimulator({ poolJson: await (await fetch('./crates/kessel/data/pool.json')).text() });
 const game = simulator.loadState(exportedPosition);
 const result = game.prove({ depth: 12, nodes: 100000 });
 game.free();
@@ -88,21 +88,21 @@ The browser loader also accepts `catalogueJson`, with optional `poolJson`, using
 
 ```sh
 # Exact fixture/corpus replay through the JavaScript adapter.
-node bot/omni/wasm/check.js bot/omni-rs/tests/fixtures/*.jsonl.gz
-node bot/omni/wasm/check.js bot/omni-rs/tests/compiled-fixtures/*.jsonl.gz --catalogue bot/card-compiler/generated/catalog.json --pool bot/omni-rs/tests/compiled-fixtures/pool.json
+node crates/kessel-wasm/js/check.js crates/kessel/tests/fixtures/*.jsonl.gz
+node crates/kessel-wasm/js/check.js crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated/catalog.json --pool crates/kessel/tests/compiled-fixtures/pool.json
 
-# Existing JS match runner, using Wasm for complete endgame searches.
-node bot/omni/solve-games.js --engine wasm --pool bot/omni/rs/pool.json --bots aggro,control --seeds 101 --budget 2000 --depth 12 --sample 0 --out replays/wasm-solves
+# In swu_bot: the existing JS match runner, using Wasm for complete endgame searches.
+node bot/omni/solve-games.js --engine wasm --pool crates/kessel/data/pool.json --bots aggro,control --seeds 101 --budget 2000 --depth 12 --sample 0 --out replays/wasm-solves
 # Compiled-card matches use the same runner with the catalogue and its admitted pool.
-node bot/omni/solve-games.js --engine wasm --catalogue bot/card-compiler/generated/catalog.json --pool bot/omni-rs/tests/compiled-fixtures/pool.json --bots heuristic,heuristic --seeds 3001 --budget 100 --depth 2 --sample 0 --stop 1 --out replays/wasm-compiled-solves
+node bot/omni/solve-games.js --engine wasm --catalogue compiler/generated/catalog.json --pool crates/kessel/tests/compiled-fixtures/pool.json --bots heuristic,heuristic --seeds 3001 --budget 100 --depth 2 --sample 0 --stop 1 --out replays/wasm-compiled-solves
 
 # Prove exported positions, with a fixed budget or their measured JS time allowance.
-node bot/omni/wasm/prove.js replays/omni-rs-matched.jsonl --depth 12 --ms-field jsMs
-node bot/omni/wasm/prove.js replays/omni-rs-matched.jsonl --depth 12 --nodes 100000
+node crates/kessel-wasm/js/prove.js replays/omni-rs-matched.jsonl --depth 12 --ms-field jsMs
+node crates/kessel-wasm/js/prove.js replays/omni-rs-matched.jsonl --depth 12 --nodes 100000
 # Compiled positions use --catalogue catalog.json plus their exact --pool pool.json.
 
 # Three whole-Wasm rollout runs, with one 10,000-node warmup.
-node bot/omni/wasm/bench.js bot/omni-rs/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz 1000000 3
+node crates/kessel-wasm/js/bench.js crates/kessel/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz 1000000 3
 ```
 
 `solve-games.js` defaults to its existing JavaScript prover. `--engine wasm` requires an explicit pool and retains
@@ -112,4 +112,4 @@ the catalogue's absolute path and exact file SHA-256 are recorded in each result
 it preserves the original pool-based loader. The file prover also records import time and caller-observed latency,
 separately from the Rust search time. `bench` executes every rollout transition in Wasm, not in a JS loop.
 
-[Low-level bindings, memory ownership, and exact proof semantics](../../omni-wasm/README.md).
+[Low-level bindings, memory ownership, and exact proof semantics](../README.md).

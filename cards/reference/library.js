@@ -81,7 +81,9 @@ function verify(directory = defaultCorpus) {
     const index = registry(), manifest = corpus(directory);
     assert.equal(index.schema, 'swu-reference-cases/v1');
     assert.equal(new Set(index.cases.map(c => c.id)).size, index.cases.length, 'Duplicate case ID');
-    for (const [file, expected] of Object.entries(index.sources)) assert.equal(sha256(fs.readFileSync(path.resolve(root, file))), expected, 'Stale case index: run cards:reference index');
+    // Scenario modules live with the reference generator (swu_bot), which re-indexes and checks their hashes;
+    // here the index is data, and only the files kept in this repository are checked.
+    for (const [file, expected] of Object.entries(index.sources)) if (!file.startsWith('./scenarios/')) assert.equal(sha256(fs.readFileSync(path.resolve(root, file))), expected, 'Stale case index: re-index with the reference generator');
     const pools = new Set(), traces = new Set(), keys = new Set();
     for (const row of manifest.recordings) {
         const entry = definition(row.caseId, index, row.caseDefinition);

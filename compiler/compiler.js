@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../../forceteki')] }));
+const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
 const SCHEMA = 'swu-card-ir/v1';
 const VERSION = 1;
 const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');

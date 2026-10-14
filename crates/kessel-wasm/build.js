@@ -49,7 +49,7 @@ function main(args) {
         bindgen = localBindgen;
     }
 
-    const cargoArgs = ['rustc', '--locked', '-p', 'omni-wasm', '--lib', '--target', target];
+    const cargoArgs = ['rustc', '--locked', '-p', 'kessel-wasm', '--lib', '--target', target];
     if (!debug) cargoArgs.push('--release');
     // Fixed-size states are copied through recursive prompt trees. A 16 MiB Wasm
     // stack accommodates ordinary proof depths without changing the shared rules.
@@ -57,20 +57,20 @@ function main(args) {
     run('cargo', cargoArgs);
     const metadata = JSON.parse(run('cargo', ['metadata', '--no-deps', '--format-version', '1', '--locked'], true));
     const profile = debug ? 'debug' : 'release';
-    const wasm = path.join(metadata.target_directory, target, profile, 'omni_wasm.wasm');
+    const wasm = path.join(metadata.target_directory, target, profile, 'kessel_wasm.wasm');
     const output = outputDirectory === undefined ? path.join(__dirname, 'pkg') : path.resolve(outputDirectory);
     fs.mkdirSync(output, { recursive: true });
     const builds = [];
     for (const kind of format === 'all' ? ['node', 'web'] : [format]) {
         const destination = path.join(output, kind);
         fs.mkdirSync(destination, { recursive: true });
-        run(bindgen, [wasm, '--out-dir', destination, '--out-name', 'omni_wasm', '--target', kind === 'node' ? 'nodejs' : 'web', '--typescript']);
+        run(bindgen, [wasm, '--out-dir', destination, '--out-name', 'kessel_wasm', '--target', kind === 'node' ? 'nodejs' : 'web', '--typescript']);
         fs.writeFileSync(path.join(destination, 'package.json'), JSON.stringify({
-            name: `@swu-bot/omni-wasm-${kind}`, version: '0.1.0', private: true,
-            type: kind === 'node' ? 'commonjs' : 'module', main: './omni_wasm.js',
-            types: './omni_wasm.d.ts', files: ['*.js', '*.wasm', '*.ts']
+            name: `@kessel/wasm-${kind}`, version: '0.1.0', private: true,
+            type: kind === 'node' ? 'commonjs' : 'module', main: './kessel_wasm.js',
+            types: './kessel_wasm.d.ts', files: ['*.js', '*.wasm', '*.ts']
         }, null, 2) + '\n');
-        const artifact = fs.readFileSync(path.join(destination, 'omni_wasm_bg.wasm'));
+        const artifact = fs.readFileSync(path.join(destination, 'kessel_wasm_bg.wasm'));
         builds.push({ target: kind, bytes: artifact.length, sha256: crypto.createHash('sha256').update(artifact).digest('hex') });
         console.log(`Built ${path.relative(root, destination)} (${artifact.length.toLocaleString()} bytes Wasm)`);
     }

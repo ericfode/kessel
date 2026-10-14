@@ -11,7 +11,7 @@ function main() {
     const destination = path.join(pkg, 'distribution');
     const staging = path.join(destination, 'package');
     const sourceBindings = ['node', 'web'].map((target) => ({target, dir:path.join(pkg,target)}));
-    for (const {target,dir} of sourceBindings) for (const file of ['omni_wasm.js','omni_wasm_bg.wasm','omni_wasm.d.ts','package.json']) {
+    for (const {target,dir} of sourceBindings) for (const file of ['kessel_wasm.js','kessel_wasm_bg.wasm','kessel_wasm.d.ts','package.json']) {
         if (!fs.existsSync(path.join(dir,file))) throw new Error(`Missing ${target}/${file}; build both targets with npm run wasm:build first`);
     }
     const cargo = fs.readFileSync(path.join(__dirname,'Cargo.toml'),'utf8');
@@ -25,13 +25,13 @@ function main() {
         fs.mkdirSync(out,{recursive:true});
         for (const file of fs.readdirSync(dir)) if (/\.(?:js|wasm|ts)$/.test(file)||file==='package.json') fs.copyFileSync(path.join(dir,file),path.join(out,file));
     }
-    fs.copyFileSync(path.join(root,'bot/omni/wasm/adapter.mjs'),path.join(staging,'adapter.mjs'));
-    fs.copyFileSync(path.join(root,'bot/omni/rs/pool.json'),path.join(staging,'pool.json'));
+    fs.copyFileSync(path.join(root,'crates/kessel-wasm/js/adapter.mjs'),path.join(staging,'adapter.mjs'));
+    fs.copyFileSync(path.join(root,'crates/kessel/data/pool.json'),path.join(staging,'pool.json'));
     fs.copyFileSync(path.join(__dirname,'PACKAGING.md'),path.join(staging,'README.md'));
     fs.writeFileSync(path.join(staging,'node.cjs'),`'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const bindings = require('./bindings/node/omni_wasm.js');
+const bindings = require('./bindings/node/kessel_wasm.js');
 async function createSimulator({poolPath,poolJson,cataloguePath,catalogueJson}={}) {
     const {WasmSimulator}=await import('./adapter.mjs');
     const catalogue=catalogueJson??(cataloguePath===undefined?undefined:fs.readFileSync(cataloguePath,'utf8'));
@@ -41,7 +41,7 @@ async function createSimulator({poolPath,poolJson,cataloguePath,catalogueJson}={
 }
 module.exports={createSimulator};
 `);
-    fs.writeFileSync(path.join(staging,'browser.mjs'),`import init, * as bindings from './bindings/web/omni_wasm.js';
+    fs.writeFileSync(path.join(staging,'browser.mjs'),`import init, * as bindings from './bindings/web/kessel_wasm.js';
 import {WasmSimulator} from './adapter.mjs';
 export async function createSimulator({poolJson,catalogueJson,wasm}={}) {
     await init(wasm);
@@ -49,9 +49,9 @@ export async function createSimulator({poolJson,catalogueJson,wasm}={}) {
 }
 `);
     const manifest = {
-        name:'@swu-bot/omni-wasm',version,private:true,description:'Portable persistent SWU subset simulator and bounded prover; shared Rust core',
+        name:'@kessel/wasm',version,private:true,description:'Portable persistent SWU subset simulator and bounded prover; shared Rust core',
         type:'module',main:'./node.cjs',module:'./browser.mjs',browser:'./browser.mjs',
-        exports:{'.':{browser:'./browser.mjs',node:'./node.cjs',default:'./browser.mjs'},'./node':'./node.cjs','./browser':'./browser.mjs','./adapter':'./adapter.mjs','./pool.json':'./pool.json','./bindings/node':{types:'./bindings/node/omni_wasm.d.ts',default:'./bindings/node/omni_wasm.js'},'./bindings/web':{types:'./bindings/web/omni_wasm.d.ts',default:'./bindings/web/omni_wasm.js'},'./wasm':'./bindings/web/omni_wasm_bg.wasm','./package.json':'./package.json'},
+        exports:{'.':{browser:'./browser.mjs',node:'./node.cjs',default:'./browser.mjs'},'./node':'./node.cjs','./browser':'./browser.mjs','./adapter':'./adapter.mjs','./pool.json':'./pool.json','./bindings/node':{types:'./bindings/node/kessel_wasm.d.ts',default:'./bindings/node/kessel_wasm.js'},'./bindings/web':{types:'./bindings/web/kessel_wasm.d.ts',default:'./bindings/web/kessel_wasm.js'},'./wasm':'./bindings/web/kessel_wasm_bg.wasm','./package.json':'./package.json'},
         files:['node.cjs','browser.mjs','adapter.mjs','pool.json','bindings','README.md'],engines:{node:'>=22'},sideEffects:['./bindings/**']
     };
     fs.writeFileSync(path.join(staging,'package.json'),JSON.stringify(manifest,null,2)+'\n');

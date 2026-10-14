@@ -48,6 +48,14 @@ claimed for those recordings. Cases without recordings remain visible.
 
 ## Generate from Karabast
 
+> **In kessel:** generation drives the forceteki engine through swu_bot's headless harness
+> (`bot/env.js`, the random continuation bot and `bot/omni/rs/state.js`), so the scenario modules
+> (`reference/scenarios/`), `reference/generate.js`, `reference/index.js` and the probe fixtures and
+> pipeline runner (`pipeline/*-probe-fixture.js`, `run.js`, `prepared.js`, `cli.js`, `fanout.js`) stay in
+> swu_bot under `bot/cards/`. Run the `generate` and `index` commands below there; this repository
+> keeps the accepted corpus, the case index, the planners and the native/Wasm checker, and `import`s
+> what swu_bot generates.
+
 Use the normal engine dependencies/card data from `npm run setup`. A source archive
 or isolated engine is also usable when `forceteki/server` and `forceteki/build`
 resolve to the same engine directory with its package/build scripts available.
@@ -81,7 +89,7 @@ labeled and never counted as printed-card evidence.
 ## Compare and accept
 
 ```sh
-cargo build --locked --release -p omni-rs
+cargo build --locked --release -p kessel
 npm run wasm:build -- --target node
 npm run cards:reference -- check --corpus /tmp/zero-power-reference \
   --receipt /tmp/zero-power-check.json
@@ -105,6 +113,8 @@ loading modes. CI reads committed references; it does not need to build Karabast
 or regenerate expected answers to compare the current runtime.
 
 ## Add or change a case
+
+Steps 1-3 happen in swu_bot (see the note above); step 4's `check` and `import` run here.
 
 1. Add a named scenario to `reference/scenarios/<behavior>.js`. Each module exports
    `scenarios` and `fixture(env, pool, scenario, seed)`. Prefer an existing fixture

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{classifyHidden,planHiddenProbes}=require('../pipeline/hidden-probes');
-const catalogue=require('../../card-compiler/generated/catalog.json');
+const catalogue=require('../../compiler/generated/catalog.json');
 const entry=id=>structuredClone(catalogue.cards.find(c=>c.setCode===id));
 test('all measured Hidden admissions have explicit source-family construction',()=>{for(const id of ['ASH_125','ASH_177','ASH_255','HMW_162','HMW_176','HMW_233','LOF_132','LOF_241','LOF_246','SEC_187','SEC_221','SEC_225']){const p=planHiddenProbes(entry(id),{catalogue});assert.ok(p?.cases.length,id);assert.ok(p.uncovered.length,id);assert.ok(p.cases.every(c=>c.probe.family==='hidden'));}});
 test('keyword query and conditional grant are not intrinsic Hidden',()=>{assert.equal(classifyHidden(entry('LOF_241')).intrinsic,false);assert.equal(classifyHidden(entry('HMW_176')).intrinsic,false);});

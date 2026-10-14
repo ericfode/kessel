@@ -1,0 +1,24 @@
+{
+  "name": "kessel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kessel: a deterministic Rust simulator and endgame prover for Star Wars Unlimited, its WebAssembly build, and the compiler that turns forceteki card definitions into the rules IR it runs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "git submodule update --init && npm --prefix forceteki ci --ignore-scripts && npm --prefix forceteki run get-cards",
+    "test": "node --test cards/test/*.test.js tools/test/*.test.js",
+    "cards": "node cards/cli.js",
+    "cards:reference": "node cards/reference/cli.js",
+    "cards:compile": "node compiler/build.js && node tools/card-runtime-report.js",
+    "cards:check": "node compiler/build.js --check && node tools/card-runtime-report.js --check",
+    "cards:test": "node --test compiler/test/*.test.js cards/test/*.test.js",
+    "wasm:build": "node crates/kessel-wasm/build.js",
+    "wasm:test": "node --test crates/kessel-wasm/test.js crates/kessel-wasm/js/test/*.test.js",
+    "wasm:check": "node crates/kessel-wasm/js/check.js",
+    "wasm:bench": "node crates/kessel-wasm/js/bench.js",
+    "wasm:pack": "node crates/kessel-wasm/pack.js",
+    "wasm:pack:check": "node crates/kessel-wasm/verify-package.js"
+  }
+}

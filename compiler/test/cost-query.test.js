@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {compileSource,loadEnums}=require('../compiler');
 const {compileCatalog}=require('../build');
-const engine=path.resolve(__dirname,'../../../forceteki');
+const engine=path.resolve(__dirname,'../../forceteki');
 const enums=loadEnums(path.join(engine,'server'));
 function compile(body,base="NonLeaderUnitCard") {
     return compileSource('export default class Unknown extends '+base+' {getImplementationId(){return {id:"unknown-cost",internalName:"unknown-cost"};} setupCardAbilities(registrar,AbilityHelper){'+body+'}}','cost.ts',enums);

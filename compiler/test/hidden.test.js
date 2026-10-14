@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('node:path');
 const {compileSource,loadEnums}=require('../compiler');
 const {compileCatalog,keywordValues}=require('../build');
-const enums=loadEnums(path.resolve(__dirname,'../../../forceteki/server'));
+const enums=loadEnums(path.resolve(__dirname,'../../forceteki/server'));
 test('Hidden intrinsic extraction requires printed own-line keyword',()=>{
  for(const text of ['Hidden','Hidden\nOther text','Hidden\r\nOther text'])assert.deepEqual(keywordValues({keywords:['hidden'],types:['unit'],text}),{hidden:1});
  for(const text of ['Choose a unit with Hidden.','This unit gains Hidden.'])assert.deepEqual(keywordValues({keywords:['hidden'],types:['event'],text}),{});

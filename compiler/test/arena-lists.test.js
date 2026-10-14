@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { compileSource, loadEnums, hash } = require('../compiler');
-const root = path.resolve(process.env.SWU_ENGINE_SOURCE || path.join(__dirname, '../../../forceteki/server'));
+const root = path.resolve(process.env.SWU_ENGINE_SOURCE || path.join(__dirname, '../../forceteki/server'));
 const enums = loadEnums(root);
 const ref = (...path) => ({ kind: 'ref', path });
 function compile(body) {

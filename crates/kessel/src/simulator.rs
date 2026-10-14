@@ -5,7 +5,7 @@ use crate::model::*;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{collections::HashMap, path::Path};
-use swu_bot_rs::cards::{CardDb, CardInfo};
+use crate::cards::{CardDb, CardInfo};
 
 const SENTINEL: u16 = 1;
 const OVERWHELM: u16 = 2;

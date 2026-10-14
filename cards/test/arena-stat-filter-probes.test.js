@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { classifyArenaStatFilter, planArenaStatFilterProbes } = require('../pipeline/arena-stat-filter-probes');
-const catalogue = require('../../card-compiler/generated/catalog.json');
+const catalogue = require('../../compiler/generated/catalog.json');
 const entry = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('both printed sources get membership, lifecycle and actual damaged-expiry cases', () => {
     for (const id of ['HMW_111', 'LOF_127']) {

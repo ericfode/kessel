@@ -57,19 +57,11 @@ for(const format of ['manifest.json','manifest.json.gz']) test(format+' adoption
     lib.writeManifest(incoming,doc([b,old,a]));
     const catalogue=path.join(root,'catalog.json'),native=path.join(root,'native');fs.writeFileSync(catalogue,'{}');fs.writeFileSync(native,'fake native for orchestration test');let comparisons=0;
     const wrapped={...lib,defaultCorpus:destination,corpus:d=>lib.corpus(d??destination),verify:d=>lib.verify(d??destination)};
-    const check=moduleWith('check.js',{'./library':wrapped,'node:child_process':{spawnSync:(_binary,args)=>{comparisons++;return {status:0,stdout:args.filter(a=>a.endsWith('.jsonl.gz')).map(()=>JSON.stringify({matched:true,decisions:1,windows:1})).join('\n')};}},'../../omni/wasm/node':{createSimulator:async()=>({free(){}})},'../../omni/wasm/check':{records:()=>[],checkRecords:()=>({matched:true,runtime:'wasm',decisions:1,windows:1})}},'\n// Isolate orchestration from runtime files in this storage test.\n');
+    const check=moduleWith('check.js',{'./library':wrapped,'node:child_process':{spawnSync:(_binary,args)=>{comparisons++;return {status:0,stdout:args.filter(a=>a.endsWith('.jsonl.gz')).map(()=>JSON.stringify({matched:true,decisions:1,windows:1})).join('\n')};}},'../../crates/kessel-wasm/js/node':{createSimulator:async()=>({free(){}})},'../../crates/kessel-wasm/js/check':{records:()=>[],checkRecords:()=>({matched:true,runtime:'wasm',decisions:1,windows:1})}},'\n// Isolate orchestration from runtime files in this storage test.\n');
     // check() defaults resolve its catalogue/package relative to repo; intercept only those reads.
     const originalRead=fs.readFileSync,originalList=fs.readdirSync;
-    fs.readFileSync=function(file,...args){if(String(file).endsWith('/bot/card-compiler/generated/catalog.json'))return originalRead(catalogue,...args);return originalRead(file,...args);};
-    fs.readdirSync=function(file,...args){if(String(file).endsWith('/bot/omni-wasm/pkg/node'))return [];return originalList(file,...args);};
+    fs.readFileSync=function(file,...args){if(String(file).endsWith('/compiler/generated/catalog.json'))return originalRead(catalogue,...args);return originalRead(file,...args);};
+    fs.readdirSync=function(file,...args){if(String(file).endsWith('/crates/kessel-wasm/pkg/node'))return [];return originalList(file,...args);};
     try{await check.adopt({corpus:incoming,native});}finally{fs.readFileSync=originalRead;fs.readdirSync=originalList;}
     assert.ok(comparisons);assert.deepEqual(lib.corpus(destination).recordings,[old,b,a]);assert.equal(path.basename(lib.manifestArtifact(destination).path),format);
-});
-test('generation orchestration writes a fresh gzip corpus without changing witness or provenance',async t=>{
-    const root=temporary(t),out=path.join(root,'generated'),catalogue=path.join(root,'catalog.json'),pool=path.join(root,'pool.json');fs.writeFileSync(catalogue,'{"cards":[]}');fs.writeFileSync(pool,'{}');
-    const entry={id:'auto/TST_001/generated',kind:'probe',focusCardIds:['TST_001'],setupCardIds:[],source:{module:'../pipeline/probe-fixture.js',scenario:'generated'}};
-    const witness={optional:null,states:[{z:1,a:2}]};
-    const generate=moduleWith('generate.js',{'../../env':{Env:class{}},'../../omni/rs/pool':{loadPool:()=>({})},[path.resolve(__dirname,'../pipeline/probe-fixture.js')]:{fixture:async()=>({witness,records:[{type:'meta',schema:'omni-rs-trace-v1',pool:{sha256:sha256('{}')},seed:1,scenario:'generated'},{type:'decision'},{type:'state'},{type:'result'}]})}},'\nsourceIdentity = () => ({}); prepareEngine = () => ({storageTest:true});');
-    await generate.generate({out,entries:[entry],catalogue,pool,seed:1});
-    const artifact=lib.manifestArtifact(out);assert.equal(path.basename(artifact.path),'manifest.json.gz');assert.deepEqual(artifact.document.recordings[0].witness,witness);assert.equal(artifact.document.recordings[0].provenance.sourceCatalogueSha256,sha256(fs.readFileSync(catalogue)));assert.deepEqual(artifact.document.recordings[0].caseDefinition,entry);
 });

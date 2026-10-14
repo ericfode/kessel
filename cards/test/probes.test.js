@@ -2,7 +2,7 @@
 const test = require('node:test'),
     assert = require('node:assert/strict');
 const { planCardProbes } = require('../pipeline/probes');
-const catalogue = require('../../card-compiler/generated/catalog.json');
+const catalogue = require('../../compiler/generated/catalog.json');
 const plan = (id) =>
     planCardProbes(
         catalogue.cards.find((c) => c.setCode === id),
@@ -54,45 +54,6 @@ test('unknown effect properties remain uncovered', () => {
     e.abilities.card[0].effect.hiddenOperation = true;
     assert.equal(planCardProbes(e, { catalogue }).cases.length, 0);
 });
-test(
-    'automatic fixtures execute real oracle experiments including expiry, lethal damage, invalid zone and live refresh',
-    {
-        skip: !require('node:fs').existsSync(
-            require('node:path').resolve(__dirname, '../../../forceteki/build/server/game/core/Game.js'),
-        ),
-    },
-    async () => {
-        const { Env } = require('../../env'),
-            { loadPool } = require('../../omni/rs/pool'),
-            { fixture } = require('../pipeline/probe-fixture');
-        const pool = loadPool(
-                require('node:path').resolve(__dirname, '../../card-compiler/generated/runtime-pool.json'),
-            ),
-            env = new Env();
-        const scenarios = [
-            plan('TWI_124').cases.find((c) => c.probe.waitForExpiry),
-            plan('TWI_170').cases.find((c) => c.name.endsWith('-lethal')),
-            plan('TWI_170').cases.find((c) => c.probe.negativeOnly),
-            plan('JTL_052').cases.find((c) => c.probe.mutateSource),
-        ];
-        for (const [i, scenario] of scenarios.entries()) {
-            const { records, witness } = await fixture(env, pool, scenario, 84000 + i);
-            assert.equal(records.at(-1).type, 'result');
-            for (let j = 0; j < records.length; j++) {
-                if (records[j].type === 'state') {
-                    assert.equal(records[j + 1].type, 'decision');
-                    assert.equal(
-                        records[j].state.actor,
-                        records[j + 1].actor,
-                        'State actor must match next decision actor',
-                    );
-                }
-            }
-            assert.deepEqual(witness.coverageObligationIds, scenario.coverageObligationIds);
-        }
-    },
-);
-
 test('restricted selectors generate in-arena wrong owner and wrong arena negative constructions', () => {
     const e = structuredClone(catalogue.cards.find((c) => c.setCode === 'TWI_170'));
     e.abilities.card[0].targetResolver = { owner: 'self', type: 'unit', zone: 'groundArena' };
@@ -142,30 +103,4 @@ test('arena-list probes keep unsupported predicates and triggers explicit', () =
     const e = structuredClone(catalogue.cards.find(c => c.setCode === 'TWI_126'));
     e.abilities.card[0].effect.target.receiver.hidden = true;
     assert.equal(planCardProbes(e, {catalogue}).cases.length, 0);
-});
-test('arena-list oracle constructions witness membership, expiry, empty sets and lethal batches', async () => {
-    const { Env } = require('../../env'), { loadPool } = require('../../omni/rs/pool'), { fixture } = require('../pipeline/probe-fixture');
-    const pool = loadPool(require('node:path').resolve(__dirname, '../../card-compiler/generated/runtime-pool.json')), env = new Env();
-    for (const id of ['TWI_126', 'TWI_075', 'TS26_048']) if (!pool.cards.some(c => c.setCode === id)) pool.cards.push({...catalogue.cards.find(c => c.setCode === id).card, setCode:id});
-    let seed = 85000;
-    for (const id of ['TWI_126', 'TWI_075', 'TS26_048']) for (const scenario of plan(id).cases) {
-        const {witness} = await fixture(env,pool,scenario,seed++);
-        assert.deepEqual(witness.coverageObligationIds, scenario.coverageObligationIds);
-        if (scenario.name.endsWith('simultaneous-lethal'))
-            assert.ok(witness.observations.find(o => o.stage === 'after-resolution').targets.every(t => t.zone === 'discard'));
-    }
-});
-
-test('defeat arena-list construction witnesses owners, global order, death triggers, attachments and tokens', async () => {
-    const {Env}=require('../../env'), {loadPool}=require('../../omni/rs/pool'), {fixture}=require('../pipeline/probe-fixture');
-    const pool=loadPool(require('node:path').resolve(__dirname,'../../card-compiler/generated/runtime-pool.json')), env=new Env();
-    const ids=['SOR_043','SEC_078','JTL_080'];
-    const scenarios=ids.flatMap(id=>plan(id).cases);
-    for(const id of new Set([...ids,...scenarios.flatMap(c=>c.setupCardIds)])) if(!pool.cards.some(c=>c.setCode===id)) pool.cards.push({...catalogue.cards.find(c=>c.setCode===id).card,setCode:id});
-    let seed=86000;
-    for(const scenario of scenarios){
-        const {witness}=await fixture(env,pool,scenario,seed++);
-        assert.deepEqual(witness.coverageObligationIds,scenario.coverageObligationIds);
-    }
-    for(const id of ids){const p=plan(id);assert.ok(p.cases.some(c=>c.probe.expectDraws));assert.ok(p.cases.some(c=>c.name.endsWith('attachments-reversed')));assert.ok(p.cases.some(c=>c.name.endsWith('token-lifecycle')));}
 });

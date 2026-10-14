@@ -113,7 +113,7 @@ fn main() {
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("../card-compiler/generated/catalog.json")
+                .join("../../compiler/generated/catalog.json")
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");

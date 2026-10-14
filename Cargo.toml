@@ -1,0 +1,7 @@
+[workspace]
+members = ["crates/kessel", "crates/kessel-wasm"]
+resolver = "2"
+
+[profile.release]
+debug = false
+lto = "thin"

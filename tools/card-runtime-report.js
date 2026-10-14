@@ -7,13 +7,13 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
-const output = path.join(root, 'bot/card-compiler/generated');
+const output = path.join(root, 'compiler/generated');
 const check = process.argv.includes('--check');
 if (process.argv.slice(2).some((arg) => arg !== '--check')) throw new Error('Usage: node tools/card-runtime-report.js [--check]');
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'swu-card-admission-'));
 try {
     const pool = path.join(temporary, 'pool.json');
-    const run = spawnSync('cargo', ['run', '--locked', '--quiet', '--release', '-p', 'omni-rs', '--bin', 'omni-rs', '--',
+    const run = spawnSync('cargo', ['run', '--locked', '--quiet', '--release', '-p', 'kessel', '--bin', 'kessel', '--',
         'catalogue', path.join(output, 'catalog.json'), '--out-pool', pool], {
         cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     });

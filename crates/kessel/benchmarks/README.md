@@ -1,10 +1,10 @@
 # Equal-work search benchmarks
 
 `tools/omni-search-bench.js` measures actual native `Search::solve` calls through
-`omni-rs prove`. It compares frozen inputs and preserved binaries, alternates
+`kessel prove`. It compares frozen inputs and preserved binaries, alternates
 workload order and rotates binary order, excludes warmups, and rejects any change
 in position identity, result, depth, completion, nodes, decisions or transpositions.
-It never passes `--rules-receipt` during timing. Rollout `omni-rs bench` numbers
+It never passes `--rules-receipt` during timing. Rollout `kessel bench` numbers
 measure a different operation and should be reported separately.
 
 The default [workload sources](search-workloads.json) select fifteen action windows
@@ -26,13 +26,13 @@ Keep receipts outside the repository (or in ignored replay storage).
 
 ```sh
 mkdir -p /tmp/omni-search-performance/before
-cargo build --release -p omni-rs
-cargo rustc --locked -p omni-wasm --lib --target wasm32-unknown-unknown --release -- -C link-arg=-zstack-size=16777216
-cp target/release/omni-rs /tmp/omni-search-performance/before/omni-rs
-cp target/wasm32-unknown-unknown/release/omni_wasm.wasm /tmp/omni-search-performance/before/omni_wasm.wasm
+cargo build --release -p kessel
+cargo rustc --locked -p kessel-wasm --lib --target wasm32-unknown-unknown --release -- -C link-arg=-zstack-size=16777216
+cp target/release/kessel /tmp/omni-search-performance/before/kessel
+cp target/wasm32-unknown-unknown/release/kessel_wasm.wasm /tmp/omni-search-performance/before/kessel_wasm.wasm
 git rev-parse HEAD > /tmp/omni-search-performance/before/commit.txt
 rustc --version > /tmp/omni-search-performance/before/rustc.txt
-node tools/omni-search-bench.js prepare bot/omni-rs/benchmarks/search-workloads.json /tmp/omni-search-performance/inputs
+node tools/omni-search-bench.js prepare crates/kessel/benchmarks/search-workloads.json /tmp/omni-search-performance/inputs
 node --test tools/test/omni-search-bench.test.js
 ```
 
@@ -51,9 +51,9 @@ Write `/tmp/omni-search-performance/comparison.json`:
   "rounds": 9,
   "warmups": 1,
   "variants": [
-    {"id": "before", "binary": "before/omni-rs", "wasm": "before/omni_wasm.wasm", "backend": "auto", "commit": "BASELINE_SHA"},
-    {"id": "after", "binary": "after/omni-rs", "wasm": "after/omni_wasm.wasm", "backend": "auto", "commit": "CANDIDATE_SHA"},
-    {"id": "interpreter", "binary": "after/omni-rs", "backend": "interpreter", "commit": "CANDIDATE_SHA"}
+    {"id": "before", "binary": "before/kessel", "wasm": "before/kessel_wasm.wasm", "backend": "auto", "commit": "BASELINE_SHA"},
+    {"id": "after", "binary": "after/kessel", "wasm": "after/kessel_wasm.wasm", "backend": "auto", "commit": "CANDIDATE_SHA"},
+    {"id": "interpreter", "binary": "after/kessel", "backend": "interpreter", "commit": "CANDIDATE_SHA"}
   ]
 }
 ```
@@ -93,7 +93,7 @@ Use a larger node budget on the same prepared position, with no time limit. On
 macOS, run the child and sample its PID from a second terminal:
 
 ```sh
-/tmp/omni-search-performance/before/omni-rs prove /tmp/omni-search-performance/inputs/chirpa-other-ewok-entry-removal.jsonl --pool /tmp/omni-search-performance/inputs/chirpa-other-ewok-entry-removal-pool.json --catalogue /tmp/omni-search-performance/inputs/catalog.json --backend auto --nodes 1000000 --depth 12
+/tmp/omni-search-performance/before/kessel prove /tmp/omni-search-performance/inputs/chirpa-other-ewok-entry-removal.jsonl --pool /tmp/omni-search-performance/inputs/chirpa-other-ewok-entry-removal-pool.json --catalogue /tmp/omni-search-performance/inputs/catalog.json --backend auto --nodes 1000000 --depth 12
 sample PID 10 1 -file /tmp/omni-search-performance/chirpa-sample.txt
 ```
 

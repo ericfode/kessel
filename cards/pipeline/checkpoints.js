@@ -88,7 +88,7 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
         const report = read(path.join(pipelineDirectory, 'report.json'));
         check(report.schema === 'swu-card-pipeline-run/v1' && !report.failure && report.comparisons.length > 0 && report.comparisons.every(c => c.matched === true || c.status === 'matched'), 'Pipeline comparisons not accepted');
         check(report.review?.packetSha256 === digest(packet), 'Report packet binding changed');
-        const catalogueBytes = blob(repo, after, 'bot/card-compiler/generated/catalog.json');
+        const catalogueBytes = blob(repo, after, 'compiler/generated/catalog.json');
         check(report.catalogueSha256 === hash(catalogueBytes) && packet.catalogueSha256 === hash(catalogueBytes), 'Committed catalogue differs');
         const admission = JSON.parse(afterBytes), catalogue = JSON.parse(catalogueBytes);
         check(admission.schema === 'omni-rs-catalogue-report-v1' && digest(read(path.join(pipelineDirectory, 'admission.json'))) === digest(admission), 'Committed admission differs from pipeline');
@@ -104,7 +104,7 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
         for (const { backend, receipt } of checkReceipts) {
             check(receipt.schema === 'swu-reference-check/v1' && receipt.identities.catalogueSha256 === hash(catalogueBytes), 'Backend catalogue changed');
             check(/^[a-f0-9]{64}$/.test(receipt.identities.nativeSha256), 'Missing native binary identity');
-            if (backend === 'auto') check(receipt.identities.wasmPackage && ['omni_wasm.js','omni_wasm_bg.wasm'].every(k => /^[a-f0-9]{64}$/.test(receipt.identities.wasmPackage[k])), 'Missing Wasm package identity');
+            if (backend === 'auto') check(receipt.identities.wasmPackage && ['kessel_wasm.js','kessel_wasm_bg.wasm'].every(k => /^[a-f0-9]{64}$/.test(receipt.identities.wasmPackage[k])), 'Missing Wasm package identity');
             const expected = receipt.results.map(r => ({ ...r, runtime: (r.runtime === 'native' ? 'native' : 'wasm') + '-' + backend, identities: receipt.identities }));
             const actual = report.comparisons.filter(r => r.runtime.endsWith('-' + backend));
             check(actual.length === expected.length, 'Backend receipt count differs');

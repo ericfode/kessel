@@ -15,7 +15,7 @@ const HELP = `Usage:
   node tools/omni-search-bench.js prepare <workloads.json> <new-output-directory>
   node tools/omni-search-bench.js run <comparison.json> <new-output-directory>
 
-See bot/omni-rs/benchmarks/README.md for config, invariants and profiling commands.`;
+See crates/kessel/benchmarks/README.md for config, invariants and profiling commands.`;
 const sha256 = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const writeJson = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });

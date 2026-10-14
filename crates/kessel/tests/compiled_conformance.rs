@@ -1,4 +1,4 @@
-use omni_rs::{check, Engine};
+use kessel::{check, Engine};
 use std::path::Path;
 
 #[test]
@@ -6,7 +6,7 @@ fn compiled_card_programs_match_all_expanded_engine_receipts() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let directory = root.join("tests/compiled-fixtures");
     let pool = std::fs::read(directory.join("pool.json")).unwrap();
-    let catalogue = std::fs::read(root.join("../card-compiler/generated/catalog.json")).unwrap();
+    let catalogue = std::fs::read(root.join("../../compiler/generated/catalog.json")).unwrap();
     let engine = Engine::from_compiled_pool_bytes(&pool, &catalogue).unwrap();
     let mut fixtures = std::fs::read_dir(&directory)
         .unwrap()

@@ -18,6 +18,12 @@ flowchart LR
   Coverage --> Review
 ```
 
+> **In kessel:** the planners (`pipeline/*-probes.js`), coverage, mutations, review packets, checkpoints and the
+> work queue live here; the runner that records the engine (`pipeline/run.js`, `prepared.js`, `cli.js`,
+> `fanout.js` and the `*-probe-fixture.js` constructors) stays in swu_bot under `bot/cards/pipeline/`, so
+> `npm run cards:pipeline` is a swu_bot command. Its reference output is imported here with
+> `npm run cards:reference -- import`.
+
 Run from the repository root with Node 22 and normal engine/Rust/Wasm setup:
 
 ```sh
@@ -55,7 +61,7 @@ ready for validation; it does not mark a card correct or admitted.
 ```sh
 npm run cards:pipeline -- work init --remaining --limit 20 --out /tmp/card-work
 npm run cards:pipeline -- work status --run /tmp/card-work
-npm run cards:pipeline -- work claim --run /tmp/card-work --job CARD_ID --worker author-a --paths bot/card-compiler/FILE.js
+npm run cards:pipeline -- work claim --run /tmp/card-work --job CARD_ID --worker author-a --paths compiler/FILE.js
 ```
 
 The claim response provides `workDir`, `token`, `bundlePath` and `handoffPath`.
@@ -189,9 +195,9 @@ A static table of instructions alone would
 not count as generated execution; dispatch receipts show actual generated steps.
 
 ```sh
-target/release/omni-rs rules --catalogue bot/card-compiler/generated/catalog.json
-target/release/omni-rs check TRACE --pool POOL --catalogue CATALOG --backend interpreter
-target/release/omni-rs check TRACE --pool POOL --catalogue CATALOG --backend auto --rules-receipt /tmp/dispatch.json
+target/release/kessel rules --catalogue compiler/generated/catalog.json
+target/release/kessel check TRACE --pool POOL --catalogue CATALOG --backend interpreter
+target/release/kessel check TRACE --pool POOL --catalogue CATALOG --backend auto --rules-receipt /tmp/dispatch.json
 ```
 
 Auto selects generated code when the exact program was present at build time;

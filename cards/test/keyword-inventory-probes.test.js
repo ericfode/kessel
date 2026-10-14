@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const p = require('../pipeline/keyword-inventory-probes');
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../card-compiler/generated/catalog.json')));
+const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
 const get = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('complete aura and optional exhaust source shapes classify', () => {
     assert.equal(p.classifyKeywordInventory(get('ASH_100')).mode, 'other-friendly-aura');
@@ -89,23 +89,4 @@ test('missing Coordinate ability metadata returns rejection without throwing', (
         const donor = get('TWI_045'); donor.abilities = value;
         assert.equal(p.coordinateUnit(donor), false);
     }
-});
-test('renamed structural Force donors retain identity-based gain/use assertions', () => {
-    const { assertGainUseCheckpoint } = require('../pipeline/keyword-inventory-probe-fixture');
-    const gain = get('LOF_193'), use = get('LOF_195');
-    gain.internalName = gain.card.internalName = 'alternate-gain'; gain.card.title = 'Alternate Gain';
-    use.internalName = use.card.internalName = 'alternate-use'; use.card.title = 'Alternate Use';
-    assert.ok(p.roleDonor(gain, 'gain-force')); assert.ok(p.roleDonor(use, 'use-ready'));
-    const firstGain = { internalName: gain.internalName }, secondGain = { internalName: gain.internalName }, used = { internalName: use.internalName, exhausted: false };
-    const extras = [{}, firstGain, used, secondGain];
-    const host = { cardData: { hp: 4 }, keywords: [{ name: 'sentinel' }, { name: 'restore' }], getHp: () => 7 };
-    for (const card of [firstGain, secondGain]) {
-        assert.equal(assertGainUseCheckpoint(host, card, extras, { held: true }), 'gain');
-        assert.throws(() => assertGainUseCheckpoint(host, card, extras, { held: false }));
-    }
-    host.keywords = [{ name: 'restore' }]; host.getHp = () => 5;
-    assert.equal(assertGainUseCheckpoint(host, used, extras, { held: false }), 'use');
-    assert.throws(() => assertGainUseCheckpoint(host, used, extras, { held: true }));
-    used.exhausted = true;
-    assert.throws(() => assertGainUseCheckpoint(host, used, extras, { held: false }));
 });

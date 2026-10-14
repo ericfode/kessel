@@ -66,7 +66,7 @@ function keywordOnly(e){
     const values=e.keywordValues??{},names=Object.keys(values).sort();
     if(!names.length||names.some(k=>!['sentinel','saboteur'].includes(k)||values[k]!==1)||!same([...(e.card.keywords??[])].sort(),names))return false;
     if(e.baseClass==='NonLeaderUnitCard')return typeof e.sourcePath==='string'&&e.sourcePath.length>0&&/^[a-f0-9]{64}$/.test(e.sourceHash??'');
-    return !e.baseClass&&e.sourcePath===null&&e.sourceHash===null&&same(require('../../omni/rs/make-pool').parseKeywords(e.card),values);
+    return !e.baseClass&&e.sourcePath===null&&e.sourceHash===null&&same(require('../../compiler/keywords').parseKeywords(e.card),values);
 }
 function planArenaKeywordSetProbes(entry,options={}){
     const shape=classifyArenaKeywordSet(entry);if(!shape)return null;

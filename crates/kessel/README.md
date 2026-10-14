@@ -1,6 +1,6 @@
 # Rust simulator and endgame prover
 
-`omni-rs` is a deterministic, perfect-information rules library and command-line prover for an explicit Star Wars
+`kessel` (formerly `omni-rs` in swu_bot) is a deterministic, perfect-information rules library and command-line prover for an explicit Star Wars
 Unlimited card subset. The existing match runner still uses forceteki. Setup and mulligans happen in that engine;
 Rust starts at the first action window with both hands and both deck orders known.
 
@@ -8,9 +8,9 @@ The library is the starting point for a Rust backend: game transitions and searc
 trace tools use JavaScript to obtain reference decisions and states from the pinned engine. Extending the card
 pool requires implementing and checking the new rules; unsupported cards are errors.
 
-The same core is now available as a [WebAssembly package and JavaScript adapter](../omni/wasm/README.md).
+The same core is now available as a [WebAssembly package and JavaScript adapter](../kessel-wasm/js/README.md).
 It keeps persistent state, checkpoints, and complete searches inside Wasm, with Node and browser loaders.
-The [card compiler](../card-compiler/README.md) lowers supported forceteki TypeScript definitions into data-only
+The [card compiler](../../compiler/README.md) lowers supported forceteki TypeScript definitions into data-only
 card programs consumed by the same Rust core. Source conversion and executable support are reported separately;
 the generated catalog includes explicit rejection reasons for rules that are not implemented.
 
@@ -40,8 +40,8 @@ snapshots and stable action keys. Keep browser searches in a Worker so a synchro
 npm run cards:compile
 npm run cards:test
 npm run cards:check
-target/release/omni-rs catalogue bot/card-compiler/generated/catalog.json
-target/release/omni-rs check trace.jsonl.gz --catalogue bot/card-compiler/generated/catalog.json --pool bot/card-compiler/generated/runtime-pool.json
+target/release/kessel catalogue compiler/generated/catalog.json
+target/release/kessel check trace.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
 ```
 
 The generated pool is an admission manifest, not evidence that every admitted card has been played. The compiler
@@ -51,12 +51,14 @@ Wasm execute the same accepted programs; no TypeScript callback runs inside sear
 
 ## Build and reference data
 
-Use Node 22 and the repository's setup instructions. `forceteki/build/server` and `forceteki/test/json` are required
-for the reference tools. The Rust workspace shares the existing loader in `bot/rust/src/cards.rs`.
+Building and testing the crate needs only Rust: the generated catalog and every pool are committed. The card JSON
+loader (`$SWU_CARD_JSON`, else `forceteki/test/json`) is `src/cards.rs`. Recording new reference traces needs a
+built forceteki and the swu_bot harness; those commands (`node bot/...`) run in swu_bot.
 
 ```sh
-cargo build --release -p omni-rs
+cargo build --release -p kessel
 cargo test --workspace
+# in swu_bot, to regenerate the strict 100-card pool (crates/kessel/data/pool.json):
 node bot/omni/rs/make-pool.js
 ```
 
@@ -122,45 +124,46 @@ recorded game's end at which a forced winner is found; it is not a prediction th
 the winning line.
 
 ```sh
+# The `node bot/...` commands play bots through forceteki and run in swu_bot.
 # Generate the 300-game corpus, 75 games per pairing.
 for bots in random,random heuristic,heuristic aggro,control tempo,rush; do
-  node bot/omni/rs/trace.js --pool bot/omni/rs/pool.json --bots "$bots" --seeds 1-75 --out replays/omni-rs-corpus --gzip
+  node bot/omni/rs/trace.js --pool crates/kessel/data/pool.json --bots "$bots" --seeds 1-75 --out replays/omni-rs-corpus --gzip
 done
-target/release/omni-rs check replays/omni-rs-corpus/*.jsonl.gz
-node tools/omni-rs-report.js coverage bot/omni/rs/pool.json replays/omni-rs-corpus replays/omni-rs-coverage.json
+target/release/kessel check replays/omni-rs-corpus/*.jsonl.gz
+node tools/omni-rs-report.js coverage crates/kessel/data/pool.json replays/omni-rs-corpus replays/omni-rs-coverage.json
 
 # Generate the 16 JS endgames, then replay/export exactly those deals.
 for bots in aggro,control tempo,rush; do
-  node bot/omni/solve-games.js --pool bot/omni/rs/pool.json --bots "$bots" --seeds 101-108 --budget 2000 --stop 2 --sample 0 --out replays/omni-rs-solve
+  node bot/omni/solve-games.js --pool crates/kessel/data/pool.json --bots "$bots" --seeds 101-108 --budget 2000 --stop 2 --sample 0 --out replays/omni-rs-solve
 done
-node bot/omni/export-positions.js replays/omni-rs-solve replays/omni-rs-positions.jsonl --pool bot/omni/rs/pool.json
+node bot/omni/export-positions.js replays/omni-rs-solve replays/omni-rs-positions.jsonl --pool crates/kessel/data/pool.json
 node tools/omni-rs-report.js prepare replays/omni-rs-solve replays/omni-rs-positions.jsonl replays/omni-rs-matched.jsonl
-target/release/omni-rs prove replays/omni-rs-matched.jsonl --depth 12 --ms-field jsMs > replays/omni-rs-proofs.jsonl
+target/release/kessel prove replays/omni-rs-matched.jsonl --depth 12 --ms-field jsMs > replays/omni-rs-proofs.jsonl
 node tools/omni-rs-report.js compare replays/omni-rs-matched.jsonl replays/omni-rs-proofs.jsonl replays/omni-rs-comparison.json
 
 # A fixed budget also works; output is one JSON result per position.
-target/release/omni-rs prove replays/omni-rs-matched.jsonl --depth 12 --nodes 100000
-target/release/omni-rs prove replays/omni-rs-matched.jsonl --depth 12 --ms 2000
+target/release/kessel prove replays/omni-rs-matched.jsonl --depth 12 --nodes 100000
+target/release/kessel prove replays/omni-rs-matched.jsonl --depth 12 --ms 2000
 
 # Three independent, single-thread throughput runs used below.
 for fixture in heuristic-vs-heuristic-1 heuristic-vs-heuristic-2 random-vs-random-1; do
-  target/release/omni-rs bench "bot/omni-rs/tests/fixtures/$fixture.jsonl.gz" --nodes 1000000
+  target/release/kessel bench "crates/kessel/tests/fixtures/$fixture.jsonl.gz" --nodes 1000000
 done
 ```
 
 `check` initializes Rust only once per trace and compares every subsequent legal action set, full action-window
 state, and terminal state. It validates pool hashes and sequence receipts and stops at the first difference with
-both sides and a field-level diagnostic. [Trace schema and canonical action identity](../omni/rs/README.md).
+both sides and a field-level diagnostic. [Trace schema and canonical action identity](https://github.com/ericfode/swu_bot/blob/main/bot/omni/rs/README.md) (in swu_bot, with the trace exporter).
 
 ## Original 100-card results, 2026-10-11
 
 These historical measurements precede the generic card-program interpreter. The separate
-[fresh Wasm comparison](../../results/omni-wasm-1/README.md) records its exact measured commit as well.
+[fresh Wasm comparison](../../validation/omni-wasm-1/README.md) records its exact measured commit as well.
 Neither report measures the expanded catalog.
 
 Measured on one Apple M5 Max, macOS 26.5.2 arm64, Node 22.22.3, Rust/Cargo 1.98.0, release profile, one thread.
 Reference engine: `2be4fcdb4325346bb4a1ba14b29d4f66a1093e2a`. The exact 100-card pool hash and all counts are in
-[summary.json](../../results/omni-rs-1/summary.json).
+[summary.json](../../validation/omni-rs-1/summary.json).
 
 ### Correctness and coverage
 
@@ -172,8 +175,8 @@ Reference engine: `2be4fcdb4325346bb4a1ba14b29d4f66a1093e2a`. The exact 100-card
 | tempo,rush | 1–75 | 75 | 9,928 | 5,335 | 0 |
 | Total | | 300 | 57,604 | 25,949 | 0 |
 
-[Every pool card's played, attacked, and defeated counts](../../results/omni-rs-1/coverage.md) and
-[per-trace checks](../../results/omni-rs-1/check-results.jsonl) are committed. Mae (`HMW_055`) never appeared in the
+[Every pool card's played, attacked, and defeated counts](../../validation/omni-rs-1/coverage.md) and
+[per-trace checks](../../validation/omni-rs-1/check-results.jsonl) are committed. Mae (`HMW_055`) never appeared in the
 ordinary corpus because the dealer cannot fit her three aspects into these leader/base pairs. Imperial Venator
 (`HMW_069`) appeared, was played, and attacked, but was never defeated. These are coverage gaps, not passed cases.
 Additional targeted fixtures exercise Mae, missing-aspect costs, both unique choices, Ambush/Shielded ordering,
@@ -207,7 +210,7 @@ solve, across depths and candidate winners. Rust receives
 the **actual elapsed JS time for each window**, not a blanket 2,000 ms. The mean improvement is 1.9375 recorded
 windows. Rust proves the earliest sampled window in 15/16 games, so this result is a lower bound on its reach in
 this sample: the experiment stops where JS stopped. The maximum distance of 12 is not a 12-window proof; the
-longest successful Rust proof depth in this run was 7. [Per-game horizons](../../results/omni-rs-1/agreement.md).
+longest successful Rust proof depth in this run was 7. [Per-game horizons](../../validation/omni-rs-1/agreement.md).
 
 ### Winner agreement
 
@@ -218,8 +221,8 @@ longest successful Rust proof depth in this run was 7. [Per-game horizons](../..
 | Disagreements | 0 |
 | Rust result missing | 0 |
 
-[All 66 pairs of winner labels](../../results/omni-rs-1/agreement.md) and
-[all 103 Rust results with budgets](../../results/omni-rs-1/proof-results.jsonl) are committed. The only Rust
+[All 66 pairs of winner labels](../../validation/omni-rs-1/agreement.md) and
+[all 103 Rust results with budgets](../../validation/omni-rs-1/proof-results.jsonl) are committed. The only Rust
 unknown was `aggro-vs-control-108`, window 64, eight windows from the end, after its 6,859 ms budget. No observed
 disagreements need explaining; future ones can arise because Rust lets a defender choose a reply that JS's
 heuristic follow-ups never tried.
@@ -238,7 +241,7 @@ it does not expose the full forceteki object graph.
 
 ## Card and behavior references
 
-See [the card catalog](../cards/README.md) for named semantic cases, immutable
+See [the card catalog](../../cards/README.md) for named semantic cases, immutable
 Karabast recordings and the common generator/checker. `reference_conformance.rs`
 checks every accepted recording against current compiled programs; its corpus is
 shared with the Wasm test suite.

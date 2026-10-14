@@ -1,7 +1,7 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
 const {classifyBaseZone,planBaseZoneProbes,blankBase}=require("../pipeline/base-zone-probes");
-const catalogue=JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE??path.resolve(__dirname,"../../card-compiler/generated/catalog.json")));
+const catalogue=JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE??path.resolve(__dirname,"../../compiler/generated/catalog.json")));
 const copy=x=>JSON.parse(JSON.stringify(x));
 const examples=["TWI_019","TWI_028","HMW_007"].map(id=>catalogue.cards.find(e=>e.setCode===id));
 test("three complete initial-slot families classify with all36 definitions",()=>{
@@ -44,29 +44,6 @@ test("plain opposite base donor is genuine blank30 metadata",()=>{
         const e=copy(original);mutate(e);assert.equal(blankBase(e),false);
     }
 });
-test("current definitions roundtrip and central dependency closure includes both helpers",()=>{
-    const library=require("../reference/library"),core=require("../pipeline/probe-fixture");
-    for(const e of examples)for(const scenario of planBaseZoneProbes(e,{catalogue}).cases)assert.deepEqual(library.definition(scenario.id,library.registry(),scenario),scenario);
-    for(const dependency of ["bot/cards/pipeline/base-zone-probes.js","bot/cards/pipeline/base-zone-probe-fixture.js","bot/omni/rs/make-pool.js"])
-        assert.ok(core.dependencies.includes(dependency));
-});
-
-test("optional enemy leader is passed only at genuine deck2 construction boundary",async()=>{
-    const core=require("../pipeline/probe-fixture"),scenario=planBaseZoneProbes(examples[0],{catalogue}).cases[0];
-    const probe={cardId:scenario.probe.fillerCode,leaderCode:scenario.probe.ordinaryLeaderCode,
-        baseCode:scenario.probe.ordinaryBaseCode,targets:[]};
-    const pool={cards:catalogue.cards.map(e=>({setCode:e.setCode,...e.card}))};
-    async function capture(p) {
-        let seen;
-        await assert.rejects(core.constructProbeFixture({newGame(opts){seen=opts;throw new Error("capture-deck-boundary");}},pool,{probe:p},77),/capture-deck-boundary/);
-        return seen;
-    }
-    const standard=await capture(probe);assert.deepEqual(standard.deck2,standard.deck1);
-    const distinct=await capture({...probe,enemyLeaderCode:examples[2].setCode});
-    assert.deepEqual(distinct.deck1,standard.deck1);assert.equal(distinct.deck2.leader.id,examples[2].setCode);
-    assert.deepEqual({...distinct.deck2,leader:distinct.deck1.leader},distinct.deck1);
-});
-
 test("ordinary leader lifecycle donor matches the printed5HP2power4cost envelope",()=>{
     const {ordinaryLeader}=require("../pipeline/base-zone-probes");
     const original=catalogue.cards.find(ordinaryLeader);assert.ok(original);

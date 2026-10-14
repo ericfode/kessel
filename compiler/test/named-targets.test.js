@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const{compileSource,loadEnums}=require('../compiler');
-const root=path.resolve(__dirname,'../../../forceteki/server'),enums=loadEnums(root);
+const root=path.resolve(__dirname,'../../forceteki/server'),enums=loadEnums(root);
 function compile(resolvers,extra='') {
     return compileSource(`export default class FreshNamed extends EventCard {
         getImplementationId(){return{id:'fresh-named',internalName:'fresh-named'};}

@@ -6,10 +6,10 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
-const wasm = require('./pkg/node/omni_wasm.js');
+const wasm = require('./pkg/node/kessel_wasm.js');
 
-const pool = fs.readFileSync(path.join(__dirname, '../omni/rs/pool.json'), 'utf8');
-const fixtures = path.join(__dirname, '../omni-rs/tests/fixtures');
+const pool = fs.readFileSync(path.join(__dirname, '../kessel/data/pool.json'), 'utf8');
+const fixtures = path.join(__dirname, '../kessel/tests/fixtures');
 function records(name) {
     return zlib.gunzipSync(fs.readFileSync(path.join(fixtures, name))).toString('utf8').trim().split('\n').map(JSON.parse);
 }
@@ -75,9 +75,9 @@ test('clones retain prompts and catalogue; invalid inputs and proofs do not muta
 });
 
 test('browser ESM package initializes from bytes and runs the same retained-state search', async () => {
-    const module = await import(pathToFileURL(path.join(__dirname, 'pkg/web/omni_wasm.js')).href);
-    await module.default({ module_or_path: fs.readFileSync(path.join(__dirname, 'pkg/web/omni_wasm_bg.wasm')) });
-    const catalogue = fs.readFileSync(path.join(__dirname, '../card-compiler/generated/catalog.json'), 'utf8');
+    const module = await import(pathToFileURL(path.join(__dirname, 'pkg/web/kessel_wasm.js')).href);
+    await module.default({ module_or_path: fs.readFileSync(path.join(__dirname, 'pkg/web/kessel_wasm_bg.wasm')) });
+    const catalogue = fs.readFileSync(path.join(__dirname, '../../compiler/generated/catalog.json'), 'utf8');
     const engine = module.WasmEngine.fromCatalogue(catalogue, pool);
     const last = sample.filter((r) => r.type === 'state').at(-1).state;
     const game = engine.loadState(JSON.stringify(last));

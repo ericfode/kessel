@@ -252,7 +252,7 @@ test('CLI check detects a newly added card; strict conversion fails on blockers'
     assert.equal(run('--check').status,0);
 });
 test('pinned leaders are lowered from source into the same generic IR', () => {
-    const engine=path.resolve(__dirname,'../../../forceteki/server');
+    const engine=path.resolve(__dirname,'../../forceteki/server');
     const enums=loadEnums(engine);
     const entries=[['01_SOR/leaders/SabineWrenGalvanizedRevolutionary.ts','sabine-wren#galvanized-revolutionary'],['06_IBH/leaders/DarthVaderDontFailMeAgain.ts','darth-vader#dont-fail-me-again'],['06_SEC/leaders/SatineKryzeStandingOnPrinciples.ts','satine-kryze#standing-on-principles']];
     const cards=entries.map(([file,name])=>{

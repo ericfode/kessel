@@ -1,0 +1,8 @@
+node_modules/
+/target/
+.env
+.env.*
+!.env.example
+replays/
+# wasm-bindgen output and the packed npm tarball (npm run wasm:build / wasm:pack)
+crates/kessel-wasm/pkg/

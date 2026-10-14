@@ -1,4 +1,4 @@
-use omni_rs::{
+use kessel::{
     check::{self, open_jsonl, position_labels},
     search::{Limits, Search},
     Engine, RulesBackend, State,
@@ -12,13 +12,13 @@ use std::{
     time::{Duration, Instant},
 };
 
-const HELP: &str = "omni-rs — independent SWU subset simulator and endgame prover
+const HELP: &str = "kessel — independent SWU subset simulator and endgame prover
 
-  omni-rs check <trace.jsonl[.gz]>... [--pool FILE] [--catalogue FILE]
-  omni-rs prove <positions.jsonl[.gz]> [--depth 12] [--ms N | --nodes N | --ms-field jsMs] [--pool FILE] [--catalogue FILE]
-  omni-rs bench [trace-or-positions.jsonl[.gz]] [--nodes 100000] [--pool FILE] [--catalogue FILE]
-  omni-rs catalogue <catalog.json> [--out-pool FILE]
-  omni-rs rules --catalogue FILE [--pool FILE] [--backend auto|interpreter|aot]
+  kessel check <trace.jsonl[.gz]>... [--pool FILE] [--catalogue FILE]
+  kessel prove <positions.jsonl[.gz]> [--depth 12] [--ms N | --nodes N | --ms-field jsMs] [--pool FILE] [--catalogue FILE]
+  kessel bench [trace-or-positions.jsonl[.gz]] [--nodes 100000] [--pool FILE] [--catalogue FILE]
+  kessel catalogue <catalog.json> [--out-pool FILE]
+  kessel rules --catalogue FILE [--pool FILE] [--backend auto|interpreter|aot]
 
 Proof depth and nodes count action-window moves; decisions also counts prompt inputs.
 All proof limits are cumulative across iterative depths and both candidate winners.
@@ -108,7 +108,7 @@ fn load_engine(args: &Args) -> Result<Engine, String> {
         }
         return Engine::from_catalogue_bytes(&catalogue);
     }
-    let default_pool = Path::new(env!("CARGO_MANIFEST_DIR")).join("../omni/rs/pool.json");
+    let default_pool = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/pool.json");
     let pool = args
         .flags
         .get("pool")
@@ -395,7 +395,7 @@ fn main() {
     // Large fixed-size states stay inline through deep prompt trees. A bounded
     // dedicated stack avoids depending on the invoking platform's small default.
     let outcome = std::thread::Builder::new()
-        .name("omni-rs".into())
+        .name("kessel".into())
         .stack_size(64 * 1024 * 1024)
         .spawn(run)
         .expect("could not create simulator thread")
@@ -403,11 +403,11 @@ fn main() {
     match outcome {
         Ok(Ok(())) => (),
         Ok(Err(error)) => {
-            eprintln!("omni-rs: {error}");
+            eprintln!("kessel: {error}");
             std::process::exit(1);
         }
         Err(_) => {
-            eprintln!("omni-rs: simulator thread panicked");
+            eprintln!("kessel: simulator thread panicked");
             std::process::exit(1);
         }
     }

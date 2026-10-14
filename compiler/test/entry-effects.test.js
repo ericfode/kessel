@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { compileSource, loadEnums } = require('../compiler');
-const engine = path.resolve(__dirname, '../../../forceteki/server');
+const engine = path.resolve(__dirname, '../../forceteki/server');
 const enums = loadEnums(engine);
 function compile(body, base = 'NonLeaderUnitCard') {
     return compileSource(`export default class Fresh extends ${base} {

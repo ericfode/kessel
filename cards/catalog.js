@@ -3,7 +3,7 @@ const path = require('node:path');
 const { snapshot } = require('./inventory');
 const ref = require('./reference/library');
 const { planCardProbes } = require('./pipeline/probes');
-const generated = path.resolve(__dirname, '../card-compiler/generated');
+const generated = path.resolve(__dirname, '../compiler/generated');
 function load() {
     const inventory = snapshot(generated);
     const compiled = ref.read(path.join(generated, 'catalog.json'));

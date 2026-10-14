@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {classifyUpgradeReturn,planUpgradeReturnProbes}=require('../pipeline/upgrade-return-probes');
-const catalogue=require('../../card-compiler/generated/catalog.json');
+const catalogue=require('../../compiler/generated/catalog.json');
 const ids=['HMW_222','SHD_044','SHD_209','HMW_236','SEC_200'];
 const plan=id=>planUpgradeReturnProbes(catalogue.cards.find(e=>e.setCode===id),{catalogue});
 test('upgrade-return family recognizes complete source shapes and fails closed on unknown fields',()=>{
@@ -18,14 +18,6 @@ test('upgrade-return planner constructs actual token, owner, threshold, unique, 
     assert.ok(plan('HMW_222').cases.some(c=>c.name.endsWith('base-trait-false')));
     assert.ok(plan('HMW_236').cases.some(c=>c.probe.chosenSource));
 });
-test('actual pinned engine plays each source and witnesses upgrade return lifecycle boundaries',async()=>{
-    const {Env}=require('../../env'),{loadPool}=require('../../omni/rs/pool'),{fixture}=require('../pipeline/upgrade-return-probe-fixture');
-    const pool=loadPool(require('node:path').resolve(__dirname,'../../card-compiler/generated/runtime-pool.json')),scenarios=ids.flatMap(id=>plan(id).cases),env=new Env();
-    for(const id of new Set(scenarios.flatMap(c=>[...c.focusCardIds,...c.setupCardIds])))if(!pool.cards.some(c=>c.setCode===id))pool.cards.push({...catalogue.cards.find(c=>c.setCode===id).card,setCode:id});
-    let seed=87000;for(const scenario of scenarios){const {records,witness}=await fixture(env,pool,scenario,seed++);assert.equal(records.at(-1).type,'result');assert.deepEqual(witness.coverageObligationIds,scenario.coverageObligationIds);assert.ok(witness.played);}
-});
-
-
 test('upgrade-return construction rejects unproved type and unmodeled owner domains',()=>{
     const entry=id=>structuredClone(catalogue.cards.find(c=>c.setCode===id));
     const mixed=entry('SHD_209');mixed.abilities.card[0].targetResolver.type='any';

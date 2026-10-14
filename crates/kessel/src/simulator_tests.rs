@@ -1,6 +1,6 @@
 use super::*;
 fn engine() -> Engine {
-    Engine::from_pool_value(&serde_json::from_str(include_str!("../../omni/rs/pool.json")).unwrap())
+    Engine::from_pool_value(&serde_json::from_str(include_str!("../data/pool.json")).unwrap())
         .unwrap()
 }
 fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
@@ -341,7 +341,7 @@ fn hidden_keyword_text_is_boolean_and_consumes_the_whole_rule() {
 
 #[test]
 fn strict_hundred_card_pool_keyword_semantics_remain_exact() {
-    let raw:serde_json::Value=serde_json::from_str(include_str!("../../omni/rs/pool.json")).unwrap();assert_eq!(raw["cards"].as_array().unwrap().len(),100);
+    let raw:serde_json::Value=serde_json::from_str(include_str!("../data/pool.json")).unwrap();assert_eq!(raw["cards"].as_array().unwrap().len(),100);
     let e=Engine::from_pool_value(&raw).unwrap();
     for c in raw["cards"].as_array().unwrap() {if !c["types"].as_array().unwrap().iter().any(|t|t=="unit") {continue;}
         let d=&e.definitions[*e.by_code.get(c["setCode"].as_str().unwrap()).unwrap() as usize];
@@ -351,18 +351,18 @@ fn strict_hundred_card_pool_keyword_semantics_remain_exact() {
 
 #[test]
 fn strict_pool_does_not_infer_new_hidden_leader_or_pilot_implementations() {
-    let raw:serde_json::Value=serde_json::from_str(include_str!("../../omni/rs/pool.json")).unwrap();
+    let raw:serde_json::Value=serde_json::from_str(include_str!("../data/pool.json")).unwrap();
     for (kind,field,value) in [("leader","text",serde_json::json!("Hidden")),("unit","pilotText",serde_json::json!("Hidden"))] {let mut bad=raw.clone();let card=bad["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["types"].as_array().unwrap().iter().any(|t|t==kind)).unwrap();card[field]=value;assert!(Engine::from_pool_value(&bad).is_err());}
     let mut bad=raw;bad["cards"][0]["setCode"]=serde_json::json!("ASH_166");assert!(Engine::from_pool_value(&bad).is_err());
 }
 
 #[test]
 fn shared_keyword_grammar_matrix_is_fail_closed() {
-    let cases:serde_json::Value=serde_json::from_str(include_str!("../../omni/rs/keyword-parser-cases.json")).unwrap();
+    let cases:serde_json::Value=serde_json::from_str(include_str!("../data/keyword-parser-cases.json")).unwrap();
     for case in cases.as_array().unwrap() {let text=case["text"].as_str().unwrap();let result=keyword_text(text);if case["expected"].is_null(){assert!(result.is_err(),"{text}");}else{let (flags,raid,restore)=result.unwrap();let mut actual=serde_json::Map::new();for (index,name) in crate::ability_ir::CORE_KEYWORDS.iter().enumerate(){if let Some(slot)=crate::ability_ir::numeric_keyword_slot(index){if case["expected"].get(*name).is_some(){actual.insert((*name).into(),serde_json::json!(if slot==0{raid}else{restore}));}}else if flags&(1<<index)!=0 {actual.insert((*name).into(),serde_json::json!(1));}}assert_eq!(serde_json::Value::Object(actual),case["expected"],"{text}");}}
 }
 fn captured_wp_engine() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../card-compiler/generated/catalog.json")).unwrap()
+    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
 }
 fn captured_wp_board(e:&Engine,seat:Seat)->State {
     let mut s=board(e);s.active=seat;s.action_player=Some(seat);s.hidden_history_exact=true;s.force_state_exact=true;

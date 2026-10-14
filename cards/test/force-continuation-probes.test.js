@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { classifyForceContinuation: classify, planForceContinuationProbes: plan, quietUnit, gainDonor } = require('../pipeline/force-continuation-probes');
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../card-compiler/generated/catalog.json')));
+const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
 const clone = v => structuredClone(v);
 const get = id => clone(catalogue.cards.find(e => e.setCode === id));
 function drain() {

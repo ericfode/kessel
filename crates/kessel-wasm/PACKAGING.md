@@ -1,6 +1,6 @@
 # Portable Wasm distribution
 
-The local `@swu-bot/omni-wasm` tarball contains Node and browser bindings, both
+The local `@swu-crates/kessel-wasm` tarball contains Node and browser bindings, both
 Wasm binaries, the shared JavaScript handle adapter, and the original 100-card
 pool. It has no runtime npm dependencies and does not need this repository or
 forceteki. Game state, cloning, transitions, and proof search remain in Wasm.
@@ -11,7 +11,7 @@ Build and pack from the repository root:
 ```sh
 npm run wasm:build
 npm run wasm:pack
-node bot/omni-wasm/verify-package.js
+node crates/kessel-wasm/verify-package.js
 ```
 
 The pack command only packages existing bindings; it never rebuilds or publishes.
@@ -20,7 +20,7 @@ exports, state/clone/search behavior, external catalogue loading, and Node/web
 Wasm parity without repository runtime imports. Its web check runs the browser
 ESM bindings in Node; it does not test HTTP serving or browser rendering.
 The tarball and a SHA-256 receipt are written under
-`bot/omni-wasm/pkg/distribution/`. This directory is ignored by Git. The package
+`crates/kessel-wasm/pkg/distribution/`. This directory is ignored by Git. The package
 is marked private and has no publish command. Install the tarball locally:
 
 ```sh
@@ -30,7 +30,7 @@ npm install /absolute/path/swu-bot-omni-wasm-0.1.0.tgz
 ## Node
 
 ```js
-const { createSimulator } = require('@swu-bot/omni-wasm');
+const { createSimulator } = require('@swu-crates/kessel-wasm');
 const simulator = await createSimulator(); // included original 100-card pool
 const game = simulator.loadState(fullState);
 const checkpoint = game.clone();
@@ -52,7 +52,7 @@ bundled as an implicit default.
 ## Browser or worker
 
 ```js
-import { createSimulator } from '@swu-bot/omni-wasm/browser';
+import { createSimulator } from '@swu-crates/kessel-wasm/browser';
 const simulator = await createSimulator({ poolJson });
 // Or: await createSimulator({ catalogueJson, poolJson });
 ```
@@ -70,7 +70,7 @@ fetch the included `pool.json`; expanded programs require caller-supplied
 
 ## Boundary
 
-The input is the complete simulator state schema used by `omni-rs`, including
+The input is the complete simulator state schema used by `kessel`, including
 hidden zones for both players. Host applications must decide which positions
 are appropriate to provide. Low-level typed bindings are exported at
 `/bindings/node` and `/bindings/web`; `/adapter` exports `WasmSimulator` and

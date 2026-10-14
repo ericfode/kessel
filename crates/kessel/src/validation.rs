@@ -10,7 +10,7 @@ use std::{
 fn catalogue() -> &'static HashMap<String, Value> {
     static CARDS: OnceLock<HashMap<String, Value>> = OnceLock::new();
     CARDS.get_or_init(|| {
-        let pool: Value = serde_json::from_str(include_str!("../../omni/rs/pool.json"))
+        let pool: Value = serde_json::from_str(include_str!("../data/pool.json"))
             .expect("committed pool is valid JSON");
         pool["cards"]
             .as_array()
@@ -500,7 +500,7 @@ mod tests {
     use super::*;
     use serde_json::json;
     fn pool() -> Value {
-        serde_json::from_str(include_str!("../../omni/rs/pool.json")).unwrap()
+        serde_json::from_str(include_str!("../data/pool.json")).unwrap()
     }
     fn initial_state() -> Value {
         crate::check::first_state(
