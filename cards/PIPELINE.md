@@ -20,16 +20,18 @@ flowchart LR
 
 > **In kessel:** the planners (`pipeline/*-probes.js`), coverage, mutations, review packets, checkpoints and the
 > work queue live here; the runner that records the engine (`pipeline/run.js`, `prepared.js`, `cli.js`,
-> `fanout.js` and the `*-probe-fixture.js` constructors) stays in swu_bot under `bot/cards/pipeline/`, so
-> `npm run cards:pipeline` is a swu_bot command. Its reference output is imported here with
-> `npm run cards:reference -- import`.
+> `fanout.js` and the `*-probe-fixture.js` constructors) lives in [Holocron](https://github.com/ericfode/holocron)
+> under `lab/kessel-reference/pipeline/`, so the commands below are Holocron's `npm run kessel:pipeline`. It
+> loads this checkout from `KESSEL_DIR` (default `../kessel`), builds the native and Wasm runtimes here, and
+> its reference output is imported here with `npm run cards:reference -- import`.
 
-Run from the repository root with Node 22 and normal engine/Rust/Wasm setup:
+Run from the Holocron repository root with Node 22 and normal engine/Rust/Wasm setup:
 
 ```sh
-npm run cards:pipeline -- plan --cards TWI_124,TWI_170,JTL_052
-npm run cards:pipeline -- run --cards TWI_124,TWI_170,JTL_052 --out /tmp/card-pipeline-run
-npm run cards:pipeline -- review --run /tmp/card-pipeline-run --file /tmp/semantic-review.json
+npm run kessel:pipeline -- plan --cards TWI_124,TWI_170,JTL_052
+npm run kessel:pipeline -- run --cards TWI_124,TWI_170,JTL_052 --out /tmp/card-pipeline-run
+npm run kessel:pipeline -- review --run /tmp/card-pipeline-run --file /tmp/semantic-review.json
+# then here, in Kessel:
 npm run cards:reference -- import --corpus /tmp/card-pipeline-run/reference
 ```
 
@@ -59,9 +61,9 @@ reviewable changes before preparing a validation build. Submitting a job marks i
 ready for validation; it does not mark a card correct or admitted.
 
 ```sh
-npm run cards:pipeline -- work init --remaining --limit 20 --out /tmp/card-work
-npm run cards:pipeline -- work status --run /tmp/card-work
-npm run cards:pipeline -- work claim --run /tmp/card-work --job CARD_ID --worker author-a --paths compiler/FILE.js
+npm run kessel:pipeline -- work init --remaining --limit 20 --out /tmp/card-work
+npm run kessel:pipeline -- work status --run /tmp/card-work
+npm run kessel:pipeline -- work claim --run /tmp/card-work --job CARD_ID --worker author-a --paths compiler/FILE.js
 ```
 
 The claim response provides `workDir`, `token`, `bundlePath` and `handoffPath`.
@@ -71,13 +73,13 @@ any patch and test receipts there too. For example, a source-only result can sta
 Omit `--paths` when claiming source-only work. Submit using the exact returned token:
 
 ```sh
-npm run cards:pipeline -- work submit --run /tmp/card-work --job CARD_ID --worker author-a --token CLAIM_TOKEN --result result.json --patch change.patch --evidence checks.json
+npm run kessel:pipeline -- work submit --run /tmp/card-work --job CARD_ID --worker author-a --token CLAIM_TOKEN --result result.json --patch change.patch --evidence checks.json
 ```
 
 If a dependency blocks the job, release it instead of submitting:
 
 ```sh
-npm run cards:pipeline -- work release --run /tmp/card-work --job CARD_ID --worker author-a --token CLAIM_TOKEN --reason "Dependency needs another owner" --blocked
+npm run kessel:pipeline -- work release --run /tmp/card-work --job CARD_ID --worker author-a --token CLAIM_TOKEN --reason "Dependency needs another owner" --blocked
 ```
 
 Paths to submission files resolve within the claimed `workDir`; omit `--patch`
@@ -94,10 +96,10 @@ handoffs, patches and review receipts stay outside the repository.
 Prepare native and Wasm once, then run up to 20 independent card processes:
 
 ```sh
-npm run cards:pipeline -- prepare --out /tmp/card-build
-npm run cards:pipeline -- fanout --prepared /tmp/card-build --cards CARD_IDS --jobs 20 --out /tmp/card-validation
-npm run cards:pipeline -- fanout-status --run /tmp/card-validation
-npm run cards:pipeline -- fanout --run /tmp/card-validation --jobs 20
+npm run kessel:pipeline -- prepare --out /tmp/card-build
+npm run kessel:pipeline -- fanout --prepared /tmp/card-build --cards CARD_IDS --jobs 20 --out /tmp/card-validation
+npm run kessel:pipeline -- fanout-status --run /tmp/card-validation
+npm run kessel:pipeline -- fanout --run /tmp/card-validation --jobs 20
 ```
 
 Replace `CARD_IDS` with comma-separated printed IDs. Without `--prepared`, fanout
@@ -132,9 +134,9 @@ Use incremental builds and targeted engine comparisons between full checkpoints.
 Initialize the counter once at the current reviewed admission baseline:
 
 ```sh
-npm run cards:pipeline -- checkpoints init --out /tmp/card-progress --baseline-commit FULL_COMMIT_SHA
-npm run cards:pipeline -- checkpoints record --run /tmp/card-progress --pipeline /tmp/card-run --before-commit BEFORE_SHA --integration-commit AFTER_SHA
-npm run cards:pipeline -- checkpoints status --run /tmp/card-progress
+npm run kessel:pipeline -- checkpoints init --out /tmp/card-progress --baseline-commit FULL_COMMIT_SHA
+npm run kessel:pipeline -- checkpoints record --run /tmp/card-progress --pipeline /tmp/card-run --before-commit BEFORE_SHA --integration-commit AFTER_SHA
+npm run kessel:pipeline -- checkpoints status --run /tmp/card-progress
 ```
 
 Recording requires the actual packet-bound independent GPT-6.1 Sol review at high

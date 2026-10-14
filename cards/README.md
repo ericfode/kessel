@@ -48,13 +48,14 @@ claimed for those recordings. Cases without recordings remain visible.
 
 ## Generate from Karabast
 
-> **In kessel:** generation drives the forceteki engine through swu_bot's headless harness
-> (`bot/env.js`, the random continuation bot and `bot/omni/rs/state.js`), so the scenario modules
+> **In kessel:** generation drives the forceteki engine through Holocron's game player
+> (`engine/env.js`, the random continuation bot and `bots/omni/rs/state.js`), so the scenario modules
 > (`reference/scenarios/`), `reference/generate.js`, `reference/index.js` and the probe fixtures and
-> pipeline runner (`pipeline/*-probe-fixture.js`, `run.js`, `prepared.js`, `cli.js`, `fanout.js`) stay in
-> swu_bot under `bot/cards/`. Run the `generate` and `index` commands below there; this repository
-> keeps the accepted corpus, the case index, the planners and the native/Wasm checker, and `import`s
-> what swu_bot generates.
+> pipeline runner (`pipeline/*-probe-fixture.js`, `run.js`, `prepared.js`, `cli.js`, `fanout.js`) live in
+> [Holocron](https://github.com/ericfode/holocron) under `lab/kessel-reference/`, which loads this
+> checkout from `KESSEL_DIR` (default `../kessel`). Run the `generate` and `index` commands below there
+> (`npm run kessel:reference`); this repository keeps the accepted corpus, the case index, the planners
+> and the native/Wasm checker, and `import`s what Holocron generates.
 
 Use the normal engine dependencies/card data from `npm run setup`. A source archive
 or isolated engine is also usable when `forceteki/server` and `forceteki/build`
@@ -66,10 +67,11 @@ hashes. Git revision is null for an engine archive; the expected submodule revis
 is recorded separately rather than presenting the surrounding repo's HEAD as the engine.
 
 ```sh
-npm run cards:reference -- generate \
+# in Holocron
+npm run kessel:reference -- generate \
   --case phase-stats/zero-power-from-pain \
   --out /tmp/zero-power-reference
-npm run cards:reference -- generate \
+npm run kessel:reference -- generate \
   --case card-play/TWI_124 --out /tmp/twi-124-play
 ```
 
@@ -114,7 +116,7 @@ or regenerate expected answers to compare the current runtime.
 
 ## Add or change a case
 
-Steps 1-3 happen in swu_bot (see the note above); step 4's `check` and `import` run here.
+Steps 1-3 happen in Holocron's `lab/kessel-reference/` (see the note above); step 4's `check` and `import` run here.
 
 1. Add a named scenario to `reference/scenarios/<behavior>.js`. Each module exports
    `scenarios` and `fixture(env, pool, scenario, seed)`. Prefer an existing fixture
@@ -124,8 +126,8 @@ Steps 1-3 happen in swu_bot (see the note above); step 4's `check` and `import` 
    choices, and assertions from the pinned engine source before comparing Rust.
    Existing callback assertions run inside the fixture. An optional module-level
    `assertRecording(scenario, {records, witness})` checks the completed trace.
-3. Run `npm run cards:reference -- index`. This regenerates `cases.json` and
-   `behaviors.json`; `annotations.json` preserves explicit focus labels for older
+3. Run `npm run kessel:reference -- index` in Holocron. This regenerates this checkout's `cases.json` and
+   `behaviors.json` (commit them here); `annotations.json` preserves explicit focus labels for older
    definitions. Indexing requires the engine build; ordinary browsing and CI do not.
 4. Generate a fresh directory, inspect its witness, compare both runtimes, then
    import. Positive, boundary and interaction cases should distinguish plausible

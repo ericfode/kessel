@@ -75,7 +75,7 @@ function sourceBundle(entries, destination, server = path.join(repo, 'forceteki/
 }
 function implementationSnapshot() {
     // Kessel's own implementation: the simulator, its Wasm build, the compiler and the card tooling.
-    // The forceteki harness that records reference games lives with the generator (swu_bot) and is
+    // The forceteki harness that records reference games lives with the generator (Holocron) and is
     // snapshotted there.
     const paths = [
         'Cargo.toml',
