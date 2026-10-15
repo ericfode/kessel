@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1070** (698 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1388**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1072** (700 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1386**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -90,6 +90,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:deployActionAbilityProps | 6 | 6 |
 | method:eventEffect | 6 | 6 |
 | trigger-alias-hook:onCardsDrawn | 6 | 6 |
+| unsupported-field:mustChangeGameState | 6 | 6 |
 | callback-statement:IfStatement | 5 | 5 |
 | cost:defeat | 5 | 5 |
 | cost:discardCardFromOwnHand | 5 | 5 |
@@ -98,7 +99,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | named-target-card-domain | 5 | 5 |
 | registrar:addGainActionAbilityTargetingAttached | 5 | 5 |
 | unimplemented-context-field:events | 5 | 5 |
-| unsupported-field:mustChangeGameState | 5 | 5 |
 | unsupported-field:playerChoosingOptional | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst | 5 | 5 |
 | unsupported-query:defenderWasDefeated | 5 | 5 |
@@ -129,7 +129,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-live-stat-expression | 4 | 4 |
 | unsupported-modifier:abilityHelper.ongoingEffects.cardCannot | 4 | 4 |
 | unsupported-query:isShield | 4 | 4 |
-| unsupported-query:isTokenUnit | 4 | 4 |
 | unsupported-query:someUnitLeftPlay | 4 | 4 |
 | unsupported-query:wasDefeatedThisPhase | 4 | 4 |
 | class-member:GetAccessor | 3 | 3 |

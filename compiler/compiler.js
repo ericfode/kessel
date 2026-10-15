@@ -260,7 +260,7 @@ function arenaPredicate(value, ctx, node, depth = 0) {
         return;
     }
     if (!['const','binary','unary','conditional','query','math','array'].includes(value.kind)) fail(ctx, node, 'arena-predicate-expression');
-    if (value.kind === 'query' && !['isUnit','isBase','isLeader','isNonLeaderUnit','isUpgrade','isToken','isEvent','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','getPower','getHp','getCost','getPrintedCost','hasInitiative','getNumericKeywordTotal','isInPlay','isDeployed','isUpgraded','canBeDamaged','canBeExhausted','hasCost'].includes(value.name)) fail(ctx, node, 'arena-predicate-query');
+    if (value.kind === 'query' && !['isUnit','isBase','isLeader','isNonLeaderUnit','isUpgrade','isToken','isTokenUnit','isEvent','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','getPower','getHp','getCost','getPrintedCost','hasInitiative','getNumericKeywordTotal','isInPlay','isDeployed','isUpgraded','canBeDamaged','canBeExhausted','hasCost'].includes(value.name)) fail(ctx, node, 'arena-predicate-query');
     for (const child of Object.values(value)) {
         if (Array.isArray(child)) { for (const item of child) if (item && typeof item === 'object') arenaPredicate(item, ctx, node, depth + 1); }
         else if (child && typeof child === 'object') arenaPredicate(child, ctx, node, depth + 1);
@@ -453,9 +453,12 @@ function expr(input, context, params = ['context']) {
             return {kind:'query',name,receiver,args:[]};
         }
         if (name === 'hasSomeArenaUnit') return arenaQuery(node, ctx, name);
-        if (ctx.liveStats && name === 'isTokenUnit') {
-            if (node.arguments.length) fail(ctx,node,'live-stat-token-query-arity');
-            return {kind:'query',name,receiver:expr(call.expression,ctx),args:[]};
+        if (name === 'isTokenUnit') {
+            if (node.questionDotToken || call.questionDotToken) fail(ctx,node,'optional-token-unit-query');
+            if (node.arguments.length) fail(ctx,node,'token-unit-query-arity');
+            const receiver = expr(call.expression,ctx);
+            if (receiver.kind !== 'ref' || receiver.path.length !== 1 || !['source','card','target'].includes(receiver.path[0])) fail(ctx,node,'token-unit-query-receiver');
+            return {kind:'query',name,receiver,args:[]};
         }
         if (['isTraitInPlay', 'isAspectInPlay', 'isKeywordInPlay'].includes(name)) {
             if (node.arguments.length < 1 || node.arguments.length > 2) fail(ctx, node, 'arena-query-alias-arity');

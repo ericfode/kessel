@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "37137c7fee38c26b68af20a959b814d7cbf2f2cbe34c834fe2ffec96f6b25ee5",
+  "compilerHash": "b2322359772a0096aa257db7f9359a82c3618b902392da48d3e0f3c8d12d2904",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -28307,7 +28307,54 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While you control a token unit, this unit gains Sentinel",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "sentinel",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaUnit",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isTokenUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
       "diagnostics": [
         {
@@ -28325,14 +28372,6 @@
           "line": 19,
           "column": 1,
           "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts",
-          "line": 26,
-          "column": 92
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -28390,8 +28429,19 @@
       "dataHash": "29b3a81e5924908de1a6e2301b3bfe8cd5d785e232f420d5db2655b8dbf0c9d1",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:sentinel"
+        "ir:binary",
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:query",
+        "ir:ref",
+        "keyword:sentinel",
+        "query:hasSomeArenaUnit",
+        "query:isTokenUnit",
+        "ref:card",
+        "ref:player",
+        "trigger:constant"
       ]
     },
     {
@@ -78873,23 +78923,61 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While you control a token unit, this unit gain Raid 1",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "raid",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaUnit",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isTokenUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/04_JTL/units/FirstOrderTIEFighter.ts",
-          "line": 18,
-          "column": 92
-        }
-      ],
+      "diagnostics": [],
       "className": "FirstOrderTIEFighter",
       "baseClass": "NonLeaderUnitCard",
       "id": "1034181657",
       "internalName": "first-order-tie-fighter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "First Order TIE Fighter",
         "subtitle": "",
@@ -78935,8 +79023,19 @@
       "dataHash": "0a5adb4b9807fb1cabf0a8b9eac5bb814812dfba832fa50a399f1b76394f13fb",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:raid"
+        "ir:binary",
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:query",
+        "ir:ref",
+        "keyword:raid",
+        "query:hasSomeArenaUnit",
+        "query:isTokenUnit",
+        "ref:card",
+        "ref:player",
+        "trigger:constant"
       ]
     },
     {
@@ -221776,24 +221875,60 @@
               "target": "ownPlayer",
               "entersReady": false
             }
+          },
+          {
+            "trigger": "onAttack",
+            "title": "Give each friendly token unit +1/+1 for this phase.",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "predicate": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isTokenUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              },
+              "duration": "phase",
+              "power": {
+                "kind": "const",
+                "value": 1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 1
+              }
+            }
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/03_TWI/units/KrakenConfederateTactician.ts",
-          "line": 22,
-          "column": 77
-        }
-      ],
+      "diagnostics": [],
       "className": "KrakenConfederateTactician",
       "baseClass": "NonLeaderUnitCard",
       "id": "7979348081",
       "internalName": "kraken#confederate-tactician",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Kraken",
         "subtitle": "Confederate Tactician",
@@ -221836,9 +221971,19 @@
       "dataHash": "e7683da6243303544ee5e5e221210524d0d8b96235c4cd5bc2cb4479a741b47f",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
+        "ir:arenaList",
+        "ir:binary",
         "ir:const",
         "ir:createTokenUnit",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "query:isTokenUnit",
+        "ref:card",
+        "ref:player",
+        "trigger:onAttack",
         "trigger:whenPlayed"
       ]
     },
@@ -237628,11 +237773,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
+          "pattern": "unsupported-field:mustChangeGameState",
+          "message": "unsupported-field:mustChangeGameState",
           "file": "game/cards/03_TWI/events/PrivateManufacturing.ts",
-          "line": 20,
-          "column": 100
+          "line": 27,
+          "column": 46
         }
       ],
       "className": "PrivateManufacturing",

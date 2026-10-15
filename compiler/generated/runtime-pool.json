@@ -12138,6 +12138,49 @@
         "command",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1034181657",
+      "internalName": "first-order-tie-fighter",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_081",
+      "setCodes": [
+        {
+          "number": 81,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 81,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "While you control a token unit, this unit gains Raid 1. (It gets +1/+0 while attacking.)",
+      "title": "First Order TIE Fighter",
+      "traits": [
+        "first order",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",

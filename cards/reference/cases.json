@@ -24,10 +24,11 @@
     "./scenarios/named-targets.js": "dd0cb634e67a18599ee19bc677706aca4af0c092a5a607ccaf4a74161cfb80a6",
     "./scenarios/phase-stats.js": "9298390871364d4ab33dcd6b3bd64b55a425065bc2a66cdcb89b13131c9c328d",
     "./scenarios/shield-stat-deaths.js": "9171028a9e9f8178c5f0468b3635bc3ec0949fb4b1b7046b1914d708702e5e91",
+    "./scenarios/token-condition.js": "756b1c017e5f9a06690f9a7c2f90d3509888924c47859db0feab7f3df7b61247",
     "./scenarios/trigger-aliases.js": "80c7ecb7592fc0bf457a447fdf27cd53825b66e532117caf317997acf93c87cc",
     "./scenarios/uniqueness.js": "0469b1b7abc988e595e1240057a3c35faafffbf6f1d63c7f77816a668172347a",
     "./scenarios/unit-lifecycle.js": "94575ba60a77ee89c69b92a08a58af77f7dc10dae1b161bf11012e3747b33e7e",
-    "./scenarios/unit-tokens.js": "6dfc4f0d668e855fe9a19562c2774decfc0f4f6a91982b83089555b5b3ddafce",
+    "./scenarios/unit-tokens.js": "6a752b3a9a8cf7759dcd9d1cf9a0743607da2f34ebf7ba8d5e11bb9221e0c33c",
     "./scenarios/upgrades.js": "0c420b5681a1b68d6ba4f2f877224c233dfdf3dbb4f3d580d7cf7502be4fada2",
     "./annotations.json": "a4f001eeec8a69083e7cde251fe5867b5ec968cee5993c5b721c7f1bd8c0ee70"
   },
@@ -14060,6 +14061,1180 @@
       },
       "assertionStages": [
         "beforeApply",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/enemy-token-only-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "enemy-token-only-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "enemy-token-only-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/enemy-token-only-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "enemy-token-only-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "enemy-token-only-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-ground-token-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-ground-token-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-ground-token-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-ground-token-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-ground-token-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-ground-token-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-ordinary-unit-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-ordinary-unit-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "HMW_082",
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-ordinary-unit-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          },
+          {
+            "key": "ordinary",
+            "code": "HMW_082"
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-ordinary-unit-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-ordinary-unit-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "HMW_082",
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-ordinary-unit-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          },
+          {
+            "key": "ordinary",
+            "code": "HMW_082"
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-space-token-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-space-token-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-space-token-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "tie-fighter"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/friendly-space-token-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "friendly-space-token-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "friendly-space-token-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "tie-fighter"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/last-token-removed-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "last-token-removed-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007",
+        "SOR_077"
+      ],
+      "setup": {
+        "name": "last-token-removed-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "SOR_077",
+            "target": "token"
+          },
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/last-token-removed-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "last-token-removed-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007",
+        "SOR_077"
+      ],
+      "setup": {
+        "name": "last-token-removed-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "SOR_077",
+            "target": "token"
+          },
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/live-token-creation-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "live-token-creation-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "JTL_117",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "live-token-creation-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_117"
+          },
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/live-token-creation-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "live-token-creation-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "JTL_117",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "live-token-creation-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_117"
+          },
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/no-token-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "no-token-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "no-token-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/no-token-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "no-token-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "no-token-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/paid-source-no-token-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "paid-source-no-token-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "paid-source-no-token-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [
+          "JTL_081"
+        ],
+        "plan": [
+          {
+            "code": "JTL_081"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/paid-source-no-token-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "paid-source-no-token-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "paid-source-no-token-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [
+          "JTL_081"
+        ],
+        "plan": [
+          {
+            "code": "JTL_081"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/paid-source-with-token-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "paid-source-with-token-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "paid-source-with-token-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [
+          "JTL_081"
+        ],
+        "plan": [
+          {
+            "code": "JTL_081"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/paid-source-with-token-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "paid-source-with-token-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "paid-source-with-token-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [
+          "JTL_081"
+        ],
+        "plan": [
+          {
+            "code": "JTL_081"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/shield-is-not-token-unit-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "shield-is-not-token-unit-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "shield-is-not-token-unit-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 1
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/shield-is-not-token-unit-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "shield-is-not-token-unit-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "shield-is-not-token-unit-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 1
+          }
+        ],
+        "initialTokens": [],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/two-friendly-tokens-nonstacking-seat1",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "two-friendly-tokens-nonstacking-seat1"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "two-friendly-tokens-nonstacking-seat1",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          },
+          {
+            "key": "token2",
+            "token": "tie-fighter"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 0
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-condition/two-friendly-tokens-nonstacking-seat2",
+      "behaviorIds": [
+        "token-condition",
+        "friendly-token-unit-condition"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-condition.js",
+        "scenario": "two-friendly-tokens-nonstacking-seat2"
+      },
+      "focusCardIds": [
+        "JTL_081"
+      ],
+      "setupCardIds": [
+        "JTL_081",
+        "SOR_007"
+      ],
+      "setup": {
+        "name": "two-friendly-tokens-nonstacking-seat2",
+        "family": "friendly-token-unit-condition",
+        "actualTriggeredCardIds": [
+          "JTL_081"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "JTL_081",
+            "shields": 0
+          }
+        ],
+        "initialTokens": [
+          {
+            "key": "token",
+            "token": "battle-droid"
+          },
+          {
+            "key": "token2",
+            "token": "tie-fighter"
+          }
+        ],
+        "baseDamage": 0,
+        "leaderCode": "SOR_007",
+        "actualScriptedCardIds": [],
+        "plan": [
+          {
+            "code": "JTL_081",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ],
+        "ownSeat": 1
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
         "assertAfter"
       ]
     },

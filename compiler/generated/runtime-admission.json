@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "ec1c144514d1ffbaaf2cde2e9e7d0d03fc98740bfd9dc1b033cfb01e24e96f10",
+  "catalogueHash": "c3547d3e87e093ba8e174f4671eb60af63f0ae0095e1a500eeada8fc87d1814a",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1070,
+  "irConvertedCount": 1072,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 596
+    "sourceIr": 597
   },
   "runtimeAdmittedCards": [
     {
@@ -1509,6 +1509,11 @@
       "implementation": "sourceIr",
       "internalName": "nebula-ignition",
       "setCode": "JTL_080"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "first-order-tie-fighter",
+      "setCode": "JTL_081"
     },
     {
       "implementation": "sourceIr",
@@ -4871,7 +4876,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 972,
+  "runtimeAdmittedCount": 973,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5130,7 +5135,7 @@
     },
     {
       "internalName": "koska-reeves#warrior-of-mandalore",
-      "reason": "koska-reeves#warrior-of-mandalore: compiler rejected \"koska-reeves#warrior-of-mandalore\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":92,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":26,\"message\":\"unsupported-query:isTokenUnit\",\"pattern\":\"unsupported-query:isTokenUnit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":34,\"message\":\"unsupported-query:someDefeatedUnitControlledByPlayer\",\"pattern\":\"unsupported-query:someDefeatedUnitControlledByPlayer\"}]",
+      "reason": "koska-reeves#warrior-of-mandalore: compiler rejected \"koska-reeves#warrior-of-mandalore\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts\",\"line\":34,\"message\":\"unsupported-query:someDefeatedUnitControlledByPlayer\",\"pattern\":\"unsupported-query:someDefeatedUnitControlledByPlayer\"}]",
       "setCode": "ASH_079"
     },
     {
@@ -6672,11 +6677,6 @@
       "internalName": "covering-the-wing",
       "reason": "covering-the-wing: compiler rejected \"covering-the-wing\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":47,\"file\":\"game/cards/04_JTL/events/CoveringTheWing.ts\",\"line\":23,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
       "setCode": "JTL_076"
-    },
-    {
-      "internalName": "first-order-tie-fighter",
-      "reason": "first-order-tie-fighter: compiler rejected \"first-order-tie-fighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":92,\"file\":\"game/cards/04_JTL/units/FirstOrderTIEFighter.ts\",\"line\":18,\"message\":\"unsupported-query:isTokenUnit\",\"pattern\":\"unsupported-query:isTokenUnit\"}]",
-      "setCode": "JTL_081"
     },
     {
       "internalName": "pantoran-starship-thief",
@@ -11840,7 +11840,7 @@
     },
     {
       "internalName": "kraken#confederate-tactician",
-      "reason": "kraken#confederate-tactician: compiler rejected \"kraken#confederate-tactician\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":77,\"file\":\"game/cards/03_TWI/units/KrakenConfederateTactician.ts\",\"line\":22,\"message\":\"unsupported-query:isTokenUnit\",\"pattern\":\"unsupported-query:isTokenUnit\"}]",
+      "reason": "kraken#confederate-tactician: arena phase stats require ordinary unit WhenPlayed or event card-side metadata",
       "setCode": "TWI_084"
     },
     {
@@ -12300,11 +12300,11 @@
     },
     {
       "internalName": "private-manufacturing",
-      "reason": "private-manufacturing: compiler rejected \"private-manufacturing\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":100,\"file\":\"game/cards/03_TWI/events/PrivateManufacturing.ts\",\"line\":20,\"message\":\"unsupported-query:isTokenUnit\",\"pattern\":\"unsupported-query:isTokenUnit\"}]",
+      "reason": "private-manufacturing: compiler rejected \"private-manufacturing\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/03_TWI/events/PrivateManufacturing.ts\",\"line\":27,\"message\":\"unsupported-field:mustChangeGameState\",\"pattern\":\"unsupported-field:mustChangeGameState\"}]",
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1486,
+  "runtimeRejectedCount": 1485,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 698
+  "sourceAstConvertedCount": 700
 }

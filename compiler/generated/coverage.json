@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "37137c7fee38c26b68af20a959b814d7cbf2f2cbe34c834fe2ffec96f6b25ee5",
+  "compilerHash": "b2322359772a0096aa257db7f9359a82c3618b902392da48d3e0f3c8d12d2904",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1070,
-  "sourceAstConverted": 698,
+  "converted": 1072,
+  "sourceAstConverted": 700,
   "dataOnlyConverted": 372,
-  "unconverted": 1388,
+  "unconverted": 1386,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -337,6 +337,7 @@
     "JTL_078",
     "JTL_079",
     "JTL_080",
+    "JTL_081",
     "JTL_082",
     "JTL_085",
     "JTL_087",
@@ -993,6 +994,7 @@
     "TWI_079",
     "TWI_081",
     "TWI_083",
+    "TWI_084",
     "TWI_090",
     "TWI_092",
     "TWI_093",
@@ -2983,6 +2985,18 @@
       ]
     },
     {
+      "pattern": "unsupported-field:mustChangeGameState",
+      "occurrences": 6,
+      "cards": [
+        "LAW_015",
+        "LAW_029",
+        "SHD_013",
+        "SOR_017",
+        "TWI_177",
+        "TWI_257"
+      ]
+    },
+    {
       "pattern": "callback-statement:IfStatement",
       "occurrences": 5,
       "cards": [
@@ -3068,17 +3082,6 @@
         "LAW_194",
         "LAW_203",
         "SEC_169"
-      ]
-    },
-    {
-      "pattern": "unsupported-field:mustChangeGameState",
-      "occurrences": 5,
-      "cards": [
-        "LAW_015",
-        "LAW_029",
-        "SHD_013",
-        "SOR_017",
-        "TWI_177"
       ]
     },
     {
@@ -3385,16 +3388,6 @@
         "HMW_080",
         "JTL_180",
         "SHD_045"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:isTokenUnit",
-      "occurrences": 4,
-      "cards": [
-        "ASH_079",
-        "JTL_081",
-        "TWI_084",
-        "TWI_257"
       ]
     },
     {
@@ -7413,14 +7406,6 @@
           "line": 19,
           "column": 1,
           "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/08_ASH/units/KoskaReevesWarriorOfMandalore.ts",
-          "line": 26,
-          "column": 92
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -13147,21 +13132,6 @@
           "file": "game/cards/04_JTL/events/CoveringTheWing.ts",
           "line": 23,
           "column": 47
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_081",
-      "internalName": "first-order-tie-fighter",
-      "sourcePath": "game/cards/04_JTL/units/FirstOrderTIEFighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/04_JTL/units/FirstOrderTIEFighter.ts",
-          "line": 18,
-          "column": 92
         }
       ]
     },
@@ -31711,21 +31681,6 @@
       ]
     },
     {
-      "setCode": "TWI_084",
-      "internalName": "kraken#confederate-tactician",
-      "sourcePath": "game/cards/03_TWI/units/KrakenConfederateTactician.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
-          "file": "game/cards/03_TWI/units/KrakenConfederateTactician.ts",
-          "line": 22,
-          "column": 77
-        }
-      ]
-    },
-    {
       "setCode": "TWI_085",
       "internalName": "kalani#analytical-general",
       "sourcePath": "game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts",
@@ -33155,11 +33110,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUnit",
-          "message": "unsupported-query:isTokenUnit",
+          "pattern": "unsupported-field:mustChangeGameState",
+          "message": "unsupported-field:mustChangeGameState",
           "file": "game/cards/03_TWI/events/PrivateManufacturing.ts",
-          "line": 20,
-          "column": 100
+          "line": 27,
+          "column": 46
         }
       ]
     }

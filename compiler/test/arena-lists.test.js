@@ -304,7 +304,7 @@ const actualSources = [
         "TWI_084",
         "game/cards/03_TWI/units/KrakenConfederateTactician.ts",
         "5d5083699a770bb5b555dd56ed6a79e66caf686064a380ef475cf357f3d7a1b3",
-        "unsupported-query:isTokenUnit"
+        null
     ],
     [
         "TWI_103",
@@ -353,7 +353,7 @@ test('all 45 full pinned sources match hashes and retain complete card support o
         if(blocker) assert.ok(c.diagnostics.some(d=>d.pattern===blocker),setCode+JSON.stringify(c.diagnostics));
         else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');}
     }
-    assert.equal(supportedCount,36);
+    assert.equal(supportedCount,37);
 });
 
 test("four additional generic source-only gains retain full source identities",()=>{
