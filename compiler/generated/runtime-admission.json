@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "5a81ef761288c5c472692731c7e09e5253c106c7323fe87379f05fccae50f6f1",
+  "catalogueHash": "782a8a51beeb8aa21540b2d7602b43ccc361af7cb60d8b8e94acfdb551a69986",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1103,
+  "irConvertedCount": 1105,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 631
+    "sourceIr": 633
   },
   "runtimeAdmittedCards": [
     {
@@ -204,6 +204,11 @@
       "implementation": "sourceIr",
       "internalName": "gallius-rax#counselor-to-the-empire",
       "setCode": "ASH_100"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "long-live-the-empire",
+      "setCode": "ASH_103"
     },
     {
       "implementation": "sourceIr",
@@ -1924,6 +1929,11 @@
       "implementation": "dataOnly",
       "internalName": "urrrk#elite-sharpshooter",
       "setCode": "LAW_082"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "broken-horn#vizagos-pride",
+      "setCode": "LAW_083"
     },
     {
       "implementation": "sourceIr",
@@ -5046,7 +5056,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1007,
+  "runtimeAdmittedCount": 1009,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5362,11 +5372,6 @@
       "internalName": "ravager#final-imperial-command",
       "reason": "ravager#final-imperial-command: compiler rejected \"ravager#final-imperial-command\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/RavagerFinalImperialCommand.ts\",\"line\":11,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/RavagerFinalImperialCommand.ts\",\"line\":20,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/08_ASH/units/RavagerFinalImperialCommand.ts\",\"line\":30,\"message\":\"trigger-alias-hook:onCardPlayed\",\"pattern\":\"trigger-alias-hook:onCardPlayed\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/RavagerFinalImperialCommand.ts\",\"line\":48,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:playedUnitPower\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/RavagerFinalImperialCommand.ts\",\"line\":57,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:playedUnitArena\"}]",
       "setCode": "ASH_102"
-    },
-    {
-      "internalName": "long-live-the-empire",
-      "reason": "long-live-the-empire: compiler rejected \"long-live-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/events/LongLiveTheEmpire.ts\",\"line\":7,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
-      "setCode": "ASH_103"
     },
     {
       "internalName": "dathomiri-magicks",
@@ -7747,11 +7752,6 @@
       "internalName": "luke-skywalker#profit-or-be-destroyed",
       "reason": "luke-skywalker#profit-or-be-destroyed: compiler rejected \"luke-skywalker#profit-or-be-destroyed\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/07_LAW/units/LukeSkywalkerProfitOrBeDestroyed.ts\",\"line\":20,\"message\":\"unsupported-field:choices\",\"pattern\":\"unsupported-field:choices\"}]",
       "setCode": "LAW_080"
-    },
-    {
-      "internalName": "broken-horn#vizagos-pride",
-      "reason": "broken-horn#vizagos-pride: compiler rejected \"broken-horn#vizagos-pride\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/BrokenHornVizagosPride.ts\",\"line\":5,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
-      "setCode": "LAW_083"
     },
     {
       "internalName": "krrsantan#hit-and-run",
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1451,
+  "runtimeRejectedCount": 1449,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 731
+  "sourceAstConvertedCount": 733
 }

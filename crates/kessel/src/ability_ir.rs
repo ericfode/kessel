@@ -907,6 +907,23 @@ fn top_deck_resource_registration(a:&Ability)->bool {
     a.trigger=="whenPlayed"&&a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()&&
     (resource(&a.effect)||matches!(&a.effect,Effect::Conditional{condition:c,on_true,on_false} if condition(c)&&resource(on_true)&&on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction))))
 }
+fn plain_resource_header(a:&Ability)->bool {!a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()}
+fn imperial_resource_continuation(a:&Ability)->bool {
+    if a.trigger!="event"||!plain_resource_header(a)||!matches!(&a.effect,Effect::Defeat{target:Target::Name(n)} if n=="chosen"){return false;}
+    let Some(r)=&a.target_resolver else{return false;};
+    if r.validate_inline().is_err()||r.owner!="self"||r.card_type!="unit"||r.zone.as_deref()!=Some("anyAttackable")||r.arena.is_some()||r.optional||r.mode.is_some()||r.count.is_some()||r.prompt_title.is_none(){return false;}
+    if !matches!(&r.predicate,Some(Expr::Query{name,receiver,args}) if name=="hasSomeTrait"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("imperial"))){return false;}
+    a.if_you_do.as_deref().is_some_and(|n|n.trigger.is_empty()&&plain_resource_header(n)&&n.target_resolver.is_none()&&n.if_you_do.is_none()&&matches!(&n.effect,Effect::ResourceCard{target:Target::Name(t)} if t=="ownTopDeck"))
+}
+fn sequential_draw_resource(a:&Ability)->bool {
+    fn condition(e:&Expr,zone:&str)->bool {if matches!(e,Expr::Const{value} if value.is_boolean()){return true;}matches!(e,Expr::Binary{op,left,right} if ["<","<=",">",">=","===","!=="].contains(&op.as_str())&&matches!(left.as_ref(),Expr::Ref{path} if path==&["player",zone,"length"])&&matches!(right.as_ref(),Expr::Ref{path} if path==&["opponent",zone,"length"]))}
+    if a.trigger!="whenPlayed"||!plain_resource_header(a)||a.target_resolver.is_some()||a.if_you_do.is_some(){return false;}
+    let Effect::Sequence{effects}=&a.effect else{return false;};if effects.len()!=2{return false;}
+    let first=matches!(&effects[0],Effect::Conditional{condition:c,on_true,on_false} if condition(c,"hand")&&matches!(on_true.as_ref(),Effect::Draw{target:Target::Name(t),amount:Expr::Const{value}} if t=="ownPlayer"&&value.as_u64().is_some_and(|n|(1..=2).contains(&n)))&&on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
+    let second=matches!(&effects[1],Effect::Conditional{condition:c,on_true,on_false} if condition(c,"resources")&&matches!(on_true.as_ref(),Effect::ResourceCard{target:Target::Name(t)} if t=="ownTopDeck")&&on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
+    first&&second
+}
+fn reviewed_top_deck_registration(a:&Ability)->bool {top_deck_resource_registration(a)||imperial_resource_continuation(a)||sequential_draw_resource(a)}
 fn resource_self(e:&Effect)->bool {matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="self")}
 #[derive(Clone,Copy,PartialEq,Eq)]
 enum ForceContinuation { Drain, Wave, Shields }
@@ -1417,8 +1434,17 @@ impl Program {
         }
 
         if contains_arena_damage(ability) && (depth!=0 || !(arena_damage_ability(ability)||ordered_ground_registration(ability))) {return Err("arena damage requires a mandatory standalone ordinary-unit play/attack/death registration".into());}
-        if top_deck_marker(&serde_json::to_value(ability).unwrap()) && (depth!=0||!top_deck_resource_registration(ability)){return Err("top-deck resource requires a sole bounded optional unit entry registration".into());}
-        if depth==0 && contains_resource(ability) && !top_deck_resource_registration(ability) {
+        if depth==0&&imperial_resource_continuation(ability) {
+            // The source EventWindow resolves ifYouDo before ordinary death
+            // triggers. Retain one program event_end; do not insert EndStep.
+            let r=ability.target_resolver.as_ref().unwrap();r.validate_inline()?;
+            self.instructions.push(Instruction::Select(r.clone()));self.compile_effect(&ability.effect,depth)?;
+            let at=self.instructions.len();self.instructions.push(Instruction::IfResult{skip:0});
+            self.compile_effect(&ability.if_you_do.as_ref().unwrap().effect,depth+1)?;
+            self.instructions[at]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
+        }
+        if top_deck_marker(&serde_json::to_value(ability).unwrap()) && (depth!=0||!reviewed_top_deck_registration(ability)){return Err("top-deck resource requires a sole bounded optional unit entry registration".into());}
+        if depth==0 && contains_resource(ability) && !reviewed_top_deck_registration(ability) {
             let header=!ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolver.is_none() && ability.target_resolvers.is_empty() && ability.condition.is_none() && ability.then.is_none();
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
             let death=ability.trigger=="whenDefeated" && ability.optional && ability.if_you_do.is_none() && matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op=="===" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["source","zoneName"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_str()==Some("discard")) && resource_self(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
@@ -2198,7 +2224,7 @@ impl Catalogue {
                 if sides.leader.iter().chain(&sides.unit).any(|a|contains_force(&a.effect)) || sides.card.iter().any(|a|contains_force(&a.effect) && !((entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") && ["whenPlayed","whenDefeated","onAttack"].contains(&a.trigger.as_str())) || (entry["baseClass"]=="EventCard" && exact_type("event") && a.trigger=="event") || upgrade_force(a))) {return Err("Force registration requires ordinary unit/event or bounded upgrade play-heal metadata".into());}
                 if sides.leader.iter().chain(&sides.unit).any(contains_force_presence) || sides.card.iter().any(|a|contains_force_presence(a) && (entry["baseClass"]!="NonLeaderUnitCard" || !exact_type("unit"))) {return Err("Force presence requires ordinary unit card-side metadata".into());}
                 let top_deck=["abilities","attachCondition","piloting"].iter().any(|key|top_deck_marker(&entry[*key]));
-                if top_deck && (entry["baseClass"]!="NonLeaderUnitCard"||!exact_type("unit")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!top_deck_resource_registration(&sides.card[0])||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])) {return Err("top-deck resource requires complete sole optional ordinary unit metadata".into());}
+                if top_deck && (sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!reviewed_top_deck_registration(&sides.card[0])||!(if imperial_resource_continuation(&sides.card[0]) {entry["baseClass"]=="EventCard"&&exact_type("event")&&entry["card"]["unique"]==false}else{entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")})||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])) {return Err("top-deck resource requires complete sole optional ordinary unit metadata".into());}
                 if !top_deck && (sides.leader.iter().chain(&sides.unit).any(contains_resource) || sides.card.iter().any(|a|contains_resource(a) && !((entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") && a.trigger=="whenDefeated") || (entry["baseClass"]=="EventCard" && exact_type("event") && a.trigger=="event")))) {return Err("resourceCard requires ordinary unit death/event metadata".into());}
                 let coordinates=sides.card.iter().filter(|a|a.coordinate).count();
                 if sides.leader.iter().chain(&sides.unit).any(|a|a.coordinate) || coordinates>1 || (coordinates==1 && (entry["baseClass"]!="NonLeaderUnitCard" || entry["keywordValues"]["coordinate"].as_u64()!=Some(1))) {return Err("Coordinate requires exactly one printed nonleader card-side registration".into());}
@@ -2701,5 +2727,22 @@ mod top_deck_resource_metadata_tests {
   let mut x=entry("JTL_119");x["abilities"]["card"][0]["effect"]["target"]=json!("self");assert!(!admitted(x));
   for n in [0,2,3,4,64]{let mut x=entry("HMW_136");x["abilities"]["card"][0]["effect"]["condition"]["right"]["value"]=json!(n);assert!(admitted(x));}let mut x=entry("HMW_136");x["abilities"]["card"][0]["effect"]["condition"]["right"]["value"]=json!(65);assert!(!admitted(x));
   for op in ["<","<=",">",">=","===","!=="]{let mut x=entry("JTL_164");x["abilities"]["card"][0]["effect"]["condition"]["op"]=json!(op);assert!(admitted(x));}
+ }
+}
+
+#[cfg(test)]
+mod resource_continuation_metadata_tests {
+ use super::*;use serde_json::json;
+ fn entry(code:&str)->Value {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|x|x["setCode"]==code).unwrap().clone()}
+ fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_string();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
+ #[test]fn continuations_require_complete_original_source_and_exact_topology(){
+  for id in ["ASH_103","LAW_083"]{let e=entry(id);assert!(admitted(e.clone()));for(path,value)in[("/baseClass",json!("MysteryCard")),("/card/types",json!(["leader"])),("/keywordValues",json!({"restore":1})),("/card/keywords",json!(["shielded"])),("/card/epicAction",json!("extra")),("/piloting",json!({})),("/attachCondition",json!({"kind":"const","value":true})),("/abilities/card/0/optional",json!(true)),("/abilities/card/0/requiresConfirmation",json!(true)),("/abilities/card/0/coordinate",json!(true)),("/abilities/card/0/condition",json!({"kind":"const","value":true})),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/then",json!({"title":"extra","trigger":"then","effect":{"kind":"noAction"}}))]{let mut x=e.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut dst=&mut x;for key in &parts[..parts.len()-1]{dst=if dst.is_array(){&mut dst[key.parse::<usize>().unwrap()]}else{&mut dst[*key]};}dst[parts[parts.len()-1]]=value;assert!(!admitted(x),"{id} {path}");}let mut x=e.clone();x["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}}));assert!(!admitted(x));}
+  let e=entry("ASH_103");for (key,val)in [("owner",json!("opponent")),("type",json!("upgrade")),("zone",json!("hand")),("optional",json!(true)),("promptTitle",json!("")),("predicate",json!({"kind":"const","value":true}))]{let mut x=e.clone();x["abilities"]["card"][0]["targetResolver"][key]=val;assert!(!admitted(x),"ASH resolver {key}");}let mut x=e.clone();x["abilities"]["card"][0]["ifYouDo"]["optional"]=json!(true);assert!(!admitted(x));
+  let e=entry("LAW_083");let mut x=e.clone();x["abilities"]["card"][0]["effect"]["effects"].as_array_mut().unwrap().swap(0,1);assert!(!admitted(x));let mut x=e.clone();x["abilities"]["card"][0]["effect"]["effects"].as_array_mut().unwrap().push(json!({"kind":"noAction"}));assert!(!admitted(x));let mut x=e.clone();x["abilities"]["card"][0]["effect"]["effects"][0]["onTrue"]["amount"]["value"]=json!(3);assert!(!admitted(x));
+ }
+ #[test]fn emitted_program_preserves_source_continuation_order_and_bounded_sensitivity(){
+  let a:Ability=serde_json::from_value(entry("ASH_103")["abilities"]["card"][0].clone()).unwrap();let p=Program::compile(&a).unwrap();assert!(matches!(&p.instructions[0],Instruction::Select(r) if r.prompt_title.as_deref()==Some("Defeat a friendly Imperial unit")));assert!(matches!(&p.instructions[1],Instruction::Apply(Effect::Defeat{..})));assert!(matches!(&p.instructions[2],Instruction::IfResult{..}));assert!(matches!(&p.instructions[3],Instruction::Apply(Effect::ResourceCard{target:Target::Name(n)}) if n=="ownTopDeck"));assert!(!p.instructions[1..4].iter().any(|i|matches!(i,Instruction::EndStep)));
+  let a:Ability=serde_json::from_value(entry("LAW_083")["abilities"]["card"][0].clone()).unwrap();let p=Program::compile(&a).unwrap();let draw=p.instructions.iter().position(|i|matches!(i,Instruction::Apply(Effect::Draw{..}))).unwrap();let resource=p.instructions.iter().position(|i|matches!(i,Instruction::Apply(Effect::ResourceCard{..}))).unwrap();assert!(draw<resource);
+  for value in [true,false]{let mut x=entry("LAW_083");x["abilities"]["card"][0]["effect"]["effects"][0]["condition"]=json!({"kind":"const","value":value});assert!(admitted(x));}let mut x=entry("LAW_083");x["abilities"]["card"][0]["effect"]["effects"][0]["onTrue"]["amount"]["value"]=json!(2);assert!(admitted(x));
  }
 }

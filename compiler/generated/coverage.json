@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "55aa94713e6b13ff0ffc01cef9e5acfb379de917cd24550153332ac57f410550",
+  "compilerHash": "b8fd19b56374fbed23e9687f9e52e499673f0f3f40a4251a3463823b39f0fdf6",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1103,
-  "sourceAstConverted": 731,
+  "converted": 1105,
+  "sourceAstConverted": 733,
   "dataOnlyConverted": 372,
-  "unconverted": 1355,
+  "unconverted": 1353,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -60,6 +60,7 @@
     "ASH_098",
     "ASH_099",
     "ASH_100",
+    "ASH_103",
     "ASH_105",
     "ASH_106",
     "ASH_111",
@@ -424,6 +425,7 @@
     "LAW_079",
     "LAW_081",
     "LAW_082",
+    "LAW_083",
     "LAW_087",
     "LAW_089",
     "LAW_090",
@@ -3039,17 +3041,6 @@
       ]
     },
     {
-      "pattern": "top-deck-resource-source-shape",
-      "occurrences": 5,
-      "cards": [
-        "ASH_103",
-        "HMW_044",
-        "LAW_083",
-        "LAW_171",
-        "SHD_214"
-      ]
-    },
-    {
       "pattern": "unimplemented-context-field:events",
       "occurrences": 5,
       "cards": [
@@ -3475,6 +3466,15 @@
         "HMW_048",
         "TS26_034",
         "TWI_116"
+      ]
+    },
+    {
+      "pattern": "top-deck-resource-source-shape",
+      "occurrences": 3,
+      "cards": [
+        "HMW_044",
+        "LAW_171",
+        "SHD_214"
       ]
     },
     {
@@ -7639,21 +7639,6 @@
           "line": 57,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_103",
-      "internalName": "long-live-the-empire",
-      "sourcePath": "game/cards/08_ASH/events/LongLiveTheEmpire.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/08_ASH/events/LongLiveTheEmpire.ts",
-          "line": 7,
-          "column": 1
         }
       ]
     },
@@ -16462,21 +16447,6 @@
           "file": "game/cards/07_LAW/units/LukeSkywalkerProfitOrBeDestroyed.ts",
           "line": 20,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_083",
-      "internalName": "broken-horn#vizagos-pride",
-      "sourcePath": "game/cards/07_LAW/units/BrokenHornVizagosPride.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/07_LAW/units/BrokenHornVizagosPride.ts",
-          "line": 5,
-          "column": 1
         }
       ]
     },

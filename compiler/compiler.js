@@ -710,20 +710,44 @@ function ownTopDeckResourceTarget(input,context,depth=0) {
     if(ctx.constants.has(parts[0])||binding?.kind!=='ref'||binding.path.join('.')!=='context'||parts.slice(1).join('.')!=='player')fail(ctx,node,'top-deck-resource-context');
     return 'ownTopDeck';
 }
+// Enum spellings are constants only when their imported namespace remains
+// unshadowed. Apply this extra fence to the newly admitted continuation roots.
+function topDeckContinuationNamespaces(node,ctx) {
+    const namespaces=new Set(['Trait','RelativePlayer','WildcardCardType','TextHelper']);
+    const names=(binding,root)=>ts.isIdentifier(binding)?binding.text===root:binding.elements?.some(e=>e.name&&names(e.name,root));
+    const visit=n=>{
+        if(ts.isPropertyAccessExpression(n)&&ts.isIdentifier(n.expression)&&namespaces.has(n.expression.text)) {
+            const root=n.expression.text;
+            for(let a=n.parent;a;a=a.parent) {
+                if(a.parameters?.some(p=>names(p.name,root))||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>names(d.name,root))))fail(ctx,n,'top-deck-resource-enum-binding');
+            }
+        }
+        ts.forEachChild(n,visit);
+    };
+    visit(node);
+}
 function topDeckResourceSourceShape(out) {
     const keys=(value,names)=>Object.keys(value||{}).sort().join(',')===[...names].sort().join(',');
     const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-    if(out.baseClass!=='NonLeaderUnitCard'||out.abilities.leader.length||out.abilities.unit.length||out.abilities.card.length!==1)return false;
+    if(out.abilities.leader.length||out.abilities.unit.length||out.abilities.card.length!==1)return false;
     const a=out.abilities.card[0],resource={kind:'resourceCard',target:'ownTopDeck'};
-    if(!keys(a,['trigger','title','costs','optional','effect'])||a.trigger!=='whenPlayed'||a.optional!==true||!same(a.costs,[]))return false;
+    const fewer=(zone)=>({kind:'binary',op:'<',left:reference('player',zone,'length'),right:reference('opponent',zone,'length')});
+    const conditional=(condition,onTrue)=>({kind:'conditional',condition,onTrue,onFalse:{kind:'noAction'}});
+    if(out.baseClass==='EventCard') {
+        return keys(a,['trigger','title','costs','targetResolver','effect','ifYouDo'])&&a.trigger==='event'&&same(a.costs,[])&&
+            same(a.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable',predicate:{kind:'query',name:'hasSomeTrait',receiver:reference('card'),args:[constant('imperial')]},promptTitle:'Defeat a friendly Imperial unit'})&&
+            same(a.effect,{kind:'defeat',target:'chosen'})&&keys(a.ifYouDo,['title','costs','effect'])&&same(a.ifYouDo.costs,[])&&same(a.ifYouDo.effect,resource);
+    }
+    if(out.baseClass!=='NonLeaderUnitCard'||a.trigger!=='whenPlayed'||!same(a.costs,[]))return false;
+    if(keys(a,['trigger','title','costs','effect'])) {
+        return same(a.effect,{kind:'sequence',effects:[conditional(fewer('hand'),{kind:'draw',target:'ownPlayer',amount:constant(1)}),conditional(fewer('resources'),resource)]});
+    }
+    if(!keys(a,['trigger','title','costs','optional','effect'])||a.optional!==true)return false;
     if(same(a.effect,resource))return true;
-    const effect=a.effect;
-    if(!keys(effect,['kind','condition','onTrue','onFalse'])||effect.kind!=='conditional'||!same(effect.onTrue,resource)||!same(effect.onFalse,{kind:'noAction'}))return false;
-    const condition=effect.condition;
-    const fewer={kind:'binary',op:'<',left:reference('player','resources','length'),right:reference('opponent','resources','length')};
     const units={kind:'binary',op:'>=',left:{kind:'query',name:'arenaUnitCount',receiver:reference('player'),args:[constant(true)]},right:constant(3)};
-    return same(condition,fewer)||same(condition,units);
+    return same(a.effect,conditional(fewer('resources'),resource))||same(a.effect,conditional(units,resource));
 }
+
 function target(node, ctx, fallback = 'self') {
     if (!node) return fallback;
     const ordered=orderedArenaTarget(node,ctx);
@@ -1275,6 +1299,22 @@ function ability(input, context, trigger = null, validatedObject = null) {
     }
     if (!result.effect) fail(ctx, node, 'ability-without-effect');
     for (const branch of ['then', 'ifYouDo']) if (props.has(branch)) result[branch] = ability(props.get(branch), ctx);
+    // A top-deck continuation event retains its explicit selector prompt. Other
+    // scalar source families keep their existing representation byte for byte.
+    if(result.targetResolver&&result.ifYouDo?.effect?.kind==='resourceCard'&&result.ifYouDo.effect.target==='ownTopDeck') {
+        const resolver=object(props.get('targetResolver'),ctx);
+        if(resolver.props.has('activePromptTitle')) {
+            const n=unwrap(resolver.props.get('activePromptTitle'));
+            const staticSpan=span=>{
+                const parts=access(span.expression,resolver.ctx);
+                let shadowed=false;for(let ancestor=span.expression.parent;ancestor;ancestor=ancestor.parent){if(ancestor.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===parts[0]))shadowed=true;}
+                if(shadowed||resolver.ctx.scope.has(parts[0])||resolver.ctx.constants.has(parts[0]))fail(resolver.ctx,span.expression,'top-deck-resource-prompt-binding');
+                return titleHelper(span.expression,resolver.ctx)!==null;
+            };
+            if(!(ts.isStringLiteral(n)||ts.isNoSubstitutionTemplateLiteral(n)||ts.isTemplateExpression(n)&&n.templateSpans.every(staticSpan)))fail(resolver.ctx,n,'top-deck-resource-prompt');
+            result.targetResolver.promptTitle=displayText(n,resolver.ctx);
+        }
+    }
     for (const condition of ['thenCondition', 'ifYouDoCondition']) if (props.has(condition)) result[condition] = expr(props.get(condition), ctx);
     // A factory closes over the previous effect context. Flattening a captured
     // target into the current-target register would change its value after a new
@@ -1487,6 +1527,9 @@ function compileSource(text, file, enums = {}) {
     }
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
     const containsTop=value=>!!value&&typeof value==='object'&&(value.target==='ownTopDeck'||Object.values(value).some(containsTop));
+    if(containsTop(out.abilities)&&(out.baseClass==='EventCard'||out.abilities.card.some(a=>a.effect?.kind==='sequence'))){
+        try{topDeckContinuationNamespaces(cls,ctx);}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.abilities={leader:[],unit:[],card:[]};}
+    }
     if(containsTop(out.abilities)&&!topDeckResourceSourceShape(out)){
         diagnostics.push(new Unsupported(ctx,cls,'top-deck-resource-source-shape').diagnostic);
         out.abilities={leader:[],unit:[],card:[]};

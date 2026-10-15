@@ -1559,6 +1559,44 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9020748123",
+      "internalName": "long-live-the-empire",
+      "keywords": [],
+      "power": null,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "ASH_103",
+      "setCodes": [
+        {
+          "number": 103,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 103,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Defeat a friendly Imperial unit. If you do, resource the top card of your deck.",
+      "title": "Long Live the Empire",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -15540,6 +15578,47 @@
         "rebel",
         "tusken",
         "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9574762282",
+      "internalName": "broken-horn#vizagos-pride",
+      "keywords": [],
+      "power": 5,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\nResources enter play exhausted.\n",
+      "setCode": "LAW_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "LAW"
+      },
+      "subtitle": "Vizago's Pride",
+      "text": "When Played: If you have fewer cards in hand than an opponent, draw a card. If you control fewer resources than an opponent, resource the top card of your deck.",
+      "title": "Broken Horn",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"

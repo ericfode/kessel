@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1103** (731 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1355**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1105** (733 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1353**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -95,7 +95,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:lookAtAndChooseOption | 5 | 5 |
 | named-target-card-domain | 5 | 5 |
 | registrar:addGainActionAbilityTargetingAttached | 5 | 5 |
-| top-deck-resource-source-shape | 5 | 5 |
 | unimplemented-context-field:events | 5 | 5 |
 | unsupported-field:playerChoosingOptional | 5 | 5 |
 | unsupported-live-stat-expression | 5 | 5 |
@@ -139,6 +138,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:optional | 3 | 3 |
 | registrar:addGainWhenAttackEndsAbilityTargetingAttached | 3 | 3 |
 | registrar:addPreEnterPlayAbility | 3 | 3 |
+| top-deck-resource-source-shape | 3 | 3 |
 | trigger-alias-hook:onCardAbilityInitiated | 3 | 5 |
 | trigger-alias-hook:onCardDiscarded | 3 | 3 |
 | trigger-alias-hook:onUnitEntersPlay | 3 | 3 |

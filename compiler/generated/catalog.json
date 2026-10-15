@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "55aa94713e6b13ff0ffc01cef9e5acfb379de917cd24550153332ac57f410550",
+  "compilerHash": "b8fd19b56374fbed23e9687f9e52e499673f0f3f40a4251a3463823b39f0fdf6",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -30718,23 +30718,54 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Defeat a friendly Imperial unit. If you do, resource the top card of your deck",
+            "costs": [],
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "query",
+                "name": "hasSomeTrait",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "card"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "const",
+                    "value": "imperial"
+                  }
+                ]
+              },
+              "promptTitle": "Defeat a friendly Imperial unit"
+            },
+            "effect": {
+              "kind": "defeat",
+              "target": "chosen"
+            },
+            "ifYouDo": {
+              "title": "Resource the top card of your deck",
+              "costs": [],
+              "effect": {
+                "kind": "resourceCard",
+                "target": "ownTopDeck"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/08_ASH/events/LongLiveTheEmpire.ts",
-          "line": 7,
-          "column": 1
-        }
-      ],
+      "diagnostics": [],
       "className": "LongLiveTheEmpire",
       "baseClass": "EventCard",
       "id": "9020748123",
       "internalName": "long-live-the-empire",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Long Live the Empire",
         "subtitle": "",
@@ -30775,7 +30806,18 @@
       "dataHash": "2ff9e060ed0fc2da9966a6485f665faca3f71c3d4f4f337445138c710d229f8f",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "ability:ifYouDo",
+        "cardType:event",
+        "ir:const",
+        "ir:defeat",
+        "ir:query",
+        "ir:ref",
+        "ir:resourceCard",
+        "query:hasSomeTrait",
+        "ref:card",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:event"
       ]
     },
     {
@@ -102949,23 +102991,89 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "If you have fewer cards in hand than your opponent, draw a card. If you control fewer resources than your opponent, resource the top card of your deck",
+            "costs": [],
+            "effect": {
+              "kind": "sequence",
+              "effects": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "op": "<",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "player",
+                        "hand",
+                        "length"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "opponent",
+                        "hand",
+                        "length"
+                      ]
+                    }
+                  },
+                  "onTrue": {
+                    "kind": "draw",
+                    "target": "ownPlayer",
+                    "amount": {
+                      "kind": "const",
+                      "value": 1
+                    }
+                  },
+                  "onFalse": {
+                    "kind": "noAction"
+                  }
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "op": "<",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "player",
+                        "resources",
+                        "length"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "opponent",
+                        "resources",
+                        "length"
+                      ]
+                    }
+                  },
+                  "onTrue": {
+                    "kind": "resourceCard",
+                    "target": "ownTopDeck"
+                  },
+                  "onFalse": {
+                    "kind": "noAction"
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/07_LAW/units/BrokenHornVizagosPride.ts",
-          "line": 5,
-          "column": 1
-        }
-      ],
+      "diagnostics": [],
       "className": "BrokenHornVizagosPride",
       "baseClass": "NonLeaderUnitCard",
       "id": "9574762282",
       "internalName": "broken-horn#vizagos-pride",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Broken Horn",
         "subtitle": "Vizago's Pride",
@@ -103009,7 +103117,21 @@
       "dataHash": "914bba4dac20a7bd6ea0199cc18040944922bf8ca5e71a050c1ca644db666f57",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:<",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:draw",
+        "ir:noAction",
+        "ir:ref",
+        "ir:resourceCard",
+        "ir:sequence",
+        "ref:opponent.hand.length",
+        "ref:opponent.resources.length",
+        "ref:player.hand.length",
+        "ref:player.resources.length",
+        "trigger:whenPlayed"
       ]
     },
     {
