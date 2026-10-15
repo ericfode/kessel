@@ -159,6 +159,15 @@ fn reference(path: &[String]) -> Result<String, String> {
 }
 fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
     let receiver = expression(receiver)?;
+    if ["hasControlledInPlayTitle","hasAttachedTrait","hasAttachedNativeToken"].contains(&name) {
+        let Some(Expr::Const{value})=args.first() else {return Err("query needs literal".into())};
+        let text=value.as_str().ok_or("query needs text literal")?;
+        return Ok(match name {
+            "hasControlledInPlayTitle"=>format!("if let Eval::Player(p)={receiver} {{Eval::Bool(self.controlled_in_play_title(s,p,{text:?}))}} else {{Eval::Null}}"),
+            "hasAttachedTrait"=>format!("if let Eval::Card(id)={receiver} {{if id==0 {{Eval::Null}} else {{Eval::Bool(self.attached_trait(s,id,{text:?}))}}}} else {{Eval::Null}}"),
+            _=>format!("if let Eval::Card(id)={receiver} {{if id==0 {{Eval::Null}} else {{Eval::Bool(self.attached_native_shield(s,id))}}}} else {{Eval::Null}}"),
+        });
+    }
     if name == "arenaUnitCount" || name == "hasSomeArenaUnit" {
         let predicate = expression(args.first().ok_or("arena query needs predicate")?)?;
         let result = if name == "arenaUnitCount" {

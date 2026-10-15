@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "ec6a3f81420384f96f0239ad052f00afc4b4daa88d8aefcbcf0ebed16aca3381",
+  "catalogueHash": "b4b75bf3580a4cee1d4e6dbf41eb41d3fc9c6f869a901c3368122215c22ea71e",
   "dataOnlyConvertedCount": 375,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1120,
+  "irConvertedCount": 1127,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 375,
     "nativeAdapters": 4,
-    "sourceIr": 645
+    "sourceIr": 649
   },
   "runtimeAdmittedCards": [
     {
@@ -684,6 +684,11 @@
       "implementation": "sourceIr",
       "internalName": "radiant-vii#negotiating-for-naboo",
       "setCode": "HMW_079"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "fambaa-shield-team",
+      "setCode": "HMW_080"
     },
     {
       "implementation": "dataOnly",
@@ -1409,6 +1414,11 @@
       "implementation": "sourceIr",
       "internalName": "the-desolation-of-hoth",
       "setCode": "IBH_104"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "admiral-holdo#were-not-alone",
+      "setCode": "JTL_007"
     },
     {
       "implementation": "dataOnly",
@@ -3382,6 +3392,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "anakin-skywalker#secret-husband",
+      "setCode": "SEC_201"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "rebel-propagandist",
       "setCode": "SEC_202"
     },
@@ -4044,6 +4059,11 @@
       "implementation": "sourceIr",
       "internalName": "admiral-piett#captain-of-the-executor",
       "setCode": "SOR_079"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "emperors-royal-guard",
+      "setCode": "SOR_082"
     },
     {
       "implementation": "sourceIr",
@@ -5131,7 +5151,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1024,
+  "runtimeAdmittedCount": 1028,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6159,11 +6179,6 @@
       "setCode": "HMW_078"
     },
     {
-      "internalName": "fambaa-shield-team",
-      "reason": "fambaa-shield-team: compiler rejected \"fambaa-shield-team\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":141,\"file\":\"game/cards/09_HMW/units/FambaaShieldTeam.ts\",\"line\":18,\"message\":\"unsupported-query:isShield\",\"pattern\":\"unsupported-query:isShield\"}]",
-      "setCode": "HMW_080"
-    },
-    {
       "internalName": "alliance-shield-generator",
       "reason": "alliance-shield-generator: compiler rejected \"alliance-shield-generator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/AllianceShieldGenerator.ts\",\"line\":16,\"message\":\"registrar:addDamageModificationAbility\",\"pattern\":\"registrar:addDamageModificationAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/upgrades/AllianceShieldGenerator.ts\",\"line\":31,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:wouldDealFiveOrMoreDamage\"}]",
       "setCode": "HMW_081"
@@ -6470,7 +6485,7 @@
     },
     {
       "internalName": "the-tarkin-doctrine#protect-and-punish",
-      "reason": "the-tarkin-doctrine#protect-and-punish: compiler rejected \"the-tarkin-doctrine#protect-and-punish\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts\",\"line\":15,\"message\":\"registrar:addGainTriggeredAbilityTargetingAttached\",\"pattern\":\"registrar:addGainTriggeredAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts\",\"line\":37,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
+      "reason": "the-tarkin-doctrine#protect-and-punish: compiler rejected \"the-tarkin-doctrine#protect-and-punish\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts\",\"line\":15,\"message\":\"registrar:addGainTriggeredAbilityTargetingAttached\",\"pattern\":\"registrar:addGainTriggeredAbilityTargetingAttached\"}]",
       "setCode": "HMW_206"
     },
     {
@@ -6677,11 +6692,6 @@
       "internalName": "darth-vader#victor-squadron-leader",
       "reason": "darth-vader#victor-squadron-leader: compiler rejected \"darth-vader#victor-squadron-leader\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:attacksThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts\",\"line\":23,\"message\":\"registrar:addPilotDeploy\",\"pattern\":\"registrar:addPilotDeploy\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts\",\"line\":29,\"message\":\"unsupported-query:someUnitAttackedControlledByPlayer\",\"pattern\":\"unsupported-query:someUnitAttackedControlledByPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts\",\"line\":39,\"message\":\"registrar:addPilotingAbility\",\"pattern\":\"registrar:addPilotingAbility\"}]",
       "setCode": "JTL_006"
-    },
-    {
-      "internalName": "admiral-holdo#were-not-alone",
-      "reason": "admiral-holdo#were-not-alone: compiler rejected \"admiral-holdo#were-not-alone\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts\",\"line\":22,\"message\":\"unsupported-query:isResistanceOrHasResistanceUpgrade\",\"pattern\":\"unsupported-query:isResistanceOrHasResistanceUpgrade\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":95,\"file\":\"game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts\",\"line\":36,\"message\":\"unsupported-query:isResistanceOrHasResistanceUpgrade\",\"pattern\":\"unsupported-query:isResistanceOrHasResistanceUpgrade\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts\",\"line\":44,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isResistanceOrHasResistanceUpgrade\"}]",
-      "setCode": "JTL_007"
     },
     {
       "internalName": "wedge-antilles#leader-of-red-squadron",
@@ -7105,7 +7115,7 @@
     },
     {
       "internalName": "black-one#straight-at-them",
-      "reason": "black-one#straight-at-them: compiler rejected \"black-one#straight-at-them\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/04_JTL/units/BlackOneStraightAtThem.ts\",\"line\":27,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
+      "reason": "black-one#straight-at-them: controlled title requires complete ordinary unit persistent self constant registration",
       "setCode": "JTL_147"
     },
     {
@@ -7460,7 +7470,7 @@
     },
     {
       "internalName": "fetts-firespray#feared-silhouette",
-      "reason": "fetts-firespray#feared-silhouette: compiler rejected \"fetts-firespray#feared-silhouette\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/04_JTL/units/FettsFiresprayFearedSilhouette.ts\",\"line\":17,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
+      "reason": "fetts-firespray#feared-silhouette: compiler rejected \"fetts-firespray#feared-silhouette\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":23,\"file\":\"game/cards/04_JTL/units/FettsFiresprayFearedSilhouette.ts\",\"line\":23,\"message\":\"unsupported-player-target-resolver\",\"pattern\":\"unsupported-player-target-resolver\"}]",
       "setCode": "JTL_240"
     },
     {
@@ -9060,7 +9070,7 @@
     },
     {
       "internalName": "the-chancellors-shuttle#grim-harbinger",
-      "reason": "the-chancellors-shuttle#grim-harbinger: compiler rejected \"the-chancellors-shuttle#grim-harbinger\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/06_SEC/units/TheChancellorsShuttleGrimHarbinger.ts\",\"line\":19,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
+      "reason": "the-chancellors-shuttle#grim-harbinger: controlled title requires complete ordinary unit persistent self constant registration",
       "setCode": "SEC_027"
     },
     {
@@ -9607,11 +9617,6 @@
       "internalName": "no-one-ever-knew",
       "reason": "no-one-ever-knew: compiler rejected \"no-one-ever-knew\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/06_SEC/events/NoOneEverKnew.ts\",\"line\":21,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"}]",
       "setCode": "SEC_196"
-    },
-    {
-      "internalName": "anakin-skywalker#secret-husband",
-      "reason": "anakin-skywalker#secret-husband: compiler rejected \"anakin-skywalker#secret-husband\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/06_SEC/units/AnakinSkywalkerSecretHusband.ts\",\"line\":18,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
-      "setCode": "SEC_201"
     },
     {
       "internalName": "tala-durith#i-can-get-you-inside",
@@ -10889,11 +10894,6 @@
       "setCode": "SOR_075"
     },
     {
-      "internalName": "emperors-royal-guard",
-      "reason": "emperors-royal-guard: compiler rejected \"emperors-royal-guard\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/01_SOR/units/EmperorsRoyalGuard.ts\",\"line\":24,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
-      "setCode": "SOR_082"
-    },
-    {
       "internalName": "grand-moff-tarkin#death-star-overseer",
       "reason": "grand-moff-tarkin#death-star-overseer: compiler rejected \"grand-moff-tarkin#death-star-overseer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/units/GrandMoffTarkinDeathStarOverseer.ts\",\"line\":18,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "SOR_084"
@@ -11165,7 +11165,7 @@
     },
     {
       "internalName": "fetts-firespray#pursuing-the-bounty",
-      "reason": "fetts-firespray#pursuing-the-bounty: compiler rejected \"fetts-firespray#pursuing-the-bounty\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/01_SOR/units/FettsFiresprayPursuingTheBounty.ts\",\"line\":18,\"message\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\",\"pattern\":\"unsupported-query:controlsLeaderUnitOrUpgradeWithTitle\"}]",
+      "reason": "fetts-firespray#pursuing-the-bounty: controlled title requires complete ordinary unit persistent self constant registration",
       "setCode": "SOR_184"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1434,
+  "runtimeRejectedCount": 1430,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 745
+  "sourceAstConvertedCount": 752
 }

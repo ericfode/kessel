@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "f7ec9e8f86309afaee35988705b0e10e96f5c74a0c32bb6512505f79125818e9",
+  "compilerHash": "913927950a65984c0089bb0f6c44730cb2db09ad048158b4e12fc4424eff0a2b",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1120,
-  "sourceAstConverted": 745,
+  "converted": 1127,
+  "sourceAstConverted": 752,
   "dataOnlyConverted": 375,
-  "unconverted": 1338,
+  "unconverted": 1331,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -165,6 +165,7 @@
     "HMW_075",
     "HMW_076",
     "HMW_079",
+    "HMW_080",
     "HMW_082",
     "HMW_083",
     "HMW_084",
@@ -314,6 +315,7 @@
     "IBH_095",
     "IBH_099",
     "IBH_104",
+    "JTL_007",
     "JTL_019",
     "JTL_022",
     "JTL_024",
@@ -369,6 +371,7 @@
     "JTL_135",
     "JTL_140",
     "JTL_144",
+    "JTL_147",
     "JTL_151",
     "JTL_153",
     "JTL_158",
@@ -660,6 +663,7 @@
     "SEC_024",
     "SEC_025",
     "SEC_026",
+    "SEC_027",
     "SEC_028",
     "SEC_029",
     "SEC_030",
@@ -736,6 +740,7 @@
     "SEC_198",
     "SEC_199",
     "SEC_200",
+    "SEC_201",
     "SEC_202",
     "SEC_203",
     "SEC_204",
@@ -898,6 +903,7 @@
     "SOR_076",
     "SOR_077",
     "SOR_079",
+    "SOR_082",
     "SOR_086",
     "SOR_090",
     "SOR_094",
@@ -935,6 +941,7 @@
     "SOR_178",
     "SOR_180",
     "SOR_183",
+    "SOR_184",
     "SOR_194",
     "SOR_195",
     "SOR_196",
@@ -2022,7 +2029,7 @@
     },
     {
       "pattern": "unsupported-player-target-resolver",
-      "occurrences": 18,
+      "occurrences": 19,
       "cards": [
         "ASH_189",
         "HMW_209",
@@ -2037,6 +2044,7 @@
         "JTL_222",
         "JTL_226",
         "JTL_234",
+        "JTL_240",
         "SEC_178",
         "SHD_181",
         "SHD_199",
@@ -2857,19 +2865,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-      "occurrences": 7,
-      "cards": [
-        "HMW_206",
-        "JTL_147",
-        "JTL_240",
-        "SEC_027",
-        "SEC_201",
-        "SOR_082",
-        "SOR_184"
-      ]
-    },
-    {
       "pattern": "unsupported-query:targetIsUnit",
       "occurrences": 7,
       "cards": [
@@ -3350,16 +3345,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:isShield",
-      "occurrences": 4,
-      "cards": [
-        "HMW_077",
-        "HMW_080",
-        "JTL_180",
-        "SHD_045"
-      ]
-    },
-    {
       "pattern": "unsupported-query:reduce",
       "occurrences": 4,
       "cards": [
@@ -3576,6 +3561,15 @@
         "HMW_078",
         "JTL_004",
         "SOR_245"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:isShield",
+      "occurrences": 3,
+      "cards": [
+        "HMW_077",
+        "JTL_180",
+        "SHD_045"
       ]
     },
     {
@@ -5171,13 +5165,6 @@
       ]
     },
     {
-      "pattern": "method:isResistanceOrHasResistanceUpgrade",
-      "occurrences": 1,
-      "cards": [
-        "JTL_007"
-      ]
-    },
-    {
       "pattern": "method:isSecondCardPlayedByOpponentThisPhase",
       "occurrences": 1,
       "cards": [
@@ -6106,13 +6093,6 @@
       "occurrences": 1,
       "cards": [
         "LOF_082"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-      "occurrences": 2,
-      "cards": [
-        "JTL_007"
       ]
     },
     {
@@ -10232,21 +10212,6 @@
       ]
     },
     {
-      "setCode": "HMW_080",
-      "internalName": "fambaa-shield-team",
-      "sourcePath": "game/cards/09_HMW/units/FambaaShieldTeam.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isShield",
-          "message": "unsupported-query:isShield",
-          "file": "game/cards/09_HMW/units/FambaaShieldTeam.ts",
-          "line": 18,
-          "column": 141
-        }
-      ]
-    },
-    {
       "setCode": "HMW_081",
       "internalName": "alliance-shield-generator",
       "sourcePath": "game/cards/09_HMW/upgrades/AllianceShieldGenerator.ts",
@@ -11285,14 +11250,6 @@
           "file": "game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts",
           "line": 15,
           "column": 9
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts",
-          "line": 37,
-          "column": 45
         }
       ]
     },
@@ -12048,37 +12005,6 @@
           "file": "game/cards/04_JTL/leaders/DarthVaderVictorSquadronLeader.ts",
           "line": 39,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_007",
-      "internalName": "admiral-holdo#were-not-alone",
-      "sourcePath": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "message": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 22,
-          "column": 59
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "message": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 36,
-          "column": 95
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 44,
-          "column": 1,
-          "message": "Additional class method requires conversion"
         }
       ]
     },
@@ -13755,21 +13681,6 @@
       ]
     },
     {
-      "setCode": "JTL_147",
-      "internalName": "black-one#straight-at-them",
-      "sourcePath": "game/cards/04_JTL/units/BlackOneStraightAtThem.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/04_JTL/units/BlackOneStraightAtThem.ts",
-          "line": 27,
-          "column": 45
-        }
-      ]
-    },
-    {
       "setCode": "JTL_148",
       "internalName": "frisk#vanguard-loudmouth",
       "sourcePath": "game/cards/04_JTL/units/FriskVanguardLoudmouth.ts",
@@ -14909,11 +14820,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
+          "pattern": "unsupported-player-target-resolver",
+          "message": "unsupported-player-target-resolver",
           "file": "game/cards/04_JTL/units/FettsFiresprayFearedSilhouette.ts",
-          "line": 17,
-          "column": 42
+          "line": 23,
+          "column": 23
         }
       ]
     },
@@ -21056,21 +20967,6 @@
       ]
     },
     {
-      "setCode": "SEC_027",
-      "internalName": "the-chancellors-shuttle#grim-harbinger",
-      "sourcePath": "game/cards/06_SEC/units/TheChancellorsShuttleGrimHarbinger.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/06_SEC/units/TheChancellorsShuttleGrimHarbinger.ts",
-          "line": 19,
-          "column": 41
-        }
-      ]
-    },
-    {
       "setCode": "SEC_033",
       "internalName": "sly-moore#witness-to-power",
       "sourcePath": "game/cards/06_SEC/units/SlyMooreWitnessToPower.ts",
@@ -22914,21 +22810,6 @@
           "file": "game/cards/06_SEC/events/NoOneEverKnew.ts",
           "line": 21,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_201",
-      "internalName": "anakin-skywalker#secret-husband",
-      "sourcePath": "game/cards/06_SEC/units/AnakinSkywalkerSecretHusband.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/06_SEC/units/AnakinSkywalkerSecretHusband.ts",
-          "line": 18,
-          "column": 37
         }
       ]
     },
@@ -27083,21 +26964,6 @@
       ]
     },
     {
-      "setCode": "SOR_082",
-      "internalName": "emperors-royal-guard",
-      "sourcePath": "game/cards/01_SOR/units/EmperorsRoyalGuard.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/01_SOR/units/EmperorsRoyalGuard.ts",
-          "line": 24,
-          "column": 37
-        }
-      ]
-    },
-    {
       "setCode": "SOR_084",
       "internalName": "grand-moff-tarkin#death-star-overseer",
       "sourcePath": "game/cards/01_SOR/units/GrandMoffTarkinDeathStarOverseer.ts",
@@ -28042,21 +27908,6 @@
           "file": "game/cards/01_SOR/units/BosskDeadlyStalker.ts",
           "line": 18,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_184",
-      "internalName": "fetts-firespray#pursuing-the-bounty",
-      "sourcePath": "game/cards/01_SOR/units/FettsFiresprayPursuingTheBounty.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/01_SOR/units/FettsFiresprayPursuingTheBounty.ts",
-          "line": 18,
-          "column": 21
         }
       ]
     },

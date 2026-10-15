@@ -173,7 +173,10 @@ fn reviewed_weakness_entry(entry:&Value)->bool {
 fn effect_has(e:&Effect,predicate:fn(&Effect)->bool)->bool {predicate(e)||match e {Effect::Simultaneous{effects}|Effect::PhaseModifiers{effects}|Effect::Sequence{effects}=>effects.iter().any(|e|effect_has(e,predicate)),Effect::Conditional{on_true,on_false,..}=>effect_has(on_true,predicate)||on_false.as_deref().is_some_and(|e|effect_has(e,predicate)),Effect::Select{effect,..}=>effect_has(effect,predicate),_=>false}}
 // State import asks only about Force; do not allocate creation diagnostics there.
 fn program_needs_force(program: &Program) -> bool {
-    crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|instruction| {
+    fn title_force(v:&Value)->bool {
+        (v["kind"]=="query" && v["name"]=="hasControlledInPlayTitle" && v["args"][0]["value"]=="The Force") || match v {Value::Object(o)=>o.values().any(title_force),Value::Array(a)=>a.iter().any(title_force),_=>false}
+    }
+    title_force(&serde_json::to_value(program).expect("typed program serializes")) || crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|instruction| {
         let effect = match instruction {
             Instruction::Apply(effect) => Some(effect),
             other => other.group_effect(),
@@ -225,6 +228,23 @@ fn reviewed_force_entry(entry:&Value)->bool {
 }
 
 impl Engine {
+    // Player.getInPlayCards: controller-owned arena cards plus the player's BaseZone.
+    // Credits and Fortify cannot occur in the admitted state model.
+    fn controlled_in_play_title(&self,s:&State,player:Seat,title:&str)->bool {
+        (1..s.next_id).any(|id| {
+            let c=s.card(id);
+            c.present && c.owner==player && self.def(s,id).info.title==title &&
+                (self.in_arena(s,id)||self.attached_in_play(s,id)||id==s.player(player).base||id==s.player(player).leader)
+        }) || (s.force_state_exact && s.player(player).force_held && self.force_def.is_some_and(|d|self.definitions[d as usize].info.title==title))
+    }
+    // Native tokens and ordinary upgrades share this physical attachment chain.
+    fn attached_trait(&self,s:&State,host:CardId,trait_name:&str)->bool {
+        host!=0 && self.in_arena(s,host) && self.upgrades(s,host).into_iter().any(|id|self.def(s,id).traits.iter().any(|t|t==trait_name))
+    }
+    fn attached_native_shield(&self,s:&State,host:CardId)->bool {
+        host!=0 && self.in_arena(s,host) && self.upgrades(s,host).into_iter().any(|id|s.card(id).def==self.shield_def)
+    }
+
     pub(super) fn needs_force_state(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
     }
@@ -1021,6 +1041,9 @@ impl Engine {
                 receiver,
                 args,
             } => {
+                if name=="hasControlledInPlayTitle" {
+                    return if let Eval::Player(p)=sub(receiver) {Eval::Bool(self.controlled_in_play_title(s,p,if let Expr::Const{value}=&args[0] {value.as_str().unwrap_or("")} else {""}))} else {Eval::Null};
+                }
                 if name == "hasSomeArenaUnit" || name == "hasSomeArenaCard" || name == "arenaUnitCount" {
                     let Eval::Player(player) = sub(receiver) else {
                         return Eval::Null;
@@ -1051,6 +1074,8 @@ impl Engine {
                 }
                 let d = self.def(s, id);
                 match name.as_str() {
+                    "hasAttachedTrait" => Eval::Bool(self.attached_trait(s,id,if let Expr::Const{value}=&args[0] {value.as_str().unwrap_or("")} else {""})),
+                    "hasAttachedNativeToken" => Eval::Bool(self.attached_native_shield(s,id)),
                     "isUnit" => Eval::Bool(
                         d.info.is("unit") || (d.info.is("leader") && s.card(id).deployed),
                     ),

@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1120** (745 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1338**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1127** (752 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1331**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -29,7 +29,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addGainOnAttackAbilityTargetingAttached | 20 | 20 |
 | immediateEffect:giveAdvantage | 19 | 20 |
 | optional-reference | 19 | 19 |
-| unsupported-player-target-resolver | 18 | 18 |
+| unsupported-player-target-resolver | 19 | 19 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot | 17 | 17 |
 | immediateEffect:capture | 16 | 16 |
 | immediateEffect:takeControlOfUnit | 16 | 16 |
@@ -79,7 +79,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:canBeTriggeredBy | 7 | 7 |
 | unsupported-field:multiSelectCardCondition | 7 | 7 |
 | unsupported-field:source | 7 | 7 |
-| unsupported-query:controlsLeaderUnitOrUpgradeWithTitle | 7 | 7 |
 | unsupported-query:targetIsUnit | 7 | 7 |
 | immediateEffect:moveToBottomOfDeck | 6 | 6 |
 | immediateEffect:playMultipleCardsFromDeck | 6 | 6 |
@@ -125,7 +124,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:showUnresolvable | 4 | 5 |
 | unsupported-modifier:abilityHelper.ongoingEffects.cardCannot | 4 | 4 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities | 4 | 4 |
-| unsupported-query:isShield | 4 | 4 |
 | unsupported-query:reduce | 4 | 4 |
 | unsupported-query:someUnitLeftPlay | 4 | 4 |
 | unsupported-query:wasDefeatedThisPhase | 4 | 4 |
@@ -150,6 +148,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait | 3 | 3 |
 | unsupported-modifier:OngoingEffectBuilder.card.static | 3 | 3 |
 | unsupported-query:getAttackersInPlay | 3 | 3 |
+| unsupported-query:isShield | 3 | 3 |
 | ability-without-effect | 2 | 2 |
 | cardTypeFilter:playable | 2 | 2 |
 | class-state:actionsThisPhaseWatcher | 2 | 2 |
@@ -368,7 +367,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:isForceToken | 1 | 1 |
 | method:isHighestCostAmongEnemyUnits | 1 | 1 |
 | method:isOdd | 1 | 1 |
-| method:isResistanceOrHasResistanceUpgrade | 1 | 1 |
 | method:isSecondCardPlayedByOpponentThisPhase | 1 | 1 |
 | method:isShield | 1 | 1 |
 | method:isUnitInSameArena | 1 | 1 |
@@ -502,7 +500,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:hasShield | 1 | 1 |
 | unsupported-query:hasSomeCard | 1 | 2 |
 | unsupported-query:isExperience | 1 | 1 |
-| unsupported-query:isResistanceOrHasResistanceUpgrade | 1 | 2 |
 | unsupported-query:nonUnitForceCardPlayedThisPhase | 1 | 1 |
 | unsupported-query:numberOfTargets | 1 | 1 |
 | unsupported-query:opponentDidAttackBaseLastAction | 1 | 1 |

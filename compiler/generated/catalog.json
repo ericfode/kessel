@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "f7ec9e8f86309afaee35988705b0e10e96f5c74a0c32bb6512505f79125818e9",
+  "compilerHash": "913927950a65984c0089bb0f6c44730cb2db09ad048158b4e12fc4424eff0a2b",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -51515,23 +51515,126 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Give a Shield token to each friendly ground unit without a Shield token on it",
+            "costs": [],
+            "effect": {
+              "kind": "giveShield",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "predicate": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "||",
+                      "left": {
+                        "kind": "unary",
+                        "op": "!",
+                        "value": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "||",
+                        "left": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "const",
+                            "value": "groundArena"
+                          },
+                          "right": {
+                            "kind": "const",
+                            "value": "anyArena"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "zoneName"
+                            ]
+                          },
+                          "right": {
+                            "kind": "const",
+                            "value": "groundArena"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "query",
+                      "name": "isUnit",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "op": "!",
+                      "value": {
+                        "kind": "query",
+                        "name": "hasAttachedNativeToken",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "const",
+                            "value": "shield"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isShield",
-          "message": "unsupported-query:isShield",
-          "file": "game/cards/09_HMW/units/FambaaShieldTeam.ts",
-          "line": 18,
-          "column": 141
-        }
-      ],
+      "diagnostics": [],
       "className": "FambaaShieldTeam",
       "baseClass": "NonLeaderUnitCard",
       "id": "1962406139",
       "internalName": "fambaa-shield-team",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Fambaa Shield Team",
         "subtitle": "",
@@ -51574,7 +51677,24 @@
       "dataHash": "6b44e5b4fee3ebb8a4b05c0ab6fa6c24c5c7e7ddfdbf1c92bf3166efa6b12f95",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "binary:===",
+        "binary:||",
+        "cardType:unit",
+        "ir:arenaList",
+        "ir:binary",
+        "ir:const",
+        "ir:giveShield",
+        "ir:query",
+        "ir:ref",
+        "ir:unary",
+        "query:hasAttachedNativeToken",
+        "query:isUnit",
+        "ref:card",
+        "ref:card.zoneName",
+        "ref:player",
+        "trigger:whenPlayed",
+        "unary:!"
       ]
     },
     {
@@ -62424,7 +62544,57 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Give an enemy unit -3/-0 for this phase",
+            "costs": [],
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasControlledInPlayTitle",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "const",
+                    "value": "Grand Moff Tarkin"
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "modifyStats",
+                "target": "chosen",
+                "duration": "phase",
+                "power": {
+                  "kind": "unary",
+                  "op": "-",
+                  "value": {
+                    "kind": "const",
+                    "value": 3
+                  }
+                },
+                "hp": {
+                  "kind": "const",
+                  "value": 0
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
       "diagnostics": [
         {
@@ -62434,14 +62604,6 @@
           "file": "game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts",
           "line": 15,
           "column": 9
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/09_HMW/upgrades/TheTarkinDoctrineProtectAndPunish.ts",
-          "line": 37,
-          "column": 45
         }
       ],
       "className": "TheTarkinDoctrineProtectAndPunish",
@@ -62492,7 +62654,20 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:upgrade",
-        "keyword:fortify"
+        "ir:conditional",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "ir:unary",
+        "keyword:fortify",
+        "query:hasControlledInPlayTitle",
+        "ref:player",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:whenPlayed",
+        "unary:-"
       ]
     },
     {
@@ -73554,41 +73729,198 @@
       "sourcePath": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
       "sourceHash": "324920031170b78f6ac208f8fb0cd5d00f44c9c3df1f5b448e8505eea369305f",
       "abilities": {
-        "leader": [],
-        "unit": [],
+        "leader": [
+          {
+            "trigger": "action",
+            "title": "Give a Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase",
+            "costs": [
+              {
+                "kind": "resources",
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              {
+                "kind": "exhaustSelf"
+              }
+            ],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "query",
+                  "name": "isUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "||",
+                  "left": {
+                    "kind": "query",
+                    "name": "hasSomeTrait",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": [
+                      {
+                        "kind": "const",
+                        "value": "resistance"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "hasAttachedTrait",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": [
+                      {
+                        "kind": "const",
+                        "value": "resistance"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "phase",
+              "power": {
+                "kind": "const",
+                "value": 2
+              },
+              "hp": {
+                "kind": "const",
+                "value": 2
+              }
+            }
+          }
+        ],
+        "unit": [
+          {
+            "trigger": "onAttack",
+            "title": "Give another Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "||",
+                  "left": {
+                    "kind": "query",
+                    "name": "hasSomeTrait",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": [
+                      {
+                        "kind": "const",
+                        "value": "resistance"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "hasAttachedTrait",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": [
+                      {
+                        "kind": "const",
+                        "value": "resistance"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "phase",
+              "power": {
+                "kind": "const",
+                "value": 2
+              },
+              "hp": {
+                "kind": "const",
+                "value": 2
+              }
+            }
+          }
+        ],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "message": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 22,
-          "column": 59
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "message": "unsupported-query:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 36,
-          "column": 95
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:isResistanceOrHasResistanceUpgrade",
-          "file": "game/cards/04_JTL/leaders/AdmiralHoldoWereNotAlone.ts",
-          "line": 44,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ],
+      "diagnostics": [],
       "className": "AdmiralHoldoWereNotAlone",
       "baseClass": "LeaderUnitCard",
       "id": "8943696478",
       "internalName": "admiral-holdo#were-not-alone",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Admiral Holdo",
         "subtitle": "We're Not Alone",
@@ -73631,7 +73963,26 @@
       "dataHash": "f970adbe05df78d90222d4b2cba33406de9a7aa3a49cdfde5434e0f423e7f10d",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:leader"
+        "binary:!==",
+        "binary:&&",
+        "binary:||",
+        "cardType:leader",
+        "ir:binary",
+        "ir:const",
+        "ir:exhaustSelf",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "ir:resources",
+        "query:hasAttachedTrait",
+        "query:hasSomeTrait",
+        "query:isUnit",
+        "ref:card",
+        "ref:source",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:action",
+        "trigger:onAttack"
       ]
     },
     {
@@ -85811,24 +86162,56 @@
               },
               "args": []
             }
+          },
+          {
+            "trigger": "onAttack",
+            "title": "Deal 1 damage to a unit.",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasControlledInPlayTitle",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "const",
+                    "value": "Poe Dameron"
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "damage",
+                "target": "chosen",
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/04_JTL/units/BlackOneStraightAtThem.ts",
-          "line": 27,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "BlackOneStraightAtThem",
       "baseClass": "NonLeaderUnitCard",
       "id": "3389903389",
       "internalName": "black-one#straight-at-them",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Black One",
         "subtitle": "Straight At Them",
@@ -85873,13 +86256,21 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:unit",
+        "ir:conditional",
         "ir:const",
+        "ir:damage",
         "ir:modifyStats",
+        "ir:noAction",
         "ir:query",
         "ir:ref",
+        "query:hasControlledInPlayTitle",
         "query:isUpgraded",
+        "ref:player",
         "ref:source",
-        "trigger:constant"
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:constant",
+        "trigger:onAttack"
       ]
     },
     {
@@ -93790,11 +94181,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
+          "pattern": "unsupported-player-target-resolver",
+          "message": "unsupported-player-target-resolver",
           "file": "game/cards/04_JTL/units/FettsFiresprayFearedSilhouette.ts",
-          "line": 17,
-          "column": 42
+          "line": 23,
+          "column": 23
         }
       ],
       "className": "FettsFiresprayFearedSilhouette",
@@ -144738,23 +145129,59 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenDefeated",
+            "title": "Give an Experience token to a unit.",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasControlledInPlayTitle",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "const",
+                    "value": "Chancellor Palpatine"
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "select",
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "unit",
+                  "zone": "anyAttackable"
+                },
+                "effect": {
+                  "kind": "giveExperience",
+                  "target": "chosen",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/06_SEC/units/TheChancellorsShuttleGrimHarbinger.ts",
-          "line": 19,
-          "column": 41
-        }
-      ],
+      "diagnostics": [],
       "className": "TheChancellorsShuttleGrimHarbinger",
       "baseClass": "NonLeaderUnitCard",
       "id": "3052170248",
       "internalName": "the-chancellors-shuttle#grim-harbinger",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "The Chancellor's Shuttle",
         "subtitle": "Grim Harbinger",
@@ -144803,7 +145230,19 @@
       },
       "requiredCapabilities": [
         "cardType:unit",
-        "keyword:restore"
+        "ir:conditional",
+        "ir:const",
+        "ir:giveExperience",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "ir:select",
+        "keyword:restore",
+        "query:hasControlledInPlayTitle",
+        "ref:player",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:whenDefeated"
       ]
     },
     {
@@ -160373,23 +160812,46 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While you control Padmé Amidala, this unit gains Raid 2.",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "raid",
+              "amount": {
+                "kind": "const",
+                "value": 2
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasControlledInPlayTitle",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "const",
+                  "value": "Padmé Amidala"
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/06_SEC/units/AnakinSkywalkerSecretHusband.ts",
-          "line": 18,
-          "column": 37
-        }
-      ],
+      "diagnostics": [],
       "className": "AnakinSkywalkerSecretHusband",
       "baseClass": "NonLeaderUnitCard",
       "id": "3103445211",
       "internalName": "anakin-skywalker#secret-husband",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Anakin Skywalker",
         "subtitle": "Secret Husband",
@@ -160439,8 +160901,15 @@
       },
       "requiredCapabilities": [
         "cardType:unit",
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:query",
+        "ir:ref",
         "keyword:hidden",
-        "keyword:raid"
+        "keyword:raid",
+        "query:hasControlledInPlayTitle",
+        "ref:player",
+        "trigger:constant"
       ]
     },
     {
@@ -195159,24 +195628,49 @@
                 }
               ]
             }
+          },
+          {
+            "trigger": "constant",
+            "title": "While you control Emperor Palpatine (leader or unit), this gets +0/+1",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "self",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": 0
+              },
+              "hp": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasControlledInPlayTitle",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "const",
+                  "value": "Emperor Palpatine"
+                }
+              ]
+            }
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/01_SOR/units/EmperorsRoyalGuard.ts",
-          "line": 24,
-          "column": 37
-        }
-      ],
+      "diagnostics": [],
       "className": "EmperorsRoyalGuard",
       "baseClass": "NonLeaderUnitCard",
       "id": "1780978508",
       "internalName": "emperors-royal-guard",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Emperor's Royal Guard",
         "subtitle": null,
@@ -195225,9 +195719,11 @@
         "ir:binary",
         "ir:const",
         "ir:gainKeyword",
+        "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "keyword:sentinel",
+        "query:hasControlledInPlayTitle",
         "query:hasSomeArenaUnit",
         "query:hasSomeTrait",
         "ref:card",
@@ -203486,6 +203982,57 @@
         "unit": [],
         "card": [
           {
+            "trigger": "whenPlayed",
+            "title": "If you control Boba Fett or Jango Fett (as a leader or unit), ready this unit",
+            "costs": [],
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": "||",
+                "left": {
+                  "kind": "query",
+                  "name": "hasControlledInPlayTitle",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "const",
+                      "value": "Boba Fett"
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasControlledInPlayTitle",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "const",
+                      "value": "Jango Fett"
+                    }
+                  ]
+                }
+              },
+              "onTrue": {
+                "kind": "ready",
+                "target": "self"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          },
+          {
             "trigger": "action",
             "title": "Exhaust a non-unique unit",
             "costs": [
@@ -203535,21 +204082,12 @@
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "message": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
-          "file": "game/cards/01_SOR/units/FettsFiresprayPursuingTheBounty.ts",
-          "line": 18,
-          "column": 21
-        }
-      ],
+      "diagnostics": [],
       "className": "FettsFiresprayPursuingTheBounty",
       "baseClass": "NonLeaderUnitCard",
       "id": "4300219753",
       "internalName": "fetts-firespray#pursuing-the-bounty",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Fett's Firespray",
         "subtitle": "Pursuing the Bounty",
@@ -203594,20 +204132,27 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "binary:&&",
+        "binary:||",
         "cardType:unit",
         "ir:binary",
+        "ir:conditional",
         "ir:const",
         "ir:exhaust",
+        "ir:noAction",
         "ir:query",
+        "ir:ready",
         "ir:ref",
         "ir:resources",
         "ir:unary",
+        "query:hasControlledInPlayTitle",
         "query:isUnit",
         "ref:card",
         "ref:card.unique",
+        "ref:player",
         "targetType:any",
         "targetZone:anyAttackable",
         "trigger:action",
+        "trigger:whenPlayed",
         "unary:!"
       ]
     },

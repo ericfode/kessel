@@ -318,3 +318,30 @@ summary` and `generated/runtime-admission.json`, rather than historical batch to
 
 Follow the [conversion skill](../.agents/skills/swu-card-conversion/SKILL.md)
 for implementation, source-derived witnesses, and independent review requirements.
+
+## Bounded controlled-title and physical-attachment queries
+
+`hasControlledInPlayTitle(player, literalTitle)` tests exact printed title equality
+across controlled arena cards (including upgrades on opposing hosts), the player's
+base and undeployed leader, and held Force. Force-title programs require the
+reviewed native definition and explicit Force state. Credits, Fortify and printed
+attribute overrides remain outside runtime admission. Title-dependent source
+registrations currently require complete ordinary-unit metadata and a persistent
+self constant whose condition is the query itself; other source conversions stay
+runtime-rejected.
+
+`hasAttachedTrait(card, literalTrait)` and
+`hasAttachedNativeToken(card, "shield")` inspect the unit's unified physical
+attachment chain, regardless of attachment controller. Native token identity is
+separate from the Shielded keyword or an ordinary upgrade's title. Interpreter
+and compiled Rust expressions call the same typed helpers. Constant registrations
+retain the live modifier scheduler and reject whole-program forced AOT. The compiler lowers
+only synchronous, literal, canonical card predicates and the reviewed complete
+Resistance helper topology.
+
+Friendly-ground unshielded Shield creation has a separate complete-registration
+and metadata gate. It reuses the ordered token-batch executor; the source's own
+entry is eligible. Its program retains the existing interpreter fallback. Focused
+Rust tests cover these contracts; engine parity remains unverified under the
+Rust-only validation constraint, so these are locally reviewed conversions rather
+than newly established reference coverage.

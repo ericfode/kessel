@@ -3605,3 +3605,9 @@ mod cleanup_integration_tests;
 
 #[path = "replacement_initiative_tests.rs"]
 mod replacement_initiative_tests;
+
+#[path = "controlled_title_tests.rs"]
+mod controlled_title_tests;
+
+#[path = "physical_attachment_tests.rs"]
+mod physical_attachment_tests;

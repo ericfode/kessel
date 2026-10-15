@@ -5,6 +5,8 @@ const path = require('path');
 const crypto = require('crypto');
 const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
 const { normalizeDamageDefaultSource } = require('./damage-default-source');
+const { normalizeControlledTitleCall } = require('./controlled-title');
+const { inspectPhysicalAttachmentHelpers, normalizePhysicalAttachmentExpression } = require('./physical-attachments');
 const { normalizeInitiativeUpTo } = require('./initiative-up-to');
 const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
 const SCHEMA = 'swu-card-ir/v1';
@@ -339,7 +341,7 @@ function arenaPredicate(value, ctx, node, depth = 0) {
         return;
     }
     if (!['const','binary','unary','conditional','query','math','array'].includes(value.kind)) fail(ctx, node, 'arena-predicate-expression');
-    if (value.kind === 'query' && !['isUnit','isBase','isLeader','isNonLeaderUnit','isUpgrade','isToken','isTokenUnit','isEvent','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','getPower','getHp','getCost','getPrintedCost','hasInitiative','getNumericKeywordTotal','isInPlay','isDeployed','isUpgraded','canBeDamaged','canBeExhausted','hasCost'].includes(value.name)) fail(ctx, node, 'arena-predicate-query');
+    if (value.kind === 'query' && !['isUnit','isBase','isLeader','isNonLeaderUnit','isUpgrade','isToken','isTokenUnit','isEvent','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','getPower','getHp','getCost','getPrintedCost','hasInitiative','getNumericKeywordTotal','hasAttachedTrait','hasAttachedNativeToken','isInPlay','isDeployed','isUpgraded','canBeDamaged','canBeExhausted','hasCost'].includes(value.name)) fail(ctx, node, 'arena-predicate-query');
     for (const child of Object.values(value)) {
         if (Array.isArray(child)) { for (const item of child) if (item && typeof item === 'object') arenaPredicate(item, ctx, node, depth + 1); }
         else if (child && typeof child === 'object') arenaPredicate(child, ctx, node, depth + 1);
@@ -485,6 +487,10 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    const titleQuery = normalizeControlledTitleCall(node, ctx, { ts, unwrap, expr, fail });
+    if (titleQuery) return titleQuery;
+    const attachmentQuery = normalizePhysicalAttachmentExpression(node, ctx, { ts, unwrap, expr, literal, unshadowedEnum });
+    if (attachmentQuery) return attachmentQuery;
     const attackCondition = normalizeAttackUnitCondition(node, ctx, { ts, unwrap, expr });
     if (attackCondition) return attackCondition;
     const singleton = singletonArenaMembership(node, ctx); if (singleton) return singleton;
@@ -1649,6 +1655,7 @@ function compileSource(text, file, enums = {}) {
         try {checkGainedHostSlots();}
         catch(error) {if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.status='unsupported';return out;}
     }
+    ctx.physicalAttachmentHelpers=inspectPhysicalAttachmentHelpers(cls,ctx,{ts,unwrap,literal,unshadowedEnum});
     ctx.arenaDamageHelpers=new Map();
     if(['EventCard','NonLeaderUnitCard'].includes(out.baseClass))for(const member of cls.members){
         const damage=arenaDamageHelper(member);
@@ -1684,7 +1691,7 @@ function compileSource(text, file, enums = {}) {
             continue;
         }
         if (!(name in SIDE_METHODS)) {
-            if(ctx.arenaDamageHelpers.get(name)?.member===member)continue;
+            if(ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
