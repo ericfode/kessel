@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "a15974f74dfeb772a0d91c2453a03a4ad733936e152b58140c4fb102c70a3f44",
+  "compilerHash": "46695c46462862f20a36fb9a9705a5b400f9c2cd99f51d159f168386d3fd042a",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1097,
-  "sourceAstConverted": 725,
+  "converted": 1100,
+  "sourceAstConverted": 728,
   "dataOnlyConverted": 372,
-  "unconverted": 1361,
+  "unconverted": 1358,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -613,6 +613,7 @@
     "LOF_232",
     "LOF_233",
     "LOF_234",
+    "LOF_235",
     "LOF_236",
     "LOF_237",
     "LOF_238",
@@ -860,6 +861,7 @@
     "SOR_032",
     "SOR_037",
     "SOR_038",
+    "SOR_039",
     "SOR_043",
     "SOR_044",
     "SOR_045",
@@ -1068,6 +1070,7 @@
     "TWI_168",
     "TWI_170",
     "TWI_171",
+    "TWI_173",
     "TWI_174",
     "TWI_175",
     "TWI_178",
@@ -1580,7 +1583,7 @@
     },
     {
       "pattern": "unused-source-binding",
-      "occurrences": 37,
+      "occurrences": 36,
       "cards": [
         "ASH_182",
         "HMW_048",
@@ -1606,7 +1609,6 @@
         "SEC_257",
         "SHD_039",
         "SHD_102",
-        "SOR_039",
         "SOR_119",
         "SOR_246",
         "TS26_008",
@@ -3116,17 +3118,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:reduce",
-      "occurrences": 5,
-      "cards": [
-        "JTL_249",
-        "SHD_189",
-        "SOR_013",
-        "TS26_005",
-        "TWI_173"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someCardPlayed",
       "occurrences": 5,
       "cards": [
@@ -3375,6 +3366,16 @@
         "HMW_080",
         "JTL_180",
         "SHD_045"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:reduce",
+      "occurrences": 4,
+      "cards": [
+        "JTL_249",
+        "SHD_189",
+        "SOR_013",
+        "TS26_005"
       ]
     },
     {
@@ -3936,14 +3937,6 @@
       "cards": [
         "ASH_017",
         "SEC_016"
-      ]
-    },
-    {
-      "pattern": "unsupported-arena-collection:concat",
-      "occurrences": 2,
-      "cards": [
-        "LOF_235",
-        "SOR_039"
       ]
     },
     {
@@ -20704,21 +20697,6 @@
       ]
     },
     {
-      "setCode": "LOF_235",
-      "internalName": "hk87-assassin-droid",
-      "sourcePath": "game/cards/05_LOF/units/HK87AssassinDroid.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-arena-collection:concat",
-          "message": "unsupported-arena-collection:concat",
-          "file": "game/cards/05_LOF/units/HK87AssassinDroid.ts",
-          "line": 19,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "LOF_243",
       "internalName": "caretaker-matron",
       "sourcePath": "game/cards/05_LOF/units/CaretakerMatron.ts",
@@ -27126,29 +27104,6 @@
       ]
     },
     {
-      "setCode": "SOR_039",
-      "internalName": "atat-suppressor",
-      "sourcePath": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-arena-collection:concat",
-          "message": "unsupported-arena-collection:concat",
-          "file": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
-          "line": 21,
-          "column": 34
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unused-source-binding",
-          "file": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
-          "line": 19,
-          "column": 45,
-          "message": "Unused binding friendlyGroundUnits may contain unconverted behavior"
-        }
-      ]
-    },
-    {
       "setCode": "SOR_040",
       "internalName": "avenger#hunting-star-destroyer",
       "sourcePath": "game/cards/01_SOR/units/AvengerHuntingStarDestroyer.ts",
@@ -31937,21 +31892,6 @@
           "file": "game/cards/03_TWI/events/GrimResolve.ts",
           "line": 18,
           "column": 29
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_173",
-      "internalName": "blood-sport",
-      "sourcePath": "game/cards/03_TWI/events/BloodSport.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/03_TWI/events/BloodSport.ts",
-          "line": 19,
-          "column": 25
         }
       ]
     },

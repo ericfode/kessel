@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "a15974f74dfeb772a0d91c2453a03a4ad733936e152b58140c4fb102c70a3f44",
+  "compilerHash": "46695c46462862f20a36fb9a9705a5b400f9c2cd99f51d159f168386d3fd042a",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -138584,23 +138584,88 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenDefeated",
+            "title": "Deal 2 damage to each ground unit",
+            "costs": [],
+            "effect": {
+              "kind": "damage",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "game"
+                  ]
+                },
+                "predicate": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "||",
+                    "left": {
+                      "kind": "unary",
+                      "op": "!",
+                      "value": {
+                        "kind": "const",
+                        "value": "groundArena"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "||",
+                      "left": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "anyArena"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "zoneName"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        }
+                      }
+                    }
+                  }
+                },
+                "controllerOrder": "playerFirst"
+              },
+              "amount": {
+                "kind": "const",
+                "value": 2
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-arena-collection:concat",
-          "message": "unsupported-arena-collection:concat",
-          "file": "game/cards/05_LOF/units/HK87AssassinDroid.ts",
-          "line": 19,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "HK87AssassinDroid",
       "baseClass": "NonLeaderUnitCard",
       "id": "9160311421",
       "internalName": "hk87-assassin-droid",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "HK-87 Assassin Droid",
         "subtitle": "",
@@ -138642,7 +138707,20 @@
       "dataHash": "e6ebe67635b076a3dc651808177f53a07d88a9e64309d4d8c6a1a9a470b85f77",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "binary:===",
+        "binary:||",
+        "cardType:unit",
+        "ir:arenaList",
+        "ir:binary",
+        "ir:const",
+        "ir:damage",
+        "ir:ref",
+        "ir:unary",
+        "ref:card.zoneName",
+        "ref:game",
+        "trigger:whenDefeated",
+        "unary:!"
       ]
     },
     {
@@ -190723,31 +190801,84 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Exhaust all ground units",
+            "costs": [],
+            "effect": {
+              "kind": "exhaust",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "game"
+                  ]
+                },
+                "predicate": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "||",
+                    "left": {
+                      "kind": "unary",
+                      "op": "!",
+                      "value": {
+                        "kind": "const",
+                        "value": "groundArena"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "||",
+                      "left": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "anyArena"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "zoneName"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        }
+                      }
+                    }
+                  }
+                },
+                "controllerOrder": "opponentFirst"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-arena-collection:concat",
-          "message": "unsupported-arena-collection:concat",
-          "file": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
-          "line": 21,
-          "column": 34
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unused-source-binding",
-          "file": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
-          "line": 19,
-          "column": 45,
-          "message": "Unused binding friendlyGroundUnits may contain unconverted behavior"
-        }
-      ],
+      "diagnostics": [],
       "className": "ATATSuppressor",
       "baseClass": "NonLeaderUnitCard",
       "id": "6663619377",
       "internalName": "atat-suppressor",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "AT-AT Suppressor",
         "subtitle": null,
@@ -190791,7 +190922,20 @@
       "dataHash": "d15319c7dba75377c29c173aa1a7b8ae53209112faa6740837fe5e456a811267",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "binary:===",
+        "binary:||",
+        "cardType:unit",
+        "ir:arenaList",
+        "ir:binary",
+        "ir:const",
+        "ir:exhaust",
+        "ir:ref",
+        "ir:unary",
+        "ref:card.zoneName",
+        "ref:game",
+        "trigger:whenPlayed",
+        "unary:!"
       ]
     },
     {
@@ -232349,23 +232493,88 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Deal 2 damage to each ground unit",
+            "costs": [],
+            "effect": {
+              "kind": "damage",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "game"
+                  ]
+                },
+                "predicate": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "||",
+                    "left": {
+                      "kind": "unary",
+                      "op": "!",
+                      "value": {
+                        "kind": "const",
+                        "value": "groundArena"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "||",
+                      "left": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "anyArena"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "===",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "zoneName"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": "groundArena"
+                        }
+                      }
+                    }
+                  }
+                },
+                "controllerOrder": "seatOrder"
+              },
+              "amount": {
+                "kind": "const",
+                "value": 2
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/03_TWI/events/BloodSport.ts",
-          "line": 19,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "BloodSport",
       "baseClass": "EventCard",
       "id": "2103133661",
       "internalName": "blood-sport",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Blood Sport",
         "subtitle": "",
@@ -232405,7 +232614,20 @@
       "dataHash": "65e987de0ffc5aef6e7f37913d53f6e151f5a61dd01d2783965d2b79a246c47d",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "binary:&&",
+        "binary:===",
+        "binary:||",
+        "cardType:event",
+        "ir:arenaList",
+        "ir:binary",
+        "ir:const",
+        "ir:damage",
+        "ir:ref",
+        "ir:unary",
+        "ref:card.zoneName",
+        "ref:game",
+        "trigger:event",
+        "unary:!"
       ]
     },
     {

@@ -1704,6 +1704,7 @@ impl Engine {
     fn generate_uniform_damage(&self,s:&mut State,e:&Effect)->Result<bool,String> {
         if s.event_group.uniform_damage.active {return Ok(true);}
         let Effect::Damage {target,..}=e else {unreachable!()};
+        if matches!(target,Target::ArenaList(l) if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground damage requires recorded arena order".into());}
         let targets=self.effect_targets(s,target);
         let mut uniform=UniformDamageState::default();let mut stash=vec![];
         for value in targets {
@@ -2071,7 +2072,12 @@ impl Engine {
                 let seat=match self.eval(s,s.source,s.ability_target,&list.receiver) {Eval::Player(seat)=>Some(seat),_=>None};
                 // Snapshot candidates before modifiers and the single lethal sweep.
                 // Candidate card and outer selected target retain separate bindings.
-                self.arena_units(s).into_iter().filter(|id|seat.is_none_or(|seat|s.card(*id).owner==seat) && self.eval_with_card(s,s.source,s.ability_target,*id,&list.predicate).truth()).map(Eval::Card).collect()
+                let mut ids=self.arena_units(s).into_iter().filter(|id|seat.is_none_or(|seat|s.card(*id).owner==seat) && self.eval_with_card(s,s.source,s.ability_target,*id,&list.predicate).truth()).collect::<Vec<_>>();
+                if let Some(order)=list.controller_order {
+                    let first=match order {crate::ability_ir::ControllerOrder::PlayerFirst=>owner,crate::ability_ir::ControllerOrder::OpponentFirst=>owner.other(),crate::ability_ir::ControllerOrder::SeatOrder=>Seat::P1};
+                    ids.sort_by_key(|id|u8::from(s.card(*id).owner!=first));
+                }
+                ids.into_iter().map(Eval::Card).collect()
             }
             Target::Expression(e) => {
                 fn flatten(value: Eval, out: &mut Vec<Eval>) {
@@ -2212,6 +2218,7 @@ impl Engine {
         self.check_stat_capacity(&work)?;self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);*s=work;Ok((targets.len() as u16,true))
     }
     fn apply_effect(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if matches!(e,Effect::Exhaust{target:Target::ArenaList(l)} if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground exhaust requires recorded arena order".into());}
         if matches!(e,Effect::GiveShield{target:Target::ArenaList(_),..}|Effect::GiveExperience{target:Target::ArenaList(_),..}) {return self.apply_arena_tokens(s,e);}
         if matches!(e,Effect::PhaseModifiers{effects}|Effect::Simultaneous{effects} if effects.len()==2&&effects.iter().all(|e|matches!(e,Effect::GainKeyword{target:Target::ArenaList(_),..}|Effect::LoseKeyword{target:Target::ArenaList(_),..}))) {return self.apply_arena_keyword_batch(s,e);}
 
@@ -2854,4 +2861,21 @@ impl Engine {
         let cards=self.catalogue.as_ref().map(|c| c.cards.iter().map(|(code,p)| (code.clone(),serde_json::json!({"leader":p.leader,"unit":p.unit,"card":p.card}))).collect::<std::collections::BTreeMap<_,_>>()).unwrap_or_default();
         serde_json::json!({"cards":cards,"compiledScope":"instruction dispatch, supported direct primitives, and content-bound pure expressions","sharedRuntime":["target enumeration","costs","event boundaries","constant live modifier scheduling","uncompiled expression fallbacks"],"instrumentationEnabled":self.rules_instrumentation,"sourceHash":format!("{:x}",Sha256::digest(include_bytes!(concat!(env!("OUT_DIR"),"/rules_aot.rs")))),"generatorAbi":"direct-primitives-expressions/v2","expressions":serde_json::from_str::<Value>(GENERATED_EXPRESSIONS).expect("generated expression manifest"),"expressionExecutions":*self.expression_hits.lock().expect("expression metrics lock"),"executionCounterOrder":["aot","interpreter"],"schema":"swu-rules-aot/v1","mode":format!("{:?}",self.rules_backend).to_lowercase(),"programs":programs,"generatedSource":include_str!(concat!(env!("OUT_DIR"),"/rules_aot.rs"))})
     }
+}
+
+#[cfg(test)]
+mod ordered_ground_runtime_tests {
+ use super::*;use crate::ability_ir::ControllerOrder;
+ fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=s.next_id;s.next_id+=1;s.cards[id as usize]=Card{present:true,def:e.by_code[code],owner:seat,..Card::default()};id}
+ fn board(e:&Engine)->State {let mut s=State::default();for (seat,leader) in [(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")] {let b=add(e,&mut s,seat,"ASH_019");let l=add(e,&mut s,seat,leader);s.player_mut(seat).base=b;s.player_mut(seat).leader=l;}s.arena_order_exact=true;s}
+ fn target(order:ControllerOrder)->Target {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();let mut t=c["cards"].as_array().unwrap().iter().find(|x|x["setCode"]=="LOF_235").unwrap()["abilities"]["card"][0]["effect"]["target"].clone();t["controllerOrder"]=serde_json::to_value(order).unwrap();serde_json::from_value(t).unwrap()}
+ #[test]fn ordered_ground_partitions_preserve_subsequences_and_full_damage_capacity(){
+  let e=Engine::from_pool_value(&serde_json::from_str(include_str!("../data/pool.json")).unwrap()).unwrap();
+  for actor in [Seat::P1,Seat::P2] {let mut s=board(&e);let mut arrivals=vec![];for i in 0..40 {let owner=if i%2==0{Seat::P2}else{Seat::P1};let id=add(&e,&mut s,owner,"LOF_254");e.add_arena(&mut s,id).unwrap();arrivals.push(id);}s.source=*arrivals.iter().find(|id|s.card(**id).owner==actor).unwrap();
+   for order in [ControllerOrder::PlayerFirst,ControllerOrder::OpponentFirst,ControllerOrder::SeatOrder] {let first=match order{ControllerOrder::PlayerFirst=>actor,ControllerOrder::OpponentFirst=>actor.other(),ControllerOrder::SeatOrder=>Seat::P1};let expected=arrivals.iter().copied().filter(|id|s.card(*id).owner==first).chain(arrivals.iter().copied().filter(|id|s.card(*id).owner!=first)).collect::<Vec<_>>();let t=target(order);let actual=e.effect_targets(&s,&t).into_iter().map(|v|if let Eval::Card(id)=v{id}else{panic!("unit expected")}).collect::<Vec<_>>();assert_eq!(actual,expected);let effect=Effect::Damage{target:t,amount:Expr::Const{value:json!(2)}};let mut work=s;assert!(e.generate_uniform_damage(&mut work,&effect).unwrap());assert_eq!(work.event_group.uniform_damage.count,40);assert_eq!(work.event_group.uniform_damage.records[..40].iter().map(|r|r.target()).collect::<Vec<_>>(),expected);let mut missing=s;missing.arena_order_exact=false;assert!(e.generate_uniform_damage(&mut missing,&effect).is_err());}
+  }
+ }
+ #[test]fn ordered_ground_exhaust_has_no_general_group_record_limit(){
+  let e=Engine::from_pool_value(&serde_json::from_str(include_str!("../data/pool.json")).unwrap()).unwrap();let mut s=board(&e);let mut units=vec![];for i in 0..40{let id=add(&e,&mut s,if i%2==0{Seat::P1}else{Seat::P2},"LOF_254");e.add_arena(&mut s,id).unwrap();s.card_mut(id).exhausted=i%3==0;units.push(id);}s.source=units[0];let effect=Effect::Exhaust{target:target(ControllerOrder::OpponentFirst)};let ready=units.iter().filter(|id|!s.card(**id).exhausted).count();let (n,changed)=e.apply_effect(&mut s,&effect).unwrap();assert_eq!(n as usize,ready);assert!(changed);assert!(units.iter().all(|id|s.card(*id).exhausted));assert_eq!(s.event_group.count,0);assert_eq!(e.apply_effect(&mut s,&effect).unwrap(),(0,false));s.arena_order_exact=false;assert!(e.apply_effect(&mut s,&effect).is_err());
+ }
 }

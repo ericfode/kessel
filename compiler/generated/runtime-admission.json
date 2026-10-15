@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "8756a5c8be69279755c038f55ef036d4ec8949e7dfef39e10b3b498a60b370f8",
+  "catalogueHash": "3cc8e966c9bcdbd93f89c5aecef6c24692d711892c8eac1c27c9fcecf94fe008",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1097,
+  "irConvertedCount": 1100,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 625
+    "sourceIr": 628
   },
   "runtimeAdmittedCards": [
     {
@@ -2836,6 +2836,11 @@
       "setCode": "LOF_234"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "hk87-assassin-droid",
+      "setCode": "LOF_235"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "army-of-the-dead",
       "setCode": "LOF_236"
@@ -3877,6 +3882,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "atat-suppressor",
+      "setCode": "SOR_039"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "superlaser-blast",
       "setCode": "SOR_043"
     },
@@ -4837,6 +4847,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "blood-sport",
+      "setCode": "TWI_173"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "open-fire",
       "setCode": "TWI_174"
     },
@@ -5016,7 +5031,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1001,
+  "runtimeAdmittedCount": 1004,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8889,11 +8904,6 @@
       "setCode": "LOF_229"
     },
     {
-      "internalName": "hk87-assassin-droid",
-      "reason": "hk87-assassin-droid: compiler rejected \"hk87-assassin-droid\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/05_LOF/units/HK87AssassinDroid.ts\",\"line\":19,\"message\":\"unsupported-arena-collection:concat\",\"pattern\":\"unsupported-arena-collection:concat\"}]",
-      "setCode": "LOF_235"
-    },
-    {
       "internalName": "flight-of-the-inquisitor",
       "reason": "flight-of-the-inquisitor: event group contains an unverified operation",
       "setCode": "LOF_240"
@@ -10774,11 +10784,6 @@
       "setCode": "SOR_036"
     },
     {
-      "internalName": "atat-suppressor",
-      "reason": "atat-suppressor: compiler rejected \"atat-suppressor\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/units/AT-ATSuppressor.ts\",\"line\":21,\"message\":\"unsupported-arena-collection:concat\",\"pattern\":\"unsupported-arena-collection:concat\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/units/AT-ATSuppressor.ts\",\"line\":19,\"message\":\"Unused binding friendlyGroundUnits may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
-      "setCode": "SOR_039"
-    },
-    {
       "internalName": "avenger#hunting-star-destroyer",
       "reason": "avenger#hunting-star-destroyer: compiler rejected \"avenger#hunting-star-destroyer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/01_SOR/units/AvengerHuntingStarDestroyer.ts\",\"line\":21,\"message\":\"opponent-choice-resolver\",\"pattern\":\"opponent-choice-resolver\"}]",
       "setCode": "SOR_040"
@@ -11440,7 +11445,7 @@
     },
     {
       "internalName": "prime-minister-almec#scheming-populist",
-      "reason": "prime-minister-almec#scheming-populist: arena lists require standalone verified phase-stat semantics",
+      "reason": "prime-minister-almec#scheming-populist: ordered arena exhaust requires standalone unit entry",
       "setCode": "TS26_028"
     },
     {
@@ -12059,11 +12064,6 @@
       "setCode": "TWI_172"
     },
     {
-      "internalName": "blood-sport",
-      "reason": "blood-sport: compiler rejected \"blood-sport\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/events/BloodSport.ts\",\"line\":19,\"message\":\"unsupported-query:reduce\",\"pattern\":\"unsupported-query:reduce\"}]",
-      "setCode": "TWI_173"
-    },
-    {
       "internalName": "caught-in-the-crossfire",
       "reason": "caught-in-the-crossfire: compiler rejected \"caught-in-the-crossfire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":43,\"file\":\"game/cards/03_TWI/events/CaughtInTheCrossfire.ts\",\"line\":26,\"message\":\"unsupported-field:multiSelectCardCondition\",\"pattern\":\"unsupported-field:multiSelectCardCondition\"}]",
       "setCode": "TWI_176"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1457,
+  "runtimeRejectedCount": 1454,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 725
+  "sourceAstConvertedCount": 728
 }

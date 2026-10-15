@@ -22951,6 +22951,45 @@
       "aspects": [
         "villainy"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9160311421",
+      "internalName": "hk87-assassin-droid",
+      "keywords": [],
+      "power": 4,
+      "rules": "All damage dealt by HK-87 Assassin Droid's \"When Defeated\" ability is dealt simultaneously.\n",
+      "setCode": "LOF_235",
+      "setCodes": [
+        {
+          "number": 235,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 235,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Deal 2 damage to each ground unit.",
+      "title": "HK-87 Assassin Droid",
+      "traits": [
+        "imperial",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": "",
@@ -31281,6 +31320,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "6663619377",
+      "internalName": "atat-suppressor",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "SOR_039",
+      "setCodes": [
+        {
+          "number": 39,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 39,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "When Played: Exhaust all ground units.",
+      "title": "AT-AT Suppressor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "villainy",
         "vigilance"
@@ -38952,6 +39032,43 @@
       "title": "Daring Raid",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "2103133661",
+      "internalName": "blood-sport",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_173",
+      "setCodes": [
+        {
+          "number": 173,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 173,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Deal 2 damage to each ground unit.",
+      "title": "Blood Sport",
+      "traits": [
+        "fringe"
       ],
       "types": [
         "event"

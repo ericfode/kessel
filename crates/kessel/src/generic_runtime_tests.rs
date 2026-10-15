@@ -2351,7 +2351,14 @@ fn actual_when_played_lists_include_the_entering_unit_and_skip_empty_enemy_trigg
 fn named_two_admission_preserves_other_descriptor_rejections() {
     let e=engine();for code in ["HMW_255","JTL_253"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
     for code in ["HMW_263","LAW_099","TWI_238"] {assert!(e.by_code.contains_key(code),"{code}");}
-    for code in ["LOF_054","TWI_156","TWI_171","TWI_249"] {assert!(!e.by_code.contains_key(code),"{code}");}
+    for code in ["TWI_156","TWI_171","TWI_249"] {assert!(!e.by_code.contains_key(code),"{code}");}
+    // Calm's reviewed scalar normalization no longer uses a named descriptor.
+    assert!(e.by_code.contains_key("LOF_054"));
+    let current:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+    let calm=&current["cards"].as_array().unwrap().iter().find(|x|x["setCode"]=="LOF_054").unwrap()["abilities"]["card"][0];
+    assert!(calm.get("targetResolvers").is_none());
+    assert_eq!(calm["targetResolver"]["owner"],"self");
+    assert_eq!(calm["effect"],serde_json::json!({"kind":"exhaust","target":"chosen"}));
     assert_eq!(std::mem::size_of::<State>(),19192);
 }
 #[test]

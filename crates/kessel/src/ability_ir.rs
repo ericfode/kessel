@@ -437,11 +437,25 @@ pub enum Target {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ArenaListTarget { pub kind: ArenaListKind, pub receiver: Expr, pub predicate: Expr }
+pub struct ArenaListTarget { pub kind: ArenaListKind, pub receiver: Expr, pub predicate: Expr,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub controller_order: Option<ControllerOrder>,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ControllerOrder { PlayerFirst, OpponentFirst, SeatOrder }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ArenaListKind { #[serde(rename = "arenaList")] ArenaList }
 impl ArenaListTarget {
+    fn validate_ordered_ground(&self)->Result<(),String> {
+        let ground:Value=serde_json::from_str(r##"{"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":"groundArena"}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":"groundArena"},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":"groundArena"}}}}}"##).unwrap();
+        if self.controller_order.is_none() || !matches!(&self.receiver,Expr::Ref{path} if path==&["game"]) || serde_json::to_value(&self.predicate).ok()!=Some(ground) {return Err("ordered lists require global controller partitions and exact ground scope".into());}
+        Ok(())
+    }
+
     fn validate_phase_stats(&self)->Result<(),String> {
+        if self.controller_order.is_some() {return Err("controller ordering requires the standalone ordered-ground family".into());}
         if self.validate_scope(false).is_ok() {return Ok(());}
         self.receiver.validate()?;self.predicate.validate()?;
         if !matches!(&self.receiver,Expr::Ref{path} if path.len()==1&&["player","opponent"].contains(&path[0].as_str())) {return Err("phase-stat lists require one player arena inventory".into());}
@@ -465,11 +479,13 @@ impl ArenaListTarget {
     // The bounded attack family selects friendly token units at resolution.
     // Keep token upgrades, opposing tokens and outer-target aliases out of it.
     fn token_unit_attack_scope(&self)->bool {
+        if self.controller_order.is_some() {return false;}
         fn token(e:&Expr)->bool {matches!(e,Expr::Query{name,receiver,args} if name=="isTokenUnit" && args.is_empty() && matches!(receiver.as_ref(),Expr::Ref{path} if path.len()==1&&path[0]=="card"))}
         matches!(&self.receiver,Expr::Ref{path} if path.len()==1&&path[0]=="player") &&
             (token(&self.predicate)||matches!(&self.predicate,Expr::Binary{op,left,right} if op=="&&"&&matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true))&&token(right)))
     }
     fn validate_damage(&self)->Result<(),String> {
+        if self.controller_order.is_some() {return Err("controller ordering requires the standalone ordered-ground family".into());}
         if !matches!(&self.receiver,Expr::Ref{path} if path.len()==1&&["game","player","opponent"].contains(&path[0].as_str())) {return Err("arena damage requires an explicit game/player/opponent receiver".into());}
         self.predicate.validate()?;
         fn reference(e:&Expr,name:&str)->bool {matches!(e,Expr::Ref{path} if path.len()==1&&path[0]==name)}
@@ -492,6 +508,7 @@ impl ArenaListTarget {
         if !predicate(&self.predicate) {return Err("arena damage predicates require static arena/source/exhausted unit scope".into());}Ok(())
     }
     fn validate_scope(&self, global:bool)->Result<(),String> {
+        if self.controller_order.is_some() {return Err("controller ordering requires the standalone ordered-ground family".into());}
         if !(global && matches!(&self.receiver,Expr::Ref {path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["game"])) {self.receiver.validate()?;}
         self.predicate.validate()?;
         if !matches!(&self.receiver,Expr::Ref {path} if path.len()==1 && (["player","opponent"].contains(&path[0].as_str()) || (global && path[0]=="game"))) {return Err("arena-list receiver is outside the verified scope".into());}
@@ -970,7 +987,7 @@ fn contains_arena_tokens(a:&Ability)->bool {fn walk(e:&Effect)->bool {match e {E
 fn arena_token_kind(a:&Ability)->Option<u8> {
  if !["whenPlayed","whenDefeated"].contains(&a.trigger.as_str())||a.optional||!a.costs.is_empty()||a.condition.is_some()||a.target_resolver.is_some()||!a.target_resolvers.is_empty()||a.then.is_some()||a.if_you_do.is_some()||a.coordinate||!a.context_title.is_empty(){return None;}
  let (list,shield)=match &a.effect {Effect::GiveShield{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,true),Effect::GiveExperience{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,false),_=>return None};
- if !matches!(&list.receiver,Expr::Ref{path} if path==&["player"])||list.predicate.validate().is_err(){return None;}
+ if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["player"])||list.predicate.validate().is_err(){return None;}
  let Expr::Binary{op,left,right}=&list.predicate else{return None};if op!="&&"||!matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true)){return None;}
  let reference=|e:&Expr,name:&str|matches!(e,Expr::Ref{path} if path==&[name]);
  if shield {if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Query{name,receiver,args} if name=="hasSomeKeyword"&&reference(receiver,"card")&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("shielded"))){return Some(0);}return None;}
@@ -982,6 +999,13 @@ fn contains_arena_damage(ability:&Ability)->bool {
     fn walk(v:&Value)->bool {match v {Value::Object(o)=>o.get("kind").and_then(Value::as_str)==Some("damage")&&o.get("target").is_some_and(|t|t["kind"]=="arenaList")||o.values().any(walk),Value::Array(a)=>a.iter().any(walk),_=>false}}
     walk(&serde_json::to_value(ability).unwrap())
 }
+fn ordered_ground_registration(a:&Ability)->bool {
+    if a.optional||a.requires_confirmation||a.coordinate||a.attached_context.is_some()||!a.context_title.is_empty()||!a.costs.is_empty()||a.target_resolver.is_some()||!a.target_resolvers.is_empty()||a.condition.is_some()||a.then.is_some()||a.if_you_do.is_some(){return false;}
+    match &a.effect {
+        Effect::Damage{target:Target::ArenaList(l),amount:Expr::Const{value}}=>["event","whenDefeated"].contains(&a.trigger.as_str())&&l.validate_ordered_ground().is_ok()&&value.as_u64().is_some_and(|n|(1..=3).contains(&n)),
+        Effect::Exhaust{target:Target::ArenaList(l)}=>a.trigger=="whenPlayed"&&l.validate_ordered_ground().is_ok(),_=>false
+    }
+}
 fn arena_damage_header(a:&Ability)->bool {
     ["whenPlayed","onAttack","whenDefeated"].contains(&a.trigger.as_str())&&!a.optional&&!a.requires_confirmation&&!a.coordinate&&a.context_title.is_empty()&&a.costs.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()
 }
@@ -990,7 +1014,7 @@ fn conditional_arena_damage_ability(a:&Ability)->bool {
     let Effect::Conditional{condition,on_true,on_false}=&a.effect else{return false;};
     if !on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)){return false;}
     let Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=on_true.as_ref() else{return false;};
-    if !matches!(&list.receiver,Expr::Ref{path} if path==&["opponent"]){return false;}
+    if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["opponent"]){return false;}
     let Expr::Binary{op,left,right}=condition else{return false;};if op!=">="{return false;}
     if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(4))&&value.as_u64()==Some(3)&&matches!(&list.predicate,Expr::Const{value} if value.as_bool()==Some(true))&&matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="arenaUnitCount"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_bool()==Some(true))) {return true;}
     let ground=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":"groundArena"}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":"groundArena"},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":"groundArena"}}}}});
@@ -1004,6 +1028,7 @@ fn contains_new_arena_keywords(a:&Ability)->bool {
     walk(&serde_json::to_value(a).expect("Ability serializes"))
 }
 fn validate_keyword_list(list:&ArenaListTarget)->Result<(),String> {
+    if list.controller_order.is_some() {return Err("ordered keyword list unsupported".into());}
     fn reference(e:&Expr,n:&str)->bool {matches!(e,Expr::Ref{path} if path==&[n])}
     fn predicate(e:&Expr)->bool {match e {
         Expr::Const{value}=>value.as_bool()==Some(true),
@@ -1377,7 +1402,7 @@ impl Program {
             self.instructions.push(Instruction::Apply(ability.effect.clone()));return Ok(());
         }
 
-        if contains_arena_damage(ability) && (depth!=0 || !arena_damage_ability(ability)) {return Err("arena damage requires a mandatory standalone ordinary-unit play/attack/death registration".into());}
+        if contains_arena_damage(ability) && (depth!=0 || !(arena_damage_ability(ability)||ordered_ground_registration(ability))) {return Err("arena damage requires a mandatory standalone ordinary-unit play/attack/death registration".into());}
         if depth==0 && contains_resource(ability) {
             let header=!ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolver.is_none() && ability.target_resolvers.is_empty() && ability.condition.is_none() && ability.then.is_none();
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
@@ -1823,8 +1848,8 @@ impl Program {
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=>{
-                if depth!=0 || !["whenPlayed","onAttack","whenDefeated"].contains(&self.trigger.as_str()) || !value.as_u64().is_some_and(|n|(1..=3).contains(&n)) {return Err("arena damage requires literal standalone unit damage1..3".into());}
-                list.validate_damage()?;self.instructions.push(Instruction::Group(effect.clone()));
+                if depth!=0 || !(if list.controller_order.is_some() {["event","whenDefeated"].contains(&self.trigger.as_str())}else{["whenPlayed","onAttack","whenDefeated"].contains(&self.trigger.as_str())}) || !value.as_u64().is_some_and(|n|(1..=3).contains(&n)) {return Err("arena damage requires literal standalone unit damage1..3".into());}
+                if list.controller_order.is_some(){list.validate_ordered_ground()?;}else{list.validate_damage()?;}self.instructions.push(Instruction::Group(effect.clone()));
             }
             Effect::Damage { amount, target } | Effect::Heal { amount, target } | Effect::Draw { amount, target } | Effect::GiveShield { amount, target } | Effect::GiveExperience { amount, target } => { amount.validate()?; if amount.references_title() { return Err("card title metadata is not an effect amount".into()); } target.validate()?;self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::Select { target_resolver, effect } => {
@@ -1837,6 +1862,10 @@ impl Program {
             Effect::UseForce {target}|Effect::GainForce{target} => {if !matches!(target,Target::Name(n) if n=="ownPlayer") {return Err("Force requires default own player target".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::GiveWeakness {amount,target} => {if !matches!(amount,Expr::Const{value} if value.as_u64()==Some(1)) || !matches!(target,Target::Name(n) if n=="chosen") {return Err("Weakness supports one selected unit token".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::NoAction => self.instructions.push(Instruction::Apply(effect.clone())),
+            Effect::Exhaust {target:Target::ArenaList(list)} => {
+                if depth!=0 || self.trigger!="whenPlayed" {return Err("ordered arena exhaust requires standalone unit entry".into());}
+                list.validate_ordered_ground()?;self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::Defeat {target:Target::ArenaList(list)} => {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
                 list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
@@ -2122,7 +2151,17 @@ impl Catalogue {
                     let pair=kinds==[1,1]&&sides.card[0].trigger=="whenPlayed"&&sides.card[1].trigger=="whenDefeated";
                     if !entry["card"]["unique"].is_boolean()||entry["baseClass"]!="NonLeaderUnitCard"||entry["card"]["types"]!=serde_json::json!(["unit"])||!sides.unit.is_empty()||!sides.leader.is_empty()||!(pair||(kinds.len()==1&&kinds[0]!=1))||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {return Err("arena token source requires complete ordinary unit shape".into());}
                 }
-                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(contains_arena_damage) {
+                fn ordered_marker(v:&Value)->bool {match v {Value::Object(o)=>o.contains_key("controllerOrder")||o.values().any(ordered_marker),Value::Array(a)=>a.iter().any(ordered_marker),_=>false}}
+                let ordered=["abilities","attachCondition","piloting"].iter().any(|k|ordered_marker(&entry[*k]));
+                if ordered {
+                    let a=sides.card.first().ok_or("ordered ground family needs sole card registration")?;
+                    let plain=!a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none();
+                    let operation=match &a.effect {
+                        Effect::Damage{target:Target::ArenaList(l),amount:Expr::Const{value}}=>l.validate_ordered_ground().is_ok()&&value.as_u64().is_some_and(|n|(1..=3).contains(&n))&&((a.trigger=="event"&&source_class==Some("EventCard")&&exact_type("event"))||(a.trigger=="whenDefeated"&&source_class==Some("NonLeaderUnitCard")&&exact_type("unit"))),
+                        Effect::Exhaust{target:Target::ArenaList(l)}=>l.validate_ordered_ground().is_ok()&&a.trigger=="whenPlayed"&&source_class==Some("NonLeaderUnitCard")&&exact_type("unit"),_=>false};
+                    if !plain||!operation||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||entry["card"]["unique"]!=false {return Err("ordered ground effects require complete sole mandatory ordinary source metadata".into());}
+                }
+                if !ordered && sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(contains_arena_damage) {
                     if sides.card.iter().any(conditional_arena_damage_ability)&&sides.card.len()!=1 {return Err("conditional arena damage requires a sole ordinary unit registration".into());}
                     let companion=|a:&Ability|a.trigger=="constant"&&a.coordinate&&!a.optional&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()&&matches!(&a.effect,Effect::GainKeyword{target:Target::Name(n),keyword,amount:Expr::Const{value},duration} if n=="self"&&keyword=="raid"&&duration=="persistent"&&value.as_u64().is_some_and(|n|n<=65535));
                     if entry.get("baseClass").and_then(Value::as_str)!=Some("NonLeaderUnitCard") || entry["card"]["types"]!=serde_json::json!(["unit"]) || !sides.unit.is_empty() || !sides.leader.is_empty() || sides.card.iter().filter(|a|contains_arena_damage(a)).count()!=1 || !sides.card.iter().all(|a|arena_damage_ability(a)||companion(a)) || entry.get("piloting").is_some_and(|v|!v.is_null()) || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {
@@ -2601,4 +2640,28 @@ mod filtered_count_singleton_metadata_tests {
         for key in ["then","ifYouDo"] {let mut c=entry("LOF_054");c["abilities"]["card"][0]["ifYouDo"][key]=json!({"title":"unreviewed","effect":{"kind":"noAction"}});assert!(!admitted(c));}
         for id in ["LAW_165","TWI_221","LOF_246","SOR_097","JTL_071","JTL_135"] {assert!(admitted(entry(id)),"prior {id}");}
     }
+}
+
+#[cfg(test)]
+mod ordered_ground_metadata_tests {
+ use super::*;use serde_json::json;
+ fn entry(code:&str)->Value {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|c|c["setCode"]==code).unwrap().clone()}
+ fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_string();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
+ #[test]fn ordered_ground_metadata_is_complete_and_operation_specific(){
+  for id in ["LOF_235","SOR_039","TWI_173"] {
+   let e=entry(id);assert!(admitted(e.clone()),"original {id}");
+   for order in ["playerFirst","opponentFirst","seatOrder"] {let mut x=e.clone();x["abilities"]["card"][0]["effect"]["target"]["controllerOrder"]=json!(order);assert!(admitted(x),"order sensitivity {id} {order}");}
+   for (path,value) in [("/baseClass",json!("MysteryCard")),("/card/types",json!(["leader"])),("/card/unique",json!(true)),("/card/keywords",json!(["shielded"])),("/keywordValues",json!({"restore":4})),("/card/deployBox",json!("deploy")),("/card/upgradeHp",json!(1)),("/piloting",json!({})),("/attachCondition",json!({"kind":"const","value":true})),("/abilities/card/0/optional",json!(true)),("/abilities/card/0/requiresConfirmation",json!(true)),("/abilities/card/0/coordinate",json!(true)),("/abilities/card/0/condition",json!({"kind":"const","value":false})),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/targetResolver",json!({"owner":"any","type":"unit","zone":"anyAttackable"})),("/abilities/card/0/then",json!({"title":"extra","trigger":"then","effect":{"kind":"noAction"}})),("/abilities/card/0/effect/target/receiver",json!({"kind":"ref","path":["player"]})),("/abilities/card/0/effect/target/predicate",json!({"kind":"const","value":true}))] {
+    let mut x=e.clone();let tokens=path.split('/').skip(1).collect::<Vec<_>>();let mut dst=&mut x;for key in &tokens[..tokens.len()-1] {dst=if dst.is_array(){&mut dst[key.parse::<usize>().unwrap()]}else{&mut dst[*key]};}dst[tokens[tokens.len()-1]]=value;assert!(!admitted(x),"must reject {id} {path}");
+   }
+   let mut x=e.clone();x["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}}));assert!(!admitted(x));
+   let mut x=e.clone();x["abilities"]["card"][0]["effect"]["target"]["controllerOrder"]=json!("arbitrary");assert!(!admitted(x));
+   let mut x=e.clone();x["abilities"]["card"][0]["effect"]["kind"]=json!("defeat");x["abilities"]["card"][0]["effect"].as_object_mut().unwrap().remove("amount");assert!(!admitted(x));
+  }
+ }
+ #[test]fn omitted_order_serializes_identically_and_old_families_reject_new_order(){
+  let raw=json!({"kind":"arenaList","receiver":{"kind":"ref","path":["game"]},"predicate":{"kind":"const","value":true}});let list:ArenaListTarget=serde_json::from_value(raw.clone()).unwrap();assert_eq!(serde_json::to_value(list).unwrap(),raw);
+  for kind in ["modifyStats","defeat","giveShield","giveExperience","gainKeyword"] {let mut x=entry("TWI_173");let e=&mut x["abilities"]["card"][0]["effect"];e["kind"]=json!(kind);if kind=="defeat"{e.as_object_mut().unwrap().remove("amount");}assert!(!admitted(x),"new order cannot leak to {kind}");}
+  let mut event=entry("TWI_173");event["abilities"]["card"][0]["effect"]["target"].as_object_mut().unwrap().remove("controllerOrder");assert!(!admitted(event),"old unordered event damage remains rejected");
+ }
 }

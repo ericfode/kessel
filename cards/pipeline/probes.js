@@ -2,6 +2,13 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const orderedDeath = require("./ordered-ground-death-damage-probes").planOrderedGroundDeathDamageProbes(entry, options);
+    if (orderedDeath) return orderedDeath;
+    const orderedExhaust = require("./ordered-ground-exhaust-probes").planOrderedGroundExhaustProbes(entry, options);
+    if (orderedExhaust) return orderedExhaust;
+    const orderedEvent = require("./ordered-ground-event-damage-probes").planOrderedGroundEventDamageProbes(entry, options);
+    if (orderedEvent) return orderedEvent;
+
     const remainingHpDraw = require("./remaining-hp-draw-probes").planRemainingHpDrawProbes(entry, options);
     if (remainingHpDraw) return remainingHpDraw;
     const singletonNamed = require("./singleton-named-probes").planSingletonNamedProbes(entry, options);

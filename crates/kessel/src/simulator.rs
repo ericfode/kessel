@@ -269,6 +269,10 @@ impl Engine {
             }
             s.arena_order_exact=true;
         }else{
+            if (1..s.next_id).any(|id|s.card(id).present && self.def(s,id).programs.leader.iter().chain(&self.def(s,id).programs.unit).chain(&self.def(s,id).programs.card).any(|index| {
+                fn marker(v:&Value)->bool {match v {Value::Object(o)=>o.contains_key("controllerOrder")||o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false}}
+                self.catalogue.as_ref().is_some_and(|c|marker(&serde_json::to_value(&c.programs[*index as usize]).unwrap()))
+            })) {return Err("ordered ground sources require explicit arenaUnitOrder, including hidden zones".into());}
             if (1..s.next_id).any(|id|s.card(id).present && self.def(s,id).info.is("upgrade") && !self.def(s,id).info.is("token")) {return Err("ordinary upgrade imports require explicit arenaUnitOrder, including future upgrades in hidden zones".into());}
             s.arena_order_exact=false;
             for index in 0..2 {for player in s.players {for &id in if index==0 {player.ground.as_slice()}else{player.space.as_slice()} {s.arena_unit_order[index].push(id)?;}}}

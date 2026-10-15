@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1097** (725 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1361**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1100** (728 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1358**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -14,7 +14,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | no-source-for-rules-text | 36 | 36 |
 | registrar:addDecreaseCostAbility | 35 | 35 |
 | trigger-alias-hook:onDamageDealt | 30 | 34 |
-| unused-source-binding | 29 | 37 |
+| unused-source-binding | 28 | 36 |
 | immediateEffect:disclose | 26 | 27 |
 | class-state:cardsPlayedThisPhaseWatcher | 25 | 25 |
 | trigger-alias-hook:onCardDefeated | 25 | 27 |
@@ -102,7 +102,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait | 5 | 5 |
 | unsupported-query:defenderWasDefeated | 5 | 5 |
-| unsupported-query:reduce | 5 | 5 |
 | unsupported-query:someCardPlayed | 5 | 5 |
 | activation-limit | 4 | 4 |
 | class-state:cardsDiscardedThisPhaseWatcher | 4 | 4 |
@@ -128,6 +127,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:abilityHelper.ongoingEffects.cardCannot | 4 | 4 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities | 4 | 4 |
 | unsupported-query:isShield | 4 | 4 |
+| unsupported-query:reduce | 4 | 4 |
 | unsupported-query:someUnitLeftPlay | 4 | 4 |
 | unsupported-query:wasDefeatedThisPhase | 4 | 4 |
 | class-member:GetAccessor | 3 | 3 |
@@ -195,7 +195,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | trigger-alias-hook:onDamageHealed | 2 | 2 |
 | trigger-alias-hook:onForceUsed | 2 | 2 |
 | trigger-alias-static-when | 2 | 4 |
-| unsupported-arena-collection:concat | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttack | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.decreaseCost | 2 | 2 |

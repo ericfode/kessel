@@ -636,8 +636,71 @@ function object(input, context) {
 function knownProperties(obj, names) {
     for (const [key, node] of obj.props) if (!names.includes(key) && !DISPLAY_FIELDS.has(key)) fail(obj.ctx, node, 'unsupported-field:' + key);
 }
+// Only effect targets gain this bounded list union. Scalar list algebra keeps
+// its existing rejection path, and existing arenaList targets omit ordering.
+function orderedArenaTarget(input, context, depth=0) {
+    if(depth>24)fail(context,input,'ordered-arena-alias-bound');
+    let node=unwrap(input),ctx=context;
+    if(ts.isIdentifier(node)&&ctx.constants.has(node.text)){
+        const initializer=readConstant(node.text,ctx);
+        return orderedArenaTarget(initializer,constantContext(initializer,ctx),depth+1);
+    }
+    if(!ts.isCallExpression(node)||!ts.isPropertyAccessExpression(node.expression)||!['concat','reduce'].includes(node.expression.name.text))return null;
+    const call=node.expression,name=call.name.text;
+    if(!ctx.callbackStage||node.questionDotToken||call.questionDotToken)fail(ctx,node,'ordered-arena-target-stage-or-call');
+    const resolve=(value,scope)=>{
+        let n=unwrap(value),child=scope,steps=0;
+        while(ts.isIdentifier(n)&&child.constants.has(n.text)){
+            if(++steps>24)fail(child,n,'ordered-arena-alias-bound');
+            const initializer=readConstant(n.text,child);child=constantContext(initializer,child);n=unwrap(initializer);
+        }
+        return {node:n,ctx:child};
+    };
+    const ground=(value,scope)=>{
+        const resolved=resolve(value,scope),q=resolved.node,child=resolved.ctx;
+        if(!ts.isCallExpression(q)||q.questionDotToken||!ts.isPropertyAccessExpression(q.expression)||q.expression.questionDotToken||q.expression.name.text!=='getArenaUnits'||q.arguments.length!==1)fail(child,q,'ordered-arena-ground-query');
+        const ownerPath=access(q.expression.expression,child),root=ownerPath[0],binding=child.scope.get(root);
+        const directContext=!child.constants.has(root)&&binding?.kind==='ref'&&binding.path.join('.')==='context'&&['player','player.opponent'].includes(ownerPath.slice(1).join('.'));
+        const directPlayer=!child.constants.has(root)&&ownerPath.length===1&&binding?.kind==='ref'&&['player','opponent'].includes(binding.path.join('.'));
+        if(!directContext&&!directPlayer)fail(child,q,'ordered-arena-direct-controller');
+        const filter=unwrap(q.arguments[0]);if(!ts.isObjectLiteralExpression(filter)||filter.properties.length!==1)fail(child,filter,'ordered-arena-ground-filter');
+        const p=filter.properties[0];if(!ts.isPropertyAssignment(p)||!ts.isIdentifier(p.name)||p.name.text!=='arena')fail(child,p,'ordered-arena-ground-filter');
+        const arena=unwrap(p.initializer);
+        if(!ts.isStringLiteral(arena)&&!ts.isNoSubstitutionTemplateLiteral(arena)&&!ts.isPropertyAccessExpression(arena))fail(child,arena,'ordered-arena-static-filter');
+        if(ts.isPropertyAccessExpression(arena)&&ts.isIdentifier(arena.expression)&&(child.scope.has(arena.expression.text)||child.constants.has(arena.expression.text)))fail(child,arena,'ordered-arena-shadowed-enum');
+        if(literal(arena,child)!=='groundArena')fail(child,arena,'ordered-arena-ground-only');
+        const query=arenaQuery(q,child,'arenaList');
+        if(query.receiver.kind!=='ref'||query.receiver.path.length!==1||!['player','opponent'].includes(query.receiver.path[0]))fail(child,q,'ordered-arena-controller');
+        return {owner:query.receiver.path[0],predicate:query.args[0]};
+    };
+    if(name==='concat'){
+        if(node.arguments.length!==1||ts.isSpreadElement(node.arguments[0]))fail(ctx,node,'ordered-arena-concat-arity');
+        const left=ground(call.expression,ctx),right=ground(node.arguments[0],ctx);
+        if(left.owner===right.owner||JSON.stringify(left.predicate)!==JSON.stringify(right.predicate))fail(ctx,node,'ordered-arena-complementary-controllers');
+        return {kind:'arenaList',receiver:reference('game'),predicate:left.predicate,controllerOrder:left.owner==='player'?'playerFirst':'opponentFirst'};
+    }
+    if(node.arguments.length!==2||!ts.isArrayLiteralExpression(node.arguments[1])||node.arguments[1].elements.length!==0)fail(ctx,node,'ordered-arena-reduce-initializer');
+    const players=unwrap(call.expression);
+    if(!ts.isCallExpression(players)||players.questionDotToken||!ts.isPropertyAccessExpression(players.expression)||players.expression.questionDotToken||players.expression.name.text!=='getPlayers'||players.arguments.length!==0)fail(ctx,players,'ordered-arena-players-query');
+    const gamePath=access(players.expression.expression,ctx),gameRoot=gamePath[0],gameBinding=ctx.scope.get(gameRoot);
+    if(ctx.constants.has(gameRoot)||gameBinding?.kind!=='ref'||gameBinding.path.join('.')!=='context'||gamePath.slice(1).join('.')!=='game')fail(ctx,players,'ordered-arena-players-receiver');
+    const game=expr(players.expression.expression,{...ctx,arenaReceiver:true});if(game.kind!=='ref'||game.path.join('.')!=='game')fail(ctx,players,'ordered-arena-players-receiver');
+    const reducer=unwrap(node.arguments[0]);
+    if(!ts.isArrowFunction(reducer)||isNonSynchronous(reducer)||hasDecorators(reducer)||reducer.parameters.length!==2||reducer.parameters.some(p=>!ts.isIdentifier(p.name)||p.questionToken||unsupportedParameterBinding(p)))fail(ctx,reducer,'ordered-arena-reducer-binding');
+    const [accumulator,player]=reducer.parameters.map(p=>p.name.text);if(accumulator===player)fail(ctx,reducer,'ordered-arena-reducer-binding');
+    const body=unwrap(reducer.body);
+    if(!ts.isCallExpression(body)||body.questionDotToken||!ts.isPropertyAccessExpression(body.expression)||body.expression.questionDotToken||body.expression.name.text!=='concat'||!ts.isIdentifier(body.expression.expression)||body.expression.expression.text!==accumulator||body.arguments.length!==1)fail(ctx,body,'ordered-arena-reducer-body');
+    const query=unwrap(body.arguments[0]);
+    if(!ts.isCallExpression(query)||!ts.isPropertyAccessExpression(query.expression)||!ts.isIdentifier(query.expression.expression)||query.expression.expression.text!==player)fail(ctx,query,'ordered-arena-reducer-player');
+    const child={...ctx,scope:new Map(ctx.scope),constants:new Map(ctx.constants)};
+    child.scope.set(accumulator,reference('card'));child.scope.set(player,reference('player'));child.constants.delete(accumulator);child.constants.delete(player);
+    const list=ground(query,child);
+    return {kind:'arenaList',receiver:reference('game'),predicate:list.predicate,controllerOrder:'seatOrder'};
+}
 function target(node, ctx, fallback = 'self') {
     if (!node) return fallback;
+    const ordered=orderedArenaTarget(node,ctx);
+    if(ordered)return ordered;
     const otherBase=otherBaseTarget(node,ctx);
     if(otherBase)return otherBase;
     const e = expr(node, { ...ctx, allowArenaList: true });

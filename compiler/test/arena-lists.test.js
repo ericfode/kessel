@@ -196,7 +196,7 @@ const actualSources = [
         "LOF_235",
         "game/cards/05_LOF/units/HK87AssassinDroid.ts",
         "add5c3778a8b5f07bbff3f3ea9bbce937a17d94d6c0838f642def3497a25c21c",
-        "unsupported-arena-collection:concat"
+        null
     ],
     [
         "SEC_078",
@@ -351,9 +351,9 @@ test('all 45 full pinned sources match hashes and retain complete card support o
         const c=compileSource(source,sourcePath,enums);
         assert.equal(c.status,blocker?'unsupported':'supported',setCode+JSON.stringify(c.diagnostics));
         if(blocker) assert.ok(c.diagnostics.some(d=>d.pattern===blocker),setCode+JSON.stringify(c.diagnostics));
-        else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');}
+        else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');if(setCode==='LOF_235'){const target=c.abilities.card[0].effect.target;assert.equal(target.kind,'arenaList');assert.deepEqual(target.receiver,{kind:'ref',path:['game']});assert.equal(target.controllerOrder,'playerFirst');assert.equal(c.abilities.card[0].effect.amount.value,2);}}
     }
-    assert.equal(supportedCount,37);
+    assert.equal(supportedCount,38);
 });
 
 test("four additional generic source-only gains retain full source identities",()=>{
