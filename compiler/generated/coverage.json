@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "c26a67409a5c0c3e6a3b788a8e75062fbe2ddd270866498cb382676e9df3a0f7",
+  "compilerHash": "18c26cfbae6197461b159b4987f5ee3400c8ce7c2b4a07c123cdfea38208a7cc",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1091,
-  "sourceAstConverted": 719,
+  "converted": 1093,
+  "sourceAstConverted": 721,
   "dataOnlyConverted": 372,
-  "unconverted": 1367,
+  "unconverted": 1365,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -689,6 +689,7 @@
     "SEC_121",
     "SEC_124",
     "SEC_125",
+    "SEC_130",
     "SEC_132",
     "SEC_134",
     "SEC_136",
@@ -804,6 +805,7 @@
     "SHD_150",
     "SHD_152",
     "SHD_154",
+    "SHD_156",
     "SHD_157",
     "SHD_158",
     "SHD_159",
@@ -1843,33 +1845,6 @@
       ]
     },
     {
-      "pattern": "invalid-effect-sequence",
-      "occurrences": 21,
-      "cards": [
-        "HMW_122",
-        "HMW_237",
-        "JTL_041",
-        "JTL_127",
-        "JTL_129",
-        "LAW_001",
-        "LAW_170",
-        "LAW_237",
-        "LOF_010",
-        "SEC_195",
-        "SHD_016",
-        "SHD_144",
-        "SHD_156",
-        "SOR_003",
-        "SOR_022",
-        "SOR_152",
-        "TS26_009",
-        "TS26_011",
-        "TS26_056",
-        "TS26_057",
-        "TWI_138"
-      ]
-    },
-    {
       "pattern": "registrar:addPilotingAbility",
       "occurrences": 21,
       "cards": [
@@ -2073,6 +2048,50 @@
       ]
     },
     {
+      "pattern": "immediateEffect:capture",
+      "occurrences": 16,
+      "cards": [
+        "SEC_056",
+        "SEC_068",
+        "SEC_193",
+        "SEC_195",
+        "SEC_212",
+        "SEC_253",
+        "SEC_256",
+        "SHD_106",
+        "SHD_120",
+        "SHD_124",
+        "SHD_251",
+        "TS26_027",
+        "TS26_061",
+        "TWI_115",
+        "TWI_128",
+        "TWI_227"
+      ]
+    },
+    {
+      "pattern": "immediateEffect:takeControlOfUnit",
+      "occurrences": 16,
+      "cards": [
+        "ASH_200",
+        "HMW_110",
+        "JTL_043",
+        "LAW_002",
+        "LAW_085",
+        "LAW_092",
+        "LAW_170",
+        "LAW_233",
+        "LOF_189",
+        "SEC_192",
+        "SHD_132",
+        "SHD_161",
+        "SOR_224",
+        "TS26_015",
+        "TWI_204",
+        "TWI_211"
+      ]
+    },
+    {
       "pattern": "class-state:damageDealtThisPhaseWatcher",
       "occurrences": 15,
       "cards": [
@@ -2091,27 +2110,6 @@
         "SEC_144",
         "SOR_013",
         "SOR_175"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:capture",
-      "occurrences": 15,
-      "cards": [
-        "SEC_056",
-        "SEC_068",
-        "SEC_193",
-        "SEC_212",
-        "SEC_253",
-        "SEC_256",
-        "SHD_106",
-        "SHD_120",
-        "SHD_124",
-        "SHD_251",
-        "TS26_027",
-        "TS26_061",
-        "TWI_115",
-        "TWI_128",
-        "TWI_227"
       ]
     },
     {
@@ -2154,27 +2152,6 @@
         "SOR_206",
         "TS26_077",
         "TWI_212"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:takeControlOfUnit",
-      "occurrences": 15,
-      "cards": [
-        "ASH_200",
-        "HMW_110",
-        "JTL_043",
-        "LAW_002",
-        "LAW_085",
-        "LAW_092",
-        "LAW_233",
-        "LOF_189",
-        "SEC_192",
-        "SHD_132",
-        "SHD_161",
-        "SOR_224",
-        "TS26_015",
-        "TWI_204",
-        "TWI_211"
       ]
     },
     {
@@ -2631,6 +2608,21 @@
       ]
     },
     {
+      "pattern": "simultaneous-factory-shape",
+      "occurrences": 9,
+      "cards": [
+        "JTL_129",
+        "LOF_010",
+        "SHD_016",
+        "SOR_003",
+        "SOR_022",
+        "SOR_152",
+        "TS26_009",
+        "TS26_011",
+        "TS26_056"
+      ]
+    },
+    {
       "pattern": "unsupported-field:options",
       "occurrences": 9,
       "cards": [
@@ -2700,6 +2692,20 @@
         "SEC_073",
         "SHD_203",
         "SHD_208"
+      ]
+    },
+    {
+      "pattern": "invalid-effect-sequence",
+      "occurrences": 8,
+      "cards": [
+        "HMW_237",
+        "JTL_041",
+        "JTL_127",
+        "LAW_001",
+        "LAW_237",
+        "SHD_144",
+        "TS26_057",
+        "TWI_138"
       ]
     },
     {
@@ -3218,16 +3224,6 @@
       ]
     },
     {
-      "pattern": "method:getDamageFromContext",
-      "occurrences": 4,
-      "cards": [
-        "JTL_129",
-        "LOF_101",
-        "SEC_130",
-        "SOR_097"
-      ]
-    },
-    {
       "pattern": "method:isUnitPlayedEvent",
       "occurrences": 4,
       "cards": [
@@ -3461,6 +3457,15 @@
       ]
     },
     {
+      "pattern": "method:getDamageFromContext",
+      "occurrences": 3,
+      "cards": [
+        "JTL_129",
+        "LOF_101",
+        "SOR_097"
+      ]
+    },
+    {
       "pattern": "registrar:addGainWhenAttackEndsAbilityTargetingAttached",
       "occurrences": 3,
       "cards": [
@@ -3539,6 +3544,15 @@
         "LOF_043",
         "SEC_012",
         "SOR_004"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
+      "occurrences": 3,
+      "cards": [
+        "HMW_109",
+        "HMW_122",
+        "JTL_221"
       ]
     },
     {
@@ -3946,14 +3960,6 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
-      "occurrences": 2,
-      "cards": [
-        "HMW_109",
-        "JTL_221"
-      ]
-    },
-    {
       "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.decreaseCost",
       "occurrences": 2,
       "cards": [
@@ -4055,14 +4061,6 @@
       "cards": [
         "ASH_156",
         "LAW_152"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:getDamageFromContext",
-      "occurrences": 2,
-      "cards": [
-        "SEC_130",
-        "SOR_097"
       ]
     },
     {
@@ -6042,6 +6040,13 @@
       "occurrences": 1,
       "cards": [
         "ASH_031"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:getDamageFromContext",
+      "occurrences": 1,
+      "cards": [
+        "SOR_097"
       ]
     },
     {
@@ -10718,11 +10723,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
           "file": "game/cards/09_HMW/units/BogaLoyalVaractyl.ts",
-          "line": 27,
-          "column": 34
+          "line": 30,
+          "column": 33
         }
       ]
     },
@@ -13617,11 +13622,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/04_JTL/events/FocusFire.ts",
           "line": 21,
-          "column": 34
+          "column": 78
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -17460,11 +17465,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:takeControlOfUnit",
+          "message": "immediateEffect:takeControlOfUnit",
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
-          "line": 30,
-          "column": 38
+          "line": 31,
+          "column": 25
         }
       ]
     },
@@ -18700,11 +18705,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts",
           "line": 34,
-          "column": 34
+          "column": 78
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -22406,29 +22411,6 @@
       ]
     },
     {
-      "setCode": "SEC_130",
-      "internalName": "ferrix-uprising",
-      "sourcePath": "game/cards/06_SEC/events/FerrixUprising.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageFromContext",
-          "file": "game/cards/06_SEC/events/FerrixUprising.ts",
-          "line": 15,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageFromContext",
-          "message": "unsupported-query:getDamageFromContext",
-          "file": "game/cards/06_SEC/events/FerrixUprising.ts",
-          "line": 27,
-          "column": 29
-        }
-      ]
-    },
-    {
       "setCode": "SEC_131",
       "internalName": "lets-talk",
       "sourcePath": "game/cards/06_SEC/events/LetsTalk.ts",
@@ -23244,11 +23226,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:capture",
+          "message": "immediateEffect:capture",
           "file": "game/cards/06_SEC/events/Arrest.ts",
-          "line": 23,
-          "column": 34
+          "line": 24,
+          "column": 21
         }
       ]
     },
@@ -24185,11 +24167,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts",
           "line": 45,
-          "column": 34
+          "column": 78
         }
       ]
     },
@@ -25611,21 +25593,6 @@
       ]
     },
     {
-      "setCode": "SHD_156",
-      "internalName": "cripple-authority",
-      "sourcePath": "game/cards/02_SHD/events/CrippleAuthority.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
-          "file": "game/cards/02_SHD/events/CrippleAuthority.ts",
-          "line": 16,
-          "column": 30
-        }
-      ]
-    },
-    {
       "setCode": "SHD_161",
       "internalName": "stolen-landspeeder",
       "sourcePath": "game/cards/02_SHD/units/StolenLandspeeder.ts",
@@ -26826,11 +26793,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/leaders/ChewbaccaWalkingCarpet.ts",
           "line": 23,
-          "column": 34
+          "column": 78
         }
       ]
     },
@@ -27205,11 +27172,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/bases/EnergyConversionLab.ts",
           "line": 22,
-          "column": 34
+          "column": 78
         }
       ]
     },
@@ -28249,11 +28216,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
           "line": 18,
-          "column": 30
+          "column": 74
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -29595,11 +29562,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/bases/FirstBattleMemorial.ts",
           "line": 17,
-          "column": 30
+          "column": 74
         }
       ]
     },
@@ -29625,11 +29592,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
           "line": 21,
-          "column": 30
+          "column": 74
         }
       ]
     },
@@ -30188,11 +30155,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/events/GalacticEscalation.ts",
           "line": 17,
-          "column": 30
+          "column": 74
         }
       ]
     },

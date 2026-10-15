@@ -2,6 +2,10 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const ferrix = require("./ferrix-uprising-probes").planFerrixUprisingProbes(entry, options);
+    if (ferrix) return ferrix;
+    const cripple = require("./cripple-authority-probes").planCrippleAuthorityProbes(entry, options);
+    if (cripple) return cripple;
     const upgradePresence = require("./upgrade-presence-probes").planUpgradePresenceProbes(entry, options);
     if (upgradePresence) return upgradePresence;
     const otherBaseHeal = require("./other-base-heal-probes").planOtherBaseHealProbes(entry, options);

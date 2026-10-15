@@ -239,6 +239,35 @@ function constantContext(node, ctx) {
     if (ctx.arenaReceiver && capturesArenaSnapshot(node, { ...ctx, constants: lexicalConstants }, new Set(), true) && (!ctx.callbackStage || ctx.constantStages?.get(node) !== ctx.callbackStage)) fail(ctx, node, 'arena-controller-snapshot-capture');
     return { ...ctx, scope: ctx.constantScopes?.get(node) || ctx.scope, constants: ctx.constantEnvs?.get(node) || ctx.constants, constantTrail: trail };
 }
+// A private numeric helper is accepted only as a complete, pure program.
+// The bounded namespace has no pinned EventCard hooks; body and call binding
+// checks establish semantics rather than trusting its method name.
+function arenaDamageHelper(member) {
+    const pathOf=n=>{n=unwrap(n);if(ts.isIdentifier(n))return [n.text];if(ts.isPropertyAccessExpression(n)&&!n.questionDotToken){const p=pathOf(n.expression);return p&&[...p,n.name.text];}return null;};
+    if(!ts.isMethodDeclaration(member)||!ts.isIdentifier(member.name)||!/^get[A-Z]\w*FromContext$/.test(member.name.text)||isNonSynchronous(member)||hasDecorators(member)||member.modifiers?.length!==1||member.modifiers[0].kind!==ts.SyntaxKind.PrivateKeyword||member.parameters.length!==1)return null;
+    const parameter=member.parameters[0];if(!ts.isIdentifier(parameter.name)||unsupportedParameterBinding(parameter))return null;
+    const statements=member.body?.statements;if(statements?.length!==3)return null;
+    const declaration=s=>ts.isVariableStatement(s)&&(s.declarationList.flags&ts.NodeFlags.Const)&&s.declarationList.declarations.length===1&&ts.isIdentifier(s.declarationList.declarations[0].name)?s.declarationList.declarations[0]:null;
+    const arenaName=declaration(statements[0]),arena=declaration(statements[1]);if(!arenaName?.initializer||!arena?.initializer||!ts.isReturnStatement(statements[2])||!statements[2].expression)return null;
+    if(new Set([parameter.name.text,arenaName.name.text,arena.name.text]).size!==3)return null;
+    if(JSON.stringify(pathOf(arenaName.initializer))!==JSON.stringify([parameter.name.text,'target','zoneName']))return null;
+    const query=unwrap(arena.initializer);if(!ts.isCallExpression(query)||query.questionDotToken||JSON.stringify(pathOf(query.expression))!==JSON.stringify([parameter.name.text,'player','getArenaUnits'])||query.arguments.length!==1)return null;
+    const filter=unwrap(query.arguments[0]);if(!ts.isObjectLiteralExpression(filter)||filter.properties.length!==1)return null;
+    const p=filter.properties[0];if(!ts.isPropertyAssignment(p)||!ts.isIdentifier(p.name)||p.name.text!=='arena'||!ts.isIdentifier(unwrap(p.initializer))||unwrap(p.initializer).text!==arenaName.name.text)return null;
+    const returned=unwrap(statements[2].expression);if(!ts.isBinaryExpression(returned)||returned.operatorToken.kind!==ts.SyntaxKind.AsteriskToken||JSON.stringify(pathOf(returned.left))!==JSON.stringify([arena.name.text,'length'])||!ts.isNumericLiteral(unwrap(returned.right))||Number(unwrap(returned.right).text)!==2)return null;
+    return {member,parameter,arenaName,arena,used:false};
+}
+function arenaDamageHelperCall(node,ctx,helper) {
+    const call=node.expression,arg=node.arguments[0];
+    // Only arrows retain the card receiver through property-factory callbacks.
+    for(let ancestor=node.parent;ancestor;ancestor=ancestor.parent)if(ts.isFunctionExpression(ancestor))fail(ctx,node,'arena-damage-helper-nonlexical-this');
+    if(!ctx.callbackStage||!ctx.damageRecipientScope||node.questionDotToken||call.questionDotToken||call.expression.kind!==ts.SyntaxKind.ThisKeyword||node.arguments.length!==1||!ts.isIdentifier(arg)||ctx.constants.has(arg.text)||ctx.scope.get(arg.text)?.path?.join('.')!=='context')fail(ctx,node,'arena-damage-helper-call-scope');
+    const child={...ctx,scope:new Map(ctx.scope),constants:new Map(ctx.constants)};
+    child.scope.set(helper.parameter.name.text,reference('context'));child.constants.delete(helper.parameter.name.text);
+    bindConstant(child,helper.arenaName.name.text,helper.arenaName.initializer);bindConstant(child,helper.arena.name.text,helper.arena.initializer);
+    const query=readConstant(helper.arena.name.text,child);helper.used=true;
+    return {kind:'binary',op:'*',left:arenaQuery(query,constantContext(query,child),'arenaUnitCount'),right:constant(2)};
+}
 const isArenaList = (value) => ['arenaList', 'arenaFilter'].includes(value.kind);
 function arenaCapture(node, ctx, bound = new Set(), seen = new Set()) {
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
@@ -491,6 +520,7 @@ function expr(input, context, params = ['context']) {
     if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
         const call = node.expression;
         const name = call.name.text;
+        if(ctx.arenaDamageHelpers?.has(name))return arenaDamageHelperCall(node,ctx,ctx.arenaDamageHelpers.get(name));
         if (name === 'hasCost') {
             if(node.questionDotToken || call.questionDotToken)fail(ctx,node,'optional-cost-query');
             if(node.arguments.length)fail(ctx,node,'cost-query-arity');
@@ -742,6 +772,7 @@ function effect(input, context, defaultTarget = 'self') {
     if(kind!=='damage'&&ctx.damageRecipientScope)ctx={...ctx,damageRecipientScope:false};
     if (node.arguments.length > 1) fail(ctx, node, 'effect-helper-arity');
     if (['simultaneous', 'sequential'].includes(kind)) {
+        if(node.arguments.length===1&&!ts.isArrayLiteralExpression(unwrap(node.arguments[0]))&&kind==='simultaneous')return finiteHandGroupFactory(node.arguments[0],ctx);
         if (node.arguments.length !== 1 || !ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) fail(ctx, node, 'invalid-effect-sequence');
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
     }
@@ -869,6 +900,25 @@ function effect(input, context, defaultTarget = 'self') {
     else if (['draw', 'giveShield', 'giveExperience', 'readyResources'].includes(kind)) result.amount = constant(1);
     else if (['damage', 'heal'].includes(kind)) fail(ctx, node, 'missing-effect-amount:' + kind);
     return result;
+}
+// This factory snapshots a resource comparison before any child event. Neither
+// supported child changes resources, and group branches prepare before events.
+function finiteHandGroupFactory(input,context) {
+    const factory=unwrap(input);
+    if(!ts.isArrowFunction(factory)||factory.parameters.length!==1||!ts.isIdentifier(factory.parameters[0].name)||!ts.isArrayLiteralExpression(unwrap(factory.body)))fail(context,factory,'simultaneous-factory-shape');
+    if(['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(factory.parameters[0].name.text))fail(context,factory,'simultaneous-factory-helper-shadow');
+    const {node,ctx}=lambda(factory,context);if(node.elements.length!==2)fail(ctx,node,'simultaneous-factory-bound');
+    const effects=node.elements.map(n=>effect(n,ctx));
+    const [draw,conditional]=effects;
+    const unit=e=>e?.kind==='const'&&e.value===1;
+    const ref=(e,p)=>e?.kind==='ref'&&e.path.join('.')===p;
+    if(draw.kind!=='draw'||draw.target!=='ownPlayer'||!unit(draw.amount)||conditional.kind!=='conditional'||conditional.onTrue.kind!=='discardOwnHand'||conditional.onTrue.target!=='enemyPlayer'||!unit(conditional.onTrue.amount)||conditional.onFalse.kind!=='noAction'||conditional.condition.kind!=='binary'||conditional.condition.op!=='>'||!ref(conditional.condition.left,'opponent.resources.length')||!ref(conditional.condition.right,'player.resources.length'))fail(ctx,node,'simultaneous-factory-effects');
+    const second=unwrap(node.elements[1]);if(!ts.isCallExpression(second)||second.arguments.length!==1)fail(ctx,second,'simultaneous-factory-condition');
+    const objectNode=unwrap(second.arguments[0]);if(!ts.isObjectLiteralExpression(objectNode))fail(ctx,objectNode,'simultaneous-factory-condition');
+    const condition=objectNode.properties.find(p=>ts.isPropertyAssignment(p)&&p.name.getText(ctx.source)==='condition');
+    const raw=condition&&unwrap(condition.initializer),parameter=factory.parameters[0].name.text;
+    if(!raw||!ts.isBinaryExpression(raw)||raw.operatorToken.kind!==ts.SyntaxKind.GreaterThanToken||JSON.stringify(access(raw.left,ctx))!==JSON.stringify([parameter,'player','opponent','resources','length'])||JSON.stringify(access(raw.right,ctx))!==JSON.stringify([parameter,'player','resources','length']))fail(ctx,raw||node,'simultaneous-factory-snapshot');
+    return {kind:'simultaneous',effects};
 }
 function targetResolverProperties(obj) {
     const { props, ctx, node } = obj;
@@ -1210,6 +1260,8 @@ function compileSource(text, file, enums = {}) {
     const cls = classes[0];
     out.className = cls.name?.text;
     out.baseClass = cls.heritageClauses?.flatMap((c) => c.types.map((t) => t.expression.getText(source)))[0] || null;
+    ctx.arenaDamageHelpers=new Map();
+    if(out.baseClass==='EventCard')for(const member of cls.members){const helper=arenaDamageHelper(member);if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);}
     for (const member of cls.members) {
         if (ts.isMethodDeclaration(member) && member.name.getText(source) === 'getImplementationId') {
             const returned = member.body?.statements.find(ts.isReturnStatement)?.expression;
@@ -1238,6 +1290,7 @@ function compileSource(text, file, enums = {}) {
             continue;
         }
         if (!(name in SIDE_METHODS)) {
+            if(ctx.arenaDamageHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
@@ -1291,6 +1344,7 @@ function compileSource(text, file, enums = {}) {
         const location = source.getLineAndCharacterOfPosition(binding.node.getStart(source));
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
+    for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
     out.status = diagnostics.length ? 'unsupported' : 'supported';
     return out;
 }

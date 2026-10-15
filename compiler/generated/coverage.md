@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1091** (719 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1367**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1093** (721 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1365**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -23,7 +23,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | non-path-reference | 22 | 22 |
 | unsupported-field:choices | 22 | 22 |
 | class-state:attacksThisPhaseWatcher | 21 | 21 |
-| invalid-effect-sequence | 21 | 21 |
 | registrar:addPilotingAbility | 21 | 21 |
 | unsupported-field:attackerMustSurvive | 21 | 21 |
 | immediateEffect:attack | 20 | 20 |
@@ -32,11 +31,11 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | optional-reference | 19 | 19 |
 | unsupported-player-target-resolver | 18 | 18 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot | 17 | 17 |
+| immediateEffect:capture | 16 | 16 |
+| immediateEffect:takeControlOfUnit | 16 | 16 |
 | class-state:damageDealtThisPhaseWatcher | 15 | 15 |
-| immediateEffect:capture | 15 | 15 |
 | immediateEffect:forThisPhasePlayerEffect | 15 | 15 |
 | immediateEffect:payResources | 15 | 16 |
-| immediateEffect:takeControlOfUnit | 15 | 15 |
 | registrar:addGainTriggeredAbilityTargetingAttached | 15 | 15 |
 | unsupported-field:cannotTargetFirst | 15 | 17 |
 | immediateEffect:createCreditToken | 14 | 15 |
@@ -63,11 +62,13 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:someUnitAttackedControlledByPlayer | 10 | 11 |
 | immediateEffect:playCardFromOutOfPlay | 9 | 10 |
 | immediateEffect:reveal | 9 | 9 |
+| simultaneous-factory-shape | 9 | 9 |
 | unsupported-field:options | 9 | 9 |
 | unsupported-query:targetIsUnit | 9 | 9 |
 | custom-inheritance:LAWCommonBase | 8 | 8 |
 | custom-inheritance:LofCommonForceBase | 8 | 8 |
 | immediateEffect:delayedPlayerEffect | 8 | 8 |
+| invalid-effect-sequence | 8 | 8 |
 | registrar:addPilotingGainKeywordTargetingAttached | 8 | 9 |
 | registrar:addReplacementEffectAbility | 8 | 8 |
 | trigger-alias-hook:onAttackDeclared | 8 | 8 |
@@ -112,7 +113,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:indirectDamageToPlayer | 4 | 4 |
 | immediateEffect:lookAt | 4 | 4 |
 | immediateEffect:randomSelection | 4 | 4 |
-| method:getDamageFromContext | 4 | 4 |
 | method:isUnitPlayedEvent | 4 | 4 |
 | registrar:addPilotingConstantAbilityTargetingAttached | 4 | 4 |
 | target-resolver-outer-target-capture | 4 | 4 |
@@ -137,6 +137,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:exhaustResources | 3 | 3 |
 | immediateEffect:forThisRoundCardEffect | 3 | 4 |
 | immediateEffect:optional | 3 | 3 |
+| method:getDamageFromContext | 3 | 3 |
 | registrar:addGainWhenAttackEndsAbilityTargetingAttached | 3 | 3 |
 | registrar:addPreEnterPlayAbility | 3 | 3 |
 | trigger-alias-hook:onCardAbilityInitiated | 3 | 5 |
@@ -146,6 +147,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:readyResource | 3 | 3 |
 | unsupported-field:zoneFilter | 3 | 3 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotBeDefeatedByDamage | 3 | 3 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard | 3 | 3 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties | 3 | 3 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait | 3 | 3 |
 | unsupported-modifier:OngoingEffectBuilder.card.static | 3 | 3 |
@@ -196,7 +198,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-arena-collection:concat | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttack | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase | 2 | 2 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.decreaseCost | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.gainTrait | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.loseAllAbilities | 2 | 2 |
@@ -210,7 +211,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:canRegisterTriggeredAbilities | 2 | 2 |
 | unsupported-query:drawnCardsAmount | 2 | 2 |
 | unsupported-query:flatMap | 2 | 2 |
-| unsupported-query:getDamageFromContext | 2 | 2 |
 | unsupported-query:getPlayers | 2 | 2 |
 | unsupported-query:hasWeakness | 2 | 2 |
 | unsupported-query:isCreditToken | 2 | 2 |
@@ -493,6 +493,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:getCurrentValue | 1 | 1 |
 | unsupported-query:getDamageAmount | 1 | 1 |
 | unsupported-query:getDamageDealtToBaseByUnitThisAttack | 1 | 1 |
+| unsupported-query:getDamageFromContext | 1 | 1 |
 | unsupported-query:getDefendingPlayer | 1 | 1 |
 | unsupported-query:getDrawAmount | 1 | 1 |
 | unsupported-query:getJedisInPlay | 1 | 1 |

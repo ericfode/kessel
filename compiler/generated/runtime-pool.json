@@ -25617,6 +25617,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8492928317",
+      "internalName": "ferrix-uprising",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Deal damage to a unit equal to twice the number of units you control in its arena.",
+      "title": "Ferrix Uprising",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -29363,6 +29400,44 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "3228620062",
+      "internalName": "cripple-authority",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SHD_156",
+      "setCodes": [
+        {
+          "number": 156,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 156,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Draw a card. Each opponent who controls more resources than you discards a card from their hand.",
+      "title": "Cripple Authority",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,

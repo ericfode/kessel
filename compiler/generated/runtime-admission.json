@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "da3cab08bd059d2a5e2ec06b5625163ab7f0ae853b4300440bcb073957d1c633",
+  "catalogueHash": "3d68dfdea2ea0fe4972fbf2ad0eeb15ffb096203e537944acbb74fb6bccafedb",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1091,
+  "irConvertedCount": 1093,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 617
+    "sourceIr": 619
   },
   "runtimeAdmittedCards": [
     {
@@ -3172,6 +3172,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "ferrix-uprising",
+      "setCode": "SEC_130"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "imperial-occupier",
       "setCode": "SEC_132"
     },
@@ -3634,6 +3639,11 @@
       "implementation": "dataOnly",
       "internalName": "desperado-freighter",
       "setCode": "SHD_152"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "cripple-authority",
+      "setCode": "SHD_156"
     },
     {
       "implementation": "sourceIr",
@@ -4976,7 +4986,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 993,
+  "runtimeAdmittedCount": 995,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6120,7 +6130,7 @@
     },
     {
       "internalName": "boga#loyal-varactyl",
-      "reason": "boga#loyal-varactyl: compiler rejected \"boga#loyal-varactyl\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/09_HMW/units/BogaLoyalVaractyl.ts\",\"line\":27,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "boga#loyal-varactyl: compiler rejected \"boga#loyal-varactyl\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/09_HMW/units/BogaLoyalVaractyl.ts\",\"line\":30,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard\"}]",
       "setCode": "HMW_122"
     },
     {
@@ -6910,7 +6920,7 @@
     },
     {
       "internalName": "focus-fire",
-      "reason": "focus-fire: compiler rejected \"focus-fire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":21,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":26,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"}]",
+      "reason": "focus-fire: compiler rejected \"focus-fire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":21,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":26,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"}]",
       "setCode": "JTL_129"
     },
     {
@@ -7960,7 +7970,7 @@
     },
     {
       "internalName": "doublecross",
-      "reason": "doublecross: compiler rejected \"doublecross\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/07_LAW/events/DoubleCross.ts\",\"line\":30,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "doublecross: compiler rejected \"doublecross\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/07_LAW/events/DoubleCross.ts\",\"line\":31,\"message\":\"immediateEffect:takeControlOfUnit\",\"pattern\":\"immediateEffect:takeControlOfUnit\"}]",
       "setCode": "LAW_170"
     },
     {
@@ -8290,7 +8300,7 @@
     },
     {
       "internalName": "third-sister#seething-with-ambition",
-      "reason": "third-sister#seething-with-ambition: compiler rejected \"third-sister#seething-with-ambition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":34,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":52,\"message\":\"immediateEffect:delayedPlayerEffect\",\"pattern\":\"immediateEffect:delayedPlayerEffect\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":67,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isUnitPlayedEvent\"}]",
+      "reason": "third-sister#seething-with-ambition: compiler rejected \"third-sister#seething-with-ambition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":34,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":52,\"message\":\"immediateEffect:delayedPlayerEffect\",\"pattern\":\"immediateEffect:delayedPlayerEffect\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts\",\"line\":67,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isUnitPlayedEvent\"}]",
       "setCode": "LOF_010"
     },
     {
@@ -9309,11 +9319,6 @@
       "setCode": "SEC_129"
     },
     {
-      "internalName": "ferrix-uprising",
-      "reason": "ferrix-uprising: compiler rejected \"ferrix-uprising\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/FerrixUprising.ts\",\"line\":15,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_SEC/events/FerrixUprising.ts\",\"line\":27,\"message\":\"unsupported-query:getDamageFromContext\",\"pattern\":\"unsupported-query:getDamageFromContext\"}]",
-      "setCode": "SEC_130"
-    },
-    {
       "internalName": "lets-talk",
       "reason": "lets-talk: compiler rejected \"lets-talk\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":15,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":24,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":29,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":43,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":65,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:countValidCaptureTargets\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":83,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:countOpponentNonLeaderUnitsInPlay\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":91,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:countSelectedCardsInZone\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":95,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:capturedCardsFromContext\"}]",
       "setCode": "SEC_131"
@@ -9540,7 +9545,7 @@
     },
     {
       "internalName": "arrest",
-      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":23,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":24,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
       "setCode": "SEC_195"
     },
     {
@@ -9820,7 +9825,7 @@
     },
     {
       "internalName": "fennec-shand#honoring-the-deal",
-      "reason": "fennec-shand#honoring-the-deal: compiler rejected \"fennec-shand#honoring-the-deal\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts\",\"line\":20,\"message\":\"unsupported-field:cannotTargetFirst\",\"pattern\":\"unsupported-field:cannotTargetFirst\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts\",\"line\":45,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "fennec-shand#honoring-the-deal: compiler rejected \"fennec-shand#honoring-the-deal\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts\",\"line\":20,\"message\":\"unsupported-field:cannotTargetFirst\",\"pattern\":\"unsupported-field:cannotTargetFirst\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts\",\"line\":45,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "SHD_016"
     },
     {
@@ -10274,11 +10279,6 @@
       "setCode": "SHD_155"
     },
     {
-      "internalName": "cripple-authority",
-      "reason": "cripple-authority: compiler rejected \"cripple-authority\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/02_SHD/events/CrippleAuthority.ts\",\"line\":16,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
-      "setCode": "SHD_156"
-    },
-    {
       "internalName": "reckless-gunslinger",
       "reason": "unimplemented runtime keyword smuggle",
       "setCode": "SHD_160"
@@ -10665,7 +10665,7 @@
     },
     {
       "internalName": "chewbacca#walking-carpet",
-      "reason": "chewbacca#walking-carpet: compiler rejected \"chewbacca#walking-carpet\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/leaders/ChewbaccaWalkingCarpet.ts\",\"line\":23,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "chewbacca#walking-carpet: compiler rejected \"chewbacca#walking-carpet\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/01_SOR/leaders/ChewbaccaWalkingCarpet.ts\",\"line\":23,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "SOR_003"
     },
     {
@@ -10735,7 +10735,7 @@
     },
     {
       "internalName": "energy-conversion-lab",
-      "reason": "energy-conversion-lab: compiler rejected \"energy-conversion-lab\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/bases/EnergyConversionLab.ts\",\"line\":22,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "energy-conversion-lab: compiler rejected \"energy-conversion-lab\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/01_SOR/bases/EnergyConversionLab.ts\",\"line\":22,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "SOR_022"
     },
     {
@@ -11065,7 +11065,7 @@
     },
     {
       "internalName": "for-a-cause-i-believe-in",
-      "reason": "for-a-cause-i-believe-in: compiler rejected \"for-a-cause-i-believe-in\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":18,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":55,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getHeroicCountFromCards\"}]",
+      "reason": "for-a-cause-i-believe-in: compiler rejected \"for-a-cause-i-believe-in\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":18,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":55,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getHeroicCountFromCards\"}]",
       "setCode": "SOR_152"
     },
     {
@@ -11370,7 +11370,7 @@
     },
     {
       "internalName": "first-battle-memorial",
-      "reason": "first-battle-memorial: compiler rejected \"first-battle-memorial\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/bases/FirstBattleMemorial.ts\",\"line\":17,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "first-battle-memorial: compiler rejected \"first-battle-memorial\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/bases/FirstBattleMemorial.ts\",\"line\":17,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "TS26_009"
     },
     {
@@ -11380,7 +11380,7 @@
     },
     {
       "internalName": "executioners-arena",
-      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":21,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":21,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "TS26_011"
     },
     {
@@ -11535,7 +11535,7 @@
     },
     {
       "internalName": "galactic-escalation",
-      "reason": "galactic-escalation: compiler rejected \"galactic-escalation\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/events/GalacticEscalation.ts\",\"line\":17,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "galactic-escalation: compiler rejected \"galactic-escalation\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/events/GalacticEscalation.ts\",\"line\":17,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
       "setCode": "TS26_056"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1465,
+  "runtimeRejectedCount": 1463,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 719
+  "sourceAstConvertedCount": 721
 }

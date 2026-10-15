@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "c26a67409a5c0c3e6a3b788a8e75062fbe2ddd270866498cb382676e9df3a0f7",
+  "compilerHash": "18c26cfbae6197461b159b4987f5ee3400c8ce7c2b4a07c123cdfea38208a7cc",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -54939,11 +54939,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
           "file": "game/cards/09_HMW/units/BogaLoyalVaractyl.ts",
-          "line": 27,
-          "column": 34
+          "line": 30,
+          "column": 33
         }
       ],
       "className": "BogaLoyalVaractyl",
@@ -83588,11 +83588,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/04_JTL/events/FocusFire.ts",
           "line": 21,
-          "column": 34
+          "column": 78
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -109948,11 +109948,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:takeControlOfUnit",
+          "message": "immediateEffect:takeControlOfUnit",
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
-          "line": 30,
-          "column": 38
+          "line": 31,
+          "column": 25
         }
       ],
       "className": "DoubleCross",
@@ -118471,11 +118471,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/05_LOF/leaders/ThirdSisterSeethingWithAmbition.ts",
           "line": 34,
-          "column": 34
+          "column": 78
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -152955,31 +152955,109 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Deal damage to a unit equal to twice the number of units you control in its arena.",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "damage",
+              "target": "chosen",
+              "amount": {
+                "kind": "binary",
+                "op": "*",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "const",
+                        "value": true
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "||",
+                        "left": {
+                          "kind": "unary",
+                          "op": "!",
+                          "value": {
+                            "kind": "ref",
+                            "path": [
+                              "target",
+                              "zoneName"
+                            ]
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "||",
+                          "left": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "ref",
+                              "path": [
+                                "target",
+                                "zoneName"
+                              ]
+                            },
+                            "right": {
+                              "kind": "const",
+                              "value": "anyArena"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "ref",
+                              "path": [
+                                "card",
+                                "zoneName"
+                              ]
+                            },
+                            "right": {
+                              "kind": "ref",
+                              "path": [
+                                "target",
+                                "zoneName"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 2
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageFromContext",
-          "file": "game/cards/06_SEC/events/FerrixUprising.ts",
-          "line": 15,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageFromContext",
-          "message": "unsupported-query:getDamageFromContext",
-          "file": "game/cards/06_SEC/events/FerrixUprising.ts",
-          "line": 27,
-          "column": 29
-        }
-      ],
+      "diagnostics": [],
       "className": "FerrixUprising",
       "baseClass": "EventCard",
       "id": "8492928317",
       "internalName": "ferrix-uprising",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Ferrix Uprising",
         "subtitle": "",
@@ -153019,7 +153097,25 @@
       "dataHash": "0e6d23c86def1810460678f91043ffc25f79d48e4a86335b6a909fa6dfd83097",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "binary:&&",
+        "binary:*",
+        "binary:===",
+        "binary:||",
+        "cardType:event",
+        "ir:binary",
+        "ir:const",
+        "ir:damage",
+        "ir:query",
+        "ir:ref",
+        "ir:unary",
+        "query:arenaUnitCount",
+        "ref:card.zoneName",
+        "ref:player",
+        "ref:target.zoneName",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:event",
+        "unary:!"
       ]
     },
     {
@@ -158579,11 +158675,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:capture",
+          "message": "immediateEffect:capture",
           "file": "game/cards/06_SEC/events/Arrest.ts",
-          "line": 23,
-          "column": 34
+          "line": 24,
+          "column": 21
         }
       ],
       "className": "Arrest",
@@ -166335,11 +166431,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/02_SHD/leaders/FennecShandHonoringTheDeal.ts",
           "line": 45,
-          "column": 34
+          "column": 78
         }
       ],
       "className": "FennecShandHonoringTheDeal",
@@ -178054,23 +178150,67 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Draw a card. Each opponent who controls more resources than you discards a card from their hand",
+            "costs": [],
+            "effect": {
+              "kind": "simultaneous",
+              "effects": [
+                {
+                  "kind": "draw",
+                  "target": "ownPlayer",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "op": ">",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "opponent",
+                        "resources",
+                        "length"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "player",
+                        "resources",
+                        "length"
+                      ]
+                    }
+                  },
+                  "onTrue": {
+                    "kind": "discardOwnHand",
+                    "amount": {
+                      "kind": "const",
+                      "value": 1
+                    },
+                    "target": "enemyPlayer"
+                  },
+                  "onFalse": {
+                    "kind": "noAction"
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
-          "file": "game/cards/02_SHD/events/CrippleAuthority.ts",
-          "line": 16,
-          "column": 30
-        }
-      ],
+      "diagnostics": [],
       "className": "CrippleAuthority",
       "baseClass": "EventCard",
       "id": "3228620062",
       "internalName": "cripple-authority",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Cripple Authority",
         "subtitle": "",
@@ -178111,7 +178251,19 @@
       "dataHash": "806d22ed0d4be37c1be24b5bcf8b746d60171e0ca4c407c0282a7cb2c62f0eaa",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "binary:>",
+        "cardType:event",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:discardOwnHand",
+        "ir:draw",
+        "ir:noAction",
+        "ir:ref",
+        "ir:simultaneous",
+        "ref:opponent.resources.length",
+        "ref:player.resources.length",
+        "trigger:event"
       ]
     },
     {
@@ -187066,11 +187218,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/leaders/ChewbaccaWalkingCarpet.ts",
           "line": 23,
-          "column": 34
+          "column": 78
         }
       ],
       "className": "ChewbaccaWalkingCarpet",
@@ -189175,11 +189327,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/bases/EnergyConversionLab.ts",
           "line": 22,
-          "column": 34
+          "column": 78
         }
       ],
       "className": "EnergyConversionLab",
@@ -199193,11 +199345,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
           "line": 18,
-          "column": 30
+          "column": 74
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -208283,11 +208435,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/bases/FirstBattleMemorial.ts",
           "line": 17,
-          "column": 30
+          "column": 74
         }
       ],
       "className": "FirstBattleMemorial",
@@ -208415,11 +208567,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
           "line": 21,
-          "column": 30
+          "column": 74
         }
       ],
       "className": "ExecutionersArena",
@@ -212745,11 +212897,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "simultaneous-factory-shape",
+          "message": "simultaneous-factory-shape",
           "file": "game/cards/07_TS26/events/GalacticEscalation.ts",
           "line": 17,
-          "column": 30
+          "column": 74
         }
       ],
       "className": "GalacticEscalation",
