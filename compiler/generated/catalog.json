@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "1e8f8a4c8cec0fb857fc440d9e9048f697f447d757a56121c37092d0b8b07c55",
+  "compilerHash": "78d1f5d3563898ea0d25d2573d685788d981e67c763e5678e0f56d330a2f6233",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -193729,18 +193729,86 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While attached unit is defending, the attacker gets -1/-0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": -1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "isDefending",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "source",
+                  "parentUnit"
+                ]
+              },
+              "args": []
+            },
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isInPlay",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "isAttacking",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/01_SOR/upgrades/Electrostaff.ts",
-          "line": 20,
-          "column": 103
-        }
-      ],
+      "diagnostics": [],
       "className": "Electrostaff",
       "baseClass": "UpgradeCard",
       "id": "1323728003",
@@ -193765,7 +193833,7 @@
           ]
         }
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Electrostaff",
         "subtitle": null,
@@ -193806,13 +193874,24 @@
       "dataHash": "e1194d98ff15ddbd2ba63fcaff8c016459edd8c662b3d499c3ad232fbf0a6ca2",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:upgrade",
+        "ir:binary",
         "ir:const",
+        "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "ir:unary",
         "query:hasSomeTrait",
+        "query:isAttacking",
+        "query:isDefending",
+        "query:isInPlay",
+        "query:isUnit",
         "ref:card",
+        "ref:source.parentUnit",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:constant",
         "unary:!"
       ]
     },

@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "645722f923c8a95cd09d92e2e2b9336585c8be3b217ee78752df2d6b4db7af7e",
+  "catalogueHash": "097ce7e4371d70c69ae1a838bdfa5fbaada8bc6ebe9ee8350dff46d0905c61ae",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1108,
+  "irConvertedCount": 1109,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 637
+    "sourceIr": 638
   },
   "runtimeAdmittedCards": [
     {
@@ -3992,6 +3992,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "electrostaff",
+      "setCode": "SOR_071"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "moment-of-peace",
       "setCode": "SOR_073"
     },
@@ -5076,7 +5081,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1013,
+  "runtimeAdmittedCount": 1014,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -10854,11 +10859,6 @@
       "setCode": "SOR_062"
     },
     {
-      "internalName": "electrostaff",
-      "reason": "electrostaff: compiler rejected \"electrostaff\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":103,\"file\":\"game/cards/01_SOR/upgrades/Electrostaff.ts\",\"line\":20,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
-      "setCode": "SOR_071"
-    },
-    {
       "internalName": "entrenched",
       "reason": "entrenched: compiler rejected \"entrenched\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/01_SOR/upgrades/Entrenched.ts\",\"line\":16,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase\"}]",
       "setCode": "SOR_072"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1445,
+  "runtimeRejectedCount": 1444,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 736
+  "sourceAstConvertedCount": 737
 }

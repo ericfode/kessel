@@ -1157,9 +1157,30 @@ function defendingAttackerPredicate(input,context) {
     const includes=terms[3],targets=call(includes,'includes')&&unwrap(includes.expression.expression);
     const attack=targets&&call(targets,'getAllTargets')&&unwrap(targets.expression.expression);
     const arg=includes.arguments?.length===1&&unwrap(includes.arguments[0]);
-    if(!targets||targets.arguments.length||!attack||!ts.isPropertyAccessExpression(attack)||attack.questionDotToken||attack.name.text!=='activeAttack'||!ts.isIdentifier(attack.expression)||attack.expression.text!==card||!arg||!ts.isPropertyAccessExpression(arg)||arg.questionDotToken||arg.name.text!=='source'||!ts.isIdentifier(arg.expression)||arg.expression.text!==actual)fail(ctx,node,'defending-attacker-predicate');
+    const parent=arg&&ts.isPropertyAccessExpression(arg)&&!arg.questionDotToken&&arg.name.text==='parentUnit';
+    const sourceArg=parent?unwrap(arg.expression):arg;
+    if(!targets||targets.arguments.length||!attack||!ts.isPropertyAccessExpression(attack)||attack.questionDotToken||attack.name.text!=='activeAttack'||!ts.isIdentifier(attack.expression)||attack.expression.text!==card||!sourceArg||!ts.isPropertyAccessExpression(sourceArg)||sourceArg.questionDotToken||sourceArg.name.text!=='source'||!ts.isIdentifier(sourceArg.expression)||sourceArg.expression.text!==actual)fail(ctx,node,'defending-attacker-predicate');
     const queries=['isUnit','isInPlay','isAttacking'].map(name=>({kind:'query',name,receiver:reference('card'),args:[]}));
-    return {predicate:{kind:'binary',op:'&&',left:{kind:'binary',op:'&&',left:queries[0],right:queries[1]},right:queries[2]},condition:{kind:'query',name:'isDefending',receiver:reference('source'),args:[]}};
+    return {predicate:{kind:'binary',op:'&&',left:{kind:'binary',op:'&&',left:queries[0],right:queries[1]},right:queries[2]},condition:{kind:'query',name:'isDefending',receiver:parent?reference('source','parentUnit'):reference('source'),args:[]},parentDefense:!!parent};
+}
+function parentDefenseHelperBinding(node,ctx) {
+    let setup=node;while(setup&&!ts.isMethodDeclaration(setup))setup=setup.parent;
+    if(!setup||setup.name.getText(ctx.source)!=='setupCardAbilities'||setup.parameters.length!==2||setup.parameters.some(p=>!ts.isIdentifier(p.name))||setup.parameters[0].name.text===setup.parameters[1].name.text)fail(ctx,node,'parent-defense-setup-binding');
+    const raw=unwrap(node);
+    if(!ts.isCallExpression(raw)||raw.arguments.length!==1||!ts.isObjectLiteralExpression(unwrap(raw.arguments[0])))fail(ctx,node,'parent-defense-helper-binding');
+    const stats=object(raw.arguments[0],ctx);
+    if(stats.props.size!==2||literal(stats.props.get('power'),stats.ctx)!==-1||literal(stats.props.get('hp'),stats.ctx)!==0)fail(ctx,node,'parent-defense-literal-stats');
+    const root=setup.parameters[1].name.text,parts=access(raw.expression,ctx);
+    if(parts.join('.')!==root+'.ongoingEffects.modifyStats')fail(ctx,node,'parent-defense-helper-binding');
+    for(let a=node.parent;a&&a!==setup;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'parent-defense-helper-binding');
+}
+function parentDefenseSourceShape(out) {
+    const a=out.abilities.card[0],same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    const q=name=>({kind:'query',name,receiver:reference('card'),args:[]});
+    const predicate={kind:'binary',op:'&&',left:{kind:'binary',op:'&&',left:q('isUnit'),right:q('isInPlay')},right:q('isAttacking')};
+    return out.baseClass==='UpgradeCard'&&out.abilities.card.length===1&&!out.abilities.leader.length&&!out.abilities.unit.length&&
+        same(out.attachCondition,{kind:'unary',op:'!',value:{kind:'query',name:'hasSomeTrait',receiver:reference('card'),args:[constant('vehicle')]}})&&
+        same(a,{trigger:'constant',title:a.title,costs:[],effect:{kind:'modifyStats',target:'chosen',duration:'persistent',power:constant(-1),hp:constant(0)},condition:{kind:'query',name:'isDefending',receiver:reference('source','parentUnit'),args:[]},targetResolver:{owner:'opponent',type:'unit',zone:'arena',predicate}});
 }
 function aspectMembershipPredicate(input,context,depth=0) {
     if(depth>24)fail(context,input,'aspect-membership-alias-bound');
@@ -1192,6 +1213,7 @@ function constantAbility(input, context, validatedObject = null) {
         if([...props.keys()].some(k=>!['title','targetController','matchTarget','ongoingEffect'].includes(k))||!props.has('targetController')||literal(props.get('targetController'),ctx)!=='opponent')fail(ctx,node,'defending-attacker-constant');
         unshadowedEnum(props.get('targetController'),ctx,'RelativePlayer');
         if(JSON.stringify(result.effect)!==JSON.stringify({kind:'modifyStats',target:'self',duration:'persistent',power:constant(-1),hp:constant(0)}))fail(ctx,node,'defending-attacker-modifier');
+        if(attack.parentDefense)parentDefenseHelperBinding(props.get('ongoingEffect'),ctx);
         result.condition=attack.condition;
     } else if (props.has('condition')) result.condition = expr(props.get('condition'), ctx);
     // OngoingCardEffect defaults to source-only when no targeting filters exist.
@@ -1583,6 +1605,11 @@ function compileSource(text, file, enums = {}) {
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
+    const parentDefense=value=>!!value&&typeof value==='object'&&((value.kind==='query'&&value.name==='isDefending'&&JSON.stringify(value.receiver)===JSON.stringify(reference('source','parentUnit')))||Object.values(value).some(parentDefense));
+    if(parentDefense(out.abilities)) {
+        try{topDeckContinuationNamespaces(cls,ctx);if(!parentDefenseSourceShape(out))fail(ctx,cls,'parent-defense-source-shape');}
+        catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.abilities={leader:[],unit:[],card:[]};}
+    }
     const containsTop=value=>!!value&&typeof value==='object'&&(value.target==='ownTopDeck'||Object.values(value).some(containsTop));
     if(containsTop(out.abilities)&&(out.baseClass==='EventCard'||out.abilities.card.some(a=>a.effect?.kind==='sequence'))){
         try{topDeckContinuationNamespaces(cls,ctx);}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.abilities={leader:[],unit:[],card:[]};}

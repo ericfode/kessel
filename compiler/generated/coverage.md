@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1108** (736 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1350**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1109** (737 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1349**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -87,7 +87,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:eventEffect | 6 | 6 |
 | trigger-alias-hook:onCardsDrawn | 6 | 6 |
 | unsupported-field:mustChangeGameState | 6 | 6 |
-| unsupported-query:getAllTargets | 6 | 6 |
 | callback-statement:IfStatement | 5 | 5 |
 | cost:defeat | 5 | 5 |
 | cost:discardCardFromOwnHand | 5 | 5 |
@@ -101,6 +100,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait | 5 | 5 |
 | unsupported-query:defenderWasDefeated | 5 | 5 |
+| unsupported-query:getAllTargets | 5 | 5 |
 | unsupported-query:someCardPlayed | 5 | 5 |
 | activation-limit | 4 | 4 |
 | class-state:cardsDiscardedThisPhaseWatcher | 4 | 4 |

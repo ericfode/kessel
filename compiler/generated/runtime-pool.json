@@ -32211,6 +32211,44 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "1323728003",
+      "internalName": "electrostaff",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Attach to a non-VEHICLE unit. \n\nWhile attached unit is defending, the attacker gets –1/–0.",
+      "title": "Electrostaff",
+      "traits": [
+        "item",
+        "weapon"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 1,
       "deployBox": null,
       "epicAction": null,

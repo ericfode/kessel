@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "1e8f8a4c8cec0fb857fc440d9e9048f697f447d757a56121c37092d0b8b07c55",
+  "compilerHash": "78d1f5d3563898ea0d25d2573d685788d981e67c763e5678e0f56d330a2f6233",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1108,
-  "sourceAstConverted": 736,
+  "converted": 1109,
+  "sourceAstConverted": 737,
   "dataOnlyConverted": 372,
-  "unconverted": 1350,
+  "unconverted": 1349,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -885,6 +885,7 @@
     "SOR_064",
     "SOR_065",
     "SOR_067",
+    "SOR_071",
     "SOR_073",
     "SOR_075",
     "SOR_076",
@@ -2953,18 +2954,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getAllTargets",
-      "occurrences": 6,
-      "cards": [
-        "ASH_012",
-        "ASH_168",
-        "SEC_139",
-        "SHD_183",
-        "SOR_071",
-        "SOR_142"
-      ]
-    },
-    {
       "pattern": "callback-statement:IfStatement",
       "occurrences": 5,
       "cards": [
@@ -3105,6 +3094,17 @@
         "ASH_223",
         "LAW_034",
         "LAW_252"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:getAllTargets",
+      "occurrences": 5,
+      "cards": [
+        "ASH_012",
+        "ASH_168",
+        "SEC_139",
+        "SHD_183",
+        "SOR_142"
       ]
     },
     {
@@ -27175,21 +27175,6 @@
           "file": "game/cards/01_SOR/units/RegionalGovernor.ts",
           "line": 19,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_071",
-      "internalName": "electrostaff",
-      "sourcePath": "game/cards/01_SOR/upgrades/Electrostaff.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/01_SOR/upgrades/Electrostaff.ts",
-          "line": 20,
-          "column": 103
         }
       ]
     },
