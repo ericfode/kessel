@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "35616123cec66ca2018713a895f1f40673bcd0d6ec47207534d7c7faa244f287",
+  "compilerHash": "d56a2dfb35f6bf33081774fe780357be70e6c5ab8aa9ad0cd7bb3ce960982e9e",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1112,
-  "sourceAstConverted": 740,
+  "converted": 1113,
+  "sourceAstConverted": 741,
   "dataOnlyConverted": 372,
-  "unconverted": 1346,
+  "unconverted": 1345,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -30,6 +30,7 @@
     "ASH_043",
     "ASH_046",
     "ASH_048",
+    "ASH_049",
     "ASH_050",
     "ASH_051",
     "ASH_055",
@@ -4120,13 +4121,6 @@
       ]
     },
     {
-      "pattern": "arena-list-scalar",
-      "occurrences": 1,
-      "cards": [
-        "ASH_049"
-      ]
-    },
-    {
       "pattern": "arena-predicate-reference",
       "occurrences": 1,
       "cards": [
@@ -7143,21 +7137,6 @@
           "file": "game/cards/08_ASH/units/GarSaxonCovetingPower.ts",
           "line": 17,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_049",
-      "internalName": "shin-hati#going-somewhere",
-      "sourcePath": "game/cards/08_ASH/units/ShinHatiGoingSomewhere.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "arena-list-scalar",
-          "message": "arena-list-scalar",
-          "file": "game/cards/08_ASH/units/ShinHatiGoingSomewhere.ts",
-          "line": 19,
-          "column": 54
         }
       ]
     },

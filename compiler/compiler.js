@@ -453,9 +453,36 @@ function arenaCardExistence(node,ctx,upgrade=false) {
     if(type){const predicate=type==='upgrade'?{kind:'query',name:'isUpgrade',receiver:reference('card'),args:[]}:{kind:'binary',op:'&&',left:{kind:'query',name:'isLeader',receiver:reference('card'),args:[]},right:{kind:'query',name:'isDeployed',receiver:reference('card'),args:[]}};result.args[0]={kind:'binary',op:'&&',left:result.args[0],right:predicate};}
     return result;
 }
+// A singleton's first element is the source exactly when the filtered arena
+// contains one unit and contains the source. Both reads must use the same local
+// snapshot in the executing callback; no general array indexing is admitted.
+function singletonArenaMembership(node, ctx) {
+    const isEqual = n => ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken;
+    if (!ts.isBinaryExpression(node) || node.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) return null;
+    const count = unwrap(node.left), member = unwrap(node.right);
+    if (!isEqual(count) || !isEqual(member)) return null;
+    const length = unwrap(count.left), one = unwrap(count.right), first = unwrap(member.left);
+    if (!ts.isPropertyAccessExpression(length) || length.questionDotToken || length.name.text !== 'length' ||
+        !ts.isNumericLiteral(one) || one.text !== '1' || !ts.isElementAccessExpression(first) || first.questionDotToken ||
+        !ts.isNumericLiteral(first.argumentExpression) || first.argumentExpression.text !== '0' ||
+        !ts.isIdentifier(length.expression) || !ts.isIdentifier(first.expression) || length.expression.text !== first.expression.text ||
+        !ctx.constants.has(length.expression.text)) return null;
+    const initializer = readConstant(length.expression.text, ctx);
+    const local = constantContext(initializer, ctx), query = unwrap(initializer);
+    if (!ts.isCallExpression(query) || !ts.isPropertyAccessExpression(query.expression) || query.expression.name.text !== 'getArenaUnits') return null;
+    if (query.questionDotToken || query.expression.questionDotToken) fail(ctx, query, 'optional-singleton-arena-query');
+    const source = expr(member.right, ctx);
+    if (source.kind !== 'ref' || source.path.join('.') !== 'source') return null;
+    const units = arenaQuery(query, local, 'arenaUnitCount');
+    const containsSource = {kind:'query', name:'hasSomeArenaUnit', receiver:units.receiver, args:[
+        {kind:'binary', op:'&&', left:units.args[0], right:{kind:'binary', op:'===', left:reference('card'), right:source}}
+    ]};
+    return {kind:'binary', op:'&&', left:{kind:'binary', op:'===', left:units, right:constant(1)}, right:containsSource};
+}
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    const singleton = singletonArenaMembership(node, ctx); if (singleton) return singleton;
     const finite=finiteCollectionCount(node,ctx);if(finite)return finite;
     if(ctx.attachedParentTitle&&ts.isPropertyAccessExpression(node)&&node.questionDotToken&&node.name.text==='title'&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='parentCard') {const parent=expr(node.expression,ctx);if(parent.kind==='ref'&&parent.path.join('.')==='source.parentCard')return reference('source','parentCard','title');fail(ctx,node,'attached-parent-title-scope');}
 

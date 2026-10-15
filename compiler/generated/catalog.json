@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "35616123cec66ca2018713a895f1f40673bcd0d6ec47207534d7c7faa244f287",
+  "compilerHash": "d56a2dfb35f6bf33081774fe780357be70e6c5ab8aa9ad0cd7bb3ce960982e9e",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -25518,23 +25518,218 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While this is the only friendly non-leader ground unit, she gains Sentinel",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "sentinel",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "binary",
+              "op": "&&",
+              "left": {
+                "kind": "binary",
+                "op": "===",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "const",
+                          "value": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "||",
+                          "left": {
+                            "kind": "unary",
+                            "op": "!",
+                            "value": {
+                              "kind": "const",
+                              "value": "groundArena"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "op": "||",
+                            "left": {
+                              "kind": "binary",
+                              "op": "===",
+                              "left": {
+                                "kind": "const",
+                                "value": "groundArena"
+                              },
+                              "right": {
+                                "kind": "const",
+                                "value": "anyArena"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "op": "===",
+                              "left": {
+                                "kind": "ref",
+                                "path": [
+                                  "card",
+                                  "zoneName"
+                                ]
+                              },
+                              "right": {
+                                "kind": "const",
+                                "value": "groundArena"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isNonLeaderUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "query",
+                "name": "hasSomeArenaUnit",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "const",
+                          "value": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "||",
+                          "left": {
+                            "kind": "unary",
+                            "op": "!",
+                            "value": {
+                              "kind": "const",
+                              "value": "groundArena"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "op": "||",
+                            "left": {
+                              "kind": "binary",
+                              "op": "===",
+                              "left": {
+                                "kind": "const",
+                                "value": "groundArena"
+                              },
+                              "right": {
+                                "kind": "const",
+                                "value": "anyArena"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "op": "===",
+                              "left": {
+                                "kind": "ref",
+                                "path": [
+                                  "card",
+                                  "zoneName"
+                                ]
+                              },
+                              "right": {
+                                "kind": "const",
+                                "value": "groundArena"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isNonLeaderUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "===",
+                      "left": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "right": {
+                        "kind": "ref",
+                        "path": [
+                          "source"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "arena-list-scalar",
-          "message": "arena-list-scalar",
-          "file": "game/cards/08_ASH/units/ShinHatiGoingSomewhere.ts",
-          "line": 19,
-          "column": 54
-        }
-      ],
+      "diagnostics": [],
       "className": "ShinHatiGoingSomewhere",
       "baseClass": "NonLeaderUnitCard",
       "id": "1043323645",
       "internalName": "shin-hati#going-somewhere",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Shin Hati",
         "subtitle": "Going Somewhere?",
@@ -25578,8 +25773,26 @@
       "dataHash": "edc7a7cbf1faeb46098003703f1bfe39f07c7031b5a6753ddf70f8c9f21458d5",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:===",
+        "binary:||",
         "cardType:unit",
-        "keyword:sentinel"
+        "ir:binary",
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:query",
+        "ir:ref",
+        "ir:unary",
+        "keyword:sentinel",
+        "query:arenaUnitCount",
+        "query:hasSomeArenaUnit",
+        "query:isNonLeaderUnit",
+        "ref:card",
+        "ref:card.zoneName",
+        "ref:player",
+        "ref:source",
+        "trigger:constant",
+        "unary:!"
       ]
     },
     {

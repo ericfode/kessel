@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1112** (740 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1346**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1113** (741 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1345**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -218,7 +218,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:someCardEnteredPlay | 2 | 2 |
 | arena-card-query-type | 1 | 1 |
 | arena-leader-query-scope | 1 | 1 |
-| arena-list-scalar | 1 | 1 |
 | arena-predicate-reference | 1 | 1 |
 | arena-query-card-capture | 1 | 1 |
 | arena-query-receiver | 1 | 1 |

@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "5392e45bd5c45c9134df48cf4bcfe04b77a0d9bfe6cf194022c60a130fec07eb",
+  "catalogueHash": "cb81857144b8ba9d7df969e5560f4e834d2ee4085eec517b797f29666f1be95f",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1112,
+  "irConvertedCount": 1113,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 641
+    "sourceIr": 642
   },
   "runtimeAdmittedCards": [
     {
@@ -84,6 +84,11 @@
       "implementation": "dataOnly",
       "internalName": "imperial-armored-commando",
       "setCode": "ASH_048"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "shin-hati#going-somewhere",
+      "setCode": "ASH_049"
     },
     {
       "implementation": "sourceIr",
@@ -5096,7 +5101,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1017,
+  "runtimeAdmittedCount": 1018,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5262,11 +5267,6 @@
       "internalName": "gar-saxon#coveting-power",
       "reason": "gar-saxon#coveting-power: compiler rejected \"gar-saxon#coveting-power\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/08_ASH/units/GarSaxonCovetingPower.ts\",\"line\":17,\"message\":\"trigger-alias-hook:onCardPlayed\",\"pattern\":\"trigger-alias-hook:onCardPlayed\"}]",
       "setCode": "ASH_047"
-    },
-    {
-      "internalName": "shin-hati#going-somewhere",
-      "reason": "shin-hati#going-somewhere: compiler rejected \"shin-hati#going-somewhere\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":54,\"file\":\"game/cards/08_ASH/units/ShinHatiGoingSomewhere.ts\",\"line\":19,\"message\":\"arena-list-scalar\",\"pattern\":\"arena-list-scalar\"}]",
-      "setCode": "ASH_049"
     },
     {
       "internalName": "morgan-elsbeth#life-abandoned",
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1441,
+  "runtimeRejectedCount": 1440,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 740
+  "sourceAstConvertedCount": 741
 }

@@ -3512,3 +3512,83 @@ fn upgrade_presence_and_recipient_target_sources_reject_unmodeled_metadata() {
   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
  }}
 }
+
+// Direct mid-game fixtures: all identities/zones round-trip through the public
+// loader before assertions. No recorded games or engine replay are required.
+#[test]
+fn shin_hati_singleton_sentinel_tracks_live_ground_membership() {
+    let e = engine();
+    let mut s = board(&e);
+    s.round = 6;
+    let shin = unit(&e, &mut s, Seat::P1, "ASH_049");
+    let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let space = unit(&e, &mut s, Seat::P1, "ASH_201");
+    let leader = s.players[0].leader;
+    s.card_mut(leader).deployed = true;
+    s.card_mut(leader).epic_used = true;
+    e.add_arena(&mut s, leader).unwrap();
+    s.active = Seat::P2;
+    s.action_player = Some(Seat::P2);
+    let base = s.players[0].base;
+    s.card_mut(base).damage = 7;
+    let mut s = e.load_state(&e.snapshot(&s)).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"), "friendly space, deployed leader and enemy ground units do not count");
+    assert!(!e.has_keyword(&s, space, "sentinel"));
+    assert_eq!(e.attack_targets(&s, enemy, false), vec![shin]);
+    let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
+    assert!(!e.has_keyword(&s, shin, "sentinel"));
+    assert!(e.attack_targets(&s, enemy, false).contains(&s.players[0].base));
+    e.defeat(&mut s, ally).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"), "removing the other ground unit restores Sentinel immediately");
+    let token = unit(&e, &mut s, Seat::P1, "TOKEN_CLONE_TROOPER");
+    assert!(!e.has_keyword(&s, shin, "sentinel"), "non-leader tokens also count");
+    e.defeat(&mut s, token).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"));
+    let restored = e.load_state(&e.snapshot(&s)).unwrap();
+    assert!(e.has_keyword(&restored, shin, "sentinel"));
+    assert_eq!(restored.card(base).damage, 7);
+}
+
+#[test]
+fn shin_hati_singleton_sentinel_is_controller_relative_in_both_seats() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e);
+        s.round = 5;
+        let shin = unit(&e, &mut s, seat, "ASH_049");
+        let opponent = seat.other();
+        let attacker = unit(&e, &mut s, opponent, "LOF_256");
+        s.active = opponent;
+        s.action_player = Some(opponent);
+        let mut s = e.load_state(&e.snapshot(&s)).unwrap();
+        assert!(e.has_keyword(&s, shin, "sentinel"));
+        assert_eq!(e.attack_targets(&s, attacker, false), vec![shin]);
+        let second = unit(&e, &mut s, seat, "LOF_254");
+        assert!(!e.has_keyword(&s, shin, "sentinel"));
+        assert!(!e.has_keyword(&s, second, "sentinel"));
+        e.defeat(&mut s, second).unwrap();
+        assert!(e.has_keyword(&s, shin, "sentinel"));
+    }
+}
+
+#[test]
+fn shin_hati_midgame_play_pays_cost_and_enters_exhausted_with_live_sentinel() {
+    let e = engine();
+    let mut s = board(&e);
+    s.round = 6;
+    let shin = hand(&e, &mut s, "ASH_049");
+    let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let s = e.load_state(&e.snapshot(&s)).unwrap();
+    let before = e.ready_resources(&s, Seat::P1);
+    let cost = usize::from(e.cost(&s, shin));
+    assert!(cost > 0 && before >= cost);
+    assert!(e.legal_actions(&s).contains(&e.card_action(&s, shin)));
+    let played = e.apply(&s, &e.card_action(&s, shin)).unwrap();
+    assert!(!played.players[0].hand.contains(shin));
+    assert!(played.players[0].ground.contains(shin));
+    assert!(played.card(shin).exhausted);
+    assert_eq!(e.ready_resources(&played, Seat::P1), before - cost);
+    assert!(e.has_keyword(&played, shin, "sentinel"));
+    assert_eq!(e.attack_targets(&played, enemy, false), vec![shin]);
+    e.load_state(&e.snapshot(&played)).unwrap();
+}
