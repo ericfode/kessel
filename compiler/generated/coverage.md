@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1095** (723 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1363**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1097** (725 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1361**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -333,7 +333,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:getChosenReplacement | 1 | 1 |
 | method:getDamageAmount | 1 | 1 |
 | method:getDamagedNonLeaderDefendingUnits | 1 | 1 |
-| method:getDrawAmount | 1 | 1 |
 | method:getFriendlyExhaustedUnitCount | 1 | 1 |
 | method:getHeroicCountFromCards | 1 | 1 |
 | method:getJedisInPlay | 1 | 1 |
@@ -384,7 +383,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:numberOfTargets | 1 | 1 |
 | method:numCardsPlayedByPlayerThisPhase | 1 | 1 |
 | method:opponentDidAttackBaseLastAction | 1 | 1 |
-| method:opponentHasAtLeastThreeExhausted | 1 | 1 |
 | method:paidNoResourcesToPlay | 1 | 1 |
 | method:playedUnitArena | 1 | 1 |
 | method:playedUnitPower | 1 | 1 |
@@ -492,7 +490,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:getDamageAmount | 1 | 1 |
 | unsupported-query:getDamageDealtToBaseByUnitThisAttack | 1 | 1 |
 | unsupported-query:getDefendingPlayer | 1 | 1 |
-| unsupported-query:getDrawAmount | 1 | 1 |
 | unsupported-query:getJedisInPlay | 1 | 1 |
 | unsupported-query:getOpponentBaseDamage | 1 | 1 |
 | unsupported-query:getOtherFriendlyPilotUnitsAndUpgradesCount | 1 | 1 |
@@ -510,7 +507,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:nonUnitForceCardPlayedThisPhase | 1 | 1 |
 | unsupported-query:numberOfTargets | 1 | 1 |
 | unsupported-query:opponentDidAttackBaseLastAction | 1 | 1 |
-| unsupported-query:opponentHasAtLeastThreeExhausted | 1 | 1 |
 | unsupported-query:paidNoResourcesToPlay | 1 | 1 |
 | unsupported-query:playerHasDealtDamage | 1 | 1 |
 | unsupported-query:republicLeaderCount | 1 | 1 |

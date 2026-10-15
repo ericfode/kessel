@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "ad9ac0f029662ff6479fb0beb1bd4f41f5d60136f05b2191b93e23291da8c05a",
+  "compilerHash": "a15974f74dfeb772a0d91c2453a03a4ad733936e152b58140c4fb102c70a3f44",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -89612,31 +89612,100 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Give a Shield token to a unit",
+            "costs": [],
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": ">=",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "opponent"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "const",
+                        "value": true
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "query",
+                          "name": "isUnit",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "card"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "exhausted"
+                            ]
+                          },
+                          "right": {
+                            "kind": "const",
+                            "value": true
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 3
+                }
+              },
+              "onTrue": {
+                "kind": "select",
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "unit",
+                  "zone": "anyAttackable"
+                },
+                "effect": {
+                  "kind": "giveShield",
+                  "target": "chosen",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:opponentHasAtLeastThreeExhausted",
-          "message": "unsupported-query:opponentHasAtLeastThreeExhausted",
-          "file": "game/cards/04_JTL/units/BladeSquadronBWing.ts",
-          "line": 18,
-          "column": 41
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:opponentHasAtLeastThreeExhausted",
-          "file": "game/cards/04_JTL/units/BladeSquadronBWing.ts",
-          "line": 27,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ],
+      "diagnostics": [],
       "className": "BladeSquadronBWing",
       "baseClass": "NonLeaderUnitCard",
       "id": "1965647391",
       "internalName": "blade-squadron-bwing",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Blade Squadron B-Wing",
         "subtitle": "",
@@ -89680,7 +89749,26 @@
       "dataHash": "c87a8c11de30fc40a03595f0aec6430e36f6903de02ff87d2230e78f9391d5d7",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "binary:===",
+        "binary:>=",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:giveShield",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "ir:select",
+        "query:arenaUnitCount",
+        "query:isUnit",
+        "ref:card",
+        "ref:card.exhausted",
+        "ref:opponent",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -122589,23 +122677,9 @@
             "trigger": "event",
             "title": "Exhaust a friendly unit. If you do, give a Shield token and 2 Experience tokens to it.",
             "costs": [],
-            "targetResolvers": [
-              {
-                "name": "friendlyUnit",
-                "targetResolver": {
-                  "owner": "self",
-                  "type": "unit",
-                  "zone": "anyAttackable"
-                },
-                "chooser": "self",
-                "effect": {
-                  "kind": "exhaust",
-                  "target": "chosen"
-                }
-              }
-            ],
             "effect": {
-              "kind": "noAction"
+              "kind": "exhaust",
+              "target": "chosen"
             },
             "ifYouDo": {
               "title": "Give a Shield token and 2 Experience tokens to it",
@@ -122615,13 +122689,7 @@
                 "effects": [
                   {
                     "kind": "giveExperience",
-                    "target": {
-                      "kind": "ref",
-                      "path": [
-                        "namedTargets",
-                        "friendlyUnit"
-                      ]
-                    },
+                    "target": "chosen",
                     "amount": {
                       "kind": "const",
                       "value": 2
@@ -122629,13 +122697,7 @@
                   },
                   {
                     "kind": "giveShield",
-                    "target": {
-                      "kind": "ref",
-                      "path": [
-                        "namedTargets",
-                        "friendlyUnit"
-                      ]
-                    },
+                    "target": "chosen",
                     "amount": {
                       "kind": "const",
                       "value": 1
@@ -122643,6 +122705,11 @@
                   }
                 ]
               }
+            },
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "anyAttackable"
             }
           }
         ]
@@ -122699,10 +122766,7 @@
         "ir:exhaust",
         "ir:giveExperience",
         "ir:giveShield",
-        "ir:noAction",
-        "ir:ref",
         "ir:simultaneous",
-        "ref:namedTargets.friendlyUnit",
         "targetType:unit",
         "targetZone:anyAttackable",
         "trigger:event"
@@ -128498,31 +128562,59 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Draw a card for each friendly unit with 7 or more remaining HP",
+            "costs": [],
+            "effect": {
+              "kind": "draw",
+              "target": "ownPlayer",
+              "amount": {
+                "kind": "query",
+                "name": "arenaUnitCount",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": ">=",
+                      "left": {
+                        "kind": "ref",
+                        "path": [
+                          "card",
+                          "remainingHp"
+                        ]
+                      },
+                      "right": {
+                        "kind": "const",
+                        "value": 7
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDrawAmount",
-          "file": "game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts",
-          "line": 14,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDrawAmount",
-          "message": "unsupported-query:getDrawAmount",
-          "file": "game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts",
-          "line": 21,
-          "column": 90
-        }
-      ],
+      "diagnostics": [],
       "className": "ThePurgilKingLeadingTheJourney",
       "baseClass": "NonLeaderUnitCard",
       "id": "2968188569",
       "internalName": "the-purrgil-king#leading-the-journey",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "The Purrgil King",
         "subtitle": "Leading The Journey",
@@ -128567,8 +128659,19 @@
         "restore": 4
       },
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:>=",
         "cardType:unit",
-        "keyword:restore"
+        "ir:binary",
+        "ir:const",
+        "ir:draw",
+        "ir:query",
+        "ir:ref",
+        "keyword:restore",
+        "query:arenaUnitCount",
+        "ref:card.remainingHp",
+        "ref:player",
+        "trigger:whenPlayed"
       ]
     },
     {

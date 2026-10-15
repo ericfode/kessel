@@ -13662,6 +13662,47 @@
     {
       "arena": "space",
       "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "1965647391",
+      "internalName": "blade-squadron-bwing",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_199",
+      "setCodes": [
+        {
+          "number": 199,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 199,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: If another player controls 3 or more exhausted units, give a Shield token to a unit.",
+      "title": "Blade Squadron B-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
         "cunning"
       ],
       "cost": 1,
@@ -18976,6 +19017,44 @@
       "upgradePower": 2
     },
     {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9854991700",
+      "internalName": "calm-in-the-storm",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_054",
+      "setCodes": [
+        {
+          "number": 54,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 54,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Exhaust a friendly unit. If you do, give a Shield token and 2 Experience tokens to it.",
+      "title": "Calm in the Storm",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -20339,6 +20418,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 12,
+      "id": "2968188569",
+      "internalName": "the-purrgil-king#leading-the-journey",
+      "keywords": [
+        "restore"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "LOF_121",
+      "setCodes": [
+        {
+          "number": 121,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 121,
+        "set": "LOF"
+      },
+      "subtitle": "Leading The Journey",
+      "text": "Restore 4\nWhen Played: Draw a card for each friendly unit with 7 or more remaining HP.",
+      "title": "The Purrgil King",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

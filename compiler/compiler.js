@@ -267,14 +267,37 @@ function spaceCountComparisonHelper(member) {
     if(!count(comparison.left,false)||!count(comparison.right,true))return null;
     return {member,parameter,spaceComparison:comparison,used:false};
 }
+function filteredArenaCountHelper(member) {
+    if(!ts.isMethodDeclaration(member)||!ts.isIdentifier(member.name)||!/^(get[A-Z]\w*Amount|opponentHas[A-Z]\w*)$/.test(member.name.text)||isNonSynchronous(member)||hasDecorators(member)||member.modifiers?.length!==1||member.modifiers[0].kind!==ts.SyntaxKind.PrivateKeyword||member.parameters.length!==1)return null;
+    const parameter=member.parameters[0];if(!ts.isIdentifier(parameter.name)||unsupportedParameterBinding(parameter))return null;
+    const statements=member.body?.statements;if(!statements||![1,2].includes(statements.length))return null;
+    let list,comparison=false;
+    if(statements.length===1){const r=statements[0];if(!ts.isReturnStatement(r)||!r.expression)return null;const length=unwrap(r.expression);if(!ts.isPropertyAccessExpression(length)||length.questionDotToken||length.name.text!=='length')return null;list=unwrap(length.expression);}
+    else {const d=statements[0],r=statements[1];if(!ts.isVariableStatement(d)||!(d.declarationList.flags&ts.NodeFlags.Const)||d.declarationList.declarations.length!==1||!ts.isReturnStatement(r)||!r.expression)return null;const local=d.declarationList.declarations[0];if(!ts.isIdentifier(local.name)||local.name.text===parameter.name.text||!local.initializer)return null;const b=unwrap(r.expression);if(!ts.isBinaryExpression(b)||b.operatorToken.kind!==ts.SyntaxKind.GreaterThanEqualsToken||!ts.isNumericLiteral(b.right)||Number(b.right.text)!==3||!ts.isPropertyAccessExpression(b.left)||b.left.questionDotToken||!ts.isIdentifier(b.left.expression)||b.left.expression.text!==local.name.text||b.left.name.text!=='length')return null;list=unwrap(local.initializer);comparison=true;}
+    if(!ts.isCallExpression(list)||list.questionDotToken||!ts.isPropertyAccessExpression(list.expression)||list.expression.questionDotToken||list.expression.name.text!=='filter'||list.arguments.length!==1)return null;
+    const query=unwrap(list.expression.expression),filter=unwrap(list.arguments[0]);
+    if(!ts.isCallExpression(query)||query.questionDotToken||!ts.isPropertyAccessExpression(query.expression)||query.expression.questionDotToken||query.expression.name.text!=='getArenaUnits'||query.arguments.length!==0||!ts.isArrowFunction(filter)||isNonSynchronous(filter)||hasDecorators(filter)||filter.parameters.length!==1||!ts.isIdentifier(filter.parameters[0].name)||unsupportedParameterBinding(filter.parameters[0]))return null;
+    const owner=query.expression.expression.getText().replace(/\s/g,'');if(owner!==parameter.name.text+'.player'+(comparison?'.opponent':''))return null;
+    const candidate=filter.parameters[0].name.text,body=unwrap(filter.body);
+    const property=(n,name)=>ts.isPropertyAccessExpression(n)&&!n.questionDotToken&&ts.isIdentifier(n.expression)&&n.expression.text===candidate&&n.name.text===name;
+    if(!comparison){if(!ts.isBinaryExpression(body)||body.operatorToken.kind!==ts.SyntaxKind.GreaterThanEqualsToken||!property(body.left,'remainingHp')||!ts.isNumericLiteral(body.right)||Number(body.right.text)!==7)return null;}
+    else {if(!ts.isBinaryExpression(body)||body.operatorToken.kind!==ts.SyntaxKind.AmpersandAmpersandToken||!ts.isCallExpression(body.left)||body.left.questionDotToken||body.left.arguments.length!==0||!property(body.left.expression,'isUnit')||!ts.isBinaryExpression(body.right)||body.right.operatorToken.kind!==ts.SyntaxKind.EqualsEqualsEqualsToken||!property(body.right.left,'exhausted')||body.right.right.kind!==ts.SyntaxKind.TrueKeyword)return null;}
+    return {member,parameter,filteredCount:{query,filter,comparison},used:false};
+}
 function arenaDamageHelperCall(node,ctx,helper) {
     const call=node.expression,arg=node.arguments[0];
     // Only arrows retain the card receiver through property-factory callbacks.
     for(let ancestor=node.parent;ancestor;ancestor=ancestor.parent)if(ts.isFunctionExpression(ancestor))fail(ctx,node,'arena-damage-helper-nonlexical-this');
-    if(!ctx.callbackStage||(!helper.spaceComparison&&!ctx.damageRecipientScope)||node.questionDotToken||call.questionDotToken||call.expression.kind!==ts.SyntaxKind.ThisKeyword||node.arguments.length!==1||!ts.isIdentifier(arg)||ctx.constants.has(arg.text)||ctx.scope.get(arg.text)?.path?.join('.')!=='context')fail(ctx,node,'arena-damage-helper-call-scope');
+    if(!ctx.callbackStage||(!helper.spaceComparison&&!helper.filteredCount&&!ctx.damageRecipientScope)||node.questionDotToken||call.questionDotToken||call.expression.kind!==ts.SyntaxKind.ThisKeyword||node.arguments.length!==1||!ts.isIdentifier(arg)||ctx.constants.has(arg.text)||ctx.scope.get(arg.text)?.path?.join('.')!=='context')fail(ctx,node,'arena-damage-helper-call-scope');
     const child={...ctx,scope:new Map(),constants:new Map()};
     child.scope.set(helper.parameter.name.text,reference('context'));
     if(helper.spaceComparison){helper.used=true;return expr(helper.spaceComparison,child);}
+    if(helper.filteredCount){
+        const {query,filter,comparison}=helper.filteredCount;
+        const predicate=expr(filter,{...child,syncArenaPredicate:true},['card']);arenaPredicate(predicate,child,filter);
+        const count=arenaQuery(query,child,'arenaUnitCount');count.args[0]={kind:'binary',op:'&&',left:count.args[0],right:predicate};helper.used=true;
+        return comparison?{kind:'binary',op:'>=',left:count,right:constant(3)}:count;
+    }
     bindConstant(child,helper.arenaName.name.text,helper.arenaName.initializer);bindConstant(child,helper.arena.name.text,helper.arena.initializer);
     const query=readConstant(helper.arena.name.text,child);helper.used=true;
     const count=arenaQuery(query,constantContext(query,child),'arenaUnitCount');
@@ -1113,6 +1136,17 @@ function namedResolvers(input, context) {
     }
     return {entries:descriptors,ctx:{...obj.ctx,namedTargets:slots}};
 }
+function normalizeSingletonExhaust(result) {
+    const keys=(v,expected)=>Object.keys(v||{}).sort().join(',')===[...expected].sort().join(',');
+    const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    if(!keys(result,['trigger','title','costs','targetResolvers','effect','ifYouDo'])||result.trigger!=='event'||!same(result.costs,[])||!same(result.effect,{kind:'noAction'})||result.targetResolvers.length!==1)return result;
+    const slot=result.targetResolvers[0],next=result.ifYouDo;
+    if(!keys(slot,['name','targetResolver','chooser','effect'])||slot.chooser!=='self'||!same(slot.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable'})||!same(slot.effect,{kind:'exhaust',target:'chosen'})||!keys(next,['title','costs','effect'])||!same(next.costs,[]))return result;
+    const target={kind:'ref',path:['namedTargets',slot.name]};
+    if(!same(next.effect,{kind:'simultaneous',effects:[{kind:'giveExperience',target,amount:{kind:'const',value:2}},{kind:'giveShield',target,amount:{kind:'const',value:1}}]}))return result;
+    result.targetResolver=slot.targetResolver;result.effect=slot.effect;delete result.targetResolvers;
+    next.effect.effects.forEach(effect=>{effect.target='chosen';});return result;
+}
 function ability(input, context, trigger = null, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const {props,node}=obj;let ctx=obj.ctx;
@@ -1194,7 +1228,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if (createsTokens && capturesTokenEvent) fail(ctx, node, 'token-event-result-capture');
     if (discardsDeck && capturesTokenEvent) fail(ctx, node, 'deck-discard-event-result-capture');
     if (discardsHand && capturesTokenEvent) fail(ctx, node, 'hand-discard-event-result-capture');
-    return result;
+    return normalizeSingletonExhaust(result);
 }
 // Standard hooks are one registration with alternative event names. Expand only
 // static self hooks; event watchers and shared activation state need separate IR.
@@ -1276,7 +1310,7 @@ function compileSource(text, file, enums = {}) {
     if(['EventCard','NonLeaderUnitCard'].includes(out.baseClass))for(const member of cls.members){
         const damage=arenaDamageHelper(member);
         const damageClass=damage&&((out.baseClass==='EventCard'&&damage.multiplier===2)||(out.baseClass==='NonLeaderUnitCard'&&damage.multiplier===1));
-        const helper=damageClass?damage:out.baseClass==='NonLeaderUnitCard'?spaceCountComparisonHelper(member):null;
+        const helper=damageClass?damage:out.baseClass==='NonLeaderUnitCard'?(spaceCountComparisonHelper(member)||filteredArenaCountHelper(member)):null;
         if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);
     }
     for (const member of cls.members) {

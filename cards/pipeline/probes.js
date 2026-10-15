@@ -2,6 +2,12 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const remainingHpDraw = require("./remaining-hp-draw-probes").planRemainingHpDrawProbes(entry, options);
+    if (remainingHpDraw) return remainingHpDraw;
+    const singletonNamed = require("./singleton-named-probes").planSingletonNamedProbes(entry, options);
+    if (singletonNamed) return singletonNamed;
+    const exhaustedCountShield = require("./exhausted-count-shield-probes").planExhaustedCountShieldProbes(entry, options);
+    if (exhaustedCountShield) return exhaustedCountShield;
     const ackbar = require("./admiral-ackbar-probes").planAdmiralAckbarProbes(entry, options);
     if (ackbar) return ackbar;
     const spaceComparison = require("./space-comparison-probes").planSpaceComparisonProbes(entry, options);

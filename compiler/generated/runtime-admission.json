@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "8fea38ec25766c276c950c5a4fa5ad6ec1c8c07815c9758a5a56f5affecac004",
+  "catalogueHash": "8756a5c8be69279755c038f55ef036d4ec8949e7dfef39e10b3b498a60b370f8",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1095,
+  "irConvertedCount": 1097,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 622
+    "sourceIr": 625
   },
   "runtimeAdmittedCards": [
     {
@@ -1696,6 +1696,11 @@
       "setCode": "JTL_190"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "blade-squadron-bwing",
+      "setCode": "JTL_199"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "republic-ywing",
       "setCode": "JTL_212"
@@ -2347,6 +2352,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "calm-in-the-storm",
+      "setCode": "LOF_054"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "nightsister-warrior",
       "setCode": "LOF_059"
     },
@@ -2514,6 +2524,11 @@
       "implementation": "dataOnly",
       "internalName": "trident-assault-ship",
       "setCode": "LOF_120"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-purrgil-king#leading-the-journey",
+      "setCode": "LOF_121"
     },
     {
       "implementation": "sourceIr",
@@ -5001,7 +5016,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 998,
+  "runtimeAdmittedCount": 1001,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7204,11 +7219,6 @@
       "setCode": "JTL_198"
     },
     {
-      "internalName": "blade-squadron-bwing",
-      "reason": "blade-squadron-bwing: compiler rejected \"blade-squadron-bwing\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/units/BladeSquadronBWing.ts\",\"line\":18,\"message\":\"unsupported-query:opponentHasAtLeastThreeExhausted\",\"pattern\":\"unsupported-query:opponentHasAtLeastThreeExhausted\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/units/BladeSquadronBWing.ts\",\"line\":27,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:opponentHasAtLeastThreeExhausted\"}]",
-      "setCode": "JTL_199"
-    },
-    {
       "internalName": "shuttle-tydirium#fly-casual",
       "reason": "shuttle-tydirium#fly-casual: compiler rejected \"shuttle-tydirium#fly-casual\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/units/ShuttleTydiriumFlyCasual.ts\",\"line\":24,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
       "setCode": "JTL_200"
@@ -8459,11 +8469,6 @@
       "setCode": "LOF_052"
     },
     {
-      "internalName": "calm-in-the-storm",
-      "reason": "calm-in-the-storm: named selectors require two independent standalone event/WhenPlayed/OnAttack stat systems",
-      "setCode": "LOF_054"
-    },
-    {
       "internalName": "dume#redeem-the-future",
       "reason": "dume#redeem-the-future: compiler rejected \"dume#redeem-the-future\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/05_LOF/units/DumeRedeemTheFuture.ts\",\"line\":19,\"message\":\"trigger-alias-hook:onPhaseStarted\",\"pattern\":\"trigger-alias-hook:onPhaseStarted\"}]",
       "setCode": "LOF_055"
@@ -8622,11 +8627,6 @@
       "internalName": "sifodyas#commissioning-an-army",
       "reason": "sifodyas#commissioning-an-army: compiler rejected \"sifodyas#commissioning-an-army\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/units/SifoDyasCommissioningAnArmy.ts\",\"line\":12,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/units/SifoDyasCommissioningAnArmy.ts\",\"line\":21,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/units/SifoDyasCommissioningAnArmy.ts\",\"line\":28,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/units/SifoDyasCommissioningAnArmy.ts\",\"line\":49,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:costSum\"}]",
       "setCode": "LOF_117"
-    },
-    {
-      "internalName": "the-purrgil-king#leading-the-journey",
-      "reason": "the-purrgil-king#leading-the-journey: compiler rejected \"the-purrgil-king#leading-the-journey\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts\",\"line\":14,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDrawAmount\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":90,\"file\":\"game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts\",\"line\":21,\"message\":\"unsupported-query:getDrawAmount\",\"pattern\":\"unsupported-query:getDrawAmount\"}]",
-      "setCode": "LOF_121"
     },
     {
       "internalName": "pillio-star-compass",
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1460,
+  "runtimeRejectedCount": 1457,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 723
+  "sourceAstConvertedCount": 725
 }

@@ -2042,6 +2042,34 @@ impl Catalogue {
                     let a=&entry["abilities"]["card"][0];
                     if source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||a["trigger"]!="whenPlayed"||a["costs"]!=serde_json::json!([])||a["optional"]==true||!a["condition"].is_null()||a["coordinate"]==true||a["requiresConfirmation"]==true||!(a["contextTitle"].is_null()||a["contextTitle"]==serde_json::json!([]))||!a["targetResolver"].is_null()||!(a["targetResolvers"].is_null()||a["targetResolvers"]==serde_json::json!([]))||!a["then"].is_null()||!a["ifYouDo"].is_null()||a["effect"]["kind"]!="conditional"||a["effect"]["onTrue"]!=serde_json::json!({"kind":"ready","target":"self"})||a["effect"]["onFalse"]!=serde_json::json!({"kind":"noAction"}) {return Err("space-count readiness requires complete sole ordinary unit play metadata".into());}
                 }
+                fn plain_controls(a:&Value,trigger:&str)->bool {
+                    (a["trigger"]==trigger||(trigger.is_empty()&&a["trigger"].is_null())) && a["costs"]==serde_json::json!([]) && !a["optional"].as_bool().unwrap_or(false) && a["condition"].is_null() && a["coordinate"]!=true && a["requiresConfirmation"]!=true && a["attachedContext"].is_null() && (a["contextTitle"].is_null()||a["contextTitle"]==serde_json::json!([])) && (a["targetResolvers"].is_null()||a["targetResolvers"]==serde_json::json!([])) && a["then"].is_null()
+                }
+                fn remaining_hp_draw(value:&Value)->bool {
+                    (value["kind"]=="draw"&&contains_query_named(&value["amount"],"arenaUnitCount")&&contains_ref_path(&value["amount"],&["card","remainingHp"])) || match value {Value::Array(items)=>items.iter().any(remaining_hp_draw),Value::Object(object)=>object.values().any(remaining_hp_draw),_=>false}
+                }
+                fn conditional_shield_selection(value:&Value)->bool {
+                    (value["kind"]=="conditional"&&value["onTrue"]["kind"]=="select"&&value["onTrue"]["effect"]["kind"]=="giveShield") || match value {Value::Array(items)=>items.iter().any(conditional_shield_selection),Value::Object(object)=>object.values().any(conditional_shield_selection),_=>false}
+                }
+                fn exhaust_token_continuation(value:&Value)->bool {
+                    (value["effect"]["kind"]=="exhaust"&&value["ifYouDo"]["effect"]["kind"]=="simultaneous"&&value["ifYouDo"]["effect"]["effects"].as_array().is_some_and(|effects|effects.iter().any(|e|matches!(e["kind"].as_str(),Some("giveExperience"|"giveShield"))))) || match value {Value::Array(items)=>items.iter().any(exhaust_token_continuation),Value::Object(object)=>object.values().any(exhaust_token_continuation),_=>false}
+                }
+                let hp_draw=["abilities","attachCondition","piloting"].iter().any(|key|remaining_hp_draw(&entry[*key]));
+                let count_shield=["abilities","attachCondition","piloting"].iter().any(|key|conditional_shield_selection(&entry[*key]));
+                let exhaust_tokens=["abilities","attachCondition","piloting"].iter().any(|key|exhaust_token_continuation(&entry[*key]));
+                if hp_draw || count_shield || exhaust_tokens {
+                    let a=&entry["abilities"]["card"][0];let effect=&a["effect"];
+                    if sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry) {return Err("filtered count and captured exhaustion families require complete ordinary card-side metadata".into());}
+                    if hp_draw {
+                        if count_shield||exhaust_tokens||source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||entry["keywordValues"]!=serde_json::json!({"restore":4})||entry["card"]["keywords"]!=serde_json::json!(["restore"])||!plain_controls(a,"whenPlayed")||!a["targetResolver"].is_null()||!a["ifYouDo"].is_null()||effect["kind"]!="draw"||!matches!(effect["target"].as_str(),Some("ownPlayer"|"enemyPlayer"))||!remaining_hp_draw(effect) {return Err("remaining-HP draw requires sole ordinary play draw with reviewed Restore".into());}
+                    } else if count_shield {
+                        let select=&effect["onTrue"];
+                        if exhaust_tokens||source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||!plain_controls(a,"whenPlayed")||!a["targetResolver"].is_null()||!a["ifYouDo"].is_null()||effect["kind"]!="conditional"||effect["onFalse"]!=serde_json::json!({"kind":"noAction"})||select["kind"]!="select"||select["effect"]["kind"]!="giveShield"||select["effect"]["target"]!="chosen"||!["any","self","opponent"].iter().any(|owner|select["targetResolver"]==serde_json::json!({"owner":owner,"type":"unit","zone":"anyAttackable"})) {return Err("conditional Shield selection requires sole complete ordinary unit play metadata".into());}
+                    } else {
+                        let next=&a["ifYouDo"];let effects=next["effect"]["effects"].as_array().ok_or("captured token continuation requires finite leaves")?;
+                        if source_class!=Some("EventCard")||!exact_type("event")||entry["card"]["unique"]!=false||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||!plain_controls(a,"event")||effect!=&serde_json::json!({"kind":"exhaust","target":"chosen"})||!["any","self","opponent"].iter().any(|owner|a["targetResolver"]==serde_json::json!({"owner":owner,"type":"unit","zone":"anyAttackable"}))||!plain_controls(next,"")||!next["targetResolver"].is_null()||!next["ifYouDo"].is_null()||effects.len()!=2||!effects.iter().all(|e|matches!(e["kind"].as_str(),Some("giveExperience"|"giveShield"))&&e["target"]=="chosen") {return Err("captured exhaustion requires a sole ordinary event and same-target token continuation".into());}
+                    }
+                }
                 if ["abilities","attachCondition","piloting"].iter().any(|key|contains_presence_query(&entry[*key])) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)) {return Err("arena-card/deployed-leader queries require ordinary unit card-side metadata".into());}
                 fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
@@ -2535,5 +2563,42 @@ mod bounded_unit_helper_metadata_tests {
         for condition in [true,false] {let mut tie=entry("JTL_135");tie["abilities"]["card"][0]["effect"]["condition"]=json!({"kind":"const","value":condition});assert!(admitted(tie.clone()));tie["baseClass"]=json!("UnknownCard");assert!(!admitted(tie));}
         let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["amount"]["value"]=json!(4);assert!(!admitted(h));
         let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["maxTargets"]=json!(2);assert!(!admitted(h));
+    }
+}
+
+#[cfg(test)]
+mod filtered_count_singleton_metadata_tests {
+    use super::*;use serde_json::json;
+    fn entry(id:&str)->Value {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==id).unwrap().clone()}
+    fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_owned();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
+    #[test]
+    fn filtered_counts_and_captured_exhaustion_require_complete_source_metadata() {
+        for id in ["LOF_121","JTL_199","LOF_054"] {
+            let source=entry(id);assert!(admitted(source.clone()),"positive {id}");
+            for (class,types) in [(json!(null),json!(["unit"])),(json!("UnknownCard"),source["card"]["types"].clone()),(json!("LeaderUnitCard"),json!(["leader"])),(json!("TokenUnitCard"),json!(["token","unit"])),(json!("UpgradeCard"),json!(["upgrade"]))] {let mut bad=source.clone();bad["baseClass"]=class;bad["card"]["types"]=types;assert!(!admitted(bad),"class/types {id}");}
+            let mut bad=source.clone();bad["baseClass"]=json!(if id=="LOF_054"{"NonLeaderUnitCard"}else{"EventCard"});bad["card"]["types"]=json!([if id=="LOF_054"{"unit"}else{"event"}]);assert!(!admitted(bad));
+            for key in ["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp","epicAction"] {let mut bad=source.clone();bad["card"][key]=json!("unreviewed");assert!(!admitted(bad),"metadata {id}/{key}");}
+            for key in ["attachCondition","piloting"] {let mut bad=source.clone();bad[key]=json!({});assert!(!admitted(bad));}
+            let mut bad=source.clone();bad["card"]["unique"]=Value::Null;assert!(!admitted(bad));
+            let mut bad=source.clone();bad["keywordValues"]=json!({"raid":1});assert!(!admitted(bad));
+            let mut bad=source.clone();bad["card"]["keywords"]=json!(["raid"]);assert!(!admitted(bad));
+            for (key,value) in [("optional",json!(true)),("coordinate",json!(true)),("requiresConfirmation",json!(true)),("condition",json!({"kind":"const","value":true})),("costs",json!([{"kind":"exhaustSelf"}])),("contextTitle",json!([{"kind":"const","value":"other"}])),("then",json!({"title":"other","effect":{"kind":"noAction"}}))] {let mut bad=source.clone();bad["abilities"]["card"][0][key]=value;assert!(!admitted(bad),"registration {id}/{key}");}
+            for side in ["unit","leader"] {let mut bad=source.clone();bad["abilities"][side]=bad["abilities"]["card"].clone();assert!(!admitted(bad));}
+            let mut bad=source.clone();bad["abilities"]["card"].as_array_mut().unwrap().push(source["abilities"]["card"][0].clone());assert!(!admitted(bad));
+            let mut bad=source.clone();bad["abilities"]["card"][0]["targetResolvers"]=json!([{ "name":"other","chooser":"self","targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"},"effect":{"kind":"damage","target":"chosen","amount":{"kind":"const","value":1}} }]);assert!(!admitted(bad));
+        }
+    }
+    #[test]
+    fn scalar_scope_mutants_stay_executable_and_extra_continuation_leaves_reject() {
+        for target in ["ownPlayer","enemyPlayer"] {let mut p=entry("LOF_121");p["abilities"]["card"][0]["effect"]["target"]=json!(target);assert!(admitted(p));}
+        let mut p=entry("LOF_121");p["abilities"]["card"][0]["effect"]["amount"]["args"][0]["right"]["right"]["value"]=json!(8);assert!(admitted(p));
+        for condition in [true,false] {let mut b=entry("JTL_199");b["abilities"]["card"][0]["effect"]["condition"]=json!({"kind":"const","value":condition});assert!(admitted(b.clone()));b["baseClass"]=json!("UnknownCard");assert!(!admitted(b));}
+        for owner in ["any","self","opponent"] {let mut b=entry("JTL_199");b["abilities"]["card"][0]["effect"]["onTrue"]["targetResolver"]["owner"]=json!(owner);assert!(admitted(b));let mut c=entry("LOF_054");c["abilities"]["card"][0]["targetResolver"]["owner"]=json!(owner);assert!(admitted(c));}
+        let mut c=entry("LOF_054");c["abilities"]["card"][0]["ifYouDo"]["effect"]["effects"][0]["amount"]["value"]=json!(1);assert!(admitted(c));
+        let mut c=entry("LOF_054");c["abilities"]["card"][0]["ifYouDo"]["effect"]["effects"][0]["amount"]["value"]=json!(3);assert!(!admitted(c),"existing group token bound remains one or two per leaf");
+        let mut c=entry("LOF_054");c["abilities"]["card"][0]["ifYouDo"]["effect"]["effects"][0]["kind"]=json!("giveShield");assert!(admitted(c));
+        let mut c=entry("LOF_054");let leaf=c["abilities"]["card"][0]["ifYouDo"]["effect"]["effects"][0].clone();c["abilities"]["card"][0]["ifYouDo"]["effect"]["effects"].as_array_mut().unwrap().push(leaf);assert!(!admitted(c));
+        for key in ["then","ifYouDo"] {let mut c=entry("LOF_054");c["abilities"]["card"][0]["ifYouDo"][key]=json!({"title":"unreviewed","effect":{"kind":"noAction"}});assert!(!admitted(c));}
+        for id in ["LAW_165","TWI_221","LOF_246","SOR_097","JTL_071","JTL_135"] {assert!(admitted(entry(id)),"prior {id}");}
     }
 }

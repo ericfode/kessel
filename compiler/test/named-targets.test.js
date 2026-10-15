@@ -42,9 +42,14 @@ test('Exactly one retains array slot and cannot silently read properties or firs
 });
 test('lexical named identity survives continuation multiple token leaves without target substitution',()=>{
     const a=positive(`friendlyUnit:{controller:RelativePlayer.Self,cardTypeFilter:WildcardCardType.Unit,immediateEffect:AbilityHelper.immediateEffects.exhaust()}`,`ifYouDo:parent=>({title:'Tokens',immediateEffect:AbilityHelper.immediateEffects.simultaneous([AbilityHelper.immediateEffects.giveExperience({amount:2,target:parent.targets.friendlyUnit}),AbilityHelper.immediateEffects.giveShield({target:parent.targets.friendlyUnit})])})`);
-    assert.equal(a.ifYouDo.effect.kind,'simultaneous');
-    for(const e of a.ifYouDo.effect.effects)assert.deepEqual(e.target,{kind:'ref',path:['namedTargets','friendlyUnit']});
-    assert.equal(a.ifYouDo.effect.effects[0].amount.value,2);
+    assert.equal(a.targetResolvers,undefined);
+    assert.deepEqual(a.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable'});
+    assert.deepEqual(a.effect,{kind:'exhaust',target:'chosen'});
+    assert.deepEqual(a.ifYouDo.effect,{kind:'simultaneous',effects:[{kind:'giveExperience',target:'chosen',amount:{kind:'const',value:2}},{kind:'giveShield',target:'chosen',amount:{kind:'const',value:1}}]});
+    const named=positive(`friendlyUnit:{cardTypeFilter:WildcardCardType.Unit,immediateEffect:AbilityHelper.immediateEffects.exhaust()}`,`ifYouDo:parent=>({title:'Tokens',immediateEffect:AbilityHelper.immediateEffects.simultaneous([AbilityHelper.immediateEffects.giveExperience({amount:2,target:parent.targets.friendlyUnit}),AbilityHelper.immediateEffects.giveShield({target:parent.targets.friendlyUnit})])})`);
+    assert.equal(named.targetResolver,undefined);
+    assert.equal(named.targetResolvers[0].targetResolver.owner,'any');
+    for(const e of named.ifYouDo.effect.effects)assert.deepEqual(e.target,{kind:'ref',path:['namedTargets','friendlyUnit']});
     negative(`unit:{cardTypeFilter:WildcardCardType.Unit,${damage()}}`,`ifYouDo:ctx=>({immediateEffect:AbilityHelper.immediateEffects.damage({amount:ctx.events[0].totalDistributed})})`);
     negative(`unit:{cardTypeFilter:WildcardCardType.Unit,${damage()}}`,`ifYouDo:ctx=>({targetResolver:{cardTypeFilter:WildcardCardType.Unit,immediateEffect:AbilityHelper.immediateEffects.damage({amount:1,target:ctx.targets.unit})}})`);
 });
@@ -67,5 +72,11 @@ test('named lowering fails closed on unknown fields, names, graph, chooser and u
 });
 test('all seventeen complete pinned card sources convert without dropping named effects',()=>{
 const files=["game/cards/09_HMW/units/C-3POCaptivatingStoryteller.ts", "game/cards/09_HMW/units/WreckerWreckingTheEmpire.ts", "game/cards/04_JTL/events/CoordinatedFront.ts", "game/cards/07_LAW/units/BosskJoinOurMerryBand.ts", "game/cards/07_LAW/units/MillenniumFalconDodgingPatrols.ts", "game/cards/07_LAW/units/GovernorsShuttle.ts", "game/cards/07_LAW/units/AerieCloudRiderDropship.ts", "game/cards/05_LOF/events/CalmInTheStorm.ts", "game/cards/01_SOR/units/DeathTrooper.ts", "game/cards/01_SOR/events/AsteroidSanctuary.ts", "game/cards/07_TS26/units/ZitonMojSowingChaos.ts", "game/cards/07_TS26/events/Fervor.ts", "game/cards/07_TS26/events/Mislead.ts", "game/cards/03_TWI/events/UnlimitedPower.ts", "game/cards/03_TWI/events/GrenadeStrike.ts", "game/cards/03_TWI/events/MercilessContest.ts", "game/cards/03_TWI/events/HeroesOnBothSides.ts"];
-for(const file of files){const c=compileSource(fs.readFileSync(path.join(root,file),'utf8'),file,enums);assert.equal(c.status,'supported',file+JSON.stringify(c.diagnostics));const a=[...c.abilities.card,...c.abilities.unit,...c.abilities.leader].find(a=>a.targetResolvers);assert.ok(a&&a.targetResolvers.length);assert.deepEqual(a.effect,{kind:'noAction'});assert.ok(a.targetResolvers.every(e=>e.effect));}
+let namedCount=0,scalarCount=0;
+for(const file of files){
+ const c=compileSource(fs.readFileSync(path.join(root,file),'utf8'),file,enums);assert.equal(c.status,'supported',file+JSON.stringify(c.diagnostics));
+ if(file.endsWith('/CalmInTheStorm.ts')){const a=c.abilities.card[0];assert.equal(a.targetResolvers,undefined);assert.deepEqual(a.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable'});assert.deepEqual(a.effect,{kind:'exhaust',target:'chosen'});assert.deepEqual(a.ifYouDo.effect,{kind:'simultaneous',effects:[{kind:'giveExperience',target:'chosen',amount:{kind:'const',value:2}},{kind:'giveShield',target:'chosen',amount:{kind:'const',value:1}}]});scalarCount++;}
+ else {const a=[...c.abilities.card,...c.abilities.unit,...c.abilities.leader].find(a=>a.targetResolvers);assert.ok(a&&a.targetResolvers.length);assert.deepEqual(a.effect,{kind:'noAction'});assert.ok(a.targetResolvers.every(e=>e.effect));namedCount++;}
+}
+assert.equal(namedCount,16);assert.equal(scalarCount,1);
 });

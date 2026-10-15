@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "ad9ac0f029662ff6479fb0beb1bd4f41f5d60136f05b2191b93e23291da8c05a",
+  "compilerHash": "a15974f74dfeb772a0d91c2453a03a4ad733936e152b58140c4fb102c70a3f44",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1095,
-  "sourceAstConverted": 723,
+  "converted": 1097,
+  "sourceAstConverted": 725,
   "dataOnlyConverted": 372,
-  "unconverted": 1363,
+  "unconverted": 1361,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -376,6 +376,7 @@
     "JTL_184",
     "JTL_190",
     "JTL_194",
+    "JTL_199",
     "JTL_209",
     "JTL_212",
     "JTL_214",
@@ -546,6 +547,7 @@
     "LOF_118",
     "LOF_119",
     "LOF_120",
+    "LOF_121",
     "LOF_126",
     "LOF_127",
     "LOF_129",
@@ -4924,13 +4926,6 @@
       ]
     },
     {
-      "pattern": "method:getDrawAmount",
-      "occurrences": 1,
-      "cards": [
-        "LOF_121"
-      ]
-    },
-    {
       "pattern": "method:getFriendlyExhaustedUnitCount",
       "occurrences": 1,
       "cards": [
@@ -5278,13 +5273,6 @@
       "occurrences": 1,
       "cards": [
         "SEC_194"
-      ]
-    },
-    {
-      "pattern": "method:opponentHasAtLeastThreeExhausted",
-      "occurrences": 1,
-      "cards": [
-        "JTL_199"
       ]
     },
     {
@@ -6037,13 +6025,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getDrawAmount",
-      "occurrences": 1,
-      "cards": [
-        "LOF_121"
-      ]
-    },
-    {
       "pattern": "unsupported-query:getJedisInPlay",
       "occurrences": 1,
       "cards": [
@@ -6160,13 +6141,6 @@
       "occurrences": 1,
       "cards": [
         "SEC_194"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:opponentHasAtLeastThreeExhausted",
-      "occurrences": 1,
-      "cards": [
-        "JTL_199"
       ]
     },
     {
@@ -14567,29 +14541,6 @@
       ]
     },
     {
-      "setCode": "JTL_199",
-      "internalName": "blade-squadron-bwing",
-      "sourcePath": "game/cards/04_JTL/units/BladeSquadronBWing.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:opponentHasAtLeastThreeExhausted",
-          "message": "unsupported-query:opponentHasAtLeastThreeExhausted",
-          "file": "game/cards/04_JTL/units/BladeSquadronBWing.ts",
-          "line": 18,
-          "column": 41
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:opponentHasAtLeastThreeExhausted",
-          "file": "game/cards/04_JTL/units/BladeSquadronBWing.ts",
-          "line": 27,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
       "setCode": "JTL_200",
       "internalName": "shuttle-tydirium#fly-casual",
       "sourcePath": "game/cards/04_JTL/units/ShuttleTydiriumFlyCasual.ts",
@@ -19957,29 +19908,6 @@
           "line": 49,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_121",
-      "internalName": "the-purrgil-king#leading-the-journey",
-      "sourcePath": "game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDrawAmount",
-          "file": "game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts",
-          "line": 14,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDrawAmount",
-          "message": "unsupported-query:getDrawAmount",
-          "file": "game/cards/05_LOF/units/ThePurgilKingLeadingTheJourney.ts",
-          "line": 21,
-          "column": 90
         }
       ]
     },
