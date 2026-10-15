@@ -893,6 +893,20 @@ fn contains_resource<T:Serialize>(v:&T)->bool {
     fn walk(v:&Value)->bool {v["kind"]=="resourceCard" || match v {Value::Array(a)=>a.iter().any(walk),Value::Object(o)=>o.values().any(walk),_=>false}}
     serde_json::to_value(v).map(|v|walk(&v)).unwrap_or(true)
 }
+fn top_deck_marker(v:&Value)->bool {v.get("target").is_some_and(|t|t.as_str()==Some("ownTopDeck"))||match v{Value::Object(o)=>o.values().any(top_deck_marker),Value::Array(a)=>a.iter().any(top_deck_marker),_=>false}}
+fn top_deck_resource_registration(a:&Ability)->bool {
+    fn reference(e:&Expr,p:&[&str])->bool {matches!(e,Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==p)}
+    fn resource(e:&Effect)->bool {matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="ownTopDeck")}
+    fn condition(e:&Expr)->bool {
+        if matches!(e,Expr::Const{value} if value.is_boolean()){return true;}
+        let Expr::Binary{op,left,right}=e else{return false;};
+        if !["<","<=",">",">=","===","!=="].contains(&op.as_str()){return false;}
+        (reference(left,&["player","resources","length"])&&reference(right,&["opponent","resources","length"])) ||
+        (matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="arenaUnitCount"&&reference(receiver,&["player"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_bool()==Some(true)))&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=64)))
+    }
+    a.trigger=="whenPlayed"&&a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()&&
+    (resource(&a.effect)||matches!(&a.effect,Effect::Conditional{condition:c,on_true,on_false} if condition(c)&&resource(on_true)&&on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction))))
+}
 fn resource_self(e:&Effect)->bool {matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="self")}
 #[derive(Clone,Copy,PartialEq,Eq)]
 enum ForceContinuation { Drain, Wave, Shields }
@@ -1403,7 +1417,8 @@ impl Program {
         }
 
         if contains_arena_damage(ability) && (depth!=0 || !(arena_damage_ability(ability)||ordered_ground_registration(ability))) {return Err("arena damage requires a mandatory standalone ordinary-unit play/attack/death registration".into());}
-        if depth==0 && contains_resource(ability) {
+        if top_deck_marker(&serde_json::to_value(ability).unwrap()) && (depth!=0||!top_deck_resource_registration(ability)){return Err("top-deck resource requires a sole bounded optional unit entry registration".into());}
+        if depth==0 && contains_resource(ability) && !top_deck_resource_registration(ability) {
             let header=!ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolver.is_none() && ability.target_resolvers.is_empty() && ability.condition.is_none() && ability.then.is_none();
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
             let death=ability.trigger=="whenDefeated" && ability.optional && ability.if_you_do.is_none() && matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op=="===" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["source","zoneName"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_str()==Some("discard")) && resource_self(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
@@ -1870,7 +1885,7 @@ impl Program {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
                 list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
             }
-            Effect::ResourceCard {target} => {if !matches!(target,Target::Name(n) if n=="self") {return Err("resourceCard supports self only".into());} self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::ResourceCard {target} => {if !matches!(target,Target::Name(n) if n=="self"||n=="ownTopDeck") {return Err("resourceCard supports self or the reviewed own top-deck target only".into());} self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::ReturnToHand { target } => { target.validate()?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
@@ -2182,7 +2197,9 @@ impl Catalogue {
                 let upgrade_force=|a:&Ability|entry["baseClass"]=="UpgradeCard" && exact_type("upgrade") && a.trigger=="whenPlayed" && a.optional && matches!(&a.effect,Effect::UseForce{target:Target::Name(n)} if n=="ownPlayer") && a.if_you_do.as_ref().is_some_and(|next|next.target_resolver.as_ref().is_some_and(|r|r.owner=="any" && r.card_type=="any" && r.zone.as_deref()==Some("base")) && matches!(&next.effect,Effect::Heal{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen" && value.as_u64().is_some_and(|n|(1..=65535).contains(&n))));
                 if sides.leader.iter().chain(&sides.unit).any(|a|contains_force(&a.effect)) || sides.card.iter().any(|a|contains_force(&a.effect) && !((entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") && ["whenPlayed","whenDefeated","onAttack"].contains(&a.trigger.as_str())) || (entry["baseClass"]=="EventCard" && exact_type("event") && a.trigger=="event") || upgrade_force(a))) {return Err("Force registration requires ordinary unit/event or bounded upgrade play-heal metadata".into());}
                 if sides.leader.iter().chain(&sides.unit).any(contains_force_presence) || sides.card.iter().any(|a|contains_force_presence(a) && (entry["baseClass"]!="NonLeaderUnitCard" || !exact_type("unit"))) {return Err("Force presence requires ordinary unit card-side metadata".into());}
-                if sides.leader.iter().chain(&sides.unit).any(contains_resource) || sides.card.iter().any(|a|contains_resource(a) && !((entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") && a.trigger=="whenDefeated") || (entry["baseClass"]=="EventCard" && exact_type("event") && a.trigger=="event"))) {return Err("resourceCard requires ordinary unit death/event metadata".into());}
+                let top_deck=["abilities","attachCondition","piloting"].iter().any(|key|top_deck_marker(&entry[*key]));
+                if top_deck && (entry["baseClass"]!="NonLeaderUnitCard"||!exact_type("unit")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!top_deck_resource_registration(&sides.card[0])||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])) {return Err("top-deck resource requires complete sole optional ordinary unit metadata".into());}
+                if !top_deck && (sides.leader.iter().chain(&sides.unit).any(contains_resource) || sides.card.iter().any(|a|contains_resource(a) && !((entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") && a.trigger=="whenDefeated") || (entry["baseClass"]=="EventCard" && exact_type("event") && a.trigger=="event")))) {return Err("resourceCard requires ordinary unit death/event metadata".into());}
                 let coordinates=sides.card.iter().filter(|a|a.coordinate).count();
                 if sides.leader.iter().chain(&sides.unit).any(|a|a.coordinate) || coordinates>1 || (coordinates==1 && (entry["baseClass"]!="NonLeaderUnitCard" || entry["keywordValues"]["coordinate"].as_u64()!=Some(1))) {return Err("Coordinate requires exactly one printed nonleader card-side registration".into());}
                 if entry["keywordValues"].get("coordinate").is_some() && coordinates!=1 {return Err("printed Coordinate must have one implemented registration".into());}
@@ -2663,5 +2680,26 @@ mod ordered_ground_metadata_tests {
   let raw=json!({"kind":"arenaList","receiver":{"kind":"ref","path":["game"]},"predicate":{"kind":"const","value":true}});let list:ArenaListTarget=serde_json::from_value(raw.clone()).unwrap();assert_eq!(serde_json::to_value(list).unwrap(),raw);
   for kind in ["modifyStats","defeat","giveShield","giveExperience","gainKeyword"] {let mut x=entry("TWI_173");let e=&mut x["abilities"]["card"][0]["effect"];e["kind"]=json!(kind);if kind=="defeat"{e.as_object_mut().unwrap().remove("amount");}assert!(!admitted(x),"new order cannot leak to {kind}");}
   let mut event=entry("TWI_173");event["abilities"]["card"][0]["effect"]["target"].as_object_mut().unwrap().remove("controllerOrder");assert!(!admitted(event),"old unordered event damage remains rejected");
+ }
+}
+
+#[cfg(test)]
+mod top_deck_resource_metadata_tests {
+ use super::*;use serde_json::json;
+ fn entry(code:&str)->Value {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|x|x["setCode"]==code).unwrap().clone()}
+ fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_string();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
+ #[test]fn top_deck_resource_requires_complete_optional_ordinary_unit_registration(){
+  for id in ["JTL_119","JTL_164","HMW_136"] {let e=entry(id);assert!(admitted(e.clone()),"original {id}");
+   for(path,value)in[("/baseClass",json!("MysteryCard")),("/card/types",json!(["leader"])),("/card/unique",json!("false")),("/keywordValues",json!({"restore":1})),("/card/keywords",json!(["shielded"])),("/card/epicAction",json!("extra")),("/card/deployCost",json!(6)),("/piloting",json!({})),("/attachCondition",json!({"kind":"const","value":true})),("/abilities/card/0/optional",json!(false)),("/abilities/card/0/requiresConfirmation",json!(true)),("/abilities/card/0/coordinate",json!(true)),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/condition",json!({"kind":"const","value":true})),("/abilities/card/0/targetResolver",json!({"owner":"any","type":"unit","zone":"anyAttackable"})),("/abilities/card/0/then",json!({"title":"extra","trigger":"then","effect":{"kind":"noAction"}}))] {let mut x=e.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut dst=&mut x;for key in &parts[..parts.len()-1]{dst=if dst.is_array(){&mut dst[key.parse::<usize>().unwrap()]}else{&mut dst[*key]};}dst[parts[parts.len()-1]]=value;assert!(!admitted(x),"must reject {id} {path}");}
+   for kind in ["draw","damage","heal","ready","exhaust","defeat","returnToHand"]{let mut x=e.clone();x["abilities"]["card"][0]["effect"]=json!({"kind":kind,"target":"ownTopDeck"});if ["draw","damage","heal"].contains(&kind){x["abilities"]["card"][0]["effect"]["amount"]=json!({"kind":"const","value":1});}assert!(!admitted(x),"unreviewed deck operation {kind}");}
+   let mut x=e.clone();x["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}}));assert!(!admitted(x));
+   for value in [true,false]{let mut x=e.clone();x["abilities"]["card"][0]["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":value},"onTrue":{"kind":"resourceCard","target":"ownTopDeck"},"onFalse":{"kind":"noAction"}});assert!(admitted(x),"bounded boolean sensitivity");}
+  }
+ }
+ #[test]fn top_deck_name_is_resource_only_and_existing_self_scope_is_not_broadened(){
+  assert!(Target::Name("ownTopDeck".into()).validate().is_err());
+  let mut x=entry("JTL_119");x["abilities"]["card"][0]["effect"]["target"]=json!("self");assert!(!admitted(x));
+  for n in [0,2,3,4,64]{let mut x=entry("HMW_136");x["abilities"]["card"][0]["effect"]["condition"]["right"]["value"]=json!(n);assert!(admitted(x));}let mut x=entry("HMW_136");x["abilities"]["card"][0]["effect"]["condition"]["right"]["value"]=json!(65);assert!(!admitted(x));
+  for op in ["<","<=",">",">=","===","!=="]{let mut x=entry("JTL_164");x["abilities"]["card"][0]["effect"]["condition"]["op"]=json!(op);assert!(admitted(x));}
  }
 }

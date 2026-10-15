@@ -219,7 +219,7 @@ function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = fal
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text))) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -697,6 +697,33 @@ function orderedArenaTarget(input, context, depth=0) {
     const list=ground(query,child);
     return {kind:'arenaList',receiver:reference('game'),predicate:list.predicate,controllerOrder:'seatOrder'};
 }
+function ownTopDeckResourceTarget(input,context,depth=0) {
+    if(depth>24)fail(context,input,'top-deck-resource-alias-bound');
+    let node=unwrap(input),ctx=context;
+    if(ts.isIdentifier(node)&&ctx.constants.has(node.text)){
+        const initializer=readConstant(node.text,ctx);
+        return ownTopDeckResourceTarget(initializer,constantContext(initializer,ctx),depth+1);
+    }
+    if(!ts.isCallExpression(node)||!ts.isPropertyAccessExpression(node.expression)||node.expression.name.text!=='getTopCardOfDeck')return null;
+    if(!ctx.callbackStage||node.questionDotToken||node.expression.questionDotToken||node.arguments.length)fail(ctx,node,'top-deck-resource-call');
+    const parts=access(node.expression.expression,ctx),binding=ctx.scope.get(parts[0]);
+    if(ctx.constants.has(parts[0])||binding?.kind!=='ref'||binding.path.join('.')!=='context'||parts.slice(1).join('.')!=='player')fail(ctx,node,'top-deck-resource-context');
+    return 'ownTopDeck';
+}
+function topDeckResourceSourceShape(out) {
+    const keys=(value,names)=>Object.keys(value||{}).sort().join(',')===[...names].sort().join(',');
+    const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    if(out.baseClass!=='NonLeaderUnitCard'||out.abilities.leader.length||out.abilities.unit.length||out.abilities.card.length!==1)return false;
+    const a=out.abilities.card[0],resource={kind:'resourceCard',target:'ownTopDeck'};
+    if(!keys(a,['trigger','title','costs','optional','effect'])||a.trigger!=='whenPlayed'||a.optional!==true||!same(a.costs,[]))return false;
+    if(same(a.effect,resource))return true;
+    const effect=a.effect;
+    if(!keys(effect,['kind','condition','onTrue','onFalse'])||effect.kind!=='conditional'||!same(effect.onTrue,resource)||!same(effect.onFalse,{kind:'noAction'}))return false;
+    const condition=effect.condition;
+    const fewer={kind:'binary',op:'<',left:reference('player','resources','length'),right:reference('opponent','resources','length')};
+    const units={kind:'binary',op:'>=',left:{kind:'query',name:'arenaUnitCount',receiver:reference('player'),args:[constant(true)]},right:constant(3)};
+    return same(condition,fewer)||same(condition,units);
+}
 function target(node, ctx, fallback = 'self') {
     if (!node) return fallback;
     const ordered=orderedArenaTarget(node,ctx);
@@ -948,7 +975,7 @@ function effect(input, context, defaultTarget = 'self') {
     }
     if (kind === 'resourceCard') {
         knownProperties(obj, ['target']);
-        return { kind, target: target(obj.props.get('target'), obj.ctx, defaultTarget) };
+        return { kind, target: (obj.props.has('target')&&ownTopDeckResourceTarget(obj.props.get('target'),obj.ctx)) || target(obj.props.get('target'), obj.ctx, defaultTarget) };
     }
     if (kind === 'giveWeakness') {
         knownProperties(obj, ['amount', 'target']);
@@ -1459,6 +1486,11 @@ function compileSource(text, file, enums = {}) {
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
+    const containsTop=value=>!!value&&typeof value==='object'&&(value.target==='ownTopDeck'||Object.values(value).some(containsTop));
+    if(containsTop(out.abilities)&&!topDeckResourceSourceShape(out)){
+        diagnostics.push(new Unsupported(ctx,cls,'top-deck-resource-source-shape').diagnostic);
+        out.abilities={leader:[],unit:[],card:[]};
+    }
     out.status = diagnostics.length ? 'unsupported' : 'supported';
     return out;
 }

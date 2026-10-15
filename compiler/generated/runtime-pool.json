@@ -6381,6 +6381,44 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "5032370330",
+      "internalName": "lifetree-caravan",
+      "keywords": [],
+      "power": 2,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "HMW_136",
+      "setCodes": [
+        {
+          "number": 136,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 136,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: If you control 3 or more units (including this one), you may resource the top card of your deck.",
+      "title": "Lifetree Caravan",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "command"
@@ -13047,6 +13085,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "0926549684",
+      "internalName": "resupply-carrier",
+      "keywords": [],
+      "power": 4,
+      "rules": "A card put into play as a resource enters play exhausted.\n(ERRATA) Templating update: “Put into play as a resource” becomes “resource”.\n",
+      "setCode": "JTL_119",
+      "setCodes": [
+        {
+          "number": 119,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 119,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: You may put the top card of your deck into play as a resource.",
+      "title": "Resupply Carrier",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "command"
       ],
@@ -13400,6 +13478,45 @@
       "traits": [
         "republic",
         "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "4019449999",
+      "internalName": "cham-syndulla#rallying-ryloth",
+      "keywords": [],
+      "power": 5,
+      "rules": "A card put into play as a resource enters play exhausted.\n(ERRATA) Templating update: “Put into play as a resource” becomes “resource”. \"Controls more\" becomes \"control fewer\".\n",
+      "setCode": "JTL_164",
+      "setCodes": [
+        {
+          "number": 164,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 164,
+        "set": "JTL"
+      },
+      "subtitle": "Rallying Ryloth",
+      "text": "When Played: If an opponent controls more resources than you, you may put the top card of your deck into play as a resource.",
+      "title": "Cham Syndulla",
+      "traits": [
+        "rebel",
+        "twi'lek"
       ],
       "types": [
         "unit"

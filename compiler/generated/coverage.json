@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "46695c46462862f20a36fb9a9705a5b400f9c2cd99f51d159f168386d3fd042a",
+  "compilerHash": "55aa94713e6b13ff0ffc01cef9e5acfb379de917cd24550153332ac57f410550",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1100,
-  "sourceAstConverted": 728,
+  "converted": 1103,
+  "sourceAstConverted": 731,
   "dataOnlyConverted": 372,
-  "unconverted": 1358,
+  "unconverted": 1355,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -189,6 +189,7 @@
     "HMW_132",
     "HMW_133",
     "HMW_135",
+    "HMW_136",
     "HMW_137",
     "HMW_139",
     "HMW_140",
@@ -359,6 +360,7 @@
     "JTL_115",
     "JTL_117",
     "JTL_118",
+    "JTL_119",
     "JTL_125",
     "JTL_135",
     "JTL_140",
@@ -368,6 +370,7 @@
     "JTL_158",
     "JTL_160",
     "JTL_161",
+    "JTL_164",
     "JTL_166",
     "JTL_167",
     "JTL_168",
@@ -2536,22 +2539,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getTopCardOfDeck",
-      "occurrences": 10,
-      "cards": [
-        "ASH_103",
-        "HMW_044",
-        "HMW_136",
-        "JTL_119",
-        "JTL_164",
-        "LAW_083",
-        "LAW_094",
-        "LAW_171",
-        "SHD_214",
-        "TWI_195"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someDefeatedUnitControlledByPlayer",
       "occurrences": 10,
       "cards": [
@@ -3049,6 +3036,17 @@
         "LAW_126",
         "SHD_155",
         "TWI_120"
+      ]
+    },
+    {
+      "pattern": "top-deck-resource-source-shape",
+      "occurrences": 5,
+      "cards": [
+        "ASH_103",
+        "HMW_044",
+        "LAW_083",
+        "LAW_171",
+        "SHD_214"
       ]
     },
     {
@@ -4065,6 +4063,14 @@
       "cards": [
         "LAW_204",
         "SEC_033"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:getTopCardOfDeck",
+      "occurrences": 2,
+      "cards": [
+        "LAW_094",
+        "TWI_195"
       ]
     },
     {
@@ -7643,11 +7649,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/08_ASH/events/LongLiveTheEmpire.ts",
-          "line": 27,
-          "column": 102
+          "line": 7,
+          "column": 1
         }
       ]
     },
@@ -9911,11 +9917,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts",
-          "line": 30,
-          "column": 29
+          "line": 6,
+          "column": 1
         }
       ]
     },
@@ -10780,21 +10786,6 @@
           "file": "game/cards/09_HMW/units/ZamWesellNotWhatSheSeems.ts",
           "line": 18,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_136",
-      "internalName": "lifetree-caravan",
-      "sourcePath": "game/cards/09_HMW/units/LifetreeCaravan.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/09_HMW/units/LifetreeCaravan.ts",
-          "line": 20,
-          "column": 29
         }
       ]
     },
@@ -13428,21 +13419,6 @@
       ]
     },
     {
-      "setCode": "JTL_119",
-      "internalName": "resupply-carrier",
-      "sourcePath": "game/cards/04_JTL/units/ResupplyCarrier.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/04_JTL/units/ResupplyCarrier.ts",
-          "line": 18,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "JTL_120",
       "internalName": "dorsal-turret",
       "sourcePath": "game/cards/04_JTL/upgrades/DorsalTurret.ts",
@@ -14037,21 +14013,6 @@
           "file": "game/cards/04_JTL/units/ATDPOccupier.ts",
           "line": 16,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_164",
-      "internalName": "cham-syndulla#rallying-ryloth",
-      "sourcePath": "game/cards/04_JTL/units/ChamSyndullaRallyingRyloth.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/04_JTL/units/ChamSyndullaRallyingRyloth.ts",
-          "line": 20,
-          "column": 29
         }
       ]
     },
@@ -16511,11 +16472,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/07_LAW/units/BrokenHornVizagosPride.ts",
-          "line": 24,
-          "column": 33
+          "line": 5,
+          "column": 1
         }
       ]
     },
@@ -17381,11 +17342,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/07_LAW/events/Stockpile.ts",
-          "line": 18,
-          "column": 85
+          "line": 5,
+          "column": 1
         }
       ]
     },
@@ -26105,11 +26066,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/02_SHD/units/FrontierTrader.ts",
-          "line": 26,
-          "column": 88
+          "line": 6,
+          "column": 1
         }
       ]
     },

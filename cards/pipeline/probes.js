@@ -2,6 +2,13 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const topDeckResource = require("./top-deck-resource-probes").planTopDeckResourceProbes(entry, options);
+    if (topDeckResource) return topDeckResource;
+    const conditionalTopResource = require("./conditional-top-resource-probes").planConditionalTopResourceProbes(entry, options);
+    if (conditionalTopResource) return conditionalTopResource;
+    const arenaTopResource = require("./arena-top-resource-probes").planArenaTopResourceProbes(entry, options);
+    if (arenaTopResource) return arenaTopResource;
+
     const orderedDeath = require("./ordered-ground-death-damage-probes").planOrderedGroundDeathDamageProbes(entry, options);
     if (orderedDeath) return orderedDeath;
     const orderedExhaust = require("./ordered-ground-exhaust-probes").planOrderedGroundExhaustProbes(entry, options);

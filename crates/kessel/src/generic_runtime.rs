@@ -1181,6 +1181,7 @@ impl Engine {
                             unit && (!require_change || !s.card(id).exhausted)
                         }
                         Effect::Defeat { .. } => unit || self.attached_in_play(s,id),
+                        Effect::ResourceCard {target:Target::Name(n)} if n=="ownTopDeck" => self.resource_top_deck_eligible(&context,id),
                         Effect::ResourceCard {..} => self.resource_source_eligible(&context,id) && (!require_change || !s.player(s.card(id).owner).resources.contains(id)),
                         Effect::ReturnToHand { .. } => {
                             !self.def(s, id).info.is("leader")
@@ -2096,6 +2097,7 @@ impl Engine {
             }
             Target::Name(n) => match n.as_str() {
                 "self" => vec![Eval::Card(s.source)],
+                "ownTopDeck" => s.player(owner).deck.as_slice().first().copied().map(|id|vec![Eval::Card(id)]).unwrap_or_default(),
                 "parent" if self.attached_in_play(s,s.source) => vec![Eval::Card(s.card(s.source).parent)],
                 "chosen" if s.event_group.active => s.event_group.context.ids[..s.event_group.context.len as usize].iter().map(|id| Eval::Card(*id)).collect(),
                 "chosen" => vec![Eval::Card(s.ability_target)],
@@ -2160,6 +2162,20 @@ impl Engine {
             return Err("effect amount did not evaluate to an integer".into());
         };
         u16::try_from(n).map_err(|_| format!("effect amount {n} exceeds bounded runtime"))
+    }
+    fn resource_top_deck_eligible(&self,s:&State,id:CardId)->bool {
+        if id==0||!s.card(id).present||s.source==0{return false;}
+        let owner=s.card(s.source).owner;let info=&self.def(s,id).info;
+        s.card(id).owner==owner&&s.player(owner).deck.as_slice().first()==Some(&id)&&!info.is("leader")&&!info.is("token")&&(info.is("unit")||info.is("event")||info.is("upgrade"))
+    }
+    fn resource_top_deck(&self,s:&mut State,id:CardId)->Result<u16,String> {
+        if !self.resource_top_deck_eligible(s,id){return Ok(0);}
+        let owner=s.card(s.source).owner;
+        if s.player(owner).resources.len as usize>=crate::model::MAX_ZONE{return Err("resource zone capacity exceeded".into());}
+        // Preserve the ability source. The target vector captured this physical
+        // deck-front identity before this single event handler mutates zones.
+        let p=s.player_mut(owner);p.deck.remove(id);p.resources.push(id)?;
+        s.card_mut(id).exhausted=true;Ok(1)
     }
     fn resource_source_eligible(&self,s:&State,id:CardId)->bool {
         if id==0 || id!=s.source {return false;}
@@ -2273,7 +2289,7 @@ impl Engine {
         let mut resources_fully_resolved = true;
         for target in targets {
             match target {
-                Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {result=result.saturating_add(self.resource_source(s,id)?);}
+                Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {let n=if matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="ownTopDeck"){self.resource_top_deck(s,id)?}else{self.resource_source(s,id)?};result=result.saturating_add(n);}
                 Eval::Player(player) if matches!(e,Effect::UseForce{..}|Effect::GainForce{..})=> {
                     if !s.force_state_exact || s.player(player).force_id==0 || self.force_def.is_none() {return Err("Force requires exact identity and reviewed native definition".into());}
                     let desired=matches!(e,Effect::GainForce{..});
@@ -2877,5 +2893,22 @@ mod ordered_ground_runtime_tests {
  }
  #[test]fn ordered_ground_exhaust_has_no_general_group_record_limit(){
   let e=Engine::from_pool_value(&serde_json::from_str(include_str!("../data/pool.json")).unwrap()).unwrap();let mut s=board(&e);let mut units=vec![];for i in 0..40{let id=add(&e,&mut s,if i%2==0{Seat::P1}else{Seat::P2},"LOF_254");e.add_arena(&mut s,id).unwrap();s.card_mut(id).exhausted=i%3==0;units.push(id);}s.source=units[0];let effect=Effect::Exhaust{target:target(ControllerOrder::OpponentFirst)};let ready=units.iter().filter(|id|!s.card(**id).exhausted).count();let (n,changed)=e.apply_effect(&mut s,&effect).unwrap();assert_eq!(n as usize,ready);assert!(changed);assert!(units.iter().all(|id|s.card(*id).exhausted));assert_eq!(s.event_group.count,0);assert_eq!(e.apply_effect(&mut s,&effect).unwrap(),(0,false));s.arena_order_exact=false;assert!(e.apply_effect(&mut s,&effect).is_err());
+ }
+}
+
+#[cfg(test)]
+mod top_deck_resource_runtime_tests {
+ use super::*;
+ fn engine()->Engine {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();Engine::from_catalogue_value(&c).unwrap()}
+ fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=s.next_id;s.next_id+=1;s.cards[id as usize]=Card{present:true,def:e.by_code[code],owner:seat,..Card::default()};id}
+ fn board(e:&Engine)->State {let mut s=State::default();for(seat,leader)in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")]{let b=add(e,&mut s,seat,"ASH_019");let l=add(e,&mut s,seat,leader);s.player_mut(seat).base=b;s.player_mut(seat).leader=l;}s}
+ #[test]fn top_deck_resource_moves_exact_hidden_identity_and_preserves_source_and_other_zones(){
+  let e=engine();for seat in [Seat::P1,Seat::P2]{for code in ["LOF_254","SHD_156","ASH_087","JTL_119"]{let mut s=board(&e);let source=add(&e,&mut s,seat,"JTL_119");s.player_mut(seat).discard.push(source).unwrap();s.source=source;let prefix=add(&e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(prefix).unwrap();let top=add(&e,&mut s,seat,code);let tail=add(&e,&mut s,seat,"LOF_256");s.player_mut(seat).deck.push(top).unwrap();s.player_mut(seat).deck.push(tail).unwrap();let opponent=*s.player(seat.other());let next=s.next_id;assert!(!e.resource_source_eligible(&s,top));assert!(e.resource_top_deck_eligible(&s,top));assert!(!e.resource_top_deck_eligible(&s,tail));assert!(!e.resource_top_deck_eligible(&s,prefix));let effect=Effect::ResourceCard{target:Target::Name("ownTopDeck".into())};assert_eq!(e.apply_effect(&mut s,&effect).unwrap(),(1,true));assert_eq!(s.source,source);assert_eq!(s.next_id,next);assert_eq!(s.player(seat).deck.as_slice(),[tail]);assert_eq!(s.player(seat).resources.as_slice(),[prefix,top]);assert_eq!(s.player(seat).discard.as_slice(),[source]);assert!(s.card(top).exhausted);assert_eq!(s.card(top).owner,seat);assert_eq!(*s.player(seat.other()),opponent);assert!(!e.resource_top_deck_eligible(&s,top));}}
+ }
+ #[test]fn top_deck_resource_empty_illegal_identity_and_capacity_fail_closed(){
+  let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"JTL_119");s.source=source;let effect=Effect::ResourceCard{target:Target::Name("ownTopDeck".into())};let before=s.zobrist();assert_eq!(e.apply_effect(&mut s,&effect).unwrap(),(0,false));assert_eq!(s.zobrist(),before);
+  for code in ["SOR_014","TOKEN_SHIELD","ASH_019"]{let mut bad=s;let top=add(&e,&mut bad,Seat::P1,code);bad.players[0].deck.push(top).unwrap();assert!(!e.resource_top_deck_eligible(&bad,top));let before=bad.zobrist();assert_eq!(e.resource_top_deck(&mut bad,top).unwrap(),0);assert_eq!(bad.zobrist(),before);}
+  let top=add(&e,&mut s,Seat::P2,"LOF_254");s.players[0].deck.push(top).unwrap();assert!(!e.resource_top_deck_eligible(&s,top));s.card_mut(top).owner=Seat::P1;
+  for _ in 0..crate::model::MAX_ZONE {let id=add(&e,&mut s,Seat::P1,"LOF_254");s.players[0].resources.push(id).unwrap();}let before=s.zobrist();assert!(e.resource_top_deck(&mut s,top).is_err());assert_eq!(s.zobrist(),before);assert_eq!(s.source,source);
  }
 }

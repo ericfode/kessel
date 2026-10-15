@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "46695c46462862f20a36fb9a9705a5b400f9c2cd99f51d159f168386d3fd042a",
+  "compilerHash": "55aa94713e6b13ff0ffc01cef9e5acfb379de917cd24550153332ac57f410550",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -30723,11 +30723,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/08_ASH/events/LongLiveTheEmpire.ts",
-          "line": 27,
-          "column": 102
+          "line": 7,
+          "column": 1
         }
       ],
       "className": "LongLiveTheEmpire",
@@ -47962,11 +47962,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts",
-          "line": 30,
-          "column": 29
+          "line": 6,
+          "column": 1
         }
       ],
       "className": "ImaGunDiHoldingOutForResupply",
@@ -56001,23 +56001,55 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Resource the top card of your deck",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": ">=",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "const",
+                      "value": true
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 3
+                }
+              },
+              "onTrue": {
+                "kind": "resourceCard",
+                "target": "ownTopDeck"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/09_HMW/units/LifetreeCaravan.ts",
-          "line": 20,
-          "column": 29
-        }
-      ],
+      "diagnostics": [],
       "className": "LifetreeCaravan",
       "baseClass": "NonLeaderUnitCard",
       "id": "5032370330",
       "internalName": "lifetree-caravan",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Lifetree Caravan",
         "subtitle": "",
@@ -56058,7 +56090,18 @@
       "dataHash": "e5d6140c9d78f9d5c162ee1bbefc11d4da184fbdf8681bde9030da742a6976e2",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:>=",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "ir:resourceCard",
+        "query:arenaUnitCount",
+        "ref:player",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -82723,23 +82766,25 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Put the top card of your deck into play as a resource",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "resourceCard",
+              "target": "ownTopDeck"
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/04_JTL/units/ResupplyCarrier.ts",
-          "line": 18,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "ResupplyCarrier",
       "baseClass": "NonLeaderUnitCard",
       "id": "0926549684",
       "internalName": "resupply-carrier",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Resupply Carrier",
         "subtitle": "",
@@ -82782,7 +82827,9 @@
       "dataHash": "c867ac7e34e8bc30317a799287a92f37d987b1dae471349eb9ad59bff35cd485",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "cardType:unit",
+        "ir:resourceCard",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -86749,23 +86796,51 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Put the top card of your deck into play as a resource",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": "<",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "player",
+                    "resources",
+                    "length"
+                  ]
+                },
+                "right": {
+                  "kind": "ref",
+                  "path": [
+                    "opponent",
+                    "resources",
+                    "length"
+                  ]
+                }
+              },
+              "onTrue": {
+                "kind": "resourceCard",
+                "target": "ownTopDeck"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
-          "file": "game/cards/04_JTL/units/ChamSyndullaRallyingRyloth.ts",
-          "line": 20,
-          "column": 29
-        }
-      ],
+      "diagnostics": [],
       "className": "ChamSyndullaRallyingRyloth",
       "baseClass": "NonLeaderUnitCard",
       "id": "4019449999",
       "internalName": "cham-syndulla#rallying-ryloth",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Cham Syndulla",
         "subtitle": "Rallying Ryloth",
@@ -86807,7 +86882,16 @@
       "dataHash": "c85b733382aef84837d25f17e487dd3a65065f298f1af16561f1cf448b938f2c",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:<",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:noAction",
+        "ir:ref",
+        "ir:resourceCard",
+        "ref:opponent.resources.length",
+        "ref:player.resources.length",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -102870,11 +102954,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/07_LAW/units/BrokenHornVizagosPride.ts",
-          "line": 24,
-          "column": 33
+          "line": 5,
+          "column": 1
         }
       ],
       "className": "BrokenHornVizagosPride",
@@ -110249,11 +110333,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/07_LAW/events/Stockpile.ts",
-          "line": 18,
-          "column": 85
+          "line": 5,
+          "column": 1
         }
       ],
       "className": "Stockpile",
@@ -183473,11 +183557,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getTopCardOfDeck",
-          "message": "unsupported-query:getTopCardOfDeck",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/02_SHD/units/FrontierTrader.ts",
-          "line": 26,
-          "column": 88
+          "line": 6,
+          "column": 1
         }
       ],
       "className": "FrontierTrader",

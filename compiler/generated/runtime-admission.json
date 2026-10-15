@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "3cc8e966c9bcdbd93f89c5aecef6c24692d711892c8eac1c27c9fcecf94fe008",
+  "catalogueHash": "5a81ef761288c5c472692731c7e09e5253c106c7323fe87379f05fccae50f6f1",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1100,
+  "irConvertedCount": 1103,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 628
+    "sourceIr": 631
   },
   "runtimeAdmittedCards": [
     {
@@ -809,6 +809,11 @@
       "implementation": "dataOnly",
       "internalName": "arena-reek#fixture-of-ceremony",
       "setCode": "HMW_135"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "lifetree-caravan",
+      "setCode": "HMW_136"
     },
     {
       "implementation": "sourceIr",
@@ -1622,6 +1627,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "resupply-carrier",
+      "setCode": "JTL_119"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "air-superiority",
       "setCode": "JTL_125"
     },
@@ -1664,6 +1674,11 @@
       "implementation": "sourceIr",
       "internalName": "captain-tarkin#full-forward-assault",
       "setCode": "JTL_161"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "cham-syndulla#rallying-ryloth",
+      "setCode": "JTL_164"
     },
     {
       "implementation": "dataOnly",
@@ -5031,7 +5046,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1004,
+  "runtimeAdmittedCount": 1007,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5350,7 +5365,7 @@
     },
     {
       "internalName": "long-live-the-empire",
-      "reason": "long-live-the-empire: compiler rejected \"long-live-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":102,\"file\":\"game/cards/08_ASH/events/LongLiveTheEmpire.ts\",\"line\":27,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
+      "reason": "long-live-the-empire: compiler rejected \"long-live-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/events/LongLiveTheEmpire.ts\",\"line\":7,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "ASH_103"
     },
     {
@@ -5965,7 +5980,7 @@
     },
     {
       "internalName": "imagun-di#holding-out-for-resupply",
-      "reason": "imagun-di#holding-out-for-resupply: compiler rejected \"imagun-di#holding-out-for-resupply\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts\",\"line\":30,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
+      "reason": "imagun-di#holding-out-for-resupply: compiler rejected \"imagun-di#holding-out-for-resupply\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts\",\"line\":6,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "HMW_044"
     },
     {
@@ -6212,11 +6227,6 @@
       "internalName": "zam-wesell#not-what-she-seems",
       "reason": "zam-wesell#not-what-she-seems: compiler rejected \"zam-wesell#not-what-she-seems\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/09_HMW/units/ZamWesellNotWhatSheSeems.ts\",\"line\":18,\"message\":\"unsupported-field:sourceZoneFilter\",\"pattern\":\"unsupported-field:sourceZoneFilter\"}]",
       "setCode": "HMW_134"
-    },
-    {
-      "internalName": "lifetree-caravan",
-      "reason": "lifetree-caravan: compiler rejected \"lifetree-caravan\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/09_HMW/units/LifetreeCaravan.ts\",\"line\":20,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
-      "setCode": "HMW_136"
     },
     {
       "internalName": "commander-gree#of-the-41st-elite-corps",
@@ -6914,11 +6924,6 @@
       "setCode": "JTL_116"
     },
     {
-      "internalName": "resupply-carrier",
-      "reason": "resupply-carrier: compiler rejected \"resupply-carrier\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/04_JTL/units/ResupplyCarrier.ts\",\"line\":18,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
-      "setCode": "JTL_119"
-    },
-    {
       "internalName": "dorsal-turret",
       "reason": "dorsal-turret: compiler rejected \"dorsal-turret\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/upgrades/DorsalTurret.ts\",\"line\":17,\"message\":\"registrar:addGainTriggeredAbilityTargetingAttached\",\"pattern\":\"registrar:addGainTriggeredAbilityTargetingAttached\"}]",
       "setCode": "JTL_120"
@@ -7087,11 +7092,6 @@
       "internalName": "atdp-occupier",
       "reason": "atdp-occupier: compiler rejected \"atdp-occupier\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/units/ATDPOccupier.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"}]",
       "setCode": "JTL_163"
-    },
-    {
-      "internalName": "cham-syndulla#rallying-ryloth",
-      "reason": "cham-syndulla#rallying-ryloth: compiler rejected \"cham-syndulla#rallying-ryloth\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/04_JTL/units/ChamSyndullaRallyingRyloth.ts\",\"line\":20,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
-      "setCode": "JTL_164"
     },
     {
       "internalName": "hunting-aggressor",
@@ -7750,7 +7750,7 @@
     },
     {
       "internalName": "broken-horn#vizagos-pride",
-      "reason": "broken-horn#vizagos-pride: compiler rejected \"broken-horn#vizagos-pride\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/07_LAW/units/BrokenHornVizagosPride.ts\",\"line\":24,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
+      "reason": "broken-horn#vizagos-pride: compiler rejected \"broken-horn#vizagos-pride\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/BrokenHornVizagosPride.ts\",\"line\":5,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "LAW_083"
     },
     {
@@ -8005,7 +8005,7 @@
     },
     {
       "internalName": "stockpile",
-      "reason": "stockpile: compiler rejected \"stockpile\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":85,\"file\":\"game/cards/07_LAW/events/Stockpile.ts\",\"line\":18,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
+      "reason": "stockpile: compiler rejected \"stockpile\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/events/Stockpile.ts\",\"line\":5,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "LAW_171"
     },
     {
@@ -10500,7 +10500,7 @@
     },
     {
       "internalName": "frontier-trader",
-      "reason": "frontier-trader: compiler rejected \"frontier-trader\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":88,\"file\":\"game/cards/02_SHD/units/FrontierTrader.ts\",\"line\":26,\"message\":\"unsupported-query:getTopCardOfDeck\",\"pattern\":\"unsupported-query:getTopCardOfDeck\"}]",
+      "reason": "frontier-trader: compiler rejected \"frontier-trader\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/FrontierTrader.ts\",\"line\":6,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "SHD_214"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1454,
+  "runtimeRejectedCount": 1451,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 728
+  "sourceAstConvertedCount": 731
 }

@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1100** (728 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1358**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1103** (731 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1355**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -57,7 +57,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addGainWhenDefeatedAbilityTargetingAttached | 10 | 10 |
 | registrar:addPilotDeploy | 10 | 10 |
 | unsupported-field:numCardsFunc | 10 | 10 |
-| unsupported-query:getTopCardOfDeck | 10 | 10 |
 | unsupported-query:someDefeatedUnitControlledByPlayer | 10 | 10 |
 | unsupported-query:someUnitAttackedControlledByPlayer | 10 | 11 |
 | immediateEffect:playCardFromOutOfPlay | 9 | 10 |
@@ -96,6 +95,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:lookAtAndChooseOption | 5 | 5 |
 | named-target-card-domain | 5 | 5 |
 | registrar:addGainActionAbilityTargetingAttached | 5 | 5 |
+| top-deck-resource-source-shape | 5 | 5 |
 | unimplemented-context-field:events | 5 | 5 |
 | unsupported-field:playerChoosingOptional | 5 | 5 |
 | unsupported-live-stat-expression | 5 | 5 |
@@ -211,6 +211,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:drawnCardsAmount | 2 | 2 |
 | unsupported-query:flatMap | 2 | 2 |
 | unsupported-query:getPlayers | 2 | 2 |
+| unsupported-query:getTopCardOfDeck | 2 | 2 |
 | unsupported-query:hasWeakness | 2 | 2 |
 | unsupported-query:isCreditToken | 2 | 2 |
 | unsupported-query:isTokenUpgrade | 2 | 2 |
