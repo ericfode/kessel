@@ -1724,6 +1724,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "7405707601",
+      "internalName": "mandalorian-flagship#captured-from-the-empire",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "ASH_113",
+      "setCodes": [
+        {
+          "number": 113,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 113,
+        "set": "ASH"
+      },
+      "subtitle": "Captured from the Empire",
+      "text": "While you control a leader unit, this unit gains Ambush. (When you play this unit, it may attack an enemy unit.)\nThis unit gets +1/+0 for each other friendly Mandalorian unit.",
+      "title": "Mandalorian Flagship",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "command",
         "heroism"
@@ -3428,6 +3471,45 @@
       "title": "Imperial Loyalist",
       "traits": [
         "imperial"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "3523847566",
+      "internalName": "mandalorian-super-commandos",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_240",
+      "setCodes": [
+        {
+          "number": 240,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 240,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "While you control a leader unit, this unit gets +2/+0.",
+      "title": "Mandalorian Super Commandos",
+      "traits": [
+        "mandalorian",
+        "trooper"
       ],
       "types": [
         "unit"

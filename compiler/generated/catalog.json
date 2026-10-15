@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b84aa15a94279764c722b88a1dc7e124a950659f57cdc1348d6ee77ae0bde7d5",
+  "compilerHash": "cfbb96d059224a9c88eae8767d4400eb65dc378f1684f89bf153753cd4670271",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -31603,6 +31603,67 @@
         "card": [
           {
             "trigger": "constant",
+            "title": "While you control a leader unit, this unit gains Ambush",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "ambush",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaUnit",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "query",
+                      "name": "isUnit",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "query",
+                      "name": "isLeader",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "trigger": "constant",
             "title": "This unit gets +1/+0 for each other friendly Mandalorian unit",
             "costs": [],
             "effect": {
@@ -31688,21 +31749,12 @@
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
-          "file": "game/cards/08_ASH/units/MandalorianFlagshipCapturedFromTheEmpire.ts",
-          "line": 19,
-          "column": 38
-        }
-      ],
+      "diagnostics": [],
       "className": "MandalorianFlagshipCapturedFromTheEmpire",
       "baseClass": "NonLeaderUnitCard",
       "id": "7405707601",
       "internalName": "mandalorian-flagship#captured-from-the-empire",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Mandalorian Flagship",
         "subtitle": "Captured from the Empire",
@@ -31754,16 +31806,21 @@
         "cardType:unit",
         "ir:binary",
         "ir:const",
+        "ir:gainKeyword",
         "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "ir:unary",
         "keyword:ambush",
         "query:arenaUnitCount",
+        "query:hasSomeArenaUnit",
         "query:hasSomeTrait",
+        "query:isLeader",
+        "query:isUnit",
         "ref:card",
         "ref:modifierTarget",
         "ref:modifierTarget.controller",
+        "ref:player",
         "trigger:constant",
         "unary:!"
       ]
@@ -42190,23 +42247,79 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While you control a leader unit, this unit gets +2/+0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "self",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": 2
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaUnit",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "query",
+                      "name": "isUnit",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "query",
+                      "name": "isLeader",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
-          "file": "game/cards/08_ASH/units/MandalorianSuperCommandos.ts",
-          "line": 16,
-          "column": 89
-        }
-      ],
+      "diagnostics": [],
       "className": "MandalorianSuperCommandos",
       "baseClass": "NonLeaderUnitCard",
       "id": "3523847566",
       "internalName": "mandalorian-super-commandos",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Mandalorian Super Commandos",
         "subtitle": "",
@@ -42248,7 +42361,19 @@
       "dataHash": "1f0a3c59ceb64dffe512b65432cbba128827464cc2c556026dd107beda834fa9",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "cardType:unit",
+        "ir:binary",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "query:hasSomeArenaUnit",
+        "query:isLeader",
+        "query:isUnit",
+        "ref:card",
+        "ref:player",
+        "trigger:constant"
       ]
     },
     {
@@ -183721,8 +183846,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "arena-leader-query-scope",
+          "message": "arena-leader-query-scope",
           "file": "game/cards/02_SHD/upgrades/UnrefusableOffer.ts",
           "line": 16,
           "column": 52
@@ -208136,11 +208261,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
-          "line": 18,
-          "column": 80
+          "line": 21,
+          "column": 30
         }
       ],
       "className": "ExecutionersArena",
@@ -208202,11 +208327,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "unsupported-field:numCardsFunc",
+          "message": "unsupported-field:numCardsFunc",
           "file": "game/cards/07_TS26/bases/SundariPalace.ts",
-          "line": 18,
-          "column": 80
+          "line": 24,
+          "column": 31
         }
       ],
       "className": "SundariPalace",

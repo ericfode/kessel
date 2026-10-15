@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b84aa15a94279764c722b88a1dc7e124a950659f57cdc1348d6ee77ae0bde7d5",
+  "compilerHash": "cfbb96d059224a9c88eae8767d4400eb65dc378f1684f89bf153753cd4670271",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1085,
-  "sourceAstConverted": 713,
+  "converted": 1087,
+  "sourceAstConverted": 715,
   "dataOnlyConverted": 372,
-  "unconverted": 1373,
+  "unconverted": 1371,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -64,6 +64,7 @@
     "ASH_106",
     "ASH_111",
     "ASH_112",
+    "ASH_113",
     "ASH_114",
     "ASH_115",
     "ASH_116",
@@ -113,6 +114,7 @@
     "ASH_233",
     "ASH_236",
     "ASH_239",
+    "ASH_240",
     "ASH_242",
     "ASH_243",
     "ASH_244",
@@ -1837,6 +1839,33 @@
       ]
     },
     {
+      "pattern": "invalid-effect-sequence",
+      "occurrences": 21,
+      "cards": [
+        "HMW_122",
+        "HMW_237",
+        "JTL_041",
+        "JTL_127",
+        "JTL_129",
+        "LAW_001",
+        "LAW_170",
+        "LAW_237",
+        "LOF_010",
+        "SEC_195",
+        "SHD_016",
+        "SHD_144",
+        "SHD_156",
+        "SOR_003",
+        "SOR_022",
+        "SOR_152",
+        "TS26_009",
+        "TS26_011",
+        "TS26_056",
+        "TS26_057",
+        "TWI_138"
+      ]
+    },
+    {
       "pattern": "registrar:addPilotingAbility",
       "occurrences": 21,
       "cards": [
@@ -1940,32 +1969,6 @@
         "SOR_235",
         "TS26_010",
         "TWI_005"
-      ]
-    },
-    {
-      "pattern": "invalid-effect-sequence",
-      "occurrences": 20,
-      "cards": [
-        "HMW_122",
-        "HMW_237",
-        "JTL_041",
-        "JTL_127",
-        "JTL_129",
-        "LAW_001",
-        "LAW_170",
-        "LAW_237",
-        "LOF_010",
-        "SEC_195",
-        "SHD_016",
-        "SHD_144",
-        "SHD_156",
-        "SOR_003",
-        "SOR_022",
-        "SOR_152",
-        "TS26_009",
-        "TS26_056",
-        "TS26_057",
-        "TWI_138"
       ]
     },
     {
@@ -2530,6 +2533,22 @@
       ]
     },
     {
+      "pattern": "unsupported-field:numCardsFunc",
+      "occurrences": 10,
+      "cards": [
+        "HMW_105",
+        "IBH_001",
+        "IBH_005",
+        "LAW_011",
+        "LOF_009",
+        "SEC_131",
+        "SEC_196",
+        "SHD_092",
+        "TS26_012",
+        "TWI_085"
+      ]
+    },
+    {
       "pattern": "unsupported-query:getTopCardOfDeck",
       "occurrences": 10,
       "cards": [
@@ -2605,21 +2624,6 @@
         "SEC_218",
         "SHD_109",
         "SOR_035"
-      ]
-    },
-    {
-      "pattern": "unsupported-field:numCardsFunc",
-      "occurrences": 9,
-      "cards": [
-        "HMW_105",
-        "IBH_001",
-        "IBH_005",
-        "LAW_011",
-        "LOF_009",
-        "SEC_131",
-        "SEC_196",
-        "SHD_092",
-        "TWI_085"
       ]
     },
     {
@@ -3095,17 +3099,6 @@
         "ASH_223",
         "LAW_034",
         "LAW_252"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:isLeaderUnit",
-      "occurrences": 5,
-      "cards": [
-        "ASH_113",
-        "ASH_240",
-        "SHD_226",
-        "TS26_011",
-        "TS26_012"
       ]
     },
     {
@@ -4122,6 +4115,13 @@
       "occurrences": 1,
       "cards": [
         "HMW_098"
+      ]
+    },
+    {
+      "pattern": "arena-leader-query-scope",
+      "occurrences": 1,
+      "cards": [
+        "SHD_226"
       ]
     },
     {
@@ -7811,21 +7811,6 @@
       ]
     },
     {
-      "setCode": "ASH_113",
-      "internalName": "mandalorian-flagship#captured-from-the-empire",
-      "sourcePath": "game/cards/08_ASH/units/MandalorianFlagshipCapturedFromTheEmpire.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
-          "file": "game/cards/08_ASH/units/MandalorianFlagshipCapturedFromTheEmpire.ts",
-          "line": 19,
-          "column": 38
-        }
-      ]
-    },
-    {
       "setCode": "ASH_118",
       "internalName": "8d8#daimyos-majordomo",
       "sourcePath": "game/cards/08_ASH/units/8D8DaimyosMajordomo.ts",
@@ -9179,21 +9164,6 @@
           "file": "game/cards/08_ASH/units/AttendantNavigator.ts",
           "line": 21,
           "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_240",
-      "internalName": "mandalorian-super-commandos",
-      "sourcePath": "game/cards/08_ASH/units/MandalorianSuperCommandos.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
-          "file": "game/cards/08_ASH/units/MandalorianSuperCommandos.ts",
-          "line": 16,
-          "column": 89
         }
       ]
     },
@@ -26512,8 +26482,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "arena-leader-query-scope",
+          "message": "arena-leader-query-scope",
           "file": "game/cards/02_SHD/upgrades/UnrefusableOffer.ts",
           "line": 16,
           "column": 52
@@ -29712,11 +29682,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
-          "line": 18,
-          "column": 80
+          "line": 21,
+          "column": 30
         }
       ]
     },
@@ -29727,11 +29697,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isLeaderUnit",
-          "message": "unsupported-query:isLeaderUnit",
+          "pattern": "unsupported-field:numCardsFunc",
+          "message": "unsupported-field:numCardsFunc",
           "file": "game/cards/07_TS26/bases/SundariPalace.ts",
-          "line": 18,
-          "column": 80
+          "line": 24,
+          "column": 31
         }
       ]
     },

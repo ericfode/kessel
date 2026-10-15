@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1085** (713 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1373**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1087** (715 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1371**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -23,11 +23,11 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | non-path-reference | 22 | 22 |
 | unsupported-field:choices | 22 | 22 |
 | class-state:attacksThisPhaseWatcher | 21 | 21 |
+| invalid-effect-sequence | 21 | 21 |
 | registrar:addPilotingAbility | 21 | 21 |
 | unsupported-field:attackerMustSurvive | 21 | 21 |
 | immediateEffect:attack | 20 | 20 |
 | immediateEffect:playCardFromHand | 20 | 20 |
-| invalid-effect-sequence | 20 | 20 |
 | immediateEffect:giveAdvantage | 19 | 20 |
 | optional-reference | 19 | 19 |
 | unsupported-player-target-resolver | 18 | 18 |
@@ -57,12 +57,12 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | nonconstant-value | 10 | 10 |
 | registrar:addGainWhenDefeatedAbilityTargetingAttached | 10 | 10 |
 | registrar:addPilotDeploy | 10 | 10 |
+| unsupported-field:numCardsFunc | 10 | 10 |
 | unsupported-query:getTopCardOfDeck | 10 | 10 |
 | unsupported-query:someDefeatedUnitControlledByPlayer | 10 | 10 |
 | unsupported-query:someUnitAttackedControlledByPlayer | 10 | 11 |
 | immediateEffect:playCardFromOutOfPlay | 9 | 10 |
 | immediateEffect:reveal | 9 | 9 |
-| unsupported-field:numCardsFunc | 9 | 9 |
 | unsupported-field:options | 9 | 9 |
 | unsupported-query:targetIsUnit | 9 | 9 |
 | custom-inheritance:LAWCommonBase | 8 | 8 |
@@ -101,7 +101,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait | 5 | 5 |
 | unsupported-query:defenderWasDefeated | 5 | 5 |
-| unsupported-query:isLeaderUnit | 5 | 5 |
 | unsupported-query:reduce | 5 | 5 |
 | unsupported-query:someCardPlayed | 5 | 5 |
 | activation-limit | 4 | 4 |
@@ -219,6 +218,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:isTokenUpgrade | 2 | 2 |
 | unsupported-query:someCardEnteredPlay | 2 | 2 |
 | arena-card-query-type | 1 | 1 |
+| arena-leader-query-scope | 1 | 1 |
 | arena-list-scalar | 1 | 1 |
 | arena-predicate-reference | 1 | 1 |
 | arena-query-card-capture | 1 | 1 |

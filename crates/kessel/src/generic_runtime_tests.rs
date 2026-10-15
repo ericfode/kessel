@@ -3448,3 +3448,29 @@ fn known_source_classes_require_compatible_types_and_side_topology() {
   }
  }
 }
+#[test]
+fn arena_leader_predicate_source_metadata_fails_closed() {
+ let mut original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ original["cards"].as_array_mut().unwrap().retain(|e|["ASH_113","ASH_240","TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_THE_FORCE","TOKEN_WEAKNESS"].iter().any(|id|e["setCode"]==*id));
+ for code in ["ASH_113","ASH_240"] {
+  assert!(Engine::from_catalogue_value(&original).unwrap().by_code.contains_key(code));
+  for counted in [false,true] {
+  for mutation in ["token","leader-side","unknown","null","missing","pilotText","pilotBox","pilotingBox","deployBox","deployCost","epicAction","attach","piloting","keyword-values","extra-side","upgradePower","upgradeHp","unique-null","unique-string","unique-missing","attach-only","pilot-only"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   if counted {let condition=&mut entry["abilities"]["card"][0]["condition"];let mut count=condition.clone();count["name"]=json!("arenaUnitCount");*condition=json!({"kind":"binary","op":">","left":count,"right":{"kind":"const","value":0}});}
+   match mutation {
+    "token"=>{entry["baseClass"]=json!("TokenUnitCard");entry["card"]["types"]=json!(["token","unit"]);},
+    "leader-side"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);entry["abilities"]["unit"]=entry["abilities"]["card"].clone();entry["abilities"]["card"]=json!([]);},
+    "unknown"=>entry["baseClass"]=json!("UnknownCard"),"null"=>entry["baseClass"]=Value::Null,"missing"=>{entry.as_object_mut().unwrap().remove("baseClass");},
+    "attach-only"=>{entry["baseClass"]=json!("UpgradeCard");entry["card"]["types"]=json!(["upgrade"]);entry["card"]["upgradePower"]=json!(0);entry["card"]["upgradeHp"]=json!(0);entry["attachCondition"]=entry["abilities"]["card"][0]["condition"].clone();entry["abilities"]=json!({"card":[],"unit":[],"leader":[]});},
+    "pilot-only"=>{entry["piloting"]=entry["abilities"]["card"][0]["condition"].clone();entry["abilities"]=json!({"card":[],"unit":[],"leader":[]});},
+    "attach"=>entry["attachCondition"]=json!({"kind":"const","value":true}),"piloting"=>entry["piloting"]=json!({"cost":1}),
+    "unique-null"=>entry["card"]["unique"]=Value::Null,"unique-string"=>entry["card"]["unique"]=json!("false"),"unique-missing"=>{entry["card"].as_object_mut().unwrap().remove("unique");},
+    "keyword-values"=>entry["keywordValues"]=json!({"raid":1}),"extra-side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),
+    key=>entry["card"][key]=json!("Unconverted mechanics"),
+   }
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+}
+}

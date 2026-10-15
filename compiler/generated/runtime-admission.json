@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "32bc01b1cf8f47d611ed4622d589dbcc2f0a43a7aca213a6f483d3628acc8499",
+  "catalogueHash": "2861ddea71b095a8db3a5c1d39df8c55cdfec43774a95a7c104340b1e949f8f7",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1085,
+  "irConvertedCount": 1087,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 611
+    "sourceIr": 613
   },
   "runtimeAdmittedCards": [
     {
@@ -227,6 +227,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "mandalorian-flagship#captured-from-the-empire",
+      "setCode": "ASH_113"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "sabines-lightsaber#not-alone",
       "setCode": "ASH_114"
     },
@@ -439,6 +444,11 @@
       "implementation": "dataOnly",
       "internalName": "imperial-loyalist",
       "setCode": "ASH_239"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "mandalorian-super-commandos",
+      "setCode": "ASH_240"
     },
     {
       "implementation": "dataOnly",
@@ -4946,7 +4956,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 987,
+  "runtimeAdmittedCount": 989,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5292,11 +5302,6 @@
       "internalName": "admiral-ackbar#assume-attack-coordinates",
       "reason": "admiral-ackbar#assume-attack-coordinates: compiler rejected \"admiral-ackbar#assume-attack-coordinates\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/AdmiralAckbarAssumeAttackCoordinates.ts\",\"line\":23,\"message\":\"immediateEffect:playMultipleCardsFromDeck\",\"pattern\":\"immediateEffect:playMultipleCardsFromDeck\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/AdmiralAckbarAssumeAttackCoordinates.ts\",\"line\":36,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:costSum\"}]",
       "setCode": "ASH_110"
-    },
-    {
-      "internalName": "mandalorian-flagship#captured-from-the-empire",
-      "reason": "mandalorian-flagship#captured-from-the-empire: compiler rejected \"mandalorian-flagship#captured-from-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/08_ASH/units/MandalorianFlagshipCapturedFromTheEmpire.ts\",\"line\":19,\"message\":\"unsupported-query:isLeaderUnit\",\"pattern\":\"unsupported-query:isLeaderUnit\"}]",
-      "setCode": "ASH_113"
     },
     {
       "internalName": "8d8#daimyos-majordomo",
@@ -5702,11 +5707,6 @@
       "internalName": "attendant-navigator",
       "reason": "attendant-navigator: compiler rejected \"attendant-navigator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/AttendantNavigator.ts\",\"line\":21,\"message\":\"immediateEffect:giveAdvantage\",\"pattern\":\"immediateEffect:giveAdvantage\"}]",
       "setCode": "ASH_238"
-    },
-    {
-      "internalName": "mandalorian-super-commandos",
-      "reason": "mandalorian-super-commandos: compiler rejected \"mandalorian-super-commandos\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":89,\"file\":\"game/cards/08_ASH/units/MandalorianSuperCommandos.ts\",\"line\":16,\"message\":\"unsupported-query:isLeaderUnit\",\"pattern\":\"unsupported-query:isLeaderUnit\"}]",
-      "setCode": "ASH_240"
     },
     {
       "internalName": "marroks-fiend-fighter#formidable-pursuer",
@@ -10535,7 +10535,7 @@
     },
     {
       "internalName": "unrefusable-offer",
-      "reason": "unrefusable-offer: compiler rejected \"unrefusable-offer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":52,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":16,\"message\":\"unsupported-query:isLeaderUnit\",\"pattern\":\"unsupported-query:isLeaderUnit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":20,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "unrefusable-offer: compiler rejected \"unrefusable-offer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":52,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":16,\"message\":\"arena-leader-query-scope\",\"pattern\":\"arena-leader-query-scope\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":20,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
       "setCode": "SHD_226"
     },
     {
@@ -11375,12 +11375,12 @@
     },
     {
       "internalName": "executioners-arena",
-      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":80,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":18,\"message\":\"unsupported-query:isLeaderUnit\",\"pattern\":\"unsupported-query:isLeaderUnit\"}]",
+      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":21,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "TS26_011"
     },
     {
       "internalName": "sundari-palace",
-      "reason": "sundari-palace: compiler rejected \"sundari-palace\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":80,\"file\":\"game/cards/07_TS26/bases/SundariPalace.ts\",\"line\":18,\"message\":\"unsupported-query:isLeaderUnit\",\"pattern\":\"unsupported-query:isLeaderUnit\"}]",
+      "reason": "sundari-palace: compiler rejected \"sundari-palace\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/07_TS26/bases/SundariPalace.ts\",\"line\":24,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"}]",
       "setCode": "TS26_012"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1471,
+  "runtimeRejectedCount": 1469,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 713
+  "sourceAstConvertedCount": 715
 }

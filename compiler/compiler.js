@@ -188,7 +188,8 @@ function lambda(node, ctx, names = ['context']) {
     // outer candidate's active-attack guard must not guard that new candidate.
     const attackDefenders = new Set(ctx.attackDefenders || []);
     node.parameters.forEach((_,i)=>attackDefenders.delete(names[i] || `arg${i}`));
-    const child = { ...ctx, scope, constants, attackDefenders, callbackStage: ctx.syncArenaPredicate ? ctx.callbackStage : node, syncArenaPredicate: false };
+    const arenaLeaderCandidate = !!ctx.syncArenaPredicate && node.parameters.length === 1;
+    const child = { ...ctx, scope, constants, attackDefenders, callbackStage: ctx.syncArenaPredicate ? ctx.callbackStage : node, syncArenaPredicate: false, arenaLeaderCandidate };
     if (!ts.isBlock(node.body)) return { node: unwrap(node.body), ctx: child };
     let returned = null;
     for (const statement of node.body.statements) {
@@ -506,6 +507,13 @@ function expr(input, context, params = ['context']) {
             return {kind:'query',name,receiver,args:[]};
         }
         if (name === 'hasSomeArenaUnit') return arenaQuery(node, ctx, name);
+        if (name === 'isLeaderUnit') {
+            if (node.questionDotToken || call.questionDotToken) fail(ctx,node,'optional-arena-leader-query');
+            if (node.arguments.length) fail(ctx,node,'arena-leader-query-arity');
+            const receiver=expr(call.expression,ctx);
+            if (!ctx.arenaLeaderCandidate || receiver.kind!=='ref' || receiver.path.length!==1 || receiver.path[0]!=='card') fail(ctx,node,'arena-leader-query-scope');
+            return {kind:'binary',op:'&&',left:{kind:'query',name:'isUnit',receiver,args:[]},right:{kind:'query',name:'isLeader',receiver,args:[]}};
+        }
         if (name === 'hasSomeArenaCard') return arenaCardExistence(node,ctx);
         if (name === 'isTokenUnit') {
             if (node.questionDotToken || call.questionDotToken) fail(ctx,node,'optional-token-unit-query');
