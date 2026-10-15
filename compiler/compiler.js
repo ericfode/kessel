@@ -1,12 +1,18 @@
 'use strict';
 
 const fs = require('fs');
+const {normalizeLivePowerMaximum,hasRawLivePowerMaximum}=require('./live-power-maximum');
+const {normalizeBoundedReduction,inspectReductionHelpers,reductionHelperCall,powerMaximumGrant}=require('./bounded-reductions');
 const path = require('path');
 const crypto = require('crypto');
 const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
 const { normalizeDamageDefaultSource } = require('./damage-default-source');
 const { normalizeControlledTitleCall } = require('./controlled-title');
+const { defeatedUnitCountHelper, normalizeDefeatedUnitCountCall } = require('./resolved-events');
 const { inspectPhysicalAttachmentHelpers, normalizePhysicalAttachmentExpression } = require('./physical-attachments');
+const { inspectMaximumHelpers, maximumHelperCall } = require('./maximum-snapshot');
+const { normalizeKeywordCopy } = require('./keyword-copy');
+const { normalizeLeaderTraits } = require('./leader-traits');
 const { normalizeInitiativeUpTo } = require('./initiative-up-to');
 const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
 const SCHEMA = 'swu-card-ir/v1';
@@ -224,7 +230,7 @@ function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = fal
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text))) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -487,7 +493,13 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
-    const titleQuery = normalizeControlledTitleCall(node, ctx, { ts, unwrap, expr, fail });
+    const leaderTraits=normalizeLeaderTraits(node,ctx,{ts,unwrap,expr,fail});if(leaderTraits)return leaderTraits;
+    const liveMaximum=normalizeLivePowerMaximum(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(liveMaximum)return liveMaximum;
+    const reduction=normalizeBoundedReduction(node,ctx,{ts,unwrap,expr,fail});if(reduction)return reduction;
+    if(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&ctx.reductionHelpers?.has(node.expression.name.text))return reductionHelperCall(node,ctx,ctx.reductionHelpers.get(node.expression.name.text),{ts,fail});
+    const eventQuery = normalizeDefeatedUnitCountCall(node, ctx, { ts, expr, fail });
+    if (eventQuery) return eventQuery;
+    const titleQuery = normalizeControlledTitleCall(node, ctx, { ts, unwrap, expr, fail, unshadowedEnum });
     if (titleQuery) return titleQuery;
     const attachmentQuery = normalizePhysicalAttachmentExpression(node, ctx, { ts, unwrap, expr, literal, unshadowedEnum });
     if (attachmentQuery) return attachmentQuery;
@@ -900,7 +912,7 @@ function liveStatBounds(value, ctx, node, depth = 0) {
     }
     rejected();
 }
-const MODIFIER_KEYWORDS = new Set(['sentinel','saboteur','overwhelm','grit','raid','restore','ambush','shielded','hidden']);
+const MODIFIER_KEYWORDS = new Set(['sentinel','saboteur','overwhelm','grit','raid','restore','ambush','shielded','hidden','support']);
 function modifierEffects(input, ctx, duration, targetValue) {
     let raw = unwrap(input);
     while (ts.isIdentifier(raw) && ctx.constants.has(raw.text)) raw = unwrap(readConstant(raw.text, ctx));
@@ -961,6 +973,7 @@ function effect(input, context, defaultTarget = 'self') {
     node = unwrap(node);
     if (ts.isIdentifier(node) && ctx.constants.has(node.text)) return effect(readConstant(node.text, ctx), ctx, defaultTarget);
     if (!ts.isCallExpression(node)) fail(ctx, node, 'effect-is-not-helper-call');
+    const maximum=maximumHelperCall(node,ctx,{ts,unwrap,fail});if(maximum)return maximum;
     const parts = access(node.expression, ctx);
     if (parts.length !== 3 || !['AbilityHelper', 'abilityHelper', 'StaticAbilityHelper'].includes(parts[0]) || parts[1] !== 'immediateEffects') fail(ctx, node, 'unsupported-effect-call:' + parts.join('.'));
     const kind = parts[2];
@@ -1154,7 +1167,7 @@ function targetResolverProperties(obj) {
             ts.forEachChild(n,child=>capturedTarget(child,bound,seen));
         };
         capturedTarget(props.get('cardCondition'));
-        result.predicate = (ctx.aspectIncludesAlias&&aspectMembershipPredicate(props.get('cardCondition'),ctx))||expr(props.get('cardCondition'), ctx, ['card', 'context']);
+        result.predicate = (ctx.aspectIncludesAlias&&aspectMembershipPredicate(props.get('cardCondition'),ctx))||expr(props.get('cardCondition'), {...ctx,powerMaximumStage:unwrap(props.get('cardCondition'))}, ['card', 'context']);
     }
     if (props.has('mode')) result.mode = literal(props.get('mode'), ctx);
     // A selected player needs a typed player target register. Falling back to
@@ -1245,7 +1258,7 @@ function constantAbility(input, context, validatedObject = null) {
     knownProperties(obj, ['title', 'condition', 'ongoingEffect', 'matchTarget', 'targetController', 'targetCardTypeFilter', 'targetZoneFilter']);
     const { props, ctx, node } = obj;
     if (!props.has('ongoingEffect')) fail(ctx, node, 'constant-without-effect');
-    const result = { trigger:'constant', title:props.has('title')?displayText(props.get('title'),ctx):'', costs:[], effect:modifierEffects(props.get('ongoingEffect'),ctx,'persistent','self') };
+    const result = { trigger:'constant', title:props.has('title')?displayText(props.get('title'),ctx):'', costs:[], effect:normalizeKeywordCopy(props.get('ongoingEffect'),ctx,{ts,unwrap,fail})||modifierEffects(props.get('ongoingEffect'),ctx,'persistent','self') };
     let attack=null;
     if(props.has('matchTarget')){try{attack=defendingAttackerPredicate(props.get('matchTarget'),ctx);}catch(error){if(!(error instanceof Unsupported))throw error;}}
     if(attack) {
@@ -1268,14 +1281,14 @@ function constantAbility(input, context, validatedObject = null) {
         if (result.targetResolver.zone !== 'arena') fail(ctx, node, 'constant-target-zone');
         const assignTarget = (e) => { if(e.effects)e.effects.forEach(assignTarget);else e.target='chosen'; }; assignTarget(result.effect);
     }
-    const keywordModifier = (e) => e.effects ? e.effects.some(keywordModifier) : ['gainKeyword','loseKeyword'].includes(e.kind);
+    const keywordModifier = (e) => e.effects ? e.effects.some(keywordModifier) : ['gainKeyword','loseKeyword','copyKeywords'].includes(e.kind);
     const modifiesKeywords = keywordModifier(result.effect);
     const check = (value) => {
         if (!value || typeof value !== 'object') return;
         if ((value.kind === 'query' && (['getPower','getHp'].includes(value.name) || (modifiesKeywords && ['hasSomeKeyword','hasEveryKeyword','getNumericKeywordTotal'].includes(value.name)))) || (value.kind === 'ref' && value.path.some((p) => ['power', 'hp', 'remainingHp'].includes(p)))) fail(ctx, node, 'constant-stat-dependency');
         Object.values(value).forEach(check);
     };
-    check(result.condition); check(result.targetResolver); check(result.effect);
+    if(!powerMaximumGrant(result)){check(result.condition); check(result.targetResolver); check(result.effect);}
     return result;
 }
 // These are grant templates owned by an upgrade definition. At declaration,
@@ -1501,6 +1514,14 @@ function ability(input, context, trigger = null, validatedObject = null) {
     }
     if (!result.effect) fail(ctx, node, 'ability-without-effect');
     for (const branch of ['then', 'ifYouDo']) if (props.has(branch)) result[branch] = ability(props.get(branch), ctx);
+    if(result.targetResolver&&ctx.powerMaximumSource&&props.has('targetResolver')) {
+        const resolver=object(props.get('targetResolver'),ctx);
+        if(resolver.props.has('activePromptTitle'))result.targetResolver.promptTitleParts=contextTitle(resolver.props.get('activePromptTitle'),{...resolver.ctx,powerMaximumTitle:true});
+    }
+    if(result.targetResolver&&ctx.reductionHelpers?.size&&props.has('targetResolver')) {
+        const resolver=object(props.get('targetResolver'),ctx);
+        if(resolver.props.has('activePromptTitle'))result.targetResolver.promptTitleParts=contextTitle(resolver.props.get('activePromptTitle'),resolver.ctx);
+    }
     // A top-deck continuation event retains its explicit selector prompt. Other
     // scalar source families keep their existing representation byte for byte.
     if(result.targetResolver&&result.ifYouDo?.effect?.kind==='resourceCard'&&result.ifYouDo.effect.target==='ownTopDeck') {
@@ -1655,7 +1676,12 @@ function compileSource(text, file, enums = {}) {
         try {checkGainedHostSlots();}
         catch(error) {if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.status='unsupported';return out;}
     }
+    ctx.powerMaximumSource=hasRawLivePowerMaximum(cls,{ts,unwrap});
+    ctx.maximumHelpers=out.baseClass==='LeaderUnitCard'?inspectMaximumHelpers(cls,ctx,{ts,unwrap,literal,unshadowedEnum}):new Map();
     ctx.physicalAttachmentHelpers=inspectPhysicalAttachmentHelpers(cls,ctx,{ts,unwrap,literal,unshadowedEnum});
+    ctx.defeatedUnitCountHelpers=new Map();
+    if(out.baseClass==='EventCard')for(const member of cls.members){const helper=defeatedUnitCountHelper(member,{ts,unwrap});if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.defeatedUnitCountHelpers.set(member.name.text,helper);}
+    ctx.reductionHelpers=inspectReductionHelpers(cls,{...ctx,baseClass:out.baseClass},{ts,unwrap,expr,fail});
     ctx.arenaDamageHelpers=new Map();
     if(['EventCard','NonLeaderUnitCard'].includes(out.baseClass))for(const member of cls.members){
         const damage=arenaDamageHelper(member);
@@ -1691,7 +1717,7 @@ function compileSource(text, file, enums = {}) {
             continue;
         }
         if (!(name in SIDE_METHODS)) {
-            if(ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
+            if(ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
@@ -1749,6 +1775,9 @@ function compileSource(text, file, enums = {}) {
         const location = source.getLineAndCharacterOfPosition(binding.node.getStart(source));
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
+    for(const [name,helper]of ctx.reductionHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-reduction-helper:'+name).diagnostic);
+    for(const [name,helper]of ctx.maximumHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-maximum-helper:'+name).diagnostic);
+    for(const [name,helper]of ctx.defeatedUnitCountHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-resolved-defeat-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
     if(out.abilities.card.some(a=>a.gainedHost)) {
         try{

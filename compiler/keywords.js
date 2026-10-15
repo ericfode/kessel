@@ -2,7 +2,7 @@
 // Printed-keyword parser shared by the compiler, the card pipeline planners and their tests.
 // Extracted from swu_bot's bot/omni/rs/make-pool.js (whose history this file keeps); the
 // strict-pool generator itself drives the forceteki engine and stays in swu_bot.
-const ALLOWED = new Set(['sentinel', 'raid', 'overwhelm', 'saboteur', 'restore', 'ambush', 'grit', 'shielded', 'hidden']);
+const ALLOWED = new Set(['sentinel', 'raid', 'overwhelm', 'saboteur', 'restore', 'ambush', 'grit', 'shielded', 'hidden', 'support']);
 
 /** Whitelist the whole text, not just its first keyword or the data's keyword tags. */
 function parseKeywords(c) {
@@ -17,7 +17,7 @@ function parseKeywords(c) {
     if (!text) return {};
     const out = {};
     for (const line of text.split(/\n|,/).map((s) => s.trim()).filter(Boolean)) {
-        const m = /^(Sentinel|Raid|Overwhelm|Saboteur|Restore|Ambush|Grit|Shielded|Hidden)(?:\s+(\d+))?\.?$/i.exec(line);
+        const m = /^(Sentinel|Raid|Overwhelm|Saboteur|Restore|Ambush|Grit|Shielded|Hidden|Support)(?:\s+(\d+))?\.?$/i.exec(line);
         if (!m) return null;
         const k = m[1].toLowerCase();
         if ((k === 'raid' || k === 'restore') !== (m[2] !== undefined)) return null;

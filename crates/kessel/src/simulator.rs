@@ -1,5 +1,7 @@
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
+#[path = "support_runtime.rs"]
+mod support_runtime;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};
@@ -13,11 +15,13 @@ const SABOTEUR: u16 = 4;
 const AMBUSH: u16 = 8;
 const GRIT: u16 = 16;
 const SHIELDED: u16 = 32;
+const SUPPORT: u16 = 1<<9;
 const T_RESTORE: u8 = 1;
 const T_SABOTEUR: u8 = 2;
 const T_LEADER: u8 = 4;
 const T_SHIELD: u8 = 8;
 const T_AMBUSH: u8 = 16;
+const T_SUPPORT: u8 = 32;
 #[derive(Debug, Clone)]
 pub struct Definition {
     pub code: String,
@@ -485,9 +489,8 @@ impl Engine {
                 out.push(Action::button("Cancel", out.len()));
             }
             Decision::AttackTarget => {
-                if !s.ambush {
-                    out.push(Action::button("Cancel", "cancel"));
-                }
+                if s.support.pending {out.push(Action::button("Cancel", "cancel"));out.push(Action::button("Pass attack", "passAbility"));}
+                else if !s.ambush {out.push(Action::button("Cancel", "cancel"));}
                 for id in self.attack_targets(s, s.source, s.ambush) {
                     out.push(self.card_action(s, id));
                 }
@@ -555,6 +558,10 @@ impl Engine {
                     for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {if s.card(id).def==s.card(s.source).def {out.push(self.card_action(s,id));}}
                 }
             }
+            Decision::Support => {
+                out.push(Action::button("Pass", "passAbility"));
+                for id in self.support_targets(s) {out.push(self.card_action(s,id));}
+            }
             Decision::Ambush => {
                 out.push(Action::button("Trigger", "trigger"));
                 out.push(Action::button("Pass", "pass"));
@@ -579,7 +586,7 @@ impl Engine {
         out
     }
     fn trigger_bits(&self, s: &State) -> Vec<u8> {
-        let mut bits: Vec<_> = [T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD]
+        let mut bits: Vec<_> = [T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD, T_SUPPORT]
             .into_iter()
             .filter(|bit| s.pending_triggers & bit != 0)
             .collect();
@@ -598,6 +605,7 @@ impl Engine {
                 }
             }
             T_SHIELD => "Shielded".into(),
+            T_SUPPORT => "Support".into(),
             _ => "Ambush".into(),
         }
     }
@@ -609,6 +617,7 @@ impl Engine {
                 self.in_arena(s, s.source) && !self.attack_targets(s, s.source, true).is_empty()
             }
             T_SHIELD => self.in_arena(s, s.source),
+            T_SUPPORT => !self.support_targets(s).is_empty(),
             _ => true,
         }
     }
@@ -753,7 +762,9 @@ impl Engine {
                 }
             }
             Decision::AttackTarget => {
-                if arg == "cancel" {
+                if t.support.pending && ["cancel","passAbility"].contains(&arg) {
+                    self.resume_support(&mut t)?;
+                } else if arg == "cancel" {
                     self.cancel(&mut t);
                 } else {
                     t.target = id;
@@ -846,6 +857,9 @@ impl Engine {
             }
             Decision::Unique => {
                 self.settle_enter_triggers(&mut t, Some(id))?;
+            }
+            Decision::Support => {
+                if arg=="passAbility" {self.process_triggers(&mut t)?;}else{self.begin_support_attack(&mut t,id)?;}
             }
             Decision::Ambush => {
                 if arg == "trigger" && !self.attack_targets(&t, t.source, true).is_empty() {
@@ -943,9 +957,11 @@ impl Engine {
         s.ability_program = 0;
         s.ability_pc = 0;
         s.ability_target = 0;
+        s.maximum_capture=MaximumCapture::default();
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
+        s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = 0;
@@ -980,7 +996,8 @@ impl Engine {
     fn capture_enter_triggers(&self, s: &mut State) {
         let flags = self.effective_flags(s, s.source);
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
-            | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 };
+            | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
+            | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
         s.trigger_context = 1;
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
         // Ambush/Shielded also watch OnLeaderDeployed.
@@ -999,7 +1016,7 @@ impl Engine {
             return Ok(());
         }
         if s.pending_triggers.count_ones() > 1
-            && ![T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD]
+            && ![T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD, T_SUPPORT]
                 .iter()
                 .any(|&bit| s.pending_triggers & bit != 0 && self.trigger_effect(s, bit))
         {
@@ -1058,6 +1075,7 @@ impl Engine {
                 s.card_mut(s.source).shield = id;
                 self.attach(s,id,s.source);
             }
+            T_SUPPORT => {if self.trigger_effect(s,T_SUPPORT) {s.decision=Decision::Support;return Ok(());}}
             T_AMBUSH => {
                 if self.trigger_effect(s, T_AMBUSH) {
                     s.decision = Decision::Ambush;
@@ -1144,7 +1162,11 @@ impl Engine {
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
         let source=s.source;
+        self.clear_support_grants(s);
         s.attack_source=0;s.attack_defender=0;
+        self.sweep_stat_defeats(s)?;
+        if self.open_deaths(s,5)? {return Ok(());}
+        if s.support.pending {return self.resume_support(s);}
         self.check_win(s);
         if s.is_terminal() {
             self.finish(s)?;
@@ -1196,6 +1218,7 @@ impl Engine {
     // A returned upgrade moves directly to hand, never through discard. Keep
     // the common detach/state-reset path without consuming a discard slot.
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
+        self.remove_support_target(s,id);
         self.detach(s,id);
         let owner = s.card(id).owner;
         let leader = id == s.player(owner).leader;
@@ -1341,6 +1364,7 @@ impl Engine {
         Ok(())
     }
     fn load_card(&self, s: &mut State, v: &Value, owner: Seat) -> Result<CardId, String> {
+        if v["phaseKeywords"].get("support").is_some() {return Err("imported phase Support grants require a reviewed lifecycle".into());}
         let text = v["id"].as_str().ok_or("card missing id")?;
         let id = cid(text)?;
         let code = v["setCode"]
@@ -1420,6 +1444,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
         } else {
@@ -1493,6 +1518,7 @@ impl Engine {
             for seat in [Seat::P1,Seat::P2] {let token=&v["players"][seat.as_str()]["forceToken"];s.player_mut(seat).force_id=cid(token["id"].as_str().ok_or("Force identity missing")?)?;s.player_mut(seat).force_held=token["held"].as_bool().ok_or("Force held must be boolean")?;}
             if self.force_def.is_none() && s.players.iter().any(|p|p.force_held) {return Err("held Force requires reviewed native definition".into());}
         }else if self.needs_force_state() {return Err("selected pool requires explicit Force state version".into());}
+        self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
         for seat in [Seat::P1, Seat::P2] {
             let p = &v["players"][seat.as_str()];
@@ -1599,6 +1625,8 @@ impl Engine {
             s.winner().map(Seat::as_str)
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
+        if self.needs_support_state()||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
+        if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
         if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}

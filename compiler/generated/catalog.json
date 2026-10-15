@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "913927950a65984c0089bb0f6c44730cb2db09ad048158b4e12fc4424eff0a2b",
+  "compilerHash": "068fc09dbd71211c13ca83362e7ea4d3c28a6295a09388cc31be656e2c596a80",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -21566,7 +21566,109 @@
       "sourcePath": "game/cards/08_ASH/leaders/AhsokaTanoTrustInTheForce.ts",
       "sourceHash": "0874daeac253c21de2c8eeabf78ef4537e52ddcfb2acafc2c133cc4a1c674da2",
       "abilities": {
-        "leader": [],
+        "leader": [
+          {
+            "trigger": "action",
+            "title": "Choose a unit with less power than a friendly unit. It gets +2/+0 for this phase",
+            "costs": [
+              {
+                "kind": "exhaustSelf"
+              }
+            ],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "query",
+                  "name": "isUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasSomeArenaUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": ">",
+                      "left": {
+                        "kind": "query",
+                        "name": "getPower",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "getPower",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "target"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  ]
+                }
+              },
+              "promptTitleParts": [
+                {
+                  "kind": "const",
+                  "value": "Give a unit with less than "
+                },
+                {
+                  "kind": "query",
+                  "name": "arenaPowerMaximumText",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "const",
+                  "value": " power +2/+0 for this phase"
+                }
+              ]
+            },
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "phase",
+              "power": {
+                "kind": "const",
+                "value": 2
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            }
+          }
+        ],
         "unit": [
           {
             "trigger": "onAttack",
@@ -21638,7 +21740,28 @@
                     "args": []
                   }
                 }
-              }
+              },
+              "promptTitleParts": [
+                {
+                  "kind": "const",
+                  "value": "Give a unit with less than "
+                },
+                {
+                  "kind": "query",
+                  "name": "getPower",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "source"
+                    ]
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "const",
+                  "value": " power +2/+0 for this phase"
+                }
+              ]
             },
             "effect": {
               "kind": "modifyStats",
@@ -21657,21 +21780,12 @@
         ],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "expression:SpreadElement",
-          "message": "...context.player.getArenaUnits().map((x) => x.getPower())",
-          "file": "game/cards/08_ASH/leaders/AhsokaTanoTrustInTheForce.ts",
-          "line": 24,
-          "column": 95
-        }
-      ],
+      "diagnostics": [],
       "className": "AhsokaTanoTrustInTheForce",
       "baseClass": "LeaderUnitCard",
       "id": "3086126864",
       "internalName": "ahsoka-tano#trust-in-the-force",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Ahsoka Tano",
         "subtitle": "Trust in the Force",
@@ -21714,23 +21828,32 @@
         "internalName": "ahsoka-tano#trust-in-the-force"
       },
       "dataHash": "ddebe80ea8cd4d87712875215e27112c2a4a960dde2259d56938c7ef25017012",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "binary:&&",
         "binary:<",
+        "binary:>",
         "cardType:leader",
         "ir:binary",
         "ir:const",
+        "ir:exhaustSelf",
         "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "keyword:support",
+        "query:arenaPowerMaximumText",
         "query:getPower",
+        "query:hasSomeArenaUnit",
         "query:isUnit",
         "ref:card",
+        "ref:player",
         "ref:source",
+        "ref:target",
         "targetType:unit",
         "targetZone:anyAttackable",
+        "trigger:action",
         "trigger:onAttack"
       ]
     },
@@ -22683,7 +22806,9 @@
         "internalName": "the-mandalorian#we-cant-keep-running"
       },
       "dataHash": "cbf5a725117122ecfa3430fa1ef723b3a63a9db09c046ff09e69c8b66ad2f718",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:leader",
         "ir:conditional",
@@ -24151,7 +24276,9 @@
         "internalName": "grand-admiral-thrawn#orchestrating-his-return"
       },
       "dataHash": "04572f621e89a17496b6b65154d5cf4c082a4726593ff7aaa82d3b890fcbb59e",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -24407,7 +24534,9 @@
         "internalName": "rukh#from-the-shadows"
       },
       "dataHash": "ba4ab457b231c3688fc3955c4eb32fbe96bff231474e7f96dbbdfa441d498ed7",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -24481,7 +24610,9 @@
         "internalName": "red-leader#strike-the-reactor"
       },
       "dataHash": "f4bfe1938cf700b7b7130c5a07e09f92e7c513cc62bea866f1294593b16f5470",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -25354,7 +25485,9 @@
         "internalName": "scion-shuttle#at-morgans-bidding"
       },
       "dataHash": "51615c1a497d145e92dcd166641188d7998e3b0f675aacc15914cd85b15aea8b",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "binary:&&",
         "binary:===",
@@ -25885,7 +26018,9 @@
         "internalName": "morgan-elsbeth#life-abandoned"
       },
       "dataHash": "d1684f664d7d5ce7a951e6cd94b4440ab9aca1f10b8ff279de630a66f27ab1c4",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "ir:const",
@@ -26855,7 +26990,9 @@
         "internalName": "leia-organa#vigilant-for-danger"
       },
       "dataHash": "66bb7df741cfa3ac788e6924a674acbbc63bd97142890f59b466f626c5d023f2",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "ability:ifYouDo",
         "cardType:unit",
@@ -27585,23 +27722,42 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "Enemy units lose Ambush and Support",
+            "costs": [],
+            "effect": {
+              "kind": "simultaneous",
+              "effects": [
+                {
+                  "kind": "loseKeyword",
+                  "target": "chosen",
+                  "duration": "persistent",
+                  "keyword": "ambush"
+                },
+                {
+                  "kind": "loseKeyword",
+                  "target": "chosen",
+                  "duration": "persistent",
+                  "keyword": "support"
+                }
+              ]
+            },
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "unit",
+              "zone": "arena"
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-modifier-keyword",
-          "message": "unsupported-modifier-keyword",
-          "file": "game/cards/08_ASH/units/DomesticatedLothCat.ts",
-          "line": 22,
-          "column": 58
-        }
-      ],
+      "diagnostics": [],
       "className": "DomesticatedLothCat",
       "baseClass": "NonLeaderUnitCard",
       "id": "0637436414",
       "internalName": "domesticated-lothcat",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Domesticated Loth-Cat",
         "subtitle": "",
@@ -27646,8 +27802,13 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:unit",
+        "ir:loseKeyword",
+        "ir:simultaneous",
         "keyword:ambush",
-        "keyword:support"
+        "keyword:support",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:constant"
       ]
     },
     {
@@ -27971,7 +28132,9 @@
         "internalName": "doctor-pershing#dedicated-to-research"
       },
       "dataHash": "45dca35b8a711ae4730269a07e03d5e200f93f14247867cad42d8f2ae3f936be",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "binary:>=",
         "cardType:unit",
@@ -28093,22 +28256,13 @@
       "internalName": "mos-eisley-modifier",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/mos-eisley-modifier.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Mos Eisley Modifier",
         "subtitle": "",
@@ -28151,6 +28305,7 @@
       },
       "dataHash": "4456f33087ce1736db392ba4202984fb4dbed860f2a060a3e26b71910ab6abe2",
       "keywordValues": {
+        "support": 1,
         "grit": 1
       },
       "requiredCapabilities": [
@@ -30053,22 +30208,13 @@
       "internalName": "remnant-interceptor",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/remnant-interceptor.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Remnant Interceptor",
         "subtitle": "",
@@ -30114,6 +30260,7 @@
       },
       "dataHash": "7ee8218e36fd0e06f1135a980270ca5cdb5573155733505b2906687de7326a94",
       "keywordValues": {
+        "support": 1,
         "restore": 1
       },
       "requiredCapabilities": [
@@ -30545,7 +30692,9 @@
         "internalName": "gozanti-assault-carrier"
       },
       "dataHash": "cbbab98c56049d8db24b954622eb4241b5f6c882010846e8524faa77f3c38676",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "ir:const",
@@ -30811,7 +30960,9 @@
         "internalName": "the-great-mothers#with-strange-magicks"
       },
       "dataHash": "8421e47e71db56cef23d34a467f4f5074d977e72a3c99bf003f038fa9b6ce160",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -32900,22 +33051,13 @@
       "internalName": "blurrg",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/blurrg.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Blurrg",
         "subtitle": "",
@@ -32958,6 +33100,7 @@
       },
       "dataHash": "17323539ab6ecb3f854468c1afb18a1ea27a3e2af12d9d79e40cb72a238cc304",
       "keywordValues": {
+        "support": 1,
         "overwhelm": 1
       },
       "requiredCapabilities": [
@@ -33662,22 +33805,13 @@
       "internalName": "fang-fighter-squadron",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/fang-fighter-squadron.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Fang Fighter Squadron",
         "subtitle": "",
@@ -33720,7 +33854,9 @@
         "internalName": "fang-fighter-squadron"
       },
       "dataHash": "6809e6a6af7c587878375f0190dadd47e0ff58eb3b031652b6bb8807093c3cf7",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -35434,22 +35570,13 @@
       "internalName": "honorable-nite-owl",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/honorable-nite-owl.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Honorable Nite Owl",
         "subtitle": "",
@@ -35494,6 +35621,7 @@
       },
       "dataHash": "75e6c3a9f5bc7e4b001d40c1bddadfae96ca4d435d018be6ba862fcbe1b78ee0",
       "keywordValues": {
+        "support": 1,
         "raid": 1
       },
       "requiredCapabilities": [
@@ -35636,7 +35764,9 @@
         "internalName": "r5d4#built-for-adventure"
       },
       "dataHash": "5a1786a1d93f372a32f431589cfefa9cdf54e901855b58b6f001cb347db9e69a",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -36496,7 +36626,9 @@
         "internalName": "migs-mayfeld#how-about-a-toast"
       },
       "dataHash": "38a813f143ddb89e73572bdeb581960ae9c46582d6c0fba8f8bf700037a9f254",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -38231,31 +38363,86 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Deal damage to a unit equal to total damage on all your units",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "promptTitleParts": [
+                {
+                  "kind": "const",
+                  "value": "Choose a unit to deal "
+                },
+                {
+                  "kind": "query",
+                  "name": "arenaDamageSum",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "const",
+                  "value": " damage to"
+                }
+              ]
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": ">",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaDamageSum",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 0
+                }
+              },
+              "onTrue": {
+                "kind": "damage",
+                "target": "chosen",
+                "amount": {
+                  "kind": "query",
+                  "name": "arenaDamageSum",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": []
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageAmount",
-          "file": "game/cards/08_ASH/events/Reckoning.ts",
-          "line": 15,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageAmount",
-          "message": "unsupported-query:getDamageAmount",
-          "file": "game/cards/08_ASH/events/Reckoning.ts",
-          "line": 26,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "Reckoning",
       "baseClass": "EventCard",
       "id": "0632920954",
       "internalName": "reckoning",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Reckoning",
         "subtitle": "",
@@ -38295,7 +38482,20 @@
       "dataHash": "abbf591fd90faff9a7b840c1f6f4b392440a398314b8cc71109c370a762a9e29",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "binary:>",
+        "cardType:event",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:damage",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "query:arenaDamageSum",
+        "ref:player",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:event"
       ]
     },
     {
@@ -38446,7 +38646,9 @@
         "internalName": "emperors-messenger"
       },
       "dataHash": "29a08aba64833f94992d0d7eaa873375f7ca7a814be69e76d0e9f87f5eb018ec",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -39504,7 +39706,9 @@
         "internalName": "carson-teva#theres-something-going-on"
       },
       "dataHash": "c835a3d3ce169525909811e599ee2b3ef6c34ea911732acb0fec4ab6cbbc029c",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -39577,7 +39781,9 @@
         "internalName": "mandos-n1-starfighter#faster-than-a-fathier"
       },
       "dataHash": "4ffdb21b3f290ca51a8410b772bba53af258bf79b0c9aba24398ce6345a2347b",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -40048,7 +40254,9 @@
         "internalName": "ezra-bridger#the-force-is-all-i-need"
       },
       "dataHash": "6b6753104b03915287a3c287145264a626bf4bddf32b81ab6627ef46bebceed4",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "ir:conditional",
@@ -40508,22 +40716,13 @@
       "internalName": "flanking-tie-interceptor",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/flanking-tie-interceptor.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Flanking TIE Interceptor",
         "subtitle": "",
@@ -40566,7 +40765,9 @@
         "internalName": "flanking-tie-interceptor"
       },
       "dataHash": "80effdcf5cd2efcc6a56889c1a28e73273480f55db55fa5e8bd9945e5e9fbf1c",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -40990,22 +41191,13 @@
       "internalName": "unsanctioned-patrol",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/unsanctioned-patrol.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Unsanctioned Patrol",
         "subtitle": "",
@@ -41050,6 +41242,7 @@
       },
       "dataHash": "a54a9d8ee25013110ccca4257a065e2c36ce990040c34084c8b4fc4a0c33d94a",
       "keywordValues": {
+        "support": 1,
         "saboteur": 1
       },
       "requiredCapabilities": [
@@ -41140,7 +41333,9 @@
         "internalName": "halo#not-according-to-plan"
       },
       "dataHash": "00043aaa116eb035a798f076cb60bf8ded6795ea8abd14ed9620c14163cef166",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "keyword:support"
@@ -42855,6 +43050,7 @@
       },
       "dataHash": "2f91f98505fe03d89df802cfe34d8b197143afd4cd2b31ff7c37a23161aa99ef",
       "keywordValues": {
+        "support": 1,
         "overwhelm": 1
       },
       "requiredCapabilities": [
@@ -43755,7 +43951,9 @@
         "internalName": "yellow-aces-bomber"
       },
       "dataHash": "624b5e7ef538f71dac3a8af4072d69d6e42821a382fce127fb8146b3595d9397",
-      "keywordValues": {},
+      "keywordValues": {
+        "support": 1
+      },
       "requiredCapabilities": [
         "cardType:unit",
         "ir:conditional",
@@ -77548,6 +77746,83 @@
         "card": [
           {
             "trigger": "constant",
+            "title": "Each other friendly Spectre unit gains this unit's keywords",
+            "costs": [],
+            "effect": {
+              "kind": "copyKeywords",
+              "target": "chosen",
+              "duration": "persistent",
+              "domain": [
+                "sentinel",
+                "overwhelm",
+                "saboteur",
+                "ambush",
+                "grit",
+                "shielded",
+                "raid",
+                "restore",
+                "hidden"
+              ]
+            },
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasSomeTrait",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "const",
+                      "value": "spectre"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "trigger": "constant",
             "title": "Gain sentinel while upgraded",
             "costs": [],
             "effect": {
@@ -77574,21 +77849,12 @@
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords",
-          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords",
-          "file": "game/cards/04_JTL/units/TheGhostHeartOfTheFamily.ts",
-          "line": 19,
-          "column": 28
-        }
-      ],
+      "diagnostics": [],
       "className": "TheGhostHeartOfTheFamily",
       "baseClass": "NonLeaderUnitCard",
       "id": "5763330426",
       "internalName": "the-ghost#heart-of-the-family",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "The Ghost",
         "subtitle": "Heart of the Family",
@@ -77635,14 +77901,23 @@
       "dataHash": "0ec0fbe85fbac0dd8d5267a4366b6e599ec7e1f42d001c1ce739696aacd83545",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:!==",
+        "binary:&&",
         "cardType:unit",
+        "ir:binary",
         "ir:const",
+        "ir:copyKeywords",
         "ir:gainKeyword",
         "ir:query",
         "ir:ref",
         "keyword:sentinel",
+        "query:hasSomeTrait",
+        "query:isUnit",
         "query:isUpgraded",
+        "ref:card",
         "ref:source",
+        "targetType:unit",
+        "targetZone:arena",
         "trigger:constant"
       ]
     },
@@ -82228,6 +82503,64 @@
         "unit": [],
         "card": [
           {
+            "trigger": "constant",
+            "title": "While you control another resistance card, this unit gains Sentinel",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "chosen",
+              "duration": "persistent",
+              "keyword": "sentinel",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasControlledInPlayTrait",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "const",
+                  "value": "resistance"
+                },
+                {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                }
+              ]
+            },
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "===",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "card"
+                  ]
+                },
+                "right": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                }
+              }
+            }
+          },
+          {
             "trigger": "whenDefeated",
             "title": "Deal damage equal to this unit's power to an enemy unit.",
             "costs": [],
@@ -82286,21 +82619,12 @@
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsCardWithTrait",
-          "message": "unsupported-query:controlsCardWithTrait",
-          "file": "game/cards/04_JTL/units/RaddusHoldosFinalCommand.ts",
-          "line": 18,
-          "column": 37
-        }
-      ],
+      "diagnostics": [],
       "className": "RaddusHoldosFinalCommand",
       "baseClass": "NonLeaderUnitCard",
       "id": "8779760486",
       "internalName": "raddus#holdos-final-command",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Raddus",
         "subtitle": "Holdo's Final Command",
@@ -82347,17 +82671,25 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "binary:!==",
+        "binary:===",
         "cardType:unit",
         "ir:binary",
         "ir:const",
         "ir:damage",
+        "ir:gainKeyword",
+        "ir:query",
         "ir:ref",
         "keyword:sentinel",
+        "query:hasControlledInPlayTrait",
+        "ref:card",
         "ref:card.controller",
         "ref:event.lastKnownInformation.power",
         "ref:player",
+        "ref:source",
         "targetType:unit",
         "targetZone:anyAttackable",
+        "targetZone:arena",
+        "trigger:constant",
         "trigger:whenDefeated"
       ]
     },
@@ -94906,8 +95238,8 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
+          "pattern": "bounded-arena-reduction",
+          "message": "bounded-arena-reduction",
           "file": "game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts",
           "line": 25,
           "column": 24
@@ -99632,31 +99964,55 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Defeat all units. Deal 1 damage to the opponent's base for each defeated unit.",
+            "costs": [],
+            "effect": {
+              "kind": "defeat",
+              "target": {
+                "kind": "arenaList",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "game"
+                  ]
+                },
+                "predicate": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            },
+            "then": {
+              "title": "Deal [value] damage to opponent's base",
+              "costs": [],
+              "effect": {
+                "kind": "damage",
+                "target": "enemyBase",
+                "amount": {
+                  "kind": "query",
+                  "name": "resolvedDefeatedUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "opponent"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getOpponentBaseDamage",
-          "message": "unsupported-query:getOpponentBaseDamage",
-          "file": "game/cards/07_LAW/events/SingleReactorIgnition.ts",
-          "line": 27,
-          "column": 29
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getOpponentBaseDamage",
-          "file": "game/cards/07_LAW/events/SingleReactorIgnition.ts",
-          "line": 33,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ],
+      "diagnostics": [],
       "className": "SingleReactorIgnition",
       "baseClass": "EventCard",
       "id": "5657954810",
       "internalName": "single-reactor-ignition",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Single Reactor Ignition",
         "subtitle": "",
@@ -99699,7 +100055,18 @@
       "dataHash": "7dbcc5dd5ed2f164258c48b26ea26e8720c7b2e7894bbe3da6c6ce794e6192d9",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "ability:then",
+        "cardType:event",
+        "ir:arenaList",
+        "ir:const",
+        "ir:damage",
+        "ir:defeat",
+        "ir:query",
+        "ir:ref",
+        "query:resolvedDefeatedUnitCount",
+        "ref:game",
+        "ref:opponent",
+        "trigger:event"
       ]
     },
     {
@@ -110073,23 +110440,92 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "Give an Experience token to another non-leader unit that shares a Trait with a friendly leader",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "any",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isNonLeaderUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasSomeTrait",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "query",
+                      "name": "leaderTraits",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "player"
+                        ]
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            },
+            "effect": {
+              "kind": "giveExperience",
+              "target": "chosen",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:flatMap",
-          "message": "unsupported-query:flatMap",
-          "file": "game/cards/07_LAW/units/C3POTranslationProtocol.ts",
-          "line": 22,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "C3POTranslationProtocol",
       "baseClass": "NonLeaderUnitCard",
       "id": "4459586752",
       "internalName": "c3po#translation-protocol",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "C-3PO",
         "subtitle": "Translation Protocol",
@@ -110132,7 +110568,23 @@
       "dataHash": "d1390e02964c66a1a46a93c13e9b4890542bfb872d14bbc5399fc9d33aa4ace1",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:!==",
+        "binary:&&",
+        "cardType:unit",
+        "ir:binary",
+        "ir:const",
+        "ir:giveExperience",
+        "ir:query",
+        "ir:ref",
+        "query:hasSomeTrait",
+        "query:isNonLeaderUnit",
+        "query:leaderTraits",
+        "ref:card",
+        "ref:player",
+        "ref:source",
+        "targetType:any",
+        "targetZone:anyAttackable",
+        "trigger:onAttack"
       ]
     },
     {
@@ -119524,41 +119976,47 @@
       "sourcePath": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
       "sourceHash": "13392b3145521fa993e7bafe59610a4f36e07d536b888077825da30bf4fda426",
       "abilities": {
-        "leader": [],
-        "unit": [],
+        "leader": [
+          {
+            "trigger": "action",
+            "title": "Give an Experience token to the unit with the most power among Villainy units",
+            "costs": [
+              {
+                "kind": "resources",
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              {
+                "kind": "exhaustSelf"
+              }
+            ],
+            "effect": {
+              "kind": "maximumPowerExperience",
+              "aspect": "villainy"
+            }
+          }
+        ],
+        "unit": [
+          {
+            "trigger": "onAttack",
+            "title": "Give an Experience token to the unit with the most power among Villainy units",
+            "costs": [],
+            "effect": {
+              "kind": "maximumPowerExperience",
+              "aspect": "villainy"
+            }
+          }
+        ],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-effect-call:this.buildSnokeAbility",
-          "message": "unsupported-effect-call:this.buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 21,
-          "column": 30
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-effect-call:this.buildSnokeAbility",
-          "message": "unsupported-effect-call:this.buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 28,
-          "column": 30
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 32,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ],
+      "diagnostics": [],
       "className": "SupremeLeaderSnokeInTheSeatOfPower",
       "baseClass": "LeaderUnitCard",
       "id": "9919167831",
       "internalName": "supreme-leader-snoke#in-the-seat-of-power",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Supreme Leader Snoke",
         "subtitle": "In the Seat of Power",
@@ -119602,7 +120060,13 @@
       "dataHash": "c8325bfa4737ec915d3429a1c1be9ee394698a4543f83275f1296c8fa04d18e1",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:leader"
+        "cardType:leader",
+        "ir:const",
+        "ir:exhaustSelf",
+        "ir:maximumPowerExperience",
+        "ir:resources",
+        "trigger:action",
+        "trigger:onAttack"
       ]
     },
     {
@@ -182761,23 +183225,91 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "You may ready another unit with power equal to or less than the number of upgrades on enemy units",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "any",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "<=",
+                  "left": {
+                    "kind": "query",
+                    "name": "getPower",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "arenaUpgradeSum",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "opponent"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              }
+            },
+            "effect": {
+              "kind": "ready",
+              "target": "chosen"
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/02_SHD/units/SlaversFreighter.ts",
-          "line": 21,
-          "column": 50
-        }
-      ],
+      "diagnostics": [],
       "className": "SlaversFreighter",
       "baseClass": "NonLeaderUnitCard",
       "id": "6853970496",
       "internalName": "slavers-freighter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Slaver's Freighter",
         "subtitle": "",
@@ -182821,7 +183353,23 @@
       "dataHash": "e6e987b68723eb83fd6909bb0329fd6dcc7bf32931a372795d5ca7e7e939f4a3",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:!==",
+        "binary:&&",
+        "binary:<=",
+        "cardType:unit",
+        "ir:binary",
+        "ir:query",
+        "ir:ready",
+        "ir:ref",
+        "query:arenaUpgradeSum",
+        "query:getPower",
+        "query:isUnit",
+        "ref:card",
+        "ref:opponent",
+        "ref:source",
+        "targetType:any",
+        "targetZone:arena",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -190286,8 +190834,8 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
+          "pattern": "bounded-arena-reduction",
+          "message": "bounded-arena-reduction",
           "file": "game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts",
           "line": 28,
           "column": 47
@@ -210178,7 +210726,69 @@
       "sourcePath": "game/cards/07_TS26/leaders/SavageOpressYouMustHaveYourRevenge.ts",
       "sourceHash": "d926027210086dcb156097f0bf5330e75c144e37521ec73246b1234b1064fc96",
       "abilities": {
-        "leader": [],
+        "leader": [
+          {
+            "trigger": "constant",
+            "title": "Each friendly unit with the most power among friendly units gains Overwhelm",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "chosen",
+              "duration": "persistent",
+              "keyword": "overwhelm",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "query",
+                  "name": "isUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "query",
+                    "name": "getPower",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "arenaPowerMax",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "player"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              }
+            }
+          }
+        ],
         "unit": [
           {
             "trigger": "constant",
@@ -210255,21 +210865,12 @@
         ],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/07_TS26/leaders/SavageOpressYouMustHaveYourRevenge.ts",
-          "line": 19,
-          "column": 61
-        }
-      ],
+      "diagnostics": [],
       "className": "SavageOpressYouMustHaveYourRevenge",
       "baseClass": "LeaderUnitCard",
       "id": "4061486636",
       "internalName": "savage-opress#you-must-have-your-revenge",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Savage Opress",
         "subtitle": "You Must Have Your Revenge",
@@ -210329,6 +210930,8 @@
         "ir:ref",
         "keyword:overwhelm",
         "keyword:raid",
+        "query:arenaPowerMax",
+        "query:getPower",
         "query:isUnit",
         "ref:card",
         "ref:card.controller",

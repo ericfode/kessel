@@ -1,19 +1,24 @@
 {
-  "catalogueHash": "b4b75bf3580a4cee1d4e6dbf41eb41d3fc9c6f869a901c3368122215c22ea71e",
-  "dataOnlyConvertedCount": 375,
+  "catalogueHash": "9b566a12cab7e95d24e66b0cc2d0f5a7a4df7fae2d4449eb1697d93f0eff1abe",
+  "dataOnlyConvertedCount": 382,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1127,
+  "irConvertedCount": 1144,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
-    "dataOnly": 375,
+    "dataOnly": 382,
     "nativeAdapters": 4,
-    "sourceIr": 649
+    "sourceIr": 669
   },
   "runtimeAdmittedCards": [
     {
       "implementation": "sourceIr",
       "internalName": "baylan-skoll#power-beyond-dream",
       "setCode": "ASH_003"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "ahsoka-tano#trust-in-the-force",
+      "setCode": "ASH_009"
     },
     {
       "implementation": "sourceIr",
@@ -81,6 +86,11 @@
       "setCode": "ASH_043"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "scion-shuttle#at-morgans-bidding",
+      "setCode": "ASH_046"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "imperial-armored-commando",
       "setCode": "ASH_048"
@@ -111,6 +121,11 @@
       "setCode": "ASH_058"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "leia-organa#vigilant-for-danger",
+      "setCode": "ASH_059"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "strike-team-vanguard",
       "setCode": "ASH_061"
@@ -131,6 +146,11 @@
       "setCode": "ASH_067"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "domesticated-lothcat",
+      "setCode": "ASH_068"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "noti-nomad",
       "setCode": "ASH_069"
@@ -142,8 +162,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "doctor-pershing#dedicated-to-research",
+      "setCode": "ASH_072"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "palace-chef-droid",
       "setCode": "ASH_073"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "mos-eisley-modifier",
+      "setCode": "ASH_074"
     },
     {
       "implementation": "dataOnly",
@@ -192,6 +222,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "remnant-interceptor",
+      "setCode": "ASH_095"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "forest-patroller",
       "setCode": "ASH_096"
     },
@@ -204,6 +239,11 @@
       "implementation": "sourceIr",
       "internalName": "atst-raider",
       "setCode": "ASH_098"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "gozanti-assault-carrier",
+      "setCode": "ASH_099"
     },
     {
       "implementation": "sourceIr",
@@ -266,6 +306,11 @@
       "setCode": "ASH_120"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "blurrg",
+      "setCode": "ASH_121"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "lang#arrogant-mercenary",
       "setCode": "ASH_123"
@@ -289,6 +334,11 @@
       "implementation": "dataOnly",
       "internalName": "defenders-of-the-forest",
       "setCode": "ASH_129"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "fang-fighter-squadron",
+      "setCode": "ASH_130"
     },
     {
       "implementation": "dataOnly",
@@ -337,6 +387,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "honorable-nite-owl",
+      "setCode": "ASH_154"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "alamite-hunter",
       "setCode": "ASH_164"
     },
@@ -382,6 +437,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "boba-fetts-rancor#emotionally-complex-creature",
+      "setCode": "ASH_179"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "mark-my-words",
       "setCode": "ASH_181"
     },
@@ -389,6 +449,11 @@
       "implementation": "sourceIr",
       "internalName": "intimidation",
       "setCode": "ASH_185"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "reckoning",
+      "setCode": "ASH_187"
     },
     {
       "implementation": "dataOnly",
@@ -421,6 +486,11 @@
       "setCode": "ASH_201"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "ezra-bridger#the-force-is-all-i-need",
+      "setCode": "ASH_209"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "womp-rat",
       "setCode": "ASH_213"
@@ -429,6 +499,16 @@
       "implementation": "sourceIr",
       "internalName": "amnesty-officer",
       "setCode": "ASH_214"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "flanking-tie-interceptor",
+      "setCode": "ASH_215"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "unsanctioned-patrol",
+      "setCode": "ASH_222"
     },
     {
       "implementation": "dataOnly",
@@ -461,6 +541,11 @@
       "setCode": "ASH_240"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "marroks-fiend-fighter#formidable-pursuer",
+      "setCode": "ASH_241"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "death-trooper-squad",
       "setCode": "ASH_242"
@@ -489,6 +574,11 @@
       "implementation": "dataOnly",
       "internalName": "n5-sentry-droid",
       "setCode": "ASH_252"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "yellow-aces-bomber",
+      "setCode": "ASH_253"
     },
     {
       "implementation": "sourceIr",
@@ -1487,6 +1577,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "the-ghost#heart-of-the-family",
+      "setCode": "JTL_053"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "gold-leader#fastest-ship-in-the-fleet",
       "setCode": "JTL_054"
     },
@@ -1612,6 +1707,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "raddus#holdos-final-command",
+      "setCode": "JTL_104"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "bunker-defender",
       "setCode": "JTL_107"
     },
@@ -1674,6 +1774,11 @@
       "implementation": "sourceIr",
       "internalName": "no-disintegrations",
       "setCode": "JTL_144"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "black-one#straight-at-them",
+      "setCode": "JTL_147"
     },
     {
       "implementation": "sourceIr",
@@ -1864,6 +1969,11 @@
       "implementation": "sourceIr",
       "internalName": "shadow-cloaking",
       "setCode": "LAW_043"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "single-reactor-ignition",
+      "setCode": "LAW_044"
     },
     {
       "implementation": "sourceIr",
@@ -2111,6 +2221,11 @@
       "setCode": "LAW_151"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "c3po#translation-protocol",
+      "setCode": "LAW_152"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "follower-of-the-code",
       "setCode": "LAW_153"
@@ -2344,6 +2459,11 @@
       "implementation": "sourceIr",
       "internalName": "kanan-jarrus#help-us-survive",
       "setCode": "LOF_004"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "supreme-leader-snoke#in-the-seat-of-power",
+      "setCode": "LOF_006"
     },
     {
       "implementation": "sourceIr",
@@ -3069,6 +3189,11 @@
       "implementation": "dataOnly",
       "internalName": "mount-tantiss",
       "setCode": "SEC_026"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-chancellors-shuttle#grim-harbinger",
+      "setCode": "SEC_027"
     },
     {
       "implementation": "dataOnly",
@@ -3802,6 +3927,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "slavers-freighter",
+      "setCode": "SHD_189"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "zuckuss#bounty-hunter-for-hire",
       "setCode": "SHD_190"
     },
@@ -4239,6 +4369,11 @@
       "implementation": "dataOnly",
       "internalName": "seventh-fleet-defender",
       "setCode": "SOR_180"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "fetts-firespray#pursuing-the-bounty",
+      "setCode": "SOR_184"
     },
     {
       "implementation": "dataOnly",
@@ -5151,7 +5286,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1028,
+  "runtimeAdmittedCount": 1055,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5187,11 +5322,6 @@
       "internalName": "moff-gideon#indomitable-warlord",
       "reason": "moff-gideon#indomitable-warlord: compiler rejected \"moff-gideon#indomitable-warlord\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":13,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":22,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":35,\"message\":\"unsupported-query:friendlyImperialUnitWasDefeatedThisPhase\",\"pattern\":\"unsupported-query:friendlyImperialUnitWasDefeatedThisPhase\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":46,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":47,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":48,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":49,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":50,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":51,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":52,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":53,\"message\":\"registrar:addKeywordCopyAbility\",\"pattern\":\"registrar:addKeywordCopyAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":56,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:friendlyImperialUnitWasDefeatedThisPhase\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/leaders/MoffGideonIndomitableWarlord.ts\",\"line\":63,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:addKeywordCopyAbility\"}]",
       "setCode": "ASH_008"
-    },
-    {
-      "internalName": "ahsoka-tano#trust-in-the-force",
-      "reason": "ahsoka-tano#trust-in-the-force: compiler rejected \"ahsoka-tano#trust-in-the-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":95,\"file\":\"game/cards/08_ASH/leaders/AhsokaTanoTrustInTheForce.ts\",\"line\":24,\"message\":\"...context.player.getArenaUnits().map((x) => x.getPower())\",\"pattern\":\"expression:SpreadElement\"}]",
-      "setCode": "ASH_009"
     },
     {
       "internalName": "bokatan-kryze#reclaiming-mandalore",
@@ -5309,18 +5439,13 @@
       "setCode": "ASH_045"
     },
     {
-      "internalName": "scion-shuttle#at-morgans-bidding",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_046"
-    },
-    {
       "internalName": "gar-saxon#coveting-power",
       "reason": "gar-saxon#coveting-power: compiler rejected \"gar-saxon#coveting-power\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/08_ASH/units/GarSaxonCovetingPower.ts\",\"line\":17,\"message\":\"trigger-alias-hook:onCardPlayed\",\"pattern\":\"trigger-alias-hook:onCardPlayed\"}]",
       "setCode": "ASH_047"
     },
     {
       "internalName": "morgan-elsbeth#life-abandoned",
-      "reason": "unimplemented runtime keyword support",
+      "reason": "Support donors require a bounded ordinary constant/OnAttack registration and intrinsic unit-side keyword",
       "setCode": "ASH_050"
     },
     {
@@ -5344,11 +5469,6 @@
       "setCode": "ASH_055"
     },
     {
-      "internalName": "leia-organa#vigilant-for-danger",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_059"
-    },
-    {
       "internalName": "cobb-vanth#let-me-handle-this",
       "reason": "cobb-vanth#let-me-handle-this: compiler rejected \"cobb-vanth#let-me-handle-this\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/08_ASH/units/CobbVanthLetMeHandleThis.ts\",\"line\":19,\"message\":\"trigger-alias-hook:onCardPlayed\",\"pattern\":\"trigger-alias-hook:onCardPlayed\"}]",
       "setCode": "ASH_060"
@@ -5369,24 +5489,9 @@
       "setCode": "ASH_065"
     },
     {
-      "internalName": "domesticated-lothcat",
-      "reason": "domesticated-lothcat: compiler rejected \"domesticated-lothcat\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":58,\"file\":\"game/cards/08_ASH/units/DomesticatedLothCat.ts\",\"line\":22,\"message\":\"unsupported-modifier-keyword\",\"pattern\":\"unsupported-modifier-keyword\"}]",
-      "setCode": "ASH_068"
-    },
-    {
       "internalName": "at-attin-safety-droid",
       "reason": "at-attin-safety-droid: compiler rejected \"at-attin-safety-droid\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/units/AtAttinSafetyDroid.ts\",\"line\":15,\"message\":\"registrar:addDamageModificationAbility\",\"pattern\":\"registrar:addDamageModificationAbility\"}]",
       "setCode": "ASH_070"
-    },
-    {
-      "internalName": "doctor-pershing#dedicated-to-research",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_072"
-    },
-    {
-      "internalName": "mos-eisley-modifier",
-      "reason": "mos-eisley-modifier: compiler rejected \"mos-eisley-modifier\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/mos-eisley-modifier.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_074"
     },
     {
       "internalName": "pit-droid-team",
@@ -5405,7 +5510,7 @@
     },
     {
       "internalName": "summaverminoth",
-      "reason": "summaverminoth: arena-list defeat requires a standalone event without selectors or continuations",
+      "reason": "summaverminoth: arena-list defeat requires a standalone event or reviewed resolved-event continuation",
       "setCode": "ASH_083"
     },
     {
@@ -5442,16 +5547,6 @@
       "internalName": "moff-jerjerrod#we-shall-redouble-our-efforts",
       "reason": "moff-jerjerrod#we-shall-redouble-our-efforts: compiler rejected \"moff-jerjerrod#we-shall-redouble-our-efforts\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/units/MoffJerjerrodWeShallRedoubleOurEfforts.ts\",\"line\":22,\"message\":\"registrar:addReplacementEffectAbility\",\"pattern\":\"registrar:addReplacementEffectAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/MoffJerjerrodWeShallRedoubleOurEfforts.ts\",\"line\":49,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:buildDoubledTokenSystem\"}]",
       "setCode": "ASH_094"
-    },
-    {
-      "internalName": "remnant-interceptor",
-      "reason": "remnant-interceptor: compiler rejected \"remnant-interceptor\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/remnant-interceptor.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_095"
-    },
-    {
-      "internalName": "gozanti-assault-carrier",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_099"
     },
     {
       "internalName": "the-great-mothers#with-strange-magicks",
@@ -5499,11 +5594,6 @@
       "setCode": "ASH_119"
     },
     {
-      "internalName": "blurrg",
-      "reason": "blurrg: compiler rejected \"blurrg\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/blurrg.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_121"
-    },
-    {
       "internalName": "the-twins#we-dont-want-war",
       "reason": "the-twins#we-dont-want-war: compiler rejected \"the-twins#we-dont-want-war\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/08_ASH/units/TheTwinsWeDontWantWar.ts\",\"line\":20,\"message\":\"trigger-alias-hook:onCardDefeated\",\"pattern\":\"trigger-alias-hook:onCardDefeated\"}]",
       "setCode": "ASH_127"
@@ -5512,11 +5602,6 @@
       "internalName": "bothan5#new-republic-prison-ship",
       "reason": "bothan5#new-republic-prison-ship: compiler rejected \"bothan5#new-republic-prison-ship\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts\",\"line\":20,\"message\":\"trigger-alias-hook:onCardDefeated\",\"pattern\":\"trigger-alias-hook:onCardDefeated\"}]",
       "setCode": "ASH_128"
-    },
-    {
-      "internalName": "fang-fighter-squadron",
-      "reason": "fang-fighter-squadron: compiler rejected \"fang-fighter-squadron\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/fang-fighter-squadron.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_130"
     },
     {
       "internalName": "queen-soruna#willing-to-fight",
@@ -5582,11 +5667,6 @@
       "internalName": "operation-cinder",
       "reason": "operation-cinder: arena damage requires ordinary unit metadata and only a bounded Coordinate Raid companion",
       "setCode": "ASH_151"
-    },
-    {
-      "internalName": "honorable-nite-owl",
-      "reason": "honorable-nite-owl: compiler rejected \"honorable-nite-owl\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/honorable-nite-owl.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_154"
     },
     {
       "internalName": "grogu#yes-yes-yes",
@@ -5664,11 +5744,6 @@
       "setCode": "ASH_178"
     },
     {
-      "internalName": "boba-fetts-rancor#emotionally-complex-creature",
-      "reason": "boba-fetts-rancor#emotionally-complex-creature: unsupported math expression",
-      "setCode": "ASH_179"
-    },
-    {
       "internalName": "bokken-saber",
       "reason": "bokken-saber: compiler rejected \"bokken-saber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/BokkenSaber.ts\",\"line\":17,\"message\":\"registrar:addGainWhenAttackEndsAbilityTargetingAttached\",\"pattern\":\"registrar:addGainWhenAttackEndsAbilityTargetingAttached\"}]",
       "setCode": "ASH_180"
@@ -5692,11 +5767,6 @@
       "internalName": "treacherous-minefield",
       "reason": "treacherous-minefield: compiler rejected \"treacherous-minefield\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/08_ASH/events/TreacherousMinefield.ts\",\"line\":21,\"message\":\"unsupported-field:choices\",\"pattern\":\"unsupported-field:choices\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/events/TreacherousMinefield.ts\",\"line\":29,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:eventEffect\"}]",
       "setCode": "ASH_186"
-    },
-    {
-      "internalName": "reckoning",
-      "reason": "reckoning: compiler rejected \"reckoning\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/events/Reckoning.ts\",\"line\":15,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageAmount\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/08_ASH/events/Reckoning.ts\",\"line\":26,\"message\":\"unsupported-query:getDamageAmount\",\"pattern\":\"unsupported-query:getDamageAmount\"}]",
-      "setCode": "ASH_187"
     },
     {
       "internalName": "galvanized-leap",
@@ -5774,11 +5844,6 @@
       "setCode": "ASH_208"
     },
     {
-      "internalName": "ezra-bridger#the-force-is-all-i-need",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_209"
-    },
-    {
       "internalName": "ddc-defender",
       "reason": "ddc-defender: compiler rejected \"ddc-defender\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/DDCDefender.ts\",\"line\":17,\"message\":\"registrar:addGainOnDefenseAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnDefenseAbilityTargetingAttached\"}]",
       "setCode": "ASH_210"
@@ -5792,11 +5857,6 @@
       "internalName": "peli-motto#you-bring-the-cash",
       "reason": "peli-motto#you-bring-the-cash: compiler rejected \"peli-motto#you-bring-the-cash\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/PeliMottoYouBringTheCash.ts\",\"line\":11,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/PeliMottoYouBringTheCash.ts\",\"line\":20,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/08_ASH/units/PeliMottoYouBringTheCash.ts\",\"line\":28,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/PeliMottoYouBringTheCash.ts\",\"line\":35,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isFirstNonUnitCardPlayedThisPhase\"}]",
       "setCode": "ASH_212"
-    },
-    {
-      "internalName": "flanking-tie-interceptor",
-      "reason": "flanking-tie-interceptor: compiler rejected \"flanking-tie-interceptor\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/flanking-tie-interceptor.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_215"
     },
     {
       "internalName": "mandalorian-scout",
@@ -5829,11 +5889,6 @@
       "setCode": "ASH_221"
     },
     {
-      "internalName": "unsanctioned-patrol",
-      "reason": "unsanctioned-patrol: compiler rejected \"unsanctioned-patrol\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/unsanctioned-patrol.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "ASH_222"
-    },
-    {
       "internalName": "halo#not-according-to-plan",
       "reason": "halo#not-according-to-plan: compiler rejected \"halo#not-according-to-plan\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/HaloNotAccordingToPlan.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/08_ASH/units/HaloNotAccordingToPlan.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/08_ASH/units/HaloNotAccordingToPlan.ts\",\"line\":26,\"message\":\"unsupported-query:defenderWasDefeated\",\"pattern\":\"unsupported-query:defenderWasDefeated\"}]",
       "setCode": "ASH_223"
@@ -5845,7 +5900,7 @@
     },
     {
       "internalName": "qira#master-of-teras-kasi",
-      "reason": "qira#master-of-teras-kasi: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "qira#master-of-teras-kasi: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "ASH_226"
     },
     {
@@ -5894,11 +5949,6 @@
       "setCode": "ASH_238"
     },
     {
-      "internalName": "marroks-fiend-fighter#formidable-pursuer",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_241"
-    },
-    {
       "internalName": "eye-of-sion#delivered-from-exile",
       "reason": "eye-of-sion#delivered-from-exile: compiler rejected \"eye-of-sion#delivered-from-exile\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/08_ASH/units/EyeOfSionDeliveredFromExile.ts\",\"line\":20,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "ASH_245"
@@ -5922,11 +5972,6 @@
       "internalName": "zealous-soldier",
       "reason": "zealous-soldier: compiler rejected \"zealous-soldier\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/08_ASH/units/ZealousSoldier.ts\",\"line\":16,\"message\":\"immediateEffect:giveAdvantage\",\"pattern\":\"immediateEffect:giveAdvantage\"}]",
       "setCode": "ASH_251"
-    },
-    {
-      "internalName": "yellow-aces-bomber",
-      "reason": "unimplemented runtime keyword support",
-      "setCode": "ASH_253"
     },
     {
       "internalName": "gallofree-transport",
@@ -6839,11 +6884,6 @@
       "setCode": "JTL_050"
     },
     {
-      "internalName": "the-ghost#heart-of-the-family",
-      "reason": "the-ghost#heart-of-the-family: compiler rejected \"the-ghost#heart-of-the-family\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/04_JTL/units/TheGhostHeartOfTheFamily.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords\"}]",
-      "setCode": "JTL_053"
-    },
-    {
       "internalName": "youre-all-clear-kid",
       "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_055"
@@ -6967,11 +7007,6 @@
       "internalName": "chewbacca#faithful-first-mate",
       "reason": "chewbacca#faithful-first-mate: compiler rejected \"chewbacca#faithful-first-mate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/units/ChewbaccaFaithfulFirstMate.ts\",\"line\":16,\"message\":\"registrar:addReplacementEffectAbility\",\"pattern\":\"registrar:addReplacementEffectAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/units/ChewbaccaFaithfulFirstMate.ts\",\"line\":30,\"message\":\"registrar:addPilotingGainAbilityTargetingAttached\",\"pattern\":\"registrar:addPilotingGainAbilityTargetingAttached\"}]",
       "setCode": "JTL_103"
-    },
-    {
-      "internalName": "raddus#holdos-final-command",
-      "reason": "raddus#holdos-final-command: compiler rejected \"raddus#holdos-final-command\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/04_JTL/units/RaddusHoldosFinalCommand.ts\",\"line\":18,\"message\":\"unsupported-query:controlsCardWithTrait\",\"pattern\":\"unsupported-query:controlsCardWithTrait\"}]",
-      "setCode": "JTL_104"
     },
     {
       "internalName": "the-starhawk#prototype-battleship",
@@ -7112,11 +7147,6 @@
       "internalName": "massassi-tactical-officer",
       "reason": "massassi-tactical-officer: compiler rejected \"massassi-tactical-officer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/04_JTL/units/MassassiTacticalOfficer.ts\",\"line\":19,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "JTL_146"
-    },
-    {
-      "internalName": "black-one#straight-at-them",
-      "reason": "black-one#straight-at-them: controlled title requires complete ordinary unit persistent self constant registration",
-      "setCode": "JTL_147"
     },
     {
       "internalName": "frisk#vanguard-loudmouth",
@@ -7500,7 +7530,7 @@
     },
     {
       "internalName": "millennium-falcon#get-out-and-push",
-      "reason": "millennium-falcon#get-out-and-push: compiler rejected \"millennium-falcon#get-out-and-push\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.modifyPilotingLimit\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.modifyPilotingLimit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts\",\"line\":25,\"message\":\"unsupported-query:reduce\",\"pattern\":\"unsupported-query:reduce\"}]",
+      "reason": "millennium-falcon#get-out-and-push: compiler rejected \"millennium-falcon#get-out-and-push\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.modifyPilotingLimit\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.modifyPilotingLimit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts\",\"line\":25,\"message\":\"bounded-arena-reduction\",\"pattern\":\"bounded-arena-reduction\"}]",
       "setCode": "JTL_249"
     },
     {
@@ -7717,11 +7747,6 @@
       "internalName": "nothing-left-to-fear",
       "reason": "nothing-left-to-fear: compiler rejected \"nothing-left-to-fear\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":72,\"file\":\"game/cards/07_LAW/events/NothingLeftToFear.ts\",\"line\":31,\"message\":\"target-resolver-outer-target-capture\",\"pattern\":\"target-resolver-outer-target-capture\"}]",
       "setCode": "LAW_041"
-    },
-    {
-      "internalName": "single-reactor-ignition",
-      "reason": "single-reactor-ignition: compiler rejected \"single-reactor-ignition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/07_LAW/events/SingleReactorIgnition.ts\",\"line\":27,\"message\":\"unsupported-query:getOpponentBaseDamage\",\"pattern\":\"unsupported-query:getOpponentBaseDamage\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/events/SingleReactorIgnition.ts\",\"line\":33,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getOpponentBaseDamage\"}]",
-      "setCode": "LAW_044"
     },
     {
       "internalName": "chirrut-imwe#i-dont-need-luck",
@@ -8012,11 +8037,6 @@
       "internalName": "fulcrum",
       "reason": "fulcrum: compiler rejected \"fulcrum\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":20,\"message\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":23,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
       "setCode": "LAW_150"
-    },
-    {
-      "internalName": "c3po#translation-protocol",
-      "reason": "c3po#translation-protocol: compiler rejected \"c3po#translation-protocol\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/07_LAW/units/C3POTranslationProtocol.ts\",\"line\":22,\"message\":\"unsupported-query:flatMap\",\"pattern\":\"unsupported-query:flatMap\"}]",
-      "setCode": "LAW_152"
     },
     {
       "internalName": "getaway-freighter",
@@ -8367,11 +8387,6 @@
       "internalName": "morgan-elsbeth#following-the-call",
       "reason": "morgan-elsbeth#following-the-call: compiler rejected \"morgan-elsbeth#following-the-call\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":12,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:attacksThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":21,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":36,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":26,\"message\":\"named-target-cost-or-limit\",\"pattern\":\"named-target-cost-or-limit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":61,\"message\":\"immediateEffect:forThisPhasePlayerEffect\",\"pattern\":\"immediateEffect:forThisPhasePlayerEffect\"}]",
       "setCode": "LOF_005"
-    },
-    {
-      "internalName": "supreme-leader-snoke#in-the-seat-of-power",
-      "reason": "supreme-leader-snoke#in-the-seat-of-power: compiler rejected \"supreme-leader-snoke#in-the-seat-of-power\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts\",\"line\":21,\"message\":\"unsupported-effect-call:this.buildSnokeAbility\",\"pattern\":\"unsupported-effect-call:this.buildSnokeAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts\",\"line\":28,\"message\":\"unsupported-effect-call:this.buildSnokeAbility\",\"pattern\":\"unsupported-effect-call:this.buildSnokeAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts\",\"line\":32,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:buildSnokeAbility\"}]",
-      "setCode": "LOF_006"
     },
     {
       "internalName": "avar-kriss#marshal-of-starlight",
@@ -8780,7 +8795,7 @@
     },
     {
       "internalName": "merrin#alone-with-the-dead",
-      "reason": "merrin#alone-with-the-dead: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "merrin#alone-with-the-dead: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LOF_160"
     },
     {
@@ -8795,7 +8810,7 @@
     },
     {
       "internalName": "lightsaber-throw",
-      "reason": "lightsaber-throw: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "lightsaber-throw: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LOF_176"
     },
     {
@@ -8895,7 +8910,7 @@
     },
     {
       "internalName": "the-legacy-run#doomed-debris",
-      "reason": "the-legacy-run#doomed-debris: invalid ability IR: unknown variant `distributeDamage`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "the-legacy-run#doomed-debris: invalid ability IR: unknown variant `distributeDamage`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LOF_213"
     },
     {
@@ -9067,11 +9082,6 @@
       "internalName": "dj#need-a-lift",
       "reason": "dj#need-a-lift: compiler rejected \"dj#need-a-lift\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":36,\"file\":\"game/cards/06_SEC/leaders/DJNeedALift.ts\",\"line\":21,\"message\":\"named-target-cost-or-limit\",\"pattern\":\"named-target-cost-or-limit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/06_SEC/leaders/DJNeedALift.ts\",\"line\":56,\"message\":\"unsupported-modifier:OngoingEffectBuilder.player.static\",\"pattern\":\"unsupported-modifier:OngoingEffectBuilder.player.static\"}]",
       "setCode": "SEC_018"
-    },
-    {
-      "internalName": "the-chancellors-shuttle#grim-harbinger",
-      "reason": "the-chancellors-shuttle#grim-harbinger: controlled title requires complete ordinary unit persistent self constant registration",
-      "setCode": "SEC_027"
     },
     {
       "internalName": "sly-moore#witness-to-power",
@@ -10439,11 +10449,6 @@
       "setCode": "SHD_187"
     },
     {
-      "internalName": "slavers-freighter",
-      "reason": "slavers-freighter: compiler rejected \"slavers-freighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/02_SHD/units/SlaversFreighter.ts\",\"line\":21,\"message\":\"unsupported-query:reduce\",\"pattern\":\"unsupported-query:reduce\"}]",
-      "setCode": "SHD_189"
-    },
-    {
       "internalName": "xanadu-blood#cad-banes-reward",
       "reason": "xanadu-blood#cad-banes-reward: compiler rejected \"xanadu-blood#cad-banes-reward\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/02_SHD/units/XanaduBloodCadBanesReward.ts\",\"line\":33,\"message\":\"unsupported-field:choices\",\"pattern\":\"unsupported-field:choices\"}]",
       "setCode": "SHD_191"
@@ -10755,7 +10760,7 @@
     },
     {
       "internalName": "cassian-andor#dedicated-to-the-rebellion",
-      "reason": "cassian-andor#dedicated-to-the-rebellion: compiler rejected \"cassian-andor#dedicated-to-the-rebellion\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:damageDealtThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":47,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":28,\"message\":\"unsupported-query:reduce\",\"pattern\":\"unsupported-query:reduce\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":48,\"message\":\"trigger-alias-hook:onDamageDealt\",\"pattern\":\"trigger-alias-hook:onDamageDealt\"}]",
+      "reason": "cassian-andor#dedicated-to-the-rebellion: compiler rejected \"cassian-andor#dedicated-to-the-rebellion\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:damageDealtThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":47,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":28,\"message\":\"bounded-arena-reduction\",\"pattern\":\"bounded-arena-reduction\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts\",\"line\":48,\"message\":\"trigger-alias-hook:onDamageDealt\",\"pattern\":\"trigger-alias-hook:onDamageDealt\"}]",
       "setCode": "SOR_013"
     },
     {
@@ -11020,7 +11025,7 @@
     },
     {
       "internalName": "emperor-palpatine#master-of-the-dark-side",
-      "reason": "emperor-palpatine#master-of-the-dark-side: invalid ability IR: unknown variant `distributeDamage`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "emperor-palpatine#master-of-the-dark-side: invalid ability IR: unknown variant `distributeDamage`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_135"
     },
     {
@@ -11162,11 +11167,6 @@
       "internalName": "bounty-hunter-crew",
       "reason": "bounty-hunter-crew: unsupported target type event",
       "setCode": "SOR_183"
-    },
-    {
-      "internalName": "fetts-firespray#pursuing-the-bounty",
-      "reason": "fetts-firespray#pursuing-the-bounty: controlled title requires complete ordinary unit persistent self constant registration",
-      "setCode": "SOR_184"
     },
     {
       "internalName": "chimaera#flagship-of-the-seventh-fleet",
@@ -11365,7 +11365,7 @@
     },
     {
       "internalName": "savage-opress#you-must-have-your-revenge",
-      "reason": "savage-opress#you-must-have-your-revenge: compiler rejected \"savage-opress#you-must-have-your-revenge\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":61,\"file\":\"game/cards/07_TS26/leaders/SavageOpressYouMustHaveYourRevenge.ts\",\"line\":19,\"message\":\"unsupported-query:reduce\",\"pattern\":\"unsupported-query:reduce\"}]",
+      "reason": "savage-opress#you-must-have-your-revenge: power maximum keyword grant conflicts with keyword-dependent stat source",
       "setCode": "TS26_005"
     },
     {
@@ -11775,7 +11775,7 @@
     },
     {
       "internalName": "lethal-crackdown",
-      "reason": "lethal-crackdown: unsupported runtime reference event.lastKnownInformation.power",
+      "reason": "lethal-crackdown: last-known power requires scalar mandatory defeat damage registration",
       "setCode": "TWI_041"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1430,
+  "runtimeRejectedCount": 1403,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 752
+  "sourceAstConvertedCount": 762
 }

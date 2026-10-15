@@ -294,11 +294,10 @@ fn controlled_title_boolean_query_rejects_numeric_phase_stats_and_resources() {
 }
 
 #[test]
-fn controlled_title_admission_fence_rejects_unreviewed_converted_cards_and_scope_mutations() {
+fn controlled_title_admission_fence_accepts_reviewed_consumers_and_rejects_scope_mutations() {
     let e = engine();
     for code in ["JTL_147", "SEC_027", "SOR_184"] {
-        assert!(!e.by_code.contains_key(code), "extra source conversion is not runtime admission: {code}");
-        assert!(e.rejected_cards().unwrap()[code].contains("controlled title"));
+        assert!(e.by_code.contains_key(code), "reviewed scalar title consumer is admitted: {code}");
     }
     let original: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
     for mutation in ["trigger", "optional", "coordinate", "target", "duration", "selector", "continuation", "nested-condition", "pilot", "epic", "type", "side"] {

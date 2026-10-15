@@ -1,20 +1,21 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "913927950a65984c0089bb0f6c44730cb2db09ad048158b4e12fc4424eff0a2b",
+  "compilerHash": "068fc09dbd71211c13ca83362e7ea4d3c28a6295a09388cc31be656e2c596a80",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1127,
-  "sourceAstConverted": 752,
-  "dataOnlyConverted": 375,
-  "unconverted": 1331,
+  "converted": 1144,
+  "sourceAstConverted": 762,
+  "dataOnlyConverted": 382,
+  "unconverted": 1314,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
     "ASH_003",
+    "ASH_009",
     "ASH_011",
     "ASH_019",
     "ASH_020",
@@ -42,10 +43,12 @@
     "ASH_064",
     "ASH_066",
     "ASH_067",
+    "ASH_068",
     "ASH_069",
     "ASH_071",
     "ASH_072",
     "ASH_073",
+    "ASH_074",
     "ASH_076",
     "ASH_078",
     "ASH_080",
@@ -56,6 +59,7 @@
     "ASH_087",
     "ASH_089",
     "ASH_092",
+    "ASH_095",
     "ASH_096",
     "ASH_097",
     "ASH_098",
@@ -72,11 +76,13 @@
     "ASH_116",
     "ASH_117",
     "ASH_120",
+    "ASH_121",
     "ASH_123",
     "ASH_124",
     "ASH_125",
     "ASH_126",
     "ASH_129",
+    "ASH_130",
     "ASH_131",
     "ASH_136",
     "ASH_138",
@@ -87,6 +93,7 @@
     "ASH_145",
     "ASH_151",
     "ASH_153",
+    "ASH_154",
     "ASH_164",
     "ASH_165",
     "ASH_166",
@@ -99,6 +106,7 @@
     "ASH_179",
     "ASH_181",
     "ASH_185",
+    "ASH_187",
     "ASH_190",
     "ASH_192",
     "ASH_193",
@@ -109,6 +117,8 @@
     "ASH_209",
     "ASH_213",
     "ASH_214",
+    "ASH_215",
+    "ASH_222",
     "ASH_225",
     "ASH_226",
     "ASH_228",
@@ -331,6 +341,7 @@
     "JTL_044",
     "JTL_051",
     "JTL_052",
+    "JTL_053",
     "JTL_054",
     "JTL_055",
     "JTL_060",
@@ -358,6 +369,7 @@
     "JTL_095",
     "JTL_099",
     "JTL_102",
+    "JTL_104",
     "JTL_107",
     "JTL_110",
     "JTL_112",
@@ -414,6 +426,7 @@
     "LAW_038",
     "LAW_042",
     "LAW_043",
+    "LAW_044",
     "LAW_045",
     "LAW_048",
     "LAW_049",
@@ -464,6 +477,7 @@
     "LAW_146",
     "LAW_147",
     "LAW_151",
+    "LAW_152",
     "LAW_153",
     "LAW_154",
     "LAW_159",
@@ -513,6 +527,7 @@
     "LAW_261",
     "LAW_263",
     "LOF_004",
+    "LOF_006",
     "LOF_031",
     "LOF_032",
     "LOF_034",
@@ -841,6 +856,7 @@
     "SHD_171",
     "SHD_180",
     "SHD_188",
+    "SHD_189",
     "SHD_190",
     "SHD_196",
     "SHD_200",
@@ -973,6 +989,7 @@
     "TOKEN_SPY",
     "TOKEN_TIE_FIGHTER",
     "TOKEN_XWING",
+    "TS26_005",
     "TS26_016",
     "TS26_017",
     "TS26_020",
@@ -1531,45 +1548,6 @@
       ]
     },
     {
-      "pattern": "no-source-for-rules-text",
-      "occurrences": 33,
-      "cards": [
-        "ASH_074",
-        "ASH_095",
-        "ASH_121",
-        "ASH_130",
-        "ASH_154",
-        "ASH_215",
-        "ASH_222",
-        "JTL_108",
-        "JTL_159",
-        "JTL_196",
-        "JTL_236",
-        "JTL_246",
-        "JTL_255",
-        "SEC_036",
-        "SEC_070",
-        "SEC_100",
-        "SEC_123",
-        "SEC_176",
-        "SEC_226",
-        "SHD_036",
-        "SHD_065",
-        "SHD_089",
-        "SHD_111",
-        "SHD_119",
-        "SHD_149",
-        "TOKEN_ADVANTAGE",
-        "TWI_037",
-        "TWI_087",
-        "TWI_117",
-        "TWI_118",
-        "TWI_136",
-        "TWI_182",
-        "TWI_233"
-      ]
-    },
-    {
       "pattern": "trigger-alias-hook:onDamageDealt",
       "occurrences": 34,
       "cards": [
@@ -1669,6 +1647,38 @@
         "SEC_230",
         "SEC_234",
         "SEC_248"
+      ]
+    },
+    {
+      "pattern": "no-source-for-rules-text",
+      "occurrences": 26,
+      "cards": [
+        "JTL_108",
+        "JTL_159",
+        "JTL_196",
+        "JTL_236",
+        "JTL_246",
+        "JTL_255",
+        "SEC_036",
+        "SEC_070",
+        "SEC_100",
+        "SEC_123",
+        "SEC_176",
+        "SEC_226",
+        "SHD_036",
+        "SHD_065",
+        "SHD_089",
+        "SHD_111",
+        "SHD_119",
+        "SHD_149",
+        "TOKEN_ADVANTAGE",
+        "TWI_037",
+        "TWI_087",
+        "TWI_117",
+        "TWI_118",
+        "TWI_136",
+        "TWI_182",
+        "TWI_233"
       ]
     },
     {
@@ -3345,16 +3355,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:reduce",
-      "occurrences": 4,
-      "cards": [
-        "JTL_249",
-        "SHD_189",
-        "SOR_013",
-        "TS26_005"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someUnitLeftPlay",
       "occurrences": 4,
       "cards": [
@@ -3581,6 +3581,14 @@
       ]
     },
     {
+      "pattern": "bounded-arena-reduction",
+      "occurrences": 2,
+      "cards": [
+        "JTL_249",
+        "SOR_013"
+      ]
+    },
+    {
       "pattern": "cardTypeFilter:playable",
       "occurrences": 2,
       "cards": [
@@ -3658,14 +3666,6 @@
       "cards": [
         "TOKEN_CREDIT",
         "TOKEN_THE_FORCE"
-      ]
-    },
-    {
-      "pattern": "expression:SpreadElement",
-      "occurrences": 2,
-      "cards": [
-        "ASH_009",
-        "SOR_175"
       ]
     },
     {
@@ -4045,14 +4045,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:flatMap",
-      "occurrences": 2,
-      "cards": [
-        "ASH_156",
-        "LAW_152"
-      ]
-    },
-    {
       "pattern": "unsupported-query:getPlayers",
       "occurrences": 2,
       "cards": [
@@ -4301,6 +4293,13 @@
       "occurrences": 1,
       "cards": [
         "LAW_010"
+      ]
+    },
+    {
+      "pattern": "expression:SpreadElement",
+      "occurrences": 1,
+      "cards": [
+        "SOR_175"
       ]
     },
     {
@@ -4605,13 +4604,6 @@
       ]
     },
     {
-      "pattern": "method:buildSnokeAbility",
-      "occurrences": 1,
-      "cards": [
-        "LOF_006"
-      ]
-    },
-    {
       "pattern": "method:buildTargetResolvers",
       "occurrences": 1,
       "cards": [
@@ -4899,13 +4891,6 @@
       ]
     },
     {
-      "pattern": "method:getDamageAmount",
-      "occurrences": 1,
-      "cards": [
-        "ASH_187"
-      ]
-    },
-    {
       "pattern": "method:getDamagedNonLeaderDefendingUnits",
       "occurrences": 1,
       "cards": [
@@ -4938,13 +4923,6 @@
       "occurrences": 1,
       "cards": [
         "JTL_208"
-      ]
-    },
-    {
-      "pattern": "method:getOpponentBaseDamage",
-      "occurrences": 1,
-      "cards": [
-        "LAW_044"
       ]
     },
     {
@@ -5571,13 +5549,6 @@
       ]
     },
     {
-      "pattern": "unsupported-effect-call:this.buildSnokeAbility",
-      "occurrences": 2,
-      "cards": [
-        "LOF_006"
-      ]
-    },
-    {
       "pattern": "unsupported-effect-call:this.getWatTamborEffect",
       "occurrences": 2,
       "cards": [
@@ -5662,13 +5633,6 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier-keyword",
-      "occurrences": 1,
-      "cards": [
-        "ASH_068"
-      ]
-    },
-    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.additionalPhase",
       "occurrences": 1,
       "cards": [
@@ -5750,13 +5714,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_063"
-      ]
-    },
-    {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords",
-      "occurrences": 1,
-      "cards": [
-        "JTL_053"
       ]
     },
     {
@@ -5879,13 +5836,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:controlsCardWithTrait",
-      "occurrences": 1,
-      "cards": [
-        "JTL_104"
-      ]
-    },
-    {
       "pattern": "unsupported-query:countUniqueAspects",
       "occurrences": 1,
       "cards": [
@@ -5911,6 +5861,13 @@
       "occurrences": 2,
       "cards": [
         "JTL_010"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:flatMap",
+      "occurrences": 1,
+      "cards": [
+        "ASH_156"
       ]
     },
     {
@@ -5984,13 +5941,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getDamageAmount",
-      "occurrences": 1,
-      "cards": [
-        "ASH_187"
-      ]
-    },
-    {
       "pattern": "unsupported-query:getDamageDealtToBaseByUnitThisAttack",
       "occurrences": 1,
       "cards": [
@@ -6009,13 +5959,6 @@
       "occurrences": 1,
       "cards": [
         "TWI_239"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:getOpponentBaseDamage",
-      "occurrences": 1,
-      "cards": [
-        "LAW_044"
       ]
     },
     {
@@ -6510,21 +6453,6 @@
           "line": 63,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_009",
-      "internalName": "ahsoka-tano#trust-in-the-force",
-      "sourcePath": "game/cards/08_ASH/leaders/AhsokaTanoTrustInTheForce.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "expression:SpreadElement",
-          "message": "...context.player.getArenaUnits().map((x) => x.getPower())",
-          "file": "game/cards/08_ASH/leaders/AhsokaTanoTrustInTheForce.ts",
-          "line": 24,
-          "column": 95
         }
       ]
     },
@@ -7226,21 +7154,6 @@
       ]
     },
     {
-      "setCode": "ASH_068",
-      "internalName": "domesticated-lothcat",
-      "sourcePath": "game/cards/08_ASH/units/DomesticatedLothCat.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-modifier-keyword",
-          "message": "unsupported-modifier-keyword",
-          "file": "game/cards/08_ASH/units/DomesticatedLothCat.ts",
-          "line": 22,
-          "column": 58
-        }
-      ]
-    },
-    {
       "setCode": "ASH_070",
       "internalName": "at-attin-safety-droid",
       "sourcePath": "game/cards/08_ASH/units/AtAttinSafetyDroid.ts",
@@ -7252,21 +7165,6 @@
           "file": "game/cards/08_ASH/units/AtAttinSafetyDroid.ts",
           "line": 15,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_074",
-      "internalName": "mos-eisley-modifier",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/mos-eisley-modifier.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },
@@ -7481,21 +7379,6 @@
           "line": 49,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_095",
-      "internalName": "remnant-interceptor",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/remnant-interceptor.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },
@@ -7747,21 +7630,6 @@
       ]
     },
     {
-      "setCode": "ASH_121",
-      "internalName": "blurrg",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/blurrg.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "ASH_127",
       "internalName": "the-twins#we-dont-want-war",
       "sourcePath": "game/cards/08_ASH/units/TheTwinsWeDontWantWar.ts",
@@ -7788,21 +7656,6 @@
           "file": "game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts",
           "line": 20,
           "column": 33
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_130",
-      "internalName": "fang-fighter-squadron",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/fang-fighter-squadron.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },
@@ -8023,21 +7876,6 @@
           "file": "game/cards/08_ASH/upgrades/DeadlyVulnerability.ts",
           "line": 24,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_154",
-      "internalName": "honorable-nite-owl",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/honorable-nite-owl.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },
@@ -8406,29 +8244,6 @@
       ]
     },
     {
-      "setCode": "ASH_187",
-      "internalName": "reckoning",
-      "sourcePath": "game/cards/08_ASH/events/Reckoning.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageAmount",
-          "file": "game/cards/08_ASH/events/Reckoning.ts",
-          "line": 15,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageAmount",
-          "message": "unsupported-query:getDamageAmount",
-          "file": "game/cards/08_ASH/events/Reckoning.ts",
-          "line": 26,
-          "column": 45
-        }
-      ]
-    },
-    {
       "setCode": "ASH_188",
       "internalName": "galvanized-leap",
       "sourcePath": "game/cards/08_ASH/events/GalvanizedLeap.ts",
@@ -8756,21 +8571,6 @@
       ]
     },
     {
-      "setCode": "ASH_215",
-      "internalName": "flanking-tie-interceptor",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/flanking-tie-interceptor.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "ASH_216",
       "internalName": "mandalorian-scout",
       "sourcePath": "game/cards/08_ASH/units/MandalorianScout.ts",
@@ -8857,21 +8657,6 @@
           "file": "game/cards/08_ASH/units/HelixStarfighter.ts",
           "line": 22,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_222",
-      "internalName": "unsanctioned-patrol",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/unsanctioned-patrol.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },
@@ -12750,21 +12535,6 @@
       ]
     },
     {
-      "setCode": "JTL_053",
-      "internalName": "the-ghost#heart-of-the-family",
-      "sourcePath": "game/cards/04_JTL/units/TheGhostHeartOfTheFamily.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords",
-          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords",
-          "file": "game/cards/04_JTL/units/TheGhostHeartOfTheFamily.ts",
-          "line": 19,
-          "column": 28
-        }
-      ]
-    },
-    {
       "setCode": "JTL_056",
       "internalName": "hondo-ohnaka#superfluous-swindler",
       "sourcePath": "game/cards/04_JTL/units/HondoOhnakaSuperfluousSwindler.ts",
@@ -13170,21 +12940,6 @@
           "file": "game/cards/04_JTL/units/ChewbaccaFaithfulFirstMate.ts",
           "line": 30,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_104",
-      "internalName": "raddus#holdos-final-command",
-      "sourcePath": "game/cards/04_JTL/units/RaddusHoldosFinalCommand.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsCardWithTrait",
-          "message": "unsupported-query:controlsCardWithTrait",
-          "file": "game/cards/04_JTL/units/RaddusHoldosFinalCommand.ts",
-          "line": 18,
-          "column": 37
         }
       ]
     },
@@ -14911,8 +14666,8 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
+          "pattern": "bounded-arena-reduction",
+          "message": "bounded-arena-reduction",
           "file": "game/cards/04_JTL/units/MillenniumFalconGetOutAndPush.ts",
           "line": 25,
           "column": 24
@@ -15865,29 +15620,6 @@
           "file": "game/cards/07_LAW/events/NothingLeftToFear.ts",
           "line": 31,
           "column": 72
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_044",
-      "internalName": "single-reactor-ignition",
-      "sourcePath": "game/cards/07_LAW/events/SingleReactorIgnition.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getOpponentBaseDamage",
-          "message": "unsupported-query:getOpponentBaseDamage",
-          "file": "game/cards/07_LAW/events/SingleReactorIgnition.ts",
-          "line": 27,
-          "column": 29
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getOpponentBaseDamage",
-          "file": "game/cards/07_LAW/events/SingleReactorIgnition.ts",
-          "line": 33,
-          "column": 1,
-          "message": "Additional class method requires conversion"
         }
       ]
     },
@@ -16951,21 +16683,6 @@
           "file": "game/cards/07_LAW/upgrades/Fulcrum.ts",
           "line": 23,
           "column": 59
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_152",
-      "internalName": "c3po#translation-protocol",
-      "sourcePath": "game/cards/07_LAW/units/C3POTranslationProtocol.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:flatMap",
-          "message": "unsupported-query:flatMap",
-          "file": "game/cards/07_LAW/units/C3POTranslationProtocol.ts",
-          "line": 22,
-          "column": 25
         }
       ]
     },
@@ -18234,37 +17951,6 @@
           "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
           "line": 61,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_006",
-      "internalName": "supreme-leader-snoke#in-the-seat-of-power",
-      "sourcePath": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-effect-call:this.buildSnokeAbility",
-          "message": "unsupported-effect-call:this.buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 21,
-          "column": 30
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-effect-call:this.buildSnokeAbility",
-          "message": "unsupported-effect-call:this.buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 28,
-          "column": 30
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:buildSnokeAbility",
-          "file": "game/cards/05_LOF/leaders/SupremeLeaderSnokeInTheSeatOfPower.ts",
-          "line": 32,
-          "column": 1,
-          "message": "Additional class method requires conversion"
         }
       ]
     },
@@ -25429,21 +25115,6 @@
       ]
     },
     {
-      "setCode": "SHD_189",
-      "internalName": "slavers-freighter",
-      "sourcePath": "game/cards/02_SHD/units/SlaversFreighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/02_SHD/units/SlaversFreighter.ts",
-          "line": 21,
-          "column": 50
-        }
-      ]
-    },
-    {
       "setCode": "SHD_191",
       "internalName": "xanadu-blood#cad-banes-reward",
       "sourcePath": "game/cards/02_SHD/units/XanaduBloodCadBanesReward.ts",
@@ -26520,8 +26191,8 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
+          "pattern": "bounded-arena-reduction",
+          "message": "bounded-arena-reduction",
           "file": "game/cards/01_SOR/leaders/CassianAndorDedicatedToTheRebellion.ts",
           "line": 28,
           "column": 47
@@ -28842,21 +28513,6 @@
           "line": 65,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "TS26_005",
-      "internalName": "savage-opress#you-must-have-your-revenge",
-      "sourcePath": "game/cards/07_TS26/leaders/SavageOpressYouMustHaveYourRevenge.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:reduce",
-          "message": "unsupported-query:reduce",
-          "file": "game/cards/07_TS26/leaders/SavageOpressYouMustHaveYourRevenge.ts",
-          "line": 19,
-          "column": 61
         }
       ]
     },

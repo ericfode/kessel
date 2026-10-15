@@ -326,9 +326,12 @@ across controlled arena cards (including upgrades on opposing hosts), the player
 base and undeployed leader, and held Force. Force-title programs require the
 reviewed native definition and explicit Force state. Credits, Fortify and printed
 attribute overrides remain outside runtime admission. Title-dependent source
-registrations currently require complete ordinary-unit metadata and a persistent
-self constant whose condition is the query itself; other source conversions stay
-runtime-rejected.
+registrations require complete ordinary-unit metadata. Reviewed consumers are
+persistent self constants with the query condition, mandatory entry self-ready,
+optional On Attack one-damage unit selection, and optional death Experience
+selection. Conditional event consumers use an exact title query (or two joined by
+OR); query placement, targeting and continuation topology remain validated.
+Other source conversions stay runtime-rejected.
 
 `hasAttachedTrait(card, literalTrait)` and
 `hasAttachedNativeToken(card, "shield")` inspect the unit's unified physical
@@ -345,3 +348,99 @@ entry is eligible. Its program retains the existing interpreter fallback. Focuse
 Rust tests cover these contracts; engine parity remains unverified under the
 Rust-only validation constraint, so these are locally reviewed conversions rather
 than newly established reference coverage.
+
+Bounded `floor(baseDamage / literal)` expressions accept only the current player's
+or opponent's nonnegative base-damage field and a positive integer divisor up to
+65,535. Both evaluators use integer division on that proven nonnegative domain.
+Naked division, other numerators, malformed argument counts and zero, negative or
+fractional divisors remain rejected.
+
+An ordinary unit On Attack selector may give one Experience token to another
+nonleader unit sharing a trait with any friendly in-play leader card. The live
+leader trait union includes undeployed base-zone leaders and controlled deployed
+leaders, uses nonempty deployed-side traits when present, and deduplicates traits.
+The selector remains optional and can select an opposing unit. Other uses of the
+leader collection remain rejected.
+
+The bounded live keyword inventory copy aura grants each other friendly Spectre
+unit its source's current keywords. Its explicit copy domain is Sentinel,
+Overwhelm, Saboteur, Ambush, Grit, Shielded, Raid, Restore and Hidden. Boolean
+presence deduplicates and numeric values stack, including Raid presence at zero.
+Source and recipient keyword losses remain independent; source departure,
+attachment removal and phase expiry remove the corresponding live grants.
+Unknown donor inventory keywords and copy dependency cycles fail explicitly.
+A recipient may independently possess a keyword outside this copy domain.
+This source conversion has focused Rust evidence; no new engine recordings were
+made for this increment.
+
+
+Fixed arena reductions preserve a live own/opponent arena query and zero seed.
+The admitted shapes sum physical attached upgrades on enemy hosts for optional
+readiness, or sum friendly unit damage for conditional event damage. Attachment
+controller does not change the host-based count; source and target candidates
+remain distinct. A pure private event helper can provide the live damage sum,
+including the preserved dynamic selector prompt in IR metadata. Raw IR must retain the complete
+reviewed source metadata and registration. Sums exceeding compact effect storage
+fail explicitly. These forms use the shared interpreter fallback.
+
+Maximum-power reduction also converts the two-sided Overwhelm leader source,
+retaining ties, the zero seed, and its deployed side. Runtime admission currently
+rejects that leader in the complete catalog because an existing keyword-inventory
+stat aura can feed back into the power-dependent grant. Reduced-catalog Rust
+diagnostics cover the acyclic primitive; they are not admission or engine
+conformance evidence for the complete catalog.
+
+The bounded Support family uses the pinned engine's modified-attack lifecycle.
+An intrinsic Support keyword offers another ready friendly unit an ordinary
+attack. At initiation, the attacker gains a snapshot of the donor's keywords
+excluding Support, and copies its admitted constant and On Attack registrations.
+Copied registrations use the attacker as their source. Donor departure and later
+keyword changes do not alter the snapshot. Source-bearing donors currently require
+at most one ordinary constant or On Attack registration; other donor topologies
+and effects granting Support remain explicit runtime rejections.
+
+The pinned engine applies these grants before defender selection. Passing or
+canceling at that prompt retains them until an actual attack completes or their
+target leaves play. The simulator preserves this behavior, including across
+phase boundaries. Storage is bounded to 32 lasting grants with at most 80 copied
+registrations each, checked before publishing an effect. Support state adds 5,992
+bytes of payload to the fixed Copy state; the combined runtime is 28,032 bytes
+including resolved-event and maximum captures. Card storage remains 36 bytes.
+Imports from a selected Support pool require `supportStateVersion: 1` and a
+`supportGrants` list containing the actual keyword and admitted-program snapshots.
+Pending Support attacks cannot be imported as action-window positions. Legacy
+imports remain available to selected pools that cannot reach Support. This is
+source-derived Rust coverage; no new engine differential recordings are claimed.
+
+Bounded resolved-event captures distinguish actual damage from the legacy
+numerical effect counter. Actual damage is HP-capped and zero when a Shield
+prevents the event; a step retains its source/program/instruction identity through
+nested death continuations. A pure event-window reducer may count successfully
+defeated enemy units after a complete arena defeat, excluding attachments and
+separate framework deaths. Defeat registrations may read pre-resolution
+last-known power, captured for the entire batch before attachments or sibling aura
+sources leave play. Controlled trait conditions share the complete controlled
+in-play domain with title queries, including the base zone, while excluding the
+specified physical source and respecting a deployed leader's printed traits.
+These bounded forms retain interpreter fallback where scheduling requires it.
+
+A bounded leader action/attack pair supports selecting the friendly unit with
+maximum power among units of one fixed aspect for one Experience token. A
+complete conditional factory is lowered into an explicit capture after cost
+payment, with maximum value, tie count and sole physical recipient retained in
+fixed state. A unique maximum resolves automatically; ties select live eligible
+units at the captured maximum. Power is floored at zero by the pinned unit
+helper, so negative raw power remains a zero-power candidate. Captures survive
+state copies and suspended resolution contexts and are included in hashes.
+Other source callback capture shapes remain rejected. This operation uses the
+interpreter. Its capture adds 72 bytes in isolation and 112 bytes in the combined
+layout, including padding; the combined State is 28,032 bytes and Card is 36 bytes.
+
+An unseeded live friendly-power maximum in a scalar target comparison lowers to
+an existence query that keeps the outer candidate separate from queried units.
+The empty list produces false. Selector-header IR metadata retains the exact
+maximum as decimal text, or `-Infinity` for an empty list; that text cannot be an
+effect amount. The complete two-sided leader includes intrinsic Support execution;
+Rust integration tests exercise deployment and a copied On Attack registration
+using the recipient's power. Isolated action diagnostics remain separate from
+those complete-card witnesses.

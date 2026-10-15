@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1127** (752 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1331**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1144** (762 from source AST; 382 metadata-only plain cards). Explicitly blocked definitions: **1314**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -12,10 +12,10 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:deckSearch | 43 | 43 |
 | trigger-alias-hook:onCardPlayed | 38 | 42 |
 | registrar:addDecreaseCostAbility | 35 | 35 |
-| no-source-for-rules-text | 33 | 33 |
 | trigger-alias-hook:onDamageDealt | 30 | 34 |
 | unused-source-binding | 28 | 36 |
 | immediateEffect:disclose | 26 | 27 |
+| no-source-for-rules-text | 26 | 26 |
 | class-state:cardsPlayedThisPhaseWatcher | 25 | 25 |
 | trigger-alias-hook:onCardDefeated | 25 | 27 |
 | trigger-alias-hook:onLeaderDeployed | 23 | 23 |
@@ -124,7 +124,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:showUnresolvable | 4 | 5 |
 | unsupported-modifier:abilityHelper.ongoingEffects.cardCannot | 4 | 4 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities | 4 | 4 |
-| unsupported-query:reduce | 4 | 4 |
 | unsupported-query:someUnitLeftPlay | 4 | 4 |
 | unsupported-query:wasDefeatedThisPhase | 4 | 4 |
 | class-member:GetAccessor | 3 | 3 |
@@ -150,6 +149,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:getAttackersInPlay | 3 | 3 |
 | unsupported-query:isShield | 3 | 3 |
 | ability-without-effect | 2 | 2 |
+| bounded-arena-reduction | 2 | 2 |
 | cardTypeFilter:playable | 2 | 2 |
 | class-state:actionsThisPhaseWatcher | 2 | 2 |
 | class-state:cardsDrawnThisPhaseWatcher | 2 | 2 |
@@ -160,7 +160,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | cost-is-not-helper | 2 | 2 |
 | cost:defeatSelf | 2 | 2 |
 | custom-inheritance:TokenCard | 2 | 2 |
-| expression:SpreadElement | 2 | 2 |
 | expression:TemplateExpression | 2 | 2 |
 | immediateEffect:delayedCardEffect | 2 | 2 |
 | immediateEffect:distributeAdvantageAmong | 2 | 2 |
@@ -208,7 +207,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:canBeInPlay | 2 | 3 |
 | unsupported-query:canRegisterTriggeredAbilities | 2 | 2 |
 | unsupported-query:drawnCardsAmount | 2 | 2 |
-| unsupported-query:flatMap | 2 | 2 |
 | unsupported-query:getPlayers | 2 | 2 |
 | unsupported-query:getTopCardOfDeck | 2 | 2 |
 | unsupported-query:hasWeakness | 2 | 2 |
@@ -244,6 +242,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | custom-inheritance:DoubleSidedLeaderCard | 1 | 1 |
 | deck-discard-player-target | 1 | 1 |
 | dynamic-ongoing-stat-modifier | 1 | 1 |
+| expression:SpreadElement | 1 | 1 |
 | hand-discard-event-result-capture | 1 | 1 |
 | hand-discard-player-target | 1 | 1 |
 | immediateEffect:collectBounty | 1 | 1 |
@@ -287,7 +286,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:buildPlayUnitTargetResolver | 1 | 1 |
 | method:buildResourceCardFromHandIfYouDo | 1 | 1 |
 | method:buildSmuggleCardAbility | 1 | 1 |
-| method:buildSnokeAbility | 1 | 1 |
 | method:buildTargetResolvers | 1 | 1 |
 | method:buildTriggerCondition | 1 | 1 |
 | method:buildYularenEffect | 1 | 1 |
@@ -329,13 +327,11 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:getAspectCountFromEvents | 1 | 1 |
 | method:getAttackDamage | 1 | 1 |
 | method:getChosenReplacement | 1 | 1 |
-| method:getDamageAmount | 1 | 1 |
 | method:getDamagedNonLeaderDefendingUnits | 1 | 1 |
 | method:getFriendlyExhaustedUnitCount | 1 | 1 |
 | method:getHeroicCountFromCards | 1 | 1 |
 | method:getJedisInPlay | 1 | 1 |
 | method:getOddCostCountFromEvents | 1 | 1 |
-| method:getOpponentBaseDamage | 1 | 1 |
 | method:getOtherFriendlyPilotUnitsAndUpgradesCount | 1 | 1 |
 | method:getRevealedCard | 1 | 1 |
 | method:getTargetTitle | 1 | 1 |
@@ -425,7 +421,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-effect-call:this.buildAbility | 1 | 1 |
 | unsupported-effect-call:this.buildBountyHunterAttackEffect | 1 | 1 |
 | unsupported-effect-call:this.buildModifyStatsForPhaseImmediateEffect | 1 | 1 |
-| unsupported-effect-call:this.buildSnokeAbility | 1 | 2 |
 | unsupported-effect-call:this.getWatTamborEffect | 1 | 2 |
 | unsupported-effect-call:this.jarJarAbility | 1 | 2 |
 | unsupported-field:capturedByFilter | 1 | 1 |
@@ -438,7 +433,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:target | 1 | 1 |
 | unsupported-field:targetPlayer | 1 | 1 |
 | unsupported-hand-discard-field:cardCondition | 1 | 1 |
-| unsupported-modifier-keyword | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.additionalPhase | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtToOpponents | 1 | 1 |
@@ -451,7 +445,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.damageDealtByThisCardIsUnpreventable | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount | 1 | 1 |
 | unsupported-modifier:abilityHelper.ongoingEffects.gainAbility | 1 | 1 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.increaseCost | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.isLeader | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource | 1 | 1 |
@@ -469,11 +462,11 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-named-resolver-field:showUnresolvable | 1 | 1 |
 | unsupported-query:buildDefeatDefendersTitle | 1 | 1 |
 | unsupported-query:checkBobaCondition | 1 | 1 |
-| unsupported-query:controlsCardWithTrait | 1 | 1 |
 | unsupported-query:countUniqueAspects | 1 | 1 |
 | unsupported-query:countUniqueKeywords | 1 | 1 |
 | unsupported-query:damageDealtBy | 1 | 1 |
 | unsupported-query:firstOrderCardPlayedThisPhase | 1 | 2 |
+| unsupported-query:flatMap | 1 | 1 |
 | unsupported-query:friendlyHeroismCardDefeatedThisPhase | 1 | 1 |
 | unsupported-query:friendlyHeroismUnitDefeatedThisPhase | 1 | 1 |
 | unsupported-query:friendlyImperialUnitWasDefeatedThisPhase | 1 | 1 |
@@ -484,11 +477,9 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:getAttackDamage | 1 | 1 |
 | unsupported-query:getCardsPlayed | 1 | 1 |
 | unsupported-query:getCurrentValue | 1 | 1 |
-| unsupported-query:getDamageAmount | 1 | 1 |
 | unsupported-query:getDamageDealtToBaseByUnitThisAttack | 1 | 1 |
 | unsupported-query:getDefendingPlayer | 1 | 1 |
 | unsupported-query:getJedisInPlay | 1 | 1 |
-| unsupported-query:getOpponentBaseDamage | 1 | 1 |
 | unsupported-query:getOtherFriendlyPilotUnitsAndUpgradesCount | 1 | 1 |
 | unsupported-query:getSingleTarget | 1 | 1 |
 | unsupported-query:getTopCardsOfDeckSafely | 1 | 1 |

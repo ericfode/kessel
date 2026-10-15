@@ -2,6 +2,12 @@
 #[allow(dead_code)]
 #[path = "src/ability_ir.rs"]
 mod ability_ir;
+#[allow(dead_code)]
+#[path = "src/bounded_reductions.rs"]
+mod bounded_reductions;
+#[allow(dead_code)]
+#[path = "src/live_power_maximum.rs"]
+mod live_power_maximum;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -50,8 +56,9 @@ fn targets(t: &Target) -> Result<String, String> {
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
+    if matches!(e,Effect::Damage{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated damage identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
-        return Ok("s.ability_result=0; s.ability_succeeded=false;".into());
+        return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }
     if let Effect::ModifyStats {
         power,
@@ -67,7 +74,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
         let hp = number(hp)?;
         let targets = targets(target)?;
         return Ok(format!(
-            r#"let power={power};let hp={hp};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{let next_power=s.card(id).phase_power as i64+power;let next_hp=s.card(id).phase_hp as i64+hp;if !(-65535..=65535).contains(&next_power)||!(-65535..=65535).contains(&next_hp) {{return Err("phase stat capacity exceeded".into());}}let composed_power=self.def(s,id).info.power.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+if self.keyword_amount(s,id,"grit")>0 {{s.card(id).damage as i64}} else {{0}}+next_power;let composed_hp=self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+next_hp;if composed_power>65535||composed_hp>65535 {{return Err("computed phase stats exceed capacity".into());}}s.card_mut(id).phase_power=next_power as i32;s.card_mut(id).phase_hp=next_hp as i32;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.ability_result=result;s.ability_succeeded=result>0;"#
+            r#"let power={power};let hp={hp};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{let next_power=s.card(id).phase_power as i64+power;let next_hp=s.card(id).phase_hp as i64+hp;if !(-65535..=65535).contains(&next_power)||!(-65535..=65535).contains(&next_hp) {{return Err("phase stat capacity exceeded".into());}}let composed_power=self.def(s,id).info.power.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+if self.keyword_amount(s,id,"grit")>0 {{s.card(id).damage as i64}} else {{0}}+next_power;let composed_hp=self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+next_hp;if composed_power>65535||composed_hp>65535 {{return Err("computed phase stats exceed capacity".into());}}s.card_mut(id).phase_power=next_power as i32;s.card_mut(id).phase_hp=next_hp as i32;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
         ));
     }
     let (kind, target, amount) = match e {
@@ -85,7 +92,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
         "ready"=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,false);}}",
         _=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,true);}}",
     };
-    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}} s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
+    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}} s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
 fn lower(p: &Program) -> Result<String, String> {
     if p.trigger == "constant" {
@@ -117,6 +124,8 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
+    println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");

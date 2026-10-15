@@ -16,8 +16,8 @@ fn snowtrooper_roundtrip(e: &Engine, s: &State) -> State {
 fn snowtrooper_synthetic_internal_live_expression_is_attack_specific() {
     let e = engine();
     assert!(e.by_code.contains_key("SOR_130"), "normalized complete card must be admitted by the unchanged runtime");
-    assert!(!e.by_code.contains_key("ASH_241"), "matching source syntax must not admit the unsupported Support keyword");
-    assert!(e.rejected_cards().unwrap().contains_key("ASH_241"));
+    assert!(e.by_code.contains_key("ASH_241"), "bounded Support lifecycle now admits the complete Marrok card");
+    assert!(!e.rejected_cards().unwrap().contains_key("ASH_241"));
     for seat in [Seat::P1, Seat::P2] {
         let mut s = board(&e);
         s.round = 6;

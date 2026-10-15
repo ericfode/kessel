@@ -27,6 +27,7 @@ pub fn expression(e: &Expr) -> Result<String, String> {
                 .join(",")
         ),
         Expr::Math { name, args } => {
+            if let Some((numerator,divisor))=e.bounded_floor_division() {return Ok(format!("Eval::Number(({}).number()/{divisor}i64)",sub(numerator)?));}
             if !["min", "max"].contains(&name.as_str()) {
                 return Err("unknown math operation".into());
             }
@@ -91,7 +92,12 @@ fn reference(path: &[String]) -> Result<String, String> {
     let root = p.first().copied().unwrap_or("");
     let field = p.get(1).copied();
     if root == "event" {
-        return Ok("Eval::Number(s.ability_result as i64)".into());
+        return match p.as_slice() {
+            ["event","totalDistributed"]=>Ok("Eval::Number(s.ability_result as i64)".into()),
+            ["event","damageDealt"]=>Ok("Eval::Number(s.event_result.damage_dealt as i64)".into()),
+            ["event","lastKnownInformation","power"]=>Ok("if s.last_known_source==source {Eval::Number(s.last_known_power as i64)}else{Eval::Null}".into()),
+            _=>Err("unsupported event payload".into()),
+        };
     }
     if root == "player" || root == "opponent" {
         let player = if root == "player" {
@@ -159,6 +165,9 @@ fn reference(path: &[String]) -> Result<String, String> {
 }
 fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
     let receiver = expression(receiver)?;
+    if name=="resolvedDefeatedUnitCount" {return Ok(format!("if let Eval::Player(p)={receiver} {{Eval::Number(s.event_result.defeated_units[p.index()] as i64)}}else{{Eval::Null}}"));}
+    if name=="hasControlledInPlayTrait" {let Some(Expr::Const{value})=args.first() else {return Err("trait query needs literal".into())};let text=value.as_str().ok_or("trait query needs text")?;return Ok(format!("if let Eval::Player(p)={receiver} {{Eval::Bool(self.controlled_in_play_trait(s,p,{text:?},source))}}else{{Eval::Null}}"));}
+
     if ["hasControlledInPlayTitle","hasAttachedTrait","hasAttachedNativeToken"].contains(&name) {
         let Some(Expr::Const{value})=args.first() else {return Err("query needs literal".into())};
         let text=value.as_str().ok_or("query needs text literal")?;

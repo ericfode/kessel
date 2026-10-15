@@ -47,6 +47,29 @@ impl Default for Seat {
     }
 }
 
+/// Captured modified attacks have bounded storage, including grants retained by
+/// the pinned engine when the optional attack is passed before declaration.
+pub const MAX_SUPPORT_GRANTS: usize = 32;
+pub const MAX_SUPPORT_PROGRAMS: usize = 80;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SupportGrant {
+    pub target: CardId,
+    pub donor: CardId,
+    pub programs: [u16; MAX_SUPPORT_PROGRAMS],
+    pub len: u8,
+    pub keywords: [u16; 9],
+    pub presence: u16,
+}
+impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SupportState {
+    pub grants: [SupportGrant; MAX_SUPPORT_GRANTS],
+    pub len: u8,
+    pub pending: bool,
+    pub context: ResolutionContext,
+}
+impl Default for SupportState {fn default()->Self {Self {grants:[SupportGrant::default();MAX_SUPPORT_GRANTS],len:0,pending:false,context:ResolutionContext::default()}}}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Zone {
     pub ids: [CardId; MAX_ZONE],
@@ -175,6 +198,7 @@ pub enum Decision {
     DeathOrder,
     DeathBatch,
     Terminal,
+    Support,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -237,10 +261,21 @@ impl Default for EventGroupState {
         context:Selection::default(), picks:Selection::default(), stack:[Selection::default();8], depth:0,
         records:[PreparedEvent::default();32], uniform_damage:UniformDamageState::default() } }
 }
+/// Result of one resolved instruction window. Identity is local to the active
+/// resolution; nested death windows save and restore this payload with their parent.
+/// Defeat counts include direct, successful unit defeat events only.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct StepEventResult {
+    pub source: CardId, pub program: u16, pub pc: u8,
+    pub damage_dealt: u32, pub defeated_units: [u16; 2],
+}
+impl StepEventResult {
+    pub fn for_state(s:&State)->Self {Self {source:s.source,program:s.ability_program,pc:s.ability_pc,..Self::default()}}
+}
 pub const MAX_DEATH_TRIGGERS: usize = 64;
 pub const MAX_DEATH_DEPTH: usize = 8;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct DeathTrigger { pub grantor:CardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub defer_depth: u8, pub keyword: u8 }
+pub struct DeathTrigger { pub last_known_power:u16, pub grantor:CardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub defer_depth: u8, pub keyword: u8 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DeathWindow {
     pub entries: [DeathTrigger; MAX_DEATH_TRIGGERS], pub len: u8,
@@ -252,6 +287,9 @@ impl Default for DeathWindow {
         initiator:Seat::P1, player:Seat::P1, player_chosen:false,
         group_program:0, group_source:0, group_keyword:0, resolve_all:false } }
 }
+/// One bounded property-factory evaluation, retained across its nested target prompt.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct MaximumCapture {pub power:i32,pub sole:CardId,pub count:u16}
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ResolutionContext {
     pub active: Seat,
@@ -271,15 +309,19 @@ pub struct ResolutionContext {
     pub ability_program: u16,
     pub ability_pc: u8,
     pub ability_target: CardId,
+    pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
+    pub event_result: StepEventResult,
+    pub last_known_source: CardId,
+    pub last_known_power: u16,
     pub ability_result: u16,
     pub ability_succeeded: bool,
     pub ability_return: u8,
     pub ability_committed: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, ability_selection:s.ability_selection, ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target; s.ability_selection=self.ability_selection; s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -287,6 +329,7 @@ pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow,
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub support: SupportState,
     pub death_pending: DeathWindow,
     pub death_window: DeathWindow,
     pub death_frames: [DeathFrame; MAX_DEATH_DEPTH],
@@ -326,8 +369,12 @@ pub struct State {
     pub ability_program: u16,
     pub ability_pc: u8,
     pub ability_target: CardId,
+    pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
     pub event_group: EventGroupState,
+    pub event_result: StepEventResult,
+    pub last_known_source: CardId,
+    pub last_known_power: u16,
     pub ability_result: u16,
     pub ability_succeeded: bool,
     pub ability_return: u8,
@@ -340,6 +387,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
+            support: SupportState::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
             death_frames:[DeathFrame::default();MAX_DEATH_DEPTH], death_depth:0,
             cards: [Card::default(); MAX_CARDS],
@@ -369,8 +417,12 @@ impl Default for State {
             ability_program: 0,
             ability_pc: 0,
             ability_target: 0,
+            maximum_capture:MaximumCapture::default(),
             ability_selection: Selection::default(),
             event_group: EventGroupState::default(),
+            event_result:StepEventResult::default(),
+            last_known_source:0,
+            last_known_power:0,
             ability_result: 0,
             ability_succeeded: false,
             ability_return: 0,
@@ -425,15 +477,22 @@ impl State {
             i += 1;
             h ^= key(i, v);
         };
+        fn result_values(r:StepEventResult,lki_source:CardId,lki_power:u16,put:&mut impl FnMut(u64)) {
+            if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}}
+        }
         fn context_values(c:&ResolutionContext,put:&mut impl FnMut(u64)) {
+            result_values(c.event_result,c.last_known_source,c.last_known_power,put);
             for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
+            if c.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(c.maximum_capture.power as u64);put(c.maximum_capture.sole as u64);put(c.maximum_capture.count as u64);}
         }
         fn window_values(w:&DeathWindow,put:&mut impl FnMut(u64)) {
             for v in [w.len as u64,w.initiator.index() as u64,w.player.index() as u64,w.player_chosen as u64,w.group_program as u64,w.group_source as u64,w.group_keyword as u64,w.resolve_all as u64] {put(v);}
             for e in w.entries {for v in [e.source as u64,e.program as u64,e.player.index() as u64,e.after_pc as u64,e.defer_depth as u64,e.keyword as u64] {put(v);}}
+            for (i,e) in w.entries.iter().enumerate() {if e.last_known_power!=0 {put(0x4c4b49504f574552);put(i as u64);put(e.last_known_power as u64);}}
             for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor as u64);}}
         }
+        result_values(self.event_result,self.last_known_source,self.last_known_power,&mut put);
         put(self.death_depth as u64);
         window_values(&self.death_pending,&mut put);window_values(&self.death_window,&mut put);
         for f in &self.death_frames {put(f.resume as u64);context_values(&f.context,&mut put);window_values(&f.window,&mut put);}
@@ -447,6 +506,17 @@ impl State {
         put(self.initiative.index() as u64);
         put(self.initiative_claimed as u64);
         put(self.prev_passed as u64);
+        if self.support.len != 0 || self.support.pending {
+            put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
+            for g in &self.support.grants[..self.support.len as usize] {
+                put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);
+                for &p in &g.programs[..g.len as usize] {put(p as u64);}
+                for n in g.keywords {put(n as u64);}
+            }
+            if self.support.pending {
+                context_values(&self.support.context,&mut put);
+            }
+        }
         put(self.active.index() as u64);
         put(self.action_player.map_or(0,|p|p.index() as u64+1));
         put(self.decision as u64);
@@ -468,6 +538,7 @@ impl State {
         put(self.ability_target as u64);
         put(self.ability_selection.len as u64);
         for id in self.ability_selection.hash_ids() { put(id as u64); }
+        if self.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(self.maximum_capture.power as u64);put(self.maximum_capture.sole as u64);put(self.maximum_capture.count as u64);}
         let g = &self.event_group;
         put(g.discard_count as u64);put(g.discard_owner.index() as u64);
         put(g.active as u64); put(g.resolving as u64); put(g.replacement_done as u64); put(g.shield_mask as u64); put(g.shield_count as u64); put(g.shield_priority as u64); put(g.shield_stash_len as u64); for id in g.shield_stash { put(id as u64); } put(g.initiator.index() as u64); put(g.pc as u64); put(g.count as u64); put(g.depth as u64);
@@ -513,6 +584,7 @@ impl State {
             put(c.phase_power as u64);
             put(c.phase_hp as u64);
             for amount in c.phase_keyword_values { put(amount as u64); }
+            if c.hidden_state&24!=0 {put(0x535550);put((c.hidden_state&24) as u64);}
             put(c.phase_lost_keywords as u64);
             put(c.phase_keyword_presence as u64);
             if self.hidden_history_exact {
@@ -597,10 +669,10 @@ impl Action {
 impl Card {
     pub fn hidden_qualified(&self)->bool {self.hidden_state & 1 != 0}
     pub fn set_hidden_qualified(&mut self,value:bool) {self.hidden_state=(self.hidden_state & !1)|u8::from(value);}
-    pub fn phase_keyword_mask(&self)->u16 {self.phase_keyword_presence as u16 | if self.hidden_state&2!=0 {1<<8}else{0}}
-    pub fn lost_keyword_mask(&self)->u16 {self.phase_lost_keywords as u16 | if self.hidden_state&4!=0 {1<<8}else{0}}
-    pub fn add_phase_keyword(&mut self,index:usize) {if index==8 {self.hidden_state|=2;}else{self.phase_keyword_presence|=1<<index;}}
-    pub fn add_lost_keyword(&mut self,index:usize) {if index==8 {self.hidden_state|=4;}else{self.phase_lost_keywords|=1<<index;}}
+    pub fn phase_keyword_mask(&self)->u16 {self.phase_keyword_presence as u16 | if self.hidden_state&2!=0 {1<<8}else{0} | if self.hidden_state&8!=0 {1<<9}else{0}}
+    pub fn lost_keyword_mask(&self)->u16 {self.phase_lost_keywords as u16 | if self.hidden_state&4!=0 {1<<8}else{0} | if self.hidden_state&16!=0 {1<<9}else{0}}
+    pub fn add_phase_keyword(&mut self,index:usize) {if index==9 {self.hidden_state|=8;}else if index==8 {self.hidden_state|=2;}else{self.phase_keyword_presence|=1<<index;}}
+    pub fn add_lost_keyword(&mut self,index:usize) {if index==9 {self.hidden_state|=16;}else if index==8 {self.hidden_state|=4;}else{self.phase_lost_keywords|=1<<index;}}
     pub fn clear_hidden_phase_effects(&mut self) {self.hidden_state &= 1;}
     pub fn phase_keyword_amount(&self, index: usize) -> u16 {
         if let Some(slot) = crate::ability_ir::numeric_keyword_slot(index) { self.phase_keyword_values[slot] } else { u16::from(self.phase_keyword_mask() & (1 << index) != 0) }
