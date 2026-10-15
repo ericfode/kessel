@@ -219,7 +219,7 @@ function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = fal
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ['getArenaUnits','getPlayers','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text)) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -254,19 +254,31 @@ function arenaDamageHelper(member) {
     const query=unwrap(arena.initializer);if(!ts.isCallExpression(query)||query.questionDotToken||JSON.stringify(pathOf(query.expression))!==JSON.stringify([parameter.name.text,'player','getArenaUnits'])||query.arguments.length!==1)return null;
     const filter=unwrap(query.arguments[0]);if(!ts.isObjectLiteralExpression(filter)||filter.properties.length!==1)return null;
     const p=filter.properties[0];if(!ts.isPropertyAssignment(p)||!ts.isIdentifier(p.name)||p.name.text!=='arena'||!ts.isIdentifier(unwrap(p.initializer))||unwrap(p.initializer).text!==arenaName.name.text)return null;
-    const returned=unwrap(statements[2].expression);if(!ts.isBinaryExpression(returned)||returned.operatorToken.kind!==ts.SyntaxKind.AsteriskToken||JSON.stringify(pathOf(returned.left))!==JSON.stringify([arena.name.text,'length'])||!ts.isNumericLiteral(unwrap(returned.right))||Number(unwrap(returned.right).text)!==2)return null;
-    return {member,parameter,arenaName,arena,used:false};
+    const returned=unwrap(statements[2].expression);if(JSON.stringify(pathOf(returned))===JSON.stringify([arena.name.text,'length']))return {member,parameter,arenaName,arena,used:false,multiplier:1};
+    if(!ts.isBinaryExpression(returned)||returned.operatorToken.kind!==ts.SyntaxKind.AsteriskToken||JSON.stringify(pathOf(returned.left))!==JSON.stringify([arena.name.text,'length'])||!ts.isNumericLiteral(unwrap(returned.right))||Number(unwrap(returned.right).text)!==2)return null;
+    return {member,parameter,arenaName,arena,used:false,multiplier:2};
+}
+function spaceCountComparisonHelper(member) {
+    if(!ts.isMethodDeclaration(member)||!ts.isIdentifier(member.name)||!/^controls[A-Z]\w*$/.test(member.name.text)||isNonSynchronous(member)||hasDecorators(member)||member.modifiers?.length!==1||member.modifiers[0].kind!==ts.SyntaxKind.PrivateKeyword||member.parameters.length!==1)return null;
+    const parameter=member.parameters[0];if(!ts.isIdentifier(parameter.name)||parameter.name.text==='ZoneName'||unsupportedParameterBinding(parameter)||member.body?.statements.length!==1)return null;
+    const statement=member.body.statements[0];if(!ts.isReturnStatement(statement)||!statement.expression)return null;
+    const comparison=unwrap(statement.expression);if(!ts.isBinaryExpression(comparison)||comparison.operatorToken.kind!==ts.SyntaxKind.LessThanToken)return null;
+    const count=(n,opponent)=>{n=unwrap(n);if(!ts.isPropertyAccessExpression(n)||n.questionDotToken||n.name.text!=='length')return false;const q=unwrap(n.expression);if(!ts.isCallExpression(q)||q.questionDotToken||!ts.isPropertyAccessExpression(q.expression)||q.expression.questionDotToken||q.expression.name.text!=='getArenaUnits'||q.arguments.length!==1)return false;const owner=q.expression.expression.getText().replace(/\s/g,'');if(owner!==parameter.name.text+'.player'+(opponent?'.opponent':''))return false;const filter=unwrap(q.arguments[0]);if(!ts.isObjectLiteralExpression(filter)||filter.properties.length!==1)return false;const p=filter.properties[0];return ts.isPropertyAssignment(p)&&ts.isIdentifier(p.name)&&p.name.text==='arena'&&ts.isPropertyAccessExpression(p.initializer)&&!p.initializer.questionDotToken&&ts.isIdentifier(p.initializer.expression)&&p.initializer.expression.text==='ZoneName'&&p.initializer.name.text==='SpaceArena';};
+    if(!count(comparison.left,false)||!count(comparison.right,true))return null;
+    return {member,parameter,spaceComparison:comparison,used:false};
 }
 function arenaDamageHelperCall(node,ctx,helper) {
     const call=node.expression,arg=node.arguments[0];
     // Only arrows retain the card receiver through property-factory callbacks.
     for(let ancestor=node.parent;ancestor;ancestor=ancestor.parent)if(ts.isFunctionExpression(ancestor))fail(ctx,node,'arena-damage-helper-nonlexical-this');
-    if(!ctx.callbackStage||!ctx.damageRecipientScope||node.questionDotToken||call.questionDotToken||call.expression.kind!==ts.SyntaxKind.ThisKeyword||node.arguments.length!==1||!ts.isIdentifier(arg)||ctx.constants.has(arg.text)||ctx.scope.get(arg.text)?.path?.join('.')!=='context')fail(ctx,node,'arena-damage-helper-call-scope');
-    const child={...ctx,scope:new Map(ctx.scope),constants:new Map(ctx.constants)};
-    child.scope.set(helper.parameter.name.text,reference('context'));child.constants.delete(helper.parameter.name.text);
+    if(!ctx.callbackStage||(!helper.spaceComparison&&!ctx.damageRecipientScope)||node.questionDotToken||call.questionDotToken||call.expression.kind!==ts.SyntaxKind.ThisKeyword||node.arguments.length!==1||!ts.isIdentifier(arg)||ctx.constants.has(arg.text)||ctx.scope.get(arg.text)?.path?.join('.')!=='context')fail(ctx,node,'arena-damage-helper-call-scope');
+    const child={...ctx,scope:new Map(),constants:new Map()};
+    child.scope.set(helper.parameter.name.text,reference('context'));
+    if(helper.spaceComparison){helper.used=true;return expr(helper.spaceComparison,child);}
     bindConstant(child,helper.arenaName.name.text,helper.arenaName.initializer);bindConstant(child,helper.arena.name.text,helper.arena.initializer);
     const query=readConstant(helper.arena.name.text,child);helper.used=true;
-    return {kind:'binary',op:'*',left:arenaQuery(query,constantContext(query,child),'arenaUnitCount'),right:constant(2)};
+    const count=arenaQuery(query,constantContext(query,child),'arenaUnitCount');
+    return helper.multiplier===1?count:{kind:'binary',op:'*',left:count,right:constant(2)};
 }
 const isArenaList = (value) => ['arenaList', 'arenaFilter'].includes(value.kind);
 function arenaCapture(node, ctx, bound = new Set(), seen = new Set()) {
@@ -1261,7 +1273,12 @@ function compileSource(text, file, enums = {}) {
     out.className = cls.name?.text;
     out.baseClass = cls.heritageClauses?.flatMap((c) => c.types.map((t) => t.expression.getText(source)))[0] || null;
     ctx.arenaDamageHelpers=new Map();
-    if(out.baseClass==='EventCard')for(const member of cls.members){const helper=arenaDamageHelper(member);if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);}
+    if(['EventCard','NonLeaderUnitCard'].includes(out.baseClass))for(const member of cls.members){
+        const damage=arenaDamageHelper(member);
+        const damageClass=damage&&((out.baseClass==='EventCard'&&damage.multiplier===2)||(out.baseClass==='NonLeaderUnitCard'&&damage.multiplier===1));
+        const helper=damageClass?damage:out.baseClass==='NonLeaderUnitCard'?spaceCountComparisonHelper(member):null;
+        if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);
+    }
     for (const member of cls.members) {
         if (ts.isMethodDeclaration(member) && member.name.getText(source) === 'getImplementationId') {
             const returned = member.body?.statements.find(ts.isReturnStatement)?.expression;

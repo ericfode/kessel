@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1093** (721 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1365**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1095** (723 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1363**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -137,7 +137,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:exhaustResources | 3 | 3 |
 | immediateEffect:forThisRoundCardEffect | 3 | 4 |
 | immediateEffect:optional | 3 | 3 |
-| method:getDamageFromContext | 3 | 3 |
 | registrar:addGainWhenAttackEndsAbilityTargetingAttached | 3 | 3 |
 | registrar:addPreEnterPlayAbility | 3 | 3 |
 | trigger-alias-hook:onCardAbilityInitiated | 3 | 5 |
@@ -180,6 +179,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:friendlyUnitsEnteredPlayThisPhaseCount | 2 | 2 |
 | method:getAbilityRegistrar | 2 | 2 |
 | method:getContextTitle | 2 | 2 |
+| method:getDamageFromContext | 2 | 2 |
 | method:getTarget | 2 | 2 |
 | method:isSameZone | 2 | 2 |
 | method:villainyCardPlayedThisPhase | 2 | 2 |
@@ -304,7 +304,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:checkZoneAndOwnershipOfCard | 1 | 1 |
 | method:choiceHandler | 1 | 1 |
 | method:computeCost | 1 | 1 |
-| method:controlsLessUnitsInSpaceArena | 1 | 1 |
 | method:countValidCaptureTargets | 1 | 1 |
 | method:countValidDamageInstances | 1 | 1 |
 | method:createCloneTroopers | 1 | 1 |
@@ -476,7 +475,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:buildDefeatDefendersTitle | 1 | 1 |
 | unsupported-query:checkBobaCondition | 1 | 1 |
 | unsupported-query:controlsCardWithTrait | 1 | 1 |
-| unsupported-query:controlsLessUnitsInSpaceArena | 1 | 1 |
 | unsupported-query:countUniqueAspects | 1 | 1 |
 | unsupported-query:countUniqueKeywords | 1 | 1 |
 | unsupported-query:damageDealtBy | 1 | 1 |
@@ -493,7 +491,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:getCurrentValue | 1 | 1 |
 | unsupported-query:getDamageAmount | 1 | 1 |
 | unsupported-query:getDamageDealtToBaseByUnitThisAttack | 1 | 1 |
-| unsupported-query:getDamageFromContext | 1 | 1 |
 | unsupported-query:getDefendingPlayer | 1 | 1 |
 | unsupported-query:getDrawAmount | 1 | 1 |
 | unsupported-query:getJedisInPlay | 1 | 1 |

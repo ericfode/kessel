@@ -12066,6 +12066,48 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "7610382003",
+      "internalName": "cr90-relief-runner",
+      "keywords": [
+        "restore"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "JTL_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\nWhen Defeated: Heal up to 3 damage from a unit or base.",
+      "title": "CR90 Relief Runner",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -13036,6 +13078,47 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9595057518",
+      "internalName": "special-forces-tie-fighter",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_135",
+      "setCodes": [
+        {
+          "number": 135,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 135,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: If an opponent controls more space units than you, ready this unit.",
+      "title": "Special Forces TIE Fighter",
+      "traits": [
+        "first order",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -31924,6 +32007,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0827076106",
+      "internalName": "admiral-ackbar#brilliant-strategist",
+      "keywords": [
+        "restore"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_097",
+      "setCodes": [
+        {
+          "number": 97,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 97,
+        "set": "SOR"
+      },
+      "subtitle": "Brilliant Strategist",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)\n\nWhen Played: You may deal damage to a unit equal to the number of units you control in its arena. ",
+      "title": "Admiral Ackbar",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

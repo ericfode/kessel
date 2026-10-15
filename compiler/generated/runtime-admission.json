@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "3d68dfdea2ea0fe4972fbf2ad0eeb15ffb096203e537944acbb74fb6bccafedb",
+  "catalogueHash": "8fea38ec25766c276c950c5a4fa5ad6ec1c8c07815c9758a5a56f5affecac004",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1093,
+  "irConvertedCount": 1095,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 619
+    "sourceIr": 622
   },
   "runtimeAdmittedCards": [
     {
@@ -1502,6 +1502,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "cr90-relief-runner",
+      "setCode": "JTL_071"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "wing-guard-security-team",
       "setCode": "JTL_072"
     },
@@ -1619,6 +1624,11 @@
       "implementation": "sourceIr",
       "internalName": "air-superiority",
       "setCode": "JTL_125"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "special-forces-tie-fighter",
+      "setCode": "JTL_135"
     },
     {
       "implementation": "sourceIr",
@@ -3956,6 +3966,11 @@
       "setCode": "SOR_095"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "admiral-ackbar#brilliant-strategist",
+      "setCode": "SOR_097"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "echo-base-defender",
       "setCode": "SOR_098"
@@ -4986,7 +5001,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 995,
+  "runtimeAdmittedCount": 998,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6749,11 +6764,6 @@
       "setCode": "JTL_070"
     },
     {
-      "internalName": "cr90-relief-runner",
-      "reason": "cr90-relief-runner: distribution runtime currently supports up to two healing",
-      "setCode": "JTL_071"
-    },
-    {
       "internalName": "grim-valor",
       "reason": "grim-valor: compiler rejected \"grim-valor\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/upgrades/GrimValor.ts\",\"line\":15,\"message\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\",\"pattern\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\"}]",
       "setCode": "JTL_073"
@@ -6947,11 +6957,6 @@
       "internalName": "general-hux#no-terms-no-surrender",
       "reason": "general-hux#no-terms-no-surrender: compiler rejected \"general-hux#no-terms-no-surrender\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/units/GeneralHuxNoTermsNoSurrender.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/units/GeneralHuxNoTermsNoSurrender.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/units/GeneralHuxNoTermsNoSurrender.ts\",\"line\":34,\"message\":\"unsupported-query:someCardPlayed\",\"pattern\":\"unsupported-query:someCardPlayed\"}]",
       "setCode": "JTL_134"
-    },
-    {
-      "internalName": "special-forces-tie-fighter",
-      "reason": "special-forces-tie-fighter: compiler rejected \"special-forces-tie-fighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/units/SpecialForcesTIEFighter.ts\",\"line\":18,\"message\":\"unsupported-query:controlsLessUnitsInSpaceArena\",\"pattern\":\"unsupported-query:controlsLessUnitsInSpaceArena\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/units/SpecialForcesTIEFighter.ts\",\"line\":24,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:controlsLessUnitsInSpaceArena\"}]",
-      "setCode": "JTL_135"
     },
     {
       "internalName": "vonregs-tie-interceptor#ace-of-the-first-order",
@@ -10904,11 +10909,6 @@
       "setCode": "SOR_096"
     },
     {
-      "internalName": "admiral-ackbar#brilliant-strategist",
-      "reason": "admiral-ackbar#brilliant-strategist: compiler rejected \"admiral-ackbar#brilliant-strategist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts\",\"line\":20,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":96,\"file\":\"game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts\",\"line\":32,\"message\":\"unsupported-query:getDamageFromContext\",\"pattern\":\"unsupported-query:getDamageFromContext\"}]",
-      "setCode": "SOR_097"
-    },
-    {
       "internalName": "home-one#alliance-flagship",
       "reason": "home-one#alliance-flagship: compiler rejected \"home-one#alliance-flagship\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/units/HomeOneAllianceFlagship.ts\",\"line\":23,\"message\":\"immediateEffect:playCardFromOutOfPlay\",\"pattern\":\"immediateEffect:playCardFromOutOfPlay\"}]",
       "setCode": "SOR_102"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1463,
+  "runtimeRejectedCount": 1460,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 721
+  "sourceAstConvertedCount": 723
 }

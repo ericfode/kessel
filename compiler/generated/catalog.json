@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "18c26cfbae6197461b159b4987f5ee3400c8ce7c2b4a07c123cdfea38208a7cc",
+  "compilerHash": "ad9ac0f029662ff6479fb0beb1bd4f41f5d60136f05b2191b93e23291da8c05a",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -84120,31 +84120,160 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Ready this unit",
+            "costs": [],
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "op": "<",
+                "left": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "const",
+                        "value": true
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "||",
+                        "left": {
+                          "kind": "unary",
+                          "op": "!",
+                          "value": {
+                            "kind": "const",
+                            "value": "spaceArena"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "||",
+                          "left": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "const",
+                              "value": "spaceArena"
+                            },
+                            "right": {
+                              "kind": "const",
+                              "value": "anyArena"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "ref",
+                              "path": [
+                                "card",
+                                "zoneName"
+                              ]
+                            },
+                            "right": {
+                              "kind": "const",
+                              "value": "spaceArena"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "arenaUnitCount",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "opponent"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "const",
+                        "value": true
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "||",
+                        "left": {
+                          "kind": "unary",
+                          "op": "!",
+                          "value": {
+                            "kind": "const",
+                            "value": "spaceArena"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "||",
+                          "left": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "const",
+                              "value": "spaceArena"
+                            },
+                            "right": {
+                              "kind": "const",
+                              "value": "anyArena"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "op": "===",
+                            "left": {
+                              "kind": "ref",
+                              "path": [
+                                "card",
+                                "zoneName"
+                              ]
+                            },
+                            "right": {
+                              "kind": "const",
+                              "value": "spaceArena"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "onTrue": {
+                "kind": "ready",
+                "target": "self"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLessUnitsInSpaceArena",
-          "message": "unsupported-query:controlsLessUnitsInSpaceArena",
-          "file": "game/cards/04_JTL/units/SpecialForcesTIEFighter.ts",
-          "line": 18,
-          "column": 41
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:controlsLessUnitsInSpaceArena",
-          "file": "game/cards/04_JTL/units/SpecialForcesTIEFighter.ts",
-          "line": 24,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ],
+      "diagnostics": [],
       "className": "SpecialForcesTIEFighter",
       "baseClass": "NonLeaderUnitCard",
       "id": "9595057518",
       "internalName": "special-forces-tie-fighter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Special Forces TIE Fighter",
         "subtitle": "",
@@ -84188,7 +84317,25 @@
       "dataHash": "3e4943e45eb3cbda3591d58002af770e69300aad39a548c7f297c3debd735cfc",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "binary:<",
+        "binary:===",
+        "binary:||",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:noAction",
+        "ir:query",
+        "ir:ready",
+        "ir:ref",
+        "ir:unary",
+        "query:arenaUnitCount",
+        "ref:card.zoneName",
+        "ref:opponent",
+        "ref:player",
+        "trigger:whenPlayed",
+        "unary:!"
       ]
     },
     {
@@ -194928,31 +195075,102 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Deal damage to a unit equal to the number of units your control in its arena.",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "damage",
+              "target": "chosen",
+              "amount": {
+                "kind": "query",
+                "name": "arenaUnitCount",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "||",
+                      "left": {
+                        "kind": "unary",
+                        "op": "!",
+                        "value": {
+                          "kind": "ref",
+                          "path": [
+                            "target",
+                            "zoneName"
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": "||",
+                        "left": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "target",
+                              "zoneName"
+                            ]
+                          },
+                          "right": {
+                            "kind": "const",
+                            "value": "anyArena"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "zoneName"
+                            ]
+                          },
+                          "right": {
+                            "kind": "ref",
+                            "path": [
+                              "target",
+                              "zoneName"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageFromContext",
-          "file": "game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts",
-          "line": 20,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageFromContext",
-          "message": "unsupported-query:getDamageFromContext",
-          "file": "game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts",
-          "line": 32,
-          "column": 96
-        }
-      ],
+      "diagnostics": [],
       "className": "AdmiralAckbarBrilliantStrategist",
       "baseClass": "NonLeaderUnitCard",
       "id": "0827076106",
       "internalName": "admiral-ackbar#brilliant-strategist",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Admiral Ackbar",
         "subtitle": "Brilliant Strategist",
@@ -194999,8 +195217,25 @@
         "restore": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:===",
+        "binary:||",
         "cardType:unit",
-        "keyword:restore"
+        "ir:binary",
+        "ir:const",
+        "ir:damage",
+        "ir:query",
+        "ir:ref",
+        "ir:unary",
+        "keyword:restore",
+        "query:arenaUnitCount",
+        "ref:card.zoneName",
+        "ref:player",
+        "ref:target.zoneName",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:whenPlayed",
+        "unary:!"
       ]
     },
     {

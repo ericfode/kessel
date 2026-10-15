@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "18c26cfbae6197461b159b4987f5ee3400c8ce7c2b4a07c123cdfea38208a7cc",
+  "compilerHash": "ad9ac0f029662ff6479fb0beb1bd4f41f5d60136f05b2191b93e23291da8c05a",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1093,
-  "sourceAstConverted": 721,
+  "converted": 1095,
+  "sourceAstConverted": 723,
   "dataOnlyConverted": 372,
-  "unconverted": 1365,
+  "unconverted": 1363,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -360,6 +360,7 @@
     "JTL_117",
     "JTL_118",
     "JTL_125",
+    "JTL_135",
     "JTL_140",
     "JTL_144",
     "JTL_151",
@@ -881,6 +882,7 @@
     "SOR_090",
     "SOR_094",
     "SOR_095",
+    "SOR_097",
     "SOR_098",
     "SOR_099",
     "SOR_100",
@@ -3457,15 +3459,6 @@
       ]
     },
     {
-      "pattern": "method:getDamageFromContext",
-      "occurrences": 3,
-      "cards": [
-        "JTL_129",
-        "LOF_101",
-        "SOR_097"
-      ]
-    },
-    {
       "pattern": "registrar:addGainWhenAttackEndsAbilityTargetingAttached",
       "occurrences": 3,
       "cards": [
@@ -3813,6 +3806,14 @@
       "cards": [
         "ASH_013",
         "ASH_016"
+      ]
+    },
+    {
+      "pattern": "method:getDamageFromContext",
+      "occurrences": 2,
+      "cards": [
+        "JTL_129",
+        "LOF_101"
       ]
     },
     {
@@ -4717,13 +4718,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_108"
-      ]
-    },
-    {
-      "pattern": "method:controlsLessUnitsInSpaceArena",
-      "occurrences": 1,
-      "cards": [
-        "JTL_135"
       ]
     },
     {
@@ -5924,13 +5918,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:controlsLessUnitsInSpaceArena",
-      "occurrences": 1,
-      "cards": [
-        "JTL_135"
-      ]
-    },
-    {
       "pattern": "unsupported-query:countUniqueAspects",
       "occurrences": 1,
       "cards": [
@@ -6040,13 +6027,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_031"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:getDamageFromContext",
-      "occurrences": 1,
-      "cards": [
-        "SOR_097"
       ]
     },
     {
@@ -13742,29 +13722,6 @@
           "file": "game/cards/04_JTL/units/GeneralHuxNoTermsNoSurrender.ts",
           "line": 34,
           "column": 41
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_135",
-      "internalName": "special-forces-tie-fighter",
-      "sourcePath": "game/cards/04_JTL/units/SpecialForcesTIEFighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:controlsLessUnitsInSpaceArena",
-          "message": "unsupported-query:controlsLessUnitsInSpaceArena",
-          "file": "game/cards/04_JTL/units/SpecialForcesTIEFighter.ts",
-          "line": 18,
-          "column": 41
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:controlsLessUnitsInSpaceArena",
-          "file": "game/cards/04_JTL/units/SpecialForcesTIEFighter.ts",
-          "line": 24,
-          "column": 1,
-          "message": "Additional class method requires conversion"
         }
       ]
     },
@@ -27677,29 +27634,6 @@
           "file": "game/cards/01_SOR/units/MonMothmaVoiceoftheRebellion.ts",
           "line": 18,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_097",
-      "internalName": "admiral-ackbar#brilliant-strategist",
-      "sourcePath": "game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:getDamageFromContext",
-          "file": "game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts",
-          "line": 20,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getDamageFromContext",
-          "message": "unsupported-query:getDamageFromContext",
-          "file": "game/cards/01_SOR/units/AdmiralAckbarBrilliantStrategist.ts",
-          "line": 32,
-          "column": 96
         }
       ]
     },

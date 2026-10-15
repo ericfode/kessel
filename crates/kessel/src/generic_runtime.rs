@@ -1414,7 +1414,7 @@ impl Engine {
                 else {
                     unreachable!()
                 };
-                let amount = self.eval(s, source, 0, amount).number().clamp(0, 2);
+                let amount = self.eval(s, source, 0, amount).number().clamp(0, 3);
                 let label = format!("distribute {amount}");
                 if *can_choose_no_targets {
                     out.push(Action {

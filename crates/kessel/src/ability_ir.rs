@@ -1814,7 +1814,7 @@ impl Program {
             Effect::DistributeHealing { amount, max_targets, target_resolver, .. } => {
                 amount.validate_number()?;target_resolver.validate()?;
                 if *max_targets != 1 { return Err("distribution runtime currently supports exactly one selected target".into()); }
-                if !matches!(amount, Expr::Const{value} if value.as_u64().is_some_and(|n|n<=2)){return Err("distribution runtime currently supports up to two healing".into());}
+                if !matches!(amount, Expr::Const{value} if value.as_u64().is_some_and(|n|n<=3)){return Err("distribution runtime currently supports up to three healing".into());}
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::ReadyResources {amount,target} => {
@@ -2015,7 +2015,10 @@ impl Catalogue {
                 let hand_group=["abilities","attachCondition","piloting"].iter().any(|key|resource_hand_group(&entry[*key]));
                 if arena_damage || hand_group {
                     let registration=&entry["abilities"]["card"][0];let effect=&registration["effect"];
-                    if source_class!=Some("EventCard")||!exact_type("event")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["card"]["unique"]!=false||entry["card"]["keywords"]!=serde_json::json!([])||entry["keywordValues"]!=serde_json::json!({})||registration["trigger"]!="event"||registration["costs"]!=serde_json::json!([])||!registration["condition"].is_null()||registration["optional"]==true||registration["coordinate"]==true||registration["requiresConfirmation"]==true||!(registration["contextTitle"].is_null()||registration["contextTitle"]==serde_json::json!([]))||!(registration["targetResolvers"].is_null()||registration["targetResolvers"]==serde_json::json!([]))||!registration["then"].is_null()||!registration["ifYouDo"].is_null() {
+                    let ordinary_unit_arena=arena_damage&&!hand_group&&source_class==Some("NonLeaderUnitCard")&&exact_type("unit");
+                    if ordinary_unit_arena {
+                        if sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({"restore":1})||entry["card"]["keywords"]!=serde_json::json!(["restore"])||registration["trigger"]!="whenPlayed"||registration["costs"]!=serde_json::json!([])||!registration["condition"].is_null()||registration["coordinate"]==true||registration["requiresConfirmation"]==true||!(registration["contextTitle"].is_null()||registration["contextTitle"]==serde_json::json!([]))||!(registration["targetResolvers"].is_null()||registration["targetResolvers"]==serde_json::json!([]))||!registration["then"].is_null()||!registration["ifYouDo"].is_null() {return Err("unit target-arena damage requires a sole complete ordinary play registration with reviewed Restore".into());}
+                    } else if source_class!=Some("EventCard")||!exact_type("event")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["card"]["unique"]!=false||entry["card"]["keywords"]!=serde_json::json!([])||entry["keywordValues"]!=serde_json::json!({})||registration["trigger"]!="event"||registration["costs"]!=serde_json::json!([])||!registration["condition"].is_null()||registration["optional"]==true||registration["coordinate"]==true||registration["requiresConfirmation"]==true||!(registration["contextTitle"].is_null()||registration["contextTitle"]==serde_json::json!([]))||!(registration["targetResolvers"].is_null()||registration["targetResolvers"]==serde_json::json!([]))||!registration["then"].is_null()||!registration["ifYouDo"].is_null() {
                         return Err("target-arena damage and resource hand groups require a sole complete ordinary event registration".into());
                     }
                     if arena_damage && (hand_group||effect["kind"]!="damage"||effect["target"]!="chosen"||!target_arena_count(&effect["amount"])||!["any","self","opponent"].iter().any(|owner|registration["targetResolver"]==serde_json::json!({"owner":owner,"type":"unit","zone":"anyAttackable"}))) {return Err("target-arena damage requires its scalar chosen-unit resolver".into());}
@@ -2023,6 +2026,21 @@ impl Catalogue {
                         let effects=effect["effects"].as_array().ok_or("resource hand group requires finite effects")?;
                         if arena_damage||!registration["targetResolver"].is_null()||effect["kind"]!="simultaneous"||effects.len()!=2||effects[0]["kind"]!="draw"||!matches!(effects[0]["target"].as_str(),Some("ownPlayer"|"enemyPlayer"))||effects[1]["kind"]!="conditional"||effects[1]["onTrue"]["kind"]!="discardOwnHand"||!matches!(effects[1]["onTrue"]["target"].as_str(),Some("ownPlayer"|"enemyPlayer"))||effects[1]["onFalse"]["kind"]!="noAction" {return Err("resource hand group requires own draw then conditional opponent hand discard".into());}
                     }
+                }
+                fn healing_above_two(value:&Value)->bool {
+                    (value["kind"]=="distributeHealing"&&value["amount"]["kind"]=="const"&&value["amount"]["value"].as_u64().is_some_and(|n|n>2)) || match value {Value::Array(items)=>items.iter().any(healing_above_two),Value::Object(object)=>object.values().any(healing_above_two),_=>false}
+                }
+                if ["abilities","attachCondition","piloting"].iter().any(|key|healing_above_two(&entry[*key])) {
+                    let a=&entry["abilities"]["card"][0];let effect=&a["effect"];
+                    if source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({"restore":2})||entry["card"]["keywords"]!=serde_json::json!(["restore"])||a["trigger"]!="whenDefeated"||a["costs"]!=serde_json::json!([])||a["optional"]==true||!a["condition"].is_null()||a["coordinate"]==true||a["requiresConfirmation"]==true||!(a["contextTitle"].is_null()||a["contextTitle"]==serde_json::json!([]))||!a["targetResolver"].is_null()||!(a["targetResolvers"].is_null()||a["targetResolvers"]==serde_json::json!([]))||!a["then"].is_null()||!a["ifYouDo"].is_null()||effect["kind"]!="distributeHealing"||effect["maxTargets"]!=1||effect["amount"]!=serde_json::json!({"kind":"const","value":3})||effect["canChooseNoTargets"]!=true||effect["canDistributeLess"]!=true||!["any","self","opponent"].iter().any(|owner|["any","unit","base"].iter().any(|kind|effect["targetResolver"]==serde_json::json!({"owner":owner,"type":kind,"zone":"anyAttackable"}))) {return Err("three-point distribution requires complete ordinary death healing with one recipient and reviewed Restore".into());}
+                }
+                fn space_ready(value:&Value)->bool {
+                    fn space(v:&Value)->bool {(v["kind"]=="const"&&v["value"]=="spaceArena")||match v {Value::Array(items)=>items.iter().any(space),Value::Object(object)=>object.values().any(space),_=>false}}
+                    (value["kind"]=="conditional"&&value["onTrue"]==serde_json::json!({"kind":"ready","target":"self"})&&((contains_query_named(&value["condition"],"arenaUnitCount")&&space(&value["condition"]))||(value["condition"]["kind"]=="const"&&value["condition"]["value"].is_boolean()))) || match value {Value::Array(items)=>items.iter().any(space_ready),Value::Object(object)=>object.values().any(space_ready),_=>false}
+                }
+                if ["abilities","attachCondition","piloting"].iter().any(|key|space_ready(&entry[*key])) {
+                    let a=&entry["abilities"]["card"][0];
+                    if source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||a["trigger"]!="whenPlayed"||a["costs"]!=serde_json::json!([])||a["optional"]==true||!a["condition"].is_null()||a["coordinate"]==true||a["requiresConfirmation"]==true||!(a["contextTitle"].is_null()||a["contextTitle"]==serde_json::json!([]))||!a["targetResolver"].is_null()||!(a["targetResolvers"].is_null()||a["targetResolvers"]==serde_json::json!([]))||!a["then"].is_null()||!a["ifYouDo"].is_null()||a["effect"]["kind"]!="conditional"||a["effect"]["onTrue"]!=serde_json::json!({"kind":"ready","target":"self"})||a["effect"]["onFalse"]!=serde_json::json!({"kind":"noAction"}) {return Err("space-count readiness requires complete sole ordinary unit play metadata".into());}
                 }
                 if ["abilities","attachCondition","piloting"].iter().any(|key|contains_presence_query(&entry[*key])) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)) {return Err("arena-card/deployed-leader queries require ordinary unit card-side metadata".into());}
                 fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
@@ -2486,5 +2504,36 @@ mod event_helper_metadata_tests {
             let mut cripple=entry("SHD_156");cripple["abilities"]["card"][0]["effect"]["effects"][1]["condition"]=json!({"kind":"const","value":condition});assert!(admitted(cripple.clone()));cripple["baseClass"]=json!("UnknownCard");assert!(!admitted(cripple));
         }
         let mut cripple=entry("SHD_156");cripple["abilities"]["card"][0]["effect"]["effects"][1]["condition"]["op"]=json!(">=");assert!(admitted(cripple));
+    }
+}
+
+#[cfg(test)]
+mod bounded_unit_helper_metadata_tests {
+    use super::*;use serde_json::json;
+    fn entry(id:&str)->Value {let catalog:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==id).unwrap().clone()}
+    fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_owned();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
+    #[test]
+    fn complete_unit_helpers_reject_metadata_and_registration_scope_changes() {
+        for id in ["SOR_097","JTL_135","JTL_071"] {
+            let source=entry(id);assert!(admitted(source.clone()),"positive {id}");
+            for (class,types) in [(json!(null),json!(["unit"])),(json!("UnknownCard"),json!(["unit"])),(json!("EventCard"),json!(["event"])),(json!("LeaderUnitCard"),json!(["leader"])),(json!("TokenUnitCard"),json!(["token","unit"])),(json!("UpgradeCard"),json!(["upgrade"]))] {let mut bad=source.clone();bad["baseClass"]=class;bad["card"]["types"]=types;assert!(!admitted(bad),"class/types {id}");}
+            for key in ["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp","epicAction"] {let mut bad=source.clone();bad["card"][key]=json!("unsupported");assert!(!admitted(bad),"metadata {id}/{key}");}
+            for key in ["attachCondition","piloting"] {let mut bad=source.clone();bad[key]=json!({});assert!(!admitted(bad));}
+            let mut bad=source.clone();bad["card"]["unique"]=Value::Null;assert!(!admitted(bad));
+            let mut bad=source.clone();bad["keywordValues"]=json!({"raid":1});assert!(!admitted(bad));
+            for (key,value) in [("coordinate",json!(true)),("requiresConfirmation",json!(true)),("condition",json!({"kind":"const","value":true})),("costs",json!([{"kind":"exhaustSelf"}])),("contextTitle",json!([{"kind":"const","value":"other"}])),("then",json!({"title":"other","effect":{"kind":"noAction"}})),("ifYouDo",json!({"title":"other","effect":{"kind":"noAction"}}))] {let mut bad=source.clone();bad["abilities"]["card"][0][key]=value;assert!(!admitted(bad),"registration {id}/{key}");}
+            let mut bad=source.clone();bad["card"]["keywords"]=json!(["raid"]);assert!(!admitted(bad));
+            let mut bad=source.clone();bad["abilities"]["card"][0]["targetResolvers"]=json!([{ "name":"other","chooser":"self","targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"},"effect":{"kind":"damage","target":"chosen","amount":{"kind":"const","value":1}} }]);assert!(!admitted(bad));
+            for side in ["unit","leader"] {let mut bad=source.clone();bad["abilities"][side]=bad["abilities"]["card"].clone();assert!(!admitted(bad));}
+            let mut bad=source.clone();bad["abilities"]["card"].as_array_mut().unwrap().push(source["abilities"]["card"][0].clone());assert!(!admitted(bad));
+        }
+    }
+    #[test]
+    fn preserves_existing_forms_and_executable_scope_mutants() {
+        for id in ["SEC_130","SHD_156","TWI_099","TWI_137","LOF_234","LOF_246","SEC_005","TWI_044"] {assert!(admitted(entry(id)),"preserve {id}");}
+        for owner in ["any","self","opponent"] {let mut a=entry("SOR_097");a["abilities"]["card"][0]["targetResolver"]["owner"]=json!(owner);assert!(admitted(a));for kind in ["any","unit","base"] {let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["targetResolver"]=json!({"owner":owner,"type":kind,"zone":"anyAttackable"});assert!(admitted(h));}}
+        for condition in [true,false] {let mut tie=entry("JTL_135");tie["abilities"]["card"][0]["effect"]["condition"]=json!({"kind":"const","value":condition});assert!(admitted(tie.clone()));tie["baseClass"]=json!("UnknownCard");assert!(!admitted(tie));}
+        let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["amount"]["value"]=json!(4);assert!(!admitted(h));
+        let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["maxTargets"]=json!(2);assert!(!admitted(h));
     }
 }
