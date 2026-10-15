@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "906431cfdb139d6e201a0160d33f1e34459b2984773743d5c8b2545d6ce74eda",
+  "catalogueHash": "ec6a3f81420384f96f0239ad052f00afc4b4daa88d8aefcbcf0ebed16aca3381",
   "dataOnlyConvertedCount": 375,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1119,
+  "irConvertedCount": 1120,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 375,
     "nativeAdapters": 4,
-    "sourceIr": 644
+    "sourceIr": 645
   },
   "runtimeAdmittedCards": [
     {
@@ -4717,6 +4717,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "kalani#analytical-general",
+      "setCode": "TWI_085"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "echo#valiant-arc-trooper",
       "setCode": "TWI_090"
     },
@@ -5126,7 +5131,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1023,
+  "runtimeAdmittedCount": 1024,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -11849,11 +11854,6 @@
       "setCode": "TWI_082"
     },
     {
-      "internalName": "kalani#analytical-general",
-      "reason": "kalani#analytical-general: compiler rejected \"kalani#analytical-general\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts\",\"line\":27,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"}]",
-      "setCode": "TWI_085"
-    },
-    {
       "internalName": "admiral-trench#holding-the-line",
       "reason": "admiral-trench#holding-the-line: compiler rejected \"admiral-trench#holding-the-line\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/AdmiralTrenchHoldingTheLine.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/AdmiralTrenchHoldingTheLine.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/03_TWI/units/AdmiralTrenchHoldingTheLine.ts\",\"line\":31,\"message\":\"unsupported-query:wasDefeatedThisPhase\",\"pattern\":\"unsupported-query:wasDefeatedThisPhase\"}]",
       "setCode": "TWI_086"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1435,
+  "runtimeRejectedCount": 1434,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 744
+  "sourceAstConvertedCount": 745
 }

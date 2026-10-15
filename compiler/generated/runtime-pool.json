@@ -37943,6 +37943,46 @@
       "arena": "ground",
       "aspects": [
         "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "1039176181",
+      "internalName": "kalani#analytical-general",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "TWI_085",
+      "setCodes": [
+        {
+          "number": 85,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 85,
+        "set": "TWI"
+      },
+      "subtitle": "Analytical General",
+      "text": "On Attack: You may choose another unit. If you have the initiative, you may choose up to 2 other units instead. Give each chosen unit +2/+2 for this phase.",
+      "title": "Kalani",
+      "traits": [
+        "separatist",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
         "heroism"
       ],
       "cost": 2,

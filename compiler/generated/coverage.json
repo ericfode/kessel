@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "f542a20ae8bd8e94b3811dee831b1eaf94e06c9e474aedb57521a55b5da2adf0",
+  "compilerHash": "f7ec9e8f86309afaee35988705b0e10e96f5c74a0c32bb6512505f79125818e9",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1119,
-  "sourceAstConverted": 744,
+  "converted": 1120,
+  "sourceAstConverted": 745,
   "dataOnlyConverted": 375,
-  "unconverted": 1339,
+  "unconverted": 1338,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -1041,6 +1041,7 @@
     "TWI_081",
     "TWI_083",
     "TWI_084",
+    "TWI_085",
     "TWI_090",
     "TWI_092",
     "TWI_093",
@@ -2533,22 +2534,6 @@
       ]
     },
     {
-      "pattern": "unsupported-field:numCardsFunc",
-      "occurrences": 10,
-      "cards": [
-        "HMW_105",
-        "IBH_001",
-        "IBH_005",
-        "LAW_011",
-        "LOF_009",
-        "SEC_131",
-        "SEC_196",
-        "SHD_092",
-        "TS26_012",
-        "TWI_085"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someDefeatedUnitControlledByPlayer",
       "occurrences": 10,
       "cards": [
@@ -2623,6 +2608,21 @@
         "TS26_009",
         "TS26_011",
         "TS26_056"
+      ]
+    },
+    {
+      "pattern": "unsupported-field:numCardsFunc",
+      "occurrences": 9,
+      "cards": [
+        "HMW_105",
+        "IBH_001",
+        "IBH_005",
+        "LAW_011",
+        "LOF_009",
+        "SEC_131",
+        "SEC_196",
+        "SHD_092",
+        "TS26_012"
       ]
     },
     {
@@ -30927,21 +30927,6 @@
           "file": "game/cards/03_TWI/units/MagnaguardWingLeader.ts",
           "line": 18,
           "column": 20
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_085",
-      "internalName": "kalani#analytical-general",
-      "sourcePath": "game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:numCardsFunc",
-          "message": "unsupported-field:numCardsFunc",
-          "file": "game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts",
-          "line": 27,
-          "column": 31
         }
       ]
     },

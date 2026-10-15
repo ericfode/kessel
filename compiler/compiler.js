@@ -5,6 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
 const { normalizeDamageDefaultSource } = require('./damage-default-source');
+const { normalizeInitiativeUpTo } = require('./initiative-up-to');
 const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
 const SCHEMA = 'swu-card-ir/v1';
 const VERSION = 1;
@@ -1452,6 +1453,10 @@ function normalizeSingletonExhaust(result) {
     next.effect.effects.forEach(effect=>{effect.target='chosen';});return result;
 }
 function ability(input, context, trigger = null, validatedObject = null) {
+    if (!validatedObject) {
+        const initiative = normalizeInitiativeUpTo(input, context, trigger, { ts, unwrap, object, literal, displayText, contextTitle, expr, effect });
+        if (initiative) return initiative;
+    }
     const obj = validatedObject || object(input, context);
     const {props,node}=obj;let ctx=obj.ctx;
     if(ctx.namedTargets?.size && (props.has('targetResolver')||props.has('targetResolvers')||props.has('cost'))) fail(ctx,node,'named-continuation-targeting-or-cost');

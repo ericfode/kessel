@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1119** (744 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1339**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1120** (745 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1338**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -56,12 +56,12 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | nonconstant-value | 10 | 10 |
 | registrar:addGainWhenDefeatedAbilityTargetingAttached | 10 | 10 |
 | registrar:addPilotDeploy | 10 | 10 |
-| unsupported-field:numCardsFunc | 10 | 10 |
 | unsupported-query:someDefeatedUnitControlledByPlayer | 10 | 10 |
 | unsupported-query:someUnitAttackedControlledByPlayer | 10 | 11 |
 | immediateEffect:playCardFromOutOfPlay | 9 | 10 |
 | immediateEffect:reveal | 9 | 9 |
 | simultaneous-factory-shape | 9 | 9 |
+| unsupported-field:numCardsFunc | 9 | 9 |
 | unsupported-field:options | 9 | 9 |
 | custom-inheritance:LAWCommonBase | 8 | 8 |
 | custom-inheritance:LofCommonForceBase | 8 | 8 |

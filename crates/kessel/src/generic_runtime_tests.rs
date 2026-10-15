@@ -3602,3 +3602,6 @@ mod batch_plain_upgrade_tests;
 
 #[path = "cleanup_integration_tests.rs"]
 mod cleanup_integration_tests;
+
+#[path = "replacement_initiative_tests.rs"]
+mod replacement_initiative_tests;

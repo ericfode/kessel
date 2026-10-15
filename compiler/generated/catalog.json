@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "f542a20ae8bd8e94b3811dee831b1eaf94e06c9e474aedb57521a55b5da2adf0",
+  "compilerHash": "f7ec9e8f86309afaee35988705b0e10e96f5c74a0c32bb6512505f79125818e9",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -225213,23 +225213,197 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "You may choose another unit. If you have the initiative, you may choose up to 2 other units instead. Give each chosen unit +2/+2 for this phase.",
+            "costs": [],
+            "contextTitle": [
+              {
+                "kind": "const",
+                "value": "Give +2/+2 for this phase to up to "
+              },
+              {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "query",
+                  "name": "hasInitiative",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": []
+                },
+                "then": {
+                  "kind": "const",
+                  "value": 2
+                },
+                "else": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              {
+                "kind": "const",
+                "value": " other "
+              },
+              {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "query",
+                      "name": "hasInitiative",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "player"
+                        ]
+                      },
+                      "args": []
+                    },
+                    "then": {
+                      "kind": "const",
+                      "value": 2
+                    },
+                    "else": {
+                      "kind": "const",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                },
+                "then": {
+                  "kind": "const",
+                  "value": "unit"
+                },
+                "else": {
+                  "kind": "const",
+                  "value": "units"
+                }
+              },
+              {
+                "kind": "const",
+                "value": ""
+              }
+            ],
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasInitiative",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": []
+              },
+              "onTrue": {
+                "kind": "select",
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "unit",
+                  "zone": "arena",
+                  "predicate": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  },
+                  "mode": "upTo",
+                  "count": {
+                    "kind": "const",
+                    "value": 2
+                  },
+                  "optional": true
+                },
+                "effect": {
+                  "kind": "modifyStats",
+                  "target": "chosen",
+                  "duration": "phase",
+                  "power": {
+                    "kind": "const",
+                    "value": 2
+                  },
+                  "hp": {
+                    "kind": "const",
+                    "value": 2
+                  }
+                }
+              },
+              "onFalse": {
+                "kind": "select",
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "unit",
+                  "zone": "arena",
+                  "predicate": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "source"
+                      ]
+                    }
+                  },
+                  "mode": "upTo",
+                  "count": {
+                    "kind": "const",
+                    "value": 1
+                  },
+                  "optional": true
+                },
+                "effect": {
+                  "kind": "modifyStats",
+                  "target": "chosen",
+                  "duration": "phase",
+                  "power": {
+                    "kind": "const",
+                    "value": 2
+                  },
+                  "hp": {
+                    "kind": "const",
+                    "value": 2
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:numCardsFunc",
-          "message": "unsupported-field:numCardsFunc",
-          "file": "game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts",
-          "line": 27,
-          "column": 31
-        }
-      ],
+      "diagnostics": [],
       "className": "KalaniAnalyticalGeneral",
       "baseClass": "NonLeaderUnitCard",
       "id": "1039176181",
       "internalName": "kalani#analytical-general",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Kalani",
         "subtitle": "Analytical General",
@@ -225272,7 +225446,25 @@
       "dataHash": "045201e811369ba1956cb1ee08c303de7d7de574a10e199809d06a5c911e5059",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "ability:then",
+        "binary:!==",
+        "binary:===",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "ir:select",
+        "query:hasInitiative",
+        "ref:card",
+        "ref:player",
+        "ref:source",
+        "targetMode:upTo",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:onAttack"
       ]
     },
     {
