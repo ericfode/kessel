@@ -1,8 +1,8 @@
 {
-  "catalogueHash": "9b566a12cab7e95d24e66b0cc2d0f5a7a4df7fae2d4449eb1697d93f0eff1abe",
+  "catalogueHash": "e9df1bff778b2a5e7a28a02916138fb9ddd09ddf244ba8bdd6624fa01ea0dba9",
   "dataOnlyConvertedCount": 382,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1144,
+  "irConvertedCount": 1221,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 382,
@@ -5330,7 +5330,7 @@
     },
     {
       "internalName": "vane#quarrelsome-pirate",
-      "reason": "vane#quarrelsome-pirate: compiler rejected \"vane#quarrelsome-pirate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/08_ASH/leaders/VaneQuarrelsomePirate.ts\",\"line\":19,\"message\":\"cost:defeat\",\"pattern\":\"cost:defeat\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":72,\"file\":\"game/cards/08_ASH/leaders/VaneQuarrelsomePirate.ts\",\"line\":44,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
+      "reason": "vane#quarrelsome-pirate: compiler rejected \"vane#quarrelsome-pirate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/08_ASH/leaders/VaneQuarrelsomePirate.ts\",\"line\":19,\"message\":\"cost:defeat\",\"pattern\":\"cost:defeat\"}]",
       "setCode": "ASH_012"
     },
     {
@@ -5410,7 +5410,7 @@
     },
     {
       "internalName": "purrgil-ultra",
-      "reason": "purrgil-ultra: compiler rejected \"purrgil-ultra\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":77,\"file\":\"game/cards/08_ASH/units/PurrgilUltra.ts\",\"line\":25,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "purrgil-ultra: compiler rejected \"purrgil-ultra\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":77,\"file\":\"game/cards/08_ASH/units/PurrgilUltra.ts\",\"line\":25,\"message\":\"unimplemented-context-field:undefined\",\"pattern\":\"unimplemented-context-field:undefined\"}]",
       "setCode": "ASH_038"
     },
     {
@@ -5535,7 +5535,7 @@
     },
     {
       "internalName": "buy-time",
-      "reason": "buy-time: compiler rejected \"buy-time\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/08_ASH/events/BuyTime.ts\",\"line\":23,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "buy-time: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "ASH_091"
     },
     {
@@ -5720,7 +5720,7 @@
     },
     {
       "internalName": "migs-mayfeld#how-about-a-toast",
-      "reason": "migs-mayfeld#how-about-a-toast: compiler rejected \"migs-mayfeld#how-about-a-toast\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/MigsMayfeldHowAboutAToast.ts\",\"line\":18,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
+      "reason": "migs-mayfeld#how-about-a-toast: compiler rejected \"migs-mayfeld#how-about-a-toast\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/MigsMayfeldHowAboutAToast.ts\",\"line\":18,\"message\":\"unsupported-attack-reference\",\"pattern\":\"unsupported-attack-reference\"}]",
       "setCode": "ASH_168"
     },
     {
@@ -5730,7 +5730,7 @@
     },
     {
       "internalName": "razor-crest#outfitted-armament",
-      "reason": "razor-crest#outfitted-armament: compiler rejected \"razor-crest#outfitted-armament\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/RazorCrestOutfittedArmament.ts\",\"line\":23,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "razor-crest#outfitted-armament: only phase stat modifications execute",
       "setCode": "ASH_172"
     },
     {
@@ -5815,7 +5815,7 @@
     },
     {
       "internalName": "mandos-n1-starfighter#faster-than-a-fathier",
-      "reason": "mandos-n1-starfighter#faster-than-a-fathier: compiler rejected \"mandos-n1-starfighter#faster-than-a-fathier\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/MandosN1StarfighterFasterThanAFathier.ts\",\"line\":25,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "mandos-n1-starfighter#faster-than-a-fathier: mixed upgrade selector domains are not modeled",
       "setCode": "ASH_203"
     },
     {
@@ -5835,7 +5835,7 @@
     },
     {
       "internalName": "heroic-purrgil",
-      "reason": "heroic-purrgil: compiler rejected \"heroic-purrgil\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":69,\"file\":\"game/cards/08_ASH/units/HeroicPurrgil.ts\",\"line\":17,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "heroic-purrgil: compiler rejected \"heroic-purrgil\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":69,\"file\":\"game/cards/08_ASH/units/HeroicPurrgil.ts\",\"line\":17,\"message\":\"unsupported-attack-reference\",\"pattern\":\"unsupported-attack-reference\"}]",
       "setCode": "ASH_207"
     },
     {
@@ -6065,7 +6065,7 @@
     },
     {
       "internalName": "bossk#cruel-hunter",
-      "reason": "bossk#cruel-hunter: compiler rejected \"bossk#cruel-hunter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":112,\"file\":\"game/cards/09_HMW/leaders/BosskCruelHunter.ts\",\"line\":35,\"message\":\"unsupported-query:isTokenUpgrade\",\"pattern\":\"unsupported-query:isTokenUpgrade\"}]",
+      "reason": "bossk#cruel-hunter: invalid ability IR: unknown variant `collection`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_015"
     },
     {
@@ -6105,7 +6105,7 @@
     },
     {
       "internalName": "keeper-of-skara-nal#awoken",
-      "reason": "keeper-of-skara-nal#awoken: compiler rejected \"keeper-of-skara-nal#awoken\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/09_HMW/units/KeeperOfSkaraNalAwoken.ts\",\"line\":30,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "keeper-of-skara-nal#awoken: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "HMW_041"
     },
     {
@@ -6130,7 +6130,7 @@
     },
     {
       "internalName": "eravana#hauling-rathtars",
-      "reason": "eravana#hauling-rathtars: compiler rejected \"eravana#hauling-rathtars\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/09_HMW/units/EravanaHaulingRathtars.ts\",\"line\":18,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "eravana#hauling-rathtars: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "HMW_047"
     },
     {
@@ -6170,7 +6170,7 @@
     },
     {
       "internalName": "boss-lyonie#hypnotized",
-      "reason": "boss-lyonie#hypnotized: compiler rejected \"boss-lyonie#hypnotized\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/09_HMW/units/BossLyonieHypnotized.ts\",\"line\":26,\"message\":\"unsupported-query:isTokenUpgrade\",\"pattern\":\"unsupported-query:isTokenUpgrade\"}]",
+      "reason": "boss-lyonie#hypnotized: parent references require an ordinary attached upgrade",
       "setCode": "HMW_057"
     },
     {
@@ -6195,12 +6195,12 @@
     },
     {
       "internalName": "carrion-spike#harbinger-of-tyranny",
-      "reason": "carrion-spike#harbinger-of-tyranny: compiler rejected \"carrion-spike#harbinger-of-tyranny\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":87,\"file\":\"game/cards/09_HMW/units/CarrionSpikeHarbingerOfTyranny.ts\",\"line\":20,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "carrion-spike#harbinger-of-tyranny: invalid ability IR: unknown variant `memberPath`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_066"
     },
     {
       "internalName": "the-great-progenitor#first-of-the-drengir",
-      "reason": "the-great-progenitor#first-of-the-drengir: compiler rejected \"the-great-progenitor#first-of-the-drengir\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhase\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":27,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":43,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:weaknessTokenCount\"}]",
+      "reason": "the-great-progenitor#first-of-the-drengir: compiler rejected \"the-great-progenitor#first-of-the-drengir\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhase\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":97,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":26,\"message\":\"unsupported-query:pluralize\",\"pattern\":\"unsupported-query:pluralize\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts\",\"line\":43,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:weaknessTokenCount\"}]",
       "setCode": "HMW_067"
     },
     {
@@ -6215,7 +6215,7 @@
     },
     {
       "internalName": "boss-nass#otoh-gunga-boss",
-      "reason": "boss-nass#otoh-gunga-boss: compiler rejected \"boss-nass#otoh-gunga-boss\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":51,\"file\":\"game/cards/09_HMW/units/BossNassOtohGungaBoss.ts\",\"line\":25,\"message\":\"unsupported-query:isShield\",\"pattern\":\"unsupported-query:isShield\"}]",
+      "reason": "boss-nass#otoh-gunga-boss: compiler rejected \"boss-nass#otoh-gunga-boss\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/09_HMW/units/BossNassOtohGungaBoss.ts\",\"line\":31,\"message\":\"unsupported-token-field:enterPlayEffect\",\"pattern\":\"unsupported-token-field:enterPlayEffect\"}]",
       "setCode": "HMW_077"
     },
     {
@@ -6250,7 +6250,7 @@
     },
     {
       "internalName": "resonate",
-      "reason": "resonate: compiler rejected \"resonate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/events/Resonate.ts\",\"line\":18,\"message\":\"arena-card-query-type\",\"pattern\":\"arena-card-query-type\"}]",
+      "reason": "resonate: leader trait union requires complete ordinary unit source",
       "setCode": "HMW_098"
     },
     {
@@ -6350,7 +6350,7 @@
     },
     {
       "internalName": "chewbaccas-bowcaster#handcrafted-tradition",
-      "reason": "chewbaccas-bowcaster#handcrafted-tradition: compiler rejected \"chewbaccas-bowcaster#handcrafted-tradition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/upgrades/ChewbaccasBowcasterHandcraftedTradition.ts\",\"line\":20,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "chewbaccas-bowcaster#handcrafted-tradition: compiler rejected \"chewbaccas-bowcaster#handcrafted-tradition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/09_HMW/upgrades/ChewbaccasBowcasterHandcraftedTradition.ts\",\"line\":6,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
       "setCode": "HMW_127"
     },
     {
@@ -6365,12 +6365,12 @@
     },
     {
       "internalName": "commander-gree#of-the-41st-elite-corps",
-      "reason": "commander-gree#of-the-41st-elite-corps: compiler rejected \"commander-gree#of-the-41st-elite-corps\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/09_HMW/units/CommanderGreeOfThe41stEliteCorps.ts\",\"line\":18,\"message\":\"context.player.getInPlayCards({\\n                type: [WildcardCardType.Unit, WildcardCardType.Upgrade]\\n            })\\n                .flatMap((x) => x.aspects)\\n                .filter((x) => x === Aspect.Command)\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "commander-gree#of-the-41st-elite-corps: unsupported runtime query inPlayAspectIconCount",
       "setCode": "HMW_138"
     },
     {
       "internalName": "rex#outserved-his-purpose",
-      "reason": "rex#outserved-his-purpose: compiler rejected \"rex#outserved-his-purpose\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/09_HMW/units/RexOutservedHisPurpose.ts\",\"line\":20,\"message\":\"card.getConstantAbilities()\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "rex#outserved-his-purpose: invalid ability IR: unknown variant `abilityInventoryLength`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_141"
     },
     {
@@ -6395,7 +6395,7 @@
     },
     {
       "internalName": "migrate",
-      "reason": "migrate: compiler rejected \"migrate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/09_HMW/events/Migrate.ts\",\"line\":17,\"message\":\"Math.floor(context.player.resources.length / 3)\",\"pattern\":\"nonconstant-value\"}]",
+      "reason": "migrate: invalid ability IR: unknown variant `createTokenUnitsDynamic`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "HMW_150"
     },
     {
@@ -6425,7 +6425,7 @@
     },
     {
       "internalName": "raze-to-ruin",
-      "reason": "raze-to-ruin: compiler rejected \"raze-to-ruin\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/09_HMW/events/RazeToRuin.ts\",\"line\":18,\"message\":\"(player) => Math.max(0, player.hand.length - 3)\",\"pattern\":\"nonconstant-value\"}]",
+      "reason": "raze-to-ruin: invalid ability IR: unknown variant `discardOwnHandPerPlayer`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "HMW_161"
     },
     {
@@ -6495,12 +6495,12 @@
     },
     {
       "internalName": "catch-the-scent",
-      "reason": "catch-the-scent: compiler rejected \"catch-the-scent\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/09_HMW/events/CatchTheScent.ts\",\"line\":18,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "catch-the-scent: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "HMW_195"
     },
     {
       "internalName": "qimir#everyone-has-a-weakness",
-      "reason": "qimir#everyone-has-a-weakness: compiler rejected \"qimir#everyone-has-a-weakness\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/09_HMW/units/QimirEveryoneHasAWeakness.ts\",\"line\":16,\"message\":\"deck-discard-event-result-capture\",\"pattern\":\"deck-discard-event-result-capture\"}]",
+      "reason": "qimir#everyone-has-a-weakness: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_196"
     },
     {
@@ -6685,7 +6685,7 @@
     },
     {
       "internalName": "han-solo#scruffylooking-nerf-herder",
-      "reason": "han-solo#scruffylooking-nerf-herder: compiler rejected \"han-solo#scruffylooking-nerf-herder\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts\",\"line\":16,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "han-solo#scruffylooking-nerf-herder: only phase stat modifications execute",
       "setCode": "IBH_010"
     },
     {
@@ -6840,7 +6840,7 @@
     },
     {
       "internalName": "chimaera#reinforcing-the-center",
-      "reason": "chimaera#reinforcing-the-center: compiler rejected \"chimaera#reinforcing-the-center\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/04_JTL/units/ChimaeraReinforcingTheCenter.ts\",\"line\":27,\"message\":\"unsupported-query:canRegisterTriggeredAbilities\",\"pattern\":\"unsupported-query:canRegisterTriggeredAbilities\"}]",
+      "reason": "chimaera#reinforcing-the-center: invalid ability IR: unknown variant `useWhenDefeatedAbility`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "JTL_039"
     },
     {
@@ -6920,7 +6920,7 @@
     },
     {
       "internalName": "uwing-lander",
-      "reason": "uwing-lander: compiler rejected \"uwing-lander\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/04_JTL/units/UWingLander.ts\",\"line\":26,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "uwing-lander: compiler rejected \"uwing-lander\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/04_JTL/units/UWingLander.ts\",\"line\":29,\"message\":\"named-target-card-domain\",\"pattern\":\"named-target-card-domain\"}]",
       "setCode": "JTL_070"
     },
     {
@@ -6935,7 +6935,7 @@
     },
     {
       "internalName": "covering-the-wing",
-      "reason": "covering-the-wing: compiler rejected \"covering-the-wing\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":47,\"file\":\"game/cards/04_JTL/events/CoveringTheWing.ts\",\"line\":23,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "covering-the-wing: invalid ability IR: unknown variant `resultIncludes`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_076"
     },
     {
@@ -7015,7 +7015,7 @@
     },
     {
       "internalName": "unity-of-purpose",
-      "reason": "unity-of-purpose: compiler rejected \"unity-of-purpose\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":44,\"file\":\"game/cards/04_JTL/events/UnityOfPurpose.ts\",\"line\":17,\"message\":\"new Set(context.player.getArenaUnits().map((x) => x.title))\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "unity-of-purpose: arena-list phase stats require bounded signed literals",
       "setCode": "JTL_106"
     },
     {
@@ -7085,7 +7085,7 @@
     },
     {
       "internalName": "timely-reinforcements",
-      "reason": "timely-reinforcements: compiler rejected \"timely-reinforcements\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/04_JTL/events/TimelyReinforcements.ts\",\"line\":19,\"message\":\"Math.floor(context.player.opponent.resources.length / 2)\",\"pattern\":\"nonconstant-value\"}]",
+      "reason": "timely-reinforcements: invalid ability IR: unknown variant `createTokenUnitsDynamic`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "JTL_130"
     },
     {
@@ -7245,7 +7245,7 @@
     },
     {
       "internalName": "shoot-down",
-      "reason": "shoot-down: compiler rejected \"shoot-down\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/04_JTL/events/ShootDown.ts\",\"line\":25,\"message\":\"unimplemented-context-field:resolvedEvents\",\"pattern\":\"unimplemented-context-field:resolvedEvents\"}]",
+      "reason": "shoot-down: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_176"
     },
     {
@@ -7260,7 +7260,7 @@
     },
     {
       "internalName": "piercing-shot",
-      "reason": "piercing-shot: compiler rejected \"piercing-shot\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":71,\"file\":\"game/cards/04_JTL/events/PiercingShot.ts\",\"line\":21,\"message\":\"unsupported-query:isShield\",\"pattern\":\"unsupported-query:isShield\"}]",
+      "reason": "piercing-shot: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "JTL_180"
     },
     {
@@ -7345,12 +7345,12 @@
     },
     {
       "internalName": "shuttle-tydirium#fly-casual",
-      "reason": "shuttle-tydirium#fly-casual: compiler rejected \"shuttle-tydirium#fly-casual\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/units/ShuttleTydiriumFlyCasual.ts\",\"line\":24,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "shuttle-tydirium#fly-casual: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_200"
     },
     {
       "internalName": "ahsoka-tano#chasing-whispers",
-      "reason": "ahsoka-tano#chasing-whispers: compiler rejected \"ahsoka-tano#chasing-whispers\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/04_JTL/units/AhsokaTanoChasingWhispers.ts\",\"line\":24,\"message\":\"unbound-reference:EnumHelpers\",\"pattern\":\"unbound-reference:EnumHelpers\"}]",
+      "reason": "ahsoka-tano#chasing-whispers: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_201"
     },
     {
@@ -7495,7 +7495,7 @@
     },
     {
       "internalName": "sith-trooper",
-      "reason": "sith-trooper: compiler rejected \"sith-trooper\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/04_JTL/units/SithTrooper.ts\",\"line\":16,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "sith-trooper: only phase stat modifications execute",
       "setCode": "JTL_238"
     },
     {
@@ -7565,7 +7565,7 @@
     },
     {
       "internalName": "saw-gerrera#bring-down-the-empire",
-      "reason": "saw-gerrera#bring-down-the-empire: compiler rejected \"saw-gerrera#bring-down-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts\",\"line\":23,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts\",\"line\":45,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "saw-gerrera#bring-down-the-empire: compiler rejected \"saw-gerrera#bring-down-the-empire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts\",\"line\":23,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts\",\"line\":51,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "LAW_001"
     },
     {
@@ -7690,7 +7690,7 @@
     },
     {
       "internalName": "shipbreaking-yard",
-      "reason": "shipbreaking-yard: compiler rejected \"shipbreaking-yard\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":40,\"file\":\"game/cards/07_LAW/bases/ShipbreakingYard.ts\",\"line\":22,\"message\":\"unimplemented-context-field:events\",\"pattern\":\"unimplemented-context-field:events\"}]",
+      "reason": "shipbreaking-yard: compiler rejected \"shipbreaking-yard\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":40,\"file\":\"game/cards/07_LAW/bases/ShipbreakingYard.ts\",\"line\":22,\"message\":\"event-result-explicit-index-and-field\",\"pattern\":\"event-result-explicit-index-and-field\"}]",
       "setCode": "LAW_026"
     },
     {
@@ -7720,7 +7720,7 @@
     },
     {
       "internalName": "hounds-tooth#hunters-approach",
-      "reason": "hounds-tooth#hunters-approach: compiler rejected \"hounds-tooth#hunters-approach\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/units/HoundsToothHuntersApproach.ts\",\"line\":18,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "hounds-tooth#hunters-approach: invalid ability IR: unknown field `attackerMustSurvive`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_033"
     },
     {
@@ -7775,7 +7775,7 @@
     },
     {
       "internalName": "maul#master-of-the-shadow-collective",
-      "reason": "maul#master-of-the-shadow-collective: compiler rejected \"maul#master-of-the-shadow-collective\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:damageDealtThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":25,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "maul#master-of-the-shadow-collective: compiler rejected \"maul#master-of-the-shadow-collective\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:damageDealtThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts\",\"line\":28,\"message\":\"unsupported-query:unitHasDealtCombatDamageToBaseThisAttack\",\"pattern\":\"unsupported-query:unitHasDealtCombatDamageToBaseThisAttack\"}]",
       "setCode": "LAW_054"
     },
     {
@@ -7830,7 +7830,7 @@
     },
     {
       "internalName": "maz-kanata#wheres-my-boyfriend",
-      "reason": "maz-kanata#wheres-my-boyfriend: compiler rejected \"maz-kanata#wheres-my-boyfriend\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/units/MazKanataWheresMyBoyfriend.ts\",\"line\":19,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "maz-kanata#wheres-my-boyfriend: compiler rejected \"maz-kanata#wheres-my-boyfriend\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_LAW/units/MazKanataWheresMyBoyfriend.ts\",\"line\":20,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "LAW_074"
     },
     {
@@ -7900,7 +7900,7 @@
     },
     {
       "internalName": "choke-on-aspirations",
-      "reason": "choke-on-aspirations: compiler rejected \"choke-on-aspirations\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/07_LAW/events/ChokeOnAspirations.ts\",\"line\":29,\"message\":\"unimplemented-context-field:events\",\"pattern\":\"unimplemented-context-field:events\"}]",
+      "reason": "choke-on-aspirations: invalid ability IR: unknown variant `distributeDamage`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LAW_102"
     },
     {
@@ -7925,7 +7925,7 @@
     },
     {
       "internalName": "leias-disguise",
-      "reason": "leias-disguise: compiler rejected \"leias-disguise\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":20,\"message\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":26,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "leias-disguise: compiler rejected \"leias-disguise\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":20,\"message\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\"}]",
       "setCode": "LAW_111"
     },
     {
@@ -8075,7 +8075,7 @@
     },
     {
       "internalName": "common-cause",
-      "reason": "common-cause: compiler rejected \"common-cause\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/07_LAW/events/CommonCause.ts\",\"line\":18,\"message\":\"new Set(context.player.getArenaUnits().flatMap((x) => x.aspects))\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "common-cause: unsupported runtime query arenaDistinctAspectCount",
       "setCode": "LAW_167"
     },
     {
@@ -8095,7 +8095,7 @@
     },
     {
       "internalName": "bt1#blastomech",
-      "reason": "bt1#blastomech: compiler rejected \"bt1#blastomech\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/07_LAW/units/BT-1Blastomech.ts\",\"line\":16,\"message\":\"deck-discard-event-result-capture\",\"pattern\":\"deck-discard-event-result-capture\"}]",
+      "reason": "bt1#blastomech: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_173"
     },
     {
@@ -8135,7 +8135,7 @@
     },
     {
       "internalName": "doctor-aphra#digging-for-answers",
-      "reason": "doctor-aphra#digging-for-answers: compiler rejected \"doctor-aphra#digging-for-answers\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/07_LAW/units/DoctorAphraDiggingForAnswers.ts\",\"line\":23,\"message\":\"unimplemented-context-field:events\",\"pattern\":\"unimplemented-context-field:events\"}]",
+      "reason": "doctor-aphra#digging-for-answers: compiler rejected \"doctor-aphra#digging-for-answers\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/07_LAW/units/DoctorAphraDiggingForAnswers.ts\",\"line\":23,\"message\":\"event-result-explicit-index-and-field\",\"pattern\":\"event-result-explicit-index-and-field\"}]",
       "setCode": "LAW_194"
     },
     {
@@ -8170,7 +8170,7 @@
     },
     {
       "internalName": "daring-delve",
-      "reason": "daring-delve: compiler rejected \"daring-delve\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/07_LAW/events/DaringDelve.ts\",\"line\":23,\"message\":\"unimplemented-context-field:events\",\"pattern\":\"unimplemented-context-field:events\"}]",
+      "reason": "daring-delve: compiler rejected \"daring-delve\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/07_LAW/events/DaringDelve.ts\",\"line\":23,\"message\":\"event-result-explicit-index-and-field\",\"pattern\":\"event-result-explicit-index-and-field\"}]",
       "setCode": "LAW_203"
     },
     {
@@ -8195,7 +8195,7 @@
     },
     {
       "internalName": "collateral-damage",
-      "reason": "collateral-damage: compiler rejected \"collateral-damage\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/07_LAW/events/CollateralDamage.ts\",\"line\":35,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "collateral-damage: compiler rejected \"collateral-damage\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":57,\"file\":\"game/cards/07_LAW/events/CollateralDamage.ts\",\"line\":36,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
       "setCode": "LAW_208"
     },
     {
@@ -8215,7 +8215,7 @@
     },
     {
       "internalName": "vermillion#qiras-auction-house",
-      "reason": "vermillion#qiras-auction-house: compiler rejected \"vermillion#qiras-auction-house\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":22,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":68,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getRevealedCard\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":72,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:cardCanBePlayedBySomePlayer\"}]",
+      "reason": "vermillion#qiras-auction-house: compiler rejected \"vermillion#qiras-auction-house\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":26,\"message\":\"unsupported-field:showUnresolvable\",\"pattern\":\"unsupported-field:showUnresolvable\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":68,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getRevealedCard\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":72,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:cardCanBePlayedBySomePlayer\"}]",
       "setCode": "LAW_215"
     },
     {
@@ -8345,7 +8345,7 @@
     },
     {
       "internalName": "fire-across-the-galaxy",
-      "reason": "fire-across-the-galaxy: compiler rejected \"fire-across-the-galaxy\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/07_LAW/events/FireAcrossTheGalaxy.ts\",\"line\":24,\"message\":\"unsupported-query:canRegisterTriggeredAbilities\",\"pattern\":\"unsupported-query:canRegisterTriggeredAbilities\"}]",
+      "reason": "fire-across-the-galaxy: invalid ability IR: unknown variant `useWhenPlayedAbility`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LAW_256"
     },
     {
@@ -8425,7 +8425,7 @@
     },
     {
       "internalName": "grand-inquisitor#stories-travel-quickly",
-      "reason": "grand-inquisitor#stories-travel-quickly: compiler rejected \"grand-inquisitor#stories-travel-quickly\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/05_LOF/leaders/GrandInquisitorStoriesTravelQuickly.ts\",\"line\":20,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/05_LOF/leaders/GrandInquisitorStoriesTravelQuickly.ts\",\"line\":31,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "grand-inquisitor#stories-travel-quickly: compiler rejected \"grand-inquisitor#stories-travel-quickly\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/05_LOF/leaders/GrandInquisitorStoriesTravelQuickly.ts\",\"line\":20,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "LOF_014"
     },
     {
@@ -8435,7 +8435,7 @@
     },
     {
       "internalName": "quigon-jinn#student-of-the-living-force",
-      "reason": "quigon-jinn#student-of-the-living-force: compiler rejected \"quigon-jinn#student-of-the-living-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":22,\"message\":\"cost:useTheForce\",\"pattern\":\"cost:useTheForce\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":53,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":79,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:returnedUnitCost\"}]",
+      "reason": "quigon-jinn#student-of-the-living-force: compiler rejected \"quigon-jinn#student-of-the-living-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":22,\"message\":\"cost:useTheForce\",\"pattern\":\"cost:useTheForce\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":61,\"message\":\"unsupported-query:returnedUnitCost\",\"pattern\":\"unsupported-query:returnedUnitCost\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts\",\"line\":79,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:returnedUnitCost\"}]",
       "setCode": "LOF_016"
     },
     {
@@ -8525,7 +8525,7 @@
     },
     {
       "internalName": "pong-krell#its-treason-then",
-      "reason": "pong-krell#its-treason-then: compiler rejected \"pong-krell#its-treason-then\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/units/PongKrellItsTreasonThen.ts\",\"line\":18,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "pong-krell#its-treason-then: invalid ability IR: unknown field `attackerMustSurvive`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_038"
     },
     {
@@ -8575,7 +8575,7 @@
     },
     {
       "internalName": "axe-woves#accomplished-warrior",
-      "reason": "axe-woves#accomplished-warrior: compiler rejected \"axe-woves#accomplished-warrior\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/05_LOF/units/AxeWovesAccomplishedWarrior.ts\",\"line\":17,\"message\":\"unsupported-live-stat-expression\",\"pattern\":\"unsupported-live-stat-expression\"}]",
+      "reason": "axe-woves#accomplished-warrior: invalid ability IR: unknown variant `attachmentCount`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_062"
     },
     {
@@ -8590,7 +8590,7 @@
     },
     {
       "internalName": "chirrut-imwe#blind-but-not-deaf",
-      "reason": "chirrut-imwe#blind-but-not-deaf: compiler rejected \"chirrut-imwe#blind-but-not-deaf\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/units/ChirrutImweBlindButNotDeaf.ts\",\"line\":20,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "chirrut-imwe#blind-but-not-deaf: Force registration requires ordinary unit/event or bounded upgrade play-heal metadata",
       "setCode": "LOF_067"
     },
     {
@@ -8620,7 +8620,7 @@
     },
     {
       "internalName": "vanee#i-live-to-serve",
-      "reason": "vanee#i-live-to-serve: compiler rejected \"vanee#i-live-to-serve\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":51,\"file\":\"game/cards/05_LOF/units/VaneeILiveToServe.ts\",\"line\":24,\"message\":\"unsupported-query:isExperience\",\"pattern\":\"unsupported-query:isExperience\"}]",
+      "reason": "vanee#i-live-to-serve: parent references require an ordinary attached upgrade",
       "setCode": "LOF_082"
     },
     {
@@ -8755,7 +8755,7 @@
     },
     {
       "internalName": "darth-mauls-lightsaber",
-      "reason": "darth-mauls-lightsaber: compiler rejected \"darth-mauls-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/05_LOF/upgrades/DarthMaulsLightsaber.ts\",\"line\":16,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/05_LOF/upgrades/DarthMaulsLightsaber.ts\",\"line\":24,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "darth-mauls-lightsaber: compiler rejected \"darth-mauls-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/05_LOF/upgrades/DarthMaulsLightsaber.ts\",\"line\":16,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/05_LOF/upgrades/DarthMaulsLightsaber.ts\",\"line\":25,\"message\":\"immediateEffect:attack\",\"pattern\":\"immediateEffect:attack\"}]",
       "setCode": "LOF_140"
     },
     {
@@ -8790,7 +8790,7 @@
     },
     {
       "internalName": "infused-brawler",
-      "reason": "infused-brawler: compiler rejected \"infused-brawler\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/units/InfusedBrawler.ts\",\"line\":29,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "infused-brawler: invalid ability IR: unknown field `attackerMustSurvive`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_156"
     },
     {
@@ -8875,7 +8875,7 @@
     },
     {
       "internalName": "quigon-jinns-lightsaber",
-      "reason": "quigon-jinns-lightsaber: compiler rejected \"quigon-jinns-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":18,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":26,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":38,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:costSum\"}]",
+      "reason": "quigon-jinns-lightsaber: compiler rejected \"quigon-jinns-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":18,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":47,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":30,\"message\":\"unsupported-field:multiSelectCardCondition\",\"pattern\":\"unsupported-field:multiSelectCardCondition\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts\",\"line\":38,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:costSum\"}]",
       "setCode": "LOF_201"
     },
     {
@@ -9025,7 +9025,7 @@
     },
     {
       "internalName": "lama-su#we-modified-their-genetics",
-      "reason": "lama-su#we-modified-their-genetics: compiler rejected \"lama-su#we-modified-their-genetics\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/LamaSuWeModifiedTheirGenetics.ts\",\"line\":28,\"message\":\"immediateEffect:playCardFromHand\",\"pattern\":\"immediateEffect:playCardFromHand\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/LamaSuWeModifiedTheirGenetics.ts\",\"line\":53,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "lama-su#we-modified-their-genetics: compiler rejected \"lama-su#we-modified-their-genetics\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/LamaSuWeModifiedTheirGenetics.ts\",\"line\":28,\"message\":\"immediateEffect:playCardFromHand\",\"pattern\":\"immediateEffect:playCardFromHand\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/LamaSuWeModifiedTheirGenetics.ts\",\"line\":57,\"message\":\"immediateEffect:playCardFromOutOfPlay\",\"pattern\":\"immediateEffect:playCardFromOutOfPlay\"}]",
       "setCode": "SEC_003"
     },
     {
@@ -9035,7 +9035,7 @@
     },
     {
       "internalName": "colonel-yularen#this-is-why-we-plan",
-      "reason": "colonel-yularen#this-is-why-we-plan: compiler rejected \"colonel-yularen#this-is-why-we-plan\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/ColonelYularenThisIsWhyWePlan.ts\",\"line\":18,\"message\":\"immediateEffect:attack\",\"pattern\":\"immediateEffect:attack\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/ColonelYularenThisIsWhyWePlan.ts\",\"line\":33,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "colonel-yularen#this-is-why-we-plan: compiler rejected \"colonel-yularen#this-is-why-we-plan\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/leaders/ColonelYularenThisIsWhyWePlan.ts\",\"line\":18,\"message\":\"immediateEffect:attack\",\"pattern\":\"immediateEffect:attack\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_SEC/leaders/ColonelYularenThisIsWhyWePlan.ts\",\"line\":35,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "SEC_006"
     },
     {
@@ -9170,7 +9170,7 @@
     },
     {
       "internalName": "escape-pod",
-      "reason": "escape-pod: compiler rejected \"escape-pod\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/EscapePod.ts\",\"line\":23,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "escape-pod: invalid ability IR: unknown variant `capture`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SEC_056"
     },
     {
@@ -9205,7 +9205,7 @@
     },
     {
       "internalName": "lando-calrissian#trust-me",
-      "reason": "lando-calrissian#trust-me: compiler rejected \"lando-calrissian#trust-me\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/units/LandoCalrissianTrustMe.ts\",\"line\":40,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "lando-calrissian#trust-me: invalid ability IR: missing field `effect`",
       "setCode": "SEC_068"
     },
     {
@@ -9250,7 +9250,7 @@
     },
     {
       "internalName": "chancellor-palpatine#i-am-the-senate",
-      "reason": "chancellor-palpatine#i-am-the-senate: compiler rejected \"chancellor-palpatine#i-am-the-senate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts\",\"line\":25,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "chancellor-palpatine#i-am-the-senate: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SEC_082"
     },
     {
@@ -9275,7 +9275,7 @@
     },
     {
       "internalName": "director-krennic#i-lose-nothing-but-time",
-      "reason": "director-krennic#i-lose-nothing-but-time: compiler rejected \"director-krennic#i-lose-nothing-but-time\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":39,\"file\":\"game/cards/06_SEC/units/DirectorKrennicILoseNothingButTime.ts\",\"line\":14,\"message\":\"deck-discard-event-result-capture\",\"pattern\":\"deck-discard-event-result-capture\"}]",
+      "reason": "director-krennic#i-lose-nothing-but-time: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SEC_090"
     },
     {
@@ -9295,7 +9295,7 @@
     },
     {
       "internalName": "ahsoka-tano#i-learned-it-from-you",
-      "reason": "ahsoka-tano#i-learned-it-from-you: compiler rejected \"ahsoka-tano#i-learned-it-from-you\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/AhsokaTanoILearnedItFromYou.ts\",\"line\":19,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/units/AhsokaTanoILearnedItFromYou.ts\",\"line\":16,\"message\":\"Unused binding aspects may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
+      "reason": "ahsoka-tano#i-learned-it-from-you: compiler rejected \"ahsoka-tano#i-learned-it-from-you\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_SEC/units/AhsokaTanoILearnedItFromYou.ts\",\"line\":20,\"message\":\"immediateEffect:disclose\",\"pattern\":\"immediateEffect:disclose\"}]",
       "setCode": "SEC_096"
     },
     {
@@ -9335,7 +9335,7 @@
     },
     {
       "internalName": "chancellor-valorum#civil-servant",
-      "reason": "chancellor-valorum#civil-servant: compiler rejected \"chancellor-valorum#civil-servant\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/ChancellorValorumCivilServant.ts\",\"line\":19,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/units/ChancellorValorumCivilServant.ts\",\"line\":16,\"message\":\"Unused binding aspects may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
+      "reason": "chancellor-valorum#civil-servant: compiler rejected \"chancellor-valorum#civil-servant\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_SEC/units/ChancellorValorumCivilServant.ts\",\"line\":20,\"message\":\"immediateEffect:disclose\",\"pattern\":\"immediateEffect:disclose\"}]",
       "setCode": "SEC_107"
     },
     {
@@ -9410,12 +9410,12 @@
     },
     {
       "internalName": "dryden-vos#i-get-all-worked-up",
-      "reason": "dryden-vos#i-get-all-worked-up: compiler rejected \"dryden-vos#i-get-all-worked-up\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_SEC/units/DrydenVosIGetAllWorkedUp.ts\",\"line\":19,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "dryden-vos#i-get-all-worked-up: compiler rejected \"dryden-vos#i-get-all-worked-up\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/DrydenVosIGetAllWorkedUp.ts\",\"line\":28,\"message\":\"immediateEffect:delayedCardEffect\",\"pattern\":\"immediateEffect:delayedCardEffect\"}]",
       "setCode": "SEC_137"
     },
     {
       "internalName": "miraj-scintel#the-weak-deserve-to-kneel",
-      "reason": "miraj-scintel#the-weak-deserve-to-kneel: compiler rejected \"miraj-scintel#the-weak-deserve-to-kneel\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts\",\"line\":31,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
+      "reason": "miraj-scintel#the-weak-deserve-to-kneel: compiler rejected \"miraj-scintel#the-weak-deserve-to-kneel\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts\",\"line\":31,\"message\":\"unsupported-attack-reference\",\"pattern\":\"unsupported-attack-reference\"}]",
       "setCode": "SEC_139"
     },
     {
@@ -9510,7 +9510,7 @@
     },
     {
       "internalName": "aat-incinerator",
-      "reason": "aat-incinerator: compiler rejected \"aat-incinerator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/06_SEC/units/AATIncinerator.ts\",\"line\":28,\"message\":\"unimplemented-context-field:events\",\"pattern\":\"unimplemented-context-field:events\"}]",
+      "reason": "aat-incinerator: compiler rejected \"aat-incinerator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/06_SEC/units/AATIncinerator.ts\",\"line\":28,\"message\":\"event-result-explicit-index-and-field\",\"pattern\":\"event-result-explicit-index-and-field\"}]",
       "setCode": "SEC_169"
     },
     {
@@ -9530,7 +9530,7 @@
     },
     {
       "internalName": "saw-gerreras-uwing#breaking-the-rules",
-      "reason": "saw-gerreras-uwing#breaking-the-rules: compiler rejected \"saw-gerreras-uwing#breaking-the-rules\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/SawGerrerasUWingBreakingTheRules.ts\",\"line\":17,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "saw-gerreras-uwing#breaking-the-rules: compiler rejected \"saw-gerreras-uwing#breaking-the-rules\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_SEC/units/SawGerrerasUWingBreakingTheRules.ts\",\"line\":19,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "SEC_174"
     },
     {
@@ -9610,7 +9610,7 @@
     },
     {
       "internalName": "grand-admiral-thrawn#grand-schemer",
-      "reason": "grand-admiral-thrawn#grand-schemer: compiler rejected \"grand-admiral-thrawn#grand-schemer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/06_SEC/units/GrandAdmiralThrawnGrandSchemer.ts\",\"line\":20,\"message\":\"unsupported-field:choices\",\"pattern\":\"unsupported-field:choices\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/06_SEC/units/GrandAdmiralThrawnGrandSchemer.ts\",\"line\":44,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "grand-admiral-thrawn#grand-schemer: compiler rejected \"grand-admiral-thrawn#grand-schemer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/06_SEC/units/GrandAdmiralThrawnGrandSchemer.ts\",\"line\":20,\"message\":\"unsupported-field:choices\",\"pattern\":\"unsupported-field:choices\"}]",
       "setCode": "SEC_193"
     },
     {
@@ -9620,7 +9620,7 @@
     },
     {
       "internalName": "arrest",
-      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":24,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":27,\"message\":\"immediateEffect:delayedPlayerEffect\",\"pattern\":\"immediateEffect:delayedPlayerEffect\"}]",
       "setCode": "SEC_195"
     },
     {
@@ -9645,7 +9645,7 @@
     },
     {
       "internalName": "hunter#extraordinary-tracker",
-      "reason": "hunter#extraordinary-tracker: compiler rejected \"hunter#extraordinary-tracker\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/units/HunterExtraordinaryTracker.ts\",\"line\":20,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "hunter#extraordinary-tracker: invalid ability IR: unknown variant `collection`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_208"
     },
     {
@@ -9665,7 +9665,7 @@
     },
     {
       "internalName": "libertine#under-new-ownership",
-      "reason": "libertine#under-new-ownership: compiler rejected \"libertine#under-new-ownership\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/06_SEC/units/LibertineUnderNewOwnership.ts\",\"line\":21,\"message\":\"unsupported-live-stat-expression\",\"pattern\":\"unsupported-live-stat-expression\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/06_SEC/units/LibertineUnderNewOwnership.ts\",\"line\":41,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "libertine#under-new-ownership: compiler rejected \"libertine#under-new-ownership\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/06_SEC/units/LibertineUnderNewOwnership.ts\",\"line\":21,\"message\":\"unsupported-live-stat-expression\",\"pattern\":\"unsupported-live-stat-expression\"}]",
       "setCode": "SEC_212"
     },
     {
@@ -9780,7 +9780,7 @@
     },
     {
       "internalName": "evil-is-everywhere",
-      "reason": "evil-is-everywhere: compiler rejected \"evil-is-everywhere\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/06_SEC/events/EvilIsEverywhere.ts\",\"line\":21,\"message\":\"context.player.getArenaUnits()\\n                        .flatMap((x) => x.aspects)\\n                        .filter((x) => x === Aspect.Villainy)\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "evil-is-everywhere: unsupported runtime query arenaAspectIconCount",
       "setCode": "SEC_247"
     },
     {
@@ -9790,7 +9790,7 @@
     },
     {
       "internalName": "covert-operative",
-      "reason": "covert-operative: compiler rejected \"covert-operative\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/units/CovertOperative.ts\",\"line\":21,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "covert-operative: invalid ability IR: unknown variant `capture`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SEC_253"
     },
     {
@@ -9800,7 +9800,7 @@
     },
     {
       "internalName": "moral-authority",
-      "reason": "moral-authority: compiler rejected \"moral-authority\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":118,\"file\":\"game/cards/06_SEC/upgrades/MoralAuthority.ts\",\"line\":15,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/upgrades/MoralAuthority.ts\",\"line\":22,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "moral-authority: compiler rejected \"moral-authority\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":118,\"file\":\"game/cards/06_SEC/upgrades/MoralAuthority.ts\",\"line\":15,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"}]",
       "setCode": "SEC_256"
     },
     {
@@ -9845,7 +9845,7 @@
     },
     {
       "internalName": "jabba-the-hutt#his-high-exaltedness",
-      "reason": "jabba-the-hutt#his-high-exaltedness: compiler rejected \"jabba-the-hutt#his-high-exaltedness\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":24,\"message\":\"unsupported-field:ability\",\"pattern\":\"unsupported-field:ability\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":44,\"message\":\"trigger-alias-hook:onLeaderDeployed\",\"pattern\":\"trigger-alias-hook:onLeaderDeployed\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":69,\"message\":\"unsupported-field:ability\",\"pattern\":\"unsupported-field:ability\"}]",
+      "reason": "jabba-the-hutt#his-high-exaltedness: compiler rejected \"jabba-the-hutt#his-high-exaltedness\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":26,\"message\":\"immediateEffect:forThisPhasePlayerEffect\",\"pattern\":\"immediateEffect:forThisPhasePlayerEffect\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":44,\"message\":\"trigger-alias-hook:onLeaderDeployed\",\"pattern\":\"trigger-alias-hook:onLeaderDeployed\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts\",\"line\":71,\"message\":\"immediateEffect:forThisPhasePlayerEffect\",\"pattern\":\"immediateEffect:forThisPhasePlayerEffect\"}]",
       "setCode": "SHD_006"
     },
     {
@@ -9910,7 +9910,7 @@
     },
     {
       "internalName": "hylobon-enforcer",
-      "reason": "hylobon-enforcer: compiler rejected \"hylobon-enforcer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/HylobonEnforcer.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "hylobon-enforcer: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_027"
     },
     {
@@ -9920,7 +9920,7 @@
     },
     {
       "internalName": "the-client#dictated-by-discretion",
-      "reason": "the-client#dictated-by-discretion: compiler rejected \"the-client#dictated-by-discretion\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/units/TheClientDictatedByDiscretion.ts\",\"line\":24,\"message\":\"unsupported-field:ability\",\"pattern\":\"unsupported-field:ability\"}]",
+      "reason": "the-client#dictated-by-discretion: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_031"
     },
     {
@@ -9930,7 +9930,7 @@
     },
     {
       "internalName": "synara-san#loyal-to-kragan",
-      "reason": "synara-san#loyal-to-kragan: compiler rejected \"synara-san#loyal-to-kragan\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/02_SHD/units/SynaraSanLoyalToKragan.ts\",\"line\":21,\"message\":\"unsupported-field:ability\",\"pattern\":\"unsupported-field:ability\"}]",
+      "reason": "synara-san#loyal-to-kragan: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_033"
     },
     {
@@ -9950,12 +9950,12 @@
     },
     {
       "internalName": "kuiil#i-have-spoken",
-      "reason": "kuiil#i-have-spoken: compiler rejected \"kuiil#i-have-spoken\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/02_SHD/units/KuiilIHaveSpoken.ts\",\"line\":22,\"message\":\"unsupported-query:hasMatchingAspects\",\"pattern\":\"unsupported-query:hasMatchingAspects\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/KuiilIHaveSpoken.ts\",\"line\":30,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:hasMatchingAspects\"}]",
+      "reason": "kuiil#i-have-spoken: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SHD_041"
     },
     {
       "internalName": "rose-tico#dedicated-to-the-cause",
-      "reason": "rose-tico#dedicated-to-the-cause: compiler rejected \"rose-tico#dedicated-to-the-cause\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":51,\"file\":\"game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts\",\"line\":20,\"message\":\"unsupported-query:isShield\",\"pattern\":\"unsupported-query:isShield\"}]",
+      "reason": "rose-tico#dedicated-to-the-cause: parent references require an ordinary attached upgrade",
       "setCode": "SHD_045"
     },
     {
@@ -9985,12 +9985,12 @@
     },
     {
       "internalName": "val#loyal-to-the-end",
-      "reason": "val#loyal-to-the-end: compiler rejected \"val#loyal-to-the-end\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/ValLoyalToTheEnd.ts\",\"line\":24,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "val#loyal-to-the-end: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_058"
     },
     {
       "internalName": "embo#stoic-and-resolute",
-      "reason": "embo#stoic-and-resolute: compiler rejected \"embo#stoic-and-resolute\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":26,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "embo#stoic-and-resolute: compiler rejected \"embo#stoic-and-resolute\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/02_SHD/units/EmboStoicAndResolute.ts\",\"line\":28,\"message\":\"unsupported-query:defenderWasDefeated\",\"pattern\":\"unsupported-query:defenderWasDefeated\"}]",
       "setCode": "SHD_059"
     },
     {
@@ -10010,7 +10010,7 @@
     },
     {
       "internalName": "public-enemy",
-      "reason": "public-enemy: compiler rejected \"public-enemy\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/PublicEnemy.ts\",\"line\":17,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "public-enemy: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_068"
     },
     {
@@ -10020,7 +10020,7 @@
     },
     {
       "internalName": "top-target",
-      "reason": "top-target: compiler rejected \"top-target\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/TopTarget.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "top-target: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_071"
     },
     {
@@ -10105,7 +10105,7 @@
     },
     {
       "internalName": "clone-deserter",
-      "reason": "clone-deserter: compiler rejected \"clone-deserter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/CloneDeserter.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "clone-deserter: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_095"
     },
     {
@@ -10120,7 +10120,7 @@
     },
     {
       "internalName": "echo#restored",
-      "reason": "echo#restored: compiler rejected \"echo#restored\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":40,\"file\":\"game/cards/02_SHD/units/EchoRestored.ts\",\"line\":15,\"message\":\"hand-discard-event-result-capture\",\"pattern\":\"hand-discard-event-result-capture\"}]",
+      "reason": "echo#restored: invalid ability IR: unknown variant `eventResult`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_099"
     },
     {
@@ -10145,7 +10145,7 @@
     },
     {
       "internalName": "rule-with-respect",
-      "reason": "rule-with-respect: compiler rejected \"rule-with-respect\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:attacksThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":29,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "rule-with-respect: compiler rejected \"rule-with-respect\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:attacksThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/02_SHD/events/RuleWithRespect.ts\",\"line\":31,\"message\":\"unsupported-query:getAttackersInPlay\",\"pattern\":\"unsupported-query:getAttackersInPlay\"}]",
       "setCode": "SHD_106"
     },
     {
@@ -10180,7 +10180,7 @@
     },
     {
       "internalName": "outlaw-corona",
-      "reason": "outlaw-corona: compiler rejected \"outlaw-corona\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/OutlawCorona.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "outlaw-corona: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_116"
     },
     {
@@ -10190,7 +10190,7 @@
     },
     {
       "internalName": "kihraxz-heavy-fighter",
-      "reason": "kihraxz-heavy-fighter: compiler rejected \"kihraxz-heavy-fighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/units/KihraxzHeavyFighter.ts\",\"line\":26,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "kihraxz-heavy-fighter: only phase stat modifications execute",
       "setCode": "SHD_118"
     },
     {
@@ -10200,7 +10200,7 @@
     },
     {
       "internalName": "discerning-veteran",
-      "reason": "discerning-veteran: compiler rejected \"discerning-veteran\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/units/DiscerningVeteran.ts\",\"line\":20,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "discerning-veteran: invalid ability IR: unknown variant `capture`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_120"
     },
     {
@@ -10210,17 +10210,17 @@
     },
     {
       "internalName": "bounty-hunters-quarry",
-      "reason": "bounty-hunters-quarry: compiler rejected \"bounty-hunters-quarry\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/BountyHuntersQuarry.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "bounty-hunters-quarry: compiler rejected \"bounty-hunters-quarry\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/upgrades/BountyHuntersQuarry.ts\",\"line\":20,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "SHD_123"
     },
     {
       "internalName": "legal-authority",
-      "reason": "legal-authority: compiler rejected \"legal-authority\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":87,\"file\":\"game/cards/02_SHD/upgrades/LegalAuthority.ts\",\"line\":15,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/upgrades/LegalAuthority.ts\",\"line\":22,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "legal-authority: compiler rejected \"legal-authority\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":87,\"file\":\"game/cards/02_SHD/upgrades/LegalAuthority.ts\",\"line\":15,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"}]",
       "setCode": "SHD_124"
     },
     {
       "internalName": "price-on-your-head",
-      "reason": "price-on-your-head: compiler rejected \"price-on-your-head\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/PriceOnYourHead.ts\",\"line\":17,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "price-on-your-head: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_125"
     },
     {
@@ -10250,7 +10250,7 @@
     },
     {
       "internalName": "guavian-antagonizer",
-      "reason": "guavian-antagonizer: compiler rejected \"guavian-antagonizer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/GuavianAntagonizer.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "guavian-antagonizer: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_134"
     },
     {
@@ -10320,7 +10320,7 @@
     },
     {
       "internalName": "valiant-assault-ship",
-      "reason": "valiant-assault-ship: compiler rejected \"valiant-assault-ship\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/02_SHD/units/ValiantAssaultShip.ts\",\"line\":18,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "valiant-assault-ship: only phase stat modifications execute",
       "setCode": "SHD_151"
     },
     {
@@ -10345,7 +10345,7 @@
     },
     {
       "internalName": "stolen-landspeeder",
-      "reason": "stolen-landspeeder: compiler rejected \"stolen-landspeeder\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/02_SHD/units/StolenLandspeeder.ts\",\"line\":23,\"message\":\"immediateEffect:takeControlOfUnit\",\"pattern\":\"immediateEffect:takeControlOfUnit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/StolenLandspeeder.ts\",\"line\":29,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "stolen-landspeeder: compiler rejected \"stolen-landspeeder\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/02_SHD/units/StolenLandspeeder.ts\",\"line\":23,\"message\":\"immediateEffect:takeControlOfUnit\",\"pattern\":\"immediateEffect:takeControlOfUnit\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/02_SHD/units/StolenLandspeeder.ts\",\"line\":33,\"message\":\"immediateEffect:playCardFromOutOfPlay\",\"pattern\":\"immediateEffect:playCardFromOutOfPlay\"}]",
       "setCode": "SHD_161"
     },
     {
@@ -10355,12 +10355,12 @@
     },
     {
       "internalName": "unlicensed-headhunter",
-      "reason": "unlicensed-headhunter: compiler rejected \"unlicensed-headhunter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/02_SHD/units/UnlicensedHeadhunter.ts\",\"line\":21,\"message\":\"unsupported-field:ability\",\"pattern\":\"unsupported-field:ability\"}]",
+      "reason": "unlicensed-headhunter: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_165"
     },
     {
       "internalName": "wanted-insurgents",
-      "reason": "wanted-insurgents: compiler rejected \"wanted-insurgents\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/WantedInsurgents.ts\",\"line\":15,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "wanted-insurgents: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_167"
     },
     {
@@ -10380,7 +10380,7 @@
     },
     {
       "internalName": "guild-target",
-      "reason": "guild-target: compiler rejected \"guild-target\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/GuildTarget.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "guild-target: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_173"
     },
     {
@@ -10395,7 +10395,7 @@
     },
     {
       "internalName": "death-mark",
-      "reason": "death-mark: compiler rejected \"death-mark\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/DeathMark.ts\",\"line\":17,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "death-mark: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_176"
     },
     {
@@ -10425,7 +10425,7 @@
     },
     {
       "internalName": "kintan-intimidator",
-      "reason": "kintan-intimidator: compiler rejected \"kintan-intimidator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":93,\"file\":\"game/cards/02_SHD/units/KintanIntimidator.ts\",\"line\":16,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
+      "reason": "kintan-intimidator: compiler rejected \"kintan-intimidator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":93,\"file\":\"game/cards/02_SHD/units/KintanIntimidator.ts\",\"line\":16,\"message\":\"unsupported-attack-reference\",\"pattern\":\"unsupported-attack-reference\"}]",
       "setCode": "SHD_183"
     },
     {
@@ -10435,7 +10435,7 @@
     },
     {
       "internalName": "doctor-evazan#wanted-on-twelve-systems",
-      "reason": "doctor-evazan#wanted-on-twelve-systems: compiler rejected \"doctor-evazan#wanted-on-twelve-systems\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/DoctorEvazanWantedOnTwelveSystems.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "doctor-evazan#wanted-on-twelve-systems: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_185"
     },
     {
@@ -10470,7 +10470,7 @@
     },
     {
       "internalName": "cartel-turncoat",
-      "reason": "cartel-turncoat: compiler rejected \"cartel-turncoat\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/CartelTurncoat.ts\",\"line\":14,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "cartel-turncoat: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_195"
     },
     {
@@ -10530,7 +10530,7 @@
     },
     {
       "internalName": "fugitive-wookiee",
-      "reason": "fugitive-wookiee: compiler rejected \"fugitive-wookiee\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/units/FugitiveWookiee.ts\",\"line\":15,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "fugitive-wookiee: invalid ability IR: unknown field `bounty`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_211"
     },
     {
@@ -10570,12 +10570,12 @@
     },
     {
       "internalName": "wanted",
-      "reason": "wanted: compiler rejected \"wanted\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/Wanted.ts\",\"line\":17,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "wanted: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_221"
     },
     {
       "internalName": "enticing-reward",
-      "reason": "enticing-reward: compiler rejected \"enticing-reward\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/EnticingReward.ts\",\"line\":17,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "enticing-reward: compiler rejected \"enticing-reward\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/upgrades/EnticingReward.ts\",\"line\":19,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "SHD_222"
     },
     {
@@ -10595,7 +10595,7 @@
     },
     {
       "internalName": "unrefusable-offer",
-      "reason": "unrefusable-offer: compiler rejected \"unrefusable-offer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":52,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":16,\"message\":\"arena-leader-query-scope\",\"pattern\":\"arena-leader-query-scope\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":20,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "unrefusable-offer: compiler rejected \"unrefusable-offer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":52,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":16,\"message\":\"arena-leader-query-scope\",\"pattern\":\"arena-leader-query-scope\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/02_SHD/upgrades/UnrefusableOffer.ts\",\"line\":24,\"message\":\"immediateEffect:playCard\",\"pattern\":\"immediateEffect:playCard\"}]",
       "setCode": "SHD_226"
     },
     {
@@ -10680,7 +10680,7 @@
     },
     {
       "internalName": "the-mandalorians-rifle",
-      "reason": "the-mandalorians-rifle: compiler rejected \"the-mandalorians-rifle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/02_SHD/upgrades/TheMandaloriansRifle.ts\",\"line\":17,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/02_SHD/upgrades/TheMandaloriansRifle.ts\",\"line\":27,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "the-mandalorians-rifle: compiler rejected \"the-mandalorians-rifle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/02_SHD/upgrades/TheMandaloriansRifle.ts\",\"line\":17,\"message\":\"unimplemented-context-field:controllingPlayer\",\"pattern\":\"unimplemented-context-field:controllingPlayer\"}]",
       "setCode": "SHD_251"
     },
     {
@@ -10705,7 +10705,7 @@
     },
     {
       "internalName": "rich-reward",
-      "reason": "rich-reward: compiler rejected \"rich-reward\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/RichReward.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "rich-reward: invalid ability IR: unknown variant `gainBounty`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_261"
     },
     {
@@ -10745,7 +10745,7 @@
     },
     {
       "internalName": "leia-organa#alliance-general",
-      "reason": "leia-organa#alliance-general: compiler rejected \"leia-organa#alliance-general\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/01_SOR/leaders/LeiaOrganaAllianceGeneral.ts\",\"line\":19,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/leaders/LeiaOrganaAllianceGeneral.ts\",\"line\":35,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "leia-organa#alliance-general: compiler rejected \"leia-organa#alliance-general\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/01_SOR/leaders/LeiaOrganaAllianceGeneral.ts\",\"line\":19,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/01_SOR/leaders/LeiaOrganaAllianceGeneral.ts\",\"line\":37,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "SOR_009"
     },
     {
@@ -10765,7 +10765,7 @@
     },
     {
       "internalName": "boba-fett#collecting-the-bounty",
-      "reason": "boba-fett#collecting-the-bounty: compiler rejected \"boba-fett#collecting-the-bounty\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":27,\"message\":\"trigger-alias-hook:onCardLeavesPlay\",\"pattern\":\"trigger-alias-hook:onCardLeavesPlay\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":47,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "boba-fett#collecting-the-bounty: compiler rejected \"boba-fett#collecting-the-bounty\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsLeftPlayThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":27,\"message\":\"trigger-alias-hook:onCardLeavesPlay\",\"pattern\":\"trigger-alias-hook:onCardLeavesPlay\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts\",\"line\":49,\"message\":\"unsupported-query:someUnitLeftPlay\",\"pattern\":\"unsupported-query:someUnitLeftPlay\"}]",
       "setCode": "SOR_015"
     },
     {
@@ -10895,7 +10895,7 @@
     },
     {
       "internalName": "it-binds-all-things",
-      "reason": "it-binds-all-things: invalid ability IR: unknown field `thenCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "it-binds-all-things: invalid ability IR: unknown variant `eventResult`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_075"
     },
     {
@@ -11030,7 +11030,7 @@
     },
     {
       "internalName": "vaders-lightsaber",
-      "reason": "vaders-lightsaber: compiler rejected \"vaders-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/upgrades/VadersLightsaber.ts\",\"line\":24,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "vaders-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_136"
     },
     {
@@ -11050,7 +11050,7 @@
     },
     {
       "internalName": "sabine-wren#explosives-artist",
-      "reason": "sabine-wren#explosives-artist: compiler rejected \"sabine-wren#explosives-artist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/01_SOR/units/SabineWrenExplosivesArtist.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":68,\"file\":\"game/cards/01_SOR/units/SabineWrenExplosivesArtist.ts\",\"line\":25,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
+      "reason": "sabine-wren#explosives-artist: compiler rejected \"sabine-wren#explosives-artist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/01_SOR/units/SabineWrenExplosivesArtist.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\"}]",
       "setCode": "SOR_142"
     },
     {
@@ -11065,7 +11065,7 @@
     },
     {
       "internalName": "zeb-orrelios#headstrong-warrior",
-      "reason": "zeb-orrelios#headstrong-warrior: compiler rejected \"zeb-orrelios#headstrong-warrior\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":27,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "zeb-orrelios#headstrong-warrior: compiler rejected \"zeb-orrelios#headstrong-warrior\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":19,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts\",\"line\":32,\"message\":\"unsupported-query:defenderWasDefeated\",\"pattern\":\"unsupported-query:defenderWasDefeated\"}]",
       "setCode": "SOR_146"
     },
     {
@@ -11135,7 +11135,7 @@
     },
     {
       "internalName": "smoke-and-cinders",
-      "reason": "smoke-and-cinders: compiler rejected \"smoke-and-cinders\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/01_SOR/events/SmokeAndCinders.ts\",\"line\":18,\"message\":\"(player) => Math.max(0, player.hand.length - 2)\",\"pattern\":\"nonconstant-value\"}]",
+      "reason": "smoke-and-cinders: invalid ability IR: unknown variant `discardOwnHandPerPlayer`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_174"
     },
     {
@@ -11205,7 +11205,7 @@
     },
     {
       "internalName": "ezra-bridger#resourceful-troublemaker",
-      "reason": "ezra-bridger#resourceful-troublemaker: compiler rejected \"ezra-bridger#resourceful-troublemaker\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/units/EzraBridgerResourcefulTroublemaker.ts\",\"line\":17,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "ezra-bridger#resourceful-troublemaker: compiler rejected \"ezra-bridger#resourceful-troublemaker\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/units/EzraBridgerResourcefulTroublemaker.ts\",\"line\":18,\"message\":\"immediateEffect:lookAtAndChooseOption\",\"pattern\":\"immediateEffect:lookAtAndChooseOption\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":39,\"file\":\"game/cards/01_SOR/units/EzraBridgerResourcefulTroublemaker.ts\",\"line\":19,\"message\":\"Unused binding topCardOfDeck may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "SOR_192"
     },
     {
@@ -11245,7 +11245,7 @@
     },
     {
       "internalName": "greedo#slow-on-the-draw",
-      "reason": "greedo#slow-on-the-draw: compiler rejected \"greedo#slow-on-the-draw\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/01_SOR/units/GreedoSlowOnTheDraw.ts\",\"line\":15,\"message\":\"deck-discard-event-result-capture\",\"pattern\":\"deck-discard-event-result-capture\"}]",
+      "reason": "greedo#slow-on-the-draw: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_204"
     },
     {
@@ -11410,7 +11410,7 @@
     },
     {
       "internalName": "yoda#begun-the-clone-war-has",
-      "reason": "yoda#begun-the-clone-war-has: compiler rejected \"yoda#begun-the-clone-war-has\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/units/YodaBegunTheCloneWarHas.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/07_TS26/units/YodaBegunTheCloneWarHas.ts\",\"line\":33,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "yoda#begun-the-clone-war-has: compiler rejected \"yoda#begun-the-clone-war-has\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/units/YodaBegunTheCloneWarHas.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"}]",
       "setCode": "TS26_014"
     },
     {
@@ -11425,7 +11425,7 @@
     },
     {
       "internalName": "coleman-trebor#jedi-rescuer",
-      "reason": "coleman-trebor#jedi-rescuer: compiler rejected \"coleman-trebor#jedi-rescuer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/07_TS26/units/ColemanTreborJediRescuer.ts\",\"line\":28,\"message\":\"unsupported-query:damageDealtBy\",\"pattern\":\"unsupported-query:damageDealtBy\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_TS26/units/ColemanTreborJediRescuer.ts\",\"line\":35,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:damageDealtBy\"}]",
+      "reason": "coleman-trebor#jedi-rescuer: invalid ability IR: unknown variant `eventResult`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_019"
     },
     {
@@ -11450,7 +11450,7 @@
     },
     {
       "internalName": "fortune-and-glory#hondos-luxury-yacht",
-      "reason": "fortune-and-glory#hondos-luxury-yacht: compiler rejected \"fortune-and-glory#hondos-luxury-yacht\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/07_TS26/units/FortuneAndGloryHondosLuxuryYacht.ts\",\"line\":20,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/units/FortuneAndGloryHondosLuxuryYacht.ts\",\"line\":26,\"message\":\"registrar:addBountyAbility\",\"pattern\":\"registrar:addBountyAbility\"}]",
+      "reason": "fortune-and-glory#hondos-luxury-yacht: invalid ability IR: unknown variant `capture`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "TS26_027"
     },
     {
@@ -11555,7 +11555,7 @@
     },
     {
       "internalName": "backed-by-the-pykes",
-      "reason": "backed-by-the-pykes: compiler rejected \"backed-by-the-pykes\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":52,\"file\":\"game/cards/07_TS26/events/BackedByThePykes.ts\",\"line\":25,\"message\":\"context.player.getArenaUnits()\\n                    .flatMap((x) => x.upgrades)\\n                    .filter((x) => x.isExperience())\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "backed-by-the-pykes: invalid ability IR: unknown variant `arenaAttachmentCount`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_058"
     },
     {
@@ -11570,7 +11570,7 @@
     },
     {
       "internalName": "encircle",
-      "reason": "encircle: compiler rejected \"encircle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/events/Encircle.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/07_TS26/events/Encircle.ts\",\"line\":33,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "encircle: compiler rejected \"encircle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/events/Encircle.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"}]",
       "setCode": "TS26_061"
     },
     {
@@ -11655,7 +11655,7 @@
     },
     {
       "internalName": "obiwan-kenobi#patient-mentor",
-      "reason": "obiwan-kenobi#patient-mentor: unsupported runtime reference event.card",
+      "reason": "obiwan-kenobi#patient-mentor: invalid ability IR: unknown variant `eventResult`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_003"
     },
     {
@@ -11750,7 +11750,7 @@
     },
     {
       "internalName": "general-grievous#trophy-collector",
-      "reason": "general-grievous#trophy-collector: compiler rejected \"general-grievous#trophy-collector\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/03_TWI/units/GeneralGrievousTrophyCollector.ts\",\"line\":18,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/03_TWI/units/GeneralGrievousTrophyCollector.ts\",\"line\":28,\"message\":\"context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber))\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "general-grievous#trophy-collector: compiler rejected \"general-grievous#trophy-collector\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/03_TWI/units/GeneralGrievousTrophyCollector.ts\",\"line\":18,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/03_TWI/units/GeneralGrievousTrophyCollector.ts\",\"line\":33,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"}]",
       "setCode": "TWI_034"
     },
     {
@@ -11775,7 +11775,7 @@
     },
     {
       "internalName": "lethal-crackdown",
-      "reason": "lethal-crackdown: last-known power requires scalar mandatory defeat damage registration",
+      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_041"
     },
     {
@@ -11790,7 +11790,7 @@
     },
     {
       "internalName": "for-the-republic",
-      "reason": "for-the-republic: compiler rejected \"for-the-republic\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/03_TWI/upgrades/ForTheRepublic.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/03_TWI/upgrades/ForTheRepublic.ts\",\"line\":24,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
+      "reason": "for-the-republic: compiler rejected \"for-the-republic\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/03_TWI/upgrades/ForTheRepublic.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":51,\"file\":\"game/cards/03_TWI/upgrades/ForTheRepublic.ts\",\"line\":22,\"message\":\"bounty-grant-keyword-and-ability\",\"pattern\":\"bounty-grant-keyword-and-ability\"}]",
       "setCode": "TWI_051"
     },
     {
@@ -11800,7 +11800,7 @@
     },
     {
       "internalName": "finn#on-the-run",
-      "reason": "finn#on-the-run: compiler rejected \"finn#on-the-run\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/03_TWI/units/FinnOnTheRun.ts\",\"line\":17,\"message\":\"unsupported-field:attackerMustSurvive\",\"pattern\":\"unsupported-field:attackerMustSurvive\"}]",
+      "reason": "finn#on-the-run: compiler rejected \"finn#on-the-run\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/03_TWI/units/FinnOnTheRun.ts\",\"line\":22,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility\"}]",
       "setCode": "TWI_053"
     },
     {
@@ -11885,7 +11885,7 @@
     },
     {
       "internalName": "aayla-secura#master-of-the-blade",
-      "reason": "aayla-secura#master-of-the-blade: compiler rejected \"aayla-secura#master-of-the-blade\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/03_TWI/units/AaylaSecuraMasterOfTheBlade.ts\",\"line\":22,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "aayla-secura#master-of-the-blade: compiler rejected \"aayla-secura#master-of-the-blade\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/units/AaylaSecuraMasterOfTheBlade.ts\",\"line\":24,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainDamageModificationAbility\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainDamageModificationAbility\"}]",
       "setCode": "TWI_096"
     },
     {
@@ -11920,7 +11920,7 @@
     },
     {
       "internalName": "osi-sobeck#warden-of-the-citadel",
-      "reason": "osi-sobeck#warden-of-the-citadel: compiler rejected \"osi-sobeck#warden-of-the-citadel\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/03_TWI/units/OsiSobeckWardenOfTheCitadel.ts\",\"line\":21,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "osi-sobeck#warden-of-the-citadel: invalid ability IR: unknown variant `capture`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "TWI_115"
     },
     {
@@ -11965,7 +11965,7 @@
     },
     {
       "internalName": "take-captive",
-      "reason": "take-captive: compiler rejected \"take-captive\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/02_SHD/events/TakeCaptive.ts\",\"line\":27,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "take-captive: invalid ability IR: missing field `effect`",
       "setCode": "TWI_128"
     },
     {
@@ -12020,7 +12020,7 @@
     },
     {
       "internalName": "mace-windus-lightsaber",
-      "reason": "mace-windus-lightsaber: compiler rejected \"mace-windus-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/03_TWI/upgrades/MaceWindusLightsaber.ts\",\"line\":20,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "mace-windus-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_152"
     },
     {
@@ -12080,7 +12080,7 @@
     },
     {
       "internalName": "soulless-one#customized-for-grievous",
-      "reason": "soulless-one#customized-for-grievous: compiler rejected \"soulless-one#customized-for-grievous\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/03_TWI/units/SoullessOneCustomizedForGrievous.ts\",\"line\":27,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "reason": "soulless-one#customized-for-grievous: only phase stat modifications execute",
       "setCode": "TWI_179"
     },
     {
@@ -12235,7 +12235,7 @@
     },
     {
       "internalName": "prisoner-of-war",
-      "reason": "prisoner-of-war: compiler rejected \"prisoner-of-war\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/events/PrisonerOfWar.ts\",\"line\":30,\"message\":\"immediateEffect:capture\",\"pattern\":\"immediateEffect:capture\"}]",
+      "reason": "prisoner-of-war: compiler rejected \"prisoner-of-war\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/03_TWI/events/PrisonerOfWar.ts\",\"line\":36,\"message\":\"token-player-target\",\"pattern\":\"token-player-target\"}]",
       "setCode": "TWI_227"
     },
     {
@@ -12270,7 +12270,7 @@
     },
     {
       "internalName": "ahsokas-padawan-lightsaber",
-      "reason": "ahsokas-padawan-lightsaber: compiler rejected \"ahsokas-padawan-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/03_TWI/upgrades/AhsokasPadawanLightsaber.ts\",\"line\":22,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "ahsokas-padawan-lightsaber: compiler rejected \"ahsokas-padawan-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/03_TWI/upgrades/AhsokasPadawanLightsaber.ts\",\"line\":23,\"message\":\"immediateEffect:attack\",\"pattern\":\"immediateEffect:attack\"}]",
       "setCode": "TWI_248"
     },
     {
@@ -12306,5 +12306,5 @@
   ],
   "runtimeRejectedCount": 1403,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 762
+  "sourceAstConvertedCount": 839
 }

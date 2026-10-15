@@ -1,17 +1,21 @@
 'use strict';
 
 const fs = require('fs');
+const { normalizeFiniteQuantity, resourceTokenAmount, perPlayerHandDiscard } = require('./finite-quantities');
 const {normalizeLivePowerMaximum,hasRawLivePowerMaximum}=require('./live-power-maximum');
 const {normalizeBoundedReduction,inspectReductionHelpers,reductionHelperCall,powerMaximumGrant}=require('./bounded-reductions');
 const path = require('path');
 const crypto = require('crypto');
 const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
+const { normalizeAttackEventCall } = require('./attack-duration');
 const { normalizeDamageDefaultSource } = require('./damage-default-source');
 const { normalizeControlledTitleCall } = require('./controlled-title');
 const { defeatedUnitCountHelper, normalizeDefeatedUnitCountCall } = require('./resolved-events');
+const {normalizeEventResultExpression,inspectResultHelpers,normalizeResultHelperCall,isEventResultAccess}=require('./event-result-context');
 const { inspectPhysicalAttachmentHelpers, normalizePhysicalAttachmentExpression } = require('./physical-attachments');
 const { inspectMaximumHelpers, maximumHelperCall } = require('./maximum-snapshot');
 const { normalizeKeywordCopy } = require('./keyword-copy');
+const { normalizeInventoryExpression, pendingInventoryEffect } = require('./inventory-ir');
 const { normalizeLeaderTraits } = require('./leader-traits');
 const { normalizeInitiativeUpTo } = require('./initiative-up-to');
 const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
@@ -21,9 +25,11 @@ const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');
 const constant = (value) => ({ kind: 'const', value });
 const reference = (...parts) => ({ kind: 'ref', path: parts });
 const BASIC_EFFECTS = new Set(['damage', 'heal', 'draw', 'ready', 'exhaust', 'defeat', 'giveShield', 'giveExperience', 'returnToHand', 'discardSpecificCard', 'resourceCard', 'readyResources', 'noAction']);
+const { bountyAbility, bountyGrant } = require('./bounty-registration');
+
 const TRIGGERS = { addActionAbility: 'action', addWhenPlayedAbility: 'whenPlayed', addOnAttackAbility: 'onAttack', addWhenDefeatedAbility: 'whenDefeated', setEventAbility: 'event', setEpicActionAbility: 'epicAction', addOnDefenseAbility: 'onDefense', addWhenAttackEndsAbility: 'whenAttackEnds' };
 const SIDE_METHODS = { setupCardAbilities: 'card', setupLeaderSideAbilities: 'leader', setupLeaderUnitSideAbilities: 'unit', setupLeaderBackSideAbilities: 'unit' };
-const QUERY_NAMES = new Set(['isUnit', 'isBase', 'isLeader', 'isNonLeaderUnit', 'isUpgrade', 'isToken', 'isEvent', 'hasSomeTrait', 'hasEveryTrait', 'hasSomeAspect', 'hasEveryAspect', 'hasSomeKeyword', 'hasEveryKeyword', 'getPower', 'getHp', 'getCost', 'getPrintedCost', 'hasInitiative', 'getAllUnitsInPlay', 'getUnitsInPlay', 'getCardsInZone', 'getOtherUnitsInPlay', 'getNumericKeywordTotal', 'isInPlay', 'isDeployed', 'isUpgraded', 'canBeDamaged', 'canBeExhausted']);
+const QUERY_NAMES = new Set(['isShield', 'isExperience', 'isWeakness', 'isTokenUpgrade', 'canRegisterTriggeredAbilities', 'isUnit', 'isBase', 'isLeader', 'isNonLeaderUnit', 'isUpgrade', 'isToken', 'isEvent', 'hasSomeTrait', 'hasEveryTrait', 'hasSomeAspect', 'hasEveryAspect', 'hasSomeKeyword', 'hasEveryKeyword', 'getPower', 'getHp', 'getCost', 'getPrintedCost', 'hasInitiative', 'getAllUnitsInPlay', 'getUnitsInPlay', 'getCardsInZone', 'getOtherUnitsInPlay', 'getNumericKeywordTotal', 'isInPlay', 'isDeployed', 'isUpgraded', 'canBeDamaged', 'canBeExhausted']);
 const DISPLAY_FIELDS = new Set(['effect', 'effectArgs', 'activePromptTitle', 'waitingPromptTitle', 'contextTitle', 'effectMessage', 'ongoingEffectDescription']);
 
 class Unsupported extends Error {
@@ -229,8 +235,9 @@ function normalizeRef(parts) {
 function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = false) {
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
+    if (!controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text==='upgrades') return true;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getInPlayCards','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle','getLeaderCards','getConstantAbilities','getActionAbilities','getTriggeredAbilities'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -405,6 +412,7 @@ function arenaQuery(node, ctx, name, filterProps = null) {
         intersect({ kind: 'binary', op: '||', left: { kind: 'unary', op: '!', value: arena }, right: { kind: 'binary', op: '||', left: { kind: 'binary', op: '===', left: arena, right: constant('anyArena') }, right: { kind: 'binary', op: '===', left: reference('card', 'zoneName'), right: arena } } });
     }
     for (const [field, query] of [['trait', 'hasSomeTrait'], ['aspect', 'hasSomeAspect'], ['keyword', 'hasSomeKeyword']]) if (obj.props.has(field)) {
+        if(field==='trait'){const dynamic=normalizeLeaderTraits(unwrap(obj.props.get(field)),obj.ctx,{ts,unwrap,expr,fail});if(dynamic){intersect({kind:'query',name:query,receiver:reference('card'),args:[dynamic]});continue;}}
         const value = literal(obj.props.get(field), obj.ctx);
         if (typeof value !== 'string' && !(Array.isArray(value) && value.every((v) => typeof v === 'string'))) fail(ctx, obj.props.get(field), 'arena-query-nonconstant-filter');
         if (value !== '') intersect({ kind: 'query', name: query, receiver: reference('card'), args: [Array.isArray(value) ? { kind: 'array', items: value.map(constant) } : constant(value)] });
@@ -457,11 +465,11 @@ function arenaCardExistence(node,ctx,upgrade=false) {
     if(node.questionDotToken||node.expression.questionDotToken)fail(ctx,node,'optional-arena-card-query');
     const obj=node.arguments.length?object(node.arguments[0],ctx):{props:new Map(),ctx,node};if(node.arguments.length>1)fail(ctx,node,'arena-card-query-arity');
     for(const [key,value]of obj.props)if(!(upgrade?['trait']:['trait','type']).includes(key))fail(ctx,value,'arena-card-query-filter:'+key);
-    const props=new Map(obj.props);let type=upgrade?'upgrade':null;if(props.has('type')){type=literal(props.get('type'),obj.ctx);props.delete('type');if(type!=='leaderUnit')fail(ctx,node,'arena-card-query-type');}
+    const props=new Map(obj.props);let type=upgrade?'upgrade':null;if(props.has('type')){type=literal(props.get('type'),obj.ctx);props.delete('type');if(!['leaderUnit','nonLeaderUnit'].includes(type))fail(ctx,node,'arena-card-query-type');}
     if(upgrade&&props.has('trait')){const trait=literal(props.get('trait'),obj.ctx);if(typeof trait!=='string'||!trait.length||trait.length>64)fail(ctx,node,'arena-upgrade-query-trait');}
     if(!type&&!props.has('trait'))fail(ctx,node,'arena-card-query-bounded-filter');
     const result=arenaQuery(node,ctx,'hasSomeArenaUnit',props);result.name='hasSomeArenaCard';
-    if(type){const predicate=type==='upgrade'?{kind:'query',name:'isUpgrade',receiver:reference('card'),args:[]}:{kind:'binary',op:'&&',left:{kind:'query',name:'isLeader',receiver:reference('card'),args:[]},right:{kind:'query',name:'isDeployed',receiver:reference('card'),args:[]}};result.args[0]={kind:'binary',op:'&&',left:result.args[0],right:predicate};}
+    if(type){const predicate=type==='nonLeaderUnit'?{kind:'query',name:'isNonLeaderUnit',receiver:reference('card'),args:[]}:type==='upgrade'?{kind:'query',name:'isUpgrade',receiver:reference('card'),args:[]}:{kind:'binary',op:'&&',left:{kind:'query',name:'isLeader',receiver:reference('card'),args:[]},right:{kind:'query',name:'isDeployed',receiver:reference('card'),args:[]}};result.args[0]={kind:'binary',op:'&&',left:result.args[0],right:predicate};}
     return result;
 }
 // A singleton's first element is the source exactly when the filtered arena
@@ -493,10 +501,14 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    // Lexical event reads take precedence over generic optional member paths.
+    const explicitResult=normalizeEventResultExpression(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(explicitResult)return explicitResult;
+    const inventory=normalizeInventoryExpression(node,ctx,{ts,unwrap,expr,fail});if(inventory)return inventory;
     const leaderTraits=normalizeLeaderTraits(node,ctx,{ts,unwrap,expr,fail});if(leaderTraits)return leaderTraits;
     const liveMaximum=normalizeLivePowerMaximum(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(liveMaximum)return liveMaximum;
     const reduction=normalizeBoundedReduction(node,ctx,{ts,unwrap,expr,fail});if(reduction)return reduction;
     if(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&ctx.reductionHelpers?.has(node.expression.name.text))return reductionHelperCall(node,ctx,ctx.reductionHelpers.get(node.expression.name.text),{ts,fail});
+    const resultHelper=normalizeResultHelperCall(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(resultHelper)return resultHelper;
     const eventQuery = normalizeDefeatedUnitCountCall(node, ctx, { ts, expr, fail });
     if (eventQuery) return eventQuery;
     const titleQuery = normalizeControlledTitleCall(node, ctx, { ts, unwrap, expr, fail, unshadowedEnum });
@@ -505,7 +517,10 @@ function expr(input, context, params = ['context']) {
     if (attachmentQuery) return attachmentQuery;
     const attackCondition = normalizeAttackUnitCondition(node, ctx, { ts, unwrap, expr });
     if (attackCondition) return attackCondition;
+    const attackEvent = normalizeAttackEventCall(node, ctx, { ts, unwrap, expr, fail });
+    if (attackEvent) return attackEvent;
     const singleton = singletonArenaMembership(node, ctx); if (singleton) return singleton;
+    const quantity=normalizeFiniteQuantity(node,ctx,{ts,unwrap,expr,literal,fail,unshadowedEnum});if(quantity)return quantity;
     const finite=finiteCollectionCount(node,ctx);if(finite)return finite;
     if(ctx.attachedParentTitle&&ts.isPropertyAccessExpression(node)&&node.questionDotToken&&node.name.text==='title'&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='parentCard') {const parent=expr(node.expression,ctx);if(parent.kind==='ref'&&parent.path.join('.')==='source.parentCard')return reference('source','parentCard','title');fail(ctx,node,'attached-parent-title-scope');}
 
@@ -789,6 +804,7 @@ function topDeckResourceSourceShape(out) {
     const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
     if(out.abilities.leader.length||out.abilities.unit.length||out.abilities.card.length!==1)return false;
     const a=out.abilities.card[0],resource={kind:'resourceCard',target:'ownTopDeck'};
+    if(out.baseClass==='UpgradeCard'&&a.trigger==='constant'&&a.effect?.kind==='gainBounty'&&a.effect.target==='parent'&&a.effect.duration==='persistent'&&same(a.effect.ability.effect,resource))return true;
     const fewer=(zone)=>({kind:'binary',op:'<',left:reference('player',zone,'length'),right:reference('opponent',zone,'length')});
     const conditional=(condition,onTrue)=>({kind:'conditional',condition,onTrue,onFalse:{kind:'noAction'}});
     if(out.baseClass==='EventCard') {
@@ -797,6 +813,7 @@ function topDeckResourceSourceShape(out) {
             same(a.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable',predicate:{kind:'query',name:'hasSomeTrait',receiver:reference('card'),args:[constant('imperial')]},promptTitle:'Defeat a friendly Imperial unit'})&&
             same(a.effect,{kind:'defeat',target:'chosen'})&&keys(a.ifYouDo,['title','costs','effect'])&&same(a.ifYouDo.costs,[])&&same(a.ifYouDo.effect,resource);
     }
+    if(out.baseClass==='NonLeaderUnitCard'&&a.trigger==='bounty'&&a.bounty&&keys(a,['trigger','title','costs','optional','effect','bounty'])&&same(a.costs,[])&&a.optional===true&&same(a.effect,resource))return true;
     if(out.baseClass!=='NonLeaderUnitCard'||a.trigger!=='whenPlayed'||!same(a.costs,[]))return false;
     if(keys(a,['trigger','title','costs','effect'])) {
         return same(a.effect,{kind:'sequence',effects:[conditional(fewer('hand'),{kind:'draw',target:'ownPlayer',amount:constant(1)}),conditional(fewer('resources'),resource)]});
@@ -858,6 +875,8 @@ function liveStatBounds(value, ctx, node, depth = 0) {
         if (!Number.isSafeInteger(value.value) || Math.abs(value.value) > 1000) rejected();
         return [value.value,value.value];
     }
+    if(value.kind==='attachmentCount'&&value.receiver.kind==='ref'&&['modifierTarget','source','target','card'].includes(value.receiver.path[0]))return [0,256];
+    if(value.kind==='binary'&&value.op==='??'&&value.right.kind==='const'&&value.right.value===0&&value.left.kind==='memberPath'&&value.left.steps.slice(-2).map(s=>s.property).join('.')==='upgrades.length')return [0,256];
     if (value.kind === 'ref') {
         const p=value.path.join('.');
         if (p === 'modifierTarget.damage') return [0,65535];
@@ -928,7 +947,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
         while (ts.isIdentifier(value) && ctx.constants.has(value.text)) value = unwrap(readConstant(value.text, ctx));
         const dynamic = ts.isArrowFunction(value) || ts.isFunctionExpression(value);
         if (kind === 'modifyStats') {
-            if (dynamic && duration === 'phase') fail(ctx,value,'dynamic-ongoing-stat-modifier');
+            if (dynamic && ['phase','attack'].includes(duration)) fail(ctx,value,'dynamic-ongoing-stat-modifier');
             const lowered = dynamic ? lambda(value,{...ctx,liveStats:true},['modifierTarget','context']) : {node:value,ctx};
             const obj = object(lowered.node,lowered.ctx);
             // Every modifier field is semantic; descriptive-property exemptions
@@ -951,11 +970,13 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(!list.length||list.length>8||list.some(k=>!MODIFIER_KEYWORDS.has(k)))fail(ctx,value,'unsupported-modifier-keyword');
             return list.map(keyword=>({kind,target:targetValue,duration,keyword}));
         }
-        if(dynamic&&duration==='phase')fail(ctx,value,'dynamic-ongoing-keyword-modifier');
+        if(dynamic&&['phase','attack'].includes(duration))fail(ctx,value,'dynamic-ongoing-keyword-modifier');
         const lowered=dynamic?lambda(value,ctx,['card','context']):{node:value,ctx};
         let keyword,amount=constant(1);
         if(ts.isObjectLiteralExpression(lowered.node)) {
-            const obj=object(lowered.node,lowered.ctx);knownProperties(obj,['keyword','amount']);
+            const obj=object(lowered.node,lowered.ctx);
+            if(obj.props.has('ability'))return [bountyGrant(obj,duration,targetValue,{ability,literal,fail})];
+            knownProperties(obj,['keyword','amount']);
             if(!obj.props.has('keyword'))fail(ctx,value,'missing-modifier-keyword');
             keyword=literal(obj.props.get('keyword'),obj.ctx);
             if(obj.props.has('amount'))amount=expr(obj.props.get('amount'),obj.ctx);
@@ -965,7 +986,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
         return [{kind,target:targetValue,duration,keyword,amount}];
     });
     if(effects.length>8)fail(ctx,raw,'modifier-list-bound');
-    if(duration==='phase'&&ts.isArrayLiteralExpression(raw))return {kind:'phaseModifiers',effects};
+    if(['phase','attack'].includes(duration)&&ts.isArrayLiteralExpression(raw))return {kind:duration==='phase'?'phaseModifiers':'attackModifiers',effects};
     return effects.length===1?effects[0]:{kind:'simultaneous',effects};
 }
 function effect(input, context, defaultTarget = 'self') {
@@ -977,6 +998,7 @@ function effect(input, context, defaultTarget = 'self') {
     const parts = access(node.expression, ctx);
     if (parts.length !== 3 || !['AbilityHelper', 'abilityHelper', 'StaticAbilityHelper'].includes(parts[0]) || parts[1] !== 'immediateEffects') fail(ctx, node, 'unsupported-effect-call:' + parts.join('.'));
     const kind = parts[2];
+    const pendingInventory=pendingInventoryEffect(node,ctx,defaultTarget,{ts,unwrap,fail});if(pendingInventory)return pendingInventory;
     if(kind!=='heal'&&ctx.otherBaseTargetScope)ctx={...ctx,otherBaseTargetScope:false};
     if(kind!=='damage'&&ctx.damageRecipientScope)ctx={...ctx,damageRecipientScope:false};
     if (node.arguments.length > 1) fail(ctx, node, 'effect-helper-arity');
@@ -986,11 +1008,22 @@ function effect(input, context, defaultTarget = 'self') {
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
     }
     let obj = node.arguments[0] ? object(node.arguments[0], ctx) : { props: new Map(), ctx, node };
+    if (kind === 'capture') {
+        // Representation only: the Rust engine has no capture zone/lifecycle yet.
+        for(const [key,value]of obj.props)if(!['target','captor','fromOutOfPlay'].includes(key))fail(obj.ctx,value,'unsupported-capture-field:'+key);
+        const fromOutOfPlay=obj.props.has('fromOutOfPlay')?literal(obj.props.get('fromOutOfPlay'),obj.ctx):false;
+        if(typeof fromOutOfPlay!=='boolean')fail(obj.ctx,obj.node,'capture-out-of-play-boolean');
+        return {kind:'capture',target:target(obj.props.get('target'),obj.ctx,defaultTarget),
+            captor:obj.props.has('captor')?expr(obj.props.get('captor'),obj.ctx):reference('source'),
+            fromOutOfPlay,targetType:'nonLeaderUnit'};
+    }
     if (kind === 'discardCardsFromOwnHand') {
         // The wrapper changes who chooses, not who is targeted. Its inherited
         // PlayerTargetSystem default is the opponent, despite the helper name.
         for (const [key, value] of obj.props) if (!['amount', 'target', 'cardTypeFilter'].includes(key)) fail(obj.ctx, value, 'unsupported-hand-discard-field:' + key);
         if (obj.props.has('cardTypeFilter') && literal(obj.props.get('cardTypeFilter'), obj.ctx) !== 'any') fail(obj.ctx, obj.props.get('cardTypeFilter'), 'hand-discard-type-filter');
+        const perPlayer = perPlayerHandDiscard(obj,{ts,unwrap,expr,literal,fail,unshadowedEnum});
+        if (perPlayer) return perPlayer;
         const amount = obj.props.has('amount') ? literal(obj.props.get('amount'), obj.ctx) : 1;
         if (!Number.isSafeInteger(amount) || amount < 1 || amount > 2) fail(obj.ctx, obj.props.get('amount') || node, 'hand-discard-amount-bound');
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
@@ -1013,22 +1046,24 @@ function effect(input, context, defaultTarget = 'self') {
         // Token factory wrappers append their fixed type; caller-supplied type,
         // entry effects and event captures require their own execution contract.
         for (const [key, value] of obj.props) if (!['amount', 'target', 'entersReady'].includes(key)) fail(obj.ctx, value, 'unsupported-token-field:' + key);
-        const amount = obj.props.has('amount') ? literal(obj.props.get('amount'), obj.ctx) : 1;
-        if (!Number.isSafeInteger(amount) || amount < 1 || amount > 5) fail(obj.ctx, obj.props.get('amount') || node, 'token-amount-bound');
+        const dynamicAmount = obj.props.has('amount') ? resourceTokenAmount(obj.props.get('amount'), obj.ctx, {ts,unwrap,expr,literal,fail,unshadowedEnum}) : null;
+        const amount = dynamicAmount || (obj.props.has('amount') ? literal(obj.props.get('amount'), obj.ctx) : 1);
+        if (!dynamicAmount && (!Number.isSafeInteger(amount) || amount < 1 || amount > 5)) fail(obj.ctx, obj.props.get('amount') || node, 'token-amount-bound');
         const entersReady = obj.props.has('entersReady') ? literal(obj.props.get('entersReady'), obj.ctx) : false;
         if (typeof entersReady !== 'boolean') fail(obj.ctx, obj.props.get('entersReady') || node, 'token-readiness-boolean');
         const tokenTarget = target(obj.props.get('target'), obj.ctx, 'ownPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(tokenTarget)) fail(obj.ctx, obj.props.get('target') || node, 'token-player-target');
-        return { kind:'createTokenUnit', tokenType:tokenTypes[kind], amount:constant(amount), target:tokenTarget, entersReady };
+        return { kind:dynamicAmount?'createTokenUnitsDynamic':'createTokenUnit', tokenType:tokenTypes[kind], amount:dynamicAmount||constant(amount), target:tokenTarget, entersReady };
     }
-    if (kind === 'forThisPhaseCardEffect') {
+    if (['forThisPhaseCardEffect','forThisAttackCardEffect'].includes(kind)) {
         // Lasting stat modifiers have their values captured when the immediate
         // system resolves. A function passed to modifyStats itself is different:
         // the engine keeps reevaluating it as board state changes.
         const allowed = ['target', 'effect', 'title', 'ongoingEffectTargetDescription'];
         for (const [key, value] of obj.props) if (!allowed.includes(key) && !DISPLAY_FIELDS.has(key)) fail(obj.ctx, value, 'unsupported-field:' + key);
-        if (!obj.props.has('effect')) fail(ctx, node, 'phase-effect-without-modifier');
-        return modifierEffects(obj.props.get('effect'), obj.ctx, 'phase', target(obj.props.get('target'), obj.ctx, defaultTarget));
+        if (!obj.props.has('effect')) fail(ctx, node, kind==='forThisAttackCardEffect'?'attack-effect-without-modifier':'phase-effect-without-modifier');
+        const duration=kind==='forThisAttackCardEffect'?'attack':'phase';
+        return modifierEffects(obj.props.get('effect'), obj.ctx, duration, target(obj.props.get('target'), obj.ctx, defaultTarget));
     }
     if (kind === 'conditional') {
         knownProperties(obj, ['condition', 'onTrue', 'onFalse']);
@@ -1158,7 +1193,7 @@ function targetResolverProperties(obj) {
                 let root=n;while(ts.isPropertyAccessExpression(root)||ts.isElementAccessExpression(root))root=root.expression;
                 if(ts.isIdentifier(root)&&!bound.has(root.text)&&ctx.scope.has(root.text)) {
                     const binding=ctx.scope.get(root.text);
-                    if(binding.kind==='ref') {const parts=normalizeRef([...binding.path,...access(n,ctx).slice(1)]);if(['target','targets'].includes(parts[0]) && !ctx.namedTargets)fail(ctx,n,'target-resolver-outer-target-capture');}
+                    if(binding.kind==='ref'&&!isEventResultAccess(n,ctx,{ts,unwrap})) {const parts=normalizeRef([...binding.path,...access(n,ctx).slice(1)]);if(['target','targets'].includes(parts[0]) && !ctx.namedTargets)fail(ctx,n,'target-resolver-outer-target-capture');}
                 }
             }
             if(ts.isIdentifier(n)&&!bound.has(n.text)&&ctx.constants.has(n.text)&&!(ts.isPropertyAccessExpression(n.parent)&&n.parent.name===n)) {
@@ -1380,8 +1415,16 @@ function attachedConstantAbility(input,context,host) {
 }
 function attachedKeywordAbility(input, context) {
     const obj = object(input, context);
-    // Unlike general ability objects, every extra field here changes keyword
-    // semantics (notably Bounty's nested ability) and must be rejected.
+    // Bounty grants retain the entire nested collection registration as IR.
+    // Other keywords retain the narrower installed-keyword shape.
+    if(obj.props.has('ability')) {
+        for(const [key,value]of obj.props)if(!['keyword','ability','gainCondition'].includes(key))fail(obj.ctx,value,'unsupported-attached-bounty-field:'+key);
+        const grant={...obj,props:new Map([...obj.props].filter(([key])=>key!=='gainCondition'))};
+        const result={trigger:'constant',title:'Give Bounty to the attached unit',costs:[],effect:bountyGrant(grant,'persistent','parent',{ability,literal,fail})};
+        if(obj.props.has('gainCondition'))result.condition=expr(obj.props.get('gainCondition'),{...obj.ctx,attachedParentTitle:true});
+        return result;
+    }
+    // Every extra installed-keyword field changes semantics and is rejected.
     for (const [key, value] of obj.props) if (!['keyword', 'amount', 'gainCondition'].includes(key)) fail(obj.ctx, value, 'unsupported-attached-keyword-field:' + key);
     if (!obj.props.has('keyword')) fail(obj.ctx, obj.node, 'missing-modifier-keyword');
     const keywordProps = ts.factory.createObjectLiteralExpression([...obj.props].filter(([key]) => key !== 'gainCondition').map(([key, value]) => ts.factory.createPropertyAssignment(key, value)));
@@ -1453,7 +1496,7 @@ function namedResolvers(input, context) {
         const checkEffect=e=>{
             if(!e)return;
             if(e.kind==='simultaneous'||e.kind==='phaseModifiers') {if(!e.effects.length||e.effects.length>8)fail(ctx,value,'named-effect-bound');e.effects.forEach(checkEffect);return;}
-            if(!['damage','ready','exhaust','defeat','giveShield','giveExperience','modifyStats','gainKeyword','loseKeyword'].includes(e.kind))fail(ctx,value,'unsupported-named-effect:'+e.kind);
+            if(!['damage','heal','ready','exhaust','defeat','capture','giveShield','giveExperience','modifyStats','gainKeyword','loseKeyword'].includes(e.kind))fail(ctx,value,'unsupported-named-effect:'+e.kind);
         };
         checkEffect(entry.effect);
         descriptors.push(entry);slots.set(name,{array:mode==='exactly'});
@@ -1479,9 +1522,10 @@ function ability(input, context, trigger = null, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const {props,node}=obj;let ctx=obj.ctx;
     if(ctx.namedTargets?.size && (props.has('targetResolver')||props.has('targetResolvers')||props.has('cost'))) fail(ctx,node,'named-continuation-targeting-or-cost');
-    knownProperties(obj, ['title', 'optional', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'limit', 'optionalMakesAbilityNonCancelable']);
+    knownProperties(obj, ['title', 'optional', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'limit', 'optionalMakesAbilityNonCancelable','attackerMustSurvive']);
     const result = { ...(trigger ? { trigger } : {}), title: props.has('title') ? displayText(props.get('title'), ctx) : '', costs: costs(props.get('cost'), ctx) };
     if(props.has('contextTitle'))result.contextTitle=contextTitle(props.get('contextTitle'),ctx);
+    if(props.has('attackerMustSurvive')){const value=literal(props.get('attackerMustSurvive'),ctx);if(trigger!=='whenAttackEnds'||typeof value!=='boolean')fail(ctx,node,'attack-end-survival-field');result.attackerMustSurvive=value;}
     if (props.has('optional')) result.optional = literal(props.get('optional'), ctx);
     if (props.has('condition')) result.condition = expr(props.get('condition'), ctx);
     if (props.has('optionalMakesAbilityNonCancelable')) result.optionalMakesAbilityNonCancelable = literal(props.get('optionalMakesAbilityNonCancelable'), ctx);
@@ -1522,6 +1566,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
         const resolver=object(props.get('targetResolver'),ctx);
         if(resolver.props.has('activePromptTitle'))result.targetResolver.promptTitleParts=contextTitle(resolver.props.get('activePromptTitle'),resolver.ctx);
     }
+    if(result.targetResolver&&(ctx.inventoryUsage?.size||props.has('attackerMustSurvive'))&&props.has('targetResolver')){const resolver=object(props.get('targetResolver'),ctx);if(resolver.props.has('activePromptTitle'))result.targetResolver.promptTitleParts=contextTitle(resolver.props.get('activePromptTitle'),resolver.ctx);}
     // A top-deck continuation event retains its explicit selector prompt. Other
     // scalar source families keep their existing representation byte for byte.
     if(result.targetResolver&&result.ifYouDo?.effect?.kind==='resourceCard'&&result.ifYouDo.effect.target==='ownTopDeck') {
@@ -1641,7 +1686,7 @@ function loadEnums(sourceRoot) {
 }
 function compileSource(text, file, enums = {}) {
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
-    const ctx = { source, file, enums, scope: new Map(), constants: new Map(), constantScopes: new Map(), constantEnvs: new Map(), constantStages: new Map(), bindings: [], usedConstants: new Set() };
+    const ctx = { source, file, enums, scope: new Map(), constants: new Map(), constantScopes: new Map(), constantEnvs: new Map(), constantStages: new Map(), bindings: [], usedConstants: new Set(), inventoryUsage:new Set() };
     const diagnostics = [];
     const out = { sourcePath: file, sourceHash: hash(text), abilities: { leader: [], unit: [], card: [] }, diagnostics };
     if (source.parseDiagnostics.length) {
@@ -1679,6 +1724,7 @@ function compileSource(text, file, enums = {}) {
     ctx.powerMaximumSource=hasRawLivePowerMaximum(cls,{ts,unwrap});
     ctx.maximumHelpers=out.baseClass==='LeaderUnitCard'?inspectMaximumHelpers(cls,ctx,{ts,unwrap,literal,unshadowedEnum}):new Map();
     ctx.physicalAttachmentHelpers=inspectPhysicalAttachmentHelpers(cls,ctx,{ts,unwrap,literal,unshadowedEnum});
+    ctx.resultHelpers=inspectResultHelpers(cls,ctx,{ts,unwrap});
     ctx.defeatedUnitCountHelpers=new Map();
     if(out.baseClass==='EventCard')for(const member of cls.members){const helper=defeatedUnitCountHelper(member,{ts,unwrap});if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.defeatedUnitCountHelpers.set(member.name.text,helper);}
     ctx.reductionHelpers=inspectReductionHelpers(cls,{...ctx,baseClass:out.baseClass},{ts,unwrap,expr,fail});
@@ -1717,7 +1763,7 @@ function compileSource(text, file, enums = {}) {
             continue;
         }
         if (!(name in SIDE_METHODS)) {
-            if(ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
+            if(ctx.resultHelpers.get(name)?.member===member || ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
@@ -1744,7 +1790,7 @@ function compileSource(text, file, enums = {}) {
                 const call = statement.expression;
                 const parts = access(call.expression, local);
                 const registration = parts.at(-1);
-                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
+                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addBountyAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
                 if (call.arguments.length !== 1) fail(local, call, 'registration-arity');
                 if (['addGainKeywordTargetingAttached', 'setAttachCondition'].includes(registration)) {
                     if (!['UpgradeCard', 'TokenUpgradeCard'].includes(out.baseClass) || name !== 'setupCardAbilities') fail(local, call, 'attached-source-side');
@@ -1766,6 +1812,10 @@ function compileSource(text, file, enums = {}) {
                     if (out.abilities.card.some(a => a.coordinate)) fail(local, call, 'coordinate-multiple-definitions');
                     out.abilities.card.push(coordinateAbility(call.arguments[0], local));
                 }
+                else if (registration === 'addBountyAbility') {
+                    if(out.baseClass!=='NonLeaderUnitCard'||name!=='setupCardAbilities')fail(local,call,'bounty-source-side');
+                    out.abilities.card.push(bountyAbility(call.arguments[0],local,{ability,fail}));
+                }
                 else if (registration === 'addTriggeredAbility') out.abilities[SIDE_METHODS[name]].push(...standardTriggeredAbilities(call.arguments[0], local));
                 else out.abilities[SIDE_METHODS[name]].push(registration === 'addConstantAbility' ? constantAbility(call.arguments[0], local) : ability(call.arguments[0], local, TRIGGERS[registration]));
             } catch (e) { if (e instanceof Unsupported) diagnostics.push(e.diagnostic); else throw e; }
@@ -1777,6 +1827,7 @@ function compileSource(text, file, enums = {}) {
     }
     for(const [name,helper]of ctx.reductionHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-reduction-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.maximumHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-maximum-helper:'+name).diagnostic);
+    for(const [name,helper]of ctx.resultHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-result-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.defeatedUnitCountHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-resolved-defeat-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
     if(out.abilities.card.some(a=>a.gainedHost)) {

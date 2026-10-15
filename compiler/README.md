@@ -275,6 +275,35 @@ AST-converted.
 5. Regenerate all artifacts and run `--check`. The resulting coverage changes
    are reviewable alongside the implementation.
 
+## Compiler-only event context representation
+
+`eventResult` preserves reads from a lexical `AbilityContext` object's `events`
+or replacement-resolved `resolvedEvents`. Its `contextBinding` identifies the
+callback argument by source position and parameter index, records its role, and
+keeps binding time (`callbackInvocation`) separate from read time
+(`expressionEvaluation`). Captured outer callback arguments retain their own
+binding when a child property factory or selector runs. These are context-object
+references, not substitutions of the current target or numerical result register.
+
+Indexed reads retain the complete field path and every optional-access segment;
+optional missing values must propagate before surrounding operators are applied.
+Parenthesized optional event-chain boundaries remain explicit compiler rejections
+until their representation is verified.
+The pure damage reducer retains the resolved-event filter, missing-value zero,
+and sum seed. `resultIncludes`, `resultCardType`, `resultSharesBaseAspect`, and
+`contextRef` retain membership, enum-type tests, and the discarded-card/base
+comparison without losing the captured physical card. Generated-token lists
+refer to IDs from the originating creation event, including first-element reads,
+not a live token inventory. Dynamic resource-pair token counts retain their
+floor/division expression. Existing admitted scalar `totalDistributed` programs
+keep their current representation.
+
+These new nodes are compiler output only. Runtime callback bindings, replacement
+results, created/discarded identity storage, optional continuations, dynamic
+creation capacity, and Plot remain explicit engine backlog. No gameplay support
+is implied by the compiler's supported status; the current Rust loader rejects
+these new nodes and continuation fields.
+
 ## Runtime admission and conformance
 
 ```sh
@@ -444,3 +473,29 @@ effect amount. The complete two-sided leader includes intrinsic Support executio
 Rust integration tests exercise deployment and a copied On Attack registration
 using the recipient's power. Isolated action diagnostics remain separate from
 those complete-card witnesses.
+
+Pure quantity factories also have compiler-only IR forms. `createTokenUnitsDynamic`
+retains a resource-count floor quotient at token-system property evaluation;
+`discardOwnHandPerPlayer` retains the ordered `game.getPlayers()` collection and
+an explicitly bound `perPlayerAmount` evaluated for each affected player. Its
+hand-size expression is `max(0, affectedPlayer.hand.length - N)`, and the affected
+player chooses their own cards. These are separate operations from fixed token
+creation and fixed hand discard, and are not runtime-admitted.
+
+Collection projections retain distinct-title and distinct-aspect counts over
+friendly arena units, plus aspect-icon multiplicity over arena units or the
+source's exact controlled in-play unit/upgrade domain. Multiplicity includes
+repeated aspect icons; a distinct count uses value equality, including titles
+without subtitles. Executing-callback stage checks reject earlier captured arena
+snapshots. Phase modifier values remain captured at application, while constant
+conditions and selector predicates query at evaluation. These new query forms are
+compiler conversions pending runtime implementation and engine verification.
+
+Compiler conversion can precede runtime implementation. Bounty registrations and
+`gainBounty` modifiers retain the keyword's opponent collection context, default
+optionality, defeat/capture event hooks, collection event, and no-legal-effect
+resolution rule. An attached grant explicitly rebinds the ability source to its
+recipient. `capture` retains its captor expression, non-leader target type and
+out-of-play flag. These representations do not implement bounty collection,
+capture zones, rescue, or leaves-play timing in Rust. Unsupported runtime schemas
+and capabilities remain rejection boundaries until the separate engine phase.

@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "068fc09dbd71211c13ca83362e7ea4d3c28a6295a09388cc31be656e2c596a80",
+  "compilerHash": "09353862ea163395a8525e29fca43e3d470611d3c84029b874462955c53d114f",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1144,
-  "sourceAstConverted": 762,
+  "converted": 1221,
+  "sourceAstConverted": 839,
   "dataOnlyConverted": 382,
-  "unconverted": 1314,
+  "unconverted": 1237,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -58,6 +58,7 @@
     "ASH_086",
     "ASH_087",
     "ASH_089",
+    "ASH_091",
     "ASH_092",
     "ASH_095",
     "ASH_096",
@@ -99,6 +100,7 @@
     "ASH_166",
     "ASH_170",
     "ASH_171",
+    "ASH_172",
     "ASH_173",
     "ASH_174",
     "ASH_175",
@@ -114,6 +116,7 @@
     "ASH_198",
     "ASH_199",
     "ASH_201",
+    "ASH_203",
     "ASH_209",
     "ASH_213",
     "ASH_214",
@@ -141,6 +144,7 @@
     "ASH_260",
     "ASH_261",
     "HMW_007",
+    "HMW_015",
     "HMW_019",
     "HMW_020",
     "HMW_021",
@@ -159,14 +163,18 @@
     "HMW_034",
     "HMW_038",
     "HMW_039",
+    "HMW_041",
     "HMW_046",
+    "HMW_047",
     "HMW_052",
     "HMW_055",
+    "HMW_057",
     "HMW_059",
     "HMW_061",
     "HMW_063",
     "HMW_064",
     "HMW_065",
+    "HMW_066",
     "HMW_068",
     "HMW_069",
     "HMW_072",
@@ -188,6 +196,7 @@
     "HMW_093",
     "HMW_096",
     "HMW_097",
+    "HMW_098",
     "HMW_100",
     "HMW_102",
     "HMW_106",
@@ -205,17 +214,21 @@
     "HMW_135",
     "HMW_136",
     "HMW_137",
+    "HMW_138",
     "HMW_139",
     "HMW_140",
+    "HMW_141",
     "HMW_142",
     "HMW_143",
     "HMW_144",
     "HMW_146",
+    "HMW_150",
     "HMW_152",
     "HMW_154",
     "HMW_155",
     "HMW_157",
     "HMW_158",
+    "HMW_161",
     "HMW_162",
     "HMW_163",
     "HMW_164",
@@ -236,6 +249,8 @@
     "HMW_190",
     "HMW_191",
     "HMW_194",
+    "HMW_195",
+    "HMW_196",
     "HMW_198",
     "HMW_199",
     "HMW_201",
@@ -287,6 +302,7 @@
     "IBH_006",
     "IBH_007",
     "IBH_008",
+    "IBH_010",
     "IBH_011",
     "IBH_012",
     "IBH_013",
@@ -336,6 +352,7 @@
     "JTL_031",
     "JTL_033",
     "JTL_037",
+    "JTL_039",
     "JTL_040",
     "JTL_042",
     "JTL_044",
@@ -355,6 +372,7 @@
     "JTL_071",
     "JTL_072",
     "JTL_075",
+    "JTL_076",
     "JTL_077",
     "JTL_078",
     "JTL_079",
@@ -370,6 +388,7 @@
     "JTL_099",
     "JTL_102",
     "JTL_104",
+    "JTL_106",
     "JTL_107",
     "JTL_110",
     "JTL_112",
@@ -380,6 +399,7 @@
     "JTL_118",
     "JTL_119",
     "JTL_125",
+    "JTL_130",
     "JTL_135",
     "JTL_140",
     "JTL_144",
@@ -394,11 +414,15 @@
     "JTL_167",
     "JTL_168",
     "JTL_170",
+    "JTL_176",
     "JTL_179",
+    "JTL_180",
     "JTL_184",
     "JTL_190",
     "JTL_194",
     "JTL_199",
+    "JTL_200",
+    "JTL_201",
     "JTL_209",
     "JTL_212",
     "JTL_214",
@@ -408,6 +432,7 @@
     "JTL_225",
     "JTL_229",
     "JTL_230",
+    "JTL_238",
     "JTL_239",
     "JTL_241",
     "JTL_243",
@@ -421,6 +446,7 @@
     "JTL_258",
     "JTL_262",
     "LAW_031",
+    "LAW_033",
     "LAW_035",
     "LAW_037",
     "LAW_038",
@@ -454,6 +480,7 @@
     "LAW_098",
     "LAW_099",
     "LAW_100",
+    "LAW_102",
     "LAW_104",
     "LAW_105",
     "LAW_106",
@@ -485,8 +512,10 @@
     "LAW_162",
     "LAW_164",
     "LAW_165",
+    "LAW_167",
     "LAW_171",
     "LAW_172",
+    "LAW_173",
     "LAW_175",
     "LAW_177",
     "LAW_180",
@@ -522,6 +551,7 @@
     "LAW_253",
     "LAW_254",
     "LAW_255",
+    "LAW_256",
     "LAW_259",
     "LAW_260",
     "LAW_261",
@@ -532,6 +562,7 @@
     "LOF_032",
     "LOF_034",
     "LOF_035",
+    "LOF_038",
     "LOF_039",
     "LOF_041",
     "LOF_045",
@@ -546,8 +577,10 @@
     "LOF_059",
     "LOF_060",
     "LOF_061",
+    "LOF_062",
     "LOF_064",
     "LOF_066",
+    "LOF_067",
     "LOF_069",
     "LOF_071",
     "LOF_072",
@@ -557,6 +590,7 @@
     "LOF_078",
     "LOF_080",
     "LOF_081",
+    "LOF_082",
     "LOF_084",
     "LOF_088",
     "LOF_089",
@@ -598,6 +632,7 @@
     "LOF_153",
     "LOF_154",
     "LOF_155",
+    "LOF_156",
     "LOF_157",
     "LOF_158",
     "LOF_159",
@@ -691,20 +726,24 @@
     "SEC_047",
     "SEC_049",
     "SEC_055",
+    "SEC_056",
     "SEC_057",
     "SEC_058",
     "SEC_060",
     "SEC_063",
     "SEC_066",
+    "SEC_068",
     "SEC_071",
     "SEC_075",
     "SEC_078",
     "SEC_079",
     "SEC_080",
+    "SEC_082",
     "SEC_084",
     "SEC_086",
     "SEC_087",
     "SEC_089",
+    "SEC_090",
     "SEC_091",
     "SEC_092",
     "SEC_095",
@@ -760,6 +799,7 @@
     "SEC_203",
     "SEC_204",
     "SEC_206",
+    "SEC_208",
     "SEC_213",
     "SEC_214",
     "SEC_217",
@@ -774,10 +814,12 @@
     "SEC_241",
     "SEC_243",
     "SEC_246",
+    "SEC_247",
     "SEC_249",
     "SEC_250",
     "SEC_251",
     "SEC_252",
+    "SEC_253",
     "SEC_254",
     "SEC_255",
     "SEC_258",
@@ -794,15 +836,20 @@
     "SHD_024",
     "SHD_025",
     "SHD_026",
+    "SHD_027",
     "SHD_029",
+    "SHD_031",
     "SHD_032",
+    "SHD_033",
     "SHD_034",
     "SHD_035",
     "SHD_037",
     "SHD_040",
+    "SHD_041",
     "SHD_042",
     "SHD_043",
     "SHD_044",
+    "SHD_045",
     "SHD_047",
     "SHD_048",
     "SHD_049",
@@ -812,12 +859,15 @@
     "SHD_054",
     "SHD_055",
     "SHD_056",
+    "SHD_058",
     "SHD_060",
     "SHD_061",
     "SHD_062",
     "SHD_063",
     "SHD_066",
+    "SHD_068",
     "SHD_070",
+    "SHD_071",
     "SHD_073",
     "SHD_075",
     "SHD_078",
@@ -827,21 +877,29 @@
     "SHD_083",
     "SHD_086",
     "SHD_087",
+    "SHD_095",
     "SHD_097",
     "SHD_098",
+    "SHD_099",
     "SHD_100",
     "SHD_103",
     "SHD_107",
     "SHD_108",
     "SHD_110",
     "SHD_112",
+    "SHD_116",
+    "SHD_118",
+    "SHD_120",
     "SHD_121",
+    "SHD_125",
     "SHD_130",
+    "SHD_134",
     "SHD_136",
     "SHD_139",
     "SHD_140",
     "SHD_146",
     "SHD_150",
+    "SHD_151",
     "SHD_152",
     "SHD_154",
     "SHD_156",
@@ -851,21 +909,29 @@
     "SHD_160",
     "SHD_162",
     "SHD_164",
+    "SHD_165",
     "SHD_166",
+    "SHD_167",
     "SHD_169",
     "SHD_171",
+    "SHD_173",
+    "SHD_176",
     "SHD_180",
+    "SHD_185",
     "SHD_188",
     "SHD_189",
     "SHD_190",
+    "SHD_195",
     "SHD_196",
     "SHD_200",
     "SHD_201",
     "SHD_209",
     "SHD_210",
+    "SHD_211",
     "SHD_212",
     "SHD_215",
     "SHD_218",
+    "SHD_221",
     "SHD_229",
     "SHD_233",
     "SHD_235",
@@ -880,6 +946,7 @@
     "SHD_257",
     "SHD_258",
     "SHD_259",
+    "SHD_261",
     "SHD_262",
     "SOR_007",
     "SOR_011",
@@ -941,6 +1008,7 @@
     "SOR_132",
     "SOR_134",
     "SOR_135",
+    "SOR_136",
     "SOR_140",
     "SOR_141",
     "SOR_144",
@@ -954,6 +1022,7 @@
     "SOR_163",
     "SOR_166",
     "SOR_169",
+    "SOR_174",
     "SOR_178",
     "SOR_180",
     "SOR_183",
@@ -963,6 +1032,7 @@
     "SOR_196",
     "SOR_197",
     "SOR_202",
+    "SOR_204",
     "SOR_205",
     "SOR_207",
     "SOR_208",
@@ -992,9 +1062,11 @@
     "TS26_005",
     "TS26_016",
     "TS26_017",
+    "TS26_019",
     "TS26_020",
     "TS26_021",
     "TS26_024",
+    "TS26_027",
     "TS26_028",
     "TS26_029",
     "TS26_040",
@@ -1007,6 +1079,7 @@
     "TS26_048",
     "TS26_050",
     "TS26_053",
+    "TS26_058",
     "TS26_062",
     "TS26_064",
     "TS26_065",
@@ -1082,10 +1155,12 @@
     "TWI_112",
     "TWI_113",
     "TWI_114",
+    "TWI_115",
     "TWI_119",
     "TWI_124",
     "TWI_126",
     "TWI_127",
+    "TWI_128",
     "TWI_130",
     "TWI_131",
     "TWI_133",
@@ -1099,6 +1174,7 @@
     "TWI_148",
     "TWI_149",
     "TWI_150",
+    "TWI_152",
     "TWI_154",
     "TWI_155",
     "TWI_156",
@@ -1118,6 +1194,7 @@
     "TWI_174",
     "TWI_175",
     "TWI_178",
+    "TWI_179",
     "TWI_180",
     "TWI_181",
     "TWI_183",
@@ -1306,7 +1383,7 @@
     },
     {
       "pattern": "unsupported-field:initiateAttack",
-      "occurrences": 54,
+      "occurrences": 57,
       "cards": [
         "ASH_004",
         "ASH_137",
@@ -1336,8 +1413,10 @@
         "LOF_206",
         "LOF_221",
         "LOF_224",
+        "SEC_006",
         "SEC_157",
         "SEC_172",
+        "SEC_174",
         "SEC_179",
         "SEC_228",
         "SEC_229",
@@ -1361,6 +1440,58 @@
         "TWI_139",
         "TWI_172",
         "TWI_224"
+      ]
+    },
+    {
+      "pattern": "immediateEffect:deckSearch",
+      "occurrences": 46,
+      "cards": [
+        "ASH_090",
+        "ASH_107",
+        "ASH_118",
+        "ASH_245",
+        "HMW_085",
+        "HMW_101",
+        "JTL_128",
+        "LAW_074",
+        "LAW_136",
+        "LAW_138",
+        "LAW_145",
+        "LAW_166",
+        "LAW_229",
+        "LOF_057",
+        "LOF_068",
+        "LOF_100",
+        "LOF_103",
+        "LOF_115",
+        "LOF_117",
+        "LOF_122",
+        "SEC_001",
+        "SEC_072",
+        "SEC_112",
+        "SEC_128",
+        "SEC_211",
+        "SHD_093",
+        "SHD_115",
+        "SHD_123",
+        "SHD_127",
+        "SHD_194",
+        "SHD_198",
+        "SHD_222",
+        "SHD_228",
+        "SHD_245",
+        "SHD_253",
+        "SOR_042",
+        "SOR_084",
+        "SOR_096",
+        "SOR_123",
+        "SOR_181",
+        "TS26_018",
+        "TS26_039",
+        "TWI_146",
+        "TWI_188",
+        "TWI_193",
+        "TWI_201"
       ]
     },
     {
@@ -1411,55 +1542,6 @@
         "TWI_186",
         "TWI_188",
         "TWI_189"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:deckSearch",
-      "occurrences": 43,
-      "cards": [
-        "ASH_090",
-        "ASH_107",
-        "ASH_118",
-        "ASH_245",
-        "HMW_085",
-        "HMW_101",
-        "JTL_128",
-        "LAW_136",
-        "LAW_138",
-        "LAW_145",
-        "LAW_166",
-        "LAW_229",
-        "LOF_057",
-        "LOF_068",
-        "LOF_100",
-        "LOF_103",
-        "LOF_115",
-        "LOF_117",
-        "LOF_122",
-        "SEC_001",
-        "SEC_072",
-        "SEC_112",
-        "SEC_128",
-        "SEC_211",
-        "SHD_093",
-        "SHD_115",
-        "SHD_127",
-        "SHD_194",
-        "SHD_198",
-        "SHD_228",
-        "SHD_245",
-        "SHD_253",
-        "SOR_042",
-        "SOR_084",
-        "SOR_096",
-        "SOR_123",
-        "SOR_181",
-        "TS26_018",
-        "TS26_039",
-        "TWI_146",
-        "TWI_188",
-        "TWI_193",
-        "TWI_201"
       ]
     },
     {
@@ -1584,42 +1666,8 @@
       ]
     },
     {
-      "pattern": "unused-source-binding",
-      "occurrences": 36,
-      "cards": [
-        "ASH_182",
-        "HMW_048",
-        "HMW_051",
-        "HMW_099",
-        "HMW_217",
-        "HMW_248",
-        "HMW_253",
-        "IBH_009",
-        "JTL_047",
-        "LAW_226",
-        "LAW_242",
-        "LOF_022",
-        "LOF_188",
-        "SEC_038",
-        "SEC_052",
-        "SEC_096",
-        "SEC_107",
-        "SEC_159",
-        "SEC_164",
-        "SEC_211",
-        "SEC_219",
-        "SEC_257",
-        "SHD_039",
-        "SHD_102",
-        "SOR_119",
-        "SOR_246",
-        "TS26_008",
-        "TWI_199"
-      ]
-    },
-    {
       "pattern": "immediateEffect:disclose",
-      "occurrences": 27,
+      "occurrences": 29,
       "cards": [
         "SEC_004",
         "SEC_037",
@@ -1630,7 +1678,9 @@
         "SEC_076",
         "SEC_085",
         "SEC_094",
+        "SEC_096",
         "SEC_098",
+        "SEC_107",
         "SEC_109",
         "SEC_120",
         "SEC_127",
@@ -1647,6 +1697,39 @@
         "SEC_230",
         "SEC_234",
         "SEC_248"
+      ]
+    },
+    {
+      "pattern": "unused-source-binding",
+      "occurrences": 35,
+      "cards": [
+        "ASH_182",
+        "HMW_048",
+        "HMW_051",
+        "HMW_099",
+        "HMW_217",
+        "HMW_248",
+        "HMW_253",
+        "IBH_009",
+        "JTL_047",
+        "LAW_226",
+        "LAW_242",
+        "LOF_022",
+        "LOF_188",
+        "SEC_038",
+        "SEC_052",
+        "SEC_159",
+        "SEC_164",
+        "SEC_211",
+        "SEC_219",
+        "SEC_257",
+        "SHD_039",
+        "SHD_102",
+        "SOR_119",
+        "SOR_192",
+        "SOR_246",
+        "TS26_008",
+        "TWI_199"
       ]
     },
     {
@@ -1773,31 +1856,31 @@
       ]
     },
     {
-      "pattern": "non-path-reference",
+      "pattern": "immediateEffect:attack",
       "occurrences": 22,
       "cards": [
-        "ASH_197",
-        "HMW_040",
-        "HMW_138",
-        "HMW_141",
-        "HMW_248",
-        "HMW_253",
-        "JTL_106",
-        "LAW_167",
-        "LAW_228",
-        "LOF_083",
-        "SEC_035",
-        "SEC_112",
-        "SEC_162",
-        "SEC_247",
-        "SHD_015",
-        "SHD_220",
-        "TS26_038",
-        "TS26_047",
-        "TS26_058",
-        "TWI_002",
-        "TWI_034",
-        "TWI_186"
+        "ASH_162",
+        "ASH_234",
+        "HMW_149",
+        "IBH_021",
+        "JTL_015",
+        "JTL_156",
+        "JTL_228",
+        "JTL_261",
+        "LOF_140",
+        "SEC_006",
+        "SHD_007",
+        "SHD_179",
+        "SHD_223",
+        "SHD_231",
+        "SOR_012",
+        "SOR_055",
+        "SOR_103",
+        "SOR_150",
+        "TS26_025",
+        "TS26_059",
+        "TWI_123",
+        "TWI_248"
       ]
     },
     {
@@ -1883,59 +1966,6 @@
       ]
     },
     {
-      "pattern": "unsupported-field:attackerMustSurvive",
-      "occurrences": 21,
-      "cards": [
-        "HMW_067",
-        "JTL_070",
-        "LAW_001",
-        "LAW_033",
-        "LAW_054",
-        "LAW_074",
-        "LAW_215",
-        "LOF_016",
-        "LOF_038",
-        "LOF_156",
-        "SEC_003",
-        "SEC_006",
-        "SEC_096",
-        "SEC_107",
-        "SEC_174",
-        "SHD_059",
-        "SOR_009",
-        "SOR_015",
-        "SOR_146",
-        "SOR_192",
-        "TWI_053"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:attack",
-      "occurrences": 20,
-      "cards": [
-        "ASH_162",
-        "ASH_234",
-        "HMW_149",
-        "IBH_021",
-        "JTL_015",
-        "JTL_156",
-        "JTL_228",
-        "JTL_261",
-        "SEC_006",
-        "SHD_007",
-        "SHD_179",
-        "SHD_223",
-        "SHD_231",
-        "SOR_012",
-        "SOR_055",
-        "SOR_103",
-        "SOR_150",
-        "TS26_025",
-        "TS26_059",
-        "TWI_123"
-      ]
-    },
-    {
       "pattern": "immediateEffect:playCardFromHand",
       "occurrences": 20,
       "cards": [
@@ -2013,31 +2043,6 @@
       ]
     },
     {
-      "pattern": "optional-reference",
-      "occurrences": 19,
-      "cards": [
-        "ASH_038",
-        "ASH_091",
-        "ASH_207",
-        "HMW_047",
-        "HMW_066",
-        "HMW_127",
-        "HMW_195",
-        "JTL_076",
-        "JTL_200",
-        "LAW_111",
-        "LAW_208",
-        "LAW_226",
-        "LOF_140",
-        "LOF_201",
-        "SEC_082",
-        "SOR_136",
-        "TS26_014",
-        "TWI_152",
-        "TWI_248"
-      ]
-    },
-    {
       "pattern": "unsupported-player-target-resolver",
       "occurrences": 19,
       "cards": [
@@ -2086,25 +2091,25 @@
       ]
     },
     {
-      "pattern": "immediateEffect:capture",
-      "occurrences": 16,
+      "pattern": "immediateEffect:forThisPhasePlayerEffect",
+      "occurrences": 17,
       "cards": [
-        "SEC_056",
-        "SEC_068",
-        "SEC_193",
-        "SEC_195",
-        "SEC_212",
-        "SEC_253",
-        "SEC_256",
-        "SHD_106",
-        "SHD_120",
-        "SHD_124",
-        "SHD_251",
-        "TS26_027",
-        "TS26_061",
-        "TWI_115",
-        "TWI_128",
-        "TWI_227"
+        "ASH_027",
+        "ASH_237",
+        "ASH_248",
+        "HMW_130",
+        "JTL_098",
+        "LAW_058",
+        "LAW_158",
+        "LOF_005",
+        "SEC_110",
+        "SEC_126",
+        "SEC_261",
+        "SHD_006",
+        "SOR_056",
+        "TS26_006",
+        "TWI_005",
+        "TWI_246"
       ]
     },
     {
@@ -2151,27 +2156,6 @@
       ]
     },
     {
-      "pattern": "immediateEffect:forThisPhasePlayerEffect",
-      "occurrences": 15,
-      "cards": [
-        "ASH_027",
-        "ASH_237",
-        "ASH_248",
-        "HMW_130",
-        "JTL_098",
-        "LAW_058",
-        "LAW_158",
-        "LOF_005",
-        "SEC_110",
-        "SEC_126",
-        "SEC_261",
-        "SOR_056",
-        "TS26_006",
-        "TWI_005",
-        "TWI_246"
-      ]
-    },
-    {
       "pattern": "immediateEffect:payResources",
       "occurrences": 16,
       "cards": [
@@ -2190,6 +2174,27 @@
         "SOR_206",
         "TS26_077",
         "TWI_212"
+      ]
+    },
+    {
+      "pattern": "non-path-reference",
+      "occurrences": 15,
+      "cards": [
+        "ASH_197",
+        "HMW_040",
+        "HMW_248",
+        "HMW_253",
+        "LAW_228",
+        "LOF_083",
+        "SEC_035",
+        "SEC_112",
+        "SEC_162",
+        "SHD_015",
+        "SHD_220",
+        "TS26_038",
+        "TS26_047",
+        "TWI_002",
+        "TWI_186"
       ]
     },
     {
@@ -2275,25 +2280,6 @@
       ]
     },
     {
-      "pattern": "immediateEffect:forThisAttackCardEffect",
-      "occurrences": 13,
-      "cards": [
-        "ASH_172",
-        "ASH_203",
-        "HMW_041",
-        "IBH_010",
-        "JTL_238",
-        "LOF_014",
-        "LOF_067",
-        "SEC_137",
-        "SEC_208",
-        "SHD_118",
-        "SHD_151",
-        "TWI_096",
-        "TWI_179"
-      ]
-    },
-    {
       "pattern": "registrar:addDamageModificationAbility",
       "occurrences": 14,
       "cards": [
@@ -2329,6 +2315,25 @@
         "SHD_015",
         "TS26_023",
         "TWI_067"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility",
+      "occurrences": 13,
+      "cards": [
+        "JTL_049",
+        "JTL_074",
+        "LAW_169",
+        "LOF_073",
+        "SEC_231",
+        "SHD_001",
+        "SOR_105",
+        "TWI_001",
+        "TWI_047",
+        "TWI_053",
+        "TWI_072",
+        "TWI_103",
+        "TWI_129"
       ]
     },
     {
@@ -2386,21 +2391,20 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility",
+      "pattern": "immediateEffect:playCardFromOutOfPlay",
       "occurrences": 12,
       "cards": [
-        "JTL_049",
-        "JTL_074",
-        "LAW_169",
-        "LOF_073",
-        "SEC_231",
-        "SHD_001",
-        "SOR_105",
-        "TWI_001",
-        "TWI_047",
-        "TWI_072",
-        "TWI_103",
-        "TWI_129"
+        "ASH_001",
+        "ASH_247",
+        "HMW_017",
+        "HMW_204",
+        "JTL_121",
+        "LAW_245",
+        "LOF_036",
+        "SEC_003",
+        "SHD_094",
+        "SHD_161",
+        "SOR_102"
       ]
     },
     {
@@ -2421,23 +2425,6 @@
       ]
     },
     {
-      "pattern": "registrar:addBountyAbility",
-      "occurrences": 11,
-      "cards": [
-        "SHD_027",
-        "SHD_058",
-        "SHD_095",
-        "SHD_116",
-        "SHD_134",
-        "SHD_161",
-        "SHD_167",
-        "SHD_185",
-        "SHD_195",
-        "SHD_211",
-        "TS26_027"
-      ]
-    },
-    {
       "pattern": "trigger-alias-hook:onAttackEnd",
       "occurrences": 15,
       "cards": [
@@ -2452,23 +2439,6 @@
         "LAW_056",
         "LAW_088",
         "SEC_048"
-      ]
-    },
-    {
-      "pattern": "unsupported-attached-keyword-field:ability",
-      "occurrences": 11,
-      "cards": [
-        "SHD_068",
-        "SHD_071",
-        "SHD_123",
-        "SHD_125",
-        "SHD_173",
-        "SHD_176",
-        "SHD_221",
-        "SHD_222",
-        "SHD_226",
-        "SHD_261",
-        "TWI_051"
       ]
     },
     {
@@ -2504,22 +2474,6 @@
       ]
     },
     {
-      "pattern": "nonconstant-value",
-      "occurrences": 10,
-      "cards": [
-        "HMW_099",
-        "HMW_150",
-        "HMW_161",
-        "JTL_001",
-        "JTL_122",
-        "JTL_130",
-        "LAW_168",
-        "LOF_184",
-        "SOR_047",
-        "SOR_174"
-      ]
-    },
-    {
       "pattern": "registrar:addGainWhenDefeatedAbilityTargetingAttached",
       "occurrences": 10,
       "cards": [
@@ -2549,6 +2503,22 @@
         "JTL_015",
         "JTL_017",
         "JTL_018"
+      ]
+    },
+    {
+      "pattern": "unsupported-field:numCardsFunc",
+      "occurrences": 10,
+      "cards": [
+        "HMW_105",
+        "IBH_001",
+        "IBH_005",
+        "LAW_011",
+        "LOF_009",
+        "SEC_131",
+        "SEC_196",
+        "SHD_092",
+        "TS26_012",
+        "TWI_034"
       ]
     },
     {
@@ -2584,18 +2554,18 @@
       ]
     },
     {
-      "pattern": "immediateEffect:playCardFromOutOfPlay",
-      "occurrences": 10,
+      "pattern": "immediateEffect:delayedPlayerEffect",
+      "occurrences": 9,
       "cards": [
-        "ASH_001",
-        "ASH_247",
-        "HMW_017",
-        "HMW_204",
-        "JTL_121",
-        "LAW_245",
-        "LOF_036",
-        "SHD_094",
-        "SOR_102"
+        "ASH_006",
+        "LOF_010",
+        "LOF_180",
+        "LOF_197",
+        "LOF_203",
+        "SEC_073",
+        "SEC_195",
+        "SHD_203",
+        "SHD_208"
       ]
     },
     {
@@ -2626,21 +2596,6 @@
         "TS26_009",
         "TS26_011",
         "TS26_056"
-      ]
-    },
-    {
-      "pattern": "unsupported-field:numCardsFunc",
-      "occurrences": 9,
-      "cards": [
-        "HMW_105",
-        "IBH_001",
-        "IBH_005",
-        "LAW_011",
-        "LOF_009",
-        "SEC_131",
-        "SEC_196",
-        "SHD_092",
-        "TS26_012"
       ]
     },
     {
@@ -2687,22 +2642,8 @@
       ]
     },
     {
-      "pattern": "immediateEffect:delayedPlayerEffect",
-      "occurrences": 8,
-      "cards": [
-        "ASH_006",
-        "LOF_010",
-        "LOF_180",
-        "LOF_197",
-        "LOF_203",
-        "SEC_073",
-        "SHD_203",
-        "SHD_208"
-      ]
-    },
-    {
       "pattern": "invalid-effect-sequence",
-      "occurrences": 8,
+      "occurrences": 9,
       "cards": [
         "HMW_237",
         "JTL_041",
@@ -2754,6 +2695,20 @@
         "SHD_241",
         "TS26_078",
         "TWI_166"
+      ]
+    },
+    {
+      "pattern": "unsupported-field:multiSelectCardCondition",
+      "occurrences": 8,
+      "cards": [
+        "ASH_053",
+        "HMW_094",
+        "JTL_233",
+        "LOF_201",
+        "LOF_202",
+        "TWI_153",
+        "TWI_176",
+        "TWI_187"
       ]
     },
     {
@@ -2836,6 +2791,19 @@
       ]
     },
     {
+      "pattern": "unsupported-attack-reference",
+      "occurrences": 7,
+      "cards": [
+        "ASH_018",
+        "ASH_168",
+        "ASH_207",
+        "SEC_139",
+        "SHD_183",
+        "SHD_219",
+        "SOR_018"
+      ]
+    },
+    {
       "pattern": "unsupported-field:canBeTriggeredBy",
       "occurrences": 7,
       "cards": [
@@ -2846,19 +2814,6 @@
         "SHD_207",
         "SHD_256",
         "TS26_015"
-      ]
-    },
-    {
-      "pattern": "unsupported-field:multiSelectCardCondition",
-      "occurrences": 7,
-      "cards": [
-        "ASH_053",
-        "HMW_094",
-        "JTL_233",
-        "LOF_202",
-        "TWI_153",
-        "TWI_176",
-        "TWI_187"
       ]
     },
     {
@@ -2875,6 +2830,19 @@
       ]
     },
     {
+      "pattern": "unsupported-query:defenderWasDefeated",
+      "occurrences": 7,
+      "cards": [
+        "ASH_033",
+        "ASH_036",
+        "ASH_223",
+        "LAW_034",
+        "LAW_252",
+        "SHD_059",
+        "SOR_146"
+      ]
+    },
+    {
       "pattern": "unsupported-query:targetIsUnit",
       "occurrences": 7,
       "cards": [
@@ -2885,6 +2853,18 @@
         "SHD_138",
         "SHD_216",
         "SOR_212"
+      ]
+    },
+    {
+      "pattern": "immediateEffect:lookAtAndChooseOption",
+      "occurrences": 6,
+      "cards": [
+        "LAW_242",
+        "LOF_188",
+        "SOR_119",
+        "SOR_192",
+        "SOR_246",
+        "TS26_008"
       ]
     },
     {
@@ -2933,6 +2913,30 @@
         "SEC_145",
         "SOR_173",
         "SOR_221"
+      ]
+    },
+    {
+      "pattern": "named-target-card-domain",
+      "occurrences": 6,
+      "cards": [
+        "JTL_056",
+        "JTL_070",
+        "JTL_242",
+        "LAW_163",
+        "SEC_232",
+        "SHD_077"
+      ]
+    },
+    {
+      "pattern": "nonconstant-value",
+      "occurrences": 6,
+      "cards": [
+        "HMW_099",
+        "JTL_001",
+        "JTL_122",
+        "LAW_168",
+        "LOF_184",
+        "SOR_047"
       ]
     },
     {
@@ -3004,28 +3008,6 @@
       ]
     },
     {
-      "pattern": "immediateEffect:lookAtAndChooseOption",
-      "occurrences": 5,
-      "cards": [
-        "LAW_242",
-        "LOF_188",
-        "SOR_119",
-        "SOR_246",
-        "TS26_008"
-      ]
-    },
-    {
-      "pattern": "named-target-card-domain",
-      "occurrences": 5,
-      "cards": [
-        "JTL_056",
-        "JTL_242",
-        "LAW_163",
-        "SEC_232",
-        "SHD_077"
-      ]
-    },
-    {
       "pattern": "registrar:addGainActionAbilityTargetingAttached",
       "occurrences": 5,
       "cards": [
@@ -3034,17 +3016,6 @@
         "LAW_126",
         "SHD_155",
         "TWI_120"
-      ]
-    },
-    {
-      "pattern": "unimplemented-context-field:events",
-      "occurrences": 5,
-      "cards": [
-        "LAW_026",
-        "LAW_102",
-        "LAW_194",
-        "LAW_203",
-        "SEC_169"
       ]
     },
     {
@@ -3059,14 +3030,14 @@
       ]
     },
     {
-      "pattern": "unsupported-live-stat-expression",
-      "occurrences": 5,
+      "pattern": "unsupported-field:showUnresolvable",
+      "occurrences": 6,
       "cards": [
-        "ASH_206",
-        "HMW_212",
-        "LOF_062",
-        "SEC_212",
-        "TWI_122"
+        "ASH_045",
+        "ASH_257",
+        "JTL_131",
+        "LAW_215",
+        "SOR_016"
       ]
     },
     {
@@ -3092,28 +3063,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:defenderWasDefeated",
-      "occurrences": 5,
-      "cards": [
-        "ASH_033",
-        "ASH_036",
-        "ASH_223",
-        "LAW_034",
-        "LAW_252"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:getAllTargets",
-      "occurrences": 5,
-      "cards": [
-        "ASH_012",
-        "ASH_168",
-        "SEC_139",
-        "SHD_183",
-        "SOR_142"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someCardPlayed",
       "occurrences": 5,
       "cards": [
@@ -3122,6 +3071,17 @@
         "SEC_236",
         "SHD_204",
         "SOR_190"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:someUnitLeftPlay",
+      "occurrences": 5,
+      "cards": [
+        "ASH_211",
+        "LOF_216",
+        "SOR_015",
+        "TWI_004",
+        "TWI_203"
       ]
     },
     {
@@ -3175,13 +3135,13 @@
       ]
     },
     {
-      "pattern": "deck-discard-event-result-capture",
+      "pattern": "event-result-explicit-index-and-field",
       "occurrences": 4,
       "cards": [
-        "HMW_196",
-        "LAW_173",
-        "SEC_090",
-        "SOR_204"
+        "LAW_026",
+        "LAW_194",
+        "LAW_203",
+        "SEC_169"
       ]
     },
     {
@@ -3285,16 +3245,6 @@
       ]
     },
     {
-      "pattern": "unsupported-field:ability",
-      "occurrences": 5,
-      "cards": [
-        "SHD_006",
-        "SHD_031",
-        "SHD_033",
-        "SHD_165"
-      ]
-    },
-    {
       "pattern": "unsupported-field:condition",
       "occurrences": 4,
       "cards": [
@@ -3325,13 +3275,13 @@
       ]
     },
     {
-      "pattern": "unsupported-field:showUnresolvable",
-      "occurrences": 5,
+      "pattern": "unsupported-live-stat-expression",
+      "occurrences": 4,
       "cards": [
-        "ASH_045",
-        "ASH_257",
-        "JTL_131",
-        "SOR_016"
+        "ASH_206",
+        "HMW_212",
+        "SEC_212",
+        "TWI_122"
       ]
     },
     {
@@ -3355,13 +3305,13 @@
       ]
     },
     {
-      "pattern": "unsupported-query:someUnitLeftPlay",
+      "pattern": "unsupported-query:getAttackersInPlay",
       "occurrences": 4,
       "cards": [
-        "ASH_211",
-        "LOF_216",
-        "TWI_004",
-        "TWI_203"
+        "HMW_078",
+        "JTL_004",
+        "SHD_106",
+        "SOR_245"
       ]
     },
     {
@@ -3411,6 +3361,15 @@
       ]
     },
     {
+      "pattern": "immediateEffect:delayedCardEffect",
+      "occurrences": 3,
+      "cards": [
+        "HMW_121",
+        "JTL_235",
+        "SEC_137"
+      ]
+    },
+    {
       "pattern": "immediateEffect:exhaustResources",
       "occurrences": 3,
       "cards": [
@@ -3456,6 +3415,24 @@
       ]
     },
     {
+      "pattern": "token-player-target",
+      "occurrences": 4,
+      "cards": [
+        "JTL_016",
+        "TS26_001",
+        "TWI_227"
+      ]
+    },
+    {
+      "pattern": "top-deck-resource-source-shape",
+      "occurrences": 3,
+      "cards": [
+        "HMW_044",
+        "HMW_127",
+        "SHD_214"
+      ]
+    },
+    {
       "pattern": "trigger-alias-hook:onCardAbilityInitiated",
       "occurrences": 5,
       "cards": [
@@ -3480,15 +3457,6 @@
         "ASH_041",
         "HMW_171",
         "HMW_225"
-      ]
-    },
-    {
-      "pattern": "unsupported-attack-reference",
-      "occurrences": 3,
-      "cards": [
-        "ASH_018",
-        "SHD_219",
-        "SOR_018"
       ]
     },
     {
@@ -3552,24 +3520,6 @@
         "ASH_037",
         "JTL_259",
         "SOR_212"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:getAttackersInPlay",
-      "occurrences": 3,
-      "cards": [
-        "HMW_078",
-        "JTL_004",
-        "SOR_245"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:isShield",
-      "occurrences": 3,
-      "cards": [
-        "HMW_077",
-        "JTL_180",
-        "SHD_045"
       ]
     },
     {
@@ -3677,14 +3627,6 @@
       ]
     },
     {
-      "pattern": "immediateEffect:delayedCardEffect",
-      "occurrences": 2,
-      "cards": [
-        "HMW_121",
-        "JTL_235"
-      ]
-    },
-    {
       "pattern": "immediateEffect:distributeAdvantageAmong",
       "occurrences": 2,
       "cards": [
@@ -3698,6 +3640,14 @@
       "cards": [
         "SOR_031",
         "SOR_236"
+      ]
+    },
+    {
+      "pattern": "immediateEffect:playCard",
+      "occurrences": 2,
+      "cards": [
+        "JTL_008",
+        "SHD_226"
       ]
     },
     {
@@ -3837,6 +3787,14 @@
       ]
     },
     {
+      "pattern": "optional-reference",
+      "occurrences": 2,
+      "cards": [
+        "LAW_208",
+        "LAW_226"
+      ]
+    },
+    {
       "pattern": "registrar:addAdjustCostAbility",
       "occurrences": 2,
       "cards": [
@@ -3890,22 +3848,6 @@
       "cards": [
         "SHD_242",
         "TWI_040"
-      ]
-    },
-    {
-      "pattern": "token-player-target",
-      "occurrences": 3,
-      "cards": [
-        "JTL_016",
-        "TS26_001"
-      ]
-    },
-    {
-      "pattern": "top-deck-resource-source-shape",
-      "occurrences": 2,
-      "cards": [
-        "HMW_044",
-        "SHD_214"
       ]
     },
     {
@@ -4029,14 +3971,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:canRegisterTriggeredAbilities",
-      "occurrences": 2,
-      "cards": [
-        "JTL_039",
-        "LAW_256"
-      ]
-    },
-    {
       "pattern": "unsupported-query:drawnCardsAmount",
       "occurrences": 2,
       "cards": [
@@ -4077,14 +4011,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:isTokenUpgrade",
-      "occurrences": 2,
-      "cards": [
-        "HMW_015",
-        "HMW_057"
-      ]
-    },
-    {
       "pattern": "unsupported-query:someCardEnteredPlay",
       "occurrences": 2,
       "cards": [
@@ -4093,10 +4019,19 @@
       ]
     },
     {
-      "pattern": "arena-card-query-type",
-      "occurrences": 1,
+      "pattern": "unsupported-query:unitHasDealtCombatDamageToBaseThisAttack",
+      "occurrences": 2,
       "cards": [
-        "HMW_098"
+        "LAW_046",
+        "LAW_054"
+      ]
+    },
+    {
+      "pattern": "unsupported-token-field:enterPlayEffect",
+      "occurrences": 2,
+      "cards": [
+        "HMW_077",
+        "HMW_153"
       ]
     },
     {
@@ -4139,6 +4074,13 @@
       "occurrences": 1,
       "cards": [
         "ASH_054"
+      ]
+    },
+    {
+      "pattern": "bounty-grant-keyword-and-ability",
+      "occurrences": 1,
+      "cards": [
+        "TWI_051"
       ]
     },
     {
@@ -4303,13 +4245,6 @@
       ]
     },
     {
-      "pattern": "hand-discard-event-result-capture",
-      "occurrences": 1,
-      "cards": [
-        "SHD_099"
-      ]
-    },
-    {
       "pattern": "hand-discard-player-target",
       "occurrences": 1,
       "cards": [
@@ -4377,13 +4312,6 @@
       "occurrences": 1,
       "cards": [
         "SHD_142"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:playCard",
-      "occurrences": 1,
-      "cards": [
-        "JTL_008"
       ]
     },
     {
@@ -4730,13 +4658,6 @@
       ]
     },
     {
-      "pattern": "method:damageDealtBy",
-      "occurrences": 1,
-      "cards": [
-        "TS26_019"
-      ]
-    },
-    {
       "pattern": "method:dealtFourOrMoreDamage",
       "occurrences": 1,
       "cards": [
@@ -4986,13 +4907,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_007"
-      ]
-    },
-    {
-      "pattern": "method:hasMatchingAspects",
-      "occurrences": 1,
-      "cards": [
-        "SHD_041"
       ]
     },
     {
@@ -5493,13 +5407,6 @@
       ]
     },
     {
-      "pattern": "unbound-reference:EnumHelpers",
-      "occurrences": 1,
-      "cards": [
-        "JTL_201"
-      ]
-    },
-    {
       "pattern": "unbound-reference:TextHelper",
       "occurrences": 1,
       "cards": [
@@ -5514,10 +5421,10 @@
       ]
     },
     {
-      "pattern": "unimplemented-context-field:resolvedEvents",
+      "pattern": "unimplemented-context-field:undefined",
       "occurrences": 1,
       "cards": [
-        "JTL_176"
+        "ASH_038"
       ]
     },
     {
@@ -5717,6 +5624,13 @@
       ]
     },
     {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainDamageModificationAbility",
+      "occurrences": 1,
+      "cards": [
+        "TWI_096"
+      ]
+    },
+    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.increaseCost",
       "occurrences": 1,
       "cards": [
@@ -5847,13 +5761,6 @@
       "occurrences": 1,
       "cards": [
         "TS26_022"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:damageDealtBy",
-      "occurrences": 1,
-      "cards": [
-        "TS26_019"
       ]
     },
     {
@@ -5997,13 +5904,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:hasMatchingAspects",
-      "occurrences": 1,
-      "cards": [
-        "SHD_041"
-      ]
-    },
-    {
       "pattern": "unsupported-query:hasPlayedAnEventThisPhase",
       "occurrences": 1,
       "cards": [
@@ -6029,13 +5929,6 @@
       "occurrences": 2,
       "cards": [
         "LOF_070"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:isExperience",
-      "occurrences": 1,
-      "cards": [
-        "LOF_082"
       ]
     },
     {
@@ -6074,10 +5967,24 @@
       ]
     },
     {
+      "pattern": "unsupported-query:pluralize",
+      "occurrences": 1,
+      "cards": [
+        "HMW_067"
+      ]
+    },
+    {
       "pattern": "unsupported-query:republicLeaderCount",
       "occurrences": 1,
       "cards": [
         "TS26_055"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:returnedUnitCost",
+      "occurrences": 1,
+      "cards": [
+        "LOF_016"
       ]
     },
     {
@@ -6106,13 +6013,6 @@
       "occurrences": 1,
       "cards": [
         "TS26_003"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:unitHasDealtCombatDamageToBaseThisAttack",
-      "occurrences": 1,
-      "cards": [
-        "LAW_046"
       ]
     },
     {
@@ -6148,13 +6048,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_108"
-      ]
-    },
-    {
-      "pattern": "unsupported-token-field:enterPlayEffect",
-      "occurrences": 1,
-      "cards": [
-        "HMW_153"
       ]
     }
   ],
@@ -6483,14 +6376,6 @@
           "file": "game/cards/08_ASH/leaders/VaneQuarrelsomePirate.ts",
           "line": 19,
           "column": 17
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/08_ASH/leaders/VaneQuarrelsomePirate.ts",
-          "line": 44,
-          "column": 72
         }
       ]
     },
@@ -6902,8 +6787,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "unimplemented-context-field:undefined",
+          "message": "unimplemented-context-field:undefined",
           "file": "game/cards/08_ASH/units/PurrgilUltra.ts",
           "line": 25,
           "column": 77
@@ -7310,21 +7195,6 @@
           "file": "game/cards/08_ASH/events/Reforge.ts",
           "line": 27,
           "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_091",
-      "internalName": "buy-time",
-      "sourcePath": "game/cards/08_ASH/events/BuyTime.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/08_ASH/events/BuyTime.ts",
-          "line": 23,
-          "column": 29
         }
       ]
     },
@@ -8060,8 +7930,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
+          "pattern": "unsupported-attack-reference",
+          "message": "unsupported-attack-reference",
           "file": "game/cards/08_ASH/units/MigsMayfeldHowAboutAToast.ts",
           "line": 18,
           "column": 34
@@ -8080,21 +7950,6 @@
           "file": "game/cards/08_ASH/units/AxeWovesUndaunted.ts",
           "line": 19,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_172",
-      "internalName": "razor-crest#outfitted-armament",
-      "sourcePath": "game/cards/08_ASH/units/RazorCrestOutfittedArmament.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/08_ASH/units/RazorCrestOutfittedArmament.ts",
-          "line": 23,
-          "column": 34
         }
       ]
     },
@@ -8396,21 +8251,6 @@
       ]
     },
     {
-      "setCode": "ASH_203",
-      "internalName": "mandos-n1-starfighter#faster-than-a-fathier",
-      "sourcePath": "game/cards/08_ASH/units/MandosN1StarfighterFasterThanAFathier.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/08_ASH/units/MandosN1StarfighterFasterThanAFathier.ts",
-          "line": 25,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "ASH_204",
       "internalName": "blade-three#bane-of-the-devastator",
       "sourcePath": "game/cards/08_ASH/units/BladeThreeBaneOfTheDevastator.ts",
@@ -8462,8 +8302,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "unsupported-attack-reference",
+          "message": "unsupported-attack-reference",
           "file": "game/cards/08_ASH/units/HeroicPurrgil.ts",
           "line": 17,
           "column": 69
@@ -9380,21 +9220,6 @@
       ]
     },
     {
-      "setCode": "HMW_015",
-      "internalName": "bossk#cruel-hunter",
-      "sourcePath": "game/cards/09_HMW/leaders/BosskCruelHunter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUpgrade",
-          "message": "unsupported-query:isTokenUpgrade",
-          "file": "game/cards/09_HMW/leaders/BosskCruelHunter.ts",
-          "line": 35,
-          "column": 112
-        }
-      ]
-    },
-    {
       "setCode": "HMW_016",
       "internalName": "maul#old-master",
       "sourcePath": "game/cards/09_HMW/leaders/MaulOldMaster.ts",
@@ -9580,21 +9405,6 @@
       ]
     },
     {
-      "setCode": "HMW_041",
-      "internalName": "keeper-of-skara-nal#awoken",
-      "sourcePath": "game/cards/09_HMW/units/KeeperOfSkaraNalAwoken.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/09_HMW/units/KeeperOfSkaraNalAwoken.ts",
-          "line": 30,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "HMW_042",
       "internalName": "dooku#corruption-must-be-eradicated",
       "sourcePath": "game/cards/09_HMW/units/DookuCorruptionMustBeEradicated.ts",
@@ -9651,21 +9461,6 @@
           "file": "game/cards/09_HMW/units/LograyBrightTreeShaman.ts",
           "line": 19,
           "column": 32
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_047",
-      "internalName": "eravana#hauling-rathtars",
-      "sourcePath": "game/cards/09_HMW/units/EravanaHaulingRathtars.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/09_HMW/units/EravanaHaulingRathtars.ts",
-          "line": 18,
-          "column": 78
         }
       ]
     },
@@ -9807,21 +9602,6 @@
       ]
     },
     {
-      "setCode": "HMW_057",
-      "internalName": "boss-lyonie#hypnotized",
-      "sourcePath": "game/cards/09_HMW/units/BossLyonieHypnotized.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isTokenUpgrade",
-          "message": "unsupported-query:isTokenUpgrade",
-          "file": "game/cards/09_HMW/units/BossLyonieHypnotized.ts",
-          "line": 26,
-          "column": 21
-        }
-      ]
-    },
-    {
       "setCode": "HMW_058",
       "internalName": "mysterious-disappearance",
       "sourcePath": "game/cards/09_HMW/events/MysteriousDisappearance.ts",
@@ -9867,21 +9647,6 @@
       ]
     },
     {
-      "setCode": "HMW_066",
-      "internalName": "carrion-spike#harbinger-of-tyranny",
-      "sourcePath": "game/cards/09_HMW/units/CarrionSpikeHarbingerOfTyranny.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/09_HMW/units/CarrionSpikeHarbingerOfTyranny.ts",
-          "line": 20,
-          "column": 87
-        }
-      ]
-    },
-    {
       "setCode": "HMW_067",
       "internalName": "the-great-progenitor#first-of-the-drengir",
       "sourcePath": "game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts",
@@ -9904,11 +9669,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:pluralize",
+          "message": "unsupported-query:pluralize",
           "file": "game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts",
-          "line": 27,
-          "column": 34
+          "line": 26,
+          "column": 97
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -9957,11 +9722,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isShield",
-          "message": "unsupported-query:isShield",
+          "pattern": "unsupported-token-field:enterPlayEffect",
+          "message": "unsupported-token-field:enterPlayEffect",
           "file": "game/cards/09_HMW/units/BossNassOtohGungaBoss.ts",
-          "line": 25,
-          "column": 51
+          "line": 31,
+          "column": 38
         }
       ]
     },
@@ -10100,21 +9865,6 @@
           "file": "game/cards/09_HMW/upgrades/CarboniteChamber.ts",
           "line": 18,
           "column": 20
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_098",
-      "internalName": "resonate",
-      "sourcePath": "game/cards/09_HMW/events/Resonate.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "arena-card-query-type",
-          "message": "arena-card-query-type",
-          "file": "game/cards/09_HMW/events/Resonate.ts",
-          "line": 18,
-          "column": 41
         }
       ]
     },
@@ -10450,11 +10200,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "top-deck-resource-source-shape",
+          "message": "top-deck-resource-source-shape",
           "file": "game/cards/09_HMW/upgrades/ChewbaccasBowcasterHandcraftedTradition.ts",
-          "line": 20,
-          "column": 41
+          "line": 6,
+          "column": 1
         }
       ]
     },
@@ -10485,36 +10235,6 @@
           "file": "game/cards/09_HMW/units/ZamWesellNotWhatSheSeems.ts",
           "line": 18,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_138",
-      "internalName": "commander-gree#of-the-41st-elite-corps",
-      "sourcePath": "game/cards/09_HMW/units/CommanderGreeOfThe41stEliteCorps.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.player.getInPlayCards({\n                type: [WildcardCardType.Unit, WildcardCardType.Upgrade]\n            })\n                .flatMap((x) => x.aspects)\n                .filter((x) => x === Aspect.Command)",
-          "file": "game/cards/09_HMW/units/CommanderGreeOfThe41stEliteCorps.ts",
-          "line": 18,
-          "column": 37
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_141",
-      "internalName": "rex#outserved-his-purpose",
-      "sourcePath": "game/cards/09_HMW/units/RexOutservedHisPurpose.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "card.getConstantAbilities()",
-          "file": "game/cards/09_HMW/units/RexOutservedHisPurpose.ts",
-          "line": 20,
-          "column": 17
         }
       ]
     },
@@ -10603,21 +10323,6 @@
       ]
     },
     {
-      "setCode": "HMW_150",
-      "internalName": "migrate",
-      "sourcePath": "game/cards/09_HMW/events/Migrate.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "nonconstant-value",
-          "message": "Math.floor(context.player.resources.length / 3)",
-          "file": "game/cards/09_HMW/events/Migrate.ts",
-          "line": 17,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "HMW_151",
       "internalName": "overgrowth",
       "sourcePath": "game/cards/09_HMW/events/Overgrowth.ts",
@@ -10689,21 +10394,6 @@
           "file": "game/cards/09_HMW/upgrades/NoxiousRefinery.ts",
           "line": 16,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_161",
-      "internalName": "raze-to-ruin",
-      "sourcePath": "game/cards/09_HMW/events/RazeToRuin.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "nonconstant-value",
-          "message": "(player) => Math.max(0, player.hand.length - 3)",
-          "file": "game/cards/09_HMW/events/RazeToRuin.ts",
-          "line": 18,
-          "column": 25
         }
       ]
     },
@@ -10907,36 +10597,6 @@
           "file": "game/cards/09_HMW/events/Nightfall.ts",
           "line": 28,
           "column": 33
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_195",
-      "internalName": "catch-the-scent",
-      "sourcePath": "game/cards/09_HMW/events/CatchTheScent.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/09_HMW/events/CatchTheScent.ts",
-          "line": 18,
-          "column": 78
-        }
-      ]
-    },
-    {
-      "setCode": "HMW_196",
-      "internalName": "qimir#everyone-has-a-weakness",
-      "sourcePath": "game/cards/09_HMW/units/QimirEveryoneHasAWeakness.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "deck-discard-event-result-capture",
-          "message": "deck-discard-event-result-capture",
-          "file": "game/cards/09_HMW/units/QimirEveryoneHasAWeakness.ts",
-          "line": 16,
-          "column": 42
         }
       ]
     },
@@ -11528,21 +11188,6 @@
           "line": 28,
           "column": 34,
           "message": "Unused binding hasUnits may contain unconverted behavior"
-        }
-      ]
-    },
-    {
-      "setCode": "IBH_010",
-      "internalName": "han-solo#scruffylooking-nerf-herder",
-      "sourcePath": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
-          "line": 16,
-          "column": 30
         }
       ]
     },
@@ -12320,21 +11965,6 @@
       ]
     },
     {
-      "setCode": "JTL_039",
-      "internalName": "chimaera#reinforcing-the-center",
-      "sourcePath": "game/cards/04_JTL/units/ChimaeraReinforcingTheCenter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:canRegisterTriggeredAbilities",
-          "message": "unsupported-query:canRegisterTriggeredAbilities",
-          "file": "game/cards/04_JTL/units/ChimaeraReinforcingTheCenter.ts",
-          "line": 27,
-          "column": 78
-        }
-      ]
-    },
-    {
       "setCode": "JTL_041",
       "internalName": "annihilator#tagges-flagship",
       "sourcePath": "game/cards/04_JTL/units/AnnihilatorTaggesFlagship.ts",
@@ -12631,11 +12261,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "named-target-card-domain",
+          "message": "named-target-card-domain",
           "file": "game/cards/04_JTL/units/UWingLander.ts",
-          "line": 26,
-          "column": 34
+          "line": 29,
+          "column": 32
         }
       ]
     },
@@ -12666,21 +12296,6 @@
           "file": "game/cards/04_JTL/events/CloseTheShieldGate.ts",
           "line": 20,
           "column": 29
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_076",
-      "internalName": "covering-the-wing",
-      "sourcePath": "game/cards/04_JTL/events/CoveringTheWing.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/04_JTL/events/CoveringTheWing.ts",
-          "line": 23,
-          "column": 47
         }
       ]
     },
@@ -12959,21 +12574,6 @@
       ]
     },
     {
-      "setCode": "JTL_106",
-      "internalName": "unity-of-purpose",
-      "sourcePath": "game/cards/04_JTL/events/UnityOfPurpose.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "new Set(context.player.getArenaUnits().map((x) => x.title))",
-          "file": "game/cards/04_JTL/events/UnityOfPurpose.ts",
-          "line": 17,
-          "column": 44
-        }
-      ]
-    },
-    {
       "setCode": "JTL_108",
       "internalName": "clone-pilot",
       "sourcePath": null,
@@ -13173,21 +12773,6 @@
           "line": 26,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_130",
-      "internalName": "timely-reinforcements",
-      "sourcePath": "game/cards/04_JTL/events/TimelyReinforcements.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "nonconstant-value",
-          "message": "Math.floor(context.player.opponent.resources.length / 2)",
-          "file": "game/cards/04_JTL/events/TimelyReinforcements.ts",
-          "line": 19,
-          "column": 25
         }
       ]
     },
@@ -13730,21 +13315,6 @@
       ]
     },
     {
-      "setCode": "JTL_176",
-      "internalName": "shoot-down",
-      "sourcePath": "game/cards/04_JTL/events/ShootDown.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:resolvedEvents",
-          "message": "unimplemented-context-field:resolvedEvents",
-          "file": "game/cards/04_JTL/events/ShootDown.ts",
-          "line": 25,
-          "column": 55
-        }
-      ]
-    },
-    {
       "setCode": "JTL_177",
       "internalName": "stay-on-target",
       "sourcePath": "game/cards/04_JTL/events/StayonTarget.ts",
@@ -13771,21 +13341,6 @@
           "file": "game/cards/04_JTL/events/FaceOff.ts",
           "line": 20,
           "column": 28
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_180",
-      "internalName": "piercing-shot",
-      "sourcePath": "game/cards/04_JTL/events/PiercingShot.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isShield",
-          "message": "unsupported-query:isShield",
-          "file": "game/cards/04_JTL/events/PiercingShot.ts",
-          "line": 21,
-          "column": 71
         }
       ]
     },
@@ -14091,36 +13646,6 @@
           "file": "game/cards/04_JTL/units/FireballAnExplosionWithWings.ts",
           "line": 18,
           "column": 33
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_200",
-      "internalName": "shuttle-tydirium#fly-casual",
-      "sourcePath": "game/cards/04_JTL/units/ShuttleTydiriumFlyCasual.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/04_JTL/units/ShuttleTydiriumFlyCasual.ts",
-          "line": 24,
-          "column": 41
-        }
-      ]
-    },
-    {
-      "setCode": "JTL_201",
-      "internalName": "ahsoka-tano#chasing-whispers",
-      "sourcePath": "game/cards/04_JTL/units/AhsokaTanoChasingWhispers.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unbound-reference:EnumHelpers",
-          "message": "unbound-reference:EnumHelpers",
-          "file": "game/cards/04_JTL/units/AhsokaTanoChasingWhispers.ts",
-          "line": 24,
-          "column": 48
         }
       ]
     },
@@ -14554,21 +14079,6 @@
       ]
     },
     {
-      "setCode": "JTL_238",
-      "internalName": "sith-trooper",
-      "sourcePath": "game/cards/04_JTL/units/SithTrooper.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/04_JTL/units/SithTrooper.ts",
-          "line": 16,
-          "column": 30
-        }
-      ]
-    },
-    {
       "setCode": "JTL_240",
       "internalName": "fetts-firespray#feared-silhouette",
       "sourcePath": "game/cards/04_JTL/units/FettsFiresprayFearedSilhouette.ts",
@@ -14819,10 +14329,10 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts",
-          "line": 45,
+          "line": 51,
           "column": 34
         }
       ]
@@ -15418,8 +14928,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:events",
-          "message": "unimplemented-context-field:events",
+          "pattern": "event-result-explicit-index-and-field",
+          "message": "event-result-explicit-index-and-field",
           "file": "game/cards/07_LAW/bases/ShipbreakingYard.ts",
           "line": 22,
           "column": 40
@@ -15498,21 +15008,6 @@
           "file": "game/cards/07_LAW/units/CadBaneNowItsMyTurn.ts",
           "line": 21,
           "column": 28
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_033",
-      "internalName": "hounds-tooth#hunters-approach",
-      "sourcePath": "game/cards/07_LAW/units/HoundsToothHuntersApproach.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
-          "file": "game/cards/07_LAW/units/HoundsToothHuntersApproach.ts",
-          "line": 18,
-          "column": 34
         }
       ]
     },
@@ -15761,11 +15256,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:unitHasDealtCombatDamageToBaseThisAttack",
+          "message": "unsupported-query:unitHasDealtCombatDamageToBaseThisAttack",
           "file": "game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts",
-          "line": 25,
-          "column": 34
+          "line": 28,
+          "column": 21
         }
       ]
     },
@@ -15950,11 +15445,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "immediateEffect:deckSearch",
+          "message": "immediateEffect:deckSearch",
           "file": "game/cards/07_LAW/units/MazKanataWheresMyBoyfriend.ts",
-          "line": 19,
-          "column": 34
+          "line": 20,
+          "column": 30
         }
       ]
     },
@@ -16234,21 +15729,6 @@
       ]
     },
     {
-      "setCode": "LAW_102",
-      "internalName": "choke-on-aspirations",
-      "sourcePath": "game/cards/07_LAW/events/ChokeOnAspirations.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:events",
-          "message": "unimplemented-context-field:events",
-          "file": "game/cards/07_LAW/events/ChokeOnAspirations.ts",
-          "line": 29,
-          "column": 42
-        }
-      ]
-    },
-    {
       "setCode": "LAW_103",
       "internalName": "display-piece",
       "sourcePath": "game/cards/07_LAW/events/DisplayPiece.ts",
@@ -16321,14 +15801,6 @@
           "file": "game/cards/07_LAW/upgrades/LeiasDisguise.ts",
           "line": 20,
           "column": 28
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/07_LAW/upgrades/LeiasDisguise.ts",
-          "line": 26,
-          "column": 41
         }
       ]
     },
@@ -16808,21 +16280,6 @@
       ]
     },
     {
-      "setCode": "LAW_167",
-      "internalName": "common-cause",
-      "sourcePath": "game/cards/07_LAW/events/CommonCause.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "new Set(context.player.getArenaUnits().flatMap((x) => x.aspects))",
-          "file": "game/cards/07_LAW/events/CommonCause.ts",
-          "line": 18,
-          "column": 50
-        }
-      ]
-    },
-    {
       "setCode": "LAW_168",
       "internalName": "haymaker",
       "sourcePath": "game/cards/07_LAW/events/Haymaker.ts",
@@ -16864,21 +16321,6 @@
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
           "line": 31,
           "column": 25
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_173",
-      "internalName": "bt1#blastomech",
-      "sourcePath": "game/cards/07_LAW/units/BT-1Blastomech.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "deck-discard-event-result-capture",
-          "message": "deck-discard-event-result-capture",
-          "file": "game/cards/07_LAW/units/BT-1Blastomech.ts",
-          "line": 16,
-          "column": 38
         }
       ]
     },
@@ -17010,8 +16452,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:events",
-          "message": "unimplemented-context-field:events",
+          "pattern": "event-result-explicit-index-and-field",
+          "message": "event-result-explicit-index-and-field",
           "file": "game/cards/07_LAW/units/DoctorAphraDiggingForAnswers.ts",
           "line": 23,
           "column": 50
@@ -17132,8 +16574,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:events",
-          "message": "unimplemented-context-field:events",
+          "pattern": "event-result-explicit-index-and-field",
+          "message": "event-result-explicit-index-and-field",
           "file": "game/cards/07_LAW/events/DaringDelve.ts",
           "line": 23,
           "column": 50
@@ -17226,8 +16668,8 @@
           "pattern": "optional-reference",
           "message": "optional-reference",
           "file": "game/cards/07_LAW/events/CollateralDamage.ts",
-          "line": 35,
-          "column": 37
+          "line": 36,
+          "column": 57
         }
       ]
     },
@@ -17291,11 +16733,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-field:showUnresolvable",
+          "message": "unsupported-field:showUnresolvable",
           "file": "game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts",
-          "line": 22,
-          "column": 34
+          "line": 26,
+          "column": 35
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -17796,21 +17238,6 @@
       ]
     },
     {
-      "setCode": "LAW_256",
-      "internalName": "fire-across-the-galaxy",
-      "sourcePath": "game/cards/07_LAW/events/FireAcrossTheGalaxy.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:canRegisterTriggeredAbilities",
-          "message": "unsupported-query:canRegisterTriggeredAbilities",
-          "file": "game/cards/07_LAW/events/FireAcrossTheGalaxy.ts",
-          "line": 24,
-          "column": 78
-        }
-      ]
-    },
-    {
       "setCode": "LAW_257",
       "internalName": "hidden-hand-supplier",
       "sourcePath": "game/cards/07_LAW/units/HiddenHandSupplier.ts",
@@ -18175,14 +17602,6 @@
           "file": "game/cards/05_LOF/leaders/GrandInquisitorStoriesTravelQuickly.ts",
           "line": 20,
           "column": 29
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/05_LOF/leaders/GrandInquisitorStoriesTravelQuickly.ts",
-          "line": 31,
-          "column": 30
         }
       ]
     },
@@ -18224,11 +17643,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:returnedUnitCost",
+          "message": "unsupported-query:returnedUnitCost",
           "file": "game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts",
-          "line": 53,
-          "column": 34
+          "line": 61,
+          "column": 42
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -18536,21 +17955,6 @@
       ]
     },
     {
-      "setCode": "LOF_038",
-      "internalName": "pong-krell#its-treason-then",
-      "sourcePath": "game/cards/05_LOF/units/PongKrellItsTreasonThen.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
-          "file": "game/cards/05_LOF/units/PongKrellItsTreasonThen.ts",
-          "line": 18,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "LOF_040",
       "internalName": "kylo-rens-lightsaber",
       "sourcePath": "game/cards/05_LOF/upgrades/KyloRensLightsaber.ts",
@@ -18734,21 +18138,6 @@
       ]
     },
     {
-      "setCode": "LOF_062",
-      "internalName": "axe-woves#accomplished-warrior",
-      "sourcePath": "game/cards/05_LOF/units/AxeWovesAccomplishedWarrior.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-live-stat-expression",
-          "message": "unsupported-live-stat-expression",
-          "file": "game/cards/05_LOF/units/AxeWovesAccomplishedWarrior.ts",
-          "line": 17,
-          "column": 24
-        }
-      ]
-    },
-    {
       "setCode": "LOF_063",
       "internalName": "oggdo-bogdo#bogano-brute",
       "sourcePath": "game/cards/05_LOF/units/OggdoBogdoBoganoBrute.ts",
@@ -18783,21 +18172,6 @@
           "file": "game/cards/05_LOF/units/WattoNoMoneyNoPartsNoDeal.ts",
           "line": 20,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_067",
-      "internalName": "chirrut-imwe#blind-but-not-deaf",
-      "sourcePath": "game/cards/05_LOF/units/ChirrutImweBlindButNotDeaf.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/05_LOF/units/ChirrutImweBlindButNotDeaf.ts",
-          "line": 20,
-          "column": 34
         }
       ]
     },
@@ -18889,21 +18263,6 @@
           "file": "game/cards/05_LOF/events/Shatterpoint.ts",
           "line": 17,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_082",
-      "internalName": "vanee#i-live-to-serve",
-      "sourcePath": "game/cards/05_LOF/units/VaneeILiveToServe.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isExperience",
-          "message": "unsupported-query:isExperience",
-          "file": "game/cards/05_LOF/units/VaneeILiveToServe.ts",
-          "line": 24,
-          "column": 51
         }
       ]
     },
@@ -19456,11 +18815,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "immediateEffect:attack",
+          "message": "immediateEffect:attack",
           "file": "game/cards/05_LOF/upgrades/DarthMaulsLightsaber.ts",
-          "line": 24,
-          "column": 41
+          "line": 25,
+          "column": 25
         }
       ]
     },
@@ -19551,21 +18910,6 @@
           "message": "immediateEffect:playCardFromHand",
           "file": "game/cards/05_LOF/units/CinDralligEsteemedBlademaster.ts",
           "line": 23,
-          "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_156",
-      "internalName": "infused-brawler",
-      "sourcePath": "game/cards/05_LOF/units/InfusedBrawler.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
-          "file": "game/cards/05_LOF/units/InfusedBrawler.ts",
-          "line": 29,
           "column": 34
         }
       ]
@@ -19811,11 +19155,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "unsupported-field:multiSelectCardCondition",
+          "message": "unsupported-field:multiSelectCardCondition",
           "file": "game/cards/05_LOF/upgrades/QuiGonJinnsLightsaber.ts",
-          "line": 26,
-          "column": 41
+          "line": 30,
+          "column": 47
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -20311,10 +19655,10 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "immediateEffect:playCardFromOutOfPlay",
+          "message": "immediateEffect:playCardFromOutOfPlay",
           "file": "game/cards/06_SEC/leaders/LamaSuWeModifiedTheirGenetics.ts",
-          "line": 53,
+          "line": 57,
           "column": 34
         }
       ]
@@ -20381,11 +19725,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-field:initiateAttack",
+          "message": "unsupported-field:initiateAttack",
           "file": "game/cards/06_SEC/leaders/ColonelYularenThisIsWhyWePlan.ts",
-          "line": 33,
-          "column": 34
+          "line": 35,
+          "column": 29
         }
       ]
     },
@@ -20957,21 +20301,6 @@
       ]
     },
     {
-      "setCode": "SEC_056",
-      "internalName": "escape-pod",
-      "sourcePath": "game/cards/06_SEC/units/EscapePod.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/units/EscapePod.ts",
-          "line": 23,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "SEC_059",
       "internalName": "senate-warden",
       "sourcePath": "game/cards/06_SEC/units/SenateWarden.ts",
@@ -21082,21 +20411,6 @@
           "file": "game/cards/06_SEC/units/UmbaranMobileCannon.ts",
           "line": 15,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_068",
-      "internalName": "lando-calrissian#trust-me",
-      "sourcePath": "game/cards/06_SEC/units/LandoCalrissianTrustMe.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/units/LandoCalrissianTrustMe.ts",
-          "line": 40,
-          "column": 25
         }
       ]
     },
@@ -21237,21 +20551,6 @@
       ]
     },
     {
-      "setCode": "SEC_082",
-      "internalName": "chancellor-palpatine#i-am-the-senate",
-      "sourcePath": "game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts",
-          "line": 25,
-          "column": 29
-        }
-      ]
-    },
-    {
       "setCode": "SEC_083",
       "internalName": "isb-shuttle",
       "sourcePath": "game/cards/06_SEC/units/ISBShuttle.ts",
@@ -21313,21 +20612,6 @@
       ]
     },
     {
-      "setCode": "SEC_090",
-      "internalName": "director-krennic#i-lose-nothing-but-time",
-      "sourcePath": "game/cards/06_SEC/units/DirectorKrennicILoseNothingButTime.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "deck-discard-event-result-capture",
-          "message": "deck-discard-event-result-capture",
-          "file": "game/cards/06_SEC/units/DirectorKrennicILoseNothingButTime.ts",
-          "line": 14,
-          "column": 39
-        }
-      ]
-    },
-    {
       "setCode": "SEC_093",
       "internalName": "c3po#anything-i-might-do",
       "sourcePath": "game/cards/06_SEC/units/C3POAnythingIMightDo.ts",
@@ -21364,19 +20648,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "immediateEffect:disclose",
+          "message": "immediateEffect:disclose",
           "file": "game/cards/06_SEC/units/AhsokaTanoILearnedItFromYou.ts",
-          "line": 19,
-          "column": 34
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unused-source-binding",
-          "file": "game/cards/06_SEC/units/AhsokaTanoILearnedItFromYou.ts",
-          "line": 16,
-          "column": 25,
-          "message": "Unused binding aspects may contain unconverted behavior"
+          "line": 20,
+          "column": 30
         }
       ]
     },
@@ -21470,19 +20746,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "immediateEffect:disclose",
+          "message": "immediateEffect:disclose",
           "file": "game/cards/06_SEC/units/ChancellorValorumCivilServant.ts",
-          "line": 19,
-          "column": 34
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unused-source-binding",
-          "file": "game/cards/06_SEC/units/ChancellorValorumCivilServant.ts",
-          "line": 16,
-          "column": 25,
-          "message": "Unused binding aspects may contain unconverted behavior"
+          "line": 20,
+          "column": 30
         }
       ]
     },
@@ -21776,11 +21044,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
+          "pattern": "immediateEffect:delayedCardEffect",
+          "message": "immediateEffect:delayedCardEffect",
           "file": "game/cards/06_SEC/units/DrydenVosIGetAllWorkedUp.ts",
-          "line": 19,
-          "column": 30
+          "line": 28,
+          "column": 34
         }
       ]
     },
@@ -21791,8 +21059,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
+          "pattern": "unsupported-attack-reference",
+          "message": "unsupported-attack-reference",
           "file": "game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts",
           "line": 31,
           "column": 17
@@ -22119,8 +21387,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:events",
-          "message": "unimplemented-context-field:events",
+          "pattern": "event-result-explicit-index-and-field",
+          "message": "event-result-explicit-index-and-field",
           "file": "game/cards/06_SEC/units/AATIncinerator.ts",
           "line": 28,
           "column": 46
@@ -22164,11 +21432,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-field:initiateAttack",
+          "message": "unsupported-field:initiateAttack",
           "file": "game/cards/06_SEC/units/SawGerrerasUWingBreakingTheRules.ts",
-          "line": 17,
-          "column": 34
+          "line": 19,
+          "column": 29
         }
       ]
     },
@@ -22411,14 +21679,6 @@
           "file": "game/cards/06_SEC/units/GrandAdmiralThrawnGrandSchemer.ts",
           "line": 20,
           "column": 26
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/units/GrandAdmiralThrawnGrandSchemer.ts",
-          "line": 44,
-          "column": 38
         }
       ]
     },
@@ -22476,10 +21736,10 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
+          "pattern": "immediateEffect:delayedPlayerEffect",
+          "message": "immediateEffect:delayedPlayerEffect",
           "file": "game/cards/06_SEC/events/Arrest.ts",
-          "line": 24,
+          "line": 27,
           "column": 21
         }
       ]
@@ -22526,21 +21786,6 @@
           "file": "game/cards/06_SEC/units/LightmakerIHaveAnIdea.ts",
           "line": 20,
           "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_208",
-      "internalName": "hunter#extraordinary-tracker",
-      "sourcePath": "game/cards/06_SEC/units/HunterExtraordinaryTracker.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/06_SEC/units/HunterExtraordinaryTracker.ts",
-          "line": 20,
-          "column": 25
         }
       ]
     },
@@ -22609,14 +21854,6 @@
           "file": "game/cards/06_SEC/units/LibertineUnderNewOwnership.ts",
           "line": 21,
           "column": 24
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/units/LibertineUnderNewOwnership.ts",
-          "line": 41,
-          "column": 38
         }
       ]
     },
@@ -22953,21 +22190,6 @@
       ]
     },
     {
-      "setCode": "SEC_247",
-      "internalName": "evil-is-everywhere",
-      "sourcePath": "game/cards/06_SEC/events/EvilIsEverywhere.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.player.getArenaUnits()\n                        .flatMap((x) => x.aspects)\n                        .filter((x) => x === Aspect.Villainy)",
-          "file": "game/cards/06_SEC/events/EvilIsEverywhere.ts",
-          "line": 21,
-          "column": 49
-        }
-      ]
-    },
-    {
       "setCode": "SEC_248",
       "internalName": "b2emo#thats-two-lies",
       "sourcePath": "game/cards/06_SEC/units/B2EMOThatsTwoLies.ts",
@@ -22983,21 +22205,6 @@
       ]
     },
     {
-      "setCode": "SEC_253",
-      "internalName": "covert-operative",
-      "sourcePath": "game/cards/06_SEC/units/CovertOperative.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/units/CovertOperative.ts",
-          "line": 21,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "SEC_256",
       "internalName": "moral-authority",
       "sourcePath": "game/cards/06_SEC/upgrades/MoralAuthority.ts",
@@ -23009,14 +22216,6 @@
           "file": "game/cards/06_SEC/upgrades/MoralAuthority.ts",
           "line": 15,
           "column": 118
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/06_SEC/upgrades/MoralAuthority.ts",
-          "line": 22,
-          "column": 34
         }
       ]
     },
@@ -23148,11 +22347,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:ability",
-          "message": "unsupported-field:ability",
+          "pattern": "immediateEffect:forThisPhasePlayerEffect",
+          "message": "immediateEffect:forThisPhasePlayerEffect",
           "file": "game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts",
-          "line": 24,
-          "column": 34
+          "line": 26,
+          "column": 46
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -23164,11 +22363,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:ability",
-          "message": "unsupported-field:ability",
+          "pattern": "immediateEffect:forThisPhasePlayerEffect",
+          "message": "immediateEffect:forThisPhasePlayerEffect",
           "file": "game/cards/02_SHD/leaders/JabbaTheHuttHisHighExaltedness.ts",
-          "line": 69,
-          "column": 34
+          "line": 71,
+          "column": 46
         }
       ]
     },
@@ -23473,21 +22672,6 @@
       ]
     },
     {
-      "setCode": "SHD_027",
-      "internalName": "hylobon-enforcer",
-      "sourcePath": "game/cards/02_SHD/units/HylobonEnforcer.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/HylobonEnforcer.ts",
-          "line": 14,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SHD_028",
       "internalName": "doctor-pershing#experimenting-with-life",
       "sourcePath": "game/cards/02_SHD/units/DoctorPershingExperimentingWithLife.ts",
@@ -23499,36 +22683,6 @@
           "file": "game/cards/02_SHD/units/DoctorPershingExperimentingWithLife.ts",
           "line": 19,
           "column": 17
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_031",
-      "internalName": "the-client#dictated-by-discretion",
-      "sourcePath": "game/cards/02_SHD/units/TheClientDictatedByDiscretion.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:ability",
-          "message": "unsupported-field:ability",
-          "file": "game/cards/02_SHD/units/TheClientDictatedByDiscretion.ts",
-          "line": 24,
-          "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_033",
-      "internalName": "synara-san#loyal-to-kragan",
-      "sourcePath": "game/cards/02_SHD/units/SynaraSanLoyalToKragan.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:ability",
-          "message": "unsupported-field:ability",
-          "file": "game/cards/02_SHD/units/SynaraSanLoyalToKragan.ts",
-          "line": 21,
-          "column": 26
         }
       ]
     },
@@ -23602,44 +22756,6 @@
       ]
     },
     {
-      "setCode": "SHD_041",
-      "internalName": "kuiil#i-have-spoken",
-      "sourcePath": "game/cards/02_SHD/units/KuiilIHaveSpoken.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasMatchingAspects",
-          "message": "unsupported-query:hasMatchingAspects",
-          "file": "game/cards/02_SHD/units/KuiilIHaveSpoken.ts",
-          "line": 22,
-          "column": 41
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:hasMatchingAspects",
-          "file": "game/cards/02_SHD/units/KuiilIHaveSpoken.ts",
-          "line": 30,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_045",
-      "internalName": "rose-tico#dedicated-to-the-cause",
-      "sourcePath": "game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:isShield",
-          "message": "unsupported-query:isShield",
-          "file": "game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts",
-          "line": 20,
-          "column": 51
-        }
-      ]
-    },
-    {
       "setCode": "SHD_046",
       "internalName": "rey#keeping-the-past",
       "sourcePath": "game/cards/02_SHD/units/ReyKeepingThePast.ts",
@@ -23670,21 +22786,6 @@
       ]
     },
     {
-      "setCode": "SHD_058",
-      "internalName": "val#loyal-to-the-end",
-      "sourcePath": "game/cards/02_SHD/units/ValLoyalToTheEnd.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/ValLoyalToTheEnd.ts",
-          "line": 24,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SHD_059",
       "internalName": "embo#stoic-and-resolute",
       "sourcePath": "game/cards/02_SHD/units/EmboStoicAndResolute.ts",
@@ -23707,11 +22808,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:defenderWasDefeated",
+          "message": "unsupported-query:defenderWasDefeated",
           "file": "game/cards/02_SHD/units/EmboStoicAndResolute.ts",
-          "line": 26,
-          "column": 34
+          "line": 28,
+          "column": 41
         }
       ]
     },
@@ -23769,21 +22870,6 @@
       ]
     },
     {
-      "setCode": "SHD_068",
-      "internalName": "public-enemy",
-      "sourcePath": "game/cards/02_SHD/upgrades/PublicEnemy.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/PublicEnemy.ts",
-          "line": 17,
-          "column": 22
-        }
-      ]
-    },
-    {
       "setCode": "SHD_069",
       "internalName": "foundling",
       "sourcePath": "game/cards/02_SHD/upgrades/Foundling.ts",
@@ -23795,21 +22881,6 @@
           "file": "game/cards/02_SHD/upgrades/Foundling.ts",
           "line": 18,
           "column": 28
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_071",
-      "internalName": "top-target",
-      "sourcePath": "game/cards/02_SHD/upgrades/TopTarget.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/TopTarget.ts",
-          "line": 18,
-          "column": 22
         }
       ]
     },
@@ -24064,21 +23135,6 @@
       ]
     },
     {
-      "setCode": "SHD_095",
-      "internalName": "clone-deserter",
-      "sourcePath": "game/cards/02_SHD/units/CloneDeserter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/CloneDeserter.ts",
-          "line": 14,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SHD_096",
       "internalName": "maz-kanata#pirate-queen",
       "sourcePath": "game/cards/02_SHD/units/MazKanataPirateQueen.ts",
@@ -24090,21 +23146,6 @@
           "file": "game/cards/02_SHD/units/MazKanataPirateQueen.ts",
           "line": 18,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_099",
-      "internalName": "echo#restored",
-      "sourcePath": "game/cards/02_SHD/units/EchoRestored.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "hand-discard-event-result-capture",
-          "message": "hand-discard-event-result-capture",
-          "file": "game/cards/02_SHD/units/EchoRestored.ts",
-          "line": 15,
-          "column": 40
         }
       ]
     },
@@ -24223,11 +23264,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
+          "pattern": "unsupported-query:getAttackersInPlay",
+          "message": "unsupported-query:getAttackersInPlay",
           "file": "game/cards/02_SHD/events/RuleWithRespect.ts",
-          "line": 29,
-          "column": 34
+          "line": 31,
+          "column": 29
         }
       ]
     },
@@ -24315,21 +23356,6 @@
       ]
     },
     {
-      "setCode": "SHD_116",
-      "internalName": "outlaw-corona",
-      "sourcePath": "game/cards/02_SHD/units/OutlawCorona.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/OutlawCorona.ts",
-          "line": 14,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SHD_117",
       "internalName": "reputable-hunter",
       "sourcePath": "game/cards/02_SHD/units/ReputableHunter.ts",
@@ -24345,21 +23371,6 @@
       ]
     },
     {
-      "setCode": "SHD_118",
-      "internalName": "kihraxz-heavy-fighter",
-      "sourcePath": "game/cards/02_SHD/units/KihraxzHeavyFighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/02_SHD/units/KihraxzHeavyFighter.ts",
-          "line": 26,
-          "column": 34
-        }
-      ]
-    },
-    {
       "setCode": "SHD_119",
       "internalName": "weequay-pirate-gang",
       "sourcePath": null,
@@ -24371,21 +23382,6 @@
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_120",
-      "internalName": "discerning-veteran",
-      "sourcePath": "game/cards/02_SHD/units/DiscerningVeteran.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/02_SHD/units/DiscerningVeteran.ts",
-          "line": 20,
-          "column": 34
         }
       ]
     },
@@ -24411,11 +23407,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
+          "pattern": "immediateEffect:deckSearch",
+          "message": "immediateEffect:deckSearch",
           "file": "game/cards/02_SHD/upgrades/BountyHuntersQuarry.ts",
-          "line": 18,
-          "column": 22
+          "line": 20,
+          "column": 34
         }
       ]
     },
@@ -24431,29 +23427,6 @@
           "file": "game/cards/02_SHD/upgrades/LegalAuthority.ts",
           "line": 15,
           "column": 87
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/02_SHD/upgrades/LegalAuthority.ts",
-          "line": 22,
-          "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_125",
-      "internalName": "price-on-your-head",
-      "sourcePath": "game/cards/02_SHD/upgrades/PriceOnYourHead.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/PriceOnYourHead.ts",
-          "line": 17,
-          "column": 22
         }
       ]
     },
@@ -24537,21 +23510,6 @@
           "file": "game/cards/02_SHD/units/DengarTheDemolisher.ts",
           "line": 17,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_134",
-      "internalName": "guavian-antagonizer",
-      "sourcePath": "game/cards/02_SHD/units/GuavianAntagonizer.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/GuavianAntagonizer.ts",
-          "line": 14,
-          "column": 9
         }
       ]
     },
@@ -24753,21 +23711,6 @@
       ]
     },
     {
-      "setCode": "SHD_151",
-      "internalName": "valiant-assault-ship",
-      "sourcePath": "game/cards/02_SHD/units/ValiantAssaultShip.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/02_SHD/units/ValiantAssaultShip.ts",
-          "line": 18,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "SHD_153",
       "internalName": "poe-dameron#quick-to-improvise",
       "sourcePath": "game/cards/02_SHD/units/PoeDameronQuickToImprovise.ts",
@@ -24812,11 +23755,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
+          "pattern": "immediateEffect:playCardFromOutOfPlay",
+          "message": "immediateEffect:playCardFromOutOfPlay",
           "file": "game/cards/02_SHD/units/StolenLandspeeder.ts",
-          "line": 29,
-          "column": 9
+          "line": 33,
+          "column": 25
         }
       ]
     },
@@ -24832,36 +23775,6 @@
           "file": "game/cards/02_SHD/units/MigsMayfeldTriggerman.ts",
           "line": 21,
           "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_165",
-      "internalName": "unlicensed-headhunter",
-      "sourcePath": "game/cards/02_SHD/units/UnlicensedHeadhunter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:ability",
-          "message": "unsupported-field:ability",
-          "file": "game/cards/02_SHD/units/UnlicensedHeadhunter.ts",
-          "line": 21,
-          "column": 26
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_167",
-      "internalName": "wanted-insurgents",
-      "sourcePath": "game/cards/02_SHD/units/WantedInsurgents.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/WantedInsurgents.ts",
-          "line": 15,
-          "column": 9
         }
       ]
     },
@@ -24896,21 +23809,6 @@
       ]
     },
     {
-      "setCode": "SHD_173",
-      "internalName": "guild-target",
-      "sourcePath": "game/cards/02_SHD/upgrades/GuildTarget.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/GuildTarget.ts",
-          "line": 18,
-          "column": 22
-        }
-      ]
-    },
-    {
       "setCode": "SHD_174",
       "internalName": "hotshot-dl44-blaster",
       "sourcePath": "game/cards/02_SHD/upgrades/HotshotDL44Blaster.ts",
@@ -24937,21 +23835,6 @@
           "file": "game/cards/02_SHD/upgrades/ArmedToTheTeeth.ts",
           "line": 15,
           "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_176",
-      "internalName": "death-mark",
-      "sourcePath": "game/cards/02_SHD/upgrades/DeathMark.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/DeathMark.ts",
-          "line": 17,
-          "column": 22
         }
       ]
     },
@@ -25038,8 +23921,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
+          "pattern": "unsupported-attack-reference",
+          "message": "unsupported-attack-reference",
           "file": "game/cards/02_SHD/units/KintanIntimidator.ts",
           "line": 16,
           "column": 93
@@ -25058,21 +23941,6 @@
           "file": "game/cards/02_SHD/units/BazineNetalSpyForTheFirstOrder.ts",
           "line": 16,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_185",
-      "internalName": "doctor-evazan#wanted-on-twelve-systems",
-      "sourcePath": "game/cards/02_SHD/units/DoctorEvazanWantedOnTwelveSystems.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/DoctorEvazanWantedOnTwelveSystems.ts",
-          "line": 14,
-          "column": 9
         }
       ]
     },
@@ -25179,21 +24047,6 @@
           "file": "game/cards/02_SHD/events/TripleDarkRaid.ts",
           "line": 19,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_195",
-      "internalName": "cartel-turncoat",
-      "sourcePath": "game/cards/02_SHD/units/CartelTurncoat.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/CartelTurncoat.ts",
-          "line": 14,
-          "column": 9
         }
       ]
     },
@@ -25396,21 +24249,6 @@
       ]
     },
     {
-      "setCode": "SHD_211",
-      "internalName": "fugitive-wookiee",
-      "sourcePath": "game/cards/02_SHD/units/FugitiveWookiee.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/02_SHD/units/FugitiveWookiee.ts",
-          "line": 15,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SHD_213",
       "internalName": "dj#blatant-thief",
       "sourcePath": "game/cards/02_SHD/units/DjBlatantThief.ts",
@@ -25501,32 +24339,17 @@
       ]
     },
     {
-      "setCode": "SHD_221",
-      "internalName": "wanted",
-      "sourcePath": "game/cards/02_SHD/upgrades/Wanted.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/Wanted.ts",
-          "line": 17,
-          "column": 22
-        }
-      ]
-    },
-    {
       "setCode": "SHD_222",
       "internalName": "enticing-reward",
       "sourcePath": "game/cards/02_SHD/upgrades/EnticingReward.ts",
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
+          "pattern": "immediateEffect:deckSearch",
+          "message": "immediateEffect:deckSearch",
           "file": "game/cards/02_SHD/upgrades/EnticingReward.ts",
-          "line": 17,
-          "column": 22
+          "line": 19,
+          "column": 34
         }
       ]
     },
@@ -25590,11 +24413,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
+          "pattern": "immediateEffect:playCard",
+          "message": "immediateEffect:playCard",
           "file": "game/cards/02_SHD/upgrades/UnrefusableOffer.ts",
-          "line": 20,
-          "column": 22
+          "line": 24,
+          "column": 29
         }
       ]
     },
@@ -25835,14 +24658,6 @@
           "file": "game/cards/02_SHD/upgrades/TheMandaloriansRifle.ts",
           "line": 17,
           "column": 49
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/02_SHD/upgrades/TheMandaloriansRifle.ts",
-          "line": 27,
-          "column": 29
         }
       ]
     },
@@ -25888,21 +24703,6 @@
           "file": "game/cards/02_SHD/units/MercenaryGunship.ts",
           "line": 18,
           "column": 31
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_261",
-      "internalName": "rich-reward",
-      "sourcePath": "game/cards/02_SHD/upgrades/RichReward.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
-          "file": "game/cards/02_SHD/upgrades/RichReward.ts",
-          "line": 18,
-          "column": 22
         }
       ]
     },
@@ -26106,11 +24906,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-field:initiateAttack",
+          "message": "unsupported-field:initiateAttack",
           "file": "game/cards/01_SOR/leaders/LeiaOrganaAllianceGeneral.ts",
-          "line": 35,
-          "column": 34
+          "line": 37,
+          "column": 29
         }
       ]
     },
@@ -26238,11 +25038,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:someUnitLeftPlay",
+          "message": "unsupported-query:someUnitLeftPlay",
           "file": "game/cards/01_SOR/leaders/BobaFettCollectingTheBounty.ts",
-          "line": 47,
-          "column": 34
+          "line": 49,
+          "column": 41
         }
       ]
     },
@@ -27090,21 +25890,6 @@
       ]
     },
     {
-      "setCode": "SOR_136",
-      "internalName": "vaders-lightsaber",
-      "sourcePath": "game/cards/01_SOR/upgrades/VadersLightsaber.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/01_SOR/upgrades/VadersLightsaber.ts",
-          "line": 24,
-          "column": 45
-        }
-      ]
-    },
-    {
       "setCode": "SOR_137",
       "internalName": "fallen-lightsaber",
       "sourcePath": "game/cards/01_SOR/upgrades/FallenLightsaber.ts",
@@ -27161,14 +25946,6 @@
           "file": "game/cards/01_SOR/units/SabineWrenExplosivesArtist.ts",
           "line": 19,
           "column": 28
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/01_SOR/units/SabineWrenExplosivesArtist.ts",
-          "line": 25,
-          "column": 68
         }
       ]
     },
@@ -27225,11 +26002,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-query:defenderWasDefeated",
+          "message": "unsupported-query:defenderWasDefeated",
           "file": "game/cards/01_SOR/units/ZebOrreliosHeadstrongWarrior.ts",
-          "line": 27,
-          "column": 34
+          "line": 32,
+          "column": 45
         }
       ]
     },
@@ -27441,21 +26218,6 @@
           "line": 29,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_174",
-      "internalName": "smoke-and-cinders",
-      "sourcePath": "game/cards/01_SOR/events/SmokeAndCinders.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "nonconstant-value",
-          "message": "(player) => Math.max(0, player.hand.length - 2)",
-          "file": "game/cards/01_SOR/events/SmokeAndCinders.ts",
-          "line": 18,
-          "column": 25
         }
       ]
     },
@@ -27726,11 +26488,19 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "immediateEffect:lookAtAndChooseOption",
+          "message": "immediateEffect:lookAtAndChooseOption",
           "file": "game/cards/01_SOR/units/EzraBridgerResourcefulTroublemaker.ts",
-          "line": 17,
-          "column": 34
+          "line": 18,
+          "column": 30
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/units/EzraBridgerResourcefulTroublemaker.ts",
+          "line": 19,
+          "column": 39,
+          "message": "Unused binding topCardOfDeck may contain unconverted behavior"
         }
       ]
     },
@@ -27837,21 +26607,6 @@
           "file": "game/cards/01_SOR/events/Cunning.ts",
           "line": 18,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_204",
-      "internalName": "greedo#slow-on-the-draw",
-      "sourcePath": "game/cards/01_SOR/units/GreedoSlowOnTheDraw.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "deck-discard-event-result-capture",
-          "message": "deck-discard-event-result-capture",
-          "file": "game/cards/01_SOR/units/GreedoSlowOnTheDraw.ts",
-          "line": 15,
-          "column": 42
         }
       ]
     },
@@ -28696,14 +27451,6 @@
           "file": "game/cards/07_TS26/units/YodaBegunTheCloneWarHas.ts",
           "line": 16,
           "column": 9
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/07_TS26/units/YodaBegunTheCloneWarHas.ts",
-          "line": 33,
-          "column": 29
         }
       ]
     },
@@ -28742,29 +27489,6 @@
           "file": "game/cards/07_TS26/units/JendirianValleyRefugeeFreighter.ts",
           "line": 16,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "TS26_019",
-      "internalName": "coleman-trebor#jedi-rescuer",
-      "sourcePath": "game/cards/07_TS26/units/ColemanTreborJediRescuer.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:damageDealtBy",
-          "message": "unsupported-query:damageDealtBy",
-          "file": "game/cards/07_TS26/units/ColemanTreborJediRescuer.ts",
-          "line": 28,
-          "column": 29
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:damageDealtBy",
-          "file": "game/cards/07_TS26/units/ColemanTreborJediRescuer.ts",
-          "line": 35,
-          "column": 1,
-          "message": "Additional class method requires conversion"
         }
       ]
     },
@@ -28825,29 +27549,6 @@
           "file": "game/cards/07_TS26/units/MotherTalzinStealingTheSpirit.ts",
           "line": 17,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "TS26_027",
-      "internalName": "fortune-and-glory#hondos-luxury-yacht",
-      "sourcePath": "game/cards/07_TS26/units/FortuneAndGloryHondosLuxuryYacht.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/07_TS26/units/FortuneAndGloryHondosLuxuryYacht.ts",
-          "line": 20,
-          "column": 34
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addBountyAbility",
-          "message": "registrar:addBountyAbility",
-          "file": "game/cards/07_TS26/units/FortuneAndGloryHondosLuxuryYacht.ts",
-          "line": 26,
-          "column": 9
         }
       ]
     },
@@ -29218,21 +27919,6 @@
       ]
     },
     {
-      "setCode": "TS26_058",
-      "internalName": "backed-by-the-pykes",
-      "sourcePath": "game/cards/07_TS26/events/BackedByThePykes.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.player.getArenaUnits()\n                    .flatMap((x) => x.upgrades)\n                    .filter((x) => x.isExperience())",
-          "file": "game/cards/07_TS26/events/BackedByThePykes.ts",
-          "line": 25,
-          "column": 52
-        }
-      ]
-    },
-    {
       "setCode": "TS26_059",
       "internalName": "brothers",
       "sourcePath": "game/cards/07_TS26/events/Brothers.ts",
@@ -29274,14 +27960,6 @@
           "file": "game/cards/07_TS26/events/Encircle.ts",
           "line": 16,
           "column": 9
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/07_TS26/events/Encircle.ts",
-          "line": 33,
-          "column": 38
         }
       ]
     },
@@ -30093,11 +28771,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber))",
+          "pattern": "unsupported-field:numCardsFunc",
+          "message": "unsupported-field:numCardsFunc",
           "file": "game/cards/03_TWI/units/GeneralGrievousTrophyCollector.ts",
-          "line": 28,
-          "column": 41
+          "line": 33,
+          "column": 35
         }
       ]
     },
@@ -30239,11 +28917,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-attached-keyword-field:ability",
-          "message": "unsupported-attached-keyword-field:ability",
+          "pattern": "bounty-grant-keyword-and-ability",
+          "message": "bounty-grant-keyword-and-ability",
           "file": "game/cards/03_TWI/upgrades/ForTheRepublic.ts",
-          "line": 24,
-          "column": 22
+          "line": 22,
+          "column": 51
         }
       ]
     },
@@ -30285,11 +28963,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:attackerMustSurvive",
-          "message": "unsupported-field:attackerMustSurvive",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility",
           "file": "game/cards/03_TWI/units/FinnOnTheRun.ts",
-          "line": 17,
-          "column": 34
+          "line": 22,
+          "column": 29
         }
       ]
     },
@@ -30550,11 +29228,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainDamageModificationAbility",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainDamageModificationAbility",
           "file": "game/cards/03_TWI/units/AaylaSecuraMasterOfTheBlade.ts",
-          "line": 22,
-          "column": 30
+          "line": 24,
+          "column": 25
         }
       ]
     },
@@ -30643,21 +29321,6 @@
           "pattern": "immediateEffect:whileSourceInPlayCardEffect",
           "message": "immediateEffect:whileSourceInPlayCardEffect",
           "file": "game/cards/03_TWI/units/HuyangEnduringInstructor.ts",
-          "line": 21,
-          "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_115",
-      "internalName": "osi-sobeck#warden-of-the-citadel",
-      "sourcePath": "game/cards/03_TWI/units/OsiSobeckWardenOfTheCitadel.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/03_TWI/units/OsiSobeckWardenOfTheCitadel.ts",
           "line": 21,
           "column": 34
         }
@@ -30804,21 +29467,6 @@
           "file": "game/cards/03_TWI/events/TheCloneWars.ts",
           "line": 21,
           "column": 32
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_128",
-      "internalName": "take-captive",
-      "sourcePath": "game/cards/02_SHD/events/TakeCaptive.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
-          "file": "game/cards/02_SHD/events/TakeCaptive.ts",
-          "line": 27,
-          "column": 38
         }
       ]
     },
@@ -31005,21 +29653,6 @@
       ]
     },
     {
-      "setCode": "TWI_152",
-      "internalName": "mace-windus-lightsaber",
-      "sourcePath": "game/cards/03_TWI/upgrades/MaceWindusLightsaber.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/03_TWI/upgrades/MaceWindusLightsaber.ts",
-          "line": 20,
-          "column": 41
-        }
-      ]
-    },
-    {
       "setCode": "TWI_153",
       "internalName": "bold-resistance",
       "sourcePath": "game/cards/03_TWI/events/BoldResistance.ts",
@@ -31129,21 +29762,6 @@
           "file": "game/cards/03_TWI/events/GuerillaInsurgency.ts",
           "line": 21,
           "column": 42
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_179",
-      "internalName": "soulless-one#customized-for-grievous",
-      "sourcePath": "game/cards/03_TWI/units/SoullessOneCustomizedForGrievous.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/03_TWI/units/SoullessOneCustomizedForGrievous.ts",
-          "line": 27,
-          "column": 34
         }
       ]
     },
@@ -31671,11 +30289,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:capture",
-          "message": "immediateEffect:capture",
+          "pattern": "token-player-target",
+          "message": "token-player-target",
           "file": "game/cards/03_TWI/events/PrisonerOfWar.ts",
-          "line": 30,
-          "column": 25
+          "line": 36,
+          "column": 41
         }
       ]
     },
@@ -31762,11 +30380,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
+          "pattern": "immediateEffect:attack",
+          "message": "immediateEffect:attack",
           "file": "game/cards/03_TWI/upgrades/AhsokasPadawanLightsaber.ts",
-          "line": 22,
-          "column": 45
+          "line": 23,
+          "column": 29
         }
       ]
     },
