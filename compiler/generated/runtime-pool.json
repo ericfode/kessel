@@ -11816,6 +11816,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6300552434",
+      "internalName": "gold-leader#fastest-ship-in-the-fleet",
+      "keywords": [
+        "shielded"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "JTL_054",
+      "setCodes": [
+        {
+          "number": 54,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 54,
+        "set": "JTL"
+      },
+      "subtitle": "Fastest Ship in the Fleet",
+      "text": "Shielded (When you play this unit, give a Shield token to it.)\nWhile this unit is defending, the attacker gets –1/–0.",
+      "title": "Gold Leader",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -16123,6 +16166,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2254545413",
+      "internalName": "lando-calrissian#eyes-open",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_108",
+      "setCodes": [
+        {
+          "number": 108,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 108,
+        "set": "LAW"
+      },
+      "subtitle": "Eyes Open",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nWhile this unit is defending, the attacker gets –1/–0.",
+      "title": "Lando Calrissian",
+      "traits": [
+        "rebel",
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -17112,6 +17197,43 @@
       "title": "Combat Exercise",
       "traits": [
         "learned"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8221105498",
+      "internalName": "stockpile",
+      "keywords": [],
+      "power": null,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "LAW_171",
+      "setCodes": [
+        {
+          "number": 171,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 171,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Resource this event and the top card of your deck.",
+      "title": "Stockpile",
+      "traits": [
+        "supply"
       ],
       "types": [
         "event"
@@ -34154,6 +34276,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "9996676854",
+      "internalName": "admiral-motti#brazen-and-scornful",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_226",
+      "setCodes": [
+        {
+          "number": 226,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 226,
+        "set": "SOR"
+      },
+      "subtitle": "Brazen and Scornful",
+      "text": "When Defeated: You may ready a [Villainy] unit.",
+      "title": "Admiral Motti",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

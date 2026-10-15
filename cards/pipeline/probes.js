@@ -2,6 +2,12 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const defendingAttackerAura = require("./defending-attacker-aura-probes").planDefendingAttackerAuraProbes(entry, options);
+    if (defendingAttackerAura) return defendingAttackerAura;
+    const simultaneousResource = require("./simultaneous-resource-probes").planSimultaneousResourceProbes(entry, options);
+    if (simultaneousResource) return simultaneousResource;
+    const aspectReadyDeath = require("./aspect-ready-death-probes").planAspectReadyDeathProbes(entry, options);
+    if (aspectReadyDeath) return aspectReadyDeath;
     const defeatTopResource = require("./defeat-top-resource-probes").planDefeatTopResourceProbes(entry, options);
     if (defeatTopResource) return defeatTopResource;
     const conditionalDrawResource = require("./conditional-draw-resource-probes").planConditionalDrawResourceProbes(entry, options);

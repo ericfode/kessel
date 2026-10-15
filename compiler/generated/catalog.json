@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b8fd19b56374fbed23e9687f9e52e499673f0f3f40a4251a3463823b39f0fdf6",
+  "compilerHash": "1e8f8a4c8cec0fb857fc440d9e9048f697f447d757a56121c37092d0b8b07c55",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -76913,23 +76913,90 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While this unit is defending, the attacker gets -1/-0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": -1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "isDefending",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "source"
+                ]
+              },
+              "args": []
+            },
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isInPlay",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "isAttacking",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/04_JTL/units/GoldLeaderFastestShipInTheFleet.ts",
-          "line": 18,
-          "column": 103
-        }
-      ],
+      "diagnostics": [],
       "className": "GoldLeaderFastestShipInTheFleet",
       "baseClass": "NonLeaderUnitCard",
       "id": "6300552434",
       "internalName": "gold-leader#fastest-ship-in-the-fleet",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Gold Leader",
         "subtitle": "Fastest Ship in the Fleet",
@@ -76977,8 +77044,23 @@
         "shielded": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:shielded"
+        "ir:binary",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "keyword:shielded",
+        "query:isAttacking",
+        "query:isDefending",
+        "query:isInPlay",
+        "query:isUnit",
+        "ref:card",
+        "ref:source",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:constant"
       ]
     },
     {
@@ -105335,23 +105417,90 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While this unit is defending, the attacker gets -1/-0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": -1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "isDefending",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "source"
+                ]
+              },
+              "args": []
+            },
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isInPlay",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "isAttacking",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/07_LAW/units/LandoCalrissianEyesOpen.ts",
-          "line": 18,
-          "column": 103
-        }
-      ],
+      "diagnostics": [],
       "className": "LandoCalrissianEyesOpen",
       "baseClass": "NonLeaderUnitCard",
       "id": "2254545413",
       "internalName": "lando-calrissian#eyes-open",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Lando Calrissian",
         "subtitle": "Eyes Open",
@@ -105398,8 +105547,23 @@
         "sentinel": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:sentinel"
+        "ir:binary",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "keyword:sentinel",
+        "query:isAttacking",
+        "query:isDefending",
+        "query:isInPlay",
+        "query:isUnit",
+        "ref:card",
+        "ref:source",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:constant"
       ]
     },
     {
@@ -110450,23 +110614,33 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Resource this event and the top card of your deck",
+            "costs": [],
+            "effect": {
+              "kind": "simultaneous",
+              "effects": [
+                {
+                  "kind": "resourceCard",
+                  "target": "self"
+                },
+                {
+                  "kind": "resourceCard",
+                  "target": "ownTopDeck"
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/07_LAW/events/Stockpile.ts",
-          "line": 5,
-          "column": 1
-        }
-      ],
+      "diagnostics": [],
       "className": "Stockpile",
       "baseClass": "EventCard",
       "id": "8221105498",
       "internalName": "stockpile",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Stockpile",
         "subtitle": "",
@@ -110506,7 +110680,10 @@
       "dataHash": "7463a222e534f487ff99bf4223795fd5e27bcdf43516935b45bcce9581f060b9",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "cardType:event",
+        "ir:resourceCard",
+        "ir:simultaneous",
+        "trigger:event"
       ]
     },
     {
@@ -205807,13 +205984,12 @@
                   "args": []
                 },
                 "right": {
-                  "kind": "collection",
-                  "name": "includes",
+                  "kind": "query",
+                  "name": "hasSomeAspect",
                   "receiver": {
                     "kind": "ref",
                     "path": [
-                      "card",
-                      "aspects"
+                      "card"
                     ]
                   },
                   "args": [
@@ -205821,8 +205997,7 @@
                       "kind": "const",
                       "value": "villainy"
                     }
-                  ],
-                  "limit": 256
+                  ]
                 }
               }
             },
@@ -205882,16 +206057,14 @@
       "requiredCapabilities": [
         "binary:&&",
         "cardType:unit",
-        "collection:includes",
         "ir:binary",
-        "ir:collection",
         "ir:const",
         "ir:query",
         "ir:ready",
         "ir:ref",
+        "query:hasSomeAspect",
         "query:isUnit",
         "ref:card",
-        "ref:card.aspects",
         "targetType:any",
         "targetZone:arena",
         "trigger:whenDefeated"

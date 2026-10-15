@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b8fd19b56374fbed23e9687f9e52e499673f0f3f40a4251a3463823b39f0fdf6",
+  "compilerHash": "1e8f8a4c8cec0fb857fc440d9e9048f697f447d757a56121c37092d0b8b07c55",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1105,
-  "sourceAstConverted": 733,
+  "converted": 1108,
+  "sourceAstConverted": 736,
   "dataOnlyConverted": 372,
-  "unconverted": 1353,
+  "unconverted": 1350,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -327,6 +327,7 @@
     "JTL_044",
     "JTL_051",
     "JTL_052",
+    "JTL_054",
     "JTL_055",
     "JTL_060",
     "JTL_061",
@@ -439,6 +440,7 @@
     "LAW_105",
     "LAW_106",
     "LAW_107",
+    "LAW_108",
     "LAW_114",
     "LAW_118",
     "LAW_120",
@@ -464,6 +466,7 @@
     "LAW_162",
     "LAW_164",
     "LAW_165",
+    "LAW_171",
     "LAW_172",
     "LAW_175",
     "LAW_177",
@@ -2774,20 +2777,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getAllTargets",
-      "occurrences": 8,
-      "cards": [
-        "ASH_012",
-        "ASH_168",
-        "JTL_054",
-        "LAW_108",
-        "SEC_139",
-        "SHD_183",
-        "SOR_071",
-        "SOR_142"
-      ]
-    },
-    {
       "pattern": "class-state:cardsLeftPlayThisPhaseWatcher",
       "occurrences": 7,
       "cards": [
@@ -2961,6 +2950,18 @@
         "SOR_017",
         "TWI_177",
         "TWI_257"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:getAllTargets",
+      "occurrences": 6,
+      "cards": [
+        "ASH_012",
+        "ASH_168",
+        "SEC_139",
+        "SHD_183",
+        "SOR_071",
+        "SOR_142"
       ]
     },
     {
@@ -3469,15 +3470,6 @@
       ]
     },
     {
-      "pattern": "top-deck-resource-source-shape",
-      "occurrences": 3,
-      "cards": [
-        "HMW_044",
-        "LAW_171",
-        "SHD_214"
-      ]
-    },
-    {
       "pattern": "trigger-alias-hook:onCardAbilityInitiated",
       "occurrences": 5,
       "cards": [
@@ -3911,6 +3903,14 @@
       "cards": [
         "JTL_016",
         "TS26_001"
+      ]
+    },
+    {
+      "pattern": "top-deck-resource-source-shape",
+      "occurrences": 2,
+      "cards": [
+        "HMW_044",
+        "SHD_214"
       ]
     },
     {
@@ -12875,21 +12875,6 @@
       ]
     },
     {
-      "setCode": "JTL_054",
-      "internalName": "gold-leader#fastest-ship-in-the-fleet",
-      "sourcePath": "game/cards/04_JTL/units/GoldLeaderFastestShipInTheFleet.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/04_JTL/units/GoldLeaderFastestShipInTheFleet.ts",
-          "line": 18,
-          "column": 103
-        }
-      ]
-    },
-    {
       "setCode": "JTL_056",
       "internalName": "hondo-ohnaka#superfluous-swindler",
       "sourcePath": "game/cards/04_JTL/units/HondoOhnakaSuperfluousSwindler.ts",
@@ -16672,21 +16657,6 @@
       ]
     },
     {
-      "setCode": "LAW_108",
-      "internalName": "lando-calrissian#eyes-open",
-      "sourcePath": "game/cards/07_LAW/units/LandoCalrissianEyesOpen.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getAllTargets",
-          "message": "unsupported-query:getAllTargets",
-          "file": "game/cards/07_LAW/units/LandoCalrissianEyesOpen.ts",
-          "line": 18,
-          "column": 103
-        }
-      ]
-    },
-    {
       "setCode": "LAW_109",
       "internalName": "tantive-iv#carrying-hope",
       "sourcePath": "game/cards/07_LAW/units/TantiveIVCarryingHope.ts",
@@ -17302,21 +17272,6 @@
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
           "line": 31,
           "column": 25
-        }
-      ]
-    },
-    {
-      "setCode": "LAW_171",
-      "internalName": "stockpile",
-      "sourcePath": "game/cards/07_LAW/events/Stockpile.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "top-deck-resource-source-shape",
-          "message": "top-deck-resource-source-shape",
-          "file": "game/cards/07_LAW/events/Stockpile.ts",
-          "line": 5,
-          "column": 1
         }
       ]
     },

@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "782a8a51beeb8aa21540b2d7602b43ccc361af7cb60d8b8e94acfdb551a69986",
+  "catalogueHash": "645722f923c8a95cd09d92e2e2b9336585c8be3b217ee78752df2d6b4db7af7e",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1105,
+  "irConvertedCount": 1108,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 633
+    "sourceIr": 637
   },
   "runtimeAdmittedCards": [
     {
@@ -1472,6 +1472,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "gold-leader#fastest-ship-in-the-fleet",
+      "setCode": "JTL_054"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "desperate-commando",
       "setCode": "JTL_060"
     },
@@ -1996,6 +2001,11 @@
       "setCode": "LAW_107"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "lando-calrissian#eyes-open",
+      "setCode": "LAW_108"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "alkenzi-patroller",
       "setCode": "LAW_114"
@@ -2119,6 +2129,11 @@
       "implementation": "sourceIr",
       "internalName": "combat-exercise",
       "setCode": "LAW_165"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "stockpile",
+      "setCode": "LAW_171"
     },
     {
       "implementation": "dataOnly",
@@ -4232,6 +4247,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "admiral-motti#brazen-and-scornful",
+      "setCode": "SOR_226"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "general-veers#blizzard-force-commander",
       "setCode": "SOR_230"
     },
@@ -5056,7 +5076,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1009,
+  "runtimeAdmittedCount": 1013,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6764,11 +6784,6 @@
       "setCode": "JTL_053"
     },
     {
-      "internalName": "gold-leader#fastest-ship-in-the-fleet",
-      "reason": "gold-leader#fastest-ship-in-the-fleet: compiler rejected \"gold-leader#fastest-ship-in-the-fleet\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":103,\"file\":\"game/cards/04_JTL/units/GoldLeaderFastestShipInTheFleet.ts\",\"line\":18,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
-      "setCode": "JTL_054"
-    },
-    {
       "internalName": "youre-all-clear-kid",
       "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_055"
@@ -7814,11 +7829,6 @@
       "setCode": "LAW_106"
     },
     {
-      "internalName": "lando-calrissian#eyes-open",
-      "reason": "lando-calrissian#eyes-open: compiler rejected \"lando-calrissian#eyes-open\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":103,\"file\":\"game/cards/07_LAW/units/LandoCalrissianEyesOpen.ts\",\"line\":18,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
-      "setCode": "LAW_108"
-    },
-    {
       "internalName": "tantive-iv#carrying-hope",
       "reason": "tantive-iv#carrying-hope: compiler rejected \"tantive-iv#carrying-hope\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/TantiveIVCarryingHope.ts\",\"line\":8,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/units/TantiveIVCarryingHope.ts\",\"line\":17,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/07_LAW/units/TantiveIVCarryingHope.ts\",\"line\":25,\"message\":\"unsupported-query:someDefeatedUnitControlledByPlayer\",\"pattern\":\"unsupported-query:someDefeatedUnitControlledByPlayer\"}]",
       "setCode": "LAW_109"
@@ -8002,11 +8012,6 @@
       "internalName": "doublecross",
       "reason": "doublecross: compiler rejected \"doublecross\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/07_LAW/events/DoubleCross.ts\",\"line\":31,\"message\":\"immediateEffect:takeControlOfUnit\",\"pattern\":\"immediateEffect:takeControlOfUnit\"}]",
       "setCode": "LAW_170"
-    },
-    {
-      "internalName": "stockpile",
-      "reason": "stockpile: compiler rejected \"stockpile\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/07_LAW/events/Stockpile.ts\",\"line\":5,\"message\":\"top-deck-resource-source-shape\",\"pattern\":\"top-deck-resource-source-shape\"}]",
-      "setCode": "LAW_171"
     },
     {
       "internalName": "bt1#blastomech",
@@ -11274,11 +11279,6 @@
       "setCode": "SOR_224"
     },
     {
-      "internalName": "admiral-motti#brazen-and-scornful",
-      "reason": "admiral-motti#brazen-and-scornful: invalid ability IR: unknown variant `collection`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
-      "setCode": "SOR_226"
-    },
-    {
       "internalName": "i-am-your-father",
       "reason": "i-am-your-father: compiler rejected \"i-am-your-father\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/01_SOR/events/IAmYourFather.ts\",\"line\":27,\"message\":\"unsupported-named-resolver-field:unlessEffect\",\"pattern\":\"unsupported-named-resolver-field:unlessEffect\"}]",
       "setCode": "SOR_233"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1449,
+  "runtimeRejectedCount": 1445,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 733
+  "sourceAstConvertedCount": 736
 }

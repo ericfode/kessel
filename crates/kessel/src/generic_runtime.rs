@@ -1615,6 +1615,17 @@ impl Engine {
         self.matching_targets(s,s.source,r).into_iter().filter(|id| self.effect_can_affect(s,s.source,*id,e,require_change)).collect()
     }
     fn capture_group_leaf(&self,s:&mut State,op:usize,e:&Effect)->Result<(),String> {
+        if let Effect::ResourceCard {target}=e {
+            let eligible=match target {Target::Name(n) if n=="self"=>self.resource_source_eligible(s,s.source),Target::Name(n) if n=="ownTopDeck"=>true,_=>return Err("unreviewed grouped resource target".into())};
+            if !eligible {return Ok(());}
+            for value in self.effect_targets(s,target) {let Eval::Card(id)=value else{return Err("resource group requires card target".into());};
+                let legal=if matches!(target,Target::Name(n) if n=="self") {id==s.source&&self.resource_source_eligible(s,id)} else {self.resource_top_deck_eligible(s,id)};
+                if !legal {continue;}
+                let n=s.event_group.count as usize;if n>=32{return Err("prepared resource event capacity exceeded".into());}
+                s.event_group.records[n]=PreparedEvent{op:op as u16,target:id,amount:1,..PreparedEvent::default()};s.event_group.count+=1;
+            }
+            return Ok(());
+        }
         if matches!(e,Effect::GainForce{..}) {
             let Effect::GainForce{target}=e else{unreachable!()};
             let targets=self.effect_targets(s,target);if s.event_group.count as usize+targets.len()>32{return Err("prepared player event capacity exceeded".into());}
@@ -1898,7 +1909,33 @@ impl Engine {
         }
         s.event_group.resolving=false;self.finish_group_damage(s,callbacks)?;Ok(true)
     }
+    fn resolve_resource_pair(&self,s:&mut State)->Result<bool,String> {
+        // Preparation captured both physical IDs before either handler. Work on
+        // one inline copy so capacity/derived-state failures publish no partial
+        // movement or changed event flags, results, actor or source identity.
+        if s.source==0||!s.card(s.source).present||!self.def(s,s.source).info.is("event")||!self.resource_source_eligible(s,s.source)||!s.player(s.card(s.source).owner).discard.contains(s.source) {return Err("resource pair source must be the paid event in discard".into());}
+        let owner=s.card(s.source).owner;
+        if !(1..=2).contains(&s.event_group.count) {return Err("resource pair record count invalid".into());}
+        let records=&s.event_group.records[..s.event_group.count as usize];
+        if records.iter().any(|r|r.token!=0||r.power!=0||r.hp!=0) {return Err("resource pair record payload invalid".into());}
+        if records[0].op!=0||records[0].target!=s.source||records[0].amount!=1 {return Err("resource pair source record invalid".into());}
+        if records.len()==2&&(records[1].op!=1||records[1].amount!=1||records[1].target==s.source||!self.resource_top_deck_eligible(s,records[1].target)) {return Err("resource pair top record invalid".into());}
+        // A missing/null top is legal; a present deck-front cannot be omitted.
+        if records.len()==1&&s.player(owner).deck.len>0 {return Err("resource pair top record missing".into());}
+        let added=records.iter().filter(|r|!s.player(owner).resources.contains(r.target)).count();
+        if s.player(owner).resources.len as usize+added>crate::model::MAX_ZONE {return Err("resource zone capacity exceeded".into());}
+        let mut work=*s;
+        let mut result=self.resource_source(&mut work,records[0].target)?;
+        if records.len()==2 {result+=self.resource_top_deck(&mut work,records[1].target)?;}
+        self.check_stat_capacity(&work)?;
+        work.ability_result=result;work.ability_succeeded=result>0;
+        // The existing window finisher observes only the completed pair.
+        self.finish_group_damage(&mut work,vec![])?;
+        *s=work;
+        Ok(true)
+    }
     fn resolve_group(&self,s:&mut State,e:&Effect)->Result<bool,String> {
+        if crate::ability_ir::resource_pair_effect(e) {return self.resolve_resource_pair(s);}
         let drain=matches!(e,Effect::Simultaneous{effects} if effects.len()==2&&matches!(&effects[0],Effect::Select{effect,..} if matches!(effect.as_ref(),Effect::Damage{..}))&&matches!(&effects[1],Effect::GainForce{..}));
         let mut cached_lethals=Vec::new();
 
@@ -2911,4 +2948,21 @@ mod top_deck_resource_runtime_tests {
   let top=add(&e,&mut s,Seat::P2,"LOF_254");s.players[0].deck.push(top).unwrap();assert!(!e.resource_top_deck_eligible(&s,top));s.card_mut(top).owner=Seat::P1;
   for _ in 0..crate::model::MAX_ZONE {let id=add(&e,&mut s,Seat::P1,"LOF_254");s.players[0].resources.push(id).unwrap();}let before=s.zobrist();assert!(e.resource_top_deck(&mut s,top).is_err());assert_eq!(s.zobrist(),before);assert_eq!(s.source,source);
  }
+}
+
+#[cfg(test)]
+mod simultaneous_resource_pair_tests {
+ use super::*;
+ fn effect()->Effect {Effect::Simultaneous{effects:vec![Effect::ResourceCard{target:Target::Name("self".into())},Effect::ResourceCard{target:Target::Name("ownTopDeck".into())}]}}
+ fn engine()->Engine {let mut c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();let e=c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]=="LAW_171").unwrap();e["status"]=json!("supported");e["diagnostics"]=json!([]);e["abilities"]=json!({"card":[{"trigger":"event","title":"Resource this event and the top card of your deck","effect":serde_json::to_value(effect()).unwrap()}],"leader":[],"unit":[]});Engine::from_catalogue_value(&c).unwrap()}
+ fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=s.next_id;s.next_id+=1;s.cards[id as usize]=Card{present:true,def:e.by_code[code],owner:seat,..Card::default()};id}
+ fn board(e:&Engine,seat:Seat,top:Option<&str>)->State {let mut s=State::default();for (owner,leader)in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")] {let b=add(e,&mut s,owner,"ASH_019");let l=add(e,&mut s,owner,leader);s.player_mut(owner).base=b;s.player_mut(owner).leader=l;}s.arena_order_exact=true;s.active=seat;let source=add(e,&mut s,seat,"LAW_171");s.source=source;s.player_mut(seat).discard.push(source).unwrap();if let Some(code)=top{let id=add(e,&mut s,seat,code);s.player_mut(seat).deck.push(id).unwrap();}s.event_group.active=true;s.event_group.initiator=seat;s}
+ fn capture(e:&Engine,s:&mut State){if let Effect::Simultaneous{effects}=effect(){for(op,leaf)in effects.iter().enumerate(){e.capture_group_leaf(s,op,leaf).unwrap();}}}
+ #[test]fn resource_pair_captures_ordered_ids_and_publishes_one_completed_batch(){
+  let e=engine();for seat in [Seat::P1,Seat::P2]{for top_code in ["LOF_254","SHD_156","ASH_087","LAW_171"]{let mut s=board(&e,seat,Some(top_code));let source=s.source;let top=s.player(seat).deck.as_slice()[0];let tail=add(&e,&mut s,seat,"LOF_256");s.player_mut(seat).deck.push(tail).unwrap();let prefix=add(&e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(prefix).unwrap();let opponent=*s.player(seat.other());let next=s.next_id;capture(&e,&mut s);assert_eq!(s.event_group.count,2);assert_eq!(s.event_group.records[..2].iter().map(|r|(r.op,r.target,r.amount)).collect::<Vec<_>>(),[(0,source,1),(1,top,1)]);let copied=s;assert_eq!(copied,s);assert_eq!(copied.zobrist(),s.zobrist());assert_eq!(s.player(seat).resources.as_slice(),[prefix]);assert_eq!(s.player(seat).deck.as_slice(),[top,tail]);assert!(e.resolve_group(&mut s,&effect()).unwrap());assert_eq!(s.player(seat).resources.as_slice(),[prefix,source,top]);assert_eq!(s.player(seat).deck.as_slice(),[tail]);assert!(!s.player(seat).discard.contains(source));assert!(s.card(source).exhausted&&s.card(top).exhausted);assert_eq!(s.source,source);assert_eq!(s.next_id,next);assert_eq!(*s.player(seat.other()),opponent);assert_eq!(s.ability_result,2);assert!(s.ability_succeeded);assert!(!s.event_group.resolving);assert_eq!(s.active,seat);}}
+ }
+ #[test]fn resource_pair_empty_deck_still_resources_paid_event_without_fatigue(){let e=engine();for seat in [Seat::P1,Seat::P2]{let mut s=board(&e,seat,None);let source=s.source;let damage=s.card(s.player(seat).base).damage;capture(&e,&mut s);assert_eq!(s.event_group.count,1);assert!(e.resolve_group(&mut s,&effect()).unwrap());assert_eq!(s.player(seat).resources.as_slice(),[source]);assert_eq!(s.card(s.player(seat).base).damage,damage);assert_eq!(s.ability_result,1);assert!(s.ability_succeeded);assert_eq!(s.source,source);}}
+ #[test]fn resource_pair_capacity_failure_preserves_entire_state_before_any_handler(){let e=engine();for (free,top,ok)in [(2,Some("LOF_254"),true),(1,Some("LOF_254"),false),(1,None,true),(0,None,false)]{let mut s=board(&e,Seat::P1,top);for _ in 0..crate::model::MAX_ZONE-free{let id=add(&e,&mut s,Seat::P1,"LOF_254");s.players[0].resources.push(id).unwrap();}capture(&e,&mut s);s.ability_result=17;s.ability_succeeded=true;s.event_group.replacement_done=false;let before=s;if ok{assert!(e.resolve_group(&mut s,&effect()).unwrap());assert_eq!(s.players[0].resources.len as usize,crate::model::MAX_ZONE);}else{assert!(e.resolve_group(&mut s,&effect()).is_err());assert_eq!(s,before);}}}
+ #[test]fn resource_pair_rejects_stale_or_forged_records_without_retargeting(){let e=engine();let mut original=board(&e,Seat::P2,Some("LOF_254"));let tail=add(&e,&mut original,Seat::P2,"LOF_256");original.players[1].deck.push(tail).unwrap();capture(&e,&mut original);for case in 0..9{let mut s=original;match case{0=>s.event_group.count=0,1=>s.event_group.count=33,2=>s.event_group.records[1].target=tail,3=>s.event_group.records[0].op=1,4=>s.event_group.records[1].target=s.source,5=>s.event_group.count=1,6=>{s.card_mut(s.event_group.records[1].target).owner=Seat::P1;},7=>{s.event_group.records[0].power=1;},_=>{let source=s.source;s.players[1].discard.remove(source);s.players[1].hand.push(source).unwrap();}}let before=s;assert!(e.resolve_group(&mut s,&effect()).is_err(),"case {case}");assert_eq!(s,before,"case {case}");}}
+ #[test]fn resource_pair_preflights_composed_stats_before_publishing_moves(){let e=engine();let mut s=board(&e,Seat::P1,Some("LOF_254"));let unit=add(&e,&mut s,Seat::P1,"SOR_118");e.add_arena(&mut s,unit).unwrap();let power=e.power(&s,unit,false);s.card_mut(unit).phase_power=65534-power as i32;e.check_stat_capacity(&s).unwrap();let mut one=s;let source=one.source;assert_eq!(e.resource_source(&mut one,source).unwrap(),1);e.check_stat_capacity(&one).unwrap();capture(&e,&mut s);let before=s;assert!(e.resolve_group(&mut s,&effect()).unwrap_err().contains("capacity"));assert_eq!(s,before);}
 }

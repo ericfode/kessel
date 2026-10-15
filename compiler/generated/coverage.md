@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1105** (733 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1353**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1108** (736 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1350**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -73,7 +73,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | trigger-alias-hook:onAttackDeclared | 8 | 8 |
 | unsupported-field:source | 8 | 8 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost | 8 | 8 |
-| unsupported-query:getAllTargets | 8 | 8 |
 | class-state:cardsLeftPlayThisPhaseWatcher | 7 | 7 |
 | method:costSum | 7 | 7 |
 | named-target-cost-or-limit | 7 | 7 |
@@ -88,6 +87,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:eventEffect | 6 | 6 |
 | trigger-alias-hook:onCardsDrawn | 6 | 6 |
 | unsupported-field:mustChangeGameState | 6 | 6 |
+| unsupported-query:getAllTargets | 6 | 6 |
 | callback-statement:IfStatement | 5 | 5 |
 | cost:defeat | 5 | 5 |
 | cost:discardCardFromOwnHand | 5 | 5 |
@@ -138,7 +138,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:optional | 3 | 3 |
 | registrar:addGainWhenAttackEndsAbilityTargetingAttached | 3 | 3 |
 | registrar:addPreEnterPlayAbility | 3 | 3 |
-| top-deck-resource-source-shape | 3 | 3 |
 | trigger-alias-hook:onCardAbilityInitiated | 3 | 5 |
 | trigger-alias-hook:onCardDiscarded | 3 | 3 |
 | trigger-alias-hook:onUnitEntersPlay | 3 | 3 |
@@ -192,6 +191,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | setup-statement:ExpressionStatement | 2 | 2 |
 | target-zone:discard,hand | 2 | 2 |
 | token-player-target | 2 | 3 |
+| top-deck-resource-source-shape | 2 | 2 |
 | trigger-alias-hook:onDamageHealed | 2 | 2 |
 | trigger-alias-hook:onForceUsed | 2 | 2 |
 | trigger-alias-static-when | 2 | 4 |

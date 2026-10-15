@@ -52,6 +52,6 @@ test('top deck lowering is resource-only and whole source registration remains b
  ]);
 });
 test('deferred selector, group and continuation siblings remain full-source rejected',()=>{
- for(const file of ['game/cards/07_LAW/events/Stockpile.ts','game/cards/02_SHD/units/FrontierTrader.ts','game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts']){const text=fs.readFileSync(path.join(root,file),'utf8');reject(text,file,'top-deck-resource-source-shape');assert.deepEqual(compileSource(text,file,enums).abilities,{leader:[],unit:[],card:[]});}
+ for(const file of ['game/cards/02_SHD/units/FrontierTrader.ts','game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts']){const text=fs.readFileSync(path.join(root,file),'utf8');reject(text,file,'top-deck-resource-source-shape');assert.deepEqual(compileSource(text,file,enums).abilities,{leader:[],unit:[],card:[]});}
  const{text,file}=carrierEffect('AbilityHelper.immediateEffects.resourceCard(context=>({target:context.player.getTopCardOfDeck()}))');const extra=text.replace('registrar.addWhenPlayedAbility({','registrar.addWhenPlayedAbility({title:"Extra",immediateEffect:AbilityHelper.immediateEffects.draw()});registrar.addWhenPlayedAbility({');reject(extra,file,'top-deck-resource-source-shape');
 });

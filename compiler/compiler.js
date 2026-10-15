@@ -606,6 +606,14 @@ function expr(input, context, params = ['context']) {
         }
         if (call.expression.getText(ctx.source) === 'Math' && ['min', 'max', 'floor', 'ceil', 'abs'].includes(name)) return { kind: 'math', name, args: node.arguments.map((a) => expr(a, ctx)) };
         if (QUERY_NAMES.has(name)) return { kind: 'query', name, receiver: expr(call.expression, ctx), args: node.arguments.map((a) => expr(a, ctx)) };
+        if(ctx.aspectIncludesAlias&&name==='includes'&&ts.isPropertyAccessExpression(call.expression)&&call.expression.name.text==='aspects') {
+            if(node.arguments.length!==1||node.questionDotToken||call.questionDotToken||call.expression.questionDotToken)fail(ctx,node,'aspect-includes-shape');
+            const receiver=expr(call.expression.expression,ctx),arg=unwrap(node.arguments[0]);
+            if(receiver.kind!=='ref'||receiver.path.join('.')!=='card'||!ts.isPropertyAccessExpression(arg)||!ts.isIdentifier(arg.expression)||arg.expression.text!=='Aspect'||arg.questionDotToken)fail(ctx,node,'aspect-includes-shape');
+            for(const namespace of ['Aspect','WildcardZoneName','TextHelper'])unshadowedEnum(arg,ctx,namespace);
+            const value=literal(arg,ctx);if(!['vigilance','command','aggression','cunning','villainy','heroism'].includes(value))fail(ctx,node,'aspect-includes-value');
+            return {kind:'query',name:'hasSomeAspect',receiver,args:[constant(value)]};
+        }
         if (['some', 'every', 'filter', 'map', 'find', 'includes', 'concat', 'slice'].includes(name)) {
             const receiver = expr(call.expression, ctx);
             if (isArenaList(receiver)) fail(ctx, node, 'unsupported-arena-collection:' + name);
@@ -734,6 +742,7 @@ function topDeckResourceSourceShape(out) {
     const fewer=(zone)=>({kind:'binary',op:'<',left:reference('player',zone,'length'),right:reference('opponent',zone,'length')});
     const conditional=(condition,onTrue)=>({kind:'conditional',condition,onTrue,onFalse:{kind:'noAction'}});
     if(out.baseClass==='EventCard') {
+        if(keys(a,['trigger','title','costs','effect'])&&a.trigger==='event'&&same(a.costs,[])&&same(a.effect,{kind:'simultaneous',effects:[{kind:'resourceCard',target:'self'},resource]}))return true;
         return keys(a,['trigger','title','costs','targetResolver','effect','ifYouDo'])&&a.trigger==='event'&&same(a.costs,[])&&
             same(a.targetResolver,{owner:'self',type:'unit',zone:'anyAttackable',predicate:{kind:'query',name:'hasSomeTrait',receiver:reference('card'),args:[constant('imperial')]},promptTitle:'Defeat a friendly Imperial unit'})&&
             same(a.effect,{kind:'defeat',target:'chosen'})&&keys(a.ifYouDo,['title','costs','effect'])&&same(a.ifYouDo.costs,[])&&same(a.ifYouDo.effect,resource);
@@ -1106,7 +1115,7 @@ function targetResolverProperties(obj) {
             ts.forEachChild(n,child=>capturedTarget(child,bound,seen));
         };
         capturedTarget(props.get('cardCondition'));
-        result.predicate = expr(props.get('cardCondition'), ctx, ['card', 'context']);
+        result.predicate = (ctx.aspectIncludesAlias&&aspectMembershipPredicate(props.get('cardCondition'),ctx))||expr(props.get('cardCondition'), ctx, ['card', 'context']);
     }
     if (props.has('mode')) result.mode = literal(props.get('mode'), ctx);
     // A selected player needs a typed player target register. Falling back to
@@ -1132,13 +1141,59 @@ function costs(input, ctx) {
         fail(ctx, n, 'cost:' + kind);
     });
 }
+// Recognize the complete guarded attack-membership predicate, rather than
+// exposing arbitrary activeAttack target collections to scalar expressions.
+function defendingAttackerPredicate(input,context) {
+    let found=false;const search=n=>{if(ts.isPropertyAccessExpression(n)&&n.name.text==='getAllTargets')found=true;ts.forEachChild(n,search);};search(input);
+    if(!found)return null;
+    const fn=unwrap(input);
+    if((!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||fn.parameters.length!==2||fn.parameters.some(p=>!ts.isIdentifier(p.name))||fn.parameters[0].name.text===fn.parameters[1].name.text)fail(context,input,'defending-attacker-predicate');
+    const {node,ctx}=lambda(fn,context,['card','context']);
+    const terms=[];const flatten=n=>{n=unwrap(n);if(ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.AmpersandAmpersandToken){flatten(n.left);flatten(n.right);}else terms.push(n);};flatten(node);
+    const card=fn.parameters[0].name.text,actual=fn.parameters[1].name.text;
+    const call=(n,name)=>ts.isCallExpression(n)&&!n.questionDotToken&&ts.isPropertyAccessExpression(n.expression)&&!n.expression.questionDotToken&&n.expression.name.text===name;
+    if(terms.length!==4)fail(ctx,node,'defending-attacker-predicate');
+    for(let i=0;i<3;i++)if(!call(terms[i],['isUnit','isInPlay','isAttacking'][i])||terms[i].arguments.length||!ts.isIdentifier(terms[i].expression.expression)||terms[i].expression.expression.text!==card)fail(ctx,terms[i],'defending-attacker-predicate');
+    const includes=terms[3],targets=call(includes,'includes')&&unwrap(includes.expression.expression);
+    const attack=targets&&call(targets,'getAllTargets')&&unwrap(targets.expression.expression);
+    const arg=includes.arguments?.length===1&&unwrap(includes.arguments[0]);
+    if(!targets||targets.arguments.length||!attack||!ts.isPropertyAccessExpression(attack)||attack.questionDotToken||attack.name.text!=='activeAttack'||!ts.isIdentifier(attack.expression)||attack.expression.text!==card||!arg||!ts.isPropertyAccessExpression(arg)||arg.questionDotToken||arg.name.text!=='source'||!ts.isIdentifier(arg.expression)||arg.expression.text!==actual)fail(ctx,node,'defending-attacker-predicate');
+    const queries=['isUnit','isInPlay','isAttacking'].map(name=>({kind:'query',name,receiver:reference('card'),args:[]}));
+    return {predicate:{kind:'binary',op:'&&',left:{kind:'binary',op:'&&',left:queries[0],right:queries[1]},right:queries[2]},condition:{kind:'query',name:'isDefending',receiver:reference('source'),args:[]}};
+}
+function aspectMembershipPredicate(input,context,depth=0) {
+    if(depth>24)fail(context,input,'aspect-membership-alias-bound');
+    const alias=unwrap(input);
+    if(ts.isIdentifier(alias)&&context.constants.has(alias.text)){const initializer=readConstant(alias.text,context);return aspectMembershipPredicate(initializer,constantContext(initializer,context),depth+1);}
+    let includes=false;const visit=n=>{if(ts.isPropertyAccessExpression(n)&&n.name.text==='includes'&&ts.isPropertyAccessExpression(n.expression)&&n.expression.name.text==='aspects')includes=true;ts.forEachChild(n,visit);};visit(input);
+    if(!includes)return null;
+    const fn=unwrap(input);
+    if((!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||fn.parameters.length!==1||!ts.isIdentifier(fn.parameters[0].name))fail(context,input,'aspect-membership-predicate');
+    const {node,ctx}=lambda(fn,context,['card','context']),n=unwrap(node),card=fn.parameters[0].name.text;
+    const call=(x,name)=>ts.isCallExpression(x)&&!x.questionDotToken&&ts.isPropertyAccessExpression(x.expression)&&!x.expression.questionDotToken&&x.expression.name.text===name;
+    if(!ts.isBinaryExpression(n)||n.operatorToken.kind!==ts.SyntaxKind.AmpersandAmpersandToken)fail(ctx,n,'aspect-membership-predicate');
+    const left=unwrap(n.left),right=unwrap(n.right);
+    if(!call(left,'isUnit')||left.arguments.length||!ts.isIdentifier(left.expression.expression)||left.expression.expression.text!==card||!call(right,'includes')||!ts.isPropertyAccessExpression(right.expression.expression)||right.expression.expression.name.text!=='aspects'||right.expression.expression.questionDotToken||!ts.isIdentifier(right.expression.expression.expression)||right.expression.expression.expression.text!==card)fail(ctx,n,'aspect-membership-predicate');
+    return expr(n,ctx);
+}
+function unshadowedEnum(node,ctx,root) {
+    for(let a=node.parent;a;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'syntax-alias-enum-binding');
+    if(ctx.scope.has(root)||ctx.constants.has(root))fail(ctx,node,'syntax-alias-enum-binding');
+}
 function constantAbility(input, context, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     knownProperties(obj, ['title', 'condition', 'ongoingEffect', 'matchTarget', 'targetController', 'targetCardTypeFilter', 'targetZoneFilter']);
     const { props, ctx, node } = obj;
     if (!props.has('ongoingEffect')) fail(ctx, node, 'constant-without-effect');
     const result = { trigger:'constant', title:props.has('title')?displayText(props.get('title'),ctx):'', costs:[], effect:modifierEffects(props.get('ongoingEffect'),ctx,'persistent','self') };
-    if (props.has('condition')) result.condition = expr(props.get('condition'), ctx);
+    let attack=null;
+    if(props.has('matchTarget')){try{attack=defendingAttackerPredicate(props.get('matchTarget'),ctx);}catch(error){if(!(error instanceof Unsupported))throw error;}}
+    if(attack) {
+        if([...props.keys()].some(k=>!['title','targetController','matchTarget','ongoingEffect'].includes(k))||!props.has('targetController')||literal(props.get('targetController'),ctx)!=='opponent')fail(ctx,node,'defending-attacker-constant');
+        unshadowedEnum(props.get('targetController'),ctx,'RelativePlayer');
+        if(JSON.stringify(result.effect)!==JSON.stringify({kind:'modifyStats',target:'self',duration:'persistent',power:constant(-1),hp:constant(0)}))fail(ctx,node,'defending-attacker-modifier');
+        result.condition=attack.condition;
+    } else if (props.has('condition')) result.condition = expr(props.get('condition'), ctx);
     // OngoingCardEffect defaults to source-only when no targeting filters exist.
     // Any targeting field switches to friendly arena units, including matchTarget.
     if (['matchTarget', 'targetController', 'targetCardTypeFilter', 'targetZoneFilter'].some((key) => props.has(key))) {
@@ -1146,8 +1201,9 @@ function constantAbility(input, context, validatedObject = null) {
         resolverProps.set('controller', props.get('targetController') || ts.factory.createStringLiteral('self'));
         resolverProps.set('cardTypeFilter', props.get('targetCardTypeFilter') || ts.factory.createStringLiteral('unit'));
         resolverProps.set('zoneFilter', props.get('targetZoneFilter') || ts.factory.createStringLiteral('anyArena'));
-        if (props.has('matchTarget')) resolverProps.set('cardCondition', props.get('matchTarget'));
+        if (props.has('matchTarget')&&!attack) resolverProps.set('cardCondition', props.get('matchTarget'));
         result.targetResolver = targetResolverProperties({ props: resolverProps, ctx, node });
+        if(attack)result.targetResolver.predicate=attack.predicate;
         if (result.targetResolver.zone !== 'arena') fail(ctx, node, 'constant-target-zone');
         const assignTarget = (e) => { if(e.effects)e.effects.forEach(assignTarget);else e.target='chosen'; }; assignTarget(result.effect);
     }
@@ -1286,7 +1342,8 @@ function ability(input, context, trigger = null, validatedObject = null) {
         if (props.has('immediateEffect')) fail(ctx, node, 'both-targeted-and-direct-effects');
         const resolver = object(props.get('targetResolver'), ctx);
         knownProperties(resolver, ['cardTypeFilter', 'controller', 'zoneFilter', 'cardCondition', 'optional', 'mode', 'numCards', 'canChooseNoCards', 'immediateEffect', 'choosingPlayer']);
-        result.targetResolver = targetResolverProperties(resolver);
+        const aspectIncludesAlias=trigger==='whenDefeated'&&result.optional===true&&result.costs.length===0&&!props.has('condition')&&!props.has('then')&&!props.has('ifYouDo');
+        result.targetResolver = targetResolverProperties({...resolver,ctx:{...resolver.ctx,aspectIncludesAlias}});
         if (resolver.props.has('immediateEffect')) {
             const otherBaseTargetScope=result.targetResolver.type==='base'&&!result.targetResolver.mode&&!result.targetResolver.count;
             const damageRecipientScope=['unit','nonLeaderUnit','tokenUnit'].includes(result.targetResolver.type)&&!result.targetResolver.mode&&!result.targetResolver.count;
