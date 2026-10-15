@@ -1,5 +1,5 @@
-# Kessel is private, so every minute here is paid: push to main and pull requests only (one run per PR push),
-# superseded PR runs cancelled, a time limit on every job.
+# Push to main and pull requests only (one run per PR push), superseded PR runs cancelled, a time limit on every job.
+# Kessel is public, so these runs are free; keep them lean anyway and ask before adding triggers or jobs.
 name: CI
 
 on:
