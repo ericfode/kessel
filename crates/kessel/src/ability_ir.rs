@@ -452,6 +452,13 @@ impl ArenaListTarget {
         }
         if !predicate(&self.predicate) {return Err("phase-stat filters require static traits, arenas or source exclusion".into());}Ok(())
     }
+    // The bounded attack family selects friendly token units at resolution.
+    // Keep token upgrades, opposing tokens and outer-target aliases out of it.
+    fn token_unit_attack_scope(&self)->bool {
+        fn token(e:&Expr)->bool {matches!(e,Expr::Query{name,receiver,args} if name=="isTokenUnit" && args.is_empty() && matches!(receiver.as_ref(),Expr::Ref{path} if path.len()==1&&path[0]=="card"))}
+        matches!(&self.receiver,Expr::Ref{path} if path.len()==1&&path[0]=="player") &&
+            (token(&self.predicate)||matches!(&self.predicate,Expr::Binary{op,left,right} if op=="&&"&&matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true))&&token(right)))
+    }
     fn validate_damage(&self)->Result<(),String> {
         if !matches!(&self.receiver,Expr::Ref{path} if path.len()==1&&["game","player","opponent"].contains(&path[0].as_str())) {return Err("arena damage requires an explicit game/player/opponent receiver".into());}
         self.predicate.validate()?;
@@ -1154,8 +1161,9 @@ impl Program {
             list.validate_scope(true)?;
         }
         if let Effect::ModifyStats {target:Target::ArenaList(list),power,hp,duration}=&ability.effect {
-            if !["event","whenPlayed"].contains(&ability.trigger.as_str()) || ability.target_resolver.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || ability.condition.is_some() || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || duration!="phase" {return Err("arena-list phase stats require a standalone event or WhenPlayed without selectors, costs or continuations".into());}
-            list.validate_phase_stats()?;
+            let token_attack=ability.trigger=="onAttack" && list.token_unit_attack_scope() && matches!(power,Expr::Const{value} if value.as_i64()==Some(1)) && matches!(hp,Expr::Const{value} if value.as_i64()==Some(1));
+            if !(["event","whenPlayed"].contains(&ability.trigger.as_str()) || token_attack) || ability.target_resolver.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || ability.condition.is_some() || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || duration!="phase" {return Err("arena-list phase stats require a standalone event, WhenPlayed or bounded friendly token-unit attack without selectors, costs or continuations".into());}
+            if token_attack {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
             fn literal(e:&Expr)->bool {match e {Expr::Const {value}=>value.as_i64().is_some_and(|n|(-65535..=65535).contains(&n)),Expr::Unary {op,value} if ["+","-"].contains(&op.as_str())=>matches!(value.as_ref(),Expr::Const {value} if value.as_i64().is_some_and(|n|(0..=65535).contains(&n))),_=>false}}
             if !literal(power)||!literal(hp) {return Err("arena-list phase stats require bounded signed literals".into());}
         }
@@ -1801,7 +1809,9 @@ impl Program {
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
                 if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }
-                if let Target::ArenaList(list)=target {list.validate_phase_stats()?;}else{target.validate()?;}
+                if let Target::ArenaList(list)=target {
+                    if self.trigger=="onAttack" && list.token_unit_attack_scope() {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
+                }else{target.validate()?;}
                 if matches!(target,Target::ArenaList(_)) {
                     // Unary plus is emitted by signed source literals. Normalize only this
                     // bounded stat scope; general expression unary-plus remains rejected.
@@ -1967,7 +1977,8 @@ impl Catalogue {
                     if !ordinary||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!arena_keyword_registration(&sides.card[0])||!entry["piloting"].is_null()||!entry["attachCondition"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {return Err("arena keyword batch requires sole ordinary event/unit registration without side mechanics".into());}
                 }
                 let arena_stats=|a:&Ability|matches!(&a.effect,Effect::ModifyStats{target:Target::ArenaList(_),..});
-                if sides.leader.iter().chain(&sides.unit).any(arena_stats) || sides.card.iter().any(|a|arena_stats(a) && !((a.trigger=="event"&&entry["baseClass"]=="EventCard"&&exact_type("event")) || (a.trigger=="whenPlayed"&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")))) {return Err("arena phase stats require ordinary unit WhenPlayed or event card-side metadata".into());}
+                if sides.leader.iter().chain(&sides.unit).any(arena_stats) || sides.card.iter().any(|a|arena_stats(a) && !((a.trigger=="event"&&entry["baseClass"]=="EventCard"&&exact_type("event")) || (["whenPlayed","onAttack"].contains(&a.trigger.as_str())&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")))) {return Err("arena phase stats require ordinary unit play/attack or event card-side metadata".into());}
+                if sides.card.iter().any(|a|arena_stats(a)&&a.trigger=="onAttack") && (!sides.leader.is_empty() || !sides.unit.is_empty() || !entry["piloting"].is_null() || !entry["attachCondition"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null())) {return Err("arena phase-stat attacks require only ordinary card-side abilities without piloting or attachment mechanics".into());}
                 if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|force_continuation(a).is_some()) {
                     let ordinary=sides.card.first().is_some_and(|a|if a.trigger=="event" {entry["baseClass"]=="EventCard"&&exact_type("event")}else{entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")});
                     if !ordinary||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {return Err("Force continuation requires sole ordinary source registration without side mechanics".into());}

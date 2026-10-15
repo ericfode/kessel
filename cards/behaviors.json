@@ -393,6 +393,12 @@
       "scope": "The setup and assertions in linked named cases define the scope."
     },
     {
+      "id": "friendly-token-unit-phase-stats",
+      "label": "friendly token unit phase stats",
+      "kind": "behavior",
+      "scope": "The setup and assertions in linked named cases define the scope."
+    },
+    {
       "id": "group-aura-defeat",
       "label": "group aura defeat",
       "kind": "behavior",
@@ -887,6 +893,12 @@
     {
       "id": "title-source-leave",
       "label": "title source leave",
+      "kind": "behavior",
+      "scope": "The setup and assertions in linked named cases define the scope."
+    },
+    {
+      "id": "token-attack-stats",
+      "label": "token attack stats",
       "kind": "behavior",
       "scope": "The setup and assertions in linked named cases define the scope."
     },

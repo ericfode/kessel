@@ -24,6 +24,7 @@
     "./scenarios/named-targets.js": "dd0cb634e67a18599ee19bc677706aca4af0c092a5a607ccaf4a74161cfb80a6",
     "./scenarios/phase-stats.js": "9298390871364d4ab33dcd6b3bd64b55a425065bc2a66cdcb89b13131c9c328d",
     "./scenarios/shield-stat-deaths.js": "9171028a9e9f8178c5f0468b3635bc3ec0949fb4b1b7046b1914d708702e5e91",
+    "./scenarios/token-attack-stats.js": "3baba66cbbfd913bbcb8bd84a96db0aa5c2dbef91bac2bd01a0dece51e6c570d",
     "./scenarios/token-condition.js": "756b1c017e5f9a06690f9a7c2f90d3509888924c47859db0feab7f3df7b61247",
     "./scenarios/trigger-aliases.js": "80c7ecb7592fc0bf457a447fdf27cd53825b66e532117caf317997acf93c87cc",
     "./scenarios/uniqueness.js": "0469b1b7abc988e595e1240057a3c35faafffbf6f1d63c7f77816a668172347a",
@@ -14061,6 +14062,548 @@
       },
       "assertionStages": [
         "beforeApply",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-attack-stats/mixed-tokens-base-seat1",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "mixed-tokens-base-seat1"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "mixed-tokens-base-seat1",
+        "initialTokens": [
+          {
+            "key": "groundToken",
+            "token": "battle-droid"
+          },
+          {
+            "key": "spaceToken",
+            "token": "tie-fighter"
+          },
+          {
+            "key": "enemyToken",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "target": "enemyBase",
+        "ownSeat": 0,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/mixed-tokens-base-seat2",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "mixed-tokens-base-seat2"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "mixed-tokens-base-seat2",
+        "initialTokens": [
+          {
+            "key": "groundToken",
+            "token": "battle-droid"
+          },
+          {
+            "key": "spaceToken",
+            "token": "tie-fighter"
+          },
+          {
+            "key": "enemyToken",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "target": "enemyBase",
+        "ownSeat": 1,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/mixed-tokens-unit-seat1",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "mixed-tokens-unit-seat1"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "mixed-tokens-unit-seat1",
+        "initialTokens": [
+          {
+            "key": "groundToken",
+            "token": "battle-droid"
+          },
+          {
+            "key": "spaceToken",
+            "token": "tie-fighter"
+          },
+          {
+            "key": "enemyToken",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "target": "enemyOrdinary",
+        "ownSeat": 0,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyOrdinary"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/mixed-tokens-unit-seat2",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "mixed-tokens-unit-seat2"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "mixed-tokens-unit-seat2",
+        "initialTokens": [
+          {
+            "key": "groundToken",
+            "token": "battle-droid"
+          },
+          {
+            "key": "spaceToken",
+            "token": "tie-fighter"
+          },
+          {
+            "key": "enemyToken",
+            "token": "battle-droid",
+            "owner": "enemy"
+          }
+        ],
+        "target": "enemyOrdinary",
+        "ownSeat": 1,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyOrdinary"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/no-eligible-tokens-base-seat1",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "no-eligible-tokens-base-seat1"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "no-eligible-tokens-base-seat1",
+        "initialTokens": [],
+        "target": "enemyBase",
+        "ownSeat": 0,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/no-eligible-tokens-base-seat2",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "no-eligible-tokens-base-seat2"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "no-eligible-tokens-base-seat2",
+        "initialTokens": [],
+        "target": "enemyBase",
+        "ownSeat": 1,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "source",
+            "code": "TWI_084"
+          },
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084",
+            "from": "source",
+            "target": "enemyBase"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter",
+        "assertLater"
+      ]
+    },
+    {
+      "id": "token-attack-stats/paid-source-creates-two-droids-seat1",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "paid-source-creates-two-droids-seat1"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "paid-source-creates-two-droids-seat1",
+        "initialTokens": [],
+        "paid": true,
+        "ownSeat": 0,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [
+          "TWI_084"
+        ],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
+        "assertAfter"
+      ]
+    },
+    {
+      "id": "token-attack-stats/paid-source-creates-two-droids-seat2",
+      "behaviorIds": [
+        "token-attack-stats",
+        "friendly-token-unit-phase-stats"
+      ],
+      "kind": "behavior",
+      "source": {
+        "module": "./scenarios/token-attack-stats.js",
+        "scenario": "paid-source-creates-two-droids-seat2"
+      },
+      "focusCardIds": [
+        "TWI_084"
+      ],
+      "setupCardIds": [
+        "ASH_261",
+        "SOR_007",
+        "TWI_084"
+      ],
+      "setup": {
+        "name": "paid-source-creates-two-droids-seat2",
+        "initialTokens": [],
+        "paid": true,
+        "ownSeat": 1,
+        "family": "friendly-token-unit-phase-stats",
+        "leaderCode": "SOR_007",
+        "baseDamage": 0,
+        "actualScriptedCardIds": [
+          "TWI_084"
+        ],
+        "actualTriggeredCardIds": [
+          "TWI_084"
+        ],
+        "units": [
+          {
+            "key": "ordinary",
+            "code": "ASH_261",
+            "shields": 1
+          },
+          {
+            "key": "enemyOrdinary",
+            "code": "ASH_261",
+            "owner": "enemy"
+          }
+        ],
+        "plan": [
+          {
+            "code": "TWI_084"
+          }
+        ]
+      },
+      "assertionStages": [
+        "beforeWindow",
+        "choose",
         "assertAfter"
       ]
     },

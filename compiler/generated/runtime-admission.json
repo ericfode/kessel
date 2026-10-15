@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 597
+    "sourceIr": 598
   },
   "runtimeAdmittedCards": [
     {
@@ -4472,6 +4472,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "kraken#confederate-tactician",
+      "setCode": "TWI_084"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "echo#valiant-arc-trooper",
       "setCode": "TWI_090"
     },
@@ -4876,7 +4881,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 973,
+  "runtimeAdmittedCount": 974,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -11839,11 +11844,6 @@
       "setCode": "TWI_082"
     },
     {
-      "internalName": "kraken#confederate-tactician",
-      "reason": "kraken#confederate-tactician: arena phase stats require ordinary unit WhenPlayed or event card-side metadata",
-      "setCode": "TWI_084"
-    },
-    {
       "internalName": "kalani#analytical-general",
       "reason": "kalani#analytical-general: compiler rejected \"kalani#analytical-general\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":31,\"file\":\"game/cards/03_TWI/units/KalaniAnalyticalGeneral.ts\",\"line\":27,\"message\":\"unsupported-field:numCardsFunc\",\"pattern\":\"unsupported-field:numCardsFunc\"}]",
       "setCode": "TWI_085"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1485,
+  "runtimeRejectedCount": 1484,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 700
 }
