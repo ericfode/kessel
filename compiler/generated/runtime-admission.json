@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "097ce7e4371d70c69ae1a838bdfa5fbaada8bc6ebe9ee8350dff46d0905c61ae",
+  "catalogueHash": "5392e45bd5c45c9134df48cf4bcfe04b77a0d9bfe6cf194022c60a130fec07eb",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1109,
+  "irConvertedCount": 1112,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 638
+    "sourceIr": 641
   },
   "runtimeAdmittedCards": [
     {
@@ -2177,6 +2177,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "enfys-nests-helmet",
+      "setCode": "LAW_186"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "staccato-lightning-repeater",
       "setCode": "LAW_187"
     },
@@ -2384,6 +2389,11 @@
       "implementation": "sourceIr",
       "internalName": "plo-koon#i-dont-believe-in-chance",
       "setCode": "LOF_050"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "jedi-holocron",
+      "setCode": "LOF_051"
     },
     {
       "implementation": "sourceIr",
@@ -2614,6 +2624,11 @@
       "implementation": "dataOnly",
       "internalName": "thralls-of-the-coven",
       "setCode": "LOF_136"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "battle-fury",
+      "setCode": "LOF_139"
     },
     {
       "implementation": "dataOnly",
@@ -5081,7 +5096,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1014,
+  "runtimeAdmittedCount": 1017,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6790,7 +6805,7 @@
     },
     {
       "internalName": "youre-all-clear-kid",
-      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_055"
     },
     {
@@ -8049,11 +8064,6 @@
       "setCode": "LAW_185"
     },
     {
-      "internalName": "enfys-nests-helmet",
-      "reason": "enfys-nests-helmet: compiler rejected \"enfys-nests-helmet\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/EnfysNestsHelmet.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
-      "setCode": "LAW_186"
-    },
-    {
       "internalName": "arvel-skeen#win-and-walk-away",
       "reason": "arvel-skeen#win-and-walk-away: compiler rejected \"arvel-skeen#win-and-walk-away\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/07_LAW/units/ArvelSkeenWinAndWalkAway.ts\",\"line\":24,\"message\":\"unsupported-query:isCreditToken\",\"pattern\":\"unsupported-query:isCreditToken\"}]",
       "setCode": "LAW_191"
@@ -8484,11 +8494,6 @@
       "setCode": "LOF_044"
     },
     {
-      "internalName": "jedi-holocron",
-      "reason": "jedi-holocron: compiler rejected \"jedi-holocron\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediHolocron.ts\",\"line\":16,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
-      "setCode": "LOF_051"
-    },
-    {
       "internalName": "jedi-trials",
       "reason": "jedi-trials: compiler rejected \"jedi-trials\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":26,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\"}]",
       "setCode": "LOF_052"
@@ -8692,11 +8697,6 @@
       "internalName": "sith-holocron",
       "reason": "sith-holocron: compiler rejected \"sith-holocron\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/SithHolocron.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
       "setCode": "LOF_138"
-    },
-    {
-      "internalName": "battle-fury",
-      "reason": "battle-fury: compiler rejected \"battle-fury\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/BattleFury.ts\",\"line\":14,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
-      "setCode": "LOF_139"
     },
     {
       "internalName": "darth-mauls-lightsaber",
@@ -10865,7 +10865,7 @@
     },
     {
       "internalName": "it-binds-all-things",
-      "reason": "it-binds-all-things: invalid ability IR: unknown field `thenCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "it-binds-all-things: invalid ability IR: unknown field `thenCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_075"
     },
     {
@@ -11505,7 +11505,7 @@
     },
     {
       "internalName": "secret-marriage",
-      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_046"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1444,
+  "runtimeRejectedCount": 1441,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 737
+  "sourceAstConvertedCount": 740
 }

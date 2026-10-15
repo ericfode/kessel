@@ -17582,6 +17582,45 @@
         "aggression",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9472544840",
+      "internalName": "enfys-nests-helmet",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "LAW_186",
+      "setCodes": [
+        {
+          "number": 186,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 186,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains: “On Attack: You may give another unit +3/+0 for this phase.”",
+      "title": "Enfys Nest's Helmet",
+      "traits": [
+        "item",
+        "armor"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -19291,6 +19330,45 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "7377298352",
+      "internalName": "jedi-holocron",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_051",
+      "setCodes": [
+        {
+          "number": 51,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 51,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attach to a Force unit. \nAttached unit gains: “On Attack: You may heal 3 damage from another unit.”",
+      "title": "Jedi Holocron",
+      "traits": [
+        "jedi",
+        "item"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "aspects": [
@@ -21147,6 +21225,44 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4256802093",
+      "internalName": "battle-fury",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_139",
+      "setCodes": [
+        {
+          "number": 139,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 139,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “On Attack: Discard a card from your hand.”",
+      "title": "Battle Fury",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 3
     },
     {
       "arena": "ground",

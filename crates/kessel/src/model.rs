@@ -240,7 +240,7 @@ impl Default for EventGroupState {
 pub const MAX_DEATH_TRIGGERS: usize = 64;
 pub const MAX_DEATH_DEPTH: usize = 8;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct DeathTrigger { pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub defer_depth: u8, pub keyword: u8 }
+pub struct DeathTrigger { pub grantor:CardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub defer_depth: u8, pub keyword: u8 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DeathWindow {
     pub entries: [DeathTrigger; MAX_DEATH_TRIGGERS], pub len: u8,
@@ -432,6 +432,7 @@ impl State {
         fn window_values(w:&DeathWindow,put:&mut impl FnMut(u64)) {
             for v in [w.len as u64,w.initiator.index() as u64,w.player.index() as u64,w.player_chosen as u64,w.group_program as u64,w.group_source as u64,w.group_keyword as u64,w.resolve_all as u64] {put(v);}
             for e in w.entries {for v in [e.source as u64,e.program as u64,e.player.index() as u64,e.after_pc as u64,e.defer_depth as u64,e.keyword as u64] {put(v);}}
+            for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor as u64);}}
         }
         put(self.death_depth as u64);
         window_values(&self.death_pending,&mut put);window_values(&self.death_window,&mut put);

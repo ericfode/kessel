@@ -2,6 +2,10 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const gainedHostAttack = require("./gained-host-attack-probes").planGainedHostAttackProbes(entry, options);
+    if (gainedHostAttack) return gainedHostAttack;
+    const helmetHostAttack = require("./helmet-host-attack-probes").planHelmetHostAttackProbes(entry, options);
+    if (helmetHostAttack) return helmetHostAttack;
     const parentDefendingAttackerAura = require("./parent-defending-attacker-aura-probes").planParentDefendingAttackerAuraProbes(entry, options);
     if (parentDefendingAttackerAura) return parentDefendingAttackerAura;
     const defendingAttackerAura = require("./defending-attacker-aura-probes").planDefendingAttackerAuraProbes(entry, options);

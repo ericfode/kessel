@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1109** (737 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1349**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1112** (740 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1346**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -18,7 +18,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:disclose | 26 | 27 |
 | class-state:cardsPlayedThisPhaseWatcher | 25 | 25 |
 | trigger-alias-hook:onCardDefeated | 25 | 27 |
-| registrar:addGainOnAttackAbilityTargetingAttached | 23 | 23 |
 | trigger-alias-hook:onLeaderDeployed | 23 | 23 |
 | non-path-reference | 22 | 22 |
 | unsupported-field:choices | 22 | 22 |
@@ -27,6 +26,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:attackerMustSurvive | 21 | 21 |
 | immediateEffect:attack | 20 | 20 |
 | immediateEffect:playCardFromHand | 20 | 20 |
+| registrar:addGainOnAttackAbilityTargetingAttached | 20 | 20 |
 | immediateEffect:giveAdvantage | 19 | 20 |
 | optional-reference | 19 | 19 |
 | unsupported-player-target-resolver | 18 | 18 |

@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "78d1f5d3563898ea0d25d2573d685788d981e67c763e5678e0f56d330a2f6233",
+  "compilerHash": "35616123cec66ca2018713a895f1f40673bcd0d6ec47207534d7c7faa244f287",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -111883,18 +111883,66 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "Give another unit +3/+0 for this phase",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "any",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "!==",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "right": {
+                    "kind": "ref",
+                    "path": [
+                      "source"
+                    ]
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "isUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            },
+            "effect": {
+              "kind": "modifyStats",
+              "target": "chosen",
+              "duration": "phase",
+              "power": {
+                "kind": "const",
+                "value": 3
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "gainedHost": true
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/07_LAW/upgrades/EnfysNestsHelmet.ts",
-          "line": 17,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "EnfysNestsHelmet",
       "baseClass": "UpgradeCard",
       "id": "9472544840",
@@ -111919,7 +111967,7 @@
           ]
         }
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Enfys Nest's Helmet",
         "subtitle": "",
@@ -111961,13 +112009,22 @@
       "dataHash": "81cdcc1572dcff87447e940b9e8a5ab05dfffb54df8c5b7e916d1e69ff7d5a96",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:!==",
+        "binary:&&",
         "cardType:upgrade",
+        "ir:binary",
         "ir:const",
+        "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "ir:unary",
         "query:hasSomeTrait",
+        "query:isUnit",
         "ref:card",
+        "ref:source",
+        "targetType:any",
+        "targetZone:anyAttackable",
+        "trigger:onAttack",
         "unary:!"
       ]
     },
@@ -122743,18 +122800,46 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "You may heal 3 damage from another unit.",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "!==",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "card"
+                  ]
+                },
+                "right": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                }
+              }
+            },
+            "effect": {
+              "kind": "heal",
+              "target": "chosen",
+              "amount": {
+                "kind": "const",
+                "value": 3
+              }
+            },
+            "gainedHost": true
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/05_LOF/upgrades/JediHolocron.ts",
-          "line": 16,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "JediHolocron",
       "baseClass": "UpgradeCard",
       "id": "7377298352",
@@ -122775,7 +122860,7 @@
           }
         ]
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Jedi Holocron",
         "subtitle": "",
@@ -122817,12 +122902,19 @@
       "dataHash": "dc79bb7580f4c2873a2735a6dc1564400fda6469a96f221b7709df70a844fdb6",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:!==",
         "cardType:upgrade",
+        "ir:binary",
         "ir:const",
+        "ir:heal",
         "ir:query",
         "ir:ref",
         "query:hasSomeTrait",
-        "ref:card"
+        "ref:card",
+        "ref:source",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:onAttack"
       ]
     },
     {
@@ -130577,23 +130669,29 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "Discard a card from your hand",
+            "costs": [],
+            "effect": {
+              "kind": "discardOwnHand",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              },
+              "target": "ownPlayer"
+            },
+            "gainedHost": true
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/05_LOF/upgrades/BattleFury.ts",
-          "line": 14,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "BattleFury",
       "baseClass": "UpgradeCard",
       "id": "4256802093",
       "internalName": "battle-fury",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Battle Fury",
         "subtitle": "",
@@ -130634,7 +130732,10 @@
       "dataHash": "6a13179fd0e5a035d0b53a87cd4929e30156ab08154ea13e9b122c4b4c490ec0",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:upgrade"
+        "cardType:upgrade",
+        "ir:const",
+        "ir:discardOwnHand",
+        "trigger:onAttack"
       ]
     },
     {

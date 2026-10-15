@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "78d1f5d3563898ea0d25d2573d685788d981e67c763e5678e0f56d330a2f6233",
+  "compilerHash": "35616123cec66ca2018713a895f1f40673bcd0d6ec47207534d7c7faa244f287",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1109,
-  "sourceAstConverted": 737,
+  "converted": 1112,
+  "sourceAstConverted": 740,
   "dataOnlyConverted": 372,
-  "unconverted": 1349,
+  "unconverted": 1346,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -475,6 +475,7 @@
     "LAW_182",
     "LAW_183",
     "LAW_184",
+    "LAW_186",
     "LAW_187",
     "LAW_188",
     "LAW_189",
@@ -519,6 +520,7 @@
     "LOF_048",
     "LOF_049",
     "LOF_050",
+    "LOF_051",
     "LOF_053",
     "LOF_054",
     "LOF_059",
@@ -565,6 +567,7 @@
     "LOF_134",
     "LOF_135",
     "LOF_136",
+    "LOF_139",
     "LOF_141",
     "LOF_143",
     "LOF_144",
@@ -1719,35 +1722,6 @@
       ]
     },
     {
-      "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-      "occurrences": 23,
-      "cards": [
-        "JTL_172",
-        "JTL_227",
-        "LAW_125",
-        "LAW_186",
-        "LAW_225",
-        "LOF_051",
-        "LOF_052",
-        "LOF_138",
-        "LOF_139",
-        "LOF_187",
-        "SEC_038",
-        "SEC_210",
-        "SEC_264",
-        "SHD_074",
-        "SHD_126",
-        "SHD_175",
-        "SHD_177",
-        "SOR_054",
-        "SOR_121",
-        "SOR_137",
-        "SOR_214",
-        "TS26_052",
-        "TWI_121"
-      ]
-    },
-    {
       "pattern": "trigger-alias-hook:onLeaderDeployed",
       "occurrences": 23,
       "cards": [
@@ -1963,6 +1937,32 @@
         "SOR_235",
         "TS26_010",
         "TWI_005"
+      ]
+    },
+    {
+      "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
+      "occurrences": 20,
+      "cards": [
+        "JTL_172",
+        "JTL_227",
+        "LAW_125",
+        "LAW_225",
+        "LOF_052",
+        "LOF_138",
+        "LOF_187",
+        "SEC_038",
+        "SEC_210",
+        "SEC_264",
+        "SHD_074",
+        "SHD_126",
+        "SHD_175",
+        "SHD_177",
+        "SOR_054",
+        "SOR_121",
+        "SOR_137",
+        "SOR_214",
+        "TS26_052",
+        "TWI_121"
       ]
     },
     {
@@ -17382,21 +17382,6 @@
       ]
     },
     {
-      "setCode": "LAW_186",
-      "internalName": "enfys-nests-helmet",
-      "sourcePath": "game/cards/07_LAW/upgrades/EnfysNestsHelmet.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/07_LAW/upgrades/EnfysNestsHelmet.ts",
-          "line": 17,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "LAW_191",
       "internalName": "arvel-skeen#win-and-walk-away",
       "sourcePath": "game/cards/07_LAW/units/ArvelSkeenWinAndWalkAway.ts",
@@ -19073,21 +19058,6 @@
       ]
     },
     {
-      "setCode": "LOF_051",
-      "internalName": "jedi-holocron",
-      "sourcePath": "game/cards/05_LOF/upgrades/JediHolocron.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/05_LOF/upgrades/JediHolocron.ts",
-          "line": 16,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "LOF_052",
       "internalName": "jedi-trials",
       "sourcePath": "game/cards/05_LOF/upgrades/JediTrials.ts",
@@ -19906,21 +19876,6 @@
           "message": "registrar:addGainOnAttackAbilityTargetingAttached",
           "file": "game/cards/05_LOF/upgrades/SithHolocron.ts",
           "line": 17,
-          "column": 9
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_139",
-      "internalName": "battle-fury",
-      "sourcePath": "game/cards/05_LOF/upgrades/BattleFury.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "message": "registrar:addGainOnAttackAbilityTargetingAttached",
-          "file": "game/cards/05_LOF/upgrades/BattleFury.ts",
-          "line": 14,
           "column": 9
         }
       ]

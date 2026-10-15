@@ -287,7 +287,7 @@ impl Engine {
                     if entry["baseClass"]!="UpgradeCard" || entry["card"]["pilotText"].as_str().is_some_and(|v|!v.trim().is_empty()) {return Err("pilot/base upgrade execution is not implemented".into());}
                     for &p in &programs.card {
                         let program=&catalogue.programs[p as usize];
-                        if !["constant","whenPlayed"].contains(&program.trigger.as_str()) {return Err("upgrade trigger requires dedicated framework event support".into());}
+                        if !["constant","whenPlayed"].contains(&program.trigger.as_str()) && !(program.gained_host==Some(true)&&crate::ability_ir::gained_host_upgrade_kind(entry).is_some()) {return Err("upgrade trigger requires dedicated framework event support".into());}
                         if program.trigger=="constant" && program.attached_context.as_deref()!=Some("host") && !crate::ability_ir::parent_defense_upgrade_entry(entry) && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..})=>n!="parent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
                     }
                     for field in ["upgradePower","upgradeHp"] {if !entry["card"][field].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)) {return Err("upgrade printed stats must be bounded integers".into());}}
@@ -2621,7 +2621,7 @@ impl Engine {
             if p.trigger!="whenDefeated" || p.condition.as_ref().is_some_and(|e|!self.eval(&context,id,0,e).truth()) {continue;}
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {grantor:0,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
             s.death_pending.len+=1;
         }
         Ok(())
@@ -2665,11 +2665,22 @@ impl Engine {
     pub(super) fn has_defense_registration(&self,s:&State,id:CardId)->bool {
         self.catalogue.is_some() && self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onDefense")
     }
+    pub(super) fn gained_attack_grants(&self,s:&State,host:CardId)->Vec<DeathTrigger> {
+        if self.catalogue.is_none()||!self.in_arena(s,host) {return vec![];}
+        let mut grants=vec![];
+        for grantor in self.upgrades(s,host) {for &program in &self.def(s,grantor).programs.card {if self.program(program).gained_host==Some(true) {grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,grantor,..DeathTrigger::default()});}}}
+        grants
+    }
+    pub(super) fn has_gained_attack_registration(&self,s:&State)->bool {!self.gained_attack_grants(s,s.source).is_empty()}
     pub(super) fn capture_defense_window(&self,s:&mut State,declaration:&State)->Result<bool,String> {
-        if self.catalogue.is_none() || !self.in_arena(declaration,declaration.attack_defender) {return Ok(false);}
+        let mut work=*s;let result=self.capture_attack_window_inner(&mut work,declaration)?;*s=work;Ok(result)
+    }
+    fn capture_attack_window_inner(&self,s:&mut State,declaration:&State)->Result<bool,String> {
+        if self.catalogue.is_none() {return Ok(false);}
         let defender=declaration.attack_defender;
         let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
-        if programs.is_empty() {return Ok(false);}
+        let grants=self.gained_attack_grants(declaration,declaration.source);
+        if programs.is_empty()&&grants.is_empty() {return Ok(false);}
         let mut registration=*declaration;
         registration.pending_triggers=0;registration.attack_restore=self.keyword_amount(&registration,registration.source,"restore");
         if self.has_keyword(&registration,registration.source,"restore") {registration.pending_triggers|=T_RESTORE;}
@@ -2678,6 +2689,7 @@ impl Engine {
         let mut entries=Vec::new();
         for (i,&program) in self.card_programs(&registration,registration.source).iter().enumerate() {if registration.pending_programs&(1<<i)!=0 {entries.push(DeathTrigger {source:registration.source,program,player:registration.card(registration.source).owner,..DeathTrigger::default()});}}
         for keyword in self.trigger_bits(&registration) {entries.push(DeathTrigger {source:registration.source,keyword,player:registration.card(registration.source).owner,..DeathTrigger::default()});}
+        entries.extend(grants);
         for program in programs {entries.push(DeathTrigger {source:defender,program,player:declaration.card(defender).owner,..DeathTrigger::default()});}
         // Stat deaths newly queued by setCurrentAttack belong to declaration:
         // engine framework child windows pass their triggers to that parent.
@@ -2685,9 +2697,9 @@ impl Engine {
         let end=s.death_pending.len as usize;
         if end<start {return Err("declaration pending trigger accounting changed".into());}
         entries.extend_from_slice(&s.death_pending.entries[start..end]);
-        s.death_pending.entries[start..end].fill(DeathTrigger::default());s.death_pending.len=start as u8;
         if entries.len()>MAX_DEATH_TRIGGERS {return Err("attack declaration trigger capacity exceeded".into());}
         let n=s.death_depth as usize;if n==MAX_DEATH_DEPTH {return Err("nested attack declaration capacity exceeded".into());}
+        s.death_pending.entries[start..end].fill(DeathTrigger::default());s.death_pending.len=start as u8;
         s.pending_programs=0;s.pending_triggers=0;
         let initiator=if n==0 {s.active}else{s.death_window.initiator};
         s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume:2};s.death_depth+=1;
@@ -2975,4 +2987,17 @@ mod parent_defense_upgrade_runtime_tests {
  fn board(e:&Engine)->State{let mut s=State::default();for(owner,leader)in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")]{let b=add(e,&mut s,owner,"ASH_019");let l=add(e,&mut s,owner,leader);s.player_mut(owner).base=b;s.player_mut(owner).leader=l;}s}
  #[test]fn parent_defense_keeps_upgrade_source_and_upgrade_relative_controller(){let e=engine();for payer in[Seat::P1,Seat::P2]{for enemy_host in[false,true]{let mut s=board(&e);let owner=if enemy_host{payer.other()}else{payer};let host=add(&e,&mut s,owner,"LOF_254");let attacker=add(&e,&mut s,owner.other(),"LOF_256");e.add_arena(&mut s,host).unwrap();e.add_arena(&mut s,attacker).unwrap();let upgrade=add(&e,&mut s,payer,"SOR_071");let parent_power=e.power(&s,host,false);let parent_hp=e.hp(&s,host);e.attach(&mut s,upgrade,host);assert_eq!(e.power(&s,host,false),parent_power+2);assert_eq!(e.hp(&s,host),parent_hp+2);let before=e.power(&s,attacker,true);let hp=e.hp(&s,attacker);s.source=attacker;s.attack_source=attacker;s.attack_defender=host;assert_eq!(e.power(&s,attacker,true),before.saturating_sub(if enemy_host{0}else{1}));assert_eq!(e.hp(&s,attacker),hp);assert_eq!(s.card(upgrade).owner,payer);assert_eq!(s.source,attacker);e.leave_play_primary(&mut s,upgrade).unwrap();assert_eq!(e.power(&s,attacker,true),before);assert_eq!(s.card(upgrade).parent,0);assert_eq!(s.source,attacker);}}}
  #[test]fn parent_defense_follows_live_reattachment_and_retained_attack_context_only(){let e=engine();let mut s=board(&e);let h=add(&e,&mut s,Seat::P1,"LOF_254");let h2=add(&e,&mut s,Seat::P1,"LOF_254");let a=add(&e,&mut s,Seat::P2,"LOF_256");for id in[h,h2,a]{e.add_arena(&mut s,id).unwrap();}let u=add(&e,&mut s,Seat::P1,"SOR_071");let base=e.power(&s,a,true);e.attach(&mut s,u,h);s.attack_source=a;s.attack_defender=h;assert_eq!(e.power(&s,a,true),base.saturating_sub(1));e.leave_play_primary(&mut s,u).unwrap();e.attach(&mut s,u,h2);assert_eq!(e.power(&s,a,true),base);s.attack_defender=h2;assert_eq!(e.power(&s,a,true),base.saturating_sub(1));s.attack_source=0;s.attack_defender=0;s.death_depth=1;s.death_frames[0].context.attack_source=a;s.death_frames[0].context.attack_defender=h2;assert_eq!(e.power(&s,a,true),base.saturating_sub(1));e.leave_play_primary(&mut s,u).unwrap();assert_eq!(e.power(&s,a,true),base);s.death_depth=0;assert_eq!(e.power(&s,a,true),base);}
+}
+
+#[cfg(test)]
+mod gained_host_runtime_tests {
+ use super::*;
+ fn engine()->Engine {Engine::from_catalogue_value(&crate::ability_ir::gained_host_tests::catalogue()).unwrap()}
+ fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=s.next_id;s.next_id+=1;s.cards[id as usize]=Card {present:true,def:*e.by_code.get(code).unwrap_or_else(||panic!("{code} absent")),owner:seat,..Card::default()};id}
+ fn board(e:&Engine)->State {let mut s=State::default();for (seat,code) in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")]{let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,code);s.players[seat.index()].base=base;s.players[seat.index()].leader=leader;}s}
+ fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
+ #[test]fn gained_host_captures_each_physical_grant_in_attachment_order_with_host_context(){let e=engine();for host_seat in[Seat::P1,Seat::P2]{let mut s=board(&e);let host=unit(&e,&mut s,host_seat,"LOF_254");let first=add(&e,&mut s,host_seat.other(),"LOF_051");let second=add(&e,&mut s,host_seat,"LOF_051");e.attach(&mut s,second,host);e.attach(&mut s,first,host);let grants=e.gained_attack_grants(&s,host);assert_eq!(grants.len(),2);assert_eq!(grants.iter().map(|x|x.grantor).collect::<Vec<_>>(),vec![second,first]);assert!(grants.iter().all(|x|x.source==host&&x.player==host_seat));assert_eq!(grants[0].program,grants[1].program);e.leave_play_primary(&mut s,first).unwrap();assert_eq!(e.gained_attack_grants(&s,host).len(),1);assert_eq!(grants[1].grantor,first);assert!(e.same_death_group(&s,grants[0],grants[1]));let context=e.captured_trigger_context(&s,grants[1]);assert_eq!(context.source,host);assert_eq!(context.active,host_seat);}}
+ #[test]fn gained_host_declaration_snapshot_keeps_host_context_after_pretrigger_cleanup(){let e=engine();for seat in[Seat::P1,Seat::P2]{let mut s=board(&e);s.active=seat;let host=unit(&e,&mut s,seat,"LOF_254");let other=unit(&e,&mut s,seat.other(),"LOF_256");s.card_mut(other).damage=2;let grantor=add(&e,&mut s,seat.other(),"LOF_051");e.attach(&mut s,grantor,host);s.source=host;s.attack_source=host;s.attack_defender=s.player(seat.other()).base;s.trigger_context=2;let declaration=s;let program=e.gained_attack_grants(&declaration,host)[0].program;e.defeat(&mut s,host).unwrap();assert!(!e.in_arena(&s,host));assert_eq!(s.card(grantor).parent,0);assert!(e.gained_attack_grants(&s,host).is_empty());assert!(e.capture_defense_window(&mut s,&declaration).unwrap());assert_eq!(s.source,host);assert_eq!(s.active,seat);assert_eq!(s.ability_program,program+1);assert_eq!(s.decision,Decision::AbilityTarget);}}
+ #[test]fn gained_host_capacity_counts_over16_grants_and_is_atomic_at64_and_depth8(){let e=engine();let mut s=board(&e);let host=unit(&e,&mut s,Seat::P1,"LOF_254");let defender=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=host;s.attack_source=host;s.attack_defender=defender;s.trigger_context=2;for _ in 0..65 {let u=add(&e,&mut s,Seat::P2,"LOF_139");e.attach(&mut s,u,host);}assert_eq!(e.gained_attack_grants(&s,host).len(),65);let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap_err().contains("capacity"));assert_eq!(s,before);let last=e.upgrades(&s,host)[64];e.detach(&mut s,last);assert_eq!(e.gained_attack_grants(&s,host).len(),64);let declaration=s;s.death_pending.entries[0]=e.gained_attack_grants(&s,host)[0];s.death_pending.len=1;let before=s;assert!(e.capture_defense_window(&mut s,&declaration).unwrap_err().contains("capacity"));assert_eq!(s,before);s=declaration;s.death_depth=MAX_DEATH_DEPTH as u8;let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap_err().contains("capacity"));assert_eq!(s,before);s.death_depth=0;let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap());assert!(s.death_depth==0);}
+ #[test]fn gained_host_provenance_hash_is_copied_in_every_window_and_zero_omission_is_legacy_compatible(){let s=State::default();let zero=s.zobrist();let mut same=s;same.death_pending.entries[0].grantor=0;assert_eq!(same.zobrist(),zero);for slot in 0..MAX_DEATH_DEPTH+2 {let mut changed=s;let w=match slot {0=>&mut changed.death_pending,1=>&mut changed.death_window,n=>&mut changed.death_frames[n-2].window};w.entries[0].grantor=7;let a=changed.zobrist();assert_ne!(a,zero);let mut copy=changed;assert_eq!(copy.zobrist(),a);let w=match slot {0=>&mut copy.death_pending,1=>&mut copy.death_window,n=>&mut copy.death_frames[n-2].window};w.entries[0].grantor=8;assert_ne!(copy.zobrist(),a);}}
 }

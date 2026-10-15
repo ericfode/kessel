@@ -1239,6 +1239,86 @@ function constantAbility(input, context, validatedObject = null) {
     check(result.condition); check(result.targetResolver); check(result.effect);
     return result;
 }
+// These are grant templates owned by an upgrade definition. At declaration,
+// runtime captures each physical grantor and binds the body to its host.
+// Keep this provenance separate from attachedContext used by live constants.
+function gainedHostOnAttack(input,ctx,setup,call) {
+    const reject=()=>fail(ctx,call,'registrar:addGainOnAttackAbilityTargetingAttached');
+    const raw=unwrap(input);
+    if(call.questionDotToken||!ts.isObjectLiteralExpression(raw)||setup.modifiers?.some(m=>m.kind===ts.SyntaxKind.StaticKeyword)||setup.name.getText(ctx.source)!=='setupCardAbilities'||setup.parameters.length!==2||setup.parameters.some(p=>!ts.isIdentifier(p.name))||setup.parameters[0].name.text===setup.parameters[1].name.text)reject();
+    const obj=object(raw,ctx),keys=(obj,names)=>[...obj.props.keys()].sort().join(',')===[...names].sort().join(',');
+    const helperRoot=setup.parameters[1].name.text;
+    const helper=(input,category,name)=>{
+        const n=unwrap(input);
+        if(!ts.isCallExpression(n)||n.questionDotToken||n.arguments.length!==1||access(n.expression,ctx).join('.')!==helperRoot+'.'+category+'.'+name)reject();
+        for(let a=n.parent;a&&a!==setup;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===helperRoot)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===helperRoot)))reject();
+        return n.arguments[0];
+    };
+    const plainObject=n=>{n=unwrap(n);if(!ts.isObjectLiteralExpression(n))reject();return object(n,ctx);};
+    const simpleCallback=(input,count)=>{
+        const fn=unwrap(input);
+        if((!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||fn.parameters.length!==count||fn.parameters.some(p=>!ts.isIdentifier(p.name))||new Set(fn.parameters.map(p=>p.name.text)).size!==count)reject();
+        // lambda validates synchrony and plain bindings. Keep only direct bodies;
+        // block aliases and captured earlier values need a separate grammar.
+        lambda(fn,ctx);
+        if(ts.isBlock(fn.body))reject();
+        return {body:unwrap(fn.body),names:fn.parameters.map(p=>p.name.text)};
+    };
+    const pathIs=(n,parts)=>{n=unwrap(n);try{return access(n,ctx).join('.')===parts.join('.');}catch(error){if(!(error instanceof Unsupported))throw error;return false;}};
+    const other=(input,unit)=>{
+        const {body,names:[card,context]}=simpleCallback(input,2);
+        const exclusion=n=>ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.ExclamationEqualsEqualsToken&&pathIs(n.left,[card])&&pathIs(n.right,[context,'source']);
+        if(!unit){if(!exclusion(body))reject();return;}
+        if(!ts.isBinaryExpression(body)||body.operatorToken.kind!==ts.SyntaxKind.AmpersandAmpersandToken||!exclusion(unwrap(body.left)))reject();
+        const right=unwrap(body.right);if(!ts.isCallExpression(right)||right.questionDotToken||right.arguments.length||!pathIs(right.expression,[card,'isUnit']))reject();
+    };
+    const title=unwrap(obj.props.get('title')||raw);
+    if(!(ts.isStringLiteral(title)||ts.isNoSubstitutionTemplateLiteral(title))||!title.text.length||title.text.length>1024)reject();
+    let shape;
+    if(keys(obj,['title','optional','targetResolver'])&&literal(obj.props.get('optional'),ctx)===true) {
+        const resolver=plainObject(obj.props.get('targetResolver'));
+        if(keys(resolver,['cardCondition','cardTypeFilter','immediateEffect'])) {
+            const type=resolver.props.get('cardTypeFilter');unshadowedEnum(type,ctx,'WildcardCardType');
+            if(literal(type,ctx)!=='unit')reject();other(resolver.props.get('cardCondition'),false);
+            const heal=plainObject(helper(resolver.props.get('immediateEffect'),'immediateEffects','heal'));
+            if(!keys(heal,['amount'])||literal(heal.props.get('amount'),ctx)!==3)reject();shape='forceHeal';
+        } else if(keys(resolver,['cardCondition','immediateEffect'])) {
+            other(resolver.props.get('cardCondition'),true);
+            const phase=plainObject(helper(resolver.props.get('immediateEffect'),'immediateEffects','forThisPhaseCardEffect'));
+            if(!keys(phase,['effect']))reject();
+            const stats=plainObject(helper(phase.props.get('effect'),'ongoingEffects','modifyStats'));
+            if(!keys(stats,['power','hp'])||literal(stats.props.get('power'),ctx)!==3||literal(stats.props.get('hp'),ctx)!==0)reject();shape='nonVehiclePhase';
+        } else reject();
+    } else if(keys(obj,['title','immediateEffect'])) {
+        const factory=helper(obj.props.get('immediateEffect'),'immediateEffects','discardCardsFromOwnHand');
+        const {body,names:[context]}=simpleCallback(factory,1),discard=plainObject(body);
+        if(!keys(discard,['amount','target'])||literal(discard.props.get('amount'),ctx)!==1||!pathIs(discard.props.get('target'),[context,'player']))reject();shape='discard';
+    } else reject();
+    // The first cohort has no setup snapshots or live gain conditions. Verify
+    // its whole registration and attachment syntax before emitting provenance.
+    const statements=setup.body.statements;
+    if(statements.length!==(shape==='discard'?1:2))reject();
+    if(shape!=='discard') {
+        const first=statements[0];
+        if(!ts.isExpressionStatement(first)||!ts.isCallExpression(first.expression)||first.expression.questionDotToken||first.expression.arguments.length!==1||!pathIs(first.expression.expression,[setup.parameters[0].name.text,'setAttachCondition']))reject();
+        const {body,names:[context]}=simpleCallback(first.expression.arguments[0],1);
+        const trait=shape==='forceHeal'?'force':'vehicle';let query=body;
+        if(shape==='nonVehiclePhase'){if(!ts.isPrefixUnaryExpression(query)||query.operator!==ts.SyntaxKind.ExclamationToken)reject();query=unwrap(query.operand);}
+        if(!ts.isCallExpression(query)||query.questionDotToken||query.arguments.length!==1||!pathIs(query.expression,[context,'attachTarget','hasSomeTrait']))reject();
+        unshadowedEnum(query.arguments[0],ctx,'Trait');if(literal(query.arguments[0],ctx)!==trait)reject();
+    }
+    const result=ability(input,ctx,'onAttack');result.gainedHost=true;
+    return result;
+}
+function gainedHostSourceShape(out) {
+    if(out.baseClass!=='UpgradeCard'||out.abilities.card.length!==1||out.abilities.leader.length||out.abilities.unit.length)return false;
+    const a=out.abilities.card[0],same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    const base={trigger:'onAttack',title:a.title,costs:[]},other={kind:'binary',op:'!==',left:reference('card'),right:reference('source')};
+    const attach=trait=>({kind:'query',name:'hasSomeTrait',receiver:reference('card'),args:[constant(trait)]});
+    return same(a,{...base,optional:true,targetResolver:{owner:'any',type:'unit',zone:'anyAttackable',predicate:other},effect:{kind:'heal',target:'chosen',amount:constant(3)},gainedHost:true})&&same(out.attachCondition,attach('force')) ||
+        same(a,{...base,optional:true,targetResolver:{owner:'any',type:'any',zone:'anyAttackable',predicate:{kind:'binary',op:'&&',left:other,right:{kind:'query',name:'isUnit',receiver:reference('card'),args:[]}}},effect:{kind:'modifyStats',target:'chosen',duration:'phase',power:constant(3),hp:constant(0)},gainedHost:true})&&same(out.attachCondition,{kind:'unary',op:'!',value:attach('vehicle')}) ||
+        same(a,{...base,effect:{kind:'discardOwnHand',amount:constant(1),target:'ownPlayer'},gainedHost:true})&&!out.attachCondition;
+}
 function attachedConstantAbility(input,context,host) {
     const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
     for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
@@ -1515,6 +1595,23 @@ function compileSource(text, file, enums = {}) {
     const cls = classes[0];
     out.className = cls.name?.text;
     out.baseClass = cls.heritageClauses?.flatMap((c) => c.types.map((t) => t.expression.getText(source)))[0] || null;
+    // JS uses the last own member with a given name. A grant template cannot
+    // retain an earlier identity/setup body after an overriding member replaces
+    // it. Check all member kinds before generic method traversal can skip them.
+    let hasGainedHostRegistrar=false;
+    const findGrant=n=>{if(ts.isPropertyAccessExpression(n)&&n.name.text==='addGainOnAttackAbilityTargetingAttached'||ts.isElementAccessExpression(n)&&n.argumentExpression&&(ts.isStringLiteral(n.argumentExpression)||ts.isNoSubstitutionTemplateLiteral(n.argumentExpression))&&n.argumentExpression.text==='addGainOnAttackAbilityTargetingAttached')hasGainedHostRegistrar=true;ts.forEachChild(n,findGrant);};findGrant(cls);
+    const memberName=member=>member.name&&(ts.isIdentifier(member.name)||ts.isStringLiteral(member.name)||ts.isNoSubstitutionTemplateLiteral(member.name))?member.name.text:null;
+    const checkGainedHostSlots=()=>{
+        if(cls.members.some(m=>m.name&&ts.isComputedPropertyName(m.name)))fail(ctx,cls,'gained-host-computed-member');
+        for(const name of ['getImplementationId',...Object.keys(SIDE_METHODS)]) {
+            const members=cls.members.filter(m=>memberName(m)===name);
+            if((['getImplementationId','setupCardAbilities'].includes(name)&&members.length!==1)||(name!=='setupCardAbilities'&&name in SIDE_METHODS&&members.length)||members.length>1||members.some(m=>!ts.isMethodDeclaration(m)))fail(ctx,cls,'gained-host-class-slot:'+name);
+        }
+    };
+    if(hasGainedHostRegistrar) {
+        try {checkGainedHostSlots();}
+        catch(error) {if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.status='unsupported';return out;}
+    }
     ctx.arenaDamageHelpers=new Map();
     if(['EventCard','NonLeaderUnitCard'].includes(out.baseClass))for(const member of cls.members){
         const damage=arenaDamageHelper(member);
@@ -1577,7 +1674,7 @@ function compileSource(text, file, enums = {}) {
                 const call = statement.expression;
                 const parts = access(call.expression, local);
                 const registration = parts.at(-1);
-                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addTriggeredAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
+                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
                 if (call.arguments.length !== 1) fail(local, call, 'registration-arity');
                 if (['addGainKeywordTargetingAttached', 'setAttachCondition'].includes(registration)) {
                     if (!['UpgradeCard', 'TokenUpgradeCard'].includes(out.baseClass) || name !== 'setupCardAbilities') fail(local, call, 'attached-source-side');
@@ -1589,6 +1686,10 @@ function compileSource(text, file, enums = {}) {
                 else if (['addConstantAbilityTargetingAttached','addGainConstantAbilityTargetingAttached'].includes(registration)) {
                     if(out.baseClass!=='UpgradeCard'||name!=='setupCardAbilities')fail(local,call,'attached-source-side');
                     out.abilities.card.push(attachedConstantAbility(call.arguments[0],local,registration==='addGainConstantAbilityTargetingAttached'));
+                }
+                else if(registration==='addGainOnAttackAbilityTargetingAttached') {
+                    try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
+                    catch(error){if(!(error instanceof Unsupported))throw error;fail(local,call,'registrar:addGainOnAttackAbilityTargetingAttached');}
                 }
                 else if (registration === 'addCoordinateAbility') {
                     if (out.baseClass !== 'NonLeaderUnitCard' || name !== 'setupCardAbilities') fail(local, call, 'coordinate-source-side');
@@ -1605,6 +1706,31 @@ function compileSource(text, file, enums = {}) {
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
     for(const [name,helper]of ctx.arenaDamageHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-arena-damage-helper:'+name).diagnostic);
+    if(out.abilities.card.some(a=>a.gainedHost)) {
+        try{
+            // Validate provenance regardless of how the registrar callee was spelled.
+            checkGainedHostSlots();
+            if(source.statements.some(s=>s!==cls&&(!ts.isImportDeclaration(s)||!ts.isStringLiteral(s.moduleSpecifier)||!['../../../AbilityHelper','../../../core/card/AbilityRegistrationInterfaces','../../../core/card/UpgradeCard','../../../core/Constants'].includes(s.moduleSpecifier.text)||!s.importClause)))fail(ctx,cls,'gained-host-module-shape');
+            const imported=(name,suffix)=>{
+                const bindings=[];
+                for(const s of source.statements)if(ts.isImportDeclaration(s)&&s.importClause){
+                    const c=s.importClause;if(c.name?.text===name)bindings.push(false);
+                    if(c.namedBindings&&ts.isNamespaceImport(c.namedBindings)&&c.namedBindings.name.text===name)bindings.push(false);
+                    if(c.namedBindings&&ts.isNamedImports(c.namedBindings))for(const e of c.namedBindings.elements)if(e.name.text===name)bindings.push(!c.isTypeOnly&&!e.isTypeOnly&&(e.propertyName?.text||e.name.text)===name&&s.moduleSpecifier.text==='../../..'+suffix);
+                }
+                return bindings.length===1&&bindings[0];
+            };
+            if(!imported('UpgradeCard','/core/card/UpgradeCard'))fail(ctx,cls,'gained-host-import-binding');
+            const usesNamespace=(node,name)=>ts.isPropertyAccessExpression(node)&&ts.isIdentifier(node.expression)&&node.expression.text===name||ts.forEachChild(node,child=>usesNamespace(child,name));
+            for(const name of ['Trait','WildcardCardType'])if(usesNamespace(cls,name)&&!imported(name,'/core/Constants'))fail(ctx,cls,'gained-host-import-binding');
+            const identities=cls.members.filter(m=>memberName(m)==='getImplementationId'),identity=identities[0];
+            if(!cls.modifiers?.some(m=>m.kind===ts.SyntaxKind.ExportKeyword)||!cls.modifiers.some(m=>m.kind===ts.SyntaxKind.DefaultKeyword)||cls.modifiers.some(m=>m.kind===ts.SyntaxKind.DeclareKeyword)||hasDecorators(cls)||identities.length!==1||!identity||!ts.isMethodDeclaration(identity)||identity.modifiers?.some(m=>m.kind===ts.SyntaxKind.StaticKeyword)||identity.parameters.length||identity.body?.statements.length!==1||!ts.isReturnStatement(identity.body.statements[0]))fail(ctx,cls,'gained-host-identity-shape');
+            const idValue=unwrap(identity.body.statements[0].expression);
+            if(!ts.isObjectLiteralExpression(idValue)||idValue.properties.length!==2||idValue.properties.some(p=>!ts.isPropertyAssignment(p)||!['id','internalName'].includes(p.name.getText(source))||!(ts.isStringLiteral(unwrap(p.initializer))||ts.isNoSubstitutionTemplateLiteral(unwrap(p.initializer)))))fail(ctx,identity,'gained-host-identity-shape');
+            topDeckContinuationNamespaces(cls,ctx);if(!gainedHostSourceShape(out))fail(ctx,cls,'gained-host-source-shape');
+        }
+        catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);out.abilities={leader:[],unit:[],card:[]};}
+    }
     const parentDefense=value=>!!value&&typeof value==='object'&&((value.kind==='query'&&value.name==='isDefending'&&JSON.stringify(value.receiver)===JSON.stringify(reference('source','parentUnit')))||Object.values(value).some(parentDefense));
     if(parentDefense(out.abilities)) {
         try{topDeckContinuationNamespaces(cls,ctx);if(!parentDefenseSourceShape(out))fail(ctx,cls,'parent-defense-source-shape');}

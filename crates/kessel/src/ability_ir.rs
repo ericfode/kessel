@@ -842,6 +842,8 @@ fn one() -> Expr {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Ability {
     #[serde(default, skip_serializing_if="Option::is_none")]
+    pub gained_host: Option<bool>,
+    #[serde(default, skip_serializing_if="Option::is_none")]
     pub attached_context: Option<String>,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub target_resolvers: Vec<NamedTargetResolver>,
@@ -1006,6 +1008,8 @@ impl Instruction {
 #[derive(Debug, Clone, Serialize)]
 pub struct Program {
     #[serde(default, skip_serializing_if="Option::is_none")]
+    pub gained_host: Option<bool>,
+    #[serde(default, skip_serializing_if="Option::is_none")]
     pub attached_context: Option<String>,
     pub title: String,
     pub context_title: Vec<Expr>,
@@ -1024,6 +1028,23 @@ pub struct Program {
     #[serde(skip)]
     pub select_ends: Vec<(usize, usize)>,
 }
+pub(crate) fn gained_host_marker(v:&Value)->bool {match v {Value::Object(o)=>o.contains_key("gainedHost")||o.values().any(gained_host_marker),Value::Array(a)=>a.iter().any(gained_host_marker),_=>false}}
+fn gained_host_templates()->Vec<Ability> {serde_json::from_str(r##"[{"trigger":"onAttack","title":"You may heal 3 damage from another unit.","costs":[],"optional":true,"targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable","predicate":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}}},"effect":{"kind":"heal","target":"chosen","amount":{"kind":"const","value":3}},"gainedHost":true},{"trigger":"onAttack","title":"Give another unit +3/+0 for this phase","costs":[],"optional":true,"targetResolver":{"owner":"any","type":"any","zone":"anyAttackable","predicate":{"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"query","name":"isUnit","receiver":{"kind":"ref","path":["card"]},"args":[]}}},"effect":{"kind":"modifyStats","target":"chosen","duration":"phase","power":{"kind":"const","value":3},"hp":{"kind":"const","value":0}},"gainedHost":true},{"trigger":"onAttack","title":"Discard a card from your hand","costs":[],"effect":{"kind":"discardOwnHand","amount":{"kind":"const","value":1},"target":"ownPlayer"},"gainedHost":true}]"##).expect("static reviewed gained-host templates")}
+pub(crate) fn gained_host_kind(a:&Ability)->Option<usize> {
+ let expected=gained_host_templates();
+ let actual=serde_json::to_value(a).ok()?;expected.iter().position(|x|serde_json::to_value(x).ok().as_ref()==Some(&actual))
+}
+pub(crate) fn gained_host_upgrade_kind(entry:&Value)->Option<usize> {
+ fn markers(v:&Value)->usize {match v {Value::Object(o)=>usize::from(o.contains_key("gainedHost"))+o.values().map(markers).sum::<usize>(),Value::Array(a)=>a.iter().map(markers).sum(),_=>0}}
+ if markers(entry)!=1 {return None;}
+ let sides:Sides=serde_json::from_value(entry["abilities"].clone()).ok()?;
+ if entry["baseClass"]!="UpgradeCard"||entry["card"]["types"]!=serde_json::json!(["upgrade"])||sides.card.len()!=1||!sides.leader.is_empty()||!sides.unit.is_empty()||!entry["piloting"].is_null()||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().any(|k|!entry["card"][k].is_null())||!(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")||![("upgradePower","power"),("upgradeHp","hp")].iter().all(|(derived,printed)|entry["card"][*derived].as_i64().is_some_and(|n|(-1000..=1000).contains(&n))&&entry["card"][*derived]==entry["card"][*printed]) {return None;}
+ let kind=gained_host_kind(&sides.card[0])?;
+ let trait_query=|name:&str|serde_json::json!({"kind":"query","name":"hasSomeTrait","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":name}]});
+ let attach=match kind {0=>trait_query("force"),1=>serde_json::json!({"kind":"unary","op":"!","value":trait_query("vehicle")}),2=>Value::Null,_=>return None};
+ (entry["attachCondition"]==attach&&entry["card"]["unique"]==serde_json::json!(kind==1)).then_some(kind)
+}
+
 pub(crate) fn basezone_source_kind(entry:&Value)->Option<bool> {
  let sides: Sides=serde_json::from_value(entry["abilities"].clone()).ok()?;
  if !entry["card"]["unique"].is_boolean()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()){return None;}
@@ -1216,6 +1237,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && gained_host_kind(ability).is_none() {return Err("gained host requires one exact reviewed root attack template".into());}
         if let Some(context)=&ability.attached_context {
             if !["upgrade","host"].contains(&context.as_str()) || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() {
                 return Err("attached contexts require bounded constant keyword registrations".into());
@@ -1372,6 +1394,7 @@ impl Program {
             return Err("triggered or event additional costs are not implemented".into());
         }
         let mut p = Self {
+            gained_host: ability.gained_host,
             attached_context: ability.attached_context.clone(),
             title: ability.title.clone(),
             context_title: ability.context_title.clone(),
@@ -1425,6 +1448,7 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && (depth!=0||gained_host_kind(ability).is_none()) {return Err("gained host marker cannot appear in nested or other registrations".into());}
         if parent_defense_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&(depth!=0||!parent_defense_registration(ability)){return Err("parent defense requires a sole bounded upgrade constant registration".into());}
         fn oversized(v:&Value)->bool {v["mode"]=="upTo"&&v["count"]["value"].as_u64().is_some_and(|n|n>3) || match v {Value::Object(o)=>o.values().any(oversized),Value::Array(a)=>a.iter().any(oversized),_=>false}}
         if depth==0&&oversized(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&force_continuation(ability)!=Some(ForceContinuation::Shields){return Err("selectors above three require exact Force Shield continuation".into());}
@@ -2057,6 +2081,7 @@ impl Catalogue {
 
                 let exact_type=|expected:&str|entry["card"]["types"].as_array().is_some_and(|types|types.len()==1&&types[0]==expected);
                 let source_class=entry["baseClass"].as_str();
+                if gained_host_marker(entry) && gained_host_upgrade_kind(entry).is_none() {return Err("gained host attack templates require complete reviewed upgrade metadata".into());}
                 let source_types:Option<&[&str]>=match source_class {
                     Some("NonLeaderUnitCard")=>Some(&["unit"]), Some("LeaderUnitCard")=>Some(&["leader"]),
                     Some("EventCard")=>Some(&["event"]), Some("BaseCard")=>Some(&["base"]),
@@ -2796,4 +2821,12 @@ pub(crate) mod parent_defense_upgrade_metadata_tests {
   let value=entry()["abilities"]["card"][0].clone();let valid:Ability=serde_json::from_value(value.clone()).unwrap();assert!(Program::compile(&valid).is_ok());let q=value["condition"].clone();let mut variants=vec![];let mut v=value.clone();v["trigger"]=json!("event");variants.push(v);let mut v=value.clone();v["targetResolver"]["predicate"]=q.clone();variants.push(v);let mut v=value.clone();v["effect"]["power"]=q.clone();variants.push(v);let mut v=value.clone();v["contextTitle"]=json!([q]);variants.push(v);for field in["then","ifYouDo"]{let mut outer=json!({"trigger":"event","title":"outer","effect":{"kind":"noAction"}});outer[field]=value.clone();variants.push(outer);}for v in variants{let a:Ability=serde_json::from_value(v.clone()).unwrap();assert!(Program::compile(&a).is_err(),"direct {v}");}
  }
 
+}
+
+#[cfg(test)]
+pub(crate) mod gained_host_tests {
+ use super::*;use serde_json::json;
+ pub fn catalogue()->Value {let mut c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();for (i,code) in ["LOF_051","LAW_186","LOF_139"].iter().enumerate(){let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==*code).unwrap();entry["status"]=json!("supported");entry["diagnostics"]=json!([]);entry["abilities"]=json!({"leader":[],"unit":[],"card":[gained_host_templates().remove(i)]});let trait_q=|name:&str|json!({"kind":"query","name":"hasSomeTrait","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":name}]});entry["attachCondition"]=match i {0=>trait_q("force"),1=>json!({"kind":"unary","op":"!","value":trait_q("vehicle")}),_=>Value::Null};}c}
+ #[test]fn gained_host_exact_templates_and_metadata_reject_misplaced_or_changed_markers(){let c=catalogue();let compiled=Catalogue::load(&c).unwrap();for (i,code)in["LOF_051","LAW_186","LOF_139"].iter().enumerate(){let original=c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==*code).unwrap();assert_eq!(gained_host_upgrade_kind(original),Some(i));assert!(compiled.cards.contains_key(*code));for(path,value)in[("/baseClass",json!("EventCard")),("/card/unique",json!(i!=1)),("/card/types",json!(["unit"])),("/card/power",json!(99)),("/card/hp",Value::Null),("/card/gainedHost",json!(true)),("/piloting",json!({})),("/keywordValues",json!({"raid":1})),("/abilities/card/0/gainedHost",json!(false)),("/abilities/card/0/gainedHost",Value::Null),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/trigger",json!("whenPlayed")),("/abilities/card/0/condition",json!({"kind":"const","value":true}))]{let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut at=&mut bad;for k in &parts[..parts.len()-1]{at=if at.is_array(){&mut at[k.parse::<usize>().unwrap()]}else{&mut at[*k]};}at[parts[parts.len()-1]]=value;assert!(gained_host_upgrade_kind(&bad).is_none(),"{code}/{path}");let loaded=Catalogue::load(&json!({"schema":SCHEMA,"cards":[bad]})).unwrap();assert!(!loaded.cards.contains_key(*code),"admitted {code}/{path}");}}}
+ #[test]fn gained_host_direct_program_rejects_nested_or_other_body_and_omits_absent_marker(){for template in gained_host_templates(){let p=Program::compile(&template).unwrap();assert_eq!(p.gained_host,Some(true));let mut invalid=template.clone();invalid.effect=Effect::NoAction;assert!(Program::compile(&invalid).is_err());let outer:Ability=serde_json::from_value(json!({"trigger":"event","title":"outer","effect":{"kind":"noAction"},"then":template})).unwrap();assert!(Program::compile(&outer).is_err());}let a:Ability=serde_json::from_value(json!({"trigger":"event","title":"old","effect":{"kind":"noAction"}})).unwrap();assert!(serde_json::to_value(&a).unwrap().get("gainedHost").is_none());assert!(serde_json::to_value(Program::compile(&a).unwrap()).unwrap().get("gainedHost").is_none());}
 }

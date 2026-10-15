@@ -763,7 +763,7 @@ impl Engine {
                     t.attack_source = source;t.attack_defender=id;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
-                    let declaration_context=if self.has_defense_registration(&t,id) {Some(t)}else{None};
+                    let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t) {Some(t)}else{None};
                     self.sweep_stat_defeats(&mut t)?;
                     t.pending_triggers = 0;
                     let d = self.def(&t, source);
