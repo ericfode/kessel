@@ -77,34 +77,66 @@ fn token_unit_code(token_type: &str) -> Option<&'static str> {
         _ => return None,
     })
 }
-/// The token cards a program can create, so a card is admitted (or dealt from a pool) only with them.
-fn created_tokens(program: &Program) -> Vec<String> {
-    fn walk(e: &Effect, out: &mut Vec<String>) {
-        match e {
-            Effect::GiveShield { .. } => out.push("TOKEN_SHIELD".into()),
-            Effect::GiveExperience { .. } => out.push("TOKEN_EXPERIENCE".into()),
-            Effect::CreateTokenUnit { token_type, .. } => out.push(token_unit_code(token_type).map_or_else(|| format!("unsupported token unit {token_type}"), str::to_owned)),
-            Effect::Select { effect, .. } => walk(effect, out),
-            Effect::Sequence { effects } | Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => effects.iter().for_each(|e| walk(e, out)),
-            Effect::Conditional { on_true, on_false, .. } => {
-                walk(on_true, out);
-                if let Some(e) = on_false { walk(e, out); }
+/// Discover creation and native-state dependencies together. Creation order is
+/// retained for existing missing-token diagnostics; Force presence is separate.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct TokenRequirements {
+    created: Vec<String>,
+    force: bool,
+    weakness: bool,
+}
+impl TokenRequirements {
+    fn for_program(program: &Program) -> Self {
+        fn walk(effect: &Effect, out: &mut TokenRequirements) {
+            match effect {
+                Effect::GiveShield { .. } => out.created.push("TOKEN_SHIELD".into()),
+                Effect::GiveExperience { .. } => out.created.push("TOKEN_EXPERIENCE".into()),
+                Effect::GiveWeakness { .. } => out.weakness = true,
+                Effect::CreateTokenUnit { token_type, .. } => out.created.push(
+                    token_unit_code(token_type).map_or_else(
+                        || format!("unsupported token unit {token_type}"), str::to_owned)),
+                Effect::Select { effect, .. } => walk(effect, out),
+                Effect::Sequence { effects } | Effect::Simultaneous { effects }
+                | Effect::PhaseModifiers { effects } => {
+                    for effect in effects { walk(effect, out); }
+                }
+                Effect::Conditional { on_true, on_false, .. } => {
+                    walk(on_true, out);
+                    if let Some(effect) = on_false { walk(effect, out); }
+                }
+                _ => {}
             }
-            _ => {}
+        }
+        let mut out = Self {
+            force: program_needs_force(program),
+            ..Self::default()
+        };
+        for instruction in &program.instructions {
+            if let Some(effect) = match instruction {
+                Instruction::Apply(effect) => Some(effect),
+                other => other.group_effect(),
+            } { walk(effect, &mut out); }
+        }
+        out
+    }
+    fn needs(&self, token: &str) -> bool {
+        match token {
+            "TOKEN_THE_FORCE" => self.force,
+            "TOKEN_WEAKNESS" => self.weakness,
+            _ => self.created.iter().any(|created| created == token),
         }
     }
-    let mut out = vec![];
-    for i in &program.instructions {
-        if let Some(e) = match i { Instruction::Apply(e) => Some(e), i => i.group_effect() } { walk(e, &mut out); }
-    }
-    out
+}
+fn card_needs_token(programs: &CardPrograms, requirements: &[TokenRequirements], token: &str) -> bool {
+    programs.card.iter().chain(&programs.unit).chain(&programs.leader)
+        .any(|program| requirements[*program as usize].needs(token))
 }
 /// The first token a card's programs create that `has` lacks.
-fn missing_token(catalogue: &Catalogue, code: &str, has: impl Fn(&str) -> bool) -> Option<String> {
+fn missing_token(catalogue: &Catalogue, requirements: &[TokenRequirements], code: &str, has: impl Fn(&str) -> bool) -> Option<String> {
     let programs = catalogue.cards.get(code)?;
     programs.card.iter().chain(&programs.leader).chain(&programs.unit)
-        .flat_map(|p| created_tokens(&catalogue.programs[*p as usize]))
-        .find(|token| !has(token))
+        .flat_map(|program| requirements[*program as usize].created.iter())
+        .find(|token| !has(token)).cloned()
 }
 fn reviewed_weakness_entry(entry:&Value)->bool {
     if entry["setCode"]!="TOKEN_WEAKNESS" {return false;}
@@ -139,15 +171,22 @@ fn reviewed_weakness_entry(entry:&Value)->bool {
     entry["setCode"]=="TOKEN_WEAKNESS" && entry["sourceHash"]=="dd546e4886757d77fffeb8be6e7381144fa7378b6493ce444aa87e4ba1202778" && entry["baseClass"]=="TokenUpgradeCard" && entry["card"]==expected && entry["keywordValues"]==serde_json::json!({}) && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["attachCondition"].is_null()
 }
 fn effect_has(e:&Effect,predicate:fn(&Effect)->bool)->bool {predicate(e)||match e {Effect::Simultaneous{effects}|Effect::PhaseModifiers{effects}|Effect::Sequence{effects}=>effects.iter().any(|e|effect_has(e,predicate)),Effect::Conditional{on_true,on_false,..}=>effect_has(on_true,predicate)||on_false.as_deref().is_some_and(|e|effect_has(e,predicate)),Effect::Select{effect,..}=>effect_has(effect,predicate),_=>false}}
-fn program_has(p:&Program,predicate:fn(&Effect)->bool)->bool {p.instructions.iter().any(|i|match i {Instruction::Apply(e)=>effect_has(e,predicate),i=>i.group_effect().is_some_and(|e|effect_has(e,predicate))})}
+// State import asks only about Force; do not allocate creation diagnostics there.
+fn program_needs_force(program: &Program) -> bool {
+    crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|instruction| {
+        let effect = match instruction {
+            Instruction::Apply(effect) => Some(effect),
+            other => other.group_effect(),
+        };
+        effect.is_some_and(|effect| effect_has(effect,
+            |effect| matches!(effect, Effect::UseForce { .. } | Effect::GainForce { .. })))
+    })
+}
 fn reviewed_shield_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r#"{"title":"Shield","subtitle":null,"cost":0,"hp":0,"power":0,"text":"If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.","deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":0,"upgradeHp":0,"id":"8752877738","aspects":[],"traits":["armor"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"shield"}"#).expect("reviewed Shield metadata");entry["setCode"]=="TOKEN_SHIELD"&&entry["status"]=="unsupported"&&entry["baseClass"]=="TokenUpgradeCard"&&entry["sourcePath"]=="game/cards/01_SOR/tokens/Shield.ts"&&entry["sourceHash"]=="39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f"&&entry["card"]==expected&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]})}
 fn reviewed_experience_entry(entry:&Value)->bool {
  let expected:Value=serde_json::from_str(r#"{"title":"Experience","subtitle":null,"cost":0,"hp":1,"power":1,"text":null,"deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":1,"upgradeHp":1,"id":"2007868442","aspects":[],"traits":["learned"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"experience"}"#).expect("reviewed Experience metadata");
  entry["setCode"]=="TOKEN_EXPERIENCE"&&entry["sourcePath"]=="game/cards/01_SOR/tokens/Experience.ts"&&entry["status"]=="unsupported"&&entry["baseClass"]=="TokenUpgradeCard"&&entry["sourceHash"]=="fccf00d13061bfc15447101a0dc82fc360f9b5d2e28a9da678684e8c93bc9d67"&&entry["card"]==expected&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]})
 }
-fn program_needs_experience(p:&Program)->bool {program_has(p,|e|matches!(e,Effect::GiveExperience{..}))}
-fn program_needs_weakness(p:&Program)->bool {program_has(p,|e|matches!(e,Effect::GiveWeakness{..}))}
-fn program_needs_beast(p:&Program)->bool {program_has(p,|e|matches!(e,Effect::CreateTokenUnit{token_type,..} if token_type=="beast"))}
 
 
 fn reviewed_beast_entry(entry:&Value)->bool {
@@ -155,7 +194,6 @@ fn reviewed_beast_entry(entry:&Value)->bool {
     entry["setCode"]=="TOKEN_BEAST"&&entry["status"]=="supported"&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["sourcePath"]=="game/cards/09_HMW/tokens/Beast.ts"&&entry["sourceHash"]=="e9ce58041d8cb93f9a98e773c016dc56bad9271ee30b7954411a7d63357c2566"&&entry["baseClass"]=="TokenUnitCard"&&entry["card"]==expected&&["card","unit","leader"].iter().all(|side|entry["abilities"][side].as_array().is_some_and(|a|a.is_empty()))&&entry["keywordValues"].as_object().is_some_and(|v|v.is_empty())
 }
 fn reviewed_spy_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r##"{"status":"supported","baseClass":"TokenUnitCard","sourcePath":"game/cards/06_SEC/tokens/Spy.ts","sourceHash":"aae6ac20865fac5b7c5eace59f33b781c75a578c07cf494bdc28b337c5d42f1f","card":{"title":"Spy","subtitle":"","cost":0,"hp":2,"power":0,"text":"Raid 2 (This unit gets +2/+0 while attacking.)","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":null,"upgradeHp":null,"id":"6665455613","aspects":[],"traits":["official"],"arena":"ground","keywords":["raid"],"types":["token","unit"],"setId":{"set":"SEC"},"internalName":"spy"},"abilities":{"leader":[],"unit":[],"card":[]},"keywordValues":{"raid":2}}"##).unwrap();entry["setCode"]=="TOKEN_SPY"&&expected.as_object().unwrap().iter().all(|(k,v)|entry.get(k)==Some(v))&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()}
-fn program_needs_spy(p:&Program)->bool {program_has(p,|e|matches!(e,Effect::CreateTokenUnit{token_type,..} if token_type=="spy"))}
 fn reviewed_force_entry(entry:&Value)->bool {
     if entry["setCode"]!="TOKEN_THE_FORCE" {return false;}
     let metadata:Value=serde_json::from_str(r#"{
@@ -185,7 +223,6 @@ fn reviewed_force_entry(entry:&Value)->bool {
 }"#).expect("reviewed Force metadata");
     entry["sourceHash"]=="3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6" && entry["baseClass"]=="TokenCard" && entry["card"]==metadata && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["keywordValues"]==serde_json::json!({}) && entry["attachCondition"].is_null()
 }
-fn program_needs_force(program:&Program)->bool {crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|i|match i {Instruction::Apply(e)=>effect_has(e,|e|matches!(e,Effect::UseForce{..}|Effect::GainForce{..})),_=>i.group_effect().is_some_and(|e|effect_has(e,|e|matches!(e,Effect::UseForce{..}|Effect::GainForce{..})))})}
 
 impl Engine {
     pub(super) fn needs_force_state(&self)->bool {
@@ -202,6 +239,7 @@ impl Engine {
     /// Load every fully executable card, retaining explicit reasons for all others.
     pub fn from_catalogue_value(value: &Value) -> Result<Self, String> {
         let mut catalogue = Catalogue::load(value)?;
+        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         let experience_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_experience_entry);
         let force_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_force_entry);
         let weakness_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_weakness_entry);
@@ -233,11 +271,17 @@ impl Engine {
                     }
                 }
                 let programs = catalogue.cards.get(&code).cloned().unwrap_or_default();
-                if !experience_available&&programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|program_needs_experience(&catalogue.programs[*p as usize])) {return Err("reviewed Experience token unavailable".into());}
-                if !force_available && programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])) {return Err("reviewed Force token unavailable; dependent source cannot execute".into());}
-                if !weakness_available && programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|program_needs_weakness(&catalogue.programs[*p as usize])) {return Err("Weakness token unavailable; dependent source cannot execute".into());}
-                if !spy_available && programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|program_needs_spy(&catalogue.programs[*p as usize])) {return Err("reviewed Spy token unavailable".into());}
-                if !beast_available&&programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|program_needs_beast(&catalogue.programs[*p as usize])) {return Err("reviewed Beast token unavailable; dependent source cannot execute".into());}
+                for (available, token, reason) in [
+                    (experience_available, "TOKEN_EXPERIENCE", "reviewed Experience token unavailable"),
+                    (force_available, "TOKEN_THE_FORCE", "reviewed Force token unavailable; dependent source cannot execute"),
+                    (weakness_available, "TOKEN_WEAKNESS", "Weakness token unavailable; dependent source cannot execute"),
+                    (spy_available, "TOKEN_SPY", "reviewed Spy token unavailable"),
+                    (beast_available, "TOKEN_BEAST", "reviewed Beast token unavailable; dependent source cannot execute"),
+                ] {
+                    if !available && card_needs_token(&programs, &requirements, token) {
+                        return Err(reason.into());
+                    }
+                }
                 if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense") && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
                 if native_token {
                     if code=="TOKEN_THE_FORCE" {
@@ -413,7 +457,7 @@ impl Engine {
             }
         }
         // fail closed: a card whose programs create a token that was not admitted (Experience, unit tokens) is rejected
-        let mut lacking: Vec<_> = by_code.keys().filter_map(|code| Some((code.clone(), missing_token(&catalogue, code, |t| by_code.contains_key(t))?))).collect();
+        let mut lacking: Vec<_> = by_code.keys().filter_map(|code| Some((code.clone(), missing_token(&catalogue, &requirements, code, |t| by_code.contains_key(t))?))).collect();
         lacking.sort();
         for (code, token) in lacking {
             by_code.remove(&code);
@@ -473,6 +517,7 @@ impl Engine {
         }
         let mut engine = Self::from_catalogue_bytes(catalogue_bytes)?;
         let catalogue = engine.catalogue.as_mut().unwrap();
+        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
             let code = card["setCode"]
@@ -521,16 +566,23 @@ impl Engine {
         if !included.contains("TOKEN_SHIELD") {
             return Err("pool must include TOKEN_SHIELD".into());
         }
-        if !included.contains("TOKEN_WEAKNESS") && included.iter().any(|code|catalogue.cards.get(code).is_some_and(|c|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|program_needs_weakness(&catalogue.programs[*p as usize])))) {return Err("pool containing GiveWeakness cards must include reviewed TOKEN_WEAKNESS".into());}
-        if !included.contains("TOKEN_THE_FORCE") && included.iter().any(|code|catalogue.cards.get(code).is_some_and(|c|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))) {return Err("pool containing Force gain/use/presence cards must include reviewed TOKEN_THE_FORCE".into());}
-        if !included.contains("TOKEN_SPY")&&included.iter().any(|code|catalogue.cards.get(code).is_some_and(|c|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|program_needs_spy(&catalogue.programs[*p as usize])))) {return Err("pool containing Spy creation must include reviewed TOKEN_SPY".into());}
-        if !included.contains("TOKEN_BEAST")&&included.iter().any(|code|catalogue.cards.get(code).is_some_and(|c|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|program_needs_beast(&catalogue.programs[*p as usize])))) {return Err("pool containing Beast creation must include reviewed TOKEN_BEAST".into());}
-        if !included.contains("TOKEN_EXPERIENCE")&&included.iter().any(|code|catalogue.cards.get(code).is_some_and(|c|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|program_needs_experience(&catalogue.programs[*p as usize])))) {return Err("pool containing Experience creation must include reviewed TOKEN_EXPERIENCE".into());}
+        for (token, reason) in [
+            ("TOKEN_WEAKNESS", "pool containing GiveWeakness cards must include reviewed TOKEN_WEAKNESS"),
+            ("TOKEN_THE_FORCE", "pool containing Force gain/use/presence cards must include reviewed TOKEN_THE_FORCE"),
+            ("TOKEN_SPY", "pool containing Spy creation must include reviewed TOKEN_SPY"),
+            ("TOKEN_BEAST", "pool containing Beast creation must include reviewed TOKEN_BEAST"),
+            ("TOKEN_EXPERIENCE", "pool containing Experience creation must include reviewed TOKEN_EXPERIENCE"),
+        ] {
+            if !included.contains(token) && included.iter().any(|code| catalogue.cards.get(code)
+                .is_some_and(|programs| card_needs_token(programs, &requirements, token))) {
+                return Err(reason.into());
+            }
+        }
         // a pool must hold the tokens its cards create, or a game could put a card in play the pool lacks
         let mut codes: Vec<_> = included.iter().collect();
         codes.sort();
         for code in codes {
-            if let Some(token) = missing_token(catalogue, code, |t| included.contains(t)) {
+            if let Some(token) = missing_token(catalogue, &requirements, code, |t| included.contains(t)) {
                 return Err(format!("pool card {code} creates {token}, which the pool omits"));
             }
         }
@@ -1881,21 +1933,35 @@ impl Engine {
         else { s.card_mut(previous).next_token=s.card(selected).next_token; }
         self.detach(s,selected);s.card_mut(selected).next_token=0;
     }
+    // Resume the shared replacement window without consuming primary events.
+    // Record capture and shield storage remain specific to each group layout.
+    fn resolve_group_shield_replacements(&self, s: &mut State, e: &Effect) -> bool {
+        while s.event_group.shield_mask!=0 {
+            if s.event_group.shield_mask==3 && s.event_group.shield_priority==0 {
+                s.active=s.event_group.initiator; s.event_group.shield_count=0;
+                s.decision=Decision::AbilityGroupShield; return false;
+            }
+            let seat=if s.event_group.shield_priority!=0 { if s.event_group.shield_priority==1 { Seat::P1 } else { Seat::P2 } }
+                else if s.event_group.shield_mask&1!=0 { Seat::P1 } else { Seat::P2 };
+            let targets=self.group_shield_targets(s,e,seat);
+            if targets.len()>1 {
+                s.active=seat; s.event_group.shield_count=targets.len() as u8;
+                s.decision=Decision::AbilityGroupShield; return false;
+            }
+            for target in targets { self.replace_group_damage(s,e,target); }
+            s.event_group.shield_mask&=!(1<<seat.index()); s.event_group.shield_priority=0;
+        }
+        s.active=s.event_group.initiator;
+        true
+    }
     fn resolve_uniform_damage(&self,s:&mut State,e:&Effect)->Result<bool,String> {
         let amount=self.uniform_damage_amount(e).ok_or("invalid uniform damage effect")?;
         if !s.event_group.replacement_done {
             s.event_group.initiator=s.active;s.event_group.replacement_done=true;
             for r in &s.event_group.uniform_damage.records[..s.event_group.uniform_damage.count as usize] {if r.shield()!=0 {s.event_group.shield_mask|=1<<s.card(r.target()).owner.index();}}
         }
-        while s.event_group.shield_mask!=0 {
-            if s.event_group.shield_mask==3&&s.event_group.shield_priority==0 {s.active=s.event_group.initiator;s.event_group.shield_count=0;s.decision=Decision::AbilityGroupShield;return Ok(false);}
-            let seat=if s.event_group.shield_priority!=0 {if s.event_group.shield_priority==1 {Seat::P1}else {Seat::P2}}else if s.event_group.shield_mask&1!=0 {Seat::P1}else {Seat::P2};
-            let targets=self.group_shield_targets(s,e,seat);
-            if targets.len()>1 {s.active=seat;s.event_group.shield_count=targets.len() as u8;s.decision=Decision::AbilityGroupShield;return Ok(false);}
-            for target in targets {self.replace_group_damage(s,e,target);}
-            s.event_group.shield_mask&=!(1<<seat.index());s.event_group.shield_priority=0;
-        }
-        s.active=s.event_group.initiator;s.ability_result=0;s.ability_succeeded=false;s.event_group.resolving=true;
+        if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
+        s.ability_result=0;s.ability_succeeded=false;s.event_group.resolving=true;
         let mut callbacks=vec![];
         for i in 0..s.event_group.uniform_damage.count as usize {
             let record=s.event_group.uniform_damage.records[i];let target=record.target();
@@ -1964,22 +2030,7 @@ impl Engine {
                 }
             }
         }
-        while s.event_group.shield_mask!=0 {
-            if s.event_group.shield_mask==3 && s.event_group.shield_priority==0 {
-                s.active=s.event_group.initiator; s.event_group.shield_count=0;
-                s.decision=Decision::AbilityGroupShield; return Ok(false);
-            }
-            let seat=if s.event_group.shield_priority!=0 { if s.event_group.shield_priority==1 { Seat::P1 } else { Seat::P2 } }
-                else if s.event_group.shield_mask&1!=0 { Seat::P1 } else { Seat::P2 };
-            let targets=self.group_shield_targets(s,e,seat);
-            if targets.len()>1 {
-                s.active=seat; s.event_group.shield_count=targets.len() as u8;
-                s.decision=Decision::AbilityGroupShield; return Ok(false);
-            }
-            for target in targets { self.replace_group_damage(s,e,target); }
-            s.event_group.shield_mask&=!(1<<seat.index()); s.event_group.shield_priority=0;
-        }
-        s.active=s.event_group.initiator;
+        if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
         // All explicit defeat registrations see the same pre-movement event state.
         let mut explicit_sources=vec![];
         for r in &s.event_group.records[..s.event_group.count as usize] {
@@ -2270,6 +2321,16 @@ impl Engine {
         for (target,id) in targets.iter().zip(tokens) {let previous=if xp{work.card(*target).experience}else{work.card(*target).shield};work.card_mut(id).next_token=previous;if xp{work.card_mut(*target).experience=id;}else{work.card_mut(*target).shield=id;}self.attach(&mut work,id,*target);}
         self.check_stat_capacity(&work)?;self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);*s=work;Ok((targets.len() as u16,true))
     }
+    fn heal_card(&self, s: &mut State, id: CardId, amount: u16) -> u16 {
+        let healed = amount.min(s.card(id).damage);
+        s.card_mut(id).damage -= healed;
+        healed
+    }
+    fn set_card_exhausted(&self, s: &mut State, id: CardId, exhausted: bool) -> u16 {
+        let changed = s.card(id).exhausted != exhausted;
+        s.card_mut(id).exhausted = exhausted;
+        u16::from(changed)
+    }
     fn apply_effect(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         if matches!(e,Effect::Exhaust{target:Target::ArenaList(l)} if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground exhaust requires recorded arena order".into());}
         if matches!(e,Effect::GiveShield{target:Target::ArenaList(_),..}|Effect::GiveExperience{target:Target::ArenaList(_),..}) {return self.apply_arena_tokens(s,e);}
@@ -2381,17 +2442,13 @@ impl Engine {
                                 result.saturating_add(s.card(id).damage.saturating_sub(before));
                         }
                         Effect::Heal { .. } => {
-                            let heal = amount.min(s.card(id).damage);
-                            s.card_mut(id).damage -= heal;
-                            result = result.saturating_add(heal);
+                            result = result.saturating_add(self.heal_card(s, id, amount));
                         }
                         Effect::Ready { .. } if in_arena => {
-                            result += u16::from(s.card(id).exhausted);
-                            s.card_mut(id).exhausted = false;
+                            result += self.set_card_exhausted(s, id, false);
                         }
                         Effect::Exhaust { .. } if in_arena => {
-                            result += u16::from(!s.card(id).exhausted);
-                            s.card_mut(id).exhausted = true;
+                            result += self.set_card_exhausted(s, id, true);
                         }
                         Effect::ReturnToHand { .. } if !self.def(s, id).info.is("leader") => {
                             let owner = s.card(id).owner;

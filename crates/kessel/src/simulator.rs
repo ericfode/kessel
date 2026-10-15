@@ -933,7 +933,7 @@ impl Engine {
         }
         Ok(())
     }
-    fn cancel(&self, s: &mut State) {
+    fn clear_action_context(&self, s: &mut State) {
         s.attack_source=0;s.attack_defender=0;
         s.source = 0;
         s.target = 0;
@@ -952,6 +952,9 @@ impl Engine {
         s.ability_committed = false;
         s.pending_programs = 0;
         s.after_attack_programs = 0;
+    }
+    fn cancel(&self, s: &mut State) {
+        self.clear_action_context(s);
         s.decision = Decision::Window;
     }
     fn enter_triggers(&self, s: &mut State) -> Result<(), String> {
@@ -1258,25 +1261,8 @@ impl Engine {
             return Ok(());
         }
         s.prev_passed = false;
-        s.attack_source=0;s.attack_defender=0;
         s.after_attack_triggers = 0;
-        s.after_attack_programs = 0;
-        s.pending_programs = 0;
-        s.ability_program = 0;
-        s.ability_pc = 0;
-        s.ability_target = 0;
-        s.attack_shield_opponent_first=false;
-        s.ability_selection = Selection::default();
-        s.event_group = EventGroupState::default();
-        s.ability_result = 0;
-        s.ability_succeeded = false;
-        s.ability_return = 0;
-        s.ability_committed = false;
-        s.source = 0;
-        s.target = 0;
-        s.pending_triggers = 0;
-        s.trigger_context = 0;
-        s.ambush = false;
+        self.clear_action_context(s);
         self.advance(s)
     }
     fn advance(&self, s: &mut State) -> Result<(), String> {

@@ -3599,3 +3599,6 @@ mod batch_attack_condition_tests;
 mod batch_damage_default_source_tests;
 #[path = "batch_plain_upgrade_tests.rs"]
 mod batch_plain_upgrade_tests;
+
+#[path = "cleanup_integration_tests.rs"]
+mod cleanup_integration_tests;
