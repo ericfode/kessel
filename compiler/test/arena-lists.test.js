@@ -30,9 +30,9 @@ test('arena lists preserve global and controller-fixed receivers, and stable fil
 test('some and filtered length are scalar; direct existing Player length stays exact',()=>{
     const a=supported(`registrar.addWhenPlayedAbility({condition:ctx=>ctx.player.getArenaUnits().some(unit=>unit.damage>0),immediateEffect:AbilityHelper.immediateEffects.draw()});`);
     assert.equal(a.condition.kind,'arenaSome');assert.deepEqual(a.condition.predicate.left,ref('card','damage'));
-    const amount=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage({amount:ctx=>ctx.game.getArenaUnits().filter(unit=>unit.damage>0).length})});`).effect.amount;
+    const amount=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage(ctx=>({amount:ctx.game.getArenaUnits().filter(unit=>unit.damage>0).length}))});`).effect.amount;
     assert.equal(amount.kind,'arenaLength');assert.equal(amount.receiver.kind,'arenaFilter');
-    const direct=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage({amount:ctx=>ctx.player.getArenaUnits().length})});`).effect.amount;
+    const direct=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage(ctx=>({amount:ctx.player.getArenaUnits().length}))});`).effect.amount;
     assert.deepEqual(direct,{kind:'query',name:'arenaUnitCount',receiver:ref('player'),args:[{kind:'const',value:true}]});
     const alias=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage(ctx=>{const all=ctx.player.getArenaUnits();return {amount:all.length};})});`).effect.amount;
     assert.equal(alias.kind,'arenaLength');

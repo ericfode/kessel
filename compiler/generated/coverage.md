@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1087** (715 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1371**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1091** (719 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1367**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -150,7 +150,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait | 3 | 3 |
 | unsupported-modifier:OngoingEffectBuilder.card.static | 3 | 3 |
 | unsupported-query:getAttackersInPlay | 3 | 3 |
-| unsupported-query:getPlayers | 3 | 3 |
 | ability-without-effect | 2 | 2 |
 | cardTypeFilter:playable | 2 | 2 |
 | class-state:actionsThisPhaseWatcher | 2 | 2 |
@@ -212,7 +211,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:drawnCardsAmount | 2 | 2 |
 | unsupported-query:flatMap | 2 | 2 |
 | unsupported-query:getDamageFromContext | 2 | 2 |
-| unsupported-query:hasSomeArenaUpgrade | 2 | 2 |
+| unsupported-query:getPlayers | 2 | 2 |
 | unsupported-query:hasWeakness | 2 | 2 |
 | unsupported-query:isCreditToken | 2 | 2 |
 | unsupported-query:isTokenUpgrade | 2 | 2 |
@@ -427,7 +426,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unbound-reference:EnumHelpers | 1 | 1 |
 | unbound-reference:TextHelper | 1 | 1 |
 | unimplemented-context-field:damage | 1 | 1 |
-| unimplemented-context-field:remainingHp | 1 | 1 |
 | unimplemented-context-field:resolvedEvents | 1 | 1 |
 | unsupported-attached-constant-field:matchTarget | 1 | 1 |
 | unsupported-effect-call:this.buildAbility | 1 | 1 |

@@ -110,7 +110,7 @@ test('arena existence and count queries preserve bounded intersecting filters', 
     assert.equal(q.args.length,1);
     assert.equal(q.args[0].op,'&&');
     assert.deepEqual(q.args[0].right.left,{kind:'ref',path:['card','damage']});
-    const count=compile(action('damage({amount:ctx=>ctx.player.opponent.getArenaUnits({arena:"spaceArena"}).length})'));
+    const count=compile(action('damage(ctx=>({amount:ctx.player.opponent.getArenaUnits({arena:"spaceArena"}).length}))'));
     assert.equal(count.status,'supported');
     assert.equal(count.abilities.card[0].effect.amount.name,'arenaUnitCount');
     assert.deepEqual(count.abilities.card[0].effect.amount.receiver,{kind:'ref',path:['opponent']});

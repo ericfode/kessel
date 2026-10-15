@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "2861ddea71b095a8db3a5c1d39df8c55cdfec43774a95a7c104340b1e949f8f7",
+  "catalogueHash": "da3cab08bd059d2a5e2ec06b5625163ab7f0ae853b4300440bcb073957d1c633",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1087,
+  "irConvertedCount": 1091,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 613
+    "sourceIr": 617
   },
   "runtimeAdmittedCards": [
     {
@@ -1627,6 +1627,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "no-disintegrations",
+      "setCode": "JTL_144"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "red-five#running-the-trench",
       "setCode": "JTL_151"
     },
@@ -2836,6 +2841,11 @@
       "setCode": "LOF_242"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "jedi-vector",
+      "setCode": "LOF_244"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "vulptex",
       "setCode": "LOF_245"
@@ -3084,6 +3094,11 @@
       "implementation": "sourceIr",
       "internalName": "i-am-the-senate",
       "setCode": "SEC_092"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "theed-security",
+      "setCode": "SEC_095"
     },
     {
       "implementation": "sourceIr",
@@ -4277,6 +4292,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "relief-frigate",
+      "setCode": "TS26_042"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "wartime-refugee",
       "setCode": "TS26_043"
     },
@@ -4956,7 +4976,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 989,
+  "runtimeAdmittedCount": 993,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6954,11 +6974,6 @@
       "setCode": "JTL_143"
     },
     {
-      "internalName": "no-disintegrations",
-      "reason": "no-disintegrations: compiler rejected \"no-disintegrations\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/04_JTL/events/NoDisintegrations.ts\",\"line\":20,\"message\":\"unimplemented-context-field:remainingHp\",\"pattern\":\"unimplemented-context-field:remainingHp\"}]",
-      "setCode": "JTL_144"
-    },
-    {
       "internalName": "bb8#happy-beeps",
       "reason": "bb8#happy-beeps: compiler rejected \"bb8#happy-beeps\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/units/BB8HappyBeeps.ts\",\"line\":16,\"message\":\"registrar:addPilotingAbility\",\"pattern\":\"registrar:addPilotingAbility\"}]",
       "setCode": "JTL_145"
@@ -8874,11 +8889,6 @@
       "setCode": "LOF_243"
     },
     {
-      "internalName": "jedi-vector",
-      "reason": "jedi-vector: compiler rejected \"jedi-vector\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/05_LOF/units/JediVector.ts\",\"line\":24,\"message\":\"unsupported-query:hasSomeArenaUpgrade\",\"pattern\":\"unsupported-query:hasSomeArenaUpgrade\"}]",
-      "setCode": "LOF_244"
-    },
-    {
       "internalName": "jocasta-nu#the-gift-of-knowledge",
       "reason": "jocasta-nu#the-gift-of-knowledge: compiler rejected \"jocasta-nu#the-gift-of-knowledge\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/05_LOF/units/JocastaNuTheGiftOfKnowledge.ts\",\"line\":30,\"message\":\"unsupported-named-target-property\",\"pattern\":\"unsupported-named-target-property\"}]",
       "setCode": "LOF_248"
@@ -9197,11 +9207,6 @@
       "internalName": "mina-bonteri#stop-this-war",
       "reason": "mina-bonteri#stop-this-war: compiler rejected \"mina-bonteri#stop-this-war\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_SEC/units/MinaBonteriStopThisWar.ts\",\"line\":19,\"message\":\"immediateEffect:disclose\",\"pattern\":\"immediateEffect:disclose\"}]",
       "setCode": "SEC_094"
-    },
-    {
-      "internalName": "theed-security",
-      "reason": "theed-security: compiler rejected \"theed-security\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/06_SEC/units/TheedSecurity.ts\",\"line\":20,\"message\":\"unsupported-query:hasSomeArenaUpgrade\",\"pattern\":\"unsupported-query:hasSomeArenaUpgrade\"}]",
-      "setCode": "SEC_095"
     },
     {
       "internalName": "ahsoka-tano#i-learned-it-from-you",
@@ -11489,11 +11494,6 @@
       "setCode": "TS26_039"
     },
     {
-      "internalName": "relief-frigate",
-      "reason": "relief-frigate: compiler rejected \"relief-frigate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/07_TS26/units/ReliefFrigate.ts\",\"line\":21,\"message\":\"unsupported-query:getPlayers\",\"pattern\":\"unsupported-query:getPlayers\"}]",
-      "setCode": "TS26_042"
-    },
-    {
       "internalName": "champion",
       "reason": "champion: compiler rejected \"champion\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/champion.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
       "setCode": "TS26_045"
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1469,
+  "runtimeRejectedCount": 1465,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 715
+  "sourceAstConvertedCount": 719
 }

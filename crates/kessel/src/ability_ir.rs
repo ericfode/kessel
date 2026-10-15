@@ -1980,7 +1980,30 @@ impl Catalogue {
                     (value["kind"]=="query"&&matches!(value["name"].as_str(),Some("hasSomeArenaUnit"|"arenaUnitCount"))&&contains_query_named(&value["args"],"isLeader")) || match value {Value::Array(items)=>items.iter().any(contains_arena_leader_predicate),Value::Object(object)=>object.values().any(contains_arena_leader_predicate),_=>false}
                 }
                 if ["abilities","attachCondition","piloting"].iter().any(|key|contains_arena_leader_predicate(&entry[*key])) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()||!entry["card"]["unique"].is_boolean()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp"].iter().any(|k|!entry["card"][k].is_null())||!(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")||entry["keywordValues"]!=serde_json::json!({})) {return Err("arena leader predicates require complete ordinary unit metadata without side, pilot, attachment, deploy or epic mechanics".into());}
-                if contains_presence_query(&entry["abilities"]) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()) {return Err("arena-card/deployed-leader queries require ordinary unit card-side metadata".into());}
+                fn complete_plain_source_metadata(entry:&Value)->bool {
+                    entry["card"]["unique"].is_boolean() && entry["attachCondition"].is_null() && entry["piloting"].is_null() &&
+                    ["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|key|entry["card"][*key].is_null()) &&
+                    (entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")
+                }
+                fn contains_ref_path(value:&Value,path:&[&str])->bool {
+                    (value["kind"]=="ref"&&value["path"].as_array().is_some_and(|p|p.len()==path.len()&&p.iter().zip(path).all(|(v,k)|v==*k))) || match value {Value::Array(items)=>items.iter().any(|v|contains_ref_path(v,path)),Value::Object(object)=>object.values().any(|v|contains_ref_path(v,path)),_=>false}
+                }
+                fn other_base_heal(value:&Value)->bool {
+                    (value["kind"]=="heal"&&value["target"]["kind"]=="conditional"&&contains_ref_path(&value["target"],&["target"])&&contains_ref_path(&value["target"],&["player","base"])&&contains_ref_path(&value["target"],&["opponent","base"])) || match value {Value::Array(items)=>items.iter().any(other_base_heal),Value::Object(object)=>object.values().any(other_base_heal),_=>false}
+                }
+                fn recipient_remaining_hp_damage(value:&Value)->bool {
+                    (value["kind"]=="damage"&&contains_ref_path(&value["amount"],&["target","remainingHp"])) || match value {Value::Array(items)=>items.iter().any(recipient_remaining_hp_damage),Value::Object(object)=>object.values().any(recipient_remaining_hp_damage),_=>false}
+                }
+                let other_base=["abilities","attachCondition","piloting"].iter().any(|key|other_base_heal(&entry[*key]));
+                let recipient_hp=["abilities","attachCondition","piloting"].iter().any(|key|recipient_remaining_hp_damage(&entry[*key]));
+                if other_base || recipient_hp {
+                    let card=&entry["abilities"]["card"][0];
+                    let (class,kind,trigger,effect,target_type)=if other_base {("NonLeaderUnitCard","unit","whenPlayed","heal","base")} else {("EventCard","event","event","damage","nonLeaderUnit")};
+                    if source_class!=Some(class)||!exact_type(kind)||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||card["trigger"]!=trigger||card["effect"]["kind"]!=effect||card["targetResolver"]!=serde_json::json!({"owner":"any","type":target_type,"zone":"anyAttackable"})||card["costs"]!=serde_json::json!([])||!card["condition"].is_null()||card["optional"]==true||card["coordinate"]==true||card["requiresConfirmation"]==true||!(card["contextTitle"].is_null()||card["contextTitle"]==serde_json::json!([]))||!(card["targetResolvers"].is_null()||card["targetResolvers"]==serde_json::json!([]))||!card["then"].is_null()||!card["ifYouDo"].is_null() {return Err("other-base healing and recipient remaining-HP damage require complete bounded ordinary source metadata and registration topology".into());}
+                    if recipient_hp && (card["effect"]["target"]!="chosen"||entry["card"]["unique"]!=false) {return Err("recipient remaining-HP damage requires a sole ordinary event using its chosen nonleader recipient".into());}
+                    if other_base && card["effect"]["target"]!=serde_json::json!({"kind":"conditional","condition":{"kind":"binary","op":"===","left":{"kind":"ref","path":["target"]},"right":{"kind":"ref","path":["player","base"]}},"then":{"kind":"ref","path":["opponent","base"]},"else":{"kind":"ref","path":["player","base"]}}) {return Err("other-base healing requires an exact selected-base complement target".into());}
+                }
+                if ["abilities","attachCondition","piloting"].iter().any(|key|contains_presence_query(&entry[*key])) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()||!complete_plain_source_metadata(entry)) {return Err("arena-card/deployed-leader queries require ordinary unit card-side metadata".into());}
                 fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
                 let parent_title=parent_printed_title(&entry["abilities"]);

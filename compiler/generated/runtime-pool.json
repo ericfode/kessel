@@ -13085,6 +13085,44 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4033634907",
+      "internalName": "no-disintegrations",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_144",
+      "setCodes": [
+        {
+          "number": 144,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 144,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Deal damage to a non-leader unit equal to 1 less than its remaining HP.",
+      "title": "No Disintegrations",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",
@@ -22942,6 +22980,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0035741177",
+      "internalName": "jedi-vector",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_244",
+      "setCodes": [
+        {
+          "number": 244,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 244,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "This unit gets +1/+0 if you control another Jedi unit and +1/+0 if you control a Lightsaber upgrade.",
+      "title": "Jedi Vector",
+      "traits": [
+        "jedi",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "heroism"
@@ -24931,6 +25009,46 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9857313649",
+      "internalName": "theed-security",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: If an opponent controls an upgrade, give an Experience token to a unit.",
+      "title": "Theed Security",
+      "traits": [
+        "naboo",
+        "trooper"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -34449,6 +34567,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9458579327",
+      "internalName": "relief-frigate",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TS26_042",
+      "setCodes": [
+        {
+          "number": 42,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 42,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "When Played: Choose a base. Heal 3 damage from each other base.",
+      "title": "Relief Frigate",
+      "traits": [
+        "republic",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },

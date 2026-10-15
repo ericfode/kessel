@@ -3474,3 +3474,32 @@ fn arena_leader_predicate_source_metadata_fails_closed() {
  }
 }
 }
+
+#[test]
+fn upgrade_presence_and_recipient_target_sources_reject_unmodeled_metadata() {
+ let mut original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let codes=["LOF_244","SEC_095","TS26_042","JTL_144","LOF_060"];
+ original["cards"].as_array_mut().unwrap().retain(|e|codes.iter().chain(["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_THE_FORCE","TOKEN_WEAKNESS"].iter()).any(|id|e["setCode"]==*id));
+ for code in codes {
+  assert!(Engine::from_catalogue_value(&original).unwrap().by_code.contains_key(code),"actual source {code}");
+  for mutation in ["unknown","null","missing","token","leader-side","coordinated-other","mixed","pilotText","pilotBox","pilotingBox","deployBox","deployCost","epicAction","upgradePower","upgradeHp","attach","piloting","unique-null","unique-string","unique-missing","extra-side"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   match mutation {
+    "unknown"=>entry["baseClass"]=json!("UnknownCard"),"null"=>entry["baseClass"]=Value::Null,"missing"=>{entry.as_object_mut().unwrap().remove("baseClass");},
+    "token"=>{entry["baseClass"]=json!("TokenUnitCard");entry["card"]["types"]=json!(["token","unit"]);},
+    "leader-side"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);entry["abilities"]["unit"]=entry["abilities"]["card"].clone();entry["abilities"]["card"]=json!([]);},
+    "coordinated-other"=>{let event=code=="JTL_144";entry["baseClass"]=json!(if event{"NonLeaderUnitCard"}else{"EventCard"});entry["card"]["types"]=json!([if event{"unit"}else{"event"}]);for a in entry["abilities"]["card"].as_array_mut().unwrap(){a["trigger"]=json!(if event{"whenPlayed"}else{"event"});}},
+    "mixed"=>entry["card"]["types"]=json!(["unit","event"]),
+    "attach"=>entry["attachCondition"]=json!({"kind":"const","value":true}),"piloting"=>entry["piloting"]=json!({"cost":1}),
+    "unique-null"=>entry["card"]["unique"]=Value::Null,"unique-string"=>entry["card"]["unique"]=json!("false"),"unique-missing"=>{entry["card"].as_object_mut().unwrap().remove("unique");},
+    "extra-side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),key=>entry["card"][key]=json!("Unconverted mechanics"),
+   }
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+ for code in ["TS26_042","JTL_144"] {for mutation in ["coordinate","confirmation","context-title","cost","condition","optional","duplicate","wrong-target"] {
+  let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut entry["abilities"]["card"][0];
+  match mutation {"coordinate"=>a["coordinate"]=json!(true),"confirmation"=>a["requiresConfirmation"]=json!(true),"context-title"=>a["contextTitle"]=json!([{"kind":"const","value":"Unreviewed menu"}]),"cost"=>a["costs"]=json!([{"kind":"exhaustSelf"}]),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"optional"=>a["optional"]=json!(true),"duplicate"=>{let extra=a.clone();entry["abilities"]["card"].as_array_mut().unwrap().push(extra);},_=>{if code=="JTL_144"{a["effect"]["target"]=json!("self");}else{a["effect"]["target"]["condition"]["op"]=json!("!==");}}}
+  assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+ }}
+}

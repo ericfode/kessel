@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "cfbb96d059224a9c88eae8767d4400eb65dc378f1684f89bf153753cd4670271",
+  "compilerHash": "c26a67409a5c0c3e6a3b788a8e75062fbe2ddd270866498cb382676e9df3a0f7",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -84836,23 +84836,44 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Deal damage to a non-leader unit equal to 1 less than its remaining HP",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "nonLeaderUnit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "damage",
+              "target": "chosen",
+              "amount": {
+                "kind": "binary",
+                "op": "-",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "target",
+                    "remainingHp"
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": 1
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:remainingHp",
-          "message": "unimplemented-context-field:remainingHp",
-          "file": "game/cards/04_JTL/events/NoDisintegrations.ts",
-          "line": 20,
-          "column": 41
-        }
-      ],
+      "diagnostics": [],
       "className": "NoDisintegrations",
       "baseClass": "EventCard",
       "id": "4033634907",
       "internalName": "no-disintegrations",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "No Disintegrations",
         "subtitle": "",
@@ -84893,7 +84914,16 @@
       "dataHash": "e5306f756121f694c5646799f95914b9c03577498fe65ad494e35de6aa24c09b",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "binary:-",
+        "cardType:event",
+        "ir:binary",
+        "ir:const",
+        "ir:damage",
+        "ir:ref",
+        "ref:target.remainingHp",
+        "targetType:nonLeaderUnit",
+        "targetZone:anyAttackable",
+        "trigger:event"
       ]
     },
     {
@@ -139285,24 +139315,84 @@
                 }
               ]
             }
+          },
+          {
+            "trigger": "constant",
+            "title": "While you control a Lightsaber upgrade, this unit gets +1/+0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "self",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": 1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaCard",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "query",
+                      "name": "hasSomeTrait",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": [
+                        {
+                          "kind": "const",
+                          "value": "lightsaber"
+                        }
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "isUpgrade",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaUpgrade",
-          "message": "unsupported-query:hasSomeArenaUpgrade",
-          "file": "game/cards/05_LOF/units/JediVector.ts",
-          "line": 24,
-          "column": 37
-        }
-      ],
+      "diagnostics": [],
       "className": "JediVector",
       "baseClass": "NonLeaderUnitCard",
       "id": "0035741177",
       "internalName": "jedi-vector",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Jedi Vector",
         "subtitle": "",
@@ -139355,8 +139445,10 @@
         "ir:query",
         "ir:ref",
         "ir:unary",
+        "query:hasSomeArenaCard",
         "query:hasSomeArenaUnit",
         "query:hasSomeTrait",
+        "query:isUpgrade",
         "ref:card",
         "ref:player",
         "ref:source",
@@ -149508,23 +149600,70 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Give an Experience token to a unit",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "opponent"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "query",
+                      "name": "isUpgrade",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "card"
+                        ]
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "giveExperience",
+                "target": "chosen",
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaUpgrade",
-          "message": "unsupported-query:hasSomeArenaUpgrade",
-          "file": "game/cards/06_SEC/units/TheedSecurity.ts",
-          "line": 20,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "TheedSecurity",
       "baseClass": "NonLeaderUnitCard",
       "id": "9857313649",
       "internalName": "theed-security",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Theed Security",
         "subtitle": "",
@@ -149567,7 +149706,22 @@
       "dataHash": "0f88b6678247f6db4437cb78b3208375633c11930cf5050740e81697728e781a",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:giveExperience",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "query:hasSomeArenaCard",
+        "query:isUpgrade",
+        "ref:card",
+        "ref:opponent",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -211251,23 +211405,66 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Choose a base. Heal 3 damage from each other base",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "base",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "heal",
+              "target": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "target"
+                    ]
+                  },
+                  "right": {
+                    "kind": "ref",
+                    "path": [
+                      "player",
+                      "base"
+                    ]
+                  }
+                },
+                "then": {
+                  "kind": "ref",
+                  "path": [
+                    "opponent",
+                    "base"
+                  ]
+                },
+                "else": {
+                  "kind": "ref",
+                  "path": [
+                    "player",
+                    "base"
+                  ]
+                }
+              },
+              "amount": {
+                "kind": "const",
+                "value": 3
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getPlayers",
-          "message": "unsupported-query:getPlayers",
-          "file": "game/cards/07_TS26/units/ReliefFrigate.ts",
-          "line": 21,
-          "column": 29
-        }
-      ],
+      "diagnostics": [],
       "className": "ReliefFrigate",
       "baseClass": "NonLeaderUnitCard",
       "id": "9458579327",
       "internalName": "relief-frigate",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Relief Frigate",
         "subtitle": "",
@@ -211310,7 +211507,20 @@
       "dataHash": "60962d15310d77851e1a52758d578c64fbb982fea7f012f115e7c43f4be4f1c5",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "ability:then",
+        "binary:===",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:heal",
+        "ir:ref",
+        "ref:opponent.base",
+        "ref:player.base",
+        "ref:target",
+        "targetType:base",
+        "targetZone:anyAttackable",
+        "trigger:whenPlayed"
       ]
     },
     {

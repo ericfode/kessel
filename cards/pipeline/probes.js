@@ -2,6 +2,12 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const upgradePresence = require("./upgrade-presence-probes").planUpgradePresenceProbes(entry, options);
+    if (upgradePresence) return upgradePresence;
+    const otherBaseHeal = require("./other-base-heal-probes").planOtherBaseHealProbes(entry, options);
+    if (otherBaseHeal) return otherBaseHeal;
+    const remainingHpDamage = require("./remaining-hp-damage-probes").planRemainingHpDamageProbes(entry, options);
+    if (remainingHpDamage) return remainingHpDamage;
     const leaderPredicatePlan = require('./leader-predicate-probes').planLeaderPredicateProbes(entry, options);
     if (leaderPredicatePlan) return leaderPredicatePlan;
     const arenaPresencePlan = require('./arena-presence-probes').planArenaPresenceProbes(entry, options);

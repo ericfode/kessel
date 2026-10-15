@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "cfbb96d059224a9c88eae8767d4400eb65dc378f1684f89bf153753cd4670271",
+  "compilerHash": "c26a67409a5c0c3e6a3b788a8e75062fbe2ddd270866498cb382676e9df3a0f7",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1087,
-  "sourceAstConverted": 715,
+  "converted": 1091,
+  "sourceAstConverted": 719,
   "dataOnlyConverted": 372,
-  "unconverted": 1371,
+  "unconverted": 1367,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -361,6 +361,7 @@
     "JTL_118",
     "JTL_125",
     "JTL_140",
+    "JTL_144",
     "JTL_151",
     "JTL_153",
     "JTL_158",
@@ -616,6 +617,7 @@
     "LOF_240",
     "LOF_241",
     "LOF_242",
+    "LOF_244",
     "LOF_245",
     "LOF_246",
     "LOF_247",
@@ -669,6 +671,7 @@
     "SEC_089",
     "SEC_091",
     "SEC_092",
+    "SEC_095",
     "SEC_097",
     "SEC_099",
     "SEC_102",
@@ -946,6 +949,7 @@
     "TS26_029",
     "TS26_040",
     "TS26_041",
+    "TS26_042",
     "TS26_043",
     "TS26_044",
     "TS26_046",
@@ -3574,15 +3578,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:getPlayers",
-      "occurrences": 3,
-      "cards": [
-        "LAW_204",
-        "SEC_033",
-        "TS26_042"
-      ]
-    },
-    {
       "pattern": "ability-without-effect",
       "occurrences": 2,
       "cards": [
@@ -4071,11 +4066,11 @@
       ]
     },
     {
-      "pattern": "unsupported-query:hasSomeArenaUpgrade",
+      "pattern": "unsupported-query:getPlayers",
       "occurrences": 2,
       "cards": [
-        "LOF_244",
-        "SEC_095"
+        "LAW_204",
+        "SEC_033"
       ]
     },
     {
@@ -5578,13 +5573,6 @@
       "occurrences": 1,
       "cards": [
         "ASH_065"
-      ]
-    },
-    {
-      "pattern": "unimplemented-context-field:remainingHp",
-      "occurrences": 1,
-      "cards": [
-        "JTL_144"
       ]
     },
     {
@@ -13898,21 +13886,6 @@
       ]
     },
     {
-      "setCode": "JTL_144",
-      "internalName": "no-disintegrations",
-      "sourcePath": "game/cards/04_JTL/events/NoDisintegrations.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:remainingHp",
-          "message": "unimplemented-context-field:remainingHp",
-          "file": "game/cards/04_JTL/events/NoDisintegrations.ts",
-          "line": 20,
-          "column": 41
-        }
-      ]
-    },
-    {
       "setCode": "JTL_145",
       "internalName": "bb8#happy-beeps",
       "sourcePath": "game/cards/04_JTL/units/BB8HappyBeeps.ts",
@@ -20887,21 +20860,6 @@
       ]
     },
     {
-      "setCode": "LOF_244",
-      "internalName": "jedi-vector",
-      "sourcePath": "game/cards/05_LOF/units/JediVector.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaUpgrade",
-          "message": "unsupported-query:hasSomeArenaUpgrade",
-          "file": "game/cards/05_LOF/units/JediVector.ts",
-          "line": 24,
-          "column": 37
-        }
-      ]
-    },
-    {
       "setCode": "LOF_248",
       "internalName": "jocasta-nu#the-gift-of-knowledge",
       "sourcePath": "game/cards/05_LOF/units/JocastaNuTheGiftOfKnowledge.ts",
@@ -22141,21 +22099,6 @@
           "file": "game/cards/06_SEC/units/MinaBonteriStopThisWar.ts",
           "line": 19,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_095",
-      "internalName": "theed-security",
-      "sourcePath": "game/cards/06_SEC/units/TheedSecurity.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaUpgrade",
-          "message": "unsupported-query:hasSomeArenaUpgrade",
-          "file": "game/cards/06_SEC/units/TheedSecurity.ts",
-          "line": 20,
-          "column": 45
         }
       ]
     },
@@ -30106,21 +30049,6 @@
           "file": "game/cards/07_TS26/units/CaptainVaughnSearchTheTunnels.ts",
           "line": 17,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "TS26_042",
-      "internalName": "relief-frigate",
-      "sourcePath": "game/cards/07_TS26/units/ReliefFrigate.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:getPlayers",
-          "message": "unsupported-query:getPlayers",
-          "file": "game/cards/07_TS26/units/ReliefFrigate.ts",
-          "line": 21,
-          "column": 29
         }
       ]
     },
