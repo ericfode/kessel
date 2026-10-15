@@ -2,6 +2,10 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const arenaPresencePlan = require('./arena-presence-probes').planArenaPresenceProbes(entry, options);
+    if (arenaPresencePlan) return arenaPresencePlan;
+    const attachedConstantPlan = require('./attached-constant-probes').planAttachedConstantProbes(entry, options);
+    if (attachedConstantPlan) return attachedConstantPlan;
     const arenaQueryPlan = require('./arena-query-probes').planArenaQueryProbes(entry, options);
     if (arenaQueryPlan) return arenaQueryPlan;
     const baseZonePlan = require('./base-zone-probes').planBaseZoneProbes(entry, options);

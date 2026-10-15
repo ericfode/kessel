@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b2322359772a0096aa257db7f9359a82c3618b902392da48d3e0f3c8d12d2904",
+  "compilerHash": "b84aa15a94279764c722b88a1dc7e124a950659f57cdc1348d6ee77ae0bde7d5",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1072,
-  "sourceAstConverted": 700,
+  "converted": 1085,
+  "sourceAstConverted": 713,
   "dataOnlyConverted": 372,
-  "unconverted": 1386,
+  "unconverted": 1373,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -39,6 +39,7 @@
     "ASH_059",
     "ASH_061",
     "ASH_064",
+    "ASH_066",
     "ASH_067",
     "ASH_069",
     "ASH_071",
@@ -63,6 +64,7 @@
     "ASH_106",
     "ASH_111",
     "ASH_112",
+    "ASH_114",
     "ASH_115",
     "ASH_116",
     "ASH_117",
@@ -434,6 +436,7 @@
     "LAW_123",
     "LAW_124",
     "LAW_127",
+    "LAW_128",
     "LAW_131",
     "LAW_133",
     "LAW_135",
@@ -442,6 +445,7 @@
     "LAW_142",
     "LAW_143",
     "LAW_146",
+    "LAW_147",
     "LAW_151",
     "LAW_153",
     "LAW_154",
@@ -505,6 +509,7 @@
     "LOF_053",
     "LOF_054",
     "LOF_059",
+    "LOF_060",
     "LOF_061",
     "LOF_064",
     "LOF_066",
@@ -601,6 +606,7 @@
     "LOF_231",
     "LOF_232",
     "LOF_233",
+    "LOF_234",
     "LOF_236",
     "LOF_237",
     "LOF_238",
@@ -650,6 +656,7 @@
     "SEC_060",
     "SEC_063",
     "SEC_066",
+    "SEC_071",
     "SEC_075",
     "SEC_078",
     "SEC_079",
@@ -663,6 +670,7 @@
     "SEC_097",
     "SEC_099",
     "SEC_102",
+    "SEC_104",
     "SEC_105",
     "SEC_108",
     "SEC_111",
@@ -791,6 +799,7 @@
     "SHD_150",
     "SHD_152",
     "SHD_154",
+    "SHD_157",
     "SHD_158",
     "SHD_159",
     "SHD_160",
@@ -855,6 +864,7 @@
     "SOR_063",
     "SOR_064",
     "SOR_065",
+    "SOR_067",
     "SOR_073",
     "SOR_075",
     "SOR_076",
@@ -871,6 +881,7 @@
     "SOR_108",
     "SOR_112",
     "SOR_114",
+    "SOR_116",
     "SOR_118",
     "SOR_128",
     "SOR_131",
@@ -884,6 +895,7 @@
     "SOR_154",
     "SOR_156",
     "SOR_157",
+    "SOR_158",
     "SOR_159",
     "SOR_161",
     "SOR_163",
@@ -899,6 +911,7 @@
     "SOR_202",
     "SOR_205",
     "SOR_207",
+    "SOR_208",
     "SOR_209",
     "SOR_210",
     "SOR_211",
@@ -1683,36 +1696,6 @@
       ]
     },
     {
-      "pattern": "non-path-reference",
-      "occurrences": 24,
-      "cards": [
-        "ASH_197",
-        "HMW_040",
-        "HMW_138",
-        "HMW_141",
-        "HMW_248",
-        "HMW_253",
-        "JTL_106",
-        "LAW_147",
-        "LAW_167",
-        "LAW_228",
-        "LOF_083",
-        "SEC_035",
-        "SEC_112",
-        "SEC_162",
-        "SEC_247",
-        "SHD_015",
-        "SHD_157",
-        "SHD_220",
-        "TS26_038",
-        "TS26_047",
-        "TS26_058",
-        "TWI_002",
-        "TWI_034",
-        "TWI_186"
-      ]
-    },
-    {
       "pattern": "registrar:addGainOnAttackAbilityTargetingAttached",
       "occurrences": 23,
       "cards": [
@@ -1768,6 +1751,34 @@
         "TWI_013",
         "TWI_022",
         "TWI_025"
+      ]
+    },
+    {
+      "pattern": "non-path-reference",
+      "occurrences": 22,
+      "cards": [
+        "ASH_197",
+        "HMW_040",
+        "HMW_138",
+        "HMW_141",
+        "HMW_248",
+        "HMW_253",
+        "JTL_106",
+        "LAW_167",
+        "LAW_228",
+        "LOF_083",
+        "SEC_035",
+        "SEC_112",
+        "SEC_162",
+        "SEC_247",
+        "SHD_015",
+        "SHD_220",
+        "TS26_038",
+        "TS26_047",
+        "TS26_058",
+        "TWI_002",
+        "TWI_034",
+        "TWI_186"
       ]
     },
     {
@@ -1987,7 +1998,6 @@
       "occurrences": 19,
       "cards": [
         "ASH_038",
-        "ASH_066",
         "ASH_091",
         "ASH_207",
         "HMW_047",
@@ -2001,34 +2011,11 @@
         "LAW_226",
         "LOF_140",
         "LOF_201",
+        "SEC_082",
         "SOR_136",
         "TS26_014",
         "TWI_152",
         "TWI_248"
-      ]
-    },
-    {
-      "pattern": "registrar:addConstantAbilityTargetingAttached",
-      "occurrences": 18,
-      "cards": [
-        "ASH_054",
-        "ASH_135",
-        "ASH_150",
-        "LAW_077",
-        "LAW_111",
-        "LAW_128",
-        "LAW_150",
-        "LOF_052",
-        "LOF_056",
-        "SEC_038",
-        "SEC_054",
-        "SEC_071",
-        "SEC_156",
-        "SHD_069",
-        "SHD_072",
-        "SHD_193",
-        "SOR_072",
-        "TS26_037"
       ]
     },
     {
@@ -2053,6 +2040,29 @@
         "SHD_199",
         "SOR_167",
         "SOR_171"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
+      "occurrences": 17,
+      "cards": [
+        "JTL_182",
+        "LAW_077",
+        "LAW_130",
+        "LAW_197",
+        "LOF_063",
+        "LOF_098",
+        "LOF_211",
+        "LOF_262",
+        "SEC_012",
+        "SHD_193",
+        "SOR_142",
+        "SOR_160",
+        "TS26_031",
+        "TWI_039",
+        "TWI_132",
+        "TWI_195",
+        "TWI_219"
       ]
     },
     {
@@ -2203,27 +2213,6 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
-      "occurrences": 15,
-      "cards": [
-        "JTL_182",
-        "LAW_130",
-        "LAW_197",
-        "LOF_063",
-        "LOF_098",
-        "LOF_211",
-        "LOF_262",
-        "SEC_012",
-        "SOR_142",
-        "SOR_160",
-        "TS26_031",
-        "TWI_039",
-        "TWI_132",
-        "TWI_195",
-        "TWI_219"
-      ]
-    },
-    {
       "pattern": "immediateEffect:createCreditToken",
       "occurrences": 15,
       "cards": [
@@ -2299,25 +2288,6 @@
         "SHD_187",
         "SHD_224",
         "TOKEN_SHIELD"
-      ]
-    },
-    {
-      "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-      "occurrences": 13,
-      "cards": [
-        "ASH_084",
-        "ASH_114",
-        "ASH_135",
-        "HMW_112",
-        "HMW_126",
-        "HMW_205",
-        "HMW_271",
-        "JTL_171",
-        "JTL_260",
-        "LAW_150",
-        "LOF_090",
-        "SEC_104",
-        "TWI_122"
       ]
     },
     {
@@ -2668,6 +2638,21 @@
       ]
     },
     {
+      "pattern": "unsupported-query:targetIsUnit",
+      "occurrences": 9,
+      "cards": [
+        "ASH_241",
+        "JTL_259",
+        "LAW_062",
+        "LOF_090",
+        "SHD_090",
+        "SHD_138",
+        "SHD_216",
+        "SOR_130",
+        "SOR_212"
+      ]
+    },
+    {
       "pattern": "custom-inheritance:LAWCommonBase",
       "occurrences": 8,
       "cards": [
@@ -2766,6 +2751,20 @@
       ]
     },
     {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
+      "occurrences": 8,
+      "cards": [
+        "ASH_075",
+        "HMW_145",
+        "JTL_005",
+        "JTL_032",
+        "JTL_260",
+        "LOF_058",
+        "LOF_108",
+        "SOR_181"
+      ]
+    },
+    {
       "pattern": "unsupported-query:getAllTargets",
       "occurrences": 8,
       "cards": [
@@ -2777,34 +2776,6 @@
         "SHD_183",
         "SOR_071",
         "SOR_142"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:hasSomeArenaCard",
-      "occurrences": 8,
-      "cards": [
-        "HMW_098",
-        "LOF_060",
-        "LOF_234",
-        "SEC_082",
-        "SOR_067",
-        "SOR_116",
-        "SOR_158",
-        "SOR_208"
-      ]
-    },
-    {
-      "pattern": "unsupported-query:targetIsUnit",
-      "occurrences": 8,
-      "cards": [
-        "ASH_241",
-        "JTL_259",
-        "LAW_062",
-        "SHD_090",
-        "SHD_138",
-        "SHD_216",
-        "SOR_130",
-        "SOR_212"
       ]
     },
     {
@@ -2896,19 +2867,6 @@
         "TWI_153",
         "TWI_176",
         "TWI_187"
-      ]
-    },
-    {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
-      "occurrences": 7,
-      "cards": [
-        "ASH_075",
-        "HMW_145",
-        "JTL_005",
-        "JTL_032",
-        "LOF_058",
-        "LOF_108",
-        "SOR_181"
       ]
     },
     {
@@ -3096,6 +3054,17 @@
       ]
     },
     {
+      "pattern": "unsupported-live-stat-expression",
+      "occurrences": 5,
+      "cards": [
+        "ASH_206",
+        "HMW_212",
+        "LOF_062",
+        "SEC_212",
+        "TWI_122"
+      ]
+    },
+    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst",
       "occurrences": 5,
       "cards": [
@@ -3104,6 +3073,17 @@
         "LAW_219",
         "SHD_234",
         "SOR_198"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+      "occurrences": 5,
+      "cards": [
+        "LAW_212",
+        "LOF_052",
+        "LOF_073",
+        "SEC_156",
+        "SHD_069"
       ]
     },
     {
@@ -3311,6 +3291,16 @@
       ]
     },
     {
+      "pattern": "unsupported-attached-constant-field:gainCondition",
+      "occurrences": 4,
+      "cards": [
+        "HMW_112",
+        "HMW_126",
+        "HMW_205",
+        "HMW_271"
+      ]
+    },
+    {
       "pattern": "unsupported-field:ability",
       "occurrences": 5,
       "cards": [
@@ -3361,16 +3351,6 @@
       ]
     },
     {
-      "pattern": "unsupported-live-stat-expression",
-      "occurrences": 4,
-      "cards": [
-        "ASH_206",
-        "HMW_212",
-        "LOF_062",
-        "SEC_212"
-      ]
-    },
-    {
       "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.cardCannot",
       "occurrences": 4,
       "cards": [
@@ -3378,6 +3358,16 @@
         "HMW_159",
         "LAW_185",
         "SEC_135"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
+      "occurrences": 4,
+      "cards": [
+        "LAW_132",
+        "SHD_072",
+        "SOR_138",
+        "TWI_255"
       ]
     },
     {
@@ -3564,12 +3554,12 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
       "occurrences": 3,
       "cards": [
-        "LAW_132",
-        "SOR_138",
-        "TWI_255"
+        "LOF_033",
+        "SEC_054",
+        "TS26_037"
       ]
     },
     {
@@ -3960,6 +3950,14 @@
       ]
     },
     {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
+      "occurrences": 2,
+      "cards": [
+        "JTL_206",
+        "SOR_072"
+      ]
+    },
+    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard",
       "occurrences": 2,
       "cards": [
@@ -3976,11 +3974,11 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+      "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
       "occurrences": 2,
       "cards": [
-        "LAW_212",
-        "LOF_073"
+        "LAW_111",
+        "LAW_150"
       ]
     },
     {
@@ -3997,6 +3995,14 @@
       "cards": [
         "JTL_021",
         "JTL_028"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
+      "occurrences": 2,
+      "cards": [
+        "LAW_036",
+        "LOF_056"
       ]
     },
     {
@@ -4112,6 +4118,13 @@
       ]
     },
     {
+      "pattern": "arena-card-query-type",
+      "occurrences": 1,
+      "cards": [
+        "HMW_098"
+      ]
+    },
+    {
       "pattern": "arena-list-scalar",
       "occurrences": 1,
       "cards": [
@@ -4137,6 +4150,20 @@
       "occurrences": 1,
       "cards": [
         "JTL_250"
+      ]
+    },
+    {
+      "pattern": "attached-constant-installed-keyword-only",
+      "occurrences": 1,
+      "cards": [
+        "LAW_150"
+      ]
+    },
+    {
+      "pattern": "attack-query-receiver",
+      "occurrences": 1,
+      "cards": [
+        "ASH_054"
       ]
     },
     {
@@ -5568,6 +5595,13 @@
       ]
     },
     {
+      "pattern": "unsupported-attached-constant-field:matchTarget",
+      "occurrences": 1,
+      "cards": [
+        "ASH_150"
+      ]
+    },
+    {
       "pattern": "unsupported-effect-call:this.buildAbility",
       "occurrences": 1,
       "cards": [
@@ -5694,6 +5728,13 @@
       ]
     },
     {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit",
+      "occurrences": 1,
+      "cards": [
+        "JTL_171"
+      ]
+    },
+    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtToOpponents",
       "occurrences": 1,
       "cards": [
@@ -5743,17 +5784,17 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
-      "occurrences": 1,
-      "cards": [
-        "JTL_206"
-      ]
-    },
-    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.damageDealtByThisCardIsUnpreventable",
       "occurrences": 1,
       "cards": [
         "ASH_196"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount",
+      "occurrences": 1,
+      "cards": [
+        "ASH_084"
       ]
     },
     {
@@ -5778,17 +5819,24 @@
       ]
     },
     {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.isLeader",
+      "occurrences": 1,
+      "cards": [
+        "ASH_135"
+      ]
+    },
+    {
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource",
+      "occurrences": 1,
+      "cards": [
+        "SEC_038"
+      ]
+    },
+    {
       "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllKeywords",
       "occurrences": 1,
       "cards": [
         "SEC_185"
-      ]
-    },
-    {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
-      "occurrences": 1,
-      "cards": [
-        "LOF_033"
       ]
     },
     {
@@ -5827,10 +5875,10 @@
       ]
     },
     {
-      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
+      "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts",
       "occurrences": 1,
       "cards": [
-        "LAW_036"
+        "ASH_135"
       ]
     },
     {
@@ -7204,11 +7252,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "attack-query-receiver",
+          "message": "attack-query-receiver",
           "file": "game/cards/08_ASH/upgrades/PointlessToResist.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 37
         }
       ]
     },
@@ -7269,21 +7317,6 @@
           "file": "game/cards/08_ASH/units/HomeOneHeartOfTheFleet.ts",
           "line": 17,
           "column": 46
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_066",
-      "internalName": "lukes-jedi-lightsaber#constructed-by-hand",
-      "sourcePath": "game/cards/08_ASH/upgrades/LukesJediLightsaberConstructedByHand.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/08_ASH/upgrades/LukesJediLightsaberConstructedByHand.ts",
-          "line": 18,
-          "column": 41
         }
       ]
     },
@@ -7424,11 +7457,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount",
           "file": "game/cards/08_ASH/upgrades/ArcanaStarMap.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ]
     },
@@ -7793,21 +7826,6 @@
       ]
     },
     {
-      "setCode": "ASH_114",
-      "internalName": "sabines-lightsaber#not-alone",
-      "sourcePath": "game/cards/08_ASH/upgrades/SabinesLightsaberNotAlone.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
-          "file": "game/cards/08_ASH/upgrades/SabinesLightsaberNotAlone.ts",
-          "line": 18,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "ASH_118",
       "internalName": "8d8#daimyos-majordomo",
       "sourcePath": "game/cards/08_ASH/units/8D8DaimyosMajordomo.ts",
@@ -7965,19 +7983,19 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.isLeader",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.isLeader",
           "file": "game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts",
-          "line": 20,
-          "column": 9
+          "line": 23,
+          "column": 17
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts",
           "file": "game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts",
-          "line": 28,
-          "column": 9
+          "line": 30,
+          "column": 28
         }
       ]
     },
@@ -8125,11 +8143,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:matchTarget",
+          "message": "unsupported-attached-constant-field:matchTarget",
           "file": "game/cards/08_ASH/upgrades/DeadlyVulnerability.ts",
-          "line": 22,
-          "column": 9
+          "line": 24,
+          "column": 26
         }
       ]
     },
@@ -10477,8 +10495,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
+          "pattern": "arena-card-query-type",
+          "message": "arena-card-query-type",
           "file": "game/cards/09_HMW/events/Resonate.ts",
           "line": 18,
           "column": 41
@@ -10652,11 +10670,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/MilitaryAcademy.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ]
     },
@@ -10802,11 +10820,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/VerdantFortress.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ]
     },
@@ -11389,11 +11407,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/IntelligenceAgency.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -11852,11 +11870,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/LandingPad.ts",
-          "line": 15,
-          "column": 9
+          "line": 17,
+          "column": 28
         }
       ]
     },
@@ -14202,11 +14220,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit",
           "file": "game/cards/04_JTL/upgrades/TargetingComputer.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ]
     },
@@ -15345,11 +15363,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
           "file": "game/cards/04_JTL/upgrades/DeathStarPlans.ts",
-          "line": 43,
-          "column": 9
+          "line": 45,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -16614,11 +16632,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
           "file": "game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts",
-          "line": 28,
-          "column": 9
+          "line": 30,
+          "column": 28
         }
       ]
     },
@@ -16941,11 +16959,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/07_LAW/upgrades/LeiasDisguise.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -17109,21 +17127,6 @@
       ]
     },
     {
-      "setCode": "LAW_128",
-      "internalName": "veiled-strength",
-      "sourcePath": "game/cards/07_LAW/upgrades/VeiledStrength.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
-          "file": "game/cards/07_LAW/upgrades/VeiledStrength.ts",
-          "line": 18,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "LAW_129",
       "internalName": "mastery",
       "sourcePath": "game/cards/07_LAW/upgrades/Mastery.ts",
@@ -17274,21 +17277,6 @@
       ]
     },
     {
-      "setCode": "LAW_147",
-      "internalName": "jaunty-light-freighter",
-      "sourcePath": "game/cards/07_LAW/units/JauntyLightFreighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "new Set(\n                    context.player.getArenaUnits()\n                        .map((x) => x.aspects)\n                        .flat()\n                )",
-          "file": "game/cards/07_LAW/units/JauntyLightFreighter.ts",
-          "line": 18,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "LAW_148",
       "internalName": "smugglers-yt2400",
       "sourcePath": "game/cards/07_LAW/units/SmugglersYT2400.ts",
@@ -17325,19 +17313,19 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/07_LAW/upgrades/Fulcrum.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "attached-constant-installed-keyword-only",
+          "message": "attached-constant-installed-keyword-only",
           "file": "game/cards/07_LAW/upgrades/Fulcrum.ts",
           "line": 23,
-          "column": 9
+          "column": 59
         }
       ]
     },
@@ -19379,11 +19367,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/05_LOF/upgrades/JediTrials.ts",
-          "line": 23,
-          "column": 9
+          "line": 26,
+          "column": 28
         }
       ]
     },
@@ -19417,11 +19405,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
           "file": "game/cards/05_LOF/upgrades/SizeMattersNot.ts",
-          "line": 22,
-          "column": 9
+          "line": 24,
+          "column": 28
         }
       ]
     },
@@ -19476,21 +19464,6 @@
           "file": "game/cards/01_SOR/units/GuardianOfTheWhills.ts",
           "line": 37,
           "column": 28
-        }
-      ]
-    },
-    {
-      "setCode": "LOF_060",
-      "internalName": "padawan-starfighter",
-      "sourcePath": "game/cards/03_TWI/units/PadawanStarFighter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/03_TWI/units/PadawanStarFighter.ts",
-          "line": 18,
-          "column": 37
         }
       ]
     },
@@ -19735,11 +19708,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-query:targetIsUnit",
+          "message": "unsupported-query:targetIsUnit",
           "file": "game/cards/05_LOF/upgrades/InquisitorsLightsaber.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 69
         }
       ]
     },
@@ -20898,21 +20871,6 @@
       ]
     },
     {
-      "setCode": "LOF_234",
-      "internalName": "darth-malak#covetous-apprentice",
-      "sourcePath": "game/cards/05_LOF/units/DarthMalakCovetousApprentice.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/05_LOF/units/DarthMalakCovetousApprentice.ts",
-          "line": 19,
-          "column": 41
-        }
-      ]
-    },
-    {
       "setCode": "LOF_235",
       "internalName": "hk87-assassin-droid",
       "sourcePath": "game/cards/05_LOF/units/HK87AssassinDroid.ts",
@@ -21602,11 +21560,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource",
           "file": "game/cards/06_SEC/upgrades/Condemn.ts",
-          "line": 37,
-          "column": 9
+          "line": 40,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -21807,11 +21765,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
           "file": "game/cards/06_SEC/upgrades/ExiledFromTheForce.ts",
-          "line": 20,
-          "column": 9
+          "line": 23,
+          "column": 17
         }
       ]
     },
@@ -21990,21 +21948,6 @@
       ]
     },
     {
-      "setCode": "SEC_071",
-      "internalName": "disciples-devotion",
-      "sourcePath": "game/cards/06_SEC/upgrades/DisciplesDevotion.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
-          "file": "game/cards/06_SEC/upgrades/DisciplesDevotion.ts",
-          "line": 16,
-          "column": 9
-        }
-      ]
-    },
-    {
       "setCode": "SEC_072",
       "internalName": "scour-the-archives",
       "sourcePath": "game/cards/06_SEC/events/ScourTheArchives.ts",
@@ -22117,11 +22060,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
+          "pattern": "optional-reference",
+          "message": "optional-reference",
           "file": "game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts",
-          "line": 19,
-          "column": 41
+          "line": 25,
+          "column": 29
         }
       ]
     },
@@ -22334,21 +22277,6 @@
           "line": 24,
           "column": 1,
           "message": "Additional class method requires conversion"
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_104",
-      "internalName": "figure-of-unity",
-      "sourcePath": "game/cards/06_SEC/upgrades/FigureOfUnity.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
-          "file": "game/cards/06_SEC/upgrades/FigureOfUnity.ts",
-          "line": 18,
-          "column": 9
         }
       ]
     },
@@ -22901,11 +22829,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/06_SEC/upgrades/NemiksManifesto.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -24732,11 +24660,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/02_SHD/upgrades/Foundling.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ]
     },
@@ -24777,11 +24705,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
           "file": "game/cards/02_SHD/upgrades/Imprisoned.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ]
     },
@@ -25785,21 +25713,6 @@
       ]
     },
     {
-      "setCode": "SHD_157",
-      "internalName": "bokatan-kryze#fighting-for-mandalore",
-      "sourcePath": "game/cards/02_SHD/units/BoKatanKryzeFightingForMandalore.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.game.getPlayers()\n                    .filter((p) => p.base.damage >= 15)",
-          "file": "game/cards/02_SHD/units/BoKatanKryzeFightingForMandalore.ts",
-          "line": 21,
-          "column": 25
-        }
-      ]
-    },
-    {
       "setCode": "SHD_161",
       "internalName": "stolen-landspeeder",
       "sourcePath": "game/cards/02_SHD/units/StolenLandspeeder.ts",
@@ -26176,11 +26089,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
           "file": "game/cards/02_SHD/upgrades/FrozenInCarbonite.ts",
-          "line": 24,
-          "column": 9
+          "line": 26,
+          "column": 28
         }
       ]
     },
@@ -27660,21 +27573,6 @@
       ]
     },
     {
-      "setCode": "SOR_067",
-      "internalName": "rugged-survivors",
-      "sourcePath": "game/cards/01_SOR/units/RuggedSurvivors.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/RuggedSurvivors.ts",
-          "line": 19,
-          "column": 41
-        }
-      ]
-    },
-    {
       "setCode": "SOR_071",
       "internalName": "electrostaff",
       "sourcePath": "game/cards/01_SOR/upgrades/Electrostaff.ts",
@@ -27696,11 +27594,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
           "file": "game/cards/01_SOR/upgrades/Entrenched.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ]
     },
@@ -28073,21 +27971,6 @@
           "file": "game/cards/01_SOR/units/AgentKallusSeekingTheRebels.ts",
           "line": 19,
           "column": 33
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_116",
-      "internalName": "steadfast-battalion",
-      "sourcePath": "game/cards/01_SOR/units/SteadfastBattalion.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/SteadfastBattalion.ts",
-          "line": 22,
-          "column": 45
         }
       ]
     },
@@ -28496,21 +28379,6 @@
           "file": "game/cards/01_SOR/events/Aggression.ts",
           "line": 19,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_158",
-      "internalName": "jedha-agitator",
-      "sourcePath": "game/cards/01_SOR/units/JedhaAgitator.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/JedhaAgitator.ts",
-          "line": 21,
-          "column": 45
         }
       ]
     },
@@ -29050,21 +28918,6 @@
           "file": "game/cards/01_SOR/units/MiningGuildTieFighter.ts",
           "line": 18,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_208",
-      "internalName": "outer-rim-headhunter",
-      "sourcePath": "game/cards/01_SOR/units/OuterRimHeadhunter.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/OuterRimHeadhunter.ts",
-          "line": 21,
-          "column": 45
         }
       ]
     },
@@ -30232,11 +30085,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
           "file": "game/cards/07_TS26/upgrades/AbandonedTheOrder.ts",
-          "line": 17,
-          "column": 9
+          "line": 19,
+          "column": 28
         }
       ]
     },
@@ -32019,11 +31872,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-live-stat-expression",
+          "message": "unsupported-live-stat-expression",
           "file": "game/cards/03_TWI/upgrades/SquadSupport.ts",
-          "line": 18,
-          "column": 9
+          "line": 23,
+          "column": 28
         }
       ]
     },

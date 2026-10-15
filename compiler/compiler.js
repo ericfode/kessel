@@ -163,13 +163,24 @@ function contextTitle(input, context) {
     if(fragments.length>32||literalBytes>1024)fail(ctx,node,'context-title-bound');
     return fragments;
 }
+function isNonSynchronous(node) {
+    return !!node.asteriskToken || !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword);
+}
+function hasDecorators(node) {
+    return ts.canHaveDecorators(node) && !!ts.getDecorators(node)?.length;
+}
+function unsupportedParameterBinding(parameter) {
+    return !!parameter.dotDotDotToken || !!parameter.initializer || hasDecorators(parameter);
+}
 function lambda(node, ctx, names = ['context']) {
     node = unwrap(node);
     if (!ts.isArrowFunction(node) && !ts.isFunctionExpression(node)) return { node, ctx };
+    if (isNonSynchronous(node)) fail(ctx,node,'non-synchronous-callback');
     const scope = new Map(ctx.scope);
     const constants = new Map(ctx.constants);
     node.parameters.forEach((p, i) => {
         if (!ts.isIdentifier(p.name)) fail(ctx, p, 'destructured-callback-parameter');
+        if (unsupportedParameterBinding(p)) fail(ctx,p,'unsupported-callback-parameter-binding');
         scope.set(p.name.text, reference(names[i] || `arg${i}`));
         constants.delete(p.name.text);
     });
@@ -207,7 +218,7 @@ function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = fal
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ['getArenaUnits','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text)) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ['getArenaUnits','getPlayers','hasSomeArenaCard','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay'].includes(node.expression.name.text)) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -337,9 +348,51 @@ function arenaQuery(node, ctx, name, filterProps = null) {
     }
     return { kind: 'query', name, receiver, args: [predicate] };
 }
+// Finite counts lower to existing scalar expressions, never general list/Set values.
+function finiteCollectionCount(node,ctx) {
+    const checked=result=>{
+        if(!ctx.callbackStage)fail(ctx,node,'finite-count-evaluation-stage');
+        const visit=n=>{if(n.questionDotToken)fail(ctx,n,'optional-finite-count');if((ts.isArrowFunction(n)||ts.isFunctionExpression(n))&&(n.asteriskToken||n.modifiers?.length||n.parameters.some(p=>p.initializer||p.dotDotDotToken||p.questionToken)))fail(ctx,n,'finite-count-callback-shape');ts.forEachChild(n,visit);};visit(node);return result;
+    };
+    const unaryCallback=(fn,field)=> {fn=unwrap(fn);return (ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&fn.parameters.length===1&&ts.isIdentifier(fn.parameters[0].name)&&ts.isPropertyAccessExpression(unwrap(fn.body))&&unwrap(fn.body).name.text===field&&ts.isIdentifier(unwrap(fn.body).expression)&&unwrap(fn.body).expression.text===fn.parameters[0].name.text;};
+    if(ts.isPropertyAccessExpression(node)&&node.name.text==='size'&&ts.isNewExpression(unwrap(node.expression))) {
+        const set=unwrap(node.expression);if(!ts.isIdentifier(set.expression)||set.expression.text!=='Set'||set.arguments?.length!==1)return null;if(ctx.constants.has('Set')||ctx.scope.has('Set'))fail(ctx,node,'shadowed-finite-set');
+        let collection=unwrap(set.arguments[0]);let mapper;
+        if(ts.isCallExpression(collection)&&ts.isPropertyAccessExpression(collection.expression)&&collection.expression.name.text==='flat'&&collection.arguments.length===0){collection=unwrap(collection.expression.expression);if(ts.isCallExpression(collection)&&ts.isPropertyAccessExpression(collection.expression)&&collection.expression.name.text==='map'&&collection.arguments.length===1)mapper=collection.arguments[0];}
+        if(!mapper||!unaryCallback(mapper,'aspects'))return null;
+        const base=unwrap(collection.expression.expression);if(!ts.isCallExpression(base)||!ts.isPropertyAccessExpression(base.expression)||base.expression.name.text!=='getArenaUnits'||base.arguments.length)return null;
+        const receiver=expr(base.expression.expression,{...ctx,arenaReceiver:true});if(receiver.kind!=='ref'||receiver.path.join('.')!=='player')fail(ctx,node,'finite-aspect-union-receiver');
+        const terms=['vigilance','command','aggression','cunning','heroism','villainy'].map(aspect=>({kind:'conditional',condition:{kind:'query',name:'hasSomeArenaUnit',receiver,args:[{kind:'binary',op:'&&',left:constant(true),right:{kind:'query',name:'hasSomeAspect',receiver:reference('card'),args:[constant(aspect)]}}]},then:constant(1),else:constant(0)}));
+        const balanced=xs=>xs.length===1?xs[0]:{kind:'binary',op:'+',left:balanced(xs.slice(0,Math.ceil(xs.length/2))),right:balanced(xs.slice(Math.ceil(xs.length/2)))};return checked(balanced(terms));
+    }
+    if(ts.isPropertyAccessExpression(node)&&node.name.text==='length') {
+        const f=unwrap(node.expression);if(!ts.isCallExpression(f)||!ts.isPropertyAccessExpression(f.expression)||f.expression.name.text!=='filter'||f.arguments.length!==1)return null;
+        const base=unwrap(f.expression.expression);if(!ts.isCallExpression(base)||!ts.isPropertyAccessExpression(base.expression)||base.expression.name.text!=='getPlayers'||base.arguments.length)return null;
+        const game=expr(base.expression.expression,{...ctx,arenaReceiver:true});if(game.kind!=='ref'||game.path.join('.')!=='game')return null;
+        const fn=unwrap(f.arguments[0]);if(!ts.isArrowFunction(fn)||fn.parameters.length!==1||!ts.isIdentifier(fn.parameters[0].name))return null;
+        const b=unwrap(fn.body);if(!ts.isBinaryExpression(b)||b.operatorToken.getText(ctx.source)!=='>='||!ts.isPropertyAccessExpression(b.left)||b.left.name.text!=='damage'||!ts.isPropertyAccessExpression(b.left.expression)||b.left.expression.name.text!=='base'||!ts.isIdentifier(b.left.expression.expression)||b.left.expression.expression.text!==fn.parameters[0].name.text)return null;
+        const threshold=literal(b.right,ctx);if(threshold!==15)fail(ctx,node,'two-player-base-count-bound');
+        const term=player=>({kind:'conditional',condition:{kind:'binary',op:'>=',left:reference(player,'base','damage'),right:constant(threshold)},then:constant(1),else:constant(0)});
+        return checked({kind:'binary',op:'+',left:term('player'),right:term('opponent')});
+    }
+    return null;
+}
+function arenaCardExistence(node,ctx) {
+    if(node.questionDotToken||node.expression.questionDotToken)fail(ctx,node,'optional-arena-card-query');
+    const obj=node.arguments.length?object(node.arguments[0],ctx):{props:new Map(),ctx,node};if(node.arguments.length>1)fail(ctx,node,'arena-card-query-arity');
+    for(const [key,value]of obj.props)if(!['trait','type'].includes(key))fail(ctx,value,'arena-card-query-filter:'+key);
+    const props=new Map(obj.props);let type=null;if(props.has('type')){type=literal(props.get('type'),obj.ctx);props.delete('type');if(type!=='leaderUnit')fail(ctx,node,'arena-card-query-type');}
+    if(!type&&!props.has('trait'))fail(ctx,node,'arena-card-query-bounded-filter');
+    const result=arenaQuery(node,ctx,'hasSomeArenaUnit',props);result.name='hasSomeArenaCard';
+    if(type){const leader={kind:'binary',op:'&&',left:{kind:'query',name:'isLeader',receiver:reference('card'),args:[]},right:{kind:'query',name:'isDeployed',receiver:reference('card'),args:[]}};result.args[0]={kind:'binary',op:'&&',left:result.args[0],right:leader};}
+    return result;
+}
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    const finite=finiteCollectionCount(node,ctx);if(finite)return finite;
+    if(ctx.attachedParentTitle&&ts.isPropertyAccessExpression(node)&&node.questionDotToken&&node.name.text==='title'&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='parentCard') {const parent=expr(node.expression,ctx);if(parent.kind==='ref'&&parent.path.join('.')==='source.parentCard')return reference('source','parentCard','title');fail(ctx,node,'attached-parent-title-scope');}
+
     if (ts.isIdentifier(node) && ctx.constants?.has(node.text)) { const initializer = readConstant(node.text, ctx); return expr(initializer, constantContext(initializer, ctx)); }
     if (ts.isPropertyAccessExpression(node) && node.name.text === 'length') {
         // Preserve the established direct Player count representation byte-for-byte.
@@ -453,6 +506,7 @@ function expr(input, context, params = ['context']) {
             return {kind:'query',name,receiver,args:[]};
         }
         if (name === 'hasSomeArenaUnit') return arenaQuery(node, ctx, name);
+        if (name === 'hasSomeArenaCard') return arenaCardExistence(node,ctx);
         if (name === 'isTokenUnit') {
             if (node.questionDotToken || call.questionDotToken) fail(ctx,node,'optional-token-unit-query');
             if (node.arguments.length) fail(ctx,node,'token-unit-query-arity');
@@ -836,6 +890,13 @@ function constantAbility(input, context, validatedObject = null) {
     check(result.condition); check(result.targetResolver); check(result.effect);
     return result;
 }
+function attachedConstantAbility(input,context,host) {
+    const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
+    for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
+    const result=constantAbility(input,obj.ctx,obj);result.attachedContext=host?'host':'upgrade';
+    const check=e=>{if(e.effects){e.effects.forEach(check);return;}if(e.kind!=='gainKeyword'||!['grit','sentinel','restore','raid','overwhelm'].includes(e.keyword)||e.amount.kind!=='const'||!Number.isSafeInteger(e.amount.value)||e.amount.value<1||e.amount.value>2)fail(obj.ctx,obj.node,'attached-constant-installed-keyword-only');if(!host)e.target='parent';};check(result.effect);
+    return result;
+}
 function attachedKeywordAbility(input, context) {
     const obj = object(input, context);
     // Unlike general ability objects, every extra field here changes keyword
@@ -849,7 +910,7 @@ function attachedKeywordAbility(input, context) {
     ts.setTextRange(helper, obj.node);
     const props = new Map([['ongoingEffect', helper]]);
     if (obj.props.has('gainCondition')) props.set('condition', obj.props.get('gainCondition'));
-    const result = constantAbility(input, obj.ctx, { ...obj, props });
+    const result = constantAbility(input, { ...obj.ctx, attachedParentTitle:true }, { ...obj, ctx:{...obj.ctx,attachedParentTitle:true}, props });
     result.effect.target = 'parent';
     const keyword = result.effect.keyword;
     const amount = result.effect.amount;
@@ -1077,6 +1138,8 @@ function compileSource(text, file, enums = {}) {
         if (ts.isMethodDeclaration(member) && member.name.getText(source) === 'getImplementationId') {
             const returned = member.body?.statements.find(ts.isReturnStatement)?.expression;
             try {
+                if (isNonSynchronous(member)) fail(ctx,member,'non-synchronous-implementation-identity');
+                if (hasDecorators(member) || member.parameters.some(p=>!ts.isIdentifier(p.name)||unsupportedParameterBinding(p))) fail(ctx,member,'unsupported-implementation-identity-binding');
                 const id = object(returned, ctx);
                 out.id = literal(id.props.get('id'), ctx);
                 out.internalName = literal(id.props.get('internalName'), ctx);
@@ -1102,6 +1165,14 @@ function compileSource(text, file, enums = {}) {
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
+        if (isNonSynchronous(member)) {
+            diagnostics.push(new Unsupported(ctx,member,'non-synchronous-setup-method').diagnostic);
+            continue;
+        }
+        if (hasDecorators(member) || member.parameters.some(p=>!ts.isIdentifier(p.name)||unsupportedParameterBinding(p))) {
+            diagnostics.push(new Unsupported(ctx,member,'unsupported-setup-parameter-binding').diagnostic);
+            continue;
+        }
         const local = { ...ctx, constants: new Map() };
         for (const statement of member.body?.statements ?? []) {
             try {
@@ -1117,7 +1188,7 @@ function compileSource(text, file, enums = {}) {
                 const call = statement.expression;
                 const parts = access(call.expression, local);
                 const registration = parts.at(-1);
-                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addTriggeredAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition')) fail(local, call, 'registrar:' + registration);
+                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!TRIGGERS[registration] && registration !== 'addConstantAbility' && registration !== 'addTriggeredAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
                 if (call.arguments.length !== 1) fail(local, call, 'registration-arity');
                 if (['addGainKeywordTargetingAttached', 'setAttachCondition'].includes(registration)) {
                     if (!['UpgradeCard', 'TokenUpgradeCard'].includes(out.baseClass) || name !== 'setupCardAbilities') fail(local, call, 'attached-source-side');
@@ -1125,6 +1196,10 @@ function compileSource(text, file, enums = {}) {
                         if (out.attachCondition) fail(local, call, 'duplicate-attach-condition');
                         out.attachCondition = attachPredicate(call.arguments[0], local);
                     } else out.abilities.card.push(attachedKeywordAbility(call.arguments[0], local));
+                }
+                else if (['addConstantAbilityTargetingAttached','addGainConstantAbilityTargetingAttached'].includes(registration)) {
+                    if(out.baseClass!=='UpgradeCard'||name!=='setupCardAbilities')fail(local,call,'attached-source-side');
+                    out.abilities.card.push(attachedConstantAbility(call.arguments[0],local,registration==='addGainConstantAbilityTargetingAttached'));
                 }
                 else if (registration === 'addCoordinateAbility') {
                     if (out.baseClass !== 'NonLeaderUnitCard' || name !== 'setupCardAbilities') fail(local, call, 'coordinate-source-side');

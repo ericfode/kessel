@@ -845,6 +845,48 @@
         "vigilance",
         "heroism"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4924242543",
+      "internalName": "lukes-jedi-lightsaber#constructed-by-hand",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "ASH"
+      },
+      "subtitle": "Constructed by Hand",
+      "text": "Attach to a non-Vehicle unit.\nIf attached unit is Luke Skywalker, he gains Sentinel. (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Luke's Jedi Lightsaber",
+      "traits": [
+        "item",
+        "weapon",
+        "lightsaber"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 3
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -1680,6 +1722,48 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "3331025130",
+      "internalName": "sabines-lightsaber#not-alone",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_114",
+      "setCodes": [
+        {
+          "number": 114,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 114,
+        "set": "ASH"
+      },
+      "subtitle": "Not Alone",
+      "text": "Attach to a non-Vehicle unit.\nIf attached unit is Sabine Wren or a Force unit, it gains Restore 2.",
+      "title": "Sabine's Lightsaber",
+      "traits": [
+        "item",
+        "weapon",
+        "lightsaber"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
     },
     {
       "aspects": [
@@ -15885,6 +15969,45 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "7057086144",
+      "internalName": "veiled-strength",
+      "keywords": [
+        "grit"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "LAW_128",
+      "setCodes": [
+        {
+          "number": 128,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 128,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-leader unit.\nAttached unit gains Grit.",
+      "title": "Veiled Strength",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -16189,6 +16312,46 @@
       "traits": [
         "rebel",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1925389607",
+      "internalName": "jaunty-light-freighter",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_147",
+      "setCodes": [
+        {
+          "number": 147,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 147,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: Give an Experience token to this unit for each different aspect among units you control.",
+      "title": "Jaunty Light Freighter",
+      "traits": [
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -18640,6 +18803,51 @@
       "traits": [
         "force",
         "night"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4718895864",
+      "internalName": "padawan-starfighter",
+      "keywords": [],
+      "power": 1,
+      "rules": "Padawan Starfighter gets +1/+1 while you control a Force unit or a Force upgrade.\n",
+      "setCode": "LOF_060",
+      "setCodes": [
+        {
+          "number": 58,
+          "set": "TWI"
+        },
+        {
+          "number": 60,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 60,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "While you control a Force unit or a Force upgrade, this unit gets +1/+1.",
+      "title": "Padawan Starfighter",
+      "traits": [
+        "jedi",
+        "republic",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -22380,6 +22588,47 @@
       "aspects": [
         "villainy"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "2285555274",
+      "internalName": "darth-malak#covetous-apprentice",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 4,
+      "rules": "If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\n",
+      "setCode": "LOF_234",
+      "setCodes": [
+        {
+          "number": 234,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 234,
+        "set": "LOF"
+      },
+      "subtitle": "Covetous Apprentice",
+      "text": "Overwhelm\nWhen Played: If you control a Sith leader unit, you may ready this unit.",
+      "title": "Darth Malak",
+      "traits": [
+        "force",
+        "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": "",
@@ -24250,6 +24499,45 @@
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
+      "hp": 3,
+      "id": "0217687208",
+      "internalName": "disciples-devotion",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SEC_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "While attached unit is exhausted, it gains Sentinel. (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Disciples' Devotion",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
       "hp": null,
       "id": "9368244861",
       "internalName": "knowledge-and-defense",
@@ -24647,6 +24935,48 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "8467899467",
+      "internalName": "figure-of-unity",
+      "keywords": [
+        "overwhelm",
+        "raid",
+        "restore"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SEC_104",
+      "setCodes": [
+        {
+          "number": 104,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 104,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Attach to a <uq> unit.\nAttached unit gains: “While this unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1.”",
+      "title": "Figure of Unity",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
     },
     {
       "arena": "ground",
@@ -28844,6 +29174,46 @@
         "aggression",
         "aggression"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9637610169",
+      "internalName": "bokatan-kryze#fighting-for-mandalore",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_157",
+      "setCodes": [
+        {
+          "number": 157,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 157,
+        "set": "SHD"
+      },
+      "subtitle": "Fighting For Mandalore",
+      "text": "When Defeated: For each player with 15 or more damage on their base, draw a card.",
+      "title": "Bo-Katan Kryze",
+      "traits": [
+        "mandalorian",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "aggression"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": null,
@@ -30923,6 +31293,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "4599464590",
+      "internalName": "rugged-survivors",
+      "keywords": [
+        "grit"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_067",
+      "setCodes": [
+        {
+          "number": 67,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 67,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Grit (This unit gets +1/+0 for each damage on it.)\n\nOn Attack: If you control a leader unit, you may draw a card.",
+      "title": "Rugged Survivors",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance"
       ],
@@ -31542,6 +31952,46 @@
       "aspects": [
         "command"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "6432884726",
+      "internalName": "steadfast-battalion",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 5,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SOR_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\n\nOn Attack: If you control a leader unit, give a friendly unit +2/+2 for this phase.",
+      "title": "Steadfast Battalion",
+      "traits": [
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 7,
       "deployBox": null,
       "epicAction": null,
@@ -32023,6 +32473,46 @@
       "title": "Cantina Braggart",
       "traits": [
         "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "1746195484",
+      "internalName": "jedha-agitator",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_158",
+      "setCodes": [
+        {
+          "number": 158,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 158,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\n\nOn Attack: If you control a leader unit, deal 2 damage to a ground unit or a base.",
+      "title": "Jedha Agitator",
+      "traits": [
+        "rebel"
       ],
       "types": [
         "unit"
@@ -32548,6 +33038,48 @@
       "title": "Crafty Smuggler",
       "traits": [
         "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "3613174521",
+      "internalName": "outer-rim-headhunter",
+      "keywords": [
+        "raid"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_208",
+      "setCodes": [
+        {
+          "number": 208,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 208,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\n\nOn Attack: If you control a leader unit, you may exhaust a non-leader unit.",
+      "title": "Outer Rim Headhunter",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"

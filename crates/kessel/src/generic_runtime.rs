@@ -288,7 +288,7 @@ impl Engine {
                     for &p in &programs.card {
                         let program=&catalogue.programs[p as usize];
                         if !["constant","whenPlayed"].contains(&program.trigger.as_str()) {return Err("upgrade trigger requires dedicated framework event support".into());}
-                        if program.trigger=="constant" && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..})=>n!="parent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
+                        if program.trigger=="constant" && program.attached_context.as_deref()!=Some("host") && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..})=>n!="parent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
                     }
                     for field in ["upgradePower","upgradeHp"] {if !entry["card"][field].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)) {return Err("upgrade printed stats must be bounded integers".into());}}
                 } else if !info.is("unit") && !info.is("leader") {
@@ -617,12 +617,14 @@ impl Engine {
                 continue;
             }
             for program in programs {
+                let effect_source=if program.attached_context.as_deref()==Some("host") {if !self.attached_in_play(s,source) {continue;} s.card(source).parent}else{source};
+                if program.attached_context.is_some() && !self.attached_in_play(s,source) {continue;}
                 if keywords && !program.instructions.iter().any(|i| matches!(i, Instruction::Apply(Effect::GainKeyword { .. } | Effect::LoseKeyword { .. }))) { continue; }
                 if (program.coordinate && !self.coordinate_active(s,source))
                     || program
                         .condition
                         .as_ref()
-                        .is_some_and(|c| !self.eval(s, source, target, c).truth())
+                        .is_some_and(|c| !self.eval(s, effect_source, target, c).truth())
                 {
                     continue;
                 }
@@ -634,13 +636,13 @@ impl Engine {
                     }
                 });
                 let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}) if n=="parent"));
-                if resolver.map_or(if parent_target {s.card(source).parent!=target}else{source != target}, |r| {
-                    !self.matching_targets(s, source, r).contains(&target)
+                if resolver.map_or(if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
+                    !self.matching_targets(s, effect_source, r).contains(&target)
                 }) {
                     continue;
                 }
                 for instruction in &program.instructions {
-                    if let Instruction::Apply(effect) = instruction { effects.push((source, effect)); }
+                    if let Instruction::Apply(effect) = instruction { effects.push((effect_source, effect)); }
                 }
             }
         }
@@ -967,28 +969,24 @@ impl Engine {
                 receiver,
                 args,
             } => {
-                if name == "hasSomeArenaUnit" || name == "arenaUnitCount" {
+                if name == "hasSomeArenaUnit" || name == "hasSomeArenaCard" || name == "arenaUnitCount" {
                     let Eval::Player(player) = sub(receiver) else {
                         return Eval::Null;
                     };
                     let predicate = &args[0];
-                    let count = s
-                        .player(player)
-                        .ground
-                        .as_slice()
-                        .iter()
-                        .chain(s.player(player).space.as_slice())
-                        .filter(|&&card| {
-                            self.eval_with_binding(s, source, target, card,modifier_target,predicate)
-                                .truth()
-                        })
-                        .count() as i64;
-                    return if name == "hasSomeArenaUnit" {
+                    let count=if name=="hasSomeArenaCard" {
+                        // Controller belongs to the upgrade even on an opposing host.
+                        (1..s.next_id).filter(|id|s.card(*id).present && s.card(*id).owner==player && (self.in_arena(s,*id)||self.attached_in_play(s,*id)) && self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).count() as i64
+                    }else{
+                        s.player(player).ground.as_slice().iter().chain(s.player(player).space.as_slice()).filter(|&&card|self.eval_with_binding(s,source,target,card,modifier_target,predicate).truth()).count() as i64
+                    };
+                    return if name != "arenaUnitCount" {
                         Eval::Bool(count > 0)
                     } else {
                         Eval::Number(count)
                     };
                 }
+                if name=="isDeployed" {return Eval::Bool(matches!(sub(receiver),Eval::Card(id) if id!=0 && self.def(s,id).info.is("leader") && s.card(id).deployed && self.in_arena(s,id)));}
                 if name=="resourcePairs" {return if let Eval::Player(p)=sub(receiver) {Eval::Number(s.player(p).resources.len as i64/2)}else{Eval::Null};}
                 if name == "hasInitiative" {
                     return Eval::Bool(matches!(sub(receiver), Eval::Player(p) if s.initiative==p));

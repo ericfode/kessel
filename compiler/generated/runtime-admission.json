@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "c3547d3e87e093ba8e174f4671eb60af63f0ae0095e1a500eeada8fc87d1814a",
+  "catalogueHash": "32bc01b1cf8f47d611ed4622d589dbcc2f0a43a7aca213a6f483d3628acc8499",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1072,
+  "irConvertedCount": 1085,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
-    "sourceIr": 598
+    "sourceIr": 611
   },
   "runtimeAdmittedCards": [
     {
@@ -117,6 +117,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "lukes-jedi-lightsaber#constructed-by-hand",
+      "setCode": "ASH_066"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "get-lost",
       "setCode": "ASH_067"
     },
@@ -219,6 +224,11 @@
       "implementation": "sourceIr",
       "internalName": "luke-skywalker#answering-the-call",
       "setCode": "ASH_112"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "sabines-lightsaber#not-alone",
+      "setCode": "ASH_114"
     },
     {
       "implementation": "sourceIr",
@@ -1967,6 +1977,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "veiled-strength",
+      "setCode": "LAW_128"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "incapacitate",
       "setCode": "LAW_131"
     },
@@ -2004,6 +2019,11 @@
       "implementation": "dataOnly",
       "internalName": "massassi-group-marines",
       "setCode": "LAW_146"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "jaunty-light-freighter",
+      "setCode": "LAW_147"
     },
     {
       "implementation": "sourceIr",
@@ -2304,6 +2324,11 @@
       "implementation": "sourceIr",
       "internalName": "nightsister-warrior",
       "setCode": "LOF_059"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "padawan-starfighter",
+      "setCode": "LOF_060"
     },
     {
       "implementation": "dataOnly",
@@ -2766,6 +2791,11 @@
       "setCode": "LOF_233"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "darth-malak#covetous-apprentice",
+      "setCode": "LOF_234"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "army-of-the-dead",
       "setCode": "LOF_236"
@@ -3002,6 +3032,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "disciples-devotion",
+      "setCode": "SEC_071"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "knowledge-and-defense",
       "setCode": "SEC_075"
     },
@@ -3049,6 +3084,11 @@
       "implementation": "sourceIr",
       "internalName": "renowned-dignitaries",
       "setCode": "SEC_102"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "figure-of-unity",
+      "setCode": "SEC_104"
     },
     {
       "implementation": "sourceIr",
@@ -3572,6 +3612,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "bokatan-kryze#fighting-for-mandalore",
+      "setCode": "SHD_157"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "wild-rancor",
       "setCode": "SHD_158"
     },
@@ -3832,6 +3877,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "rugged-survivors",
+      "setCode": "SOR_067"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "moment-of-peace",
       "setCode": "SOR_073"
     },
@@ -3907,6 +3957,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "steadfast-battalion",
+      "setCode": "SOR_116"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "97th-legion#keeping-the-peace-on-sullust",
       "setCode": "SOR_118"
     },
@@ -3964,6 +4019,11 @@
       "implementation": "dataOnly",
       "internalName": "cantina-braggart",
       "setCode": "SOR_157"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "jedha-agitator",
+      "setCode": "SOR_158"
     },
     {
       "implementation": "sourceIr",
@@ -4029,6 +4089,11 @@
       "implementation": "dataOnly",
       "internalName": "crafty-smuggler",
       "setCode": "SOR_207"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "outer-rim-headhunter",
+      "setCode": "SOR_208"
     },
     {
       "implementation": "sourceIr",
@@ -4881,7 +4946,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 974,
+  "runtimeAdmittedCount": 987,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5070,7 +5135,7 @@
     },
     {
       "internalName": "pointless-to-resist",
-      "reason": "pointless-to-resist: compiler rejected \"pointless-to-resist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/PointlessToResist.ts\",\"line\":14,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "pointless-to-resist: compiler rejected \"pointless-to-resist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/08_ASH/upgrades/PointlessToResist.ts\",\"line\":16,\"message\":\"attack-query-receiver\",\"pattern\":\"attack-query-receiver\"}]",
       "setCode": "ASH_054"
     },
     {
@@ -5102,11 +5167,6 @@
       "internalName": "home-one#heart-of-the-fleet",
       "reason": "home-one#heart-of-the-fleet: compiler rejected \"home-one#heart-of-the-fleet\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/08_ASH/units/HomeOneHeartOfTheFleet.ts\",\"line\":17,\"message\":\"unimplemented-context-field:damage\",\"pattern\":\"unimplemented-context-field:damage\"}]",
       "setCode": "ASH_065"
-    },
-    {
-      "internalName": "lukes-jedi-lightsaber#constructed-by-hand",
-      "reason": "lukes-jedi-lightsaber#constructed-by-hand: compiler rejected \"lukes-jedi-lightsaber#constructed-by-hand\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/08_ASH/upgrades/LukesJediLightsaberConstructedByHand.ts\",\"line\":18,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
-      "setCode": "ASH_066"
     },
     {
       "internalName": "domesticated-lothcat",
@@ -5150,7 +5210,7 @@
     },
     {
       "internalName": "arcana-star-map#path-to-peridea",
-      "reason": "arcana-star-map#path-to-peridea: compiler rejected \"arcana-star-map#path-to-peridea\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/ArcanaStarMap.ts\",\"line\":14,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "arcana-star-map#path-to-peridea: compiler rejected \"arcana-star-map#path-to-peridea\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/08_ASH/upgrades/ArcanaStarMap.ts\",\"line\":16,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount\"}]",
       "setCode": "ASH_084"
     },
     {
@@ -5239,11 +5299,6 @@
       "setCode": "ASH_113"
     },
     {
-      "internalName": "sabines-lightsaber#not-alone",
-      "reason": "sabines-lightsaber#not-alone: compiler rejected \"sabines-lightsaber#not-alone\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/SabinesLightsaberNotAlone.ts\",\"line\":18,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
-      "setCode": "ASH_114"
-    },
-    {
       "internalName": "8d8#daimyos-majordomo",
       "reason": "8d8#daimyos-majordomo: compiler rejected \"8d8#daimyos-majordomo\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/08_ASH/units/8D8DaimyosMajordomo.ts\",\"line\":26,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "ASH_118"
@@ -5290,7 +5345,7 @@
     },
     {
       "internalName": "the-darksaber#icon-of-leadership",
-      "reason": "the-darksaber#icon-of-leadership: compiler rejected \"the-darksaber#icon-of-leadership\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":20,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":28,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "the-darksaber#icon-of-leadership: compiler rejected \"the-darksaber#icon-of-leadership\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":23,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.isLeader\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.isLeader\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":30,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts\"}]",
       "setCode": "ASH_135"
     },
     {
@@ -5330,7 +5385,7 @@
     },
     {
       "internalName": "deadly-vulnerability",
-      "reason": "deadly-vulnerability: compiler rejected \"deadly-vulnerability\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/DeadlyVulnerability.ts\",\"line\":16,\"message\":\"registrar:addDamageModificationAbilityTargetingAttached\",\"pattern\":\"registrar:addDamageModificationAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/DeadlyVulnerability.ts\",\"line\":22,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "deadly-vulnerability: compiler rejected \"deadly-vulnerability\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/08_ASH/upgrades/DeadlyVulnerability.ts\",\"line\":16,\"message\":\"registrar:addDamageModificationAbilityTargetingAttached\",\"pattern\":\"registrar:addDamageModificationAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":26,\"file\":\"game/cards/08_ASH/upgrades/DeadlyVulnerability.ts\",\"line\":24,\"message\":\"unsupported-attached-constant-field:matchTarget\",\"pattern\":\"unsupported-attached-constant-field:matchTarget\"}]",
       "setCode": "ASH_150"
     },
     {
@@ -5485,7 +5540,7 @@
     },
     {
       "internalName": "there-is-no-conflict",
-      "reason": "there-is-no-conflict: unsupported runtime reference source.parentCard.title",
+      "reason": "there-is-no-conflict: parent printed title requires a standalone live attached keyword equality condition",
       "setCode": "ASH_199"
     },
     {
@@ -5970,7 +6025,7 @@
     },
     {
       "internalName": "resonate",
-      "reason": "resonate: compiler rejected \"resonate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/events/Resonate.ts\",\"line\":18,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
+      "reason": "resonate: compiler rejected \"resonate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/events/Resonate.ts\",\"line\":18,\"message\":\"arena-card-query-type\",\"pattern\":\"arena-card-query-type\"}]",
       "setCode": "HMW_098"
     },
     {
@@ -6015,7 +6070,7 @@
     },
     {
       "internalName": "military-academy",
-      "reason": "military-academy: compiler rejected \"military-academy\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/MilitaryAcademy.ts\",\"line\":16,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "military-academy: compiler rejected \"military-academy\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/09_HMW/upgrades/MilitaryAcademy.ts\",\"line\":18,\"message\":\"unsupported-attached-constant-field:gainCondition\",\"pattern\":\"unsupported-attached-constant-field:gainCondition\"}]",
       "setCode": "HMW_112"
     },
     {
@@ -6065,7 +6120,7 @@
     },
     {
       "internalName": "verdant-fortress",
-      "reason": "verdant-fortress: compiler rejected \"verdant-fortress\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/VerdantFortress.ts\",\"line\":16,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "verdant-fortress: compiler rejected \"verdant-fortress\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/09_HMW/upgrades/VerdantFortress.ts\",\"line\":18,\"message\":\"unsupported-attached-constant-field:gainCondition\",\"pattern\":\"unsupported-attached-constant-field:gainCondition\"}]",
       "setCode": "HMW_126"
     },
     {
@@ -6250,7 +6305,7 @@
     },
     {
       "internalName": "intelligence-agency",
-      "reason": "intelligence-agency: compiler rejected \"intelligence-agency\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/IntelligenceAgency.ts\",\"line\":14,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/09_HMW/upgrades/IntelligenceAgency.ts\",\"line\":22,\"message\":\"immediateEffect:lookAtAndSelectCard\",\"pattern\":\"immediateEffect:lookAtAndSelectCard\"}]",
+      "reason": "intelligence-agency: compiler rejected \"intelligence-agency\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/09_HMW/upgrades/IntelligenceAgency.ts\",\"line\":16,\"message\":\"unsupported-attached-constant-field:gainCondition\",\"pattern\":\"unsupported-attached-constant-field:gainCondition\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/09_HMW/upgrades/IntelligenceAgency.ts\",\"line\":22,\"message\":\"immediateEffect:lookAtAndSelectCard\",\"pattern\":\"immediateEffect:lookAtAndSelectCard\"}]",
       "setCode": "HMW_205"
     },
     {
@@ -6390,7 +6445,7 @@
     },
     {
       "internalName": "landing-pad",
-      "reason": "landing-pad: compiler rejected \"landing-pad\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/09_HMW/upgrades/LandingPad.ts\",\"line\":15,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "landing-pad: compiler rejected \"landing-pad\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/09_HMW/upgrades/LandingPad.ts\",\"line\":17,\"message\":\"unsupported-attached-constant-field:gainCondition\",\"pattern\":\"unsupported-attached-constant-field:gainCondition\"}]",
       "setCode": "HMW_271"
     },
     {
@@ -6625,7 +6680,7 @@
     },
     {
       "internalName": "youre-all-clear-kid",
-      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_055"
     },
     {
@@ -6995,7 +7050,7 @@
     },
     {
       "internalName": "targeting-computer",
-      "reason": "targeting-computer: compiler rejected \"targeting-computer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/upgrades/TargetingComputer.ts\",\"line\":14,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "targeting-computer: compiler rejected \"targeting-computer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/04_JTL/upgrades/TargetingComputer.ts\",\"line\":16,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit\"}]",
       "setCode": "JTL_171"
     },
     {
@@ -7335,7 +7390,7 @@
     },
     {
       "internalName": "death-star-plans",
-      "reason": "death-star-plans: compiler rejected \"death-star-plans\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":28,\"message\":\"trigger-alias-hook:onAttackDeclared\",\"pattern\":\"trigger-alias-hook:onAttackDeclared\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":43,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":53,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isFirstUnitPlayedThisPhase\"}]",
+      "reason": "death-star-plans: compiler rejected \"death-star-plans\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":10,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":28,\"message\":\"trigger-alias-hook:onAttackDeclared\",\"pattern\":\"trigger-alias-hook:onAttackDeclared\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":45,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":53,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isFirstUnitPlayedThisPhase\"}]",
       "setCode": "JTL_260"
     },
     {
@@ -7630,7 +7685,7 @@
     },
     {
       "internalName": "shadow-of-stygeon-prime",
-      "reason": "shadow-of-stygeon-prime: compiler rejected \"shadow-of-stygeon-prime\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts\",\"line\":17,\"message\":\"registrar:addGainTriggeredAbilityTargetingAttached\",\"pattern\":\"registrar:addGainTriggeredAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts\",\"line\":28,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "shadow-of-stygeon-prime: compiler rejected \"shadow-of-stygeon-prime\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts\",\"line\":17,\"message\":\"registrar:addGainTriggeredAbilityTargetingAttached\",\"pattern\":\"registrar:addGainTriggeredAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts\",\"line\":30,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\"}]",
       "setCode": "LAW_077"
     },
     {
@@ -7720,7 +7775,7 @@
     },
     {
       "internalName": "leias-disguise",
-      "reason": "leias-disguise: compiler rejected \"leias-disguise\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":18,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":26,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
+      "reason": "leias-disguise: compiler rejected \"leias-disguise\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":20,\"message\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":26,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
       "setCode": "LAW_111"
     },
     {
@@ -7767,11 +7822,6 @@
       "internalName": "adventurer-sniper-rifle",
       "reason": "adventurer-sniper-rifle: compiler rejected \"adventurer-sniper-rifle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/AdventurerSniperRifle.ts\",\"line\":17,\"message\":\"registrar:addGainActionAbilityTargetingAttached\",\"pattern\":\"registrar:addGainActionAbilityTargetingAttached\"}]",
       "setCode": "LAW_126"
-    },
-    {
-      "internalName": "veiled-strength",
-      "reason": "veiled-strength: compiler rejected \"veiled-strength\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/VeiledStrength.ts\",\"line\":18,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
-      "setCode": "LAW_128"
     },
     {
       "internalName": "mastery",
@@ -7824,11 +7874,6 @@
       "setCode": "LAW_145"
     },
     {
-      "internalName": "jaunty-light-freighter",
-      "reason": "jaunty-light-freighter: compiler rejected \"jaunty-light-freighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/07_LAW/units/JauntyLightFreighter.ts\",\"line\":18,\"message\":\"new Set(\\n                    context.player.getArenaUnits()\\n                        .map((x) => x.aspects)\\n                        .flat()\\n                )\",\"pattern\":\"non-path-reference\"}]",
-      "setCode": "LAW_147"
-    },
-    {
       "internalName": "smugglers-yt2400",
       "reason": "smugglers-yt2400: compiler rejected \"smugglers-yt2400\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_LAW/units/SmugglersYT2400.ts\",\"line\":18,\"message\":\"immediateEffect:payResources\",\"pattern\":\"immediateEffect:payResources\"}]",
       "setCode": "LAW_148"
@@ -7840,7 +7885,7 @@
     },
     {
       "internalName": "fulcrum",
-      "reason": "fulcrum: compiler rejected \"fulcrum\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":18,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":23,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "fulcrum: compiler rejected \"fulcrum\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":20,\"message\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:abilityHelper.ongoingEffects.gainTrait\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":23,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
       "setCode": "LAW_150"
     },
     {
@@ -8380,7 +8425,7 @@
     },
     {
       "internalName": "jedi-trials",
-      "reason": "jedi-trials: compiler rejected \"jedi-trials\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":23,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "jedi-trials: compiler rejected \"jedi-trials\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":26,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\"}]",
       "setCode": "LOF_052"
     },
     {
@@ -8395,7 +8440,7 @@
     },
     {
       "internalName": "size-matters-not",
-      "reason": "size-matters-not: compiler rejected \"size-matters-not\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/SizeMattersNot.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/SizeMattersNot.ts\",\"line\":22,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "size-matters-not: compiler rejected \"size-matters-not\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/SizeMattersNot.ts\",\"line\":16,\"message\":\"registrar:addDecreaseCostAbility\",\"pattern\":\"registrar:addDecreaseCostAbility\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/05_LOF/upgrades/SizeMattersNot.ts\",\"line\":24,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes\"}]",
       "setCode": "LOF_056"
     },
     {
@@ -8407,11 +8452,6 @@
       "internalName": "guardian-of-the-whills",
       "reason": "guardian-of-the-whills: compiler rejected \"guardian-of-the-whills\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/GuardianOfTheWhills.ts\",\"line\":11,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsPlayedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/GuardianOfTheWhills.ts\",\"line\":20,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/units/GuardianOfTheWhills.ts\",\"line\":24,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:isFirstUpgradePlayedOnThisCopy\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/01_SOR/units/GuardianOfTheWhills.ts\",\"line\":37,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost\"}]",
       "setCode": "LOF_058"
-    },
-    {
-      "internalName": "padawan-starfighter",
-      "reason": "padawan-starfighter: compiler rejected \"padawan-starfighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/03_TWI/units/PadawanStarFighter.ts\",\"line\":18,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "LOF_060"
     },
     {
       "internalName": "axe-woves#accomplished-warrior",
@@ -8485,7 +8525,7 @@
     },
     {
       "internalName": "inquisitors-lightsaber",
-      "reason": "inquisitors-lightsaber: compiler rejected \"inquisitors-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/InquisitorsLightsaber.ts\",\"line\":18,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "inquisitors-lightsaber: compiler rejected \"inquisitors-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":69,\"file\":\"game/cards/05_LOF/upgrades/InquisitorsLightsaber.ts\",\"line\":20,\"message\":\"unsupported-query:targetIsUnit\",\"pattern\":\"unsupported-query:targetIsUnit\"}]",
       "setCode": "LOF_090"
     },
     {
@@ -8819,11 +8859,6 @@
       "setCode": "LOF_229"
     },
     {
-      "internalName": "darth-malak#covetous-apprentice",
-      "reason": "darth-malak#covetous-apprentice: compiler rejected \"darth-malak#covetous-apprentice\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/05_LOF/units/DarthMalakCovetousApprentice.ts\",\"line\":19,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "LOF_234"
-    },
-    {
       "internalName": "hk87-assassin-droid",
       "reason": "hk87-assassin-droid: compiler rejected \"hk87-assassin-droid\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/05_LOF/units/HK87AssassinDroid.ts\",\"line\":19,\"message\":\"unsupported-arena-collection:concat\",\"pattern\":\"unsupported-arena-collection:concat\"}]",
       "setCode": "LOF_235"
@@ -8980,7 +9015,7 @@
     },
     {
       "internalName": "condemn",
-      "reason": "condemn: compiler rejected \"condemn\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":21,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":37,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":19,\"message\":\"Unused binding aspects may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
+      "reason": "condemn: compiler rejected \"condemn\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":21,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":40,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":19,\"message\":\"Unused binding aspects may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "SEC_038"
     },
     {
@@ -9035,7 +9070,7 @@
     },
     {
       "internalName": "exiled-from-the-force",
-      "reason": "exiled-from-the-force: compiler rejected \"exiled-from-the-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/ExiledFromTheForce.ts\",\"line\":20,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "exiled-from-the-force: compiler rejected \"exiled-from-the-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/06_SEC/upgrades/ExiledFromTheForce.ts\",\"line\":23,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait\"}]",
       "setCode": "SEC_054"
     },
     {
@@ -9089,11 +9124,6 @@
       "setCode": "SEC_070"
     },
     {
-      "internalName": "disciples-devotion",
-      "reason": "disciples-devotion: compiler rejected \"disciples-devotion\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/DisciplesDevotion.ts\",\"line\":16,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
-      "setCode": "SEC_071"
-    },
-    {
       "internalName": "scour-the-archives",
       "reason": "scour-the-archives: compiler rejected \"scour-the-archives\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_SEC/events/ScourTheArchives.ts\",\"line\":17,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "SEC_072"
@@ -9125,7 +9155,7 @@
     },
     {
       "internalName": "chancellor-palpatine#i-am-the-senate",
-      "reason": "chancellor-palpatine#i-am-the-senate: compiler rejected \"chancellor-palpatine#i-am-the-senate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts\",\"line\":19,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
+      "reason": "chancellor-palpatine#i-am-the-senate: compiler rejected \"chancellor-palpatine#i-am-the-senate\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts\",\"line\":25,\"message\":\"optional-reference\",\"pattern\":\"optional-reference\"}]",
       "setCode": "SEC_082"
     },
     {
@@ -9202,11 +9232,6 @@
       "internalName": "mon-mothma#clinging-to-hope",
       "reason": "mon-mothma#clinging-to-hope: compiler rejected \"mon-mothma#clinging-to-hope\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":13,\"file\":\"game/cards/06_SEC/units/MonMothmaClingingToHope.ts\",\"line\":20,\"message\":\"object-property:SpreadAssignment\",\"pattern\":\"object-property:SpreadAssignment\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/06_SEC/units/MonMothmaClingingToHope.ts\",\"line\":24,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:attackWithUnitAbility\"}]",
       "setCode": "SEC_103"
-    },
-    {
-      "internalName": "figure-of-unity",
-      "reason": "figure-of-unity: compiler rejected \"figure-of-unity\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/FigureOfUnity.ts\",\"line\":18,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
-      "setCode": "SEC_104"
     },
     {
       "internalName": "renewed-friendship",
@@ -9365,7 +9390,7 @@
     },
     {
       "internalName": "nemiks-manifesto",
-      "reason": "nemiks-manifesto: compiler rejected \"nemiks-manifesto\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/NemiksManifesto.ts\",\"line\":18,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/NemiksManifesto.ts\",\"line\":22,\"message\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\",\"pattern\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\"}]",
+      "reason": "nemiks-manifesto: compiler rejected \"nemiks-manifesto\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/06_SEC/upgrades/NemiksManifesto.ts\",\"line\":20,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/NemiksManifesto.ts\",\"line\":22,\"message\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\",\"pattern\":\"registrar:addGainWhenDefeatedAbilityTargetingAttached\"}]",
       "setCode": "SEC_156"
     },
     {
@@ -9910,7 +9935,7 @@
     },
     {
       "internalName": "foundling",
-      "reason": "foundling: compiler rejected \"foundling\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/Foundling.ts\",\"line\":16,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "foundling: compiler rejected \"foundling\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/02_SHD/upgrades/Foundling.ts\",\"line\":18,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait\"}]",
       "setCode": "SHD_069"
     },
     {
@@ -9925,7 +9950,7 @@
     },
     {
       "internalName": "imprisoned",
-      "reason": "imprisoned: compiler rejected \"imprisoned\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/Imprisoned.ts\",\"line\":16,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "imprisoned: compiler rejected \"imprisoned\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/02_SHD/upgrades/Imprisoned.ts\",\"line\":18,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities\"}]",
       "setCode": "SHD_072"
     },
     {
@@ -10249,11 +10274,6 @@
       "setCode": "SHD_156"
     },
     {
-      "internalName": "bokatan-kryze#fighting-for-mandalore",
-      "reason": "bokatan-kryze#fighting-for-mandalore: compiler rejected \"bokatan-kryze#fighting-for-mandalore\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/02_SHD/units/BoKatanKryzeFightingForMandalore.ts\",\"line\":21,\"message\":\"context.game.getPlayers()\\n                    .filter((p) => p.base.damage >= 15)\",\"pattern\":\"non-path-reference\"}]",
-      "setCode": "SHD_157"
-    },
-    {
       "internalName": "reckless-gunslinger",
       "reason": "unimplemented runtime keyword smuggle",
       "setCode": "SHD_160"
@@ -10380,7 +10400,7 @@
     },
     {
       "internalName": "frozen-in-carbonite",
-      "reason": "frozen-in-carbonite: compiler rejected \"frozen-in-carbonite\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/FrozenInCarbonite.ts\",\"line\":24,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "frozen-in-carbonite: compiler rejected \"frozen-in-carbonite\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/02_SHD/upgrades/FrozenInCarbonite.ts\",\"line\":26,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot\"}]",
       "setCode": "SHD_193"
     },
     {
@@ -10814,23 +10834,18 @@
       "setCode": "SOR_062"
     },
     {
-      "internalName": "rugged-survivors",
-      "reason": "rugged-survivors: compiler rejected \"rugged-survivors\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/01_SOR/units/RuggedSurvivors.ts\",\"line\":19,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "SOR_067"
-    },
-    {
       "internalName": "electrostaff",
       "reason": "electrostaff: compiler rejected \"electrostaff\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":103,\"file\":\"game/cards/01_SOR/upgrades/Electrostaff.ts\",\"line\":20,\"message\":\"unsupported-query:getAllTargets\",\"pattern\":\"unsupported-query:getAllTargets\"}]",
       "setCode": "SOR_071"
     },
     {
       "internalName": "entrenched",
-      "reason": "entrenched: compiler rejected \"entrenched\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/Entrenched.ts\",\"line\":14,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "entrenched: compiler rejected \"entrenched\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/01_SOR/upgrades/Entrenched.ts\",\"line\":16,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase\"}]",
       "setCode": "SOR_072"
     },
     {
       "internalName": "it-binds-all-things",
-      "reason": "it-binds-all-things: invalid ability IR: unknown field `thenCondition`, expected one of `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "it-binds-all-things: invalid ability IR: unknown field `thenCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_075"
     },
     {
@@ -10932,11 +10947,6 @@
       "internalName": "agent-kallus#seeking-the-rebels",
       "reason": "agent-kallus#seeking-the-rebels: compiler rejected \"agent-kallus#seeking-the-rebels\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/01_SOR/units/AgentKallusSeekingTheRebels.ts\",\"line\":19,\"message\":\"trigger-alias-hook:onCardDefeated\",\"pattern\":\"trigger-alias-hook:onCardDefeated\"}]",
       "setCode": "SOR_115"
-    },
-    {
-      "internalName": "steadfast-battalion",
-      "reason": "steadfast-battalion: compiler rejected \"steadfast-battalion\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/units/SteadfastBattalion.ts\",\"line\":22,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "SOR_116"
     },
     {
       "internalName": "reinforcement-walker",
@@ -11062,11 +11072,6 @@
       "internalName": "aggression",
       "reason": "aggression: compiler rejected \"aggression\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/events/Aggression.ts\",\"line\":19,\"message\":\"immediateEffect:chooseModalEffects\",\"pattern\":\"immediateEffect:chooseModalEffects\"}]",
       "setCode": "SOR_155"
-    },
-    {
-      "internalName": "jedha-agitator",
-      "reason": "jedha-agitator: compiler rejected \"jedha-agitator\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/units/JedhaAgitator.ts\",\"line\":21,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "SOR_158"
     },
     {
       "internalName": "wolffe#suspicious-veteran",
@@ -11222,11 +11227,6 @@
       "internalName": "mining-guild-tie-fighter",
       "reason": "mining-guild-tie-fighter: compiler rejected \"mining-guild-tie-fighter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/units/MiningGuildTieFighter.ts\",\"line\":18,\"message\":\"immediateEffect:payResources\",\"pattern\":\"immediateEffect:payResources\"}]",
       "setCode": "SOR_206"
-    },
-    {
-      "internalName": "outer-rim-headhunter",
-      "reason": "outer-rim-headhunter: compiler rejected \"outer-rim-headhunter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/01_SOR/units/OuterRimHeadhunter.ts\",\"line\":21,\"message\":\"unsupported-query:hasSomeArenaCard\",\"pattern\":\"unsupported-query:hasSomeArenaCard\"}]",
-      "setCode": "SOR_208"
     },
     {
       "internalName": "strafing-gunship",
@@ -11475,7 +11475,7 @@
     },
     {
       "internalName": "abandoned-the-order",
-      "reason": "abandoned-the-order: compiler rejected \"abandoned-the-order\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/upgrades/AbandonedTheOrder.ts\",\"line\":17,\"message\":\"registrar:addConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addConstantAbilityTargetingAttached\"}]",
+      "reason": "abandoned-the-order: compiler rejected \"abandoned-the-order\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/07_TS26/upgrades/AbandonedTheOrder.ts\",\"line\":19,\"message\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait\",\"pattern\":\"unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait\"}]",
       "setCode": "TS26_037"
     },
     {
@@ -11500,7 +11500,7 @@
     },
     {
       "internalName": "secret-marriage",
-      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `attachedContext`, `targetResolvers`, `trigger`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_046"
     },
     {
@@ -11945,7 +11945,7 @@
     },
     {
       "internalName": "squad-support",
-      "reason": "squad-support: compiler rejected \"squad-support\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/03_TWI/upgrades/SquadSupport.ts\",\"line\":18,\"message\":\"registrar:addGainConstantAbilityTargetingAttached\",\"pattern\":\"registrar:addGainConstantAbilityTargetingAttached\"}]",
+      "reason": "squad-support: compiler rejected \"squad-support\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":28,\"file\":\"game/cards/03_TWI/upgrades/SquadSupport.ts\",\"line\":23,\"message\":\"unsupported-live-stat-expression\",\"pattern\":\"unsupported-live-stat-expression\"}]",
       "setCode": "TWI_122"
     },
     {
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1484,
+  "runtimeRejectedCount": 1471,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 700
+  "sourceAstConvertedCount": 713
 }

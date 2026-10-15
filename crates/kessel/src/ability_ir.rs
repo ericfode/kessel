@@ -341,6 +341,7 @@ impl Expr {
                     ["modifierTarget"] | ["modifierTarget","damage"|"controller"] | ["modifierTarget","controller","resources","length"] => true,
                     ["source", "parentCard" | "parentUnit"] => true,
                     ["source", "parentCard" | "parentUnit", "damage" | "power" | "hp" | "remainingHp" | "controller" | "exhausted" | "unique"] => true,
+                    ["source", "parentCard", "title"] => true,
                     ["source" | "target" | "card", "damage" | "power" | "hp" | "cost" | "printedCost" | "remainingHp" | "exhausted"
                     | "controller" | "unique" | "zoneName"] => true,
                     ["player" | "opponent", "readyResourceCount" | "exhaustedResourceCount" | "base"] => {
@@ -394,16 +395,25 @@ impl Expr {
             } => {
                 if receiver.references_title() || args.iter().any(Self::references_title) { return Err("printed title query coercion is unsupported".into()); }
                 let arity = match name.as_str() {
-                    "hasCost" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
+                    "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isBase" | "isLeader" | "getPower" | "getHp"
                     | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "resourcePairs" | "isAttacking" | "isDefending" => 0,
-                    "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaUnit"
+                    "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
                     | "arenaUnitCount" => 1,
                     _ => return Err(format!("unsupported runtime query {name}")),
                 };
                 if args.len() != arity {
                     return Err(format!("query {name} expects {arity} arguments"));
                 }
+                if name=="hasSomeArenaCard" {
+                    fn predicate(e:&Expr)->bool {match e {
+                        Expr::Const{value}=>value.as_bool()==Some(true),
+                        Expr::Query{name,receiver,args} if matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"])=>match name.as_str(){"isLeader"|"isDeployed"|"isUpgrade"=>args.is_empty(),"hasSomeTrait"=>args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str().is_some_and(|s|!s.is_empty()&&s.len()<=64)),_=>false},
+                        Expr::Binary{op,left,right} if op=="&&"=>predicate(left)&&predicate(right),_=>false}}
+                    if !predicate(&args[0]) {return Err("arena-card existence supports bounded static trait/type predicates".into());}
+                }
+                if name=="hasSomeArenaCard" && !matches!(receiver.as_ref(),Expr::Ref {path} if path==&["player"] || path==&["opponent"]) {return Err("arena-card query requires a scalar player receiver".into());}
+                if name=="isDeployed" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isDeployed requires an explicit scalar card receiver".into());}
                 if name=="isUpgrade" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isUpgrade requires an explicit card receiver".into());}
                 if name=="hasCost" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("hasCost requires an explicit card receiver".into());}
                 if name=="isTokenUnit" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isTokenUnit requires an explicit card receiver".into());}
@@ -814,6 +824,8 @@ fn one() -> Expr {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Ability {
+    #[serde(default, skip_serializing_if="Option::is_none")]
+    pub attached_context: Option<String>,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub target_resolvers: Vec<NamedTargetResolver>,
     #[serde(default)]
@@ -921,6 +933,8 @@ impl Instruction {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Program {
+    #[serde(default, skip_serializing_if="Option::is_none")]
+    pub attached_context: Option<String>,
     pub title: String,
     pub context_title: Vec<Expr>,
     pub trigger: String,
@@ -1122,6 +1136,23 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if let Some(context)=&ability.attached_context {
+            if !["upgrade","host"].contains(&context.as_str()) || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() {
+                return Err("attached contexts require bounded constant keyword registrations".into());
+            }
+            fn keywords(e:&Effect,selected:bool,context:&str)->bool {match e {
+                Effect::GainKeyword {target:Target::Name(n),keyword,amount:Expr::Const{value},duration}=>duration=="persistent" && n==if selected {"chosen"}else if context=="upgrade" {"parent"}else{"self"} && ["grit","sentinel","restore","raid","overwhelm"].contains(&keyword.as_str()) && value.as_u64().is_some_and(|n|(1..=2).contains(&n)),
+                Effect::Simultaneous{effects}=>!effects.is_empty()&&effects.len()<=8&&effects.iter().all(|e|keywords(e,selected,context)),_=>false}}
+            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
+            if context=="host" {
+                fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
+                if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
+                if let Some(r)=&ability.target_resolver {
+                    let expected=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}});
+                    if r.owner!="self" || r.card_type!="unit" || r.zone.as_deref()!=Some("arena") || r.optional || r.count.is_some() || r.mode.is_some() || r.arena.is_some() || r.prompt_title.is_some() || r.predicate.as_ref().and_then(|p|serde_json::to_value(p).ok())!=Some(expected) {return Err("delegated host aura requires other friendly arena units by host identity and controller".into());}
+                }
+            }
+        }
         if contains_arena_scalar(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !arena_query_ability(ability) {return Err("arena scalar queries require exact reviewed registration".into());}
         if parent_upgrade_registration(ability)==Some(false) {
             let mut normalized=ability.clone();
@@ -1135,6 +1166,11 @@ impl Program {
             predicate(value) || match value {Value::Array(a)=>a.iter().any(|v|contains(v,predicate)),Value::Object(o)=>o.values().any(|v|contains(v,predicate)),_=>false}
         }
         let encoded=serde_json::to_value(ability).map_err(|e|e.to_string())?;
+        if contains(&encoded,|v|v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"])) {
+            let condition=matches!(&ability.condition,Some(Expr::Binary{op,left,right}) if op=="==="&&matches!(left.as_ref(),Expr::Ref{path} if path==&["source","parentCard","title"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_str().is_some_and(|title|!title.is_empty()&&title.len()<=128)));
+            if !condition || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || ability.target_resolver.is_some() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() || !matches!(&ability.effect,Effect::GainKeyword{target:Target::Name(n),amount:Expr::Const{value},duration,..} if n=="parent"&&duration=="persistent"&&value.as_u64()==Some(1)) {return Err("parent printed title requires a standalone live attached keyword equality condition".into());}
+        }
+        if ability.target_resolver.as_ref().is_some_and(|r|r.card_type=="any") && matches!(&ability.effect,Effect::ModifyStats{power,..} if contains(&serde_json::to_value(power).expect("typed amount serializes"),|v|v["kind"]=="query"&&v["name"]=="hasSomeArenaUnit")) {return Err("Any-target aspect-scaled phase stats require inert base/front-leader menu support".into());}
         if contains_keyword_inventory(&encoded)&&!keyword_inventory_registration(ability){return Err("keyword inventory requires bounded optional unit Exhaust or other-friendly persistent stat registration".into());}
         fn binder_context(value:&Value,live:bool)->Result<(),String> {
             if value["kind"]=="ref"&&value["path"][0]=="modifierTarget"&&!live {return Err("modifierTarget only exists in persistent stat expressions".into());}
@@ -1256,6 +1292,7 @@ impl Program {
             return Err("triggered or event additional costs are not implemented".into());
         }
         let mut p = Self {
+            attached_context: ability.attached_context.clone(),
             title: ability.title.clone(),
             context_title: ability.context_title.clone(),
             trigger: ability.trigger.clone(),
@@ -1920,6 +1957,29 @@ impl Catalogue {
                 let sides: Sides = serde_json::from_value(entry["abilities"].clone())
                     .map_err(|e| format!("invalid ability IR: {e}"))?;
                 let exact_type=|expected:&str|entry["card"]["types"].as_array().is_some_and(|types|types.len()==1&&types[0]==expected);
+                let source_class=entry["baseClass"].as_str();
+                let source_types:Option<&[&str]>=match source_class {
+                    Some("NonLeaderUnitCard")=>Some(&["unit"]), Some("LeaderUnitCard")=>Some(&["leader"]),
+                    Some("EventCard")=>Some(&["event"]), Some("BaseCard")=>Some(&["base"]),
+                    Some("UpgradeCard")=>Some(&["upgrade"]), Some("TokenUnitCard")=>Some(&["token","unit"]),
+                    Some("TokenUpgradeCard")=>Some(&["token","upgrade"]), Some("TokenCard")=>Some(&["token"]), _=>None,
+                };
+                if let Some(expected)=source_types {
+                    if !entry["card"]["types"].as_array().is_some_and(|types|types.len()==expected.len()&&expected.iter().all(|kind|types.iter().any(|value|value.as_str()==Some(*kind)))) {return Err("source class and card type metadata disagree".into());}
+                    if source_class==Some("LeaderUnitCard") {
+                        if !sides.card.is_empty() {return Err("leader sources require explicit leader/unit side registrations".into());}
+                    } else if !sides.leader.is_empty()||!sides.unit.is_empty() {return Err("ordinary sources require card-side registrations".into());}
+                }
+                fn contains_presence_query(value:&Value)->bool {
+                    (value["kind"]=="query" && matches!(value["name"].as_str(),Some("hasSomeArenaCard"|"isDeployed"))) || match value {Value::Array(items)=>items.iter().any(contains_presence_query),Value::Object(object)=>object.values().any(contains_presence_query),_=>false}
+                }
+                if contains_presence_query(&entry["abilities"]) && (source_class!=Some("NonLeaderUnitCard")||!exact_type("unit")||!sides.unit.is_empty()||!sides.leader.is_empty()) {return Err("arena-card/deployed-leader queries require ordinary unit card-side metadata".into());}
+                fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
+                let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
+                let parent_title=parent_printed_title(&entry["abilities"]);
+                if attached_context || parent_title {
+                    if entry["baseClass"]!="UpgradeCard" || !exact_type("upgrade") || sides.card.len()!=1 || !sides.unit.is_empty() || !sides.leader.is_empty() || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) || entry["keywordValues"]!=serde_json::json!({}) || !entry["card"]["keywords"].as_array().is_some_and(|keywords|keywords.iter().all(|k|k.as_str().is_some_and(|k|CORE_KEYWORDS.contains(&k)))) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
+                }
                 if contains_keyword_inventory(&entry["abilities"]) {
                     if entry["baseClass"]!="NonLeaderUnitCard"||!exact_type("unit")||sides.card.len()!=1||!sides.card.iter().all(keyword_inventory_registration)||!sides.unit.is_empty()||!sides.leader.is_empty()||!entry["piloting"].is_null()||!entry["attachCondition"].is_null()||!entry["card"]["unique"].is_boolean()||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) {return Err("keyword inventory requires sole ordinary nonleader unit metadata".into());}
                 }
@@ -2258,7 +2318,8 @@ mod tests {
         }
         assert!(Expr::Ref {path:vec!["card".into(),"title".into()]}.validate().is_ok());
         assert!(Expr::Ref {path:vec!["card".into(),"title".into()]}.validate_number().is_err());
-        assert!(Expr::Ref {path:vec!["source".into(),"parentCard".into(),"title".into()]}.validate().is_err());
+        assert!(Expr::Ref {path:vec!["source".into(),"parentCard".into(),"title".into()]}.validate().is_ok());
+        assert!(Expr::Ref {path:vec!["source".into(),"parentUnit".into(),"title".into()]}.validate().is_err());
         assert!(compiled_group(json!({"trigger":"event","title":"text amount","effect":{"kind":"damage","target":"chosen","amount":{"kind":"ref","path":["card","title"]}}})).is_err());
     }
 

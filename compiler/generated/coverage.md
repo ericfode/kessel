@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1072** (700 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1386**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1085** (713 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1373**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -18,9 +18,9 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:disclose | 26 | 27 |
 | class-state:cardsPlayedThisPhaseWatcher | 25 | 25 |
 | trigger-alias-hook:onCardDefeated | 25 | 27 |
-| non-path-reference | 24 | 24 |
 | registrar:addGainOnAttackAbilityTargetingAttached | 23 | 23 |
 | trigger-alias-hook:onLeaderDeployed | 23 | 23 |
+| non-path-reference | 22 | 22 |
 | unsupported-field:choices | 22 | 22 |
 | class-state:attacksThisPhaseWatcher | 21 | 21 |
 | registrar:addPilotingAbility | 21 | 21 |
@@ -30,8 +30,8 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | invalid-effect-sequence | 20 | 20 |
 | immediateEffect:giveAdvantage | 19 | 20 |
 | optional-reference | 19 | 19 |
-| registrar:addConstantAbilityTargetingAttached | 18 | 18 |
 | unsupported-player-target-resolver | 18 | 18 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot | 17 | 17 |
 | class-state:damageDealtThisPhaseWatcher | 15 | 15 |
 | immediateEffect:capture | 15 | 15 |
 | immediateEffect:forThisPhasePlayerEffect | 15 | 15 |
@@ -39,12 +39,10 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:takeControlOfUnit | 15 | 15 |
 | registrar:addGainTriggeredAbilityTargetingAttached | 15 | 15 |
 | unsupported-field:cannotTargetFirst | 15 | 17 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot | 15 | 15 |
 | immediateEffect:createCreditToken | 14 | 15 |
 | registrar:addPilotingGainAbilityTargetingAttached | 14 | 14 |
 | immediateEffect:forThisAttackCardEffect | 13 | 13 |
 | registrar:addDamageModificationAbility | 13 | 14 |
-| registrar:addGainConstantAbilityTargetingAttached | 13 | 13 |
 | trigger-alias-hook:onPhaseStarted | 13 | 13 |
 | immediateEffect:chooseModalEffects | 12 | 12 |
 | immediateEffect:lookAtAndSelectCard | 12 | 12 |
@@ -66,6 +64,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:reveal | 9 | 9 |
 | unsupported-field:numCardsFunc | 9 | 9 |
 | unsupported-field:options | 9 | 9 |
+| unsupported-query:targetIsUnit | 9 | 9 |
 | custom-inheritance:LAWCommonBase | 8 | 8 |
 | custom-inheritance:LofCommonForceBase | 8 | 8 |
 | immediateEffect:delayedPlayerEffect | 8 | 8 |
@@ -73,9 +72,8 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addReplacementEffectAbility | 8 | 8 |
 | trigger-alias-hook:onAttackDeclared | 8 | 8 |
 | unsupported-field:source | 8 | 8 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost | 8 | 8 |
 | unsupported-query:getAllTargets | 8 | 8 |
-| unsupported-query:hasSomeArenaCard | 8 | 8 |
-| unsupported-query:targetIsUnit | 8 | 8 |
 | class-state:cardsLeftPlayThisPhaseWatcher | 7 | 7 |
 | method:costSum | 7 | 7 |
 | named-target-cost-or-limit | 7 | 7 |
@@ -83,7 +81,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unimplemented-context-field:controllingPlayer | 7 | 7 |
 | unsupported-field:canBeTriggeredBy | 7 | 7 |
 | unsupported-field:multiSelectCardCondition | 7 | 7 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost | 7 | 7 |
 | unsupported-query:controlsLeaderUnitOrUpgradeWithTitle | 7 | 7 |
 | immediateEffect:moveToBottomOfDeck | 6 | 6 |
 | immediateEffect:playMultipleCardsFromDeck | 6 | 6 |
@@ -100,7 +97,9 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addGainActionAbilityTargetingAttached | 5 | 5 |
 | unimplemented-context-field:events | 5 | 5 |
 | unsupported-field:playerChoosingOptional | 5 | 5 |
+| unsupported-live-stat-expression | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.dealsCombatDamageFirst | 5 | 5 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait | 5 | 5 |
 | unsupported-query:defenderWasDefeated | 5 | 5 |
 | unsupported-query:isLeaderUnit | 5 | 5 |
 | unsupported-query:reduce | 5 | 5 |
@@ -121,13 +120,14 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | trigger-alias-hook:onClaimInitiative | 4 | 4 |
 | trigger-alias-hook:onUpgradeAttached | 4 | 4 |
 | trigger-alias-hook:whenPlayedUsingSmuggle | 4 | 4 |
+| unsupported-attached-constant-field:gainCondition | 4 | 4 |
 | unsupported-field:ability | 4 | 5 |
 | unsupported-field:condition | 4 | 4 |
 | unsupported-field:ifYouDoNot | 4 | 4 |
 | unsupported-field:min | 4 | 4 |
 | unsupported-field:showUnresolvable | 4 | 5 |
-| unsupported-live-stat-expression | 4 | 4 |
 | unsupported-modifier:abilityHelper.ongoingEffects.cardCannot | 4 | 4 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities | 4 | 4 |
 | unsupported-query:isShield | 4 | 4 |
 | unsupported-query:someUnitLeftPlay | 4 | 4 |
 | unsupported-query:wasDefeatedThisPhase | 4 | 4 |
@@ -148,7 +148,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-field:zoneFilter | 3 | 3 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotBeDefeatedByDamage | 3 | 3 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.ignoreAllAspectPenalties | 3 | 3 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities | 3 | 3 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait | 3 | 3 |
 | unsupported-modifier:OngoingEffectBuilder.card.static | 3 | 3 |
 | unsupported-query:getAttackersInPlay | 3 | 3 |
 | unsupported-query:getPlayers | 3 | 3 |
@@ -197,11 +197,13 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | trigger-alias-static-when | 2 | 4 |
 | unsupported-arena-collection:concat | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttack | 2 | 2 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.decreaseCost | 2 | 2 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait | 2 | 2 |
+| unsupported-modifier:abilityHelper.ongoingEffects.gainTrait | 2 | 2 |
 | unsupported-modifier:abilityHelper.ongoingEffects.loseAllAbilities | 2 | 2 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.modifyStartingHandSize | 2 | 2 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes | 2 | 2 |
 | unsupported-modifier:OngoingEffectBuilder.player.static | 2 | 2 |
 | unsupported-named-resolver-field:choices | 2 | 2 |
 | unsupported-named-resolver-field:unlessEffect | 2 | 2 |
@@ -216,10 +218,13 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:isCreditToken | 2 | 2 |
 | unsupported-query:isTokenUpgrade | 2 | 2 |
 | unsupported-query:someCardEnteredPlay | 2 | 2 |
+| arena-card-query-type | 1 | 1 |
 | arena-list-scalar | 1 | 1 |
 | arena-predicate-reference | 1 | 1 |
 | arena-query-card-capture | 1 | 1 |
 | arena-query-receiver | 1 | 1 |
+| attached-constant-installed-keyword-only | 1 | 1 |
+| attack-query-receiver | 1 | 1 |
 | cardTypeFilter:leader | 1 | 1 |
 | cardTypeFilter:nonLeaderUpgrade | 1 | 1 |
 | cardTypeFilter:unitUpgrade | 1 | 1 |
@@ -424,6 +429,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unimplemented-context-field:damage | 1 | 1 |
 | unimplemented-context-field:remainingHp | 1 | 1 |
 | unimplemented-context-field:resolvedEvents | 1 | 1 |
+| unsupported-attached-constant-field:matchTarget | 1 | 1 |
 | unsupported-effect-call:this.buildAbility | 1 | 1 |
 | unsupported-effect-call:this.buildBountyHunterAttackEffect | 1 | 1 |
 | unsupported-effect-call:this.buildModifyStatsForPhaseImmediateEffect | 1 | 1 |
@@ -442,6 +448,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-hand-discard-field:cardCondition | 1 | 1 |
 | unsupported-modifier-keyword | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.additionalPhase | 1 | 1 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtToOpponents | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.blankEventCard | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.canAttackBaseWhileUsingAmbush | 1 | 1 |
@@ -449,19 +456,20 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-modifier:AbilityHelper.ongoingEffects.canExhaustUnitsInsteadOfResources | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.canLookAtTopOfDeck | 1 | 1 |
 | unsupported-modifier:abilityHelper.ongoingEffects.cannotAttackBase | 1 | 1 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.damageDealtByThisCardIsUnpreventable | 1 | 1 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount | 1 | 1 |
 | unsupported-modifier:abilityHelper.ongoingEffects.gainAbility | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.gainKeywords | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.increaseCost | 1 | 1 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.isLeader | 1 | 1 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.loseAllKeywords | 1 | 1 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.modifyIndirectDamage | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.modifyPayStageCost | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.modifyPilotingLimit | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.multiplyNumericKeyword | 1 | 1 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.noMulligan | 1 | 1 |
-| unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes | 1 | 1 |
+| unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts | 1 | 1 |
 | unsupported-modifier:abilityHelper.ongoingEffects.unitsEnterPlayReady | 1 | 1 |
 | unsupported-named-effect:returnToHand | 1 | 1 |
 | unsupported-named-resolver-field:capturedByFilter | 1 | 1 |

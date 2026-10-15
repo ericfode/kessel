@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "b2322359772a0096aa257db7f9359a82c3618b902392da48d3e0f3c8d12d2904",
+  "compilerHash": "b84aa15a94279764c722b88a1dc7e124a950659f57cdc1348d6ee77ae0bde7d5",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -25985,11 +25985,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "attack-query-receiver",
+          "message": "attack-query-receiver",
           "file": "game/cards/08_ASH/upgrades/PointlessToResist.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 37
         }
       ],
       "className": "PointlessToResist",
@@ -27135,18 +27135,41 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "Give Sentinel to the attached unit",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "parent",
+              "duration": "persistent",
+              "keyword": "sentinel",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "binary",
+              "op": "===",
+              "left": {
+                "kind": "ref",
+                "path": [
+                  "source",
+                  "parentCard",
+                  "title"
+                ]
+              },
+              "right": {
+                "kind": "const",
+                "value": "Luke Skywalker"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "optional-reference",
-          "message": "optional-reference",
-          "file": "game/cards/08_ASH/upgrades/LukesJediLightsaberConstructedByHand.ts",
-          "line": 18,
-          "column": 41
-        }
-      ],
+      "diagnostics": [],
       "className": "LukesJediLightsaberConstructedByHand",
       "baseClass": "UpgradeCard",
       "id": "4924242543",
@@ -27171,7 +27194,7 @@
           ]
         }
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Luke's Jedi Lightsaber",
         "subtitle": "Constructed by Hand",
@@ -27216,14 +27239,19 @@
       "dataHash": "790256fff18d0f9ad3ed56a8909a057014ee00d2073a26dff0e72e9785e8b1d5",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:===",
         "cardType:upgrade",
+        "ir:binary",
         "ir:const",
+        "ir:gainKeyword",
         "ir:query",
         "ir:ref",
         "ir:unary",
         "keyword:sentinel",
         "query:hasSomeTrait",
         "ref:card",
+        "ref:source.parentCard.title",
+        "trigger:constant",
         "unary:!"
       ]
     },
@@ -28928,11 +28956,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.doubleDeckSearchCount",
           "file": "game/cards/08_ASH/upgrades/ArcanaStarMap.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ],
       "className": "ArcanaStarMap",
@@ -31747,18 +31775,61 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "If attached unit is Sabine Wren or a Force unit, it gains Restore 2",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "self",
+              "duration": "persistent",
+              "keyword": "restore",
+              "amount": {
+                "kind": "const",
+                "value": 2
+              }
+            },
+            "condition": {
+              "kind": "binary",
+              "op": "||",
+              "left": {
+                "kind": "query",
+                "name": "hasSomeTrait",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "const",
+                    "value": "force"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "binary",
+                "op": "===",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "title"
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": "Sabine Wren"
+                }
+              }
+            },
+            "attachedContext": "host"
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
-          "file": "game/cards/08_ASH/upgrades/SabinesLightsaberNotAlone.ts",
-          "line": 18,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "SabinesLightsaberNotAlone",
       "baseClass": "UpgradeCard",
       "id": "3331025130",
@@ -31783,7 +31854,7 @@
           ]
         }
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Sabine's Lightsaber",
         "subtitle": "Not Alone",
@@ -31828,14 +31899,21 @@
       "dataHash": "592f72c30ae99fc94ad2632bd499ebf4457a67b4c9b84b48e6dab7c98c252cf0",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:===",
+        "binary:||",
         "cardType:upgrade",
+        "ir:binary",
         "ir:const",
+        "ir:gainKeyword",
         "ir:query",
         "ir:ref",
         "ir:unary",
         "keyword:restore",
         "query:hasSomeTrait",
         "ref:card",
+        "ref:source",
+        "ref:source.title",
+        "trigger:constant",
         "unary:!"
       ]
     },
@@ -33606,19 +33684,19 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.isLeader",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.isLeader",
           "file": "game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts",
-          "line": 20,
-          "column": 9
+          "line": 23,
+          "column": 17
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.providesAspectIconsForCosts",
           "file": "game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts",
-          "line": 28,
-          "column": 9
+          "line": 30,
+          "column": 28
         }
       ],
       "className": "TheDarksaberIconOfLeadership",
@@ -34790,11 +34868,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:matchTarget",
+          "message": "unsupported-attached-constant-field:matchTarget",
           "file": "game/cards/08_ASH/upgrades/DeadlyVulnerability.ts",
-          "line": 22,
-          "column": 9
+          "line": 24,
+          "column": 26
         }
       ],
       "className": "DeadlyVulnerability",
@@ -52518,8 +52596,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
+          "pattern": "arena-card-query-type",
+          "message": "arena-card-query-type",
           "file": "game/cards/09_HMW/events/Resonate.ts",
           "line": 18,
           "column": 41
@@ -53923,11 +54001,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/MilitaryAcademy.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ],
       "className": "MilitaryAcademy",
@@ -55012,11 +55090,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/VerdantFortress.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ],
       "className": "VerdantFortress",
@@ -61674,11 +61752,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/IntelligenceAgency.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -67557,11 +67635,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-attached-constant-field:gainCondition",
+          "message": "unsupported-attached-constant-field:gainCondition",
           "file": "game/cards/09_HMW/upgrades/LandingPad.ts",
-          "line": 15,
-          "column": 9
+          "line": 17,
+          "column": 28
         }
       ],
       "className": "LandingPad",
@@ -87012,11 +87090,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit",
           "file": "game/cards/04_JTL/upgrades/TargetingComputer.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ],
       "className": "TargetingComputer",
@@ -94398,11 +94476,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost",
           "file": "game/cards/04_JTL/upgrades/DeathStarPlans.ts",
-          "line": 43,
-          "column": 9
+          "line": 45,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -101749,11 +101827,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
           "file": "game/cards/07_LAW/upgrades/ShadowOfStygeonPrime.ts",
-          "line": 28,
-          "column": 9
+          "line": 30,
+          "column": 28
         }
       ],
       "className": "ShadowOfStygeonPrime",
@@ -104901,11 +104979,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/07_LAW/upgrades/LeiasDisguise.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -106191,18 +106269,26 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "Attached unit gains Grit",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "parent",
+              "duration": "persistent",
+              "keyword": "grit",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "attachedContext": "upgrade"
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
-          "file": "game/cards/07_LAW/upgrades/VeiledStrength.ts",
-          "line": 18,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "VeiledStrength",
       "baseClass": "UpgradeCard",
       "id": "7057086144",
@@ -106218,7 +106304,7 @@
         },
         "args": []
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Veiled Strength",
         "subtitle": "",
@@ -106261,11 +106347,14 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:upgrade",
+        "ir:const",
+        "ir:gainKeyword",
         "ir:query",
         "ir:ref",
         "keyword:grit",
         "query:isNonLeaderUnit",
-        "ref:card"
+        "ref:card",
+        "trigger:constant"
       ]
     },
     {
@@ -107702,23 +107791,326 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Give an Experience token to this unit for each different aspect among units your control",
+            "costs": [],
+            "effect": {
+              "kind": "giveExperience",
+              "target": "self",
+              "amount": {
+                "kind": "binary",
+                "op": "+",
+                "left": {
+                  "kind": "binary",
+                  "op": "+",
+                  "left": {
+                    "kind": "binary",
+                    "op": "+",
+                    "left": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "query",
+                        "name": "hasSomeArenaUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "player"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "op": "&&",
+                            "left": {
+                              "kind": "const",
+                              "value": true
+                            },
+                            "right": {
+                              "kind": "query",
+                              "name": "hasSomeAspect",
+                              "receiver": {
+                                "kind": "ref",
+                                "path": [
+                                  "card"
+                                ]
+                              },
+                              "args": [
+                                {
+                                  "kind": "const",
+                                  "value": "vigilance"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "kind": "const",
+                        "value": 1
+                      },
+                      "else": {
+                        "kind": "const",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "query",
+                        "name": "hasSomeArenaUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "player"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "op": "&&",
+                            "left": {
+                              "kind": "const",
+                              "value": true
+                            },
+                            "right": {
+                              "kind": "query",
+                              "name": "hasSomeAspect",
+                              "receiver": {
+                                "kind": "ref",
+                                "path": [
+                                  "card"
+                                ]
+                              },
+                              "args": [
+                                {
+                                  "kind": "const",
+                                  "value": "command"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "kind": "const",
+                        "value": 1
+                      },
+                      "else": {
+                        "kind": "const",
+                        "value": 0
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "query",
+                      "name": "hasSomeArenaUnit",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "player"
+                        ]
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "op": "&&",
+                          "left": {
+                            "kind": "const",
+                            "value": true
+                          },
+                          "right": {
+                            "kind": "query",
+                            "name": "hasSomeAspect",
+                            "receiver": {
+                              "kind": "ref",
+                              "path": [
+                                "card"
+                              ]
+                            },
+                            "args": [
+                              {
+                                "kind": "const",
+                                "value": "aggression"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "then": {
+                      "kind": "const",
+                      "value": 1
+                    },
+                    "else": {
+                      "kind": "const",
+                      "value": 0
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "+",
+                  "left": {
+                    "kind": "binary",
+                    "op": "+",
+                    "left": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "query",
+                        "name": "hasSomeArenaUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "player"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "op": "&&",
+                            "left": {
+                              "kind": "const",
+                              "value": true
+                            },
+                            "right": {
+                              "kind": "query",
+                              "name": "hasSomeAspect",
+                              "receiver": {
+                                "kind": "ref",
+                                "path": [
+                                  "card"
+                                ]
+                              },
+                              "args": [
+                                {
+                                  "kind": "const",
+                                  "value": "cunning"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "kind": "const",
+                        "value": 1
+                      },
+                      "else": {
+                        "kind": "const",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "query",
+                        "name": "hasSomeArenaUnit",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "player"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "op": "&&",
+                            "left": {
+                              "kind": "const",
+                              "value": true
+                            },
+                            "right": {
+                              "kind": "query",
+                              "name": "hasSomeAspect",
+                              "receiver": {
+                                "kind": "ref",
+                                "path": [
+                                  "card"
+                                ]
+                              },
+                              "args": [
+                                {
+                                  "kind": "const",
+                                  "value": "heroism"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "kind": "const",
+                        "value": 1
+                      },
+                      "else": {
+                        "kind": "const",
+                        "value": 0
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "query",
+                      "name": "hasSomeArenaUnit",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "player"
+                        ]
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "op": "&&",
+                          "left": {
+                            "kind": "const",
+                            "value": true
+                          },
+                          "right": {
+                            "kind": "query",
+                            "name": "hasSomeAspect",
+                            "receiver": {
+                              "kind": "ref",
+                              "path": [
+                                "card"
+                              ]
+                            },
+                            "args": [
+                              {
+                                "kind": "const",
+                                "value": "villainy"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "then": {
+                      "kind": "const",
+                      "value": 1
+                    },
+                    "else": {
+                      "kind": "const",
+                      "value": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "new Set(\n                    context.player.getArenaUnits()\n                        .map((x) => x.aspects)\n                        .flat()\n                )",
-          "file": "game/cards/07_LAW/units/JauntyLightFreighter.ts",
-          "line": 18,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "JauntyLightFreighter",
       "baseClass": "NonLeaderUnitCard",
       "id": "1925389607",
       "internalName": "jaunty-light-freighter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Jaunty Light Freighter",
         "subtitle": "",
@@ -107761,7 +108153,21 @@
       "dataHash": "a3dd31fb8823db1aee5bae31d51d79f26356e695fd8c4ffae7f15dd045d672f0",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "ability:then",
+        "binary:&&",
+        "binary:+",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:giveExperience",
+        "ir:query",
+        "ir:ref",
+        "query:hasSomeArenaUnit",
+        "query:hasSomeAspect",
+        "ref:card",
+        "ref:player",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -107921,19 +108327,19 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:abilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/07_LAW/upgrades/Fulcrum.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "attached-constant-installed-keyword-only",
+          "message": "attached-constant-installed-keyword-only",
           "file": "game/cards/07_LAW/upgrades/Fulcrum.ts",
           "line": 23,
-          "column": 9
+          "column": 59
         }
       ],
       "className": "Fulcrum",
@@ -121666,11 +122072,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/05_LOF/upgrades/JediTrials.ts",
-          "line": 23,
-          "column": 9
+          "line": 26,
+          "column": 28
         }
       ],
       "className": "JediTrials",
@@ -122089,11 +122495,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.overridePrintedAttributes",
           "file": "game/cards/05_LOF/upgrades/SizeMattersNot.ts",
-          "line": 22,
-          "column": 9
+          "line": 24,
+          "column": 28
         }
       ],
       "className": "SizeMattersNot",
@@ -122395,23 +122801,69 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While you control a Force unit or a Force upgrade, this unit gets +1/+1",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "self",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": 1
+              },
+              "hp": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "query",
+              "name": "hasSomeArenaCard",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "player"
+                ]
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "const",
+                    "value": true
+                  },
+                  "right": {
+                    "kind": "query",
+                    "name": "hasSomeTrait",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": [
+                      {
+                        "kind": "const",
+                        "value": "force"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/03_TWI/units/PadawanStarFighter.ts",
-          "line": 18,
-          "column": 37
-        }
-      ],
+      "diagnostics": [],
       "className": "PadawanStarFighter",
       "baseClass": "NonLeaderUnitCard",
       "id": "4718895864",
       "internalName": "padawan-starfighter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Padawan Starfighter",
         "subtitle": "",
@@ -122459,7 +122911,18 @@
       "dataHash": "c25e85cfba8e008f8838c7d99803c0517de0f8c631b1b15dbc8073a57a3c2a6b",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "binary:&&",
+        "cardType:unit",
+        "ir:binary",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "query:hasSomeArenaCard",
+        "query:hasSomeTrait",
+        "ref:card",
+        "ref:player",
+        "trigger:constant"
       ]
     },
     {
@@ -125029,11 +125492,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-query:targetIsUnit",
+          "message": "unsupported-query:targetIsUnit",
           "file": "game/cards/05_LOF/upgrades/InquisitorsLightsaber.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 69
         }
       ],
       "className": "InquisitorsLightsaber",
@@ -137554,23 +138017,97 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Ready Darth Malak",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "const",
+                        "value": true
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "hasSomeTrait",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": [
+                          {
+                            "kind": "const",
+                            "value": "sith"
+                          }
+                        ]
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "query",
+                        "name": "isLeader",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isDeployed",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "ready",
+                "target": "self"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/05_LOF/units/DarthMalakCovetousApprentice.ts",
-          "line": 19,
-          "column": 41
-        }
-      ],
+      "diagnostics": [],
       "className": "DarthMalakCovetousApprentice",
       "baseClass": "NonLeaderUnitCard",
       "id": "2285555274",
       "internalName": "darth-malak#covetous-apprentice",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Darth Malak",
         "subtitle": "Covetous Apprentice",
@@ -137616,8 +138153,23 @@
         "overwhelm": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:overwhelm"
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:noAction",
+        "ir:query",
+        "ir:ready",
+        "ir:ref",
+        "keyword:overwhelm",
+        "query:hasSomeArenaCard",
+        "query:hasSomeTrait",
+        "query:isDeployed",
+        "query:isLeader",
+        "ref:card",
+        "ref:player",
+        "trigger:whenPlayed"
       ]
     },
     {
@@ -143907,11 +144459,11 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource",
           "file": "game/cards/06_SEC/upgrades/Condemn.ts",
-          "line": 37,
-          "column": 9
+          "line": 40,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -145406,11 +145958,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
           "file": "game/cards/06_SEC/upgrades/ExiledFromTheForce.ts",
-          "line": 20,
-          "column": 9
+          "line": 23,
+          "column": 17
         }
       ],
       "className": "ExiledFromTheForce",
@@ -146665,23 +147217,39 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While attached unit is exhausted, it gains Sentinel",
+            "costs": [],
+            "effect": {
+              "kind": "gainKeyword",
+              "target": "parent",
+              "duration": "persistent",
+              "keyword": "sentinel",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "condition": {
+              "kind": "ref",
+              "path": [
+                "source",
+                "parentUnit",
+                "exhausted"
+              ]
+            },
+            "attachedContext": "upgrade"
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
-          "file": "game/cards/06_SEC/upgrades/DisciplesDevotion.ts",
-          "line": 16,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "DisciplesDevotion",
       "baseClass": "UpgradeCard",
       "id": "0217687208",
       "internalName": "disciples-devotion",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Disciples' Devotion",
         "subtitle": "",
@@ -146724,7 +147292,12 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:upgrade",
-        "keyword:sentinel"
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:ref",
+        "keyword:sentinel",
+        "ref:source.parentUnit.exhausted",
+        "trigger:constant"
       ]
     },
     {
@@ -147598,11 +148171,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
+          "pattern": "optional-reference",
+          "message": "optional-reference",
           "file": "game/cards/06_SEC/units/ChancellorPalpatineIAmTheSenate.ts",
-          "line": 19,
-          "column": 41
+          "line": 25,
+          "column": 29
         }
       ],
       "className": "ChancellorPalpatineIAmTheSenate",
@@ -149592,18 +150165,104 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While this unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1",
+            "costs": [],
+            "effect": {
+              "kind": "simultaneous",
+              "effects": [
+                {
+                  "kind": "gainKeyword",
+                  "target": "chosen",
+                  "duration": "persistent",
+                  "keyword": "overwhelm",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "gainKeyword",
+                  "target": "chosen",
+                  "duration": "persistent",
+                  "keyword": "raid",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "gainKeyword",
+                  "target": "chosen",
+                  "duration": "persistent",
+                  "keyword": "restore",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                }
+              ]
+            },
+            "condition": {
+              "kind": "unary",
+              "op": "!",
+              "value": {
+                "kind": "ref",
+                "path": [
+                  "source",
+                  "exhausted"
+                ]
+              }
+            },
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "arena",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "binary",
+                  "op": "!==",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "right": {
+                    "kind": "ref",
+                    "path": [
+                      "source"
+                    ]
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "card",
+                      "controller"
+                    ]
+                  },
+                  "right": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  }
+                }
+              }
+            },
+            "attachedContext": "host"
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
-          "file": "game/cards/06_SEC/upgrades/FigureOfUnity.ts",
-          "line": 18,
-          "column": 9
-        }
-      ],
+      "diagnostics": [],
       "className": "FigureOfUnity",
       "baseClass": "UpgradeCard",
       "id": "8467899467",
@@ -149615,7 +150274,7 @@
           "unique"
         ]
       },
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Figure of Unity",
         "subtitle": "",
@@ -149660,12 +150319,29 @@
       "dataHash": "72af09fb2336f238aa2f7b11a1afe4ef7ad467c0a9471faa27664953c14e68aa",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:!==",
+        "binary:&&",
+        "binary:===",
         "cardType:upgrade",
+        "ir:binary",
+        "ir:const",
+        "ir:gainKeyword",
         "ir:ref",
+        "ir:simultaneous",
+        "ir:unary",
         "keyword:overwhelm",
         "keyword:raid",
         "keyword:restore",
-        "ref:card.unique"
+        "ref:card",
+        "ref:card.controller",
+        "ref:card.unique",
+        "ref:player",
+        "ref:source",
+        "ref:source.exhausted",
+        "targetType:unit",
+        "targetZone:arena",
+        "trigger:constant",
+        "unary:!"
       ]
     },
     {
@@ -154528,11 +155204,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/06_SEC/upgrades/NemiksManifesto.ts",
-          "line": 18,
-          "column": 9
+          "line": 20,
+          "column": 28
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -169697,11 +170373,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.gainTrait",
           "file": "game/cards/02_SHD/upgrades/Foundling.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ],
       "className": "Foundling",
@@ -169901,11 +170577,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseAllAbilities",
           "file": "game/cards/02_SHD/upgrades/Imprisoned.ts",
-          "line": 16,
-          "column": 9
+          "line": 18,
+          "column": 28
         }
       ],
       "className": "Imprisoned",
@@ -177166,23 +177842,82 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "whenDefeated",
+            "title": "For each player with 15 or more damage on their base, draw a card.",
+            "costs": [],
+            "effect": {
+              "kind": "draw",
+              "target": "ownPlayer",
+              "amount": {
+                "kind": "binary",
+                "op": "+",
+                "left": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "op": ">=",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "player",
+                        "base",
+                        "damage"
+                      ]
+                    },
+                    "right": {
+                      "kind": "const",
+                      "value": 15
+                    }
+                  },
+                  "then": {
+                    "kind": "const",
+                    "value": 1
+                  },
+                  "else": {
+                    "kind": "const",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "op": ">=",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "opponent",
+                        "base",
+                        "damage"
+                      ]
+                    },
+                    "right": {
+                      "kind": "const",
+                      "value": 15
+                    }
+                  },
+                  "then": {
+                    "kind": "const",
+                    "value": 1
+                  },
+                  "else": {
+                    "kind": "const",
+                    "value": 0
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "non-path-reference",
-          "message": "context.game.getPlayers()\n                    .filter((p) => p.base.damage >= 15)",
-          "file": "game/cards/02_SHD/units/BoKatanKryzeFightingForMandalore.ts",
-          "line": 21,
-          "column": 25
-        }
-      ],
+      "diagnostics": [],
       "className": "BoKatanKryzeFightingForMandalore",
       "baseClass": "NonLeaderUnitCard",
       "id": "9637610169",
       "internalName": "bokatan-kryze#fighting-for-mandalore",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Bo-Katan Kryze",
         "subtitle": "Fighting For Mandalore",
@@ -177225,7 +177960,18 @@
       "dataHash": "790afa509c364afa412cbd453ea3ffa44bfe65d7c8bd2b9540cf2d8bd999940f",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:unit"
+        "ability:then",
+        "binary:+",
+        "binary:>=",
+        "cardType:unit",
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:draw",
+        "ir:ref",
+        "ref:opponent.base.damage",
+        "ref:player.base.damage",
+        "trigger:whenDefeated"
       ]
     },
     {
@@ -180294,11 +181040,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot",
           "file": "game/cards/02_SHD/upgrades/FrozenInCarbonite.ts",
-          "line": 24,
-          "column": 9
+          "line": 26,
+          "column": 28
         }
       ],
       "className": "FrozenInCarbonite",
@@ -191631,23 +192377,81 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "Draw a card if you control a leader unit",
+            "costs": [],
+            "optional": true,
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "query",
+                        "name": "isLeader",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isDeployed",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "draw",
+                "target": "ownPlayer",
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/RuggedSurvivors.ts",
-          "line": 19,
-          "column": 41
-        }
-      ],
+      "diagnostics": [],
       "className": "RuggedSurvivors",
       "baseClass": "NonLeaderUnitCard",
       "id": "4599464590",
       "internalName": "rugged-survivors",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Rugged Survivors",
         "subtitle": null,
@@ -191692,8 +192496,22 @@
         "grit": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:grit"
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:draw",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "keyword:grit",
+        "query:hasSomeArenaCard",
+        "query:isDeployed",
+        "query:isLeader",
+        "ref:card",
+        "ref:player",
+        "trigger:onAttack"
       ]
     },
     {
@@ -191802,11 +192620,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.cannotAttackBase",
           "file": "game/cards/01_SOR/upgrades/Entrenched.ts",
-          "line": 14,
-          "column": 9
+          "line": 16,
+          "column": 28
         }
       ],
       "className": "Entrenched",
@@ -195255,23 +196073,90 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "If you control a leader unit, give a friendly unit +2/+2 for this phase",
+            "costs": [],
+            "targetResolver": {
+              "owner": "self",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "query",
+                        "name": "isLeader",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isDeployed",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "modifyStats",
+                "target": "chosen",
+                "duration": "phase",
+                "power": {
+                  "kind": "const",
+                  "value": 2
+                },
+                "hp": {
+                  "kind": "const",
+                  "value": 2
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/SteadfastBattalion.ts",
-          "line": 22,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "SteadfastBattalion",
       "baseClass": "NonLeaderUnitCard",
       "id": "6432884726",
       "internalName": "steadfast-battalion",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Steadfast Battalion",
         "subtitle": null,
@@ -195316,8 +196201,24 @@
         "overwhelm": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:overwhelm"
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "keyword:overwhelm",
+        "query:hasSomeArenaCard",
+        "query:isDeployed",
+        "query:isLeader",
+        "ref:card",
+        "ref:player",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:onAttack"
       ]
     },
     {
@@ -198522,23 +199423,130 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "If you control a leader unit, deal 2 damage to a ground unit or base",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "any",
+              "zone": "anyAttackable",
+              "predicate": {
+                "kind": "binary",
+                "op": "||",
+                "left": {
+                  "kind": "binary",
+                  "op": "&&",
+                  "left": {
+                    "kind": "query",
+                    "name": "isUnit",
+                    "receiver": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "op": "===",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card",
+                        "zoneName"
+                      ]
+                    },
+                    "right": {
+                      "kind": "const",
+                      "value": "groundArena"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "isBase",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                }
+              }
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "query",
+                        "name": "isLeader",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isDeployed",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "damage",
+                "target": "chosen",
+                "amount": {
+                  "kind": "const",
+                  "value": 2
+                }
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/JedhaAgitator.ts",
-          "line": 21,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "JedhaAgitator",
       "baseClass": "NonLeaderUnitCard",
       "id": "1746195484",
       "internalName": "jedha-agitator",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Jedha Agitator",
         "subtitle": null,
@@ -198583,8 +199591,29 @@
         "saboteur": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:===",
+        "binary:||",
         "cardType:unit",
-        "keyword:saboteur"
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:damage",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "keyword:saboteur",
+        "query:hasSomeArenaCard",
+        "query:isBase",
+        "query:isDeployed",
+        "query:isLeader",
+        "query:isUnit",
+        "ref:card",
+        "ref:card.zoneName",
+        "ref:player",
+        "targetType:any",
+        "targetZone:anyAttackable",
+        "trigger:onAttack"
       ]
     },
     {
@@ -202277,23 +203306,82 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "onAttack",
+            "title": "Exhaust a non-leader unit if you control a leader unit",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "nonLeaderUnit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "query",
+                "name": "hasSomeArenaCard",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "player"
+                  ]
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "const",
+                      "value": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "query",
+                        "name": "isLeader",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "query",
+                        "name": "isDeployed",
+                        "receiver": {
+                          "kind": "ref",
+                          "path": [
+                            "card"
+                          ]
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              },
+              "onTrue": {
+                "kind": "exhaust",
+                "target": "chosen"
+              },
+              "onFalse": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:hasSomeArenaCard",
-          "message": "unsupported-query:hasSomeArenaCard",
-          "file": "game/cards/01_SOR/units/OuterRimHeadhunter.ts",
-          "line": 21,
-          "column": 45
-        }
-      ],
+      "diagnostics": [],
       "className": "OuterRimHeadhunter",
       "baseClass": "NonLeaderUnitCard",
       "id": "3613174521",
       "internalName": "outer-rim-headhunter",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Outer Rim Headhunter",
         "subtitle": null,
@@ -202340,8 +203428,24 @@
         "raid": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
         "cardType:unit",
-        "keyword:raid"
+        "ir:binary",
+        "ir:conditional",
+        "ir:const",
+        "ir:exhaust",
+        "ir:noAction",
+        "ir:query",
+        "ir:ref",
+        "keyword:raid",
+        "query:hasSomeArenaCard",
+        "query:isDeployed",
+        "query:isLeader",
+        "ref:card",
+        "ref:player",
+        "targetType:nonLeaderUnit",
+        "targetZone:anyAttackable",
+        "trigger:onAttack"
       ]
     },
     {
@@ -209533,11 +210637,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addConstantAbilityTargetingAttached",
-          "message": "registrar:addConstantAbilityTargetingAttached",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait",
           "file": "game/cards/07_TS26/upgrades/AbandonedTheOrder.ts",
-          "line": 17,
-          "column": 9
+          "line": 19,
+          "column": 28
         }
       ],
       "className": "AbandonedTheOrder",
@@ -225219,11 +226323,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "registrar:addGainConstantAbilityTargetingAttached",
-          "message": "registrar:addGainConstantAbilityTargetingAttached",
+          "pattern": "unsupported-live-stat-expression",
+          "message": "unsupported-live-stat-expression",
           "file": "game/cards/03_TWI/upgrades/SquadSupport.ts",
-          "line": 18,
-          "column": 9
+          "line": 23,
+          "column": 28
         }
       ],
       "className": "SquadSupport",
