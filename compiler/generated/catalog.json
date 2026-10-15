@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "d56a2dfb35f6bf33081774fe780357be70e6c5ab8aa9ad0cd7bb3ce960982e9e",
+  "compilerHash": "f542a20ae8bd8e94b3811dee831b1eaf94e06c9e474aedb57521a55b5da2adf0",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -42638,23 +42638,180 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While attacking a damaged unit, this unit gets +2/+0",
+            "costs": [],
+            "effect": {
+              "kind": "modifyStats",
+              "target": "self",
+              "duration": "persistent",
+              "power": {
+                "kind": "const",
+                "value": 2
+              },
+              "hp": {
+                "kind": "const",
+                "value": 0
+              }
+            },
+            "condition": {
+              "kind": "binary",
+              "op": "&&",
+              "left": {
+                "kind": "query",
+                "name": "isAttacking",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "binary",
+                "op": "||",
+                "left": {
+                  "kind": "query",
+                  "name": "hasSomeArenaUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "query",
+                          "name": "isDefending",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "card"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "activeAttack",
+                              "attacker"
+                            ]
+                          },
+                          "right": {
+                            "kind": "ref",
+                            "path": [
+                              "source"
+                            ]
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": ">",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "damage"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasSomeArenaUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "opponent"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "query",
+                          "name": "isDefending",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "card"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "activeAttack",
+                              "attacker"
+                            ]
+                          },
+                          "right": {
+                            "kind": "ref",
+                            "path": [
+                              "source"
+                            ]
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": ">",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "damage"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:targetIsUnit",
-          "message": "unsupported-query:targetIsUnit",
-          "file": "game/cards/08_ASH/units/MarroksFiendFighterFormidablePursuer.ts",
-          "line": 16,
-          "column": 69
-        }
-      ],
+      "diagnostics": [],
       "className": "MarroksFiendFighterFormidablePursuer",
       "baseClass": "NonLeaderUnitCard",
       "id": "2817799723",
       "internalName": "marroks-fiend-fighter#formidable-pursuer",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Marrok's Fiend Fighter",
         "subtitle": "Formidable Pursuer",
@@ -42701,9 +42858,28 @@
         "overwhelm": 1
       },
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:===",
+        "binary:>",
+        "binary:||",
         "cardType:unit",
+        "ir:binary",
+        "ir:const",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
         "keyword:overwhelm",
-        "keyword:support"
+        "keyword:support",
+        "query:hasSomeArenaUnit",
+        "query:isAttacking",
+        "query:isDefending",
+        "ref:card",
+        "ref:card.activeAttack.attacker",
+        "ref:card.damage",
+        "ref:opponent",
+        "ref:player",
+        "ref:source",
+        "trigger:constant"
       ]
     },
     {
@@ -171831,24 +172007,16 @@
       "setCode": "SHD_070",
       "id": "9059202647",
       "internalName": "resilient",
+      "baseClass": "UpgradeCard",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/resilient.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Resilient",
         "subtitle": null,
@@ -173477,24 +173645,45 @@
                 "value": 0
               }
             }
+          },
+          {
+            "trigger": "action",
+            "title": "Deal damage equal to his power to an enemy ground unit",
+            "costs": [
+              {
+                "kind": "exhaustSelf"
+              }
+            ],
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "any",
+              "zone": "arena",
+              "arena": "ground"
+            },
+            "effect": {
+              "kind": "damage",
+              "target": "chosen",
+              "amount": {
+                "kind": "query",
+                "name": "getPower",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                },
+                "args": []
+              }
+            }
           }
         ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:source",
-          "message": "unsupported-field:source",
-          "file": "game/cards/02_SHD/units/CrosshairFollowingOrders.ts",
-          "line": 31,
-          "column": 29
-        }
-      ],
+      "diagnostics": [],
       "className": "CrosshairFollowingOrders",
       "baseClass": "NonLeaderUnitCard",
       "id": "1885628519",
       "internalName": "crosshair#following-orders",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Crosshair",
         "subtitle": "Following Orders",
@@ -173540,8 +173729,16 @@
       "requiredCapabilities": [
         "cardType:unit",
         "ir:const",
+        "ir:damage",
+        "ir:exhaustSelf",
         "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
         "ir:resources",
+        "query:getPower",
+        "ref:source",
+        "targetType:any",
+        "targetZone:arena",
         "trigger:action"
       ]
     },
@@ -198082,24 +198279,16 @@
       "setCode": "SOR_120",
       "id": "3463676231",
       "internalName": "academy-training",
+      "baseClass": "UpgradeCard",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/academy-training.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Academy Training",
         "subtitle": null,
@@ -198570,23 +198759,195 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "While attacking a damaged unit, this unit gets +2/+0 and gains Overwhelm.",
+            "costs": [],
+            "effect": {
+              "kind": "simultaneous",
+              "effects": [
+                {
+                  "kind": "gainKeyword",
+                  "target": "self",
+                  "duration": "persistent",
+                  "keyword": "overwhelm",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "modifyStats",
+                  "target": "self",
+                  "duration": "persistent",
+                  "power": {
+                    "kind": "const",
+                    "value": 2
+                  },
+                  "hp": {
+                    "kind": "const",
+                    "value": 0
+                  }
+                }
+              ]
+            },
+            "condition": {
+              "kind": "binary",
+              "op": "&&",
+              "left": {
+                "kind": "query",
+                "name": "isAttacking",
+                "receiver": {
+                  "kind": "ref",
+                  "path": [
+                    "source"
+                  ]
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "binary",
+                "op": "||",
+                "left": {
+                  "kind": "query",
+                  "name": "hasSomeArenaUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "player"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "query",
+                          "name": "isDefending",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "card"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "activeAttack",
+                              "attacker"
+                            ]
+                          },
+                          "right": {
+                            "kind": "ref",
+                            "path": [
+                              "source"
+                            ]
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": ">",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "damage"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "query",
+                  "name": "hasSomeArenaUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "opponent"
+                    ]
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "op": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "op": "&&",
+                        "left": {
+                          "kind": "query",
+                          "name": "isDefending",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "card"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "op": "===",
+                          "left": {
+                            "kind": "ref",
+                            "path": [
+                              "card",
+                              "activeAttack",
+                              "attacker"
+                            ]
+                          },
+                          "right": {
+                            "kind": "ref",
+                            "path": [
+                              "source"
+                            ]
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "op": ">",
+                        "left": {
+                          "kind": "ref",
+                          "path": [
+                            "card",
+                            "damage"
+                          ]
+                        },
+                        "right": {
+                          "kind": "const",
+                          "value": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:targetIsUnit",
-          "message": "unsupported-query:targetIsUnit",
-          "file": "game/cards/01_SOR/units/FirstLegionSnowtrooper.ts",
-          "line": 18,
-          "column": 69
-        }
-      ],
+      "diagnostics": [],
       "className": "FirstLegionSnowtrooper",
       "baseClass": "NonLeaderUnitCard",
       "id": "4619930426",
       "internalName": "first-legion-snowtrooper",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "First Legion Snowtrooper",
         "subtitle": null,
@@ -198631,8 +198992,29 @@
       "dataHash": "27ed390c41d482359154a8c091224b4c9b8b43ea243e06610c5282bd3316c667",
       "keywordValues": {},
       "requiredCapabilities": [
+        "binary:&&",
+        "binary:===",
+        "binary:>",
+        "binary:||",
         "cardType:unit",
-        "keyword:overwhelm"
+        "ir:binary",
+        "ir:const",
+        "ir:gainKeyword",
+        "ir:modifyStats",
+        "ir:query",
+        "ir:ref",
+        "ir:simultaneous",
+        "keyword:overwhelm",
+        "query:hasSomeArenaUnit",
+        "query:isAttacking",
+        "query:isDefending",
+        "ref:card",
+        "ref:card.activeAttack.attacker",
+        "ref:card.damage",
+        "ref:opponent",
+        "ref:player",
+        "ref:source",
+        "trigger:constant"
       ]
     },
     {
@@ -213069,24 +213451,16 @@
       "setCode": "TS26_045",
       "id": "7640352104",
       "internalName": "champion",
+      "baseClass": "UpgradeCard",
       "sourcePath": null,
       "sourceHash": null,
-      "status": "unsupported",
+      "status": "supported",
       "abilities": {
         "leader": [],
         "unit": [],
         "card": []
       },
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/champion.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ],
+      "diagnostics": [],
       "card": {
         "title": "Champion",
         "subtitle": "",

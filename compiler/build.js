@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { SCHEMA, VERSION, hash, compileSource, loadEnums, ts } = require('./compiler');
 const { parseKeywords } = require('./keywords');
+const { isPlainUpgrade } = require('./plain-upgrade');
 
 const repository = path.resolve(__dirname, '..');
 const codeFor = (card) => card.setId?.number == null ? `TOKEN_${card.internalName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}` : `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
@@ -118,8 +119,9 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             const keywordsOnly = parseKeywords(card);
             const plainBase = card.types.includes('base') && !card.text && !card.epicAction;
             const vanilla = card.types.includes('unit') && keywordsOnly !== null && !card.types.includes('leader');
-            const supported = plainBase || vanilla;
-            compiled = { id: card.id, internalName: card.internalName, sourcePath: null, sourceHash: null, status: supported ? 'supported' : 'unsupported', abilities: { leader: [], unit: [], card: [] }, diagnostics: supported ? [] : [{ code: 'MISSING_IMPLEMENTATION', pattern: 'no-source-for-rules-text', file: `data/Card/${file}`, line: 1, column: 1, message: 'No source implementation and card is not a plain base or supported keyword-only unit' }] };
+            const plainUpgrade = isPlainUpgrade(card);
+            const supported = plainBase || vanilla || plainUpgrade;
+            compiled = { id: card.id, internalName: card.internalName, ...(plainUpgrade ? { baseClass: 'UpgradeCard' } : {}), sourcePath: null, sourceHash: null, status: supported ? 'supported' : 'unsupported', abilities: { leader: [], unit: [], card: [] }, diagnostics: supported ? [] : [{ code: 'MISSING_IMPLEMENTATION', pattern: 'no-source-for-rules-text', file: `data/Card/${file}`, line: 1, column: 1, message: 'No source implementation and card is not a plain base or supported keyword-only unit' }] };
         }
         const definition = { setCode, ...compiled, card, dataHash: hash(text), keywordValues: keywordValues(card) };
         definition.requiredCapabilities = requiredCapabilities(definition.abilities, card, definition.attachCondition);
@@ -152,7 +154,7 @@ function coverage(catalog) {
     return { schema: 'swu-card-compiler-coverage/v1', sourceTreeHash: catalog.sourceTreeHash, compilerHash: catalog.compilerHash, ...catalog.inventory, converted: converted.length, sourceAstConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath !== null).length, dataOnlyConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath === null).length, unconverted: unsupported.length, runtimeReady: null, runtimeReadyNote: 'Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.', convertedCards: converted, blockers: [...patterns.values()].sort((a, b) => b.cards.length - a.cards.length || a.pattern.localeCompare(b.pattern)), unsupportedCards: unsupported };
 }
 function reportMarkdown(report) {
-    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented in [catalog.json](catalog.json).', ''].join('\n');
+    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented in [catalog.json](catalog.json).', ''].join('\n');
 }
 function args(argv) {
     const options = { source: path.join(repository, 'forceteki/server'), cards: path.join(repository, 'forceteki/test/json'), out: path.join(__dirname, 'generated'), check: false, strict: false };

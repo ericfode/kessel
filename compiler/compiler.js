@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
+const { normalizeDamageDefaultSource } = require('./damage-default-source');
 const ts = require(require.resolve('typescript', { paths: [path.resolve(__dirname, '../forceteki')] }));
 const SCHEMA = 'swu-card-ir/v1';
 const VERSION = 1;
@@ -482,6 +484,8 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    const attackCondition = normalizeAttackUnitCondition(node, ctx, { ts, unwrap, expr });
+    if (attackCondition) return attackCondition;
     const singleton = singletonArenaMembership(node, ctx); if (singleton) return singleton;
     const finite=finiteCollectionCount(node,ctx);if(finite)return finite;
     if(ctx.attachedParentTitle&&ts.isPropertyAccessExpression(node)&&node.questionDotToken&&node.name.text==='title'&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='parentCard') {const parent=expr(node.expression,ctx);if(parent.kind==='ref'&&parent.path.join('.')==='source.parentCard')return reference('source','parentCard','title');fail(ctx,node,'attached-parent-title-scope');}
@@ -961,7 +965,7 @@ function effect(input, context, defaultTarget = 'self') {
         if (node.arguments.length !== 1 || !ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) fail(ctx, node, 'invalid-effect-sequence');
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
     }
-    const obj = node.arguments[0] ? object(node.arguments[0], ctx) : { props: new Map(), ctx, node };
+    let obj = node.arguments[0] ? object(node.arguments[0], ctx) : { props: new Map(), ctx, node };
     if (kind === 'discardCardsFromOwnHand') {
         // The wrapper changes who chooses, not who is targeted. Its inherited
         // PlayerTargetSystem default is the opponent, despite the helper name.
@@ -1042,6 +1046,7 @@ function effect(input, context, defaultTarget = 'self') {
         return { kind, target: target(obj.props.get('target'), obj.ctx, defaultTarget), amount: obj.props.has('amount') ? expr(obj.props.get('amount'), obj.ctx) : constant(1) };
     }
     if (!BASIC_EFFECTS.has(kind)) fail(ctx, node, 'immediateEffect:' + kind);
+    if (kind === 'damage') obj = normalizeDamageDefaultSource(obj, { ts, unwrap, expr });
     knownProperties(obj, ['amount', 'target', 'isCost', 'type', 'damageType', 'isIndirect', 'cannotBePrevented']);
     if (obj.props.has('isCost') && literal(obj.props.get('isCost'), obj.ctx)) fail(ctx, node, 'effect-is-cost');
     if (obj.props.has('type') && literal(obj.props.get('type'), obj.ctx) !== 'ability') fail(ctx, node, 'non-ability-damage');

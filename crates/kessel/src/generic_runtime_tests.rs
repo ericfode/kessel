@@ -3592,3 +3592,10 @@ fn shin_hati_midgame_play_pays_cost_and_enters_exhausted_with_live_sentinel() {
     assert_eq!(e.attack_targets(&played, enemy, false), vec![shin]);
     e.load_state(&e.snapshot(&played)).unwrap();
 }
+
+#[path = "batch_attack_condition_tests.rs"]
+mod batch_attack_condition_tests;
+#[path = "batch_damage_default_source_tests.rs"]
+mod batch_damage_default_source_tests;
+#[path = "batch_plain_upgrade_tests.rs"]
+mod batch_plain_upgrade_tests;

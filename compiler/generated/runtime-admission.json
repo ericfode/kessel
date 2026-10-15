@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "cb81857144b8ba9d7df969e5560f4e834d2ee4085eec517b797f29666f1be95f",
-  "dataOnlyConvertedCount": 372,
+  "catalogueHash": "906431cfdb139d6e201a0160d33f1e34459b2984773743d5c8b2545d6ce74eda",
+  "dataOnlyConvertedCount": 375,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 1113,
+  "irConvertedCount": 1119,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
-    "dataOnly": 372,
+    "dataOnly": 375,
     "nativeAdapters": 4,
-    "sourceIr": 642
+    "sourceIr": 644
   },
   "runtimeAdmittedCards": [
     {
@@ -3641,6 +3641,11 @@
       "setCode": "SHD_066"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "resilient",
+      "setCode": "SHD_070"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "mandalorian-armor",
       "setCode": "SHD_073"
@@ -3669,6 +3674,11 @@
       "implementation": "sourceIr",
       "internalName": "seasoned-shoretrooper",
       "setCode": "SHD_083"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "crosshair#following-orders",
+      "setCode": "SHD_087"
     },
     {
       "implementation": "dataOnly",
@@ -4107,8 +4117,18 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "academy-training",
+      "setCode": "SOR_120"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "death-star-stormtrooper",
       "setCode": "SOR_128"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "first-legion-snowtrooper",
+      "setCode": "SOR_130"
     },
     {
       "implementation": "sourceIr",
@@ -4424,6 +4444,11 @@
       "implementation": "dataOnly",
       "internalName": "arena-reek#lumbering-beast",
       "setCode": "TS26_044"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "champion",
+      "setCode": "TS26_045"
     },
     {
       "implementation": "sourceIr",
@@ -5101,7 +5126,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1018,
+  "runtimeAdmittedCount": 1023,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5845,7 +5870,7 @@
     },
     {
       "internalName": "marroks-fiend-fighter#formidable-pursuer",
-      "reason": "marroks-fiend-fighter#formidable-pursuer: compiler rejected \"marroks-fiend-fighter#formidable-pursuer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":69,\"file\":\"game/cards/08_ASH/units/MarroksFiendFighterFormidablePursuer.ts\",\"line\":16,\"message\":\"unsupported-query:targetIsUnit\",\"pattern\":\"unsupported-query:targetIsUnit\"}]",
+      "reason": "unimplemented runtime keyword support",
       "setCode": "ASH_241"
     },
     {
@@ -9974,11 +9999,6 @@
       "setCode": "SHD_069"
     },
     {
-      "internalName": "resilient",
-      "reason": "resilient: compiler rejected \"resilient\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/resilient.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "SHD_070"
-    },
-    {
       "internalName": "top-target",
       "reason": "top-target: compiler rejected \"top-target\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/TopTarget.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
       "setCode": "SHD_071"
@@ -10027,11 +10047,6 @@
       "internalName": "warbird-stowaway",
       "reason": "unimplemented runtime keyword smuggle",
       "setCode": "SHD_086"
-    },
-    {
-      "internalName": "crosshair#following-orders",
-      "reason": "crosshair#following-orders: compiler rejected \"crosshair#following-orders\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/02_SHD/units/CrosshairFollowingOrders.ts\",\"line\":31,\"message\":\"unsupported-field:source\",\"pattern\":\"unsupported-field:source\"}]",
-      "setCode": "SHD_087"
     },
     {
       "internalName": "ephant-mon#head-of-security",
@@ -10969,11 +10984,6 @@
       "setCode": "SOR_119"
     },
     {
-      "internalName": "academy-training",
-      "reason": "academy-training: compiler rejected \"academy-training\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/academy-training.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "SOR_120"
-    },
-    {
       "internalName": "hardpoint-heavy-blaster",
       "reason": "hardpoint-heavy-blaster: compiler rejected \"hardpoint-heavy-blaster\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/HardpointHeavyBlaster.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
       "setCode": "SOR_121"
@@ -10997,11 +11007,6 @@
       "internalName": "admiral-ozzel#overconfident",
       "reason": "admiral-ozzel#overconfident: compiler rejected \"admiral-ozzel#overconfident\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/01_SOR/units/AdmiralOzzelOverconfident.ts\",\"line\":26,\"message\":\"immediateEffect:playCardFromHand\",\"pattern\":\"immediateEffect:playCardFromHand\"}]",
       "setCode": "SOR_129"
-    },
-    {
-      "internalName": "first-legion-snowtrooper",
-      "reason": "first-legion-snowtrooper: compiler rejected \"first-legion-snowtrooper\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":69,\"file\":\"game/cards/01_SOR/units/FirstLegionSnowtrooper.ts\",\"line\":18,\"message\":\"unsupported-query:targetIsUnit\",\"pattern\":\"unsupported-query:targetIsUnit\"}]",
-      "setCode": "SOR_130"
     },
     {
       "internalName": "seventh-sister#implacable-inquisitor",
@@ -11497,11 +11502,6 @@
       "internalName": "captain-vaughn#search-the-tunnels",
       "reason": "captain-vaughn#search-the-tunnels: compiler rejected \"captain-vaughn#search-the-tunnels\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/units/CaptainVaughnSearchTheTunnels.ts\",\"line\":17,\"message\":\"immediateEffect:deckSearch\",\"pattern\":\"immediateEffect:deckSearch\"}]",
       "setCode": "TS26_039"
-    },
-    {
-      "internalName": "champion",
-      "reason": "champion: compiler rejected \"champion\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/champion.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "TS26_045"
     },
     {
       "internalName": "secret-marriage",
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1440,
+  "runtimeRejectedCount": 1435,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 741
+  "sourceAstConvertedCount": 744
 }

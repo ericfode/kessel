@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "d56a2dfb35f6bf33081774fe780357be70e6c5ab8aa9ad0cd7bb3ce960982e9e",
+  "compilerHash": "f542a20ae8bd8e94b3811dee831b1eaf94e06c9e474aedb57521a55b5da2adf0",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 1113,
-  "sourceAstConverted": 741,
-  "dataOnlyConverted": 372,
-  "unconverted": 1345,
+  "converted": 1119,
+  "sourceAstConverted": 744,
+  "dataOnlyConverted": 375,
+  "unconverted": 1339,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -117,6 +117,7 @@
     "ASH_236",
     "ASH_239",
     "ASH_240",
+    "ASH_241",
     "ASH_242",
     "ASH_243",
     "ASH_244",
@@ -796,6 +797,7 @@
     "SHD_062",
     "SHD_063",
     "SHD_066",
+    "SHD_070",
     "SHD_073",
     "SHD_075",
     "SHD_078",
@@ -804,6 +806,7 @@
     "SHD_082",
     "SHD_083",
     "SHD_086",
+    "SHD_087",
     "SHD_097",
     "SHD_098",
     "SHD_100",
@@ -909,7 +912,9 @@
     "SOR_114",
     "SOR_116",
     "SOR_118",
+    "SOR_120",
     "SOR_128",
+    "SOR_130",
     "SOR_131",
     "SOR_132",
     "SOR_134",
@@ -973,6 +978,7 @@
     "TS26_042",
     "TS26_043",
     "TS26_044",
+    "TS26_045",
     "TS26_046",
     "TS26_048",
     "TS26_050",
@@ -1476,48 +1482,6 @@
       ]
     },
     {
-      "pattern": "no-source-for-rules-text",
-      "occurrences": 36,
-      "cards": [
-        "ASH_074",
-        "ASH_095",
-        "ASH_121",
-        "ASH_130",
-        "ASH_154",
-        "ASH_215",
-        "ASH_222",
-        "JTL_108",
-        "JTL_159",
-        "JTL_196",
-        "JTL_236",
-        "JTL_246",
-        "JTL_255",
-        "SEC_036",
-        "SEC_070",
-        "SEC_100",
-        "SEC_123",
-        "SEC_176",
-        "SEC_226",
-        "SHD_036",
-        "SHD_065",
-        "SHD_070",
-        "SHD_089",
-        "SHD_111",
-        "SHD_119",
-        "SHD_149",
-        "SOR_120",
-        "TOKEN_ADVANTAGE",
-        "TS26_045",
-        "TWI_037",
-        "TWI_087",
-        "TWI_117",
-        "TWI_118",
-        "TWI_136",
-        "TWI_182",
-        "TWI_233"
-      ]
-    },
-    {
       "pattern": "registrar:addDecreaseCostAbility",
       "occurrences": 35,
       "cards": [
@@ -1556,6 +1520,45 @@
         "TWI_197",
         "TWI_236",
         "TWI_254"
+      ]
+    },
+    {
+      "pattern": "no-source-for-rules-text",
+      "occurrences": 33,
+      "cards": [
+        "ASH_074",
+        "ASH_095",
+        "ASH_121",
+        "ASH_130",
+        "ASH_154",
+        "ASH_215",
+        "ASH_222",
+        "JTL_108",
+        "JTL_159",
+        "JTL_196",
+        "JTL_236",
+        "JTL_246",
+        "JTL_255",
+        "SEC_036",
+        "SEC_070",
+        "SEC_100",
+        "SEC_123",
+        "SEC_176",
+        "SEC_226",
+        "SHD_036",
+        "SHD_065",
+        "SHD_089",
+        "SHD_111",
+        "SHD_119",
+        "SHD_149",
+        "TOKEN_ADVANTAGE",
+        "TWI_037",
+        "TWI_087",
+        "TWI_117",
+        "TWI_118",
+        "TWI_136",
+        "TWI_182",
+        "TWI_233"
       ]
     },
     {
@@ -2638,21 +2641,6 @@
       ]
     },
     {
-      "pattern": "unsupported-query:targetIsUnit",
-      "occurrences": 9,
-      "cards": [
-        "ASH_241",
-        "JTL_259",
-        "LAW_062",
-        "LOF_090",
-        "SHD_090",
-        "SHD_138",
-        "SHD_216",
-        "SOR_130",
-        "SOR_212"
-      ]
-    },
-    {
       "pattern": "custom-inheritance:LAWCommonBase",
       "occurrences": 8,
       "cards": [
@@ -2748,20 +2736,6 @@
         "SHD_241",
         "TS26_078",
         "TWI_166"
-      ]
-    },
-    {
-      "pattern": "unsupported-field:source",
-      "occurrences": 8,
-      "cards": [
-        "ASH_139",
-        "HMW_192",
-        "SHD_087",
-        "SOR_092",
-        "SOR_127",
-        "SOR_151",
-        "SOR_234",
-        "TWI_256"
       ]
     },
     {
@@ -2870,6 +2844,19 @@
       ]
     },
     {
+      "pattern": "unsupported-field:source",
+      "occurrences": 7,
+      "cards": [
+        "ASH_139",
+        "HMW_192",
+        "SOR_092",
+        "SOR_127",
+        "SOR_151",
+        "SOR_234",
+        "TWI_256"
+      ]
+    },
+    {
       "pattern": "unsupported-query:controlsLeaderUnitOrUpgradeWithTitle",
       "occurrences": 7,
       "cards": [
@@ -2880,6 +2867,19 @@
         "SEC_201",
         "SOR_082",
         "SOR_184"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:targetIsUnit",
+      "occurrences": 7,
+      "cards": [
+        "JTL_259",
+        "LAW_062",
+        "LOF_090",
+        "SHD_090",
+        "SHD_138",
+        "SHD_216",
+        "SOR_212"
       ]
     },
     {
@@ -9074,21 +9074,6 @@
           "file": "game/cards/08_ASH/units/AttendantNavigator.ts",
           "line": 21,
           "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "ASH_241",
-      "internalName": "marroks-fiend-fighter#formidable-pursuer",
-      "sourcePath": "game/cards/08_ASH/units/MarroksFiendFighterFormidablePursuer.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:targetIsUnit",
-          "message": "unsupported-query:targetIsUnit",
-          "file": "game/cards/08_ASH/units/MarroksFiendFighterFormidablePursuer.ts",
-          "line": 16,
-          "column": 69
         }
       ]
     },
@@ -24247,21 +24232,6 @@
       ]
     },
     {
-      "setCode": "SHD_070",
-      "internalName": "resilient",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/resilient.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "SHD_071",
       "internalName": "top-target",
       "sourcePath": "game/cards/02_SHD/upgrades/TopTarget.ts",
@@ -24378,21 +24348,6 @@
           "file": "game/cards/01_SOR/units/SuperlaserTechnician.ts",
           "line": 20,
           "column": 124
-        }
-      ]
-    },
-    {
-      "setCode": "SHD_087",
-      "internalName": "crosshair#following-orders",
-      "sourcePath": "game/cards/02_SHD/units/CrosshairFollowingOrders.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-field:source",
-          "message": "unsupported-field:source",
-          "file": "game/cards/02_SHD/units/CrosshairFollowingOrders.ts",
-          "line": 31,
-          "column": 29
         }
       ]
     },
@@ -27500,21 +27455,6 @@
       ]
     },
     {
-      "setCode": "SOR_120",
-      "internalName": "academy-training",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/academy-training.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "SOR_121",
       "internalName": "hardpoint-heavy-blaster",
       "sourcePath": "game/cards/01_SOR/upgrades/HardpointHeavyBlaster.ts",
@@ -27594,21 +27534,6 @@
           "file": "game/cards/01_SOR/units/AdmiralOzzelOverconfident.ts",
           "line": 26,
           "column": 38
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_130",
-      "internalName": "first-legion-snowtrooper",
-      "sourcePath": "game/cards/01_SOR/units/FirstLegionSnowtrooper.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:targetIsUnit",
-          "message": "unsupported-query:targetIsUnit",
-          "file": "game/cards/01_SOR/units/FirstLegionSnowtrooper.ts",
-          "line": 18,
-          "column": 69
         }
       ]
     },
@@ -29638,21 +29563,6 @@
           "file": "game/cards/07_TS26/units/CaptainVaughnSearchTheTunnels.ts",
           "line": 17,
           "column": 30
-        }
-      ]
-    },
-    {
-      "setCode": "TS26_045",
-      "internalName": "champion",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/champion.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
         }
       ]
     },

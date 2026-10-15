@@ -29393,6 +29393,47 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9059202647",
+      "internalName": "resilient",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_070",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "SOR"
+        },
+        {
+          "number": 70,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 70,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Resilient",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -29627,6 +29668,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "1885628519",
+      "internalName": "crosshair#following-orders",
+      "keywords": [],
+      "power": 2,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "SHD_087",
+      "setCodes": [
+        {
+          "number": 87,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 87,
+        "set": "SHD"
+      },
+      "subtitle": "Following Orders",
+      "text": "Action [2 resources]: This unit gets +1/+0 for this phase.\nAction [Exhaust]: This unit deals damage equal to his power to an enemy ground unit.",
+      "title": "Crosshair",
+      "traits": [
+        "imperial",
+        "clone",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33139,6 +33221,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "3463676231",
+      "internalName": "academy-training",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_120",
+      "setCodes": [
+        {
+          "number": 120,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 120,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Academy Training",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "ground",
       "aspects": [
         "villainy",
@@ -33167,6 +33286,48 @@
       "subtitle": null,
       "text": null,
       "title": "Death Star Stormtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4619930426",
+      "internalName": "first-legion-snowtrooper",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SOR_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "While attacking a damaged unit, this unit gets +2/+0 and gains Overwhelm. (Deal excess damage to the opponent's base.)",
+      "title": "First Legion Snowtrooper",
       "traits": [
         "imperial",
         "trooper"
@@ -35638,6 +35799,43 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7640352104",
+      "internalName": "champion",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "TS26_045",
+      "setCodes": [
+        {
+          "number": 45,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 45,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Champion",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 4,
+      "upgradePower": 4
     },
     {
       "aspects": [

@@ -1,8 +1,8 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1113** (741 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1345**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **1119** (744 from source AST; 375 metadata-only plain cards). Explicitly blocked definitions: **1339**. Excluded test mocks: 21.
 
-These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
+These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
 | Unsupported source pattern | Affected cards | Occurrences |
 |---|---:|---:|
@@ -11,8 +11,8 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | class-state:cardsDefeatedThisPhaseWatcher | 44 | 44 |
 | immediateEffect:deckSearch | 43 | 43 |
 | trigger-alias-hook:onCardPlayed | 38 | 42 |
-| no-source-for-rules-text | 36 | 36 |
 | registrar:addDecreaseCostAbility | 35 | 35 |
+| no-source-for-rules-text | 33 | 33 |
 | trigger-alias-hook:onDamageDealt | 30 | 34 |
 | unused-source-binding | 28 | 36 |
 | immediateEffect:disclose | 26 | 27 |
@@ -63,7 +63,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | immediateEffect:reveal | 9 | 9 |
 | simultaneous-factory-shape | 9 | 9 |
 | unsupported-field:options | 9 | 9 |
-| unsupported-query:targetIsUnit | 9 | 9 |
 | custom-inheritance:LAWCommonBase | 8 | 8 |
 | custom-inheritance:LofCommonForceBase | 8 | 8 |
 | immediateEffect:delayedPlayerEffect | 8 | 8 |
@@ -71,7 +70,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addPilotingGainKeywordTargetingAttached | 8 | 9 |
 | registrar:addReplacementEffectAbility | 8 | 8 |
 | trigger-alias-hook:onAttackDeclared | 8 | 8 |
-| unsupported-field:source | 8 | 8 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.decreaseCost | 8 | 8 |
 | class-state:cardsLeftPlayThisPhaseWatcher | 7 | 7 |
 | method:costSum | 7 | 7 |
@@ -80,7 +78,9 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unimplemented-context-field:controllingPlayer | 7 | 7 |
 | unsupported-field:canBeTriggeredBy | 7 | 7 |
 | unsupported-field:multiSelectCardCondition | 7 | 7 |
+| unsupported-field:source | 7 | 7 |
 | unsupported-query:controlsLeaderUnitOrUpgradeWithTitle | 7 | 7 |
+| unsupported-query:targetIsUnit | 7 | 7 |
 | immediateEffect:moveToBottomOfDeck | 6 | 6 |
 | immediateEffect:playMultipleCardsFromDeck | 6 | 6 |
 | method:deployActionAbilityProps | 6 | 6 |

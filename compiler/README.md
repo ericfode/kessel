@@ -41,7 +41,7 @@ directory contains `Card/*.json` plus `_mockCardNames.json`.
 - `generated/catalog.json` contains every nonmock card's full metadata, compiled
   abilities, keyword values, required capabilities, and source/data hashes.
 - `generated/coverage.json` separates `sourceAstConverted` from `dataOnlyConverted`
-  (plain bases and fully parsed keyword-only units with no source class), and lists
+  (plain bases and fully parsed keyword-only units with no source class, plus plain stat-only upgrades using the pinned generic `UpgradeCard` fallback), and lists
   all converted IDs, every blocked card, and blockers
   grouped by source pattern. `runtimeReady: null` means this report has not
   measured runtime acceptance.
