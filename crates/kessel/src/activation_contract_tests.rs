@@ -16,21 +16,14 @@ fn diagnostic(entry: Value) -> String {
 fn source_contract_keeps_side_asymmetry_and_printed_raid_separate() {
     for code in ["TWI_019", "TWI_028"] {
         let original = entry(code);
-        let contract = base_zone_contract(&original).unwrap();
-        assert_eq!(contract.topology(), Topology::CardOnly);
-        for deployed in [false, true] {
-            assert_eq!(contract.topology().activate(deployed).side(), Side::Card);
-        }
+        assert_eq!(base_zone_source(&original), Some(Source::Base));
         let mut wrong = original;
         wrong["abilities"]["leader"] = wrong["abilities"]["card"].take();
         wrong["abilities"]["card"] = json!([]);
         assert_eq!(diagnostic(wrong), "base-zone ongoing source requires exact reviewed base or two-side leader shape");
     }
     let original = entry("HMW_007");
-    let contract = base_zone_contract(&original).unwrap();
-    assert_eq!(contract.topology(), Topology::LeaderSides);
-    assert_eq!(contract.topology().activate(false).side(), Side::Leader);
-    assert_eq!(contract.topology().activate(true).side(), Side::Unit);
+    assert_eq!(base_zone_source(&original), Some(Source::Leader));
     for policy in ["swapped-side", "printed-keyword", "printed-value"] {
         let mut wrong = original.clone();
         match policy {
@@ -51,7 +44,7 @@ fn source_contract_preserves_later_confirmation_diagnostic() {
     for (code, side) in [("TWI_019", "card"), ("HMW_007", "leader")] {
         let mut source = entry(code);
         source["abilities"][side][0]["requiresConfirmation"] = json!(true);
-        assert!(base_zone_contract(&source).is_some(), "confirmation is owned by Program admission");
+        assert!(base_zone_source(&source).is_some(), "confirmation is owned by Program admission");
         assert_eq!(diagnostic(source), "explicit confirmation semantics are not implemented");
     }
 }
