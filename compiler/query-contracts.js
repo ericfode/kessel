@@ -173,7 +173,9 @@ function queryContract(input,ctx,api) {
  // single player/card register. Keep its physical receiver and predicate role.
  if(['getArenaUnits','hasSomeArenaUnit','hasSomeArenaCard','hasSomeArenaUpgrade'].includes(name)) {
   const value=receiver(base),p=valuePath(value);
-  const typed=ctx.typedCallbackRoles?.has(p[0])||ctx.dataRoots?.has(p[0]);
+  // Typed roots are only arena controllers when they name a player seat — not
+  // source/target/card identities that happen to live in the callback scope.
+  const typed=(ctx.typedCallbackRoles?.has(p[0])||ctx.dataRoots?.has(p[0]))&&['player','opponent'].includes(p.at(-1));
   const computed=value.kind==='otherPlayerQuery';
   const candidateController=['card','selectionCandidate','attachTarget'].includes(p[0])&&p.at(-1)==='controller';
   const ordinary=value.kind==='ref'&&['player','opponent','game','source.controller','source.controller.opponent'].includes(p.join('.'));

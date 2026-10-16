@@ -100,6 +100,7 @@ class Unsupported extends Error {
     }
 }
 function fail(ctx, node, pattern, message) { throw new Unsupported(ctx, node, pattern, message); }
+const {isSpecializedFence}=require('./unsupported-recovery');
 function unwrap(node) {
     if (!node) throw new Error('Missing AST node in card definition');
     while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) || ts.isNonNullExpression(node) || ts.isSatisfiesExpression(node)) node = node.expression;
@@ -570,6 +571,7 @@ function expr(input, context, params = ['context']) {
         if(!(error instanceof Unsupported))throw error;
         const fn=unwrap(input);if((ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&ts.isBlock(fn.body))return privatePrograms.compileCallback(fn,context,privateApi(),params);
         if(context.liveStats||context.legacyKeywordValue||context.constructionFactorySuppressed&&!context.pendingSystemConstruction)throw error;
+        if(isSpecializedFence(error))throw error;
         const {node,ctx}=lambda(input,context,params);
         const text=textProgramExpression(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum,titleHelper});if(text)return text;
         const localCall=readonlyFunctionCall(node,ctx,{...privateApi(),readConstant,constantContext});if(localCall)return localCall;
@@ -1090,7 +1092,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
                 let v=unwrap(obj.props.get(stat));
                 while(ts.isIdentifier(v)&&obj.ctx.constants.has(v.text))v=unwrap(readConstant(v.text,obj.ctx));
                 if(ts.isArrowFunction(v)||ts.isFunctionExpression(v))fail(ctx,v,'function-valued-stat-modifier');
-                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
+                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
                 else if(duration === 'persistent') { const n=literal(v,obj.ctx); if(!Number.isSafeInteger(n))fail(ctx,v,'noninteger-stat-modifier'); out[stat]=constant(n); }
                 else out[stat]=expr(v,obj.ctx);
             }
@@ -1197,7 +1199,7 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'hand-discard-player-target');
         return { kind:'discardOwnHand', amount:constant(amount), target:playerTarget };
-        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
+        }catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     if (kind === 'discardFromDeck') {
         try {
@@ -1210,7 +1212,7 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'deck-discard-player-target');
         return { kind:'discardDeck', amount:constant(amount), target:playerTarget };
-        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
+        }catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     const tokenTypes = { createBattleDroid:'battleDroid', createCloneTrooper:'cloneTrooper', createXWing:'xwing', createTieFighter:'tieFighter', createSpy:'spy', createBeast:'beast', createMandalorian:'mandalorian' };
     if (Object.hasOwn(tokenTypes, kind)) {
@@ -1309,6 +1311,7 @@ function effect(input, context, defaultTarget = 'self') {
                 result.amount=value;
             } catch(error) {
                 if(!(error instanceof Unsupported))throw error;
+                if(isSpecializedFence(error)&&error.diagnostic.pattern!=='damage-recipient-callback-shape')throw error;
                 result.amount=nativeDamageRecipientAmount(amount,amountContext,{...privateApi(),target});
             }
         }else {
@@ -1496,7 +1499,7 @@ function unshadowedEnum(node,ctx,root) {
     for(let a=node.parent;a;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'syntax-alias-enum-binding');
     if(ctx.scope.has(root)||ctx.constants.has(root))fail(ctx,node,'syntax-alias-enum-binding');
 }
-function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
+function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
 function legacyConstantAbility(input, context, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const playerCost=playerCostConstant(obj,{ts,unwrap,expr,literal,target,fail,object,access,displayText});if(playerCost)return playerCost;
@@ -1620,7 +1623,7 @@ function gainedHostSourceShape(out) {
         same(a,{...base,optional:true,targetResolver:{owner:'any',type:'any',zone:'anyAttackable',predicate:{kind:'binary',op:'&&',left:other,right:{kind:'query',name:'isUnit',receiver:reference('card'),args:[]}}},effect:{kind:'modifyStats',target:'chosen',duration:'phase',power:constant(3),hp:constant(0)},gainedHost:true})&&same(out.attachCondition,{kind:'unary',op:'!',value:attach('vehicle')}) ||
         same(a,{...base,effect:{kind:'discardOwnHand',amount:constant(1),target:'ownPlayer'},gainedHost:true})&&!out.attachCondition;
 }
-function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;return attachedConstantContract(input,context,host,contractApi());}}
+function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;if(isSpecializedFence(error))throw error;return attachedConstantContract(input,context,host,contractApi());}}
 function legacyAttachedConstantAbility(input,context,host) {
     const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
     for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
@@ -1739,7 +1742,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if(!validatedObject){const privateAbility=privatePrograms.abilityCall(input,context,privateApi());if(privateAbility)return privateAbility;}
     const fn=unwrap(input);
     if(!validatedObject&&!context.abilityProgramAttempt&&(ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&(ts.isBlock(fn.body)||privateAbilityValues.isCall(fn.body,context,privateApi()))){
-        try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
+        try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
     }
     return legacyAbility(input,context,trigger,validatedObject);
 }
@@ -2107,7 +2110,7 @@ function compileSource(text, file, enums = {}, options = {}) {
                 }
                 else if(registration==='addGainOnAttackAbilityTargetingAttached') {
                     try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
-                    catch(error){if(!(error instanceof Unsupported))throw error;out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));}
+                    catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));}
                 }
                 else if (registration === 'addCoordinateAbility') {
                     const leaderCoordinate=out.baseClass==='LeaderUnitCard'&&['setupLeaderSideAbilities','setupLeaderUnitSideAbilities'].includes(name);
