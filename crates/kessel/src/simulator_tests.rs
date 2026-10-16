@@ -365,7 +365,7 @@ fn shared_keyword_grammar_matrix_is_fail_closed() {
     for case in cases.as_array().unwrap() {let text=case["text"].as_str().unwrap();let result=keyword_text(text);if case["expected"].is_null(){assert!(result.is_err(),"{text}");}else{let (flags,raid,restore)=result.unwrap();let mut actual=serde_json::Map::new();for (index,name) in crate::ability_ir::CORE_KEYWORDS.iter().enumerate(){if let Some(slot)=crate::ability_ir::numeric_keyword_slot(index){if case["expected"].get(*name).is_some(){actual.insert((*name).into(),serde_json::json!(if slot==0{raid}else{restore}));}}else if flags&(1<<index)!=0 {actual.insert((*name).into(),serde_json::json!(1));}}assert_eq!(serde_json::Value::Object(actual),case["expected"],"{text}");}}
 }
 fn captured_wp_engine() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    Engine::from_catalogue_bytes(&crate::catalogue_io::load_catalogue_bytes(&crate::catalogue_io::default_generated_dir()).unwrap()).unwrap()
 }
 fn captured_wp_board(e:&Engine,seat:Seat)->State {
     let mut s=board(e);s.active=seat;s.action_player=Some(seat);s.hidden_history_exact=true;s.force_state_exact=true;

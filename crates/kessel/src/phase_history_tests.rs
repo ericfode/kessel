@@ -13,7 +13,7 @@ fn query(code: &str) -> Query {
         }
     }
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry = c["cards"]
         .as_array()
         .unwrap()
@@ -337,7 +337,7 @@ fn phase_history_import_hash_copy_reset_and_overflow_are_explicit() {
 #[test]
 fn phase_history_admits_four_complete_cards_and_rejects_unknown_filter_scope() {
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let e = engine();
     for code in ["HMW_103", "TWI_052", "LOF_243", "HMW_040"] {
         assert!(
@@ -436,7 +436,7 @@ fn phase_history_departed_token_identity_and_legacy_selected_pool_roundtrip() {
     // fabricated from its current arena or from newly observed events.
     let legacy = Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     )
     .unwrap();
     let mut s = board(&legacy);

@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { classifyWeakness, planWeaknessProbes } = require('../pipeline/weakness-probes');
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('source trio constructs optional signed-token and explicit finite gaps', () => {
     for (const id of ['HMW_059', 'HMW_087', 'HMW_242']) {

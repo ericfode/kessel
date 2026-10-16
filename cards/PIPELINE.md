@@ -43,7 +43,7 @@ LLM still has to review it. The repository conversion skill supplies that stage
 through Codex's independent reviewer. No model is called during compilation,
 fixture construction, replay comparison, mutation testing or CI.
 
-Output includes `catalog.json`, `executable-plan.json`, immutable `reference/`,
+Output includes catalogue shards under `compiler/generated/`, `executable-plan.json`, immutable `reference/`,
 `check-*.json`, `dispatch-*/`, `report.json`, and `review/packet.json` plus complete
 source artifacts. A failed run keeps a partial report with uncovered work. The
 `review` command checks the packet digest, source artifact hashes, complete card
@@ -197,7 +197,7 @@ A static table of instructions alone would
 not count as generated execution; dispatch receipts show actual generated steps.
 
 ```sh
-target/release/kessel rules --catalogue compiler/generated/catalog.json
+target/release/kessel rules --catalogue compiler/generated
 target/release/kessel check TRACE --pool POOL --catalogue CATALOG --backend interpreter
 target/release/kessel check TRACE --pool POOL --catalogue CATALOG --backend auto --rules-receipt /tmp/dispatch.json
 ```

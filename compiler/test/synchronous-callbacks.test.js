@@ -6,7 +6,7 @@ const path=require('node:path');
 const {compileSource,loadEnums}=require('../compiler');
 const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../../forceteki/server'));
 const enums=loadEnums(root);
-const catalogue=require('../generated/catalog.json');
+const catalogue=require('../load-catalog').loadCatalog();
 function source(id){const entry=catalogue.cards.find(c=>c.setCode===id);return {file:entry.sourcePath,text:fs.readFileSync(path.join(root,entry.sourcePath),'utf8')};}
 function reject(text,file,pattern){const result=compileSource(text,file,enums);assert.equal(result.status,'unsupported',file);assert.ok(result.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(result.diagnostics));return result;}
 

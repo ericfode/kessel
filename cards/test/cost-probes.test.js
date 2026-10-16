@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {planCostProbes,classifyCostShape}=require('../pipeline/cost-probes');
-const catalogue=JSON.parse(fs.readFileSync(process.env.SWU_COST_PROBE_CATALOGUE??path.resolve(__dirname,'../../compiler/generated/catalog.json'),'utf8'));
+const catalogue=(process.env.SWU_COST_PROBE_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_COST_PROBE_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog());
 const ids=['HMW_154','HMW_249','SEC_154','TS26_079'];
 const plan=id=>planCostProbes(catalogue.cards.find(c=>c.setCode===id),{catalogue});
 test('generic cost planners preserve card identity independence and finite uncovered boundaries',()=>{

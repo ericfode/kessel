@@ -38,6 +38,8 @@ mod attached_constants;
 
 #[path = "src/deck_search.rs"]
 mod deck_search;
+#[path = "src/catalogue_io.rs"]
+mod catalogue_io;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -145,9 +147,14 @@ fn main() {
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("../../compiler/generated/catalog.json")
+                .join("../../compiler/generated")
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
+    if catalog.is_dir() {
+        for name in ["manifest.json", "cards.json", "inputs.json", "diagnostics.json"] {
+            println!("cargo:rerun-if-changed={}", catalog.join(name).display());
+        }
+    }
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/admission.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
@@ -158,9 +165,14 @@ fn main() {
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
-    let value =
-        serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
-            .expect("invalid committed catalog JSON");
+    println!("cargo:rerun-if-changed=src/catalogue_io.rs");
+    let value = catalogue_io::load_catalogue_value(&catalog).expect("committed ability catalog missing");
+    // Compile fixtures against the same authoritative shards without committing
+    // a duplicate monolith or making tests depend on a process-local loader path.
+    fs::write(
+        PathBuf::from(env::var("OUT_DIR").unwrap()).join("catalogue.json"),
+        serde_json::to_vec(&value).expect("serialize assembled catalogue"),
+    ).expect("write assembled catalogue fixture");
     let c = Catalogue::load(&value).expect("invalid catalog schema");
     let mut roots = Vec::new();
     for mut program in c.programs.iter().cloned() {

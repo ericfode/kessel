@@ -80,7 +80,7 @@ fn attached_trait_fulcrum_live_gained_rebels_and_stat_death_after_grantor_remova
 
 #[test]
 fn attached_trait_raw_wrapper_binding_modifier_and_host_aura_fields_fail_closed() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["SHD_069","LAW_150"] {
         let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         let admitted=|v:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[v]})).unwrap().cards.contains_key(code);assert!(admitted(original.clone()));
@@ -99,7 +99,7 @@ fn attached_trait_raw_wrapper_binding_modifier_and_host_aura_fields_fail_closed(
 
 #[test]
 fn attached_contract_shared_parent_scope_preserves_wrapper_diagnostics_and_source_roles() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for (code,constant) in [("ASH_210",false),("SHD_069",true)] {
         let entry=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         let expected=if constant {"attached constant requires exact parent/controller/presence contract"}
@@ -118,7 +118,7 @@ fn attached_contract_shared_parent_scope_preserves_wrapper_diagnostics_and_sourc
 #[test]
 fn attached_contract_complete_and_legacy_metadata_keep_distinct_printed_boundaries() {
     use crate::attached_registration::{delegated_upgrade_metadata,complete_single_upgrade,plain_upgrade};
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SHD_069").unwrap();
     let sides=crate::attached_registration::sides(entry).unwrap();
     assert!(plain_upgrade(entry));assert!(complete_single_upgrade(entry,&sides));assert!(delegated_upgrade_metadata(entry,&sides));

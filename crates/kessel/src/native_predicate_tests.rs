@@ -1,6 +1,6 @@
 use super::*;
 
-fn catalogue()->Value {serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()}
+fn catalogue()->Value {serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()}
 pub(super) fn engine()->Engine {Engine::from_catalogue_value(&catalogue()).unwrap()}
 pub(super) fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
     let id=s.next_id;s.next_id+=1;

@@ -11,6 +11,7 @@ mod bounded_reductions;
 pub mod static_ongoing;
 pub mod phase_history;
 mod live_power_maximum;
+pub mod catalogue_io;
 pub mod check;
 pub mod validation;
 pub mod cards;

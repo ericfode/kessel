@@ -2,7 +2,7 @@ use super::*;
 use serde_json::json;
 
 fn entry(code: &str) -> Value {
-    let catalogue: Value = serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalogue: Value = serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap().clone()
 }
 fn outcome(entry: Value) -> Result<(), String> {

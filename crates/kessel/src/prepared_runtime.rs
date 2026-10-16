@@ -589,7 +589,7 @@ mod tests {
     use super::*;
 
     fn engine() -> Engine {
-        Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+        Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
     }
     fn add(engine: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
         let id=s.next_id;s.next_id+=1;

@@ -5,7 +5,7 @@ use super::*;
 fn query_count()->Expr {serde_json::from_value(json!({"kind":"query","name":"resolvedDefeatedUnitCount","receiver":{"kind":"ref","path":["opponent"]},"args":[]})).unwrap()}
 fn lki()->Expr {serde_json::from_value(json!({"kind":"ref","path":["event","lastKnownInformation","power"]})).unwrap()}
 fn damage(target:&str,amount:u16)->Effect {Effect::Damage{target:Target::name(target),amount:Expr::number(amount as i64)}}
-fn catalogue_entry(code:&str)->Value {let c:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap().clone()}
+fn catalogue_entry(code:&str)->Value {let c:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap().clone()}
 
 #[test]
 fn resolved_event_named_cards_admit_complete_sources_and_preserve_ir() {

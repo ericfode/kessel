@@ -111,7 +111,7 @@ fn attached_alias_clone_raid_follows_only_current_host_and_not_upgrade_mention()
 
 #[test]
 fn attached_alias_raw_metadata_hooks_fields_and_context_are_fail_closed() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="TWI_218").unwrap().clone();
     let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("TWI_218");assert!(admitted(original.clone()));
     for key in ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"] {
@@ -135,7 +135,7 @@ fn attached_alias_raw_metadata_hooks_fields_and_context_are_fail_closed() {
 
 #[test]
 fn attached_alias_selected_pool_requires_each_created_token_definition() {
-    let e=engine();let bytes=include_bytes!("../../../compiler/generated/catalog.json");
+    let e=engine();let bytes=include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));
     for (code,token) in [("ASH_134","TOKEN_MANDALORIAN"),("TWI_169","TOKEN_CLONE_TROOPER"),("TWI_218","TOKEN_BATTLE_DROID"),("TS26_052","TOKEN_EXPERIENCE")] {
         let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|a|a["setCode"]==code||a["setCode"]==token||a["setCode"]=="TOKEN_SHIELD");
         let valid=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),bytes);assert!(valid.is_ok(),"{code}: {:?}",valid.err());
@@ -154,7 +154,7 @@ fn attached_alias_physical_duplicate_grants_and_capacity_are_bounded() {
 
 #[test]
 fn attached_alias_source_context_extras_are_not_silently_discarded() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="TWI_218").unwrap();
     for field in ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"] {
         for extra in [json!([{"unsupported":"source context"}]),json!({"unknown":true}),json!(true)] {

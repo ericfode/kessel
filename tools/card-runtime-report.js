@@ -14,7 +14,7 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'swu-card-admission-'));
 try {
     const pool = path.join(temporary, 'pool.json');
     const run = spawnSync('cargo', ['run', '--locked', '--quiet', '--release', '-p', 'kessel', '--bin', 'kessel', '--',
-        'catalogue', path.join(output, 'catalog.json'), '--out-pool', pool], {
+        'catalogue', output, '--out-pool', pool], {
         cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     });
     if (run.stderr) process.stderr.write(run.stderr);

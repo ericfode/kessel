@@ -38,8 +38,13 @@ directory contains `Card/*.json` plus `_mockCardNames.json`.
 
 ## Generated artifacts
 
-- `generated/catalog.json` contains every nonmock card's full metadata, compiled
-  abilities, keyword values, required capabilities, and source/data hashes.
+- Concern-split catalogue shards under `generated/`:
+  - `manifest.json` — schema versions, hashes, inventory, unmatched sources
+  - `cards.json` — every nonmock card's metadata, IR, keyword values, capabilities, hashes
+  - `diagnostics.json` — unsupported-card diagnostics (merged onto cards when loading)
+  - `inputs.json` — source/data provenance inventory
+  Loaders in `compiler/load-catalog.js` and `kessel::catalogue_io` assemble these into
+  the unified `swu-card-ir/v1` object. A legacy monolith file is still accepted.
 - `generated/coverage.json` separates `sourceAstConverted` from `dataOnlyConverted`
   (plain bases and fully parsed keyword-only units with no source class, plus plain stat-only upgrades using the pinned generic `UpgradeCard` fallback), and lists
   all converted IDs, every blocked card, and blockers
@@ -488,8 +493,8 @@ cannot fully or partially resolve. These remain pending executor operations.
 ## Runtime admission and conformance
 
 ```sh
-target/debug/kessel catalogue compiler/generated/catalog.json --out-pool compiler/generated/runtime-pool.json
-target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
+target/debug/kessel catalogue compiler/generated --out-pool compiler/generated/runtime-pool.json
+target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated --pool compiler/generated/runtime-pool.json
 # in Holocron, next to this checkout (records forceteki games):
 node bots/omni/rs/make-compiled-fixtures.js --pool ../kessel/compiler/generated/runtime-pool.json --out replays/compiled-card-fixtures
 ```

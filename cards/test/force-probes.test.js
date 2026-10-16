@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { classifyForce, nativeForce, planForceProbes } = require('../pipeline/force-probes');
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('all three printed shapes construct optional and actual native identity boundaries', () => {
     for (const id of ['LOF_146', 'LOF_195', 'LOF_193']) {

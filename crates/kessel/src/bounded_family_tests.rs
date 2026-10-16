@@ -5,7 +5,7 @@ use crate::ability_ir::{selector_contract, Expr, Sides};
 use crate::admission::OrdinarySource;
 
 fn catalog() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn source(catalog: &Value, code: &str) -> Value {
     catalog["cards"]

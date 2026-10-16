@@ -21,7 +21,7 @@ fn controlled_title_roundtrip(e: &Engine, s: &State) -> State {
 }
 
 fn diagnostic_title_engine(changes: &[(&str, &str)]) -> Engine {
-    let mut catalog: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut catalog: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for &(code, title) in changes {
         assert!(!["SOR_082", "SEC_201"].contains(&code));
         let entry = catalog["cards"].as_array_mut().unwrap().iter_mut().find(|entry| entry["setCode"] == code).unwrap();
@@ -299,7 +299,7 @@ fn controlled_title_admission_fence_accepts_reviewed_consumers_and_rejects_scope
     for code in ["JTL_147", "SEC_027", "SOR_184"] {
         assert!(e.by_code.contains_key(code), "reviewed scalar title consumer is admitted: {code}");
     }
-    let original: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for mutation in ["trigger", "optional", "coordinate", "target", "duration", "selector", "continuation", "nested-condition", "pilot", "epic", "type", "side"] {
         let mut catalog = original.clone();
         let entry = catalog["cards"].as_array_mut().unwrap().iter_mut().find(|entry| entry["setCode"] == "SOR_082").unwrap();
@@ -328,7 +328,7 @@ fn controlled_title_force_literal_requires_native_definition_and_explicit_state(
     // Synthetic diagnostic mutation of Royal Guard's complete ordinary source:
     // replace only its Palpatine condition with The Force. This is a query
     // dependency boundary, not a canonical Royal Guard behavior witness.
-    let mut catalog: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut catalog: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry = catalog["cards"].as_array_mut().unwrap().iter_mut().find(|entry| entry["setCode"] == "SOR_082").unwrap();
     entry["abilities"]["card"][1]["title"] = json!("DIAGNOSTIC title The Force presence");
     entry["abilities"]["card"][1]["condition"]["args"][0]["value"] = json!("The Force");

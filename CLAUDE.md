@@ -20,8 +20,10 @@ player and bot harness. The arena (swu_bot) vendors Kessel's Node Wasm package i
 ## Layout
 
 - `crates/kessel/`: library `kessel` and binaries `kessel` and `kessel-pimc`. `build.rs`
-  compiles `compiler/generated/catalog.json` into Rust ahead of time. `data/pool.json` is the
-  strict 100-card pool. `tests/` holds the strict, compiled and reference conformance suites.
+  assembles the concern-split catalogue under `compiler/generated/` (`manifest.json`,
+  `cards.json`, `diagnostics.json`, `inputs.json`) into Rust ahead of time.
+  `data/pool.json` is the strict 100-card pool. `tests/` holds the strict, compiled and
+  reference conformance suites.
 - `crates/kessel-wasm/`: wasm-bindgen crate, build/pack scripts, and `js/` (Node and browser
   adapter, checker, prover).
 - `compiler/`: `compiler.js` (TypeScript AST to IR), `build.js`, `keywords.js`, and

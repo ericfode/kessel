@@ -6,7 +6,7 @@ fn compiled_card_programs_match_all_expanded_engine_receipts() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let directory = root.join("tests/compiled-fixtures");
     let pool = std::fs::read(directory.join("pool.json")).unwrap();
-    let catalogue = std::fs::read(root.join("../../compiler/generated/catalog.json")).unwrap();
+    let catalogue = kessel::catalogue_io::load_catalogue_bytes(&root.join("../../compiler/generated")).unwrap();
     let engine = Engine::from_compiled_pool_bytes(&pool, &catalogue).unwrap();
     let mut fixtures = std::fs::read_dir(&directory)
         .unwrap()

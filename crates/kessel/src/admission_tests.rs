@@ -14,7 +14,7 @@ struct Witness {
 }
 
 fn witnesses() -> Vec<Witness> {
-    let catalog: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     vec![
         Witness {
             name: "self ongoing",
@@ -90,7 +90,7 @@ fn registration_envelopes_keep_targeting_and_internal_flags_family_specific() {
 
 #[test]
 fn closed_source_contracts_keep_watcher_shapes_and_side_contexts_explicit() {
-    let catalog: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["ASH_034", "SOR_036", "LAW_150"] {
         let original = entry(&catalog, code);
         let admits = |value: Value| Catalogue::load(&json!({"schema":SCHEMA,"cards":[value]})).unwrap().cards.contains_key(code);

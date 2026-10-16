@@ -3,7 +3,7 @@ use crate::ability_ir::Catalogue;
 use serde_json::json;
 
 fn catalogue() -> Value {
-    serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn entry(code: &str) -> Value {
     catalogue()["cards"]

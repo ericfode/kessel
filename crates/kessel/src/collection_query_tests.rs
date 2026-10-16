@@ -64,7 +64,7 @@ fn collection_query_extracted_bossk_front_targets_tokens_and_deals_two_damage() 
         let xp_host=unit(&e,&mut s,Seat::P2,"LOF_256");e.create_token(&mut s,xp_host,true).unwrap();let shield_host=unit(&e,&mut s,Seat::P1,"LOF_256");e.create_token(&mut s,shield_host,false).unwrap();
         // Bossk's leader front still requires the separate native Weakness slice.
         // Compile only its unchanged unit registration onto a diagnostic host.
-        let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        let catalogue:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
         let ability=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="HMW_015").unwrap()["abilities"]["unit"][0].clone();
         let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();
         // On Attack is optional; the existing scheduler offers targets with Pass.
@@ -82,7 +82,7 @@ fn collection_query_xwing_live_pilot_aura_generated_and_interpreted() {
     // No admitted ordinary Pilot currently exists. Only this fixture upgrade's
     // trait/stat metadata is synthetic; the X-Wing's complete committed IR stays intact.
     for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {for seat in [Seat::P1,Seat::P2] {
-        let mut catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        let mut catalogue:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
         let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="HMW_235").unwrap();entry["card"]["traits"]=json!(["pilot"]);entry["card"]["upgradePower"]=json!(0);entry["card"]["upgradeHp"]=json!(0);
         let mut e=Engine::from_catalogue_value(&catalogue).unwrap();e.set_rules_backend(backend).unwrap();e.set_rules_instrumentation(true);let mut s=board(&e);let host=unit(&e,&mut s,seat,"JTL_247");let other=unit(&e,&mut s,seat.other(),"JTL_247");
         let power=e.power(&s,host,false);let hp=e.hp(&s,host);e.create_token(&mut s,host,false).unwrap();assert_eq!(e.power(&s,host,false),power);assert_eq!(e.hp(&s,host),hp);
@@ -93,7 +93,7 @@ fn collection_query_xwing_live_pilot_aura_generated_and_interpreted() {
 }
 
 fn attachment_engine(backend:RulesBackend,synthetic:bool)->Engine {
-    let mut catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut catalogue:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     if synthetic {
         // Distinguish native Shield identity from an ordinary upgrade's title,
         // and keep one unique attachment for the non-unique removal fixture.
@@ -134,7 +134,7 @@ fn collection_query_extracted_nonunique_defeat_snapshots_order_then_sweeps_paren
         let before_damage=s;s.card_mut(host).damage=e.hp(&s,host)-1;
         // SEC149's Plot keyword remains unsupported: use its complete unchanged
         // When Played registration on a diagnostic ordinary-unit host only.
-        let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let ability=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SEC_149").unwrap()["abilities"]["card"][0].clone();
+        let catalogue:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();let ability=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SEC_149").unwrap()["abilities"]["card"][0].clone();
         let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,host)).unwrap();
         assert!(!e.in_arena(&done,host));assert_eq!(done.players[1].discard.as_slice(),&[first,second,unique,host]);for id in [first,unique,second,xp,shield] {assert_eq!(done.card(id).parent,0);}
         let mut alive=before_damage;alive.source=source;e.begin_program(&mut alive,program,ProgramContinuation::Finish).unwrap();let done=e.apply(&alive,&e.card_action(&alive,host)).unwrap();assert!(e.in_arena(&done,host));assert_eq!(e.upgrades(&done,host),vec![unique]);assert_eq!(done.players[1].discard.as_slice(),&[first,second]);
@@ -146,7 +146,7 @@ fn collection_query_extracted_nonunique_defeat_snapshots_order_then_sweeps_paren
 
 #[test]
 fn collection_query_attachment_defeat_rejects_unverified_groups_scopes_and_metadata() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let e=engine();assert!(e.by_code.contains_key("JTL_180"));assert!(!e.by_code.contains_key("SEC_149"),"Plot is not implemented");
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();let e=engine();assert!(e.by_code.contains_key("JTL_180"));assert!(!e.by_code.contains_key("SEC_149"),"Plot is not implemented");
     for mode in ["source-receiver","card-receiver","other-method","wrong-predicate","reverse-sequence","extra-step","opponent-selector","side","keyword"] {
         let mut catalogue=original.clone();let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="JTL_180").unwrap();
         match mode {

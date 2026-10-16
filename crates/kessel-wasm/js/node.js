@@ -9,7 +9,13 @@ async function createSimulator({ poolPath, poolJson, cataloguePath, catalogueJso
     if (!fs.existsSync(file)) throw new Error('Wasm package is not built. Run: node crates/kessel-wasm/build.js --target node');
     const bindings = require(file);
     const { WasmSimulator } = await import('./adapter.mjs');
-    const catalogue = catalogueJson ?? (cataloguePath === undefined ? undefined : fs.readFileSync(cataloguePath, 'utf8'));
+    const catalogue = catalogueJson ?? (cataloguePath === undefined ? undefined : (() => {
+        const { catalogJsonText, isDirectoryCatalog } = require('../../../compiler/load-catalog');
+        const target = path.resolve(cataloguePath);
+        return isDirectoryCatalog(target) || fs.statSync(target).isDirectory()
+            ? catalogJsonText(target)
+            : fs.readFileSync(target, 'utf8');
+    })());
     const defaultPool = catalogue === undefined ? path.join(__dirname, '../../kessel/data/pool.json') : undefined;
     const sourcePool = poolPath ?? defaultPool;
     const pool = poolJson ?? (sourcePool === undefined ? undefined : fs.readFileSync(sourcePool, 'utf8'));

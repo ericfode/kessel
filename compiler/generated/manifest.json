@@ -1,0 +1,1765 @@
+{
+  "schema": "swu-card-ir-manifest/v1",
+  "irSchema": "swu-card-ir/v1",
+  "compilerVersion": 1,
+  "typescriptVersion": "5.5.4",
+  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
+  "compilerHash": "bec7e332186d8a666fa75ff76eaefe95740072d0e73c3a0d4d5d5e1d6653ea7b",
+  "sourceSupport": [
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/01_SOR/tokens/Experience.ts",
+      "sourceHash": "fccf00d13061bfc15447101a0dc82fc360f9b5d2e28a9da678684e8c93bc9d67",
+      "className": "Experience",
+      "identity": {
+        "id": "2007868442",
+        "internalName": "experience"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenUpgradeCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "isTokenUpgrade",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "methods": [
+        {
+          "name": "isExperience",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "tokenName",
+          "kind": "getter",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": "experience"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        }
+      ]
+    },
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/01_SOR/tokens/Shield.ts",
+      "sourceHash": "39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f",
+      "className": "Shield",
+      "identity": {
+        "id": "8752877738",
+        "internalName": "shield"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenUpgradeCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "isTokenUpgrade",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "highPriorityRemoval",
+          "type": "boolean",
+          "readonly": true
+        }
+      ],
+      "constructor": {
+        "parameters": [
+          {
+            "name": "owner",
+            "type": "player"
+          },
+          {
+            "name": "cardData",
+            "type": "cardMetadata"
+          },
+          {
+            "name": "additionalProperties",
+            "type": "record",
+            "optional": true
+          }
+        ],
+        "steps": [
+          {
+            "kind": "superConstructor",
+            "baseClass": "TokenUpgradeCard",
+            "args": [
+              {
+                "kind": "ref",
+                "path": [
+                  "owner"
+                ]
+              },
+              {
+                "kind": "ref",
+                "path": [
+                  "cardData"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "initializeTokenField",
+            "field": "highPriorityRemoval",
+            "value": {
+              "kind": "unary",
+              "op": "!",
+              "value": {
+                "kind": "unary",
+                "op": "!",
+                "value": {
+                  "kind": "optionalMember",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "additionalProperties"
+                    ]
+                  },
+                  "property": "highPriorityRemoval",
+                  "missingValue": "undefined"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "methods": [
+        {
+          "name": "isShield",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "tokenName",
+          "kind": "getter",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": "shield"
+              }
+            }
+          ]
+        },
+        {
+          "name": "setupCardAbilities",
+          "kind": "abilitySetup",
+          "parameters": [
+            {
+              "name": "registrar",
+              "type": "upgradeAbilityRegistrar"
+            },
+            {
+              "name": "abilityHelper",
+              "type": "abilityHelper"
+            }
+          ],
+          "body": [
+            {
+              "kind": "registerAbility",
+              "registration": "addDamageModificationAbility",
+              "properties": {
+                "kind": "damageModificationRegistration",
+                "title": {
+                  "kind": "const",
+                  "value": "Defeat Shield to prevent attached unit from taking damage"
+                },
+                "contextTitle": {
+                  "kind": "boundCallback",
+                  "parameters": [
+                    "context"
+                  ],
+                  "timing": "nativeAbilityCallbackInvocation",
+                  "lexicalThis": {
+                    "kind": "ref",
+                    "path": [
+                      "instance"
+                    ]
+                  },
+                  "value": {
+                    "kind": "textTemplate",
+                    "parts": [
+                      {
+                        "kind": "const",
+                        "value": "Defeat "
+                      },
+                      {
+                        "kind": "ref",
+                        "path": [
+                          "instance",
+                          "title"
+                        ]
+                      },
+                      {
+                        "kind": "const",
+                        "value": " to prevent "
+                      },
+                      {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "query",
+                          "name": "isInPlay",
+                          "receiver": {
+                            "kind": "ref",
+                            "path": [
+                              "context",
+                              "source"
+                            ]
+                          },
+                          "args": []
+                        },
+                        "then": {
+                          "kind": "ref",
+                          "path": [
+                            "context",
+                            "source",
+                            "parentCard",
+                            "title"
+                          ]
+                        },
+                        "else": {
+                          "kind": "const",
+                          "value": "attached unit"
+                        },
+                        "evaluation": "chosenBranchOnly"
+                      },
+                      {
+                        "kind": "const",
+                        "value": " from taking damage"
+                      }
+                    ]
+                  }
+                },
+                "modificationType": {
+                  "kind": "const",
+                  "value": "replace"
+                },
+                "shouldCardHaveDamageModification": {
+                  "kind": "boundCallback",
+                  "parameters": [
+                    "damageCandidate",
+                    "context"
+                  ],
+                  "timing": "nativeAbilityCallbackInvocation",
+                  "lexicalThis": {
+                    "kind": "ref",
+                    "path": [
+                      "instance"
+                    ]
+                  },
+                  "value": {
+                    "kind": "binary",
+                    "op": "&&",
+                    "left": {
+                      "kind": "query",
+                      "name": "isUpgrade",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "context",
+                          "source"
+                        ]
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "op": "===",
+                      "left": {
+                        "kind": "ref",
+                        "path": [
+                          "damageCandidate"
+                        ]
+                      },
+                      "right": {
+                        "kind": "ref",
+                        "path": [
+                          "context",
+                          "source",
+                          "parentCard"
+                        ]
+                      }
+                    },
+                    "evaluation": "shortCircuit"
+                  }
+                },
+                "replaceWithEffect": {
+                  "kind": "defeat",
+                  "target": "self"
+                },
+                "contract": "DamageModificationAbility",
+                "triggerContract": "damageEventBeforeResolution"
+              }
+            }
+          ]
+        }
+      ],
+      "localClasses": [],
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        },
+        {
+          "sourcePath": "game/core/ability/DamageModificationAbility.ts",
+          "sourceHash": "f36d435694c420a2ada9a7e13b52221dc854fe354cb42cb77b808150adfef4be"
+        }
+      ]
+    },
+    {
+      "sourcePath": "game/cards/05_LOF/common/LofCommonForceBase.ts",
+      "sourceHash": "ffc7aef7ee71a94496604ce6c7e22fdece0cd1faaaa7a5f9293eba7b332dc7e7",
+      "role": "shared-base"
+    },
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/05_LOF/tokens/ForceToken.ts",
+      "sourceHash": "3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6",
+      "className": "ForceToken",
+      "identity": {
+        "id": "4571900905",
+        "internalName": "the-force"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "methods": [
+        {
+          "name": "isForceToken",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        }
+      ]
+    },
+    {
+      "sourcePath": "game/cards/07_LAW/common/LAWCommonBase.ts",
+      "sourceHash": "2bb26702e39fd0e83782beb9a9c3ba2ca36bcc6b213b9f05f8958a5c389159ed",
+      "role": "shared-base"
+    },
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/07_LAW/tokens/CreditToken.ts",
+      "sourceHash": "08fbdaa83564a371d2988c05d5d9daa2f0c839605c1b8d806a1e8e2ac2a5c4db",
+      "className": "CreditToken",
+      "identity": {
+        "id": "8015500527",
+        "internalName": "credit"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "methods": [
+        {
+          "name": "isCreditToken",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "takeControl",
+          "kind": "tokenControlMutation",
+          "parameters": [
+            {
+              "name": "newController",
+              "type": "player"
+            }
+          ],
+          "body": [
+            {
+              "kind": "assert",
+              "condition": {
+                "kind": "binary",
+                "op": "===",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zoneName"
+                  ]
+                },
+                "right": {
+                  "kind": "const",
+                  "value": "base"
+                }
+              },
+              "failure": "throw",
+              "message": {
+                "kind": "textTemplate",
+                "parts": [
+                  {
+                    "kind": "const",
+                    "value": "Attempted to take control of Credit token, but it is in zone "
+                  },
+                  {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zoneName"
+                    ]
+                  },
+                  {
+                    "kind": "const",
+                    "value": ""
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "if",
+              "condition": {
+                "kind": "binary",
+                "op": "===",
+                "left": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "controller"
+                  ]
+                },
+                "right": {
+                  "kind": "ref",
+                  "path": [
+                    "newController"
+                  ]
+                }
+              },
+              "onTrue": [
+                {
+                  "kind": "return",
+                  "value": {
+                    "kind": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "writeTokenState",
+              "target": {
+                "kind": "ref",
+                "path": [
+                  "source",
+                  "controller"
+                ]
+              },
+              "value": {
+                "kind": "ref",
+                "path": [
+                  "newController"
+                ]
+              }
+            },
+            {
+              "kind": "writeTokenState",
+              "target": {
+                "kind": "ref",
+                "path": [
+                  "source",
+                  "owner"
+                ]
+              },
+              "value": {
+                "kind": "ref",
+                "path": [
+                  "newController"
+                ]
+              }
+            },
+            {
+              "kind": "moveToken",
+              "destination": {
+                "kind": "const",
+                "value": "base"
+              },
+              "inheritedDispatch": "Card.moveTo"
+            },
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        }
+      ]
+    },
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/08_ASH/tokens/Advantage.ts",
+      "sourceHash": "1280861b9a94572ecce2c1d62fb5fd93c11b08609495c3d9f60e656d153e3119",
+      "className": "Advantage",
+      "identity": {
+        "id": "5844562972",
+        "internalName": "advantage"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenUpgradeCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "isTokenUpgrade",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "fields": [],
+      "constructor": {
+        "kind": "inheritedConstructor",
+        "baseClass": "TokenUpgradeCard"
+      },
+      "methods": [
+        {
+          "name": "isAdvantage",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "tokenName",
+          "kind": "getter",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": "advantage"
+              }
+            }
+          ]
+        },
+        {
+          "name": "buildWhenAttackOrDefenseEndsAbilities",
+          "kind": "attackBoundaryAbilityFactory",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "constructedArray",
+                "items": [
+                  {
+                    "kind": "constructLocalAbility",
+                    "className": "AdvantageAbility",
+                    "args": [
+                      {
+                        "kind": "ref",
+                        "path": [
+                          "instance",
+                          "game"
+                        ]
+                      },
+                      {
+                        "kind": "ref",
+                        "path": [
+                          "instance"
+                        ]
+                      }
+                    ],
+                    "evaluationOrder": "leftToRight"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "localClasses": [
+        {
+          "className": "AdvantageAbility",
+          "baseClass": "TriggeredAbilityBase",
+          "stateRegistration": "registerState",
+          "constructor": {
+            "parameters": [
+              {
+                "name": "game",
+                "type": "game"
+              },
+              {
+                "name": "card",
+                "type": "tokenInstance"
+              }
+            ],
+            "steps": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "query",
+                  "name": "isUpgrade",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "failure": "throw"
+              },
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "query",
+                  "name": "isAdvantage",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "failure": "throw"
+              },
+              {
+                "kind": "superConstructor",
+                "baseClass": "TriggeredAbilityBase",
+                "args": [
+                  {
+                    "kind": "ref",
+                    "path": [
+                      "game"
+                    ]
+                  },
+                  {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  {
+                    "kind": "invokeLocalStaticFactory",
+                    "className": "AdvantageAbility",
+                    "method": "buildAdvantageAbilityProperties",
+                    "args": [
+                      {
+                        "kind": "ref",
+                        "path": [
+                          "game"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "defaultAbilityType": "triggered"
+              }
+            ]
+          },
+          "staticFactories": [
+            {
+              "name": "buildAdvantageAbilityProperties",
+              "parameters": [
+                {
+                  "name": "game",
+                  "type": "game"
+                }
+              ],
+              "body": [
+                {
+                  "kind": "return",
+                  "value": {
+                    "kind": "triggeredAbilityProperties",
+                    "title": {
+                      "kind": "const",
+                      "value": "Defeat Advantage token"
+                    },
+                    "hooks": [
+                      {
+                        "event": "onAttackEnd",
+                        "predicate": {
+                          "kind": "boundCallback",
+                          "parameters": [
+                            "event",
+                            "context"
+                          ],
+                          "timing": "nativeAbilityCallbackInvocation",
+                          "lexicalThis": {
+                            "kind": "localClassReference",
+                            "className": "AdvantageAbility"
+                          },
+                          "value": {
+                            "kind": "binary",
+                            "op": "||",
+                            "left": {
+                              "kind": "binary",
+                              "op": "===",
+                              "left": {
+                                "kind": "ref",
+                                "path": [
+                                  "event",
+                                  "attack",
+                                  "attacker"
+                                ]
+                              },
+                              "right": {
+                                "kind": "ref",
+                                "path": [
+                                  "context",
+                                  "source",
+                                  "parentCard"
+                                ]
+                              }
+                            },
+                            "right": {
+                              "kind": "arrayIncludesIdentity",
+                              "receiver": {
+                                "kind": "attackTargetList",
+                                "receiver": {
+                                  "kind": "ref",
+                                  "path": [
+                                    "event",
+                                    "attack"
+                                  ]
+                                },
+                                "order": "nativeAttackTargetOrder"
+                              },
+                              "value": {
+                                "kind": "ref",
+                                "path": [
+                                  "context",
+                                  "source",
+                                  "parentCard"
+                                ]
+                              }
+                            },
+                            "evaluation": "shortCircuit"
+                          }
+                        }
+                      }
+                    ],
+                    "immediateEffect": {
+                      "kind": "defeat",
+                      "target": "self"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "manualRegistration": {
+        "entryPoint": "InPlayCard.checkRegisterWhenAttackOrDefenseEndsAbilities",
+        "invokes": "buildWhenAttackOrDefenseEndsAbilities",
+        "stores": "whenAttackOrDefenseEndsAbilities",
+        "registerEvents": true,
+        "cleanup": "parentEventCleanupHandlerUnregistersAndClearsStoredAbilities",
+        "assertNoPreviousRegistration": true
+      },
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        },
+        {
+          "sourcePath": "game/core/ability/TriggeredAbility.ts",
+          "sourceHash": "f9c08ce8158b482356554128bdc2f7112ff289c599bdb30235a412483304bdfd"
+        },
+        {
+          "sourcePath": "game/core/card/baseClasses/InPlayCard.ts",
+          "sourceHash": "78f7325e62b289868f8a64b7645ae0ac30408e622921b4a0c8ec0935130e16e1"
+        }
+      ]
+    },
+    {
+      "role": "staged-native-token-lifecycle",
+      "sourcePath": "game/cards/09_HMW/tokens/Weakness.ts",
+      "sourceHash": "dd546e4886757d77fffeb8be6e7381144fa7378b6493ce444aa87e4ba1202778",
+      "className": "Weakness",
+      "identity": {
+        "id": "7816991190",
+        "internalName": "weakness"
+      },
+      "status": "lifecycle-complete",
+      "activeCardEntryUnchanged": true,
+      "baseClass": "TokenUpgradeCard",
+      "inheritedBase": "InPlayCard",
+      "tokenMixin": {
+        "name": "AsToken",
+        "stateRegistration": "stateBase",
+        "methods": [
+          {
+            "name": "removeFromGame",
+            "body": [
+              {
+                "kind": "assert",
+                "condition": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "source",
+                      "zone",
+                      "name"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": "outsideTheGame"
+                  }
+                },
+                "failure": "throw",
+                "message": {
+                  "kind": "textTemplate",
+                  "parts": [
+                    {
+                      "kind": "const",
+                      "value": "Attempting to remove token "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "internalName"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": " from the game but it is in zone "
+                    },
+                    {
+                      "kind": "ref",
+                      "path": [
+                        "source",
+                        "zone"
+                      ]
+                    },
+                    {
+                      "kind": "const",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "removeTokenFromCurrentZone"
+              },
+              {
+                "kind": "writeTokenState",
+                "target": {
+                  "kind": "ref",
+                  "path": [
+                    "source",
+                    "zone"
+                  ]
+                },
+                "value": {
+                  "kind": "const",
+                  "value": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "isToken",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "isPlayable",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "isTokenUpgrade",
+            "body": [
+              {
+                "kind": "return",
+                "value": {
+                  "kind": "const",
+                  "value": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "methods": [
+        {
+          "name": "isWeakness",
+          "kind": "typePredicate",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "tokenName",
+          "kind": "getter",
+          "body": [
+            {
+              "kind": "return",
+              "value": {
+                "kind": "const",
+                "value": "weakness"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "sourcePath": "game/core/card/propertyMixins/Token.ts",
+          "sourceHash": "3f503f6ec00df17b9b048c288b527495ae26be2710ccf67bbc95ba471d2776a7"
+        },
+        {
+          "sourcePath": "game/core/card/TokenCards.ts",
+          "sourceHash": "b82d4654f1c01e3d780c0f93df38cef20a457a7164c282819389de576d600297"
+        }
+      ]
+    },
+    {
+      "sourcePath": "game/cards/Index.ts",
+      "sourceHash": "1b411c5b5a4d55ad9084ee5d8cbf1e46d4ed02dfba8ebaa971dec7667370ef2f",
+      "role": "registry"
+    },
+    {
+      "sourcePath": "game/cards/02_SHD/units/FirstLightHeadquartersOfTheCrimsonDawn.ts",
+      "sourceHash": "7ebf89fc5e5ac4311104c6472e451da4e296558c8fe080739c98daad65e396ac",
+      "role": "source-without-card-data",
+      "status": "unsupported",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "expected-one-card-class",
+          "file": "game/cards/02_SHD/units/FirstLightHeadquartersOfTheCrimsonDawn.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Found 2 classes"
+        }
+      ]
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/events/CunningPloy.ts",
+      "sourceHash": "bd147b600c54ea263f7ec80b41938fcfba3d1bc60f1fb87deb1d45f688be541f",
+      "role": "source-without-card-data",
+      "id": "cunning-ploy-id",
+      "internalName": "cunning-ploy",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/events/IveGotABadFeeling.ts",
+      "sourceHash": "d536f2b7b2197710ce2103ad52347aaa78b3a658867d137a2383bb4c4b442205",
+      "role": "source-without-card-data",
+      "id": "ive-got-a-bad-feeling-id",
+      "internalName": "ive-got-a-bad-feeling",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/leaders/DarthVaderNoOneToStopUs.ts",
+      "sourceHash": "3cc9e1a8de77c991b3604fabb10e62353ff8753f59b98246dca0b700b5ec1882",
+      "role": "source-without-card-data",
+      "id": "darth-vader#no-one-to-stop-us-id",
+      "internalName": "darth-vader#no-one-to-stop-us",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/leaders/PrincessLeiaOnADiplomaticMission.ts",
+      "sourceHash": "807a60495a5ec330f0108716a484c95be033891ec8d60fc682ef29d82cca3eac",
+      "role": "source-without-card-data",
+      "id": "princess-leia#on-a-diplomatic-mission-id",
+      "internalName": "princess-leia#on-a-diplomatic-mission",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/AdmiralHoldoWeAreTheSpark.ts",
+      "sourceHash": "e007d2b01427d03cea3c07cfbbe75d82272a99b7f32208db70328e64edd99e7f",
+      "role": "source-without-card-data",
+      "id": "admiral-holdo#we-are-the-spark-id",
+      "internalName": "admiral-holdo#we-are-the-spark",
+      "status": "unsupported",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unsupported-modifier:AbilityHelper.ongoingEffects.drawAdditionalCardsInRegroup",
+          "message": "unsupported-modifier:AbilityHelper.ongoingEffects.drawAdditionalCardsInRegroup",
+          "file": "game/cards/09_IC27/units/AdmiralHoldoWeAreTheSpark.ts",
+          "line": 16,
+          "column": 28
+        }
+      ]
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/AnakinSkywalkerDestinedForDarkness.ts",
+      "sourceHash": "b90f599947938bf13411865586a030ccc8c4cd93166bf38087447e1580902300",
+      "role": "source-without-card-data",
+      "id": "anakin-skywalker#destined-for-darkness-id",
+      "internalName": "anakin-skywalker#destined-for-darkness",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/AvarKrissForLightAndLife.ts",
+      "sourceHash": "39b6eccf9b9ad3b9a3261546e5c81b989654fe0bab22d9bd262aff71e197883c",
+      "role": "source-without-card-data",
+      "id": "avar-kriss#for-light-and-life-id",
+      "internalName": "avar-kriss#for-light-and-life",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/BobaFettCompensatedIfHeDies.ts",
+      "sourceHash": "8ed521d91c48a9a29a911ef6c6a942545e8d36ac65b24d93ceedaabfd662a472",
+      "role": "source-without-card-data",
+      "id": "boba-fett#compensated-if-he-dies-id",
+      "internalName": "boba-fett#compensated-if-he-dies",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/DarthSidiousMoveAgainstTheJedi.ts",
+      "sourceHash": "2d366915591373714f18446ccda35a46680eaf672f297fe4402358bcad8e8a26",
+      "role": "source-without-card-data",
+      "id": "darth-sidious#move-against-the-jedi-id",
+      "internalName": "darth-sidious#move-against-the-jedi",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/DarthVaderUselessToResist.ts",
+      "sourceHash": "cd666eedb76b02a75009a15e31e1d4199e2209961e2e7eec3b934a0221f53cdc",
+      "role": "source-without-card-data",
+      "id": "darth-vader#useless-to-resist-id",
+      "internalName": "darth-vader#useless-to-resist",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/GrandAdmiralThrawnListenToMeCarefully.ts",
+      "sourceHash": "f0a87893c3bfa9b8f1979c5dfa6343c43734bfe45a67bd9a767aba0ee9c675da",
+      "role": "source-without-card-data",
+      "id": "grand-admiral-thrawn#listen-to-me-carefully-id",
+      "internalName": "grand-admiral-thrawn#listen-to-me-carefully",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/GrandInquisitorHowTheMightyWillFall.ts",
+      "sourceHash": "13ffac392737d9a1a30cc2083f65180611ea3682d6cfa01961048425f3f786eb",
+      "role": "source-without-card-data",
+      "id": "grand-inquisitor#how-the-mighty-will-fall-id",
+      "internalName": "grand-inquisitor#how-the-mighty-will-fall",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/JarJarBinksBumblingRepresentative.ts",
+      "sourceHash": "fb10c787418fc31dfb1df7feaaedd473abe4e1ada7972e75d7df90f2bc04f12f",
+      "role": "source-without-card-data",
+      "id": "jar-jar-binks#bumbling-representative-id",
+      "internalName": "jar-jar-binks#bumbling-representative",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/LandoCalrissianCheckThisOut.ts",
+      "sourceHash": "ca546814c3998a472058b4eaa9843fff8864c05ed26c981007d97660f9b0bf02",
+      "role": "source-without-card-data",
+      "id": "lando-calrissian#check-this-out-id",
+      "internalName": "lando-calrissian#check-this-out",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/MillenniumFalconYahoo.ts",
+      "sourceHash": "070e2e890bbbd6e78bac5657bc73cf1a9f09883f779fe4923b1085a1184d7781",
+      "role": "source-without-card-data",
+      "id": "millennium-falcon#yahoo-id",
+      "internalName": "millennium-falcon#yahoo",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/MoffGideonColdCalling.ts",
+      "sourceHash": "30ef42c97a5696d8e42e0a7dbcf8057f244f6dbd562220f2b18d9289d8f97f71",
+      "role": "source-without-card-data",
+      "id": "moff-gideon#cold-calling-id",
+      "internalName": "moff-gideon#cold-calling",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/ObiWansInterceptorNothingTooFancy.ts",
+      "sourceHash": "553d0b77416155a8bed50435ab05427c7ba6c3748e749c6814d15872bc891060",
+      "role": "source-without-card-data",
+      "id": "obiwans-interceptor#nothing-too-fancy-id",
+      "internalName": "obiwans-interceptor#nothing-too-fancy",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/QuiGonJinnUnwaveringBelief.ts",
+      "sourceHash": "5f11999a1b6dd9787b25447c9ee059c6f9baec399c630850e68b96b980cc0f5f",
+      "role": "source-without-card-data",
+      "id": "quigon-jinn#unwavering-belief-id",
+      "internalName": "quigon-jinn#unwavering-belief",
+      "status": "supported",
+      "diagnostics": []
+    },
+    {
+      "sourcePath": "game/cards/09_IC27/units/TheInquisitorsTIEWouldRatherWin.ts",
+      "sourceHash": "23a195b3f431ba49fa2f02a07a404b4869329ddf742fc45bd080b61cd04cdf78",
+      "role": "source-without-card-data",
+      "id": "the-inquisitors-tie#would-rather-win-id",
+      "internalName": "the-inquisitors-tie#would-rather-win",
+      "status": "supported",
+      "diagnostics": []
+    }
+  ],
+  "inventory": {
+    "knownCards": 2458,
+    "mockCardsExcluded": 21,
+    "sourceFiles": 2074,
+    "sourceDefinitions": 2071,
+    "definitionsWithSource": 2051
+  },
+  "files": {
+    "cards": "cards.json",
+    "inputs": "inputs.json",
+    "diagnostics": "diagnostics.json"
+  }
+}

@@ -2,7 +2,7 @@ use super::*;
 use serde_json::json;
 
 fn registration(code: &str) -> Ability {
-    let catalogue: Value = serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalogue: Value = serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     serde_json::from_value(catalogue["cards"].as_array().unwrap().iter()
         .find(|entry| entry["setCode"] == code).unwrap()["abilities"]["card"][0].clone()).unwrap()
 }

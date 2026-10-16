@@ -5,7 +5,7 @@ const {
   classifyNamedTarget,
   planNamedTargetProbes,
 } = require("../pipeline/named-target-probes");
-const catalogue = require("../../compiler/generated/catalog.json");
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = (id) =>
   structuredClone(catalogue.cards.find((e) => e.setCode === id));
 test("two complete printed sources get bounded essential timing constructions", () => {

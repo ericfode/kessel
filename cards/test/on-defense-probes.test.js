@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {classifyOnDefense,planOnDefenseProbes}=require('../pipeline/on-defense-probes');
-const catalogue=require('../../compiler/generated/catalog.json'),ids=['LOF_047','SHD_035','SOR_196','TS26_024','TWI_049','TWI_083'];
+const catalogue=require('../../compiler/load-catalog').loadCatalog(),ids=['LOF_047','SHD_035','SOR_196','TS26_024','TWI_049','TWI_083'];
 const plan=id=>planOnDefenseProbes(catalogue.cards.find(e=>e.setCode===id),{catalogue});
 test('complete defense family accepts supported scalar source shapes and rejects unmodeled fields',()=>{
     for(const id of ids){const raw=catalogue.cards.find(e=>e.setCode===id);assert.ok(classifyOnDefense(raw));const e=structuredClone(raw);e.abilities.card[0].ifYouDo={effect:{kind:'draw',target:'ownPlayer',amount:{kind:'const',value:1}}};assert.equal(classifyOnDefense(e),null);}

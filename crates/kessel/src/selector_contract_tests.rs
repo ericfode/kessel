@@ -56,7 +56,7 @@ fn mutations(value: &Value) -> Vec<Value> {
 #[test]
 fn reviewed_arena_queries_preserve_normalized_ability_fingerprints_and_bindings() {
     let catalog: Value =
-        serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let mut originals = Vec::new();
     for entry in catalog["cards"].as_array().unwrap() {
         let Some(kind) = crate::ability_ir::arena_query_source_kind(entry) else {

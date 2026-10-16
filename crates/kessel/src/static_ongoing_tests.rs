@@ -171,7 +171,7 @@ fn static_ongoing_import_and_plain_placement_preserve_explicit_exhaustion() {
 #[test]
 fn static_ongoing_raw_contract_rejects_unknown_dynamic_and_widened_scopes() {
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["ASH_034", "JTL_059", "LOF_044", "HMW_203"] {
         let entry = original["cards"]
             .as_array()
@@ -275,7 +275,7 @@ fn static_ongoing_raw_contract_rejects_unknown_dynamic_and_widened_scopes() {
 #[test]
 fn static_ongoing_original_admission_delta_remains_exact() {
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let admitted = Engine::from_catalogue_value(&original).unwrap();
     let mut baseline = original.clone();
     let focus = ["ASH_034", "JTL_059", "LOF_044", "HMW_203"];
@@ -481,7 +481,7 @@ fn static_ongoing_firespray_ambush_base_permission_is_friendly_live_and_respects
 }
 #[test]
 fn static_ongoing_new_contracts_reject_scope_capture_and_unknown_mutations() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["HMW_208","LAW_210","LAW_223","SEC_170","JTL_256","LOF_083","HMW_053"] {
         let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         let load=|v|Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[v]})).unwrap();
@@ -533,7 +533,7 @@ fn static_ongoing_firespray_opens_real_hand_play_ambush_against_an_empty_board()
 }
 #[test]
 fn static_ongoing_rejects_nested_callback_capture_and_binding_mutations() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["JTL_256","LOF_083","LAW_223"] {
         let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         fn mutate(v:&mut Value,key:&str,value:Value)->bool {
@@ -553,7 +553,7 @@ fn static_ongoing_rejects_nested_callback_capture_and_binding_mutations() {
 }
 #[test]
 fn static_ongoing_conditional_and_live_count_admission_delta_is_complete() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let focus=["HMW_053","HMW_208","JTL_256","LAW_210","LAW_223","LOF_083","SEC_170"];
     let admitted=Engine::from_catalogue_value(&original).unwrap();
     let mut baseline=original.clone();
@@ -569,7 +569,7 @@ fn static_ongoing_conditional_and_live_count_admission_delta_is_complete() {
 
 #[test]
 fn static_ongoing_lexical_renaming_preserves_leaf_and_rejects_binding_aliases() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     fn rename(v:&mut Value,old:&str,new:&str) {
         match v {
             Value::String(s) if s==old=>*s=new.into(),

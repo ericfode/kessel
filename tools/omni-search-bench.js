@@ -49,7 +49,15 @@ function prepare(configFile, directory) {
     uniqueIds(config.workloads, 'workloads');
     const out = newDirectory(directory);
     const catalogueSource = config.catalogue && path.resolve(base, config.catalogue);
-    if (catalogueSource) fs.copyFileSync(catalogueSource, path.join(out, 'catalog.json'), fs.constants.COPYFILE_EXCL);
+    if (catalogueSource) {
+        const { isDirectoryCatalog, catalogJsonText } = require('../compiler/load-catalog');
+        const target = path.resolve(catalogueSource);
+        if (isDirectoryCatalog(target) || fs.statSync(target).isDirectory()) {
+            fs.writeFileSync(path.join(out, 'catalog.json'), catalogJsonText(target), { flag: 'wx' });
+        } else {
+            fs.copyFileSync(catalogueSource, path.join(out, 'catalog.json'), fs.constants.COPYFILE_EXCL);
+        }
+    }
     const workloads = config.workloads.map((w) => {
         const trace = path.resolve(base, w.trace), pool = path.resolve(base, w.pool);
         const traceReceipt = fingerprint(trace), poolReceipt = fingerprint(pool);

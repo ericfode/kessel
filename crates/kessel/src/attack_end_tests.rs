@@ -163,7 +163,7 @@ fn attack_end_history_retains_original_defender_through_departure_and_nested_con
 
 #[test]
 fn attack_end_history_requires_exact_watcher_and_lexical_attack_contract() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for mode in ["binding","scope","reset","extra","root","role","optional","helper","argumentIndex","registrationCondition"] {
         let mut value=catalog.clone();let entry=value["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="SOR_146").unwrap();
         match mode {

@@ -17,17 +17,18 @@ const HELP: &str = "kessel — independent SWU subset simulator and endgame prov
   kessel check <trace.jsonl[.gz]>... [--pool FILE] [--catalogue FILE]
   kessel prove <positions.jsonl[.gz]> [--depth 12] [--ms N | --nodes N | --ms-field jsMs] [--pool FILE] [--catalogue FILE]
   kessel bench [trace-or-positions.jsonl[.gz]] [--nodes 100000] [--pool FILE] [--catalogue FILE]
-  kessel catalogue <catalog.json> [--out-pool FILE]
-  kessel rules --catalogue FILE [--pool FILE] [--backend auto|interpreter|aot]
+  kessel catalogue <catalog.json|generated-dir> [--out-pool FILE]
+  kessel rules --catalogue FILE|DIR [--pool FILE] [--backend auto|interpreter|aot]
 
 Proof depth and nodes count action-window moves; decisions also counts prompt inputs.
 All proof limits are cumulative across iterative depths and both candidate winners.
 Positions must contain fullState from a pool-aware export-positions.js run.
 bench excludes loading/parsing, includes all prompt choices between action windows,
 and defaults to the first committed trace fixture. Output is JSON (one line per input).
---catalogue loads compiled card programs; --pool optionally restricts their card set
-and binds trace provenance to that pool. Without --catalogue the strict pool is used.
-catalogue reports runtime admission and rejection reasons, not game conformance.
+--catalogue loads compiled card programs from a legacy catalog.json or a concern-split
+generated directory; --pool optionally restricts their card set and binds trace provenance
+to that pool. Without --catalogue the strict pool is used. catalogue reports runtime
+admission and rejection reasons, not game conformance.
 --backend selects generated Rust with explicit fallback (auto), forced interpreter, or
 aot (requires all programs in the selected pool to have generated backends).
 --rules-receipt FILE
@@ -102,7 +103,7 @@ fn load_engine(args: &Args) -> Result<Engine, String> {
         return Err("--out-pool is only valid with the catalogue command".into());
     }
     if let Some(path) = args.flags.get("catalogue") {
-        let catalogue = read_bytes(Path::new(path))?;
+        let catalogue = kessel::catalogue_io::load_catalogue_bytes(Path::new(path))?;
         if let Some(pool) = args.flags.get("pool") {
             return Engine::from_compiled_pool_bytes(&read_bytes(Path::new(pool))?, &catalogue);
         }
@@ -120,7 +121,7 @@ fn load_engine(args: &Args) -> Result<Engine, String> {
 fn catalogue(args: &Args) -> Result<(), String> {
     if args.positional.len() != 1 {
         return Err(format!(
-            "catalogue requires one compiled catalogue file\n{HELP}"
+            "catalogue requires one compiled catalogue file or generated directory\n{HELP}"
         ));
     }
     for key in args.flags.keys() {
@@ -128,8 +129,9 @@ fn catalogue(args: &Args) -> Result<(), String> {
             return Err(format!("--{key} is not valid with the catalogue command"));
         }
     }
-    let bytes = read_bytes(Path::new(&args.positional[0]))?;
-    let value: Value = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    let path = Path::new(&args.positional[0]);
+    let value = kessel::catalogue_io::load_catalogue_value(path)?;
+    let bytes = serde_json::to_vec(&value).map_err(|e| e.to_string())?;
     let engine = Engine::from_catalogue_bytes(&bytes)?;
     let rejected = engine
         .rejected_cards()

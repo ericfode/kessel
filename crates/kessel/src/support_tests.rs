@@ -333,7 +333,7 @@ fn support_admission_rejects_unsupported_donors_and_arbitrary_grants() {
         "source departure WD donor remains bounded rejection"
     );
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for variant in 0..4 {
         let mut c = original.clone();
         let entry = c["cards"]
@@ -379,7 +379,7 @@ fn support_diagnostic_copies_attached_registration_then_retains_snapshot() {
 #[test]
 fn support_diagnostic_entry_keywords_share_order_and_outer_window_resumes() {
     let mut c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry = c["cards"]
         .as_array_mut()
         .unwrap()
@@ -635,7 +635,7 @@ fn support_saved_context_hash_includes_event_lki_and_maximum_payload() {
 fn support_import_requirement_uses_selected_pool_and_actual_dependencies() {
     let mut e = Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     ).unwrap();
     assert!(e.definitions.iter().any(|d| d.flags & SUPPORT != 0));
     assert!(!e.needs_support_state(), "unselected definitions do not impose state");
@@ -679,7 +679,7 @@ fn support_import_requirement_uses_selected_pool_and_actual_dependencies() {
 fn support_dependency_detection_includes_nested_grants_and_copy_domains() {
     let mut e = Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     ).unwrap();
     // Dependency diagnostics only: admission still rejects these unreviewed
     // mechanics. Install typed instructions after loading to test the guard
@@ -711,7 +711,7 @@ fn support_dependency_detection_includes_nested_grants_and_copy_domains() {
 fn support_free_selected_pool_preserves_committed_vader_trace() {
     let e = Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     ).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/vader-dual-lethal-2001.jsonl.gz");

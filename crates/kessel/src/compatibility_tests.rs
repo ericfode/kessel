@@ -5,12 +5,12 @@ fn strict() -> Engine {
 fn compiled() -> Engine {
     Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     )
     .unwrap()
 }
 fn runtime() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json"))
+    Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
         .unwrap()
 }
 fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
