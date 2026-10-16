@@ -1,7 +1,7 @@
 {
   "schema": "swu-card-ir-cards/v1",
   "irSchema": "swu-card-ir/v1",
-  "compilerHash": "bec7e332186d8a666fa75ff76eaefe95740072d0e73c3a0d4d5d5e1d6653ea7b",
+  "compilerHash": "d188828527e6459ea9c7b2673e4746960923f9d0904c190026e6d454b45a548e",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
   "cards": [
     {
@@ -78007,19 +78007,52 @@
               {
                 "name": "friendlyUnit",
                 "targetResolver": {
-                  "owner": "self",
-                  "type": "unit",
-                  "zone": "arena"
+                  "kind": "cardSelection",
+                  "mode": "single",
+                  "chooser": "self",
+                  "resultBinding": "friendlyUnit",
+                  "defaults": "pinnedTargetResolver",
+                  "contextBinding": "target",
+                  "choosingPlayerOverride": "contextOverrideFirst",
+                  "delayOpponentBeforeCosts": true,
+                  "cardTypes": {
+                    "kind": "const",
+                    "value": "unit"
+                  },
+                  "zones": {
+                    "kind": "const",
+                    "value": "anyArena"
+                  },
+                  "controller": {
+                    "kind": "const",
+                    "value": "self"
+                  }
                 },
                 "chooser": "self"
               },
               {
                 "name": "damageTarget",
                 "targetResolver": {
-                  "owner": "opponent",
-                  "type": "unit",
-                  "zone": "anyAttackable",
-                  "promptTitle": "Resolve ability",
+                  "kind": "cardSelection",
+                  "mode": "single",
+                  "chooser": "self",
+                  "resultBinding": "damageTarget",
+                  "defaults": "pinnedTargetResolver",
+                  "contextBinding": "target",
+                  "choosingPlayerOverride": "contextOverrideFirst",
+                  "delayOpponentBeforeCosts": true,
+                  "cardTypes": {
+                    "kind": "const",
+                    "value": "unit"
+                  },
+                  "zones": {
+                    "kind": "const",
+                    "value": "anyAttackable"
+                  },
+                  "controller": {
+                    "kind": "const",
+                    "value": "opponent"
+                  },
                   "promptTitleParts": [
                     {
                       "kind": "const",
@@ -78183,6 +78216,7 @@
         "binary:??",
         "cardType:event",
         "ir:binary",
+        "ir:cardSelection",
         "ir:const",
         "ir:damageFromCard",
         "ir:damagePropertiesFactory",
@@ -78194,9 +78228,7 @@
         "ref:attackBinding1_0.targets.friendlyUnit",
         "ref:namedTargets.friendlyUnit",
         "ref:namedTargets.friendlyUnit.title",
-        "targetType:unit",
-        "targetZone:anyAttackable",
-        "targetZone:arena",
+        "targetMode:single",
         "trigger:event"
       ]
     },
@@ -144960,16 +144992,33 @@
               {
                 "name": "friendlyUnit",
                 "targetResolver": {
-                  "owner": "self",
-                  "type": "unit",
-                  "zone": "arena",
+                  "kind": "cardSelection",
+                  "mode": "single",
+                  "chooser": "self",
+                  "resultBinding": "friendlyUnit",
+                  "defaults": "pinnedTargetResolver",
+                  "contextBinding": "target",
+                  "choosingPlayerOverride": "contextOverrideFirst",
+                  "delayOpponentBeforeCosts": true,
+                  "cardTypes": {
+                    "kind": "const",
+                    "value": "unit"
+                  },
+                  "zones": {
+                    "kind": "const",
+                    "value": "anyArena"
+                  },
+                  "controller": {
+                    "kind": "const",
+                    "value": "self"
+                  },
                   "predicate": {
                     "kind": "binary",
                     "op": "!==",
                     "left": {
                       "kind": "ref",
                       "path": [
-                        "card"
+                        "selectionCandidate"
                       ]
                     },
                     "right": {
@@ -144979,17 +145028,38 @@
                       ]
                     }
                   },
-                  "promptTitle": "Select a friendly unit"
+                  "promptTitleParts": [
+                    {
+                      "kind": "const",
+                      "value": "Select a friendly unit"
+                    }
+                  ]
                 },
                 "chooser": "self"
               },
               {
                 "name": "damageTarget",
                 "targetResolver": {
-                  "owner": "opponent",
-                  "type": "unit",
-                  "zone": "arena",
-                  "promptTitle": "Resolve ability",
+                  "kind": "cardSelection",
+                  "mode": "single",
+                  "chooser": "self",
+                  "resultBinding": "damageTarget",
+                  "defaults": "pinnedTargetResolver",
+                  "contextBinding": "target",
+                  "choosingPlayerOverride": "contextOverrideFirst",
+                  "delayOpponentBeforeCosts": true,
+                  "cardTypes": {
+                    "kind": "const",
+                    "value": "unit"
+                  },
+                  "zones": {
+                    "kind": "const",
+                    "value": "anyArena"
+                  },
+                  "controller": {
+                    "kind": "const",
+                    "value": "opponent"
+                  },
                   "promptTitleParts": [
                     {
                       "kind": "const",
@@ -145150,6 +145220,7 @@
         "binary:===",
         "cardType:leader",
         "ir:binary",
+        "ir:cardSelection",
         "ir:const",
         "ir:createCreditToken",
         "ir:damageFromCard",
@@ -145163,11 +145234,10 @@
         "ir:selectCardCost",
         "query:getPower",
         "ref:attackBinding1_0.targets.friendlyUnit",
-        "ref:card",
         "ref:namedTargets.friendlyUnit",
+        "ref:selectionCandidate",
         "ref:source",
-        "targetType:unit",
-        "targetZone:arena",
+        "targetMode:single",
         "trigger:action",
         "trigger:eventHooks"
       ]
@@ -181932,63 +182002,7 @@
                                 "data:local:1201"
                               ],
                               "steps": []
-                            },
-                            "promptTitleParts": [
-                              {
-                                "kind": "const",
-                                "value": "Exhaust "
-                              },
-                              {
-                                "kind": "dataPath",
-                                "root": [
-                                  "data:local:1110"
-                                ],
-                                "steps": []
-                              },
-                              {
-                                "kind": "const",
-                                "value": " enemy unit in "
-                              },
-                              {
-                                "kind": "conditional",
-                                "condition": {
-                                  "kind": "binary",
-                                  "op": "===",
-                                  "left": {
-                                    "kind": "dataPath",
-                                    "root": [
-                                      "data:callback:1066:0"
-                                    ],
-                                    "steps": [
-                                      {
-                                        "key": "target",
-                                        "optional": false
-                                      },
-                                      {
-                                        "key": "zoneName",
-                                        "optional": true
-                                      }
-                                    ]
-                                  },
-                                  "right": {
-                                    "kind": "const",
-                                    "value": "groundArena"
-                                  }
-                                },
-                                "then": {
-                                  "kind": "const",
-                                  "value": "Ground"
-                                },
-                                "else": {
-                                  "kind": "const",
-                                  "value": "Space"
-                                }
-                              },
-                              {
-                                "kind": "const",
-                                "value": " arena"
-                              }
-                            ]
+                            }
                           },
                           "effect": {
                             "kind": "exhaust",
@@ -182053,13 +182067,10 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "ability:ifYouDo",
-        "ability:then",
         "binary:===",
         "cardType:event",
         "ir:abilityFactoryProgram",
         "ir:binary",
-        "ir:conditional",
-        "ir:const",
         "ir:dataCall",
         "ir:dataMember",
         "ir:dataPath",

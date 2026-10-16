@@ -4,4 +4,17 @@ const {compileSource,loadEnums}=require('../compiler');
 const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../../forceteki/server')),enums=loadEnums(root);
 const sources=['game/cards/08_ASH/units/AT-STRaider.ts','game/cards/04_JTL/units/DeathSpaceSkirmisher.ts','game/cards/06_SEC/leaders/SlyMooreCipherInTheDark.ts'];
 test('three complete arena query sources retain typed collection and distinct selector',()=>{const results=sources.map(p=>compileSource(fs.readFileSync(path.join(root,p),'utf8'),p,enums));for(const c of results)assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));assert.equal(results[0].abilities.card[0].condition.kind,'arenaSome');const wp=results[1].abilities.card[0];assert.equal(wp.effect.condition.left.kind,'arenaLength');assert.equal(wp.effect.condition.left.receiver.kind,'arenaFilter');assert.equal(wp.effect.onTrue.target,'chosen');assert.equal(wp.targetResolver.owner,'any');assert.equal(results[2].abilities.leader[0].effect.condition.left.kind,'arenaLength');assert.deepEqual(results[2].abilities.leader[0].effect.condition.left.receiver.receiver,{kind:'ref',path:['game']});});
-test('query candidate captures and mutable locals fail closed',()=>{for(const body of ["condition:ctx=>ctx.player.getArenaUnits().some(a=>ctx.player.getArenaUnits().some(b=>b!==a))","condition:ctx=>{let xs=ctx.player.getArenaUnits();xs=[];return xs.length>0}"]){const src=`export default class QueryProbe extends NonLeaderUnitCard {getImplementationId(){return{id:'probe',internalName:'probe'}} setupCardAbilities(registrar,AbilityHelper){registrar.addConstantAbility({${body},ongoingEffect:AbilityHelper.ongoingEffects.gainKeyword('ambush')});}}`;assert.equal(compileSource(src,'probe.ts',enums).status,'unsupported');}});
+test('nested query callbacks retain separate captures and mutable locals remain explicit programs',()=>{
+ const compile=body=>compileSource(`export default class QueryProbe extends NonLeaderUnitCard {getImplementationId(){return{id:'probe',internalName:'probe'}} setupCardAbilities(registrar,AbilityHelper){registrar.addConstantAbility({${body},ongoingEffect:AbilityHelper.ongoingEffects.gainKeyword('ambush')});}}`,'probe.ts',enums);
+ const c=compile('condition:ctx=>ctx.player.getArenaUnits().some(a=>ctx.player.getArenaUnits().some(b=>b!==a))');
+ assert.equal(c.status,'supported');const outer=c.abilities.card[0].condition,inner=outer.args[0].body;
+ assert.equal(outer.kind,'queryCollectionCall');assert.equal(inner.kind,'queryCollectionCall');
+ assert.notEqual(outer.args[0].parameters[0].root,inner.args[0].parameters[0].root);
+ assert.deepEqual(inner.args[0].body,{kind:'binary',op:'!==',left:{kind:'ref',path:[inner.args[0].parameters[0].root]},right:{kind:'ref',path:[outer.args[0].parameters[0].root]}});
+ const mutable=compile('condition:ctx=>{let xs=ctx.player.getArenaUnits();xs=[];return xs.length>0}');
+ assert.equal(mutable.status,'supported');
+ const callback=mutable.abilities.card[0].condition;
+ assert.equal(callback.kind,'pureCallback');assert.equal(callback.body.kind,'pureBlock');
+ const binding=callback.body.statements[0].bindings[0];assert.equal(binding.mutable,true);
+ assert.deepEqual(callback.body.statements[1],{kind:'pureEvaluate',value:{kind:'pureLocalWrite',operation:'=',target:{kind:'ref',path:[binding.slot]},value:{kind:'array',items:[]}}});
+});

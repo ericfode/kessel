@@ -14,6 +14,14 @@ require an operation the Rust runtime has not implemented. The runtime must
 validate all its abilities, keywords, types, targeting, and state before admitting
 it. The current catalog is not an all-card implementation of SWU.
 
+Compiler tests distinguish rejected source from retained contracts requiring an
+unimplemented executor. Assert the retained node's identity, captures and timing
+when lowering succeeds; do not infer runtime admission from `status: supported`.
+`compiler/test/source-only-contracts.test.js` checks exact source-derived fixtures
+shared with Rust's `source_only_contracts` integration test, which requires an
+admitted control envelope and a specific runtime rejection for each contract.
+
+
 ## Run locally
 
 Use Node 22 and the normal repository setup. The parser uses the TypeScript

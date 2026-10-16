@@ -94,6 +94,7 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
     const file = fs.readdirSync(compiledFixtures).filter((file) => file.endsWith('.gz')).sort()[0];
     const rows = records(path.join(compiledFixtures, file));
     const initial = rows.find((row) => row.type === 'state').state;
+    let force;
     try {
         assert.equal(subset.poolHash, rows[0].pool.sha256);
         assert.throws(() => all.loadState(initial), /requires explicit Hidden phase history/);
@@ -103,17 +104,30 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
             assert.equal(player.space.length, 0);
         }
         const hiddenOnly = { ...structuredClone(initial), hiddenHistoryVersion: 1 };
-        assert.throws(() => all.loadState(hiddenOnly), /requires explicit Force state version/);
+        // All-admitted loading validates chronology for future death-hook cards too.
+        assert.throws(() => all.loadState(hiddenOnly), /require explicit registrationOrder including future cards in selected pool/);
         // Persistent Force identities come from an actual engine recording;
         // they cannot be reconstructed from an older snapshot's arena contents.
         const referenceFixtures = path.resolve(__dirname, '../../../../cards/reference/fixtures');
-        const manifest = require('../../../../cards/reference/library').corpus(referenceFixtures);
+        const library = require('../../../../cards/reference/library');
+        const manifest = library.corpus(referenceFixtures);
         const forceRecording = manifest.recordings.find((row) => row.caseId === 'auto/LOF_193/force-first-gain');
         assert.ok(forceRecording, 'The corpus must retain the versioned Force engine witness');
-        const versioned = records(path.join(referenceFixtures, 'traces', forceRecording.traceSha256 + '.jsonl.gz')).find((row) => row.type === 'state').state;
+        const forceRows = records(library.checkedArtifact(referenceFixtures, 'trace', forceRecording.traceSha256));
+        assert.equal(forceRows[0].pool.sha256, forceRecording.poolSha256);
+        const forcePoolJson = fs.readFileSync(library.checkedArtifact(referenceFixtures, 'pool', forceRecording.poolSha256), 'utf8');
+        force = await createSimulator({ catalogueJson, poolJson: forcePoolJson });
+        assert.equal(force.poolHash, forceRecording.poolSha256);
+        const versioned = forceRows.find((row) => row.type === 'state').state;
         assert.equal(versioned.forceStateVersion, 1);
         assert.equal(versioned.hiddenHistoryVersion, 1);
-        for (const [simulator, snapshot] of [[subset, initial], [all, versioned]]) {
+        assert.equal(versioned.registrationOrder, undefined, 'This recording predates pool-wide registration chronology');
+        assert.throws(() => all.loadState(versioned), /require explicit registrationOrder including future cards in selected pool/);
+        const unversionedForce = structuredClone(versioned);
+        delete unversionedForce.forceStateVersion;
+        // Physical Force identities retain their recorded version requirement.
+        assert.throws(() => force.loadState(unversionedForce), /Force identity requires forceStateVersion/);
+        for (const [simulator, snapshot] of [[subset, initial], [force, versioned]]) {
             const game = simulator.loadState(snapshot);
             try {
                 assert.deepEqual(game.snapshot(), snapshot);
@@ -123,7 +137,7 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
         const wrongPool = JSON.parse(poolJson);
         wrongPool.cards.find((card) => card.types.includes('unit')).power += 1;
         await assert.rejects(createSimulator({ catalogueJson, poolJson: JSON.stringify(wrongPool) }), /differs/);
-    } finally { subset.free(); all.free(); }
+    } finally { force?.free(); subset.free(); all.free(); }
 });
 
 test('invalid wrapper options release their owned Wasm handle and CLI flags cannot disappear', async () => {

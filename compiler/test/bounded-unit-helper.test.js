@@ -18,13 +18,42 @@ test('TIE comparison uses both controlled space inventories and source ready def
  assert.deepEqual(a.effect.onTrue,{kind:'ready',target:'self'});assert.deepEqual(a.effect.onFalse,{kind:'noAction'});
  const {text,file}=source('JTL_135');assert.deepEqual(compileSource(text.replaceAll('controlsLessUnitsInSpaceArena','controlsFewerSpaceUnits'),file,enums).abilities,compiled('JTL_135').abilities);
 });
-test('bounded unit helpers reject effects, mutable declarations, altered queries and extra methods',()=>{
+test('bounded unit helpers reject body effects, invalid calls and unused methods',()=>{
  mutations('SOR_097',[
- ['const arenaName =','let arenaName ='],['const arenaName =','sideEffect(); const arenaName ='],['return arena.length;','const unused = sideEffect(); return arena.length;'],['return arena.length;','return arena.length * 2;'],['context.target.zoneName','context.source.zoneName'],['context.player.getArenaUnits','context.player.opponent.getArenaUnits'],['getArenaUnits({ arena: arenaName })','getArenaUnits({ arena: arenaName, condition:card=>true })'],['getArenaUnits({ arena: arenaName })','getArenaUnits?.({ arena: arenaName })'],['amount: this.getDamageFromContext(context)','amount: 1'],['this.getDamageFromContext(context)','other.getDamageFromContext(context)'],['this.getDamageFromContext(context)','this.getDamageFromContext(context.target)'],['this.getDamageFromContext(context)','this.getDamageFromContext(context, context)'],['extends NonLeaderUnitCard','extends EventCard']
+ ['const arenaName =','sideEffect(); const arenaName ='],['return arena.length;','const unused = sideEffect(); return arena.length;'],['amount: this.getDamageFromContext(context)','amount: 1'],['this.getDamageFromContext(context)','other.getDamageFromContext(context)'],['this.getDamageFromContext(context)','this.getDamageFromContext(context.target)'],['this.getDamageFromContext(context)','this.getDamageFromContext(context, context)']
  ]);
  mutations('JTL_135',[
- ['return context.player.getArenaUnits','sideEffect(); return context.player.getArenaUnits'],[' < context.player.opponent',' <= context.player.opponent'],[' < context.player.opponent',' > context.player.opponent'],['arena: ZoneName.SpaceArena','arena: ZoneName.GroundArena'],['getArenaUnits({ arena: ZoneName.SpaceArena })','getArenaUnits({ arena: ZoneName.SpaceArena, condition:card=>true })'],['getArenaUnits({ arena: ZoneName.SpaceArena })','getArenaUnits?.({ arena: ZoneName.SpaceArena })'],['this.controlsLessUnitsInSpaceArena(context)','this.controlsLessUnitsInSpaceArena(context.source)'],['this.controlsLessUnitsInSpaceArena(context)','this.controlsLessUnitsInSpaceArena()'],['this.controlsLessUnitsInSpaceArena(context)','true'],['extends NonLeaderUnitCard','extends EventCard']
+ ['return context.player.getArenaUnits','sideEffect(); return context.player.getArenaUnits'],['this.controlsLessUnitsInSpaceArena(context)','this.controlsLessUnitsInSpaceArena(context.source)'],['this.controlsLessUnitsInSpaceArena(context)','this.controlsLessUnitsInSpaceArena()'],['this.controlsLessUnitsInSpaceArena(context)','true']
  ]);
+});
+function nodes(value,kind) {if(!value||typeof value!=='object')return [];return [...(value.kind===kind?[value]:[]),...Object.values(value).flatMap(v=>nodes(v,kind))];}
+function programMutation(id,from,to) {
+ const {text,file}=source(id);assert.ok(text.includes(from),from);const c=compileSource(text.replace(from,to),file,enums);
+ assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));
+ const program=c.privatePrograms[0];assert.equal(program.kind,'privateProgram');assert.equal(program.source,'physicalAbilitySource');
+ const call=id==='SOR_097'?c.abilities.card[0].effect.amount:c.abilities.card[0].effect.condition;
+ assert.equal(call.kind,'privateProgramCall');assert.equal(call.name,program.name);assert.equal(call.invokeAt,'expressionEvaluation');
+ assert.equal(call.args[0].binding.reference,'lexicalContextObject');
+ return {c,program,calls:nodes(program,'dataCall').filter(n=>n.method==='getArenaUnits')};
+}
+test('general private programs preserve changed arena helper values and optional calls',()=>{
+ let p=programMutation('SOR_097','const arenaName =','let arenaName =');
+ assert.equal(p.program.body.statements[0].bindings[0].mutable,true);
+ p=programMutation('SOR_097','return arena.length;','return arena.length * 2;');
+ assert.partialDeepStrictEqual(p.program.body.statements.at(-1),{kind:'pureReturn',value:{kind:'binary',op:'*',right:{kind:'const',value:2}}});
+ p=programMutation('SOR_097','context.target.zoneName','context.source.zoneName');
+ assert.deepEqual(p.program.body.statements[0].bindings[0].value.steps,[{key:'source',optional:false},{key:'zoneName',optional:false}]);
+ p=programMutation('SOR_097','context.player.getArenaUnits','context.player.opponent.getArenaUnits');
+ assert.deepEqual(p.calls[0].receiver.steps,[{key:'player',optional:false},{key:'opponent',optional:false}]);
+ p=programMutation('SOR_097','getArenaUnits({ arena: arenaName })','getArenaUnits({ arena: arenaName, condition:card=>true })');
+ assert.equal(p.calls[0].args[0].fields.condition.kind,'pureCallback');assert.deepEqual(p.calls[0].args[0].fields.condition.body,{kind:'pureReturn',value:{kind:'const',value:true}});
+ p=programMutation('SOR_097','getArenaUnits({ arena: arenaName })','getArenaUnits?.({ arena: arenaName })');assert.equal(p.calls[0].optionalCall,true);
+ for(const op of ['<=','>']){p=programMutation('JTL_135',' < context.player.opponent',` ${op} context.player.opponent`);assert.equal(p.program.body.statements[0].value.op,op);}
+ p=programMutation('JTL_135','arena: ZoneName.SpaceArena','arena: ZoneName.GroundArena');
+ assert.deepEqual(p.calls.map(c=>c.args[0].fields.arena.value),['groundArena','spaceArena']);
+ p=programMutation('JTL_135','getArenaUnits({ arena: ZoneName.SpaceArena })','getArenaUnits({ arena: ZoneName.SpaceArena, condition:card=>true })');assert.equal(p.calls[0].args[0].fields.condition.kind,'pureCallback');
+ p=programMutation('JTL_135','getArenaUnits({ arena: ZoneName.SpaceArena })','getArenaUnits?.({ arena: ZoneName.SpaceArena })');assert.equal(p.calls[0].optionalCall,true);assert.equal(p.calls[1].optionalCall,false);
+ for(const id of ['SOR_097','JTL_135']){p=programMutation(id,'extends NonLeaderUnitCard','extends EventCard');assert.equal(p.c.baseClass,'EventCard');}
 });
 test('all helper methods require plain synchronous private context binding and lexical card this',()=>{
  for(const[id,name]of[['SOR_097','getDamageFromContext'],['JTL_135','controlsLessUnitsInSpaceArena']]){
@@ -65,7 +94,7 @@ test('helper result snapshots follow direct-query callback-stage guards through 
   'const initial=this.controlsLessUnitsInSpaceArena(context); const second=initial; const saved=second;'
  ]){
   const rejected=compileSource(factory(declarations,'()=>saved'),file,enums);
-  assert.equal(rejected.status,'unsupported');assert.ok(rejected.diagnostics.some(d=>d.pattern==='arena-query-snapshot-capture'),JSON.stringify(rejected.diagnostics));
+  assert.equal(rejected.status,'unsupported');assert.ok(rejected.diagnostics.some(d=>d.pattern==='arena-damage-helper-call-scope'),JSON.stringify(rejected.diagnostics));
   const sameStage=compileSource(factory(declarations,'saved'),file,enums);assert.equal(sameStage.status,'supported',JSON.stringify(sameStage.diagnostics));assert.deepEqual(sameStage.abilities,compiled('JTL_135').abilities);
  }
  rejects(factory('const captured=context;','later=>this.controlsLessUnitsInSpaceArena(captured)'),file);

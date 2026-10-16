@@ -27,23 +27,17 @@ test('synchronous arena candidate lowers leader-unit identity to existing unit a
     assert.equal(filtered.status,'supported',JSON.stringify(filtered.diagnostics));
     assert.deepEqual(filtered.abilities.card[0].condition.predicate,leaderPredicate);
 });
-test('only synchronous scalar arena candidates qualify, with no optionality or arguments',()=>{
+test('leader predicates reject spread, asynchronous and effectful parameter bindings',()=>{
     for(const condition of [
-        'context.source.isLeaderUnit()', 'context.target.isLeaderUnit()',
-        'context.player.hasSomeArenaUnit({condition:c=>context.source.isLeaderUnit()})',
-        'context.player.hasSomeArenaUnit({condition:c=>context.target.isLeaderUnit()})',
-        'context.player.hasSomeArenaUnit({condition:c=>c.parentUnit.isLeaderUnit()})',
-        'context.player.hasSomeArenaUnit({condition:c=>c?.isLeaderUnit()})',
-        'context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit?.()})',
-        'context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit(1)})',
         'context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit(...[])})',
         'context.player.hasSomeArenaUnit({condition:async c=>c.isLeaderUnit()})',
         'context.player.hasSomeArenaUnit({condition:(c=sideEffect())=>c.isLeaderUnit()})',
         'context.player.hasSomeArenaUnit({condition:function*(c){return c.isLeaderUnit()}})',
-        'context.player.hasSomeArenaUnit({condition:(c,other)=>c.isLeaderUnit()})'
     ]) assert.equal(compile(condition).status,'unsupported',condition);
     const selector=source('true').replace('condition:context=>true,','matchTarget:c=>c.isLeaderUnit(),');
-    assert.equal(compileSource(selector,'selector.ts',enums).status,'unsupported');
+    const selected=compileSource(selector,'selector.ts',enums);
+    assert.equal(selected.status,'supported',JSON.stringify(selected.diagnostics));
+    assert.deepEqual(selected.abilities.card[0].targetResolver.predicate,{kind:'cardQueryContract',operation:'isLeaderUnit',receiver:{kind:'ref',path:['card']},evaluation:'expressionEvaluation'});
     const synchronous=source('context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit()})');
     for(const enclosing of [
         synchronous.replace('condition:context=>','condition:async context=>'),
@@ -52,6 +46,25 @@ test('only synchronous scalar arena candidates qualify, with no optionality or a
         synchronous.replace('condition:context=>context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit()})','condition:function*(context){return context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit()})}'),
         synchronous.replace('condition:context=>context.player.hasSomeArenaUnit({condition:c=>c.isLeaderUnit()})','condition:async context=>context.player.getArenaUnits().some(c=>c.isLeaderUnit())')
     ]) assert.equal(compileSource(enclosing,'async-ancestor.ts',enums).status,'unsupported');
+});
+test('leader query contracts retain receiver identity and callback call details',()=>{
+    const contract=path=>({kind:'cardQueryContract',operation:'isLeaderUnit',receiver:{kind:'ref',path},evaluation:'expressionEvaluation'});
+    for(const [text,path] of [['context.source.isLeaderUnit()',['source']],['context.target.isLeaderUnit()',['target']]]) {
+        const c=compile(text);assert.equal(c.status,'supported');assert.deepEqual(c.abilities.card[0].condition,contract(path));
+    }
+    for(const [text,path] of [['context.source',['source']],['context.target',['target']],['c.parentUnit',['card','parentUnit']]]) {
+        const c=compile(`context.player.hasSomeArenaUnit({condition:c=>${text}.isLeaderUnit()})`);
+        assert.equal(c.status,'supported');assert.deepEqual(c.abilities.card[0].condition.args[0].right,contract(path));
+    }
+    const extra=compile('context.player.hasSomeArenaUnit({condition:(c,other)=>c.isLeaderUnit()})');
+    assert.equal(extra.status,'supported');assert.deepEqual(extra.abilities.card[0].condition.args[0].right,contract(['card']));
+    for(const [call,optionalReceiver,optionalCall,args] of [['c?.isLeaderUnit()',true,false,[]],['c.isLeaderUnit?.()',false,true,[]],['c.isLeaderUnit(1)',false,false,[{kind:'const',value:1}]]]) {
+        const c=compile(`context.player.hasSomeArenaUnit({condition:c=>${call}})`);assert.equal(c.status,'supported');
+        const effect=c.abilities.card[0].effect;assert.equal(effect.kind,'constantEffectRegistration');
+        const callback=effect.properties.condition.body.args[0].properties.condition.callback;
+        assert.equal(callback.invokeAt,'nativeCallbackInvocation');assert.equal(callback.parameters[0].argument,'candidate');
+        assert.deepEqual(callback.body.value,{kind:'dataCall',method:'isLeaderUnit',receiver:{kind:'dataPath',root:[callback.parameters[0].slot],steps:[]},args,optionalCall,optionalReceiver});
+    }
 });
 test('two complete sources retain independent constant effects and friendly live count',()=>{
     const commandos=full('MandalorianSuperCommandos');
