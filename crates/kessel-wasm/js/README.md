@@ -94,7 +94,7 @@ node crates/kessel-wasm/js/check.js crates/kessel/tests/compiled-fixtures/*.json
 # In Holocron, next to this checkout: the JS match runner, using Wasm for complete endgame searches.
 node bots/omni/solve-games.js --engine wasm --pool ../kessel/crates/kessel/data/pool.json --bots aggro,control --seeds 101 --budget 2000 --depth 12 --sample 0 --out replays/wasm-solves
 # Compiled-card matches use the same runner with the catalogue and its admitted pool.
-node bots/omni/solve-games.js --engine wasm --catalogue ../kessel/compiler/generated/catalog.json --pool ../kessel/crates/kessel/tests/compiled-fixtures/pool.json --bots heuristic,heuristic --seeds 3001 --budget 100 --depth 2 --sample 0 --stop 1 --out replays/wasm-compiled-solves
+node bots/omni/solve-games.js --engine wasm --catalogue ../kessel/compiler/generated --pool ../kessel/crates/kessel/tests/compiled-fixtures/pool.json --bots heuristic,heuristic --seeds 3001 --budget 100 --depth 2 --sample 0 --stop 1 --out replays/wasm-compiled-solves
 
 # Prove exported positions, with a fixed budget or their measured JS time allowance.
 node crates/kessel-wasm/js/prove.js replays/omni-rs-matched.jsonl --depth 12 --ms-field jsMs
