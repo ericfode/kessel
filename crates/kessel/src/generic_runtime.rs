@@ -285,6 +285,12 @@ fn program_needs_force(program: &Program) -> bool {
             |effect| matches!(effect, Effect::UseForce { .. } | Effect::GainForce { .. })))
     })
 }
+/// Format a catalog `setCodes` entry the same way the card loader indexes printings.
+fn reprint_set_code(value: &Value) -> Option<String> {
+    let set = value["set"].as_str().filter(|s| !s.is_empty())?;
+    let number = value["number"].as_u64()?;
+    Some(format!("{set}_{number:03}"))
+}
 fn reviewed_shield_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r#"{"title":"Shield","subtitle":null,"cost":0,"hp":0,"power":0,"text":"If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.","deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":0,"upgradeHp":0,"id":"8752877738","aspects":[],"traits":["armor"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"shield"}"#).expect("reviewed Shield metadata");entry["setCode"]=="TOKEN_SHIELD"&&entry["status"]=="unsupported"&&entry["baseClass"]=="TokenUpgradeCard"&&entry["sourcePath"]=="game/cards/01_SOR/tokens/Shield.ts"&&entry["sourceHash"]=="39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f"&&entry["card"]==expected&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]})}
 fn reviewed_experience_entry(entry:&Value)->bool {
  let expected:Value=serde_json::from_str(r#"{"title":"Experience","subtitle":null,"cost":0,"hp":1,"power":1,"text":null,"deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":1,"upgradeHp":1,"id":"2007868442","aspects":[],"traits":["learned"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"experience"}"#).expect("reviewed Experience metadata");
@@ -685,6 +691,24 @@ impl Engine {
             catalogue.metadata.remove(&code);
             catalogue.rejected.insert(code, format!("creates {token}, which is not admitted"));
         }
+        // Reprint printings share one admitted programme. Index alternate setCodes
+        // from card metadata after token gating so pools and tests that still
+        // name an older printing resolve without expanding compiled_pool export.
+        for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
+            let code = entry["setCode"].as_str().unwrap_or("");
+            let Some(&id) = by_code.get(code) else { continue };
+            let Some(set_codes) = entry["card"]["setCodes"].as_array() else { continue };
+            let programs = catalogue.cards.get(code).cloned().unwrap_or_default();
+            for sc in set_codes {
+                let Some(alias) = reprint_set_code(sc) else { continue };
+                if alias == code || by_code.contains_key(&alias) {
+                    continue;
+                }
+                catalogue.cards.insert(alias.clone(), programs.clone());
+                catalogue.rejected.remove(&alias);
+                by_code.insert(alias, id);
+            }
+        }
         // Native registration is not a compiler conversion. The exact reviewed
         // two-class token uses one shared mandatory scalar defeat program.
         let advantage_program=if advantage_def.is_some() {
@@ -746,8 +770,6 @@ impl Engine {
             return Err("unsupported pool schema".into());
         }
         let mut engine = Self::from_catalogue_bytes(catalogue_bytes)?;
-        let catalogue = engine.catalogue.as_mut().unwrap();
-        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
             let code = card["setCode"]
@@ -756,16 +778,24 @@ impl Engine {
             if !included.insert(code.to_owned()) {
                 return Err(format!("duplicate pool card {code}"));
             }
-            let approved = catalogue.metadata.get(code).ok_or_else(|| {
-                format!(
-                    "unsupported pool card {code}: {}",
-                    catalogue
-                        .rejected
-                        .get(code)
-                        .map(String::as_str)
-                        .unwrap_or("not in compiled catalogue")
-                )
-            })?;
+            let canonical = {
+                let catalogue = engine.catalogue.as_ref().unwrap();
+                if catalogue.metadata.contains_key(code) {
+                    code.to_owned()
+                } else if let Some(&id) = engine.by_code.get(code) {
+                    engine.definitions[id as usize].code.clone()
+                } else {
+                    return Err(format!(
+                        "unsupported pool card {code}: {}",
+                        catalogue
+                            .rejected
+                            .get(code)
+                            .map(String::as_str)
+                            .unwrap_or("not in compiled catalogue")
+                    ));
+                }
+            };
+            let approved = engine.catalogue.as_ref().unwrap().metadata[&canonical].clone();
             for field in [
                 "title",
                 "subtitle",
@@ -793,7 +823,19 @@ impl Engine {
                     ));
                 }
             }
+            // Bind the pool's printing code into metadata so retain keeps the
+            // exact pool identity while programmes stay on the canonical entry.
+            if canonical != code {
+                engine
+                    .catalogue
+                    .as_mut()
+                    .unwrap()
+                    .metadata
+                    .insert(code.to_owned(), approved);
+            }
         }
+        let catalogue = engine.catalogue.as_mut().unwrap();
+        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         if !included.contains("TOKEN_SHIELD") {
             return Err("pool must include TOKEN_SHIELD".into());
         }

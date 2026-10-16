@@ -45,6 +45,17 @@ fn generated_programs_match_all_committed_engine_traces() {
         }
     }
 }
+#[test]
+fn reprint_set_codes_share_canonical_programmes_without_expanding_compiled_pool() {
+    let catalogue = include_bytes!("../../../compiler/generated/catalog.json");
+    let e = Engine::from_catalogue_bytes(catalogue).unwrap();
+    assert!(e.by_code.contains_key("IBH_014"));
+    assert!(e.by_code.contains_key("IC27_080"));
+    assert_eq!(e.by_code["IBH_014"], e.by_code["IC27_080"]);
+    assert!(!e.compiled_pool().unwrap()["cards"].as_array().unwrap().iter().any(|c| c["setCode"] == "IBH_014"));
+    assert!(e.compiled_pool().unwrap()["cards"].as_array().unwrap().iter().any(|c| c["setCode"] == "IC27_080"));
+    Engine::from_compiled_pool_bytes(include_bytes!("../data/pool.json"), catalogue).unwrap();
+}
 fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = s.next_id;
     s.next_id += 1;
