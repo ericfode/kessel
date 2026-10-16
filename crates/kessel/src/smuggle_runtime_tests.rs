@@ -1,7 +1,7 @@
 use super::*;
 
 fn fill_resources(e: &Engine, s: &mut State, seat: Seat, n: usize) {
-    while s.player(seat).resources.len as usize < n {
+    while (s.player(seat).resources.len as usize) < n {
         let id = add(e, s, seat, "LOF_254");
         s.player_mut(seat).resources.push(id).unwrap();
     }
@@ -81,7 +81,7 @@ fn smuggle_empty_deck_does_not_replace_and_reduces_resource_count() {
     let done = e.apply(&s, &e.card_action(&s, unit)).unwrap();
     assert!(done.players[0].ground.contains(unit));
     assert_eq!(done.players[0].resources.len, before - 1);
-    assert!(done.players[0].deck.is_empty());
+    assert_eq!(done.players[0].deck.len, 0);
 }
 
 #[test]
