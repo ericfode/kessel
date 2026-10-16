@@ -148,11 +148,7 @@ impl Engine {
     pub(super) fn needs_support_state(&self) -> bool {
         // A compiled pool retains all admitted definitions for code lookup, but
         // catalogue metadata identifies the selected pool and its dependencies.
-        self.catalogue.as_ref().map_or_else(
-            || self.definitions.iter().any(|d| self.definition_needs_support_state(d)),
-            |catalogue| catalogue.metadata.keys().any(|code| self.by_code.get(code)
-                .is_some_and(|&i| self.definition_needs_support_state(&self.definitions[i as usize]))),
-        )
+        self.selected_definition_any(|definition| self.definition_needs_support_state(definition))
     }
     pub(super) fn state_needs_support_state(&self, state: &State) -> bool {
         // Imported identities may resolve through the retained global by_code map.

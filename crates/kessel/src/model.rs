@@ -5,6 +5,135 @@ pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
 pub type CardId = u16;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PhaseHistory {
+    pub exact: bool,
+    pub entered: [[u64; MAX_CARDS / 64]; 2],
+    pub played: [[u64; MAX_CARDS / 64]; 2],
+    pub play_counts: [u16; 2],
+}
+impl Default for PhaseHistory {
+    fn default() -> Self {
+        Self {
+            exact: true,
+            entered: [[0; MAX_CARDS / 64]; 2],
+            played: [[0; MAX_CARDS / 64]; 2],
+            play_counts: [0; 2],
+        }
+    }
+}
+impl PhaseHistory {
+    pub fn contains(bits: &[[u64; MAX_CARDS / 64]; 2], seat: Seat, id: CardId) -> bool {
+        bits[seat.index()][id as usize / 64] & (1u64 << (id as usize % 64)) != 0
+    }
+    pub fn entered(&mut self, seat: Seat, id: CardId) {
+        // Legacy imports without these mechanics retain unknown history;
+        // tracking a suffix would not make their phase history exact.
+        if !self.exact {return;}
+        self.entered[seat.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
+    }
+    pub fn preflight_play(&self, seat: Seat) -> Result<(), String> {
+        if !self.exact {return Ok(());}
+        self.play_counts[seat.index()]
+            .checked_add(1)
+            .map(|_| ())
+            .ok_or("phase card-play count capacity exceeded".into())
+    }
+    pub fn played(&mut self, seat: Seat, id: CardId) -> Result<(), String> {
+        if !self.exact {return Ok(());}
+        self.preflight_play(seat)?;
+        self.play_counts[seat.index()] += 1;
+        self.played[seat.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
+        Ok(())
+    }
+    pub fn reset(&mut self) {
+        let exact = self.exact;
+        *self = Self::default();
+        self.exact = exact;
+    }
+    pub fn hash_values(&self, put: &mut impl FnMut(u64)) {
+        if self.exact {
+            put(0x5048415345484953);
+            for bits in self.entered.iter().chain(&self.played) {
+                for b in bits {
+                    put(*b);
+                }
+            }
+            for n in self.play_counts {
+                put(n as u64);
+            }
+        }
+    }
+    pub fn snapshot(&self) -> Value {
+        let entries = |bits: &[[u64; MAX_CARDS / 64]; 2]| {
+            let mut out = vec![];
+            for seat in [Seat::P1, Seat::P2] {
+                for id in 1..MAX_CARDS as u16 {
+                    if Self::contains(bits, seat, id) {
+                        out.push(json!({"card":format!("c{}",id-1),"playedBy":seat.as_str()}));
+                    }
+                }
+            }
+            out
+        };
+        json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts})
+    }
+    pub fn parse(v: &Value, next: CardId) -> Result<Self, String> {
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Wire {
+            version: u8,
+            entered: Vec<Entry>,
+            played: Vec<Entry>,
+            play_counts: [u16; 2],
+        }
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Entry {
+            card: String,
+            played_by: Seat,
+        }
+        let wire: Wire =
+            serde_json::from_value(v.clone()).map_err(|e| format!("invalid phaseHistory: {e}"))?;
+        if wire.version != 1 {
+            return Err("unsupported phaseHistory version".into());
+        }
+        let mut out = Self::default();
+        out.play_counts = wire.play_counts;
+        for (entries, bits) in [
+            (wire.entered, &mut out.entered),
+            (wire.played, &mut out.played),
+        ] {
+            if entries.len() > 2 * (MAX_CARDS - 1) {
+                return Err("phaseHistory entry capacity exceeded".into());
+            }
+            for entry in entries {
+                let id = entry
+                    .card
+                    .strip_prefix('c')
+                    .and_then(|v| v.parse::<CardId>().ok().and_then(|n| n.checked_add(1)))
+                    .filter(|id| *id > 0 && *id < next && entry.card == format!("c{}", id - 1))
+                    .ok_or("phaseHistory needs allocated canonical physical card IDs")?;
+                if Self::contains(bits, entry.played_by, id) {
+                    return Err("duplicate phaseHistory physical/controller identity".into());
+                }
+                bits[entry.played_by.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
+            }
+        }
+        for seat in [Seat::P1, Seat::P2] {
+            let unique = out.played[seat.index()]
+                .iter()
+                .map(|n| n.count_ones())
+                .sum::<u32>();
+            if unique > out.play_counts[seat.index()] as u32
+                || (unique == 0 && out.play_counts[seat.index()] != 0)
+            {
+                return Err("phaseHistory play count below distinct played identities".into());
+            }
+        }
+        Ok(out)
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Seat {
@@ -301,6 +430,12 @@ pub struct ResolutionContext {
     pub attack_restore: u16,
     pub attack_source: CardId,
     pub attack_defender: CardId,
+    /// Attack completion captured once; defeat tracks the original attacker even after re-entry.
+    pub attack_end_captured: bool,
+    pub attack_attacker_defeated: bool,
+    pub attack_attacker_departed: bool,
+    pub attack_defender_defeated: bool,
+    pub attack_defender_departed: bool,
     pub attack_shield_opponent_first: bool,
     pub pending_triggers: u8,
     pub trigger_context: u8,
@@ -320,8 +455,8 @@ pub struct ResolutionContext {
     pub ability_committed: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -341,6 +476,7 @@ pub struct State {
     /// False only for immutable legacy imports without ordinary upgrades.
     pub arena_order_exact:bool,
     pub hidden_history_exact:bool,
+    pub phase_history:PhaseHistory,
     pub force_state_exact:bool,
     pub round: u16,
     pub regroup: bool,
@@ -360,6 +496,12 @@ pub struct State {
     pub attack_restore: u16,
     pub attack_source: CardId,
     pub attack_defender: CardId,
+    /// Attack completion captured once; defeat tracks the original attacker even after re-entry.
+    pub attack_end_captured: bool,
+    pub attack_attacker_defeated: bool,
+    pub attack_attacker_departed: bool,
+    pub attack_defender_defeated: bool,
+    pub attack_defender_departed: bool,
     pub attack_shield_opponent_first: bool,
     pub pending_triggers: u8,
     pub trigger_context: u8,
@@ -393,7 +535,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,
+            arena_unit_order:[ArenaOrder::default();2],arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,
@@ -408,7 +550,7 @@ impl Default for State {
             ambush: false,
             after_attack_triggers: 0,
             attack_restore: 0,
-            attack_source: 0,attack_defender:0,
+            attack_source: 0,attack_defender:0,attack_end_captured:false,attack_attacker_defeated:false,attack_attacker_departed:false,attack_defender_defeated:false,attack_defender_departed:false,
             attack_shield_opponent_first: false,
             pending_triggers: 0,
             trigger_context: 0,
@@ -481,6 +623,7 @@ impl State {
             if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}}
         }
         fn context_values(c:&ResolutionContext,put:&mut impl FnMut(u64)) {
+            if c.attack_end_captured || c.attack_attacker_defeated || c.attack_attacker_departed || c.attack_defender_defeated || c.attack_defender_departed {put(0x41545441434b454e);put(c.attack_end_captured as u64);put(c.attack_attacker_defeated as u64);put(c.attack_attacker_departed as u64);put(c.attack_defender_defeated as u64);put(c.attack_defender_departed as u64);}
             result_values(c.event_result,c.last_known_source,c.last_known_power,put);
             for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
@@ -492,6 +635,7 @@ impl State {
             for (i,e) in w.entries.iter().enumerate() {if e.last_known_power!=0 {put(0x4c4b49504f574552);put(i as u64);put(e.last_known_power as u64);}}
             for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor as u64);}}
         }
+        if self.attack_end_captured || self.attack_attacker_defeated || self.attack_attacker_departed || self.attack_defender_defeated || self.attack_defender_departed {put(0x41545441434b454e);put(self.attack_end_captured as u64);put(self.attack_attacker_defeated as u64);put(self.attack_attacker_departed as u64);put(self.attack_defender_defeated as u64);put(self.attack_defender_departed as u64);}
         result_values(self.event_result,self.last_known_source,self.last_known_power,&mut put);
         put(self.death_depth as u64);
         window_values(&self.death_pending,&mut put);window_values(&self.death_window,&mut put);
@@ -501,6 +645,7 @@ impl State {
         for arena in self.arena_unit_order {put(arena.len as u64);for id in arena.ids {put(id as u64);}}
         put(self.round as u64);
         if self.hidden_history_exact {put(1); }
+        self.phase_history.hash_values(&mut put);
         if self.force_state_exact {put(1);}
         put(self.regroup as u64);
         put(self.initiative.index() as u64);

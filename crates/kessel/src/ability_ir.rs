@@ -35,6 +35,10 @@ pub enum Expr {
         #[serde(rename = "optionalCall")]
         optional_call: bool,
     },
+    HistoryQuery(crate::phase_history::Query),
+    DataMember {receiver:crate::phase_history::List,key:crate::phase_history::Length,optional:bool},
+
+    HistoryAttackCheck {test:String,attack:crate::attack_history::AttackContextPath,watcher:String,binding:String},
     ArenaList { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
@@ -97,6 +101,10 @@ enum PortableExpr {
         #[serde(rename = "optionalCall")]
         optional_call: bool,
     },
+    HistoryQuery(crate::phase_history::Query),
+    DataMember {receiver:crate::phase_history::List,key:crate::phase_history::Length,optional:bool},
+
+    HistoryAttackCheck {test:String,attack:crate::attack_history::AttackContextPath,watcher:String,binding:String},
     ArenaList { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
@@ -180,7 +188,7 @@ impl Expr {
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_stats() || predicate.depends_on_stats(), Self::ArenaLength {receiver} => receiver.depends_on_stats(),
             Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_stats(),
             Self::Collection {receiver,args,..} => receiver.depends_on_stats() || args.iter().any(Self::depends_on_stats),
-            Self::Const { .. } => false,
+            Self::HistoryQuery(_) | Self::DataMember {..} | Self::HistoryAttackCheck {..} | Self::Const { .. } => false,
             Self::Ref { path } => path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_stats),
             Self::Math { args, .. } => args.iter().any(Self::depends_on_stats),
@@ -210,7 +218,7 @@ impl Expr {
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_keywords() || predicate.depends_on_keywords(), Self::ArenaLength {receiver} => receiver.depends_on_keywords(),
             Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_keywords(),
             Self::Collection {receiver,args,..} => receiver.depends_on_keywords() || args.iter().any(Self::depends_on_keywords),
-            Self::Const { .. } => false,
+            Self::HistoryQuery(_) | Self::DataMember {..} | Self::HistoryAttackCheck {..} | Self::Const { .. } => false,
             Self::Ref { path } => path.iter().map(String::as_str).collect::<Vec<_>>()==["card","keywords","length"] || path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_keywords),
             Self::Math { args, .. } => args.iter().any(Self::depends_on_keywords),
@@ -314,9 +322,11 @@ impl Expr {
     pub fn validate_number(&self) -> Result<(), String> {
         self.validate()?;
         let numeric = match self {
+            Self::HistoryQuery(_) => false,
+            Self::DataMember {..} => true,
             Self::Compiled(compiled) => compiled.original.validate_number().is_ok(),
             Self::ArenaLength {..} => true, Self::ArenaList {..}|Self::ArenaFilter {..}|Self::ArenaSome {..} => false,
-            Self::Array { .. } | Self::NativeTokenPredicate {..} | Self::Collection { .. } => false,
+            Self::HistoryAttackCheck {..} | Self::Array { .. } | Self::NativeTokenPredicate {..} | Self::Collection { .. } => false,
             Self::Math { name, args } => {
                 self.bounded_floor_division().is_some() || ["min", "max"].contains(&name.as_str())
                     && !args.is_empty()
@@ -362,6 +372,7 @@ impl Expr {
         }
         let sub = |e: &Expr| e.validate_depth(depth + 1);
         match self {
+            Self::HistoryAttackCheck {test,attack,watcher,binding}=>crate::attack_history::validate(test,attack,watcher,binding),
             Self::Compiled(compiled) => compiled.original.validate_depth(depth),
             Self::NativeTokenPredicate {operation,receiver,domain,token_type,optional_receiver,optional_call} => {
                 if *optional_receiver || *optional_call || domain!="physicalAttachments"
@@ -380,6 +391,8 @@ impl Expr {
                 if !scalar(&args[0]) {return Err("collection callback/value must return a supported scalar".into());}
                 sub(receiver)?;sub(&args[0])
             },
+            Self::HistoryQuery(q) => {if q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Err("history list requires exact length consumption".into())}else{Ok(())}},
+            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
@@ -748,7 +761,8 @@ impl TargetResolver {
     pub fn validate(&self) -> Result<(), String> {
         if !self.prompt_title_parts.is_empty() {
             let expected=serde_json::json!([{"kind":"const","value":"Choose a unit to deal "},{"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]},{"kind":"const","value":" damage to"}]);
-            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts){return Err("dynamic prompt requires bounded live arena damage sum".into());}
+            let source_power_parts=self.prompt_title_parts.len()<=32 && self.prompt_title_parts.iter().all(|e|match e {Expr::Const{value}=>value.as_str().is_some(),Expr::Query{name,receiver,args}=>name=="getPower"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["source"]),_=>false}) && self.prompt_title_parts.iter().map(|e|match e {Expr::Const{value}=>value.as_str().map_or(0,str::len),_=>0}).sum::<usize>()<=1024;
+            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts{return Err("dynamic prompt requires bounded live arena damage sum, maximum, or source power".into());}
         }
         if self.prompt_title.is_some() {return Err("named prompt titles require a named descriptor".into());}
         self.max_targets()?;
@@ -965,6 +979,8 @@ pub struct Ability {
     pub target_resolvers: Vec<NamedTargetResolver>,
     #[serde(default)]
     pub trigger: String,
+    #[serde(default, skip_serializing_if="std::ops::Not::not")]
+    pub attacker_must_survive: bool,
     #[serde(default)]
     pub coordinate: bool,
     pub title: String,
@@ -1152,6 +1168,8 @@ pub struct Program {
     pub title: String,
     pub context_title: Vec<Expr>,
     pub trigger: String,
+    #[serde(default, skip_serializing_if="std::ops::Not::not")]
+    pub attacker_must_survive: bool,
     pub coordinate: bool,
     pub costs: Vec<Cost>,
     pub optional: bool,
@@ -1464,6 +1482,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::phase_history::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::phase_history::ability(ability){return Err("phase history requires a bounded ordinary root registration".into());}
         if crate::static_ongoing::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::static_ongoing::registration(ability) {return Err("static self ongoing contracts require a sole unconditional root constant".into());}
         if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && gained_host_kind(ability).is_none() {return Err("gained host requires one exact reviewed root attack template".into());}
         if let Some(context)=&ability.attached_context {
@@ -1560,7 +1579,7 @@ impl Program {
                 Expr::Const {value} => value.as_str().map_or(0, str::len),
                 Expr::Array {items} => items.iter().map(title_literal_bytes).sum(),
                 Expr::Math {args, ..} => args.iter().map(title_literal_bytes).sum(),
-                Expr::Ref { .. } => 0,
+                Expr::HistoryAttackCheck {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::Ref { .. } => 0,
                 Expr::Unary {value, ..} => title_literal_bytes(value),
                 Expr::Binary {left, right, ..} => title_literal_bytes(left) + title_literal_bytes(right),
                 Expr::Conditional {condition, then, r#else} => title_literal_bytes(condition) + title_literal_bytes(then) + title_literal_bytes(r#else),
@@ -1576,11 +1595,14 @@ impl Program {
             if literal_bytes > 1024 { return Err("context title aggregate literal bytes exceed capacity".into()); }
         }
 
-        if !["action", "whenPlayed", "whenDefeated", "onAttack", "onDefense", "event", "constant"]
+        if !["action", "whenPlayed", "whenDefeated", "onAttack", "onDefense", "whenAttackEnds", "event", "constant"]
             .contains(&ability.trigger.as_str())
         {
             return Err(format!("unsupported runtime trigger {}", ability.trigger));
         }
+        if ability.trigger=="whenAttackEnds" && ability.condition.is_some() {return Err("conditional attack-end registration capture is not implemented".into());}
+        if crate::attack_history::contains(&encoded) && (ability.trigger!="whenAttackEnds" || !matches!(&ability.effect,Effect::Conditional{condition:Expr::HistoryAttackCheck{..},..}) || ability.condition.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || ability.target_resolver.as_ref().is_some_and(|r|crate::attack_history::contains(&serde_json::to_value(r).unwrap()))) {return Err("attack history requires a standalone attack-end conditional effect".into());}
+        if ability.attacker_must_survive && ability.trigger!="whenAttackEnds" {return Err("attacker survival gate requires attack-end registration".into());}
         if ability.trigger == "constant" {
             if ability.optional
                 || !ability.costs.is_empty()
@@ -1646,6 +1668,7 @@ impl Program {
             title: ability.title.clone(),
             context_title: ability.context_title.clone(),
             trigger: ability.trigger.clone(),
+            attacker_must_survive: ability.attacker_must_survive,
             coordinate: ability.coordinate,
             costs: ability.costs.clone(),
             optional: ability.optional,
@@ -1703,6 +1726,14 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        // One captured target, then one simultaneous two-attachment window. This
+        // preserves both token identities before the resulting stat-death sweep.
+        if depth==0 && crate::phase_history::ability(ability) && contains_weakness(&ability.effect) {
+            let Effect::Conditional{condition,on_true,..}=&ability.effect else{unreachable!()};
+            let resolver=ability.target_resolver.as_ref().expect("validated history Weakness resolver");resolver.validate()?;condition.validate()?;
+            let base=self.instructions.len();self.instructions.extend([Instruction::Select(resolver.clone()),Instruction::Conditional{condition:condition.clone(),skip:base+4},Instruction::Group(*on_true.clone()),Instruction::Jump{to:base+5},Instruction::Apply(Effect::NoAction)]);return Ok(());
+        }
+        if depth!=0 && (ability.attacker_must_survive || ability.trigger=="whenAttackEnds") {return Err("attack-end registration metadata cannot appear in a continuation".into());}
         if let Effect::MaximumPowerExperience{aspect}=&ability.effect {
             if depth!=0||!maximum_registration(ability){return Err("maximum capture requires a standalone bounded leader action/attack".into());}
             let base=self.instructions.len();
@@ -1989,7 +2020,9 @@ impl Program {
                 Expr::Binary {left, right, ..} => dependent_in_scope(left,card_bound) || dependent_in_scope(right,card_bound),
                 Expr::Conditional {condition, then, r#else} => dependent_in_scope(condition,card_bound) || dependent_in_scope(then,card_bound) || dependent_in_scope(r#else,card_bound),
                 Expr::Query {name,receiver,args} => dependent_in_scope(receiver,card_bound) || args.iter().enumerate().any(|(i,e)|dependent_in_scope(e,card_bound || (i==0 && ["hasSomeArenaUnit","arenaUnitCount"].contains(&name.as_str())))),
-                Expr::Const { .. } => false,
+                Expr::DataMember {..} => false,
+                Expr::HistoryQuery(q) => !card_bound && q.kind()==Ok(crate::phase_history::QueryKind::EnteredCard),
+                Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
             }
         }
         fn target_dependent(e: &Expr) -> bool { dependent_in_scope(e,false) }
@@ -2348,6 +2381,7 @@ impl Catalogue {
                 fn parent_reference(value:&Value)->bool {
                     (value["kind"]=="ref" && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit")) || (value["target"]=="parent") || match value {Value::Array(a)=>a.iter().any(parent_reference),Value::Object(o)=>o.values().any(parent_reference),_=>false}
                 }
+                if crate::phase_history::marker(entry)&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
                 if crate::live_power_maximum::marker(entry)&&!crate::live_power_maximum::entry(entry){return Err("live maximum requires complete two-sided leader metadata and registrations".into());}
@@ -2393,6 +2427,7 @@ impl Catalogue {
                 if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|attachment_defeat_marker(&a.effect)) &&
                     (sides.card.len()!=1||!sides.leader.is_empty()||!sides.unit.is_empty()||!attachment_defeat_registration(&sides.card[0])||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||
                     !((entry["baseClass"]=="EventCard"&&exact_type("event")&&sides.card[0].trigger=="event")||(entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")&&sides.card[0].trigger=="whenPlayed"))) {return Err("attachment list defeat requires sole ordinary event/unit source without unimplemented intrinsic mechanics".into());}
+                if sides.leader.iter().chain(&sides.unit).any(|a|a.trigger=="whenAttackEnds" || a.attacker_must_survive) || sides.card.iter().any(|a|a.trigger=="whenAttackEnds" || a.attacker_must_survive) && (source_class!=Some("NonLeaderUnitCard") || !exact_type("unit") || !complete_plain_source_metadata(entry) || !crate::attack_history::declarations(entry)) {return Err("attack-end registrations require complete ordinary unit sources and exact watcher declarations".into());}
                 fn has_maximum(value:&Value)->bool {value["kind"]=="maximumPowerExperience"||match value {Value::Array(a)=>a.iter().any(has_maximum),Value::Object(o)=>o.values().any(has_maximum),_=>false}}
                 if has_maximum(&entry["abilities"]) && (source_class!=Some("LeaderUnitCard")||!exact_type("leader")||!sides.card.is_empty()||sides.leader.len()!=1||sides.unit.len()!=1||sides.leader[0].trigger!="action"||sides.unit[0].trigger!="onAttack"||!maximum_registration(&sides.leader[0])||!maximum_registration(&sides.unit[0])||serde_json::to_value(&sides.leader[0].effect).ok()!=serde_json::to_value(&sides.unit[0].effect).ok()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||entry["card"]["unique"]!=true||entry["keywordValues"]!=serde_json::json!({})||["pilotText","pilotBox","pilotingBox","upgradePower","upgradeHp"].iter().any(|k|!entry["card"][*k].is_null())) {return Err("maximum capture requires complete matching leader action and unit attack registrations".into());}
                 fn has_copy(value:&Value)->bool {value["kind"]=="copyKeywords"||match value{Value::Array(a)=>a.iter().any(has_copy),Value::Object(o)=>o.values().any(has_copy),_=>false}}
@@ -2708,12 +2743,16 @@ mod tests {
     }
     #[test]
     fn compiled_expression_preserves_named_portable_rejections() {
-        for kind in ["arenaCount", "collection", "compiled"] {
+        for kind in ["arenaCount", "unimplementedCollection", "compiled"] {
             let expression = json!({"kind":kind});
-            let expected = format!("unknown variant `{kind}`, expected one of `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
+            let expected = format!("unknown variant `{kind}`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
             assert_eq!(serde_json::from_value::<Expr>(expression.clone()).unwrap_err().to_string(), expected);
             let nested = json!({"kind":"unary", "op":"!", "value":expression});
             assert_eq!(serde_json::from_value::<Expr>(nested).unwrap_err().to_string(), expected);
+        }
+        for (kind, field) in [("collection", "name"), ("nativeTokenPredicate", "operation")] {
+            assert_eq!(serde_json::from_value::<Expr>(json!({"kind":kind})).unwrap_err().to_string(),
+                format!("missing field `{field}`"));
         }
         let forged = json!({"kind":"const", "value":1, "index":0});
         assert_eq!(serde_json::from_value::<Expr>(forged).unwrap_err().to_string(), "unknown field `index`, expected `value`");

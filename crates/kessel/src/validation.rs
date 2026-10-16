@@ -163,7 +163,7 @@ pub fn validate_state_with_catalogue(
             "winner",
             "players",
             "arenaUnitOrder",
-            "hiddenHistoryVersion",
+            "hiddenHistoryVersion", "phaseHistory",
             "supportStateVersion", "supportGrants", "supportAttackPending",
             "forceStateVersion",
         ],
@@ -469,6 +469,7 @@ pub fn validate_state_with_catalogue(
     if !consistent {
         return Err("winner disagrees with base damage".into());
     }
+    if let Some(history)=v.get("phaseHistory") {crate::model::PhaseHistory::parse(history,(next+1) as u16)?;}
     validate_arena_unit_order(v,catalogue)?;
     Ok(())
 }

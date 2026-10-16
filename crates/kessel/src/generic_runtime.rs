@@ -905,8 +905,12 @@ impl Engine {
     fn active_attack_pair(&self,s:&State,id:CardId)->(CardId,CardId) {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
-    pub(super) fn is_attacking(&self,s:&State,id:CardId)->bool {self.in_arena(s,id)&&id==self.active_attack_pair(s,id).0}
-    fn is_defending(&self,s:&State,id:CardId)->bool {(self.in_arena(s,id)||self.def(s,id).info.is("base"))&&id==self.active_attack_pair(s,id).1}
+    pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
+        if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_attacker_departed}else{s.attack_defender_departed};}
+        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_attacker_departed}else{f.context.attack_defender_departed})
+    }
+    pub(super) fn is_attacking(&self,s:&State,id:CardId)->bool {self.in_arena(s,id)&&id==self.active_attack_pair(s,id).0&&!self.attack_participant_departed(s,id)}
+    fn is_defending(&self,s:&State,id:CardId)->bool {(self.in_arena(s,id)||self.def(s,id).info.is("base"))&&id==self.active_attack_pair(s,id).1&&!self.attack_participant_departed(s,id)}
     fn evaluated_power(&self,s:&State,id:CardId)->i64 {
         if self.def(s,id).info.is("upgrade") {self.def(s,id).info.upgrade_power.unwrap_or(0) as i64}
         else {self.raw_power(s,id,self.is_attacking(s,id)).max(0)}
@@ -916,6 +920,35 @@ impl Engine {
         else {self.raw_hp(s,id).max(0)}
     }
     pub(super) fn attachment_condition(&self,s:&State,source:CardId,parent:CardId,e:&Expr)->bool {self.eval(s,source,parent,e).truth()}
+    pub(super) fn selected_definition_any(&self, mut predicate: impl FnMut(&Definition) -> bool) -> bool {
+        match &self.catalogue {
+            Some(catalogue) => catalogue.metadata.keys().any(|code| self.by_code.get(code)
+                .is_some_and(|&id| predicate(&self.definitions[id as usize]))),
+            None => self.definitions.iter().any(predicate),
+        }
+    }
+    pub(super) fn needs_phase_history(&self)->bool {
+        fn expression(e:&Expr)->bool {match e.original() {
+            Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
+            Expr::Binary{left,right,..}=>expression(left)||expression(right),
+            _=>false,
+        }}
+        self.catalogue.is_some() && self.selected_definition_any(|definition| {
+            let p = &definition.programs;
+            p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id|self.program(id).instructions.iter().any(|i|match i {Instruction::Conditional{condition,..}=>expression(condition),Instruction::Select(r)=>r.predicate.as_ref().is_some_and(expression),_=>false}))
+        })
+    }
+    fn history_boolean(&self,s:&State,source:CardId,card:CardId,q:&crate::phase_history::Query)->bool {
+        use crate::model::PhaseHistory;use crate::phase_history::QueryKind;
+        assert!(s.phase_history.exact,"phase history must be exact before execution");
+        let player=s.card(source).owner;
+        match q.admitted_kind() {
+            QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
+            QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
+            QueryKind::PlayedForce => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,"force")),
+            QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
+        }
+    }
     fn eval(&self, s: &State, source: CardId, target: CardId, e: &Expr) -> Eval {
         self.eval_with_card(s, source, target, target, e)
     }
@@ -945,6 +978,9 @@ impl Engine {
         let sub = |e| self.eval_with_binding(s, source, target, card, modifier_target,e);
         match e {
             Expr::Compiled(_) => unreachable!("compiled expression handled above"),
+            Expr::HistoryQuery(q) => Eval::Bool(self.history_boolean(s,source,card,q)),
+            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(_),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");Eval::Number(s.phase_history.play_counts[player.other().index()] as i64)},
+            Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
@@ -1323,6 +1359,9 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            // Native distribution hasLegalTarget delegates to its selector; the
+            // nested HealSystem checks legality with no change requirement.
+            Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => return effects.iter().any(|e| self.effect_can_affect(s,source,target,e,require_change)),
             Effect::Select { target_resolver,effect } => return self.matching_targets(s,source,target_resolver).into_iter().any(|id| self.effect_can_affect(s,source,id,effect,require_change)),
             Effect::Conditional { condition,on_true,on_false } => return if self.eval(s,source,target,condition).truth() { self.effect_can_affect(s,source,target,on_true,require_change) } else { on_false.as_ref().is_some_and(|e| self.effect_can_affect(s,source,target,e,require_change)) },
@@ -1482,6 +1521,7 @@ impl Engine {
     /// forceteki builds a triggered ability's target resolvers before it sets the ability's change-required mode.
     /// Resolving it still requires a change (begin_program), so such a trigger can be ordered and then do nothing.
     fn trigger_has_effect(&self, s: &State, source: CardId, p: u16) -> bool {
+        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return false;}
         match self.program(p).instructions.first() {
             Some(Instruction::Select(_)) => self.program_has_effect_mode(s, source, p, false),
             _ => self.program_has_effect(s, source, p),
@@ -1663,6 +1703,7 @@ impl Engine {
         s.ability_succeeded = false;
         s.ability_return = return_to;
         s.ability_committed = return_to != 0;
+        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
                 self.program(p).instructions.first(),
@@ -1700,9 +1741,11 @@ impl Engine {
             return Err("Force cost requires exact held Force identity".into());
         }
         if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
+            s.phase_history.preflight_play(s.active)?;
             self.spend(s, self.cost(s, source));
             s.player_mut(s.active).hand.remove(source);
             s.player_mut(s.active).discard.push(source)?;
+            s.phase_history.played(s.active,source)?;
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -2249,7 +2292,7 @@ impl Engine {
                 s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
             }
             if matches!(effect,Effect::CreateTokenUnit {..}) {
-                s.card_mut(r.token).set_hidden_qualified(true);self.add_arena(s,r.token)?;s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;
+                s.card_mut(r.token).set_hidden_qualified(true);self.add_arena(s,r.token)?;s.phase_history.entered(s.card(r.token).owner,r.token);s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;
                 continue;
             }
             if let Effect::GainForce{..}=effect {
@@ -2877,7 +2920,9 @@ impl Engine {
         Ok(())
     }
     pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {
-        if self.catalogue.is_none() || !self.in_arena(s,id) {return Ok(());}
+        if !self.in_arena(s,id) {return Ok(());}
+        self.mark_attack_lifecycle(s,id,true);
+        if self.catalogue.is_none() {return Ok(());}
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
         for &program in self.card_programs(s,id) {
             let p=self.program(program);
@@ -2887,6 +2932,35 @@ impl Engine {
             s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor:0,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
             s.death_pending.len+=1;
         }
+        Ok(())
+    }
+    /// Keep the original in-play identities, including through non-defeat exits.
+    pub(super) fn mark_attack_lifecycle(&self,s:&mut State,id:CardId,defeat:bool) {
+        let tracked=|source| source!=0 && self.card_programs(s,source).iter().any(|p|self.program(*p).trigger=="whenAttackEnds");
+        let current=tracked(s.attack_source);
+        let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && tracked(s.death_frames[i].context.attack_source));
+        fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,source_gone:&mut bool,source_dead:&mut bool,defender_gone:&mut bool,defender_dead:&mut bool) {
+            if source==id && !*source_gone {if defeat {*source_dead=true;}else{*source_gone=true;}}
+            if defender==id && !*defender_gone {if defeat {*defender_dead=true;}else{*defender_gone=true;}}
+        }
+        if current {mark(s.attack_source,s.attack_defender,id,defeat,&mut s.attack_attacker_departed,&mut s.attack_attacker_defeated,&mut s.attack_defender_departed,&mut s.attack_defender_defeated);}
+        for (i,frame) in s.death_frames[..s.death_depth as usize].iter_mut().enumerate() {if frames[i] {let c=&mut frame.context;mark(c.attack_source,c.attack_defender,id,defeat,&mut c.attack_attacker_departed,&mut c.attack_attacker_defeated,&mut c.attack_defender_departed,&mut c.attack_defender_defeated);}}
+    }
+    /// OnAttackEnd shares combat's event window with damage-driven defeats.
+    /// EventWindow emits triggers before handlers. Capture before damage, then
+    /// resolve survival against the original incarnation after all events settle.
+    pub(super) fn capture_attack_end(&self,s:&mut State)->Result<(),String> {
+        if s.attack_end_captured || s.attack_source==0 {return Ok(());}
+        let source=s.attack_source;
+        let programs:Vec<_>=if self.in_arena(s,source) {self.card_programs(s,source).iter().copied().filter(|p|self.program(*p).trigger=="whenAttackEnds").collect()}else{vec![]};
+        if programs.is_empty() {return Ok(());}
+        // Admission rejects conditional registrations: their pre/post-handler
+        // capture union needs a separate contract. Do not copy the entire State
+        // or silently evaluate only one of those two snapshots here.
+        if programs.iter().any(|p|self.program(*p).condition.is_some()) {return Err("conditional attack-end capture is not implemented".into());}
+        if s.death_pending.len as usize+programs.len()>MAX_DEATH_TRIGGERS {return Err("attack-end trigger capacity exceeded (64)".into());}
+        for program in programs {let n=s.death_pending.len as usize;s.death_pending.entries[n]=DeathTrigger {source,program,player:s.card(source).owner,..DeathTrigger::default()};s.death_pending.len+=1;}
+        s.attack_end_captured=true;
         Ok(())
     }
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.

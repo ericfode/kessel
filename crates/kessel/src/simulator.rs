@@ -362,7 +362,7 @@ impl Engine {
         d.info.cost().max(0) as u16 + penalty
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
-        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0
+        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0
     }
     pub fn power(&self,s:&State,id:CardId,attacking:bool)->u16 {u16::try_from(self.raw_power(s,id,attacking).max(0)).expect("power exceeds validated compact capacity")}
     fn leader_available(&self, s: &State) -> (bool, bool) {
@@ -646,6 +646,7 @@ impl Engine {
     }
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
         self.check_stat_capacity(s)?;
+        if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
         if !self.legal_actions(s).contains(a) {
             return Err(format!("illegal action {} at {:?}", a.key(), s.decision));
         }
@@ -692,11 +693,13 @@ impl Engine {
                         self.begin_program(&mut t, program, 0)?;
                         return Ok(t);
                     }
+                    t.phase_history.preflight_play(seat)?;
                     self.spend(&mut t, self.cost(s, id));
                     t.player_mut(seat).hand.remove(id);
                     t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
                     t.card_mut(id).set_hidden_qualified(true);
                     self.add_arena(&mut t, id)?;
+                    t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
                     t.source = id;
                     t.trigger_context = 1;
                     if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
@@ -722,8 +725,8 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
-                    self.attach(&mut t,upgrade,id);t.trigger_context=1;
+                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
+                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
                         if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
@@ -743,6 +746,7 @@ impl Engine {
                     }
                     t.card_mut(leader).set_hidden_qualified(true);
                     self.add_arena(&mut t, leader)?;
+                    t.phase_history.entered(seat,leader);
                     t.source = leader;
                     self.enter_triggers(&mut t)?;
                 } else {
@@ -773,7 +777,7 @@ impl Engine {
                     let source = t.source;
                     t.card_mut(source).exhausted = true;
                     t.trigger_context = 2;
-                    t.attack_source = source;t.attack_defender=id;
+                    t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
                     let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t) {Some(t)}else{None};
@@ -950,7 +954,7 @@ impl Engine {
         Ok(())
     }
     fn clear_action_context(&self, s: &mut State) {
-        s.attack_source=0;s.attack_defender=0;
+        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
         s.trigger_context = 0;
@@ -1121,6 +1125,7 @@ impl Engine {
             s.decision = Decision::ShieldOrder;
             return Ok(());
         }
+        self.capture_attack_end(s)?;
         let attack = self.power(s, source, true);
         let target_unit = self.in_arena(s, target);
         if target_unit {
@@ -1164,8 +1169,10 @@ impl Engine {
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
         let source=s.source;
+        self.capture_attack_end(s)?;
+        if self.open_deaths(s,5)? {return Ok(());}
         self.clear_support_grants(s);
-        s.attack_source=0;s.attack_defender=0;
+        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         self.sweep_stat_defeats(s)?;
         if self.open_deaths(s,5)? {return Ok(());}
         if s.support.pending {return self.resume_support(s);}
@@ -1220,6 +1227,7 @@ impl Engine {
     // A returned upgrade moves directly to hand, never through discard. Keep
     // the common detach/state-reset path without consuming a discard slot.
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
+        if self.in_arena(s,id) {self.mark_attack_lifecycle(s,id,false);}
         self.remove_support_target(s,id);
         self.detach(s,id);
         let owner = s.card(id).owner;
@@ -1293,6 +1301,7 @@ impl Engine {
     fn advance(&self, s: &mut State) -> Result<(), String> {
         if s.players.iter().all(|p| p.out) {
             s.action_player=None;
+            s.phase_history.reset();
             for id in 1..s.next_id {
                 s.card_mut(id).set_hidden_qualified(false);
                 s.card_mut(id).phase_power = 0;
@@ -1337,6 +1346,7 @@ impl Engine {
         Ok(())
     }
     fn end_regroup(&self, s: &mut State) -> Result<(), String> {
+        s.phase_history.reset();
         for seat in [Seat::P1, Seat::P2] {
             let id = s.resource_selected[seat.index()];
             if id != 0 {
@@ -1520,6 +1530,13 @@ impl Engine {
             for seat in [Seat::P1,Seat::P2] {let token=&v["players"][seat.as_str()]["forceToken"];s.player_mut(seat).force_id=cid(token["id"].as_str().ok_or("Force identity missing")?)?;s.player_mut(seat).force_held=token["held"].as_bool().ok_or("Force held must be boolean")?;}
             if self.force_def.is_none() && s.players.iter().any(|p|p.force_held) {return Err("held Force requires reviewed native definition".into());}
         }else if self.needs_force_state() {return Err("selected pool requires explicit Force state version".into());}
+        if let Some(history)=v.get("phaseHistory") {
+            s.phase_history=crate::model::PhaseHistory::parse(history,s.next_id)?;
+            for seat in [Seat::P1,Seat::P2] {for id in 1..s.next_id {
+                if crate::model::PhaseHistory::contains(&s.phase_history.played,seat,id) && (!s.card(id).present || self.def(&s,id).info.is("base") || self.def(&s,id).info.is("leader") || self.def(&s,id).info.is("token")) {return Err("played phase history requires retained playable physical card metadata".into());}
+                if crate::model::PhaseHistory::contains(&s.phase_history.entered,seat,id) && (s.players.iter().any(|p|p.base==id||p.force_id==id) || (s.card(id).present&&!self.def(&s,id).info.is("unit")&&!self.def(&s,id).info.is("leader"))) {return Err("entry phase history requires a physical unit identity".into());}
+            }}
+        }else {s.phase_history.exact=false;if self.needs_phase_history(){return Err("selected pool requires explicit phaseHistory version".into());}}
         self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
         for seat in [Seat::P1, Seat::P2] {
@@ -1631,6 +1648,7 @@ impl Engine {
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
+        if s.phase_history.exact {value["phaseHistory"]=s.phase_history.snapshot();}
         if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}
         value
     }

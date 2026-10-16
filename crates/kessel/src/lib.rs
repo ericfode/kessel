@@ -7,6 +7,7 @@ pub use simulator::{Engine, RulesBackend};
 pub mod ability_ir;
 mod bounded_reductions;
 pub mod static_ongoing;
+pub mod phase_history;
 mod live_power_maximum;
 pub mod check;
 pub mod validation;
@@ -21,3 +22,5 @@ fn expression_backend(bytes: &[u8]) -> Option<usize> {
     use sha2::{Digest, Sha256};
     simulator::expression_backend(&format!("{:x}", Sha256::digest(bytes)), bytes)
 }
+
+mod attack_history;

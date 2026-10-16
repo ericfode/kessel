@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 pub fn expression(e: &Expr) -> Result<String, String> {
     let sub = expression;
     Ok(match e {
+        Expr::HistoryAttackCheck {..} => "Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated)".into(),
         Expr::Const { value } => {
             if let Some(n) = value.as_i64() {
                 format!("Eval::Number({n}i64)")
@@ -99,6 +100,7 @@ pub fn expression(e: &Expr) -> Result<String, String> {
             else{format!("if let Eval::ArenaCards(ids)={values} {{Eval::ArenaCards(ids.into_iter().filter(|bound_card|{{let card=*bound_card;({pred}).truth()}}).collect())}}else{{Eval::Null}}")}
         },
         Expr::ArenaLength {receiver} =>format!("if let Eval::ArenaCards(ids)={} {{Eval::Number(ids.len() as i64)}}else{{Eval::Null}}",sub(receiver)?),
+        Expr::HistoryQuery(_) | Expr::DataMember {..} => return Err("phase history expression uses shared interpreter".into()),
     })
 }
 fn reference(path: &[String]) -> Result<String, String> {

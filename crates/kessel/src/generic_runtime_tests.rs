@@ -3745,3 +3745,10 @@ mod force_cost_tests;
 mod static_ongoing_tests;
 #[path="collection_query_tests.rs"]
 mod collection_query_tests;
+#[path="phase_history_tests.rs"]
+mod phase_history_tests;
+#[path="attack_end_tests.rs"]
+mod attack_end_tests;
+
+#[path="resolved_event_tests.rs"]
+mod resolved_event_tests;
