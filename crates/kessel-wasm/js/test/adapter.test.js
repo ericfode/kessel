@@ -121,7 +121,16 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
         const versioned = records(path.join(referenceFixtures, 'traces', forceRecording.traceSha256 + '.jsonl.gz')).find((row) => row.type === 'state').state;
         assert.equal(versioned.forceStateVersion, 1);
         assert.equal(versioned.hiddenHistoryVersion, 1);
-        for (const [simulator, snapshot] of [[subset, initial], [all, versioned]]) {
+        // Force witnesses predate pool-selected defeat/phase/Support evidence required by
+        // today's all-admitted catalogue. Empty arenas make empty order/history exact.
+        const allSnapshot = {
+            ...structuredClone(versioned),
+            registrationOrder: { version: 1, cards: [] },
+            phaseHistory: { version: 1, entered: [], played: [], playCounts: [0, 0] },
+            supportStateVersion: 1,
+            supportGrants: [],
+        };
+        for (const [simulator, snapshot] of [[subset, initial], [all, allSnapshot]]) {
             const game = simulator.loadState(snapshot);
             try {
                 assert.deepEqual(game.snapshot(), snapshot);
