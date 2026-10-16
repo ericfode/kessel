@@ -2,6 +2,7 @@
 
 // A separate, complete token lifecycle program. Card entries and native adapter
 // gates remain untouched. Unsupported lifecycle members reject the entire stage.
+const {compileTokenInheritance}=require('./native-token-base');
 const path=require('path');
 const fs=require('fs');
 const crypto=require('crypto');
@@ -9,6 +10,7 @@ const ts=require(require.resolve('typescript',{paths:[path.resolve(__dirname,'..
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const constant=value=>({kind:'const',value});
 function compileNativeTokenLifecycle(text,file,sourceRoot,enums){
+ if(require('./source-exclusions').sourceExclusion(file)||!file.split('/').includes('tokens'))return null;
     const source=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true);
     const classes=source.statements.filter(ts.isClassDeclaration);
     if(classes.length!==1||source.parseDiagnostics.length)return null;
@@ -78,24 +80,8 @@ function compileNativeTokenLifecycle(text,file,sourceRoot,enums){
         // These inherited overrides are source programs too, and are bound to
         // their full helper files rather than inferred from token names.
         if(!identity||base==='TokenUpgradeCard'&&!methods.some(m=>m.name==='tokenName'))reject();
-        const tokenFile='game/core/card/propertyMixins/Token.ts',tokenText=fs.readFileSync(path.join(sourceRoot,tokenFile),'utf8');
-        const tokenSource=ts.createSourceFile(tokenFile,tokenText,ts.ScriptTarget.Latest,true);
-        const fn=tokenSource.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='AsToken');
-        const inner=fn?.body?.statements.find(ts.isClassDeclaration);
-        if(!fn||!inner||fn.parameters.length!==1||fn.parameters[0].name.getText(tokenSource)!=='BaseClass'||inner.heritageClauses?.[0]?.types?.[0]?.expression.getText(tokenSource)!=='BaseClass'||fn.body.statements.length!==2||!ts.isReturnStatement(fn.body.statements[1])||fn.body.statements[1].expression?.getText(tokenSource)!=='AsToken')reject();
-        const inherited=[];
-        imports.clear();currentFile=tokenFile;
-        for(const statement of tokenSource.statements)if(ts.isImportDeclaration(statement)&&statement.importClause?.namedBindings&&ts.isNamedImports(statement.importClause.namedBindings))for(const e of statement.importClause.namedBindings.elements)imports.set(e.name.text,{name:e.propertyName?.text??e.name.text,module:statement.moduleSpecifier.text,typeOnly:!!(statement.importClause.isTypeOnly||e.isTypeOnly)});
-        // Local Contract/ZoneName imports in Token.ts have the same semantics.
-        for(const m of inner.members){if(!ts.isMethodDeclaration(m)||m.parameters.length||!['removeFromGame','isToken','isPlayable'].includes(m.name.getText(tokenSource)))reject();inherited.push({name:m.name.getText(tokenSource),body:block(m.body)});}
-        if(inherited.length!==3)reject();
-        if(base==='TokenUpgradeCard')inherited.push({name:'isTokenUpgrade',body:[{kind:'return',value:constant(true)}]});
-        const parentFile='game/core/card/TokenCards.ts',parentText=fs.readFileSync(path.join(sourceRoot,parentFile),'utf8');
-        const parentSource=ts.createSourceFile(parentFile,parentText,ts.ScriptTarget.Latest,true);
-        const parent=parentSource.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text===base);
-        if(!parent||parent.members.some(m=>!(ts.isPropertyDeclaration(m)&&m.name.getText(parentSource)==='state')&&!(base==='TokenUpgradeCard'&&(ts.isMethodDeclaration(m)&&m.name.getText(parentSource)==='isTokenUpgrade'||ts.isGetAccessorDeclaration(m)&&m.name.getText(parentSource)==='tokenName'))))reject();
-        if(base==='TokenUpgradeCard'){const marker=parent.members.find(m=>m.name?.getText(parentSource)==='isTokenUpgrade');if(!marker||marker.parameters.length||marker.body?.statements.length!==1||marker.body.statements[0].expression?.kind!==ts.SyntaxKind.TrueKeyword)reject();}
-        return {role:'staged-native-token-lifecycle',sourcePath:file,sourceHash:hash(text),className:cls.name?.text,identity,status:'lifecycle-complete',activeCardEntryUnchanged:true,baseClass:base,inheritedBase:'InPlayCard',tokenMixin:{name:'AsToken',stateRegistration:'stateBase',methods:inherited},methods,dependencies:[{sourcePath:tokenFile,sourceHash:hash(tokenText)},{sourcePath:parentFile,sourceHash:hash(parentText)}]};
+        const inherited=compileTokenInheritance(sourceRoot,enums,base);if(!inherited)reject();
+        return {role:'staged-native-token-lifecycle',sourcePath:file,sourceHash:hash(text),className:cls.name?.text,identity,status:'lifecycle-complete',activeCardEntryUnchanged:true,baseClass:base,inheritedBase:'InPlayCard',tokenMixin:inherited.tokenMixin,methods,dependencies:inherited.dependencies};
     }catch(error){if(error.message==='unsupported-native-lifecycle')return null;throw error;}
 }
 module.exports={compileNativeTokenLifecycle};

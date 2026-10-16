@@ -11,17 +11,26 @@ function resourceTarget(input,ctx,api) {
     const plural=n.expression.name.text==='getTopCardsOfDeck';
     if(n.questionDotToken||n.expression.questionDotToken||n.arguments.length!==(plural?1:0)||!ctx.callbackStage)fail(ctx,n,'resource-deck-target-shape');
     const receiver=expr(n.expression.expression,{...ctx,arenaReceiver:true});
-    if(receiver.kind!=='ref'||!['player','opponent'].includes(receiver.path.join('.')))fail(ctx,n,'resource-deck-target-controller');
+    if(receiver.kind!=='ref')fail(ctx,n,'resource-deck-target-controller');
     return {kind:'query',name:plural?'topDeckCards':'topDeckCard',receiver,args:plural?[expr(n.arguments[0],ctx)]:[]};
 }
 function extendedResourceSystem(obj,defaultTarget,api) {
     const {props,ctx}=obj;
     if(!props.has('readyResource')&&!props.has('targetPlayer')&&!(props.has('target')&&api.ts.isCallExpression(api.unwrap(props.get('target')))&&api.unwrap(props.get('target')).expression.name?.text==='getTopCardsOfDeck'))return null;
     fields(obj,['target','readyResource','targetPlayer'],api);
-    const readyResource=props.has('readyResource')?api.literal(props.get('readyResource'),ctx):false;
-    const targetPlayer=props.has('targetPlayer')?api.literal(props.get('targetPlayer'),ctx):'self';
-    if(typeof readyResource!=='boolean'||!['self','opponent'].includes(targetPlayer))api.fail(ctx,obj.node,'resource-system-property-type');
-    return {kind:'resourceCardSystem',target:props.has('target')?(resourceTarget(props.get('target'),ctx,api)||api.target(props.get('target'),ctx,defaultTarget)):defaultTarget,targetPlayer,readyResource,readyTiming:'contingentAfterResourceEvent',readinessTargets:'completeSystemTargetList'};
+    let readyResource=false,dynamicReadyResource=false;
+    if(props.has('readyResource')){
+        const input=props.get('readyResource'),n=api.unwrap(input);
+        if(api.ts.isArrowFunction(n)||api.ts.isFunctionExpression(n))api.fail(ctx,n,'resource-readiness-is-not-property-value');
+        try{readyResource=api.literal(input,ctx);}catch(error){if(!error.diagnostic)throw error;readyResource=api.expr(input,ctx);dynamicReadyResource=true;}
+    }
+    let targetPlayer='self',dynamicTargetPlayer=false;
+    if(props.has('targetPlayer')){
+        try{targetPlayer=api.literal(props.get('targetPlayer'),ctx);}catch(error){if(!error.diagnostic)throw error;targetPlayer=api.expr(props.get('targetPlayer'),ctx);dynamicTargetPlayer=true;}
+        const n=api.unwrap(props.get('targetPlayer'));if(api.ts.isArrowFunction(n)||api.ts.isFunctionExpression(n))api.fail(ctx,n,'resource-target-player-is-not-relative-value');
+    }
+    if((!dynamicReadyResource&&typeof readyResource!=='boolean')||(!dynamicTargetPlayer&&!['self','opponent'].includes(targetPlayer)))api.fail(ctx,obj.node,'resource-system-property-type');
+    return {...(dynamicTargetPlayer?{resourceControllingPlayer:{kind:'conditional',condition:{kind:'binary',op:'===',left:targetPlayer,right:constant('self')},then:{kind:'ref',path:['player']},else:{kind:'ref',path:['opponent']}},controllerEvaluation:'resourceEventPropertyGeneration'}:{}),kind:'resourceCardSystem',target:props.has('target')?(resourceTarget(props.get('target'),ctx,api)||api.target(props.get('target'),ctx,defaultTarget)):defaultTarget,targetPlayer,readyResource,...(dynamicReadyResource?{readinessPropertyContract:{evaluateAt:'eachNativePropertyGeneration',undefined:'retain',condition:'nativeTruthiness',captureAt:'ResourceCardSystem.updateEventBeforeParentUpdate',capturedTargets:'completePropertiesTargetList',contingent:'ReadySystemForEveryCapturedTargetAfterResourceEvent',eventHandler:'assertPlayableThenTakeControlOrMoveToResource'}}:{}),readyTiming:'contingentAfterResourceEvent',readinessTargets:'completeSystemTargetList'};
 }
 function extendedTokenSystem(kind,obj,defaultTarget,api) {
     const types={createBattleDroid:'battleDroid',createCloneTrooper:'cloneTrooper',createXWing:'xwing',createTieFighter:'tieFighter',createSpy:'spy',createBeast:'beast',createMandalorian:'mandalorian'};

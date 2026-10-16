@@ -59,6 +59,24 @@ list, compiler JavaScript, and its keyword-parser dependency. Outputs have no
 timestamps or absolute machine paths, so identical inputs produce identical
 bytes. The catalog also records the TypeScript parser version.
 
+## Pending construction programs
+
+Closed construction programs retain the order of local declarations, collection
+iterations, constructor arguments, and property assignments. They distinguish
+values and physical object references captured at construction from callbacks
+invoked later. Conditional and nullish constructions evaluate only the selected
+branch; native property factories retain each invocation rather than caching a
+previous legality check. Private helper and callback programs permit checked
+local mutation and assertions, with explicit argument and context bindings.
+Unknown native helper names, properties, methods, and unmodeled writes still
+reject the complete card.
+
+These programs include pending selection, cost, ongoing-effect, lifecycle, and
+class-definition contracts. They require a corresponding executor before runtime
+admission. Complete token lifecycle programs may be staged under `sourceSupport`
+while the existing native adapter card entries retain their reviewed boundaries;
+staging does not count as a newly converted active card or executable support.
+
 ## Conversion boundary
 
 The compiler lowers declarative action, event, when-played, on-attack,

@@ -31,7 +31,8 @@ function richResolver(obj,api,force=false) {
  const fields={numCards:['context'],numCardsFunc:['context','selectedCards'],multiSelectCardCondition:['selectionCandidate','selectedCards','context'],minNumCardsFunc:['context','selectedCards'],maxNumCardsFunc:['context','selectedCards'],useSingleSelectModeFunc:['selectionCandidate','selectedCards','context'],cardStat:['selectionCandidate'],maxStat:[],capturedByFilter:['context'],condition:['context'],effectChoices:['relativePlayer','context']};
  for(const[key,params]of Object.entries(fields))if(props.has(key))result[key]=expr(props.get(key),local,params);
  for(const key of ['optional','canChooseNoCards','hideIfNoLegalTargets'])if(props.has(key)){const value=literal(props.get(key),ctx);if(typeof value!=='boolean')fail(ctx,node,'selection-boolean:'+key);result[key]=value;}
- for(const key of ['mustChangeGameState','appendToDefaultTitle','waitingPromptTitle'])if(props.has(key))result[key]=literal(props.get(key),ctx);
+ for(const key of ['mustChangeGameState','appendToDefaultTitle'])if(props.has(key))result[key]=literal(props.get(key),ctx);
+ require('./selection-contracts').applyWaitingPromptTitle(result,{...obj,ctx},api);
  if(props.has('activePromptTitle'))result.promptTitleParts=contextTitle(props.get('activePromptTitle'),local);
  return result;
 }

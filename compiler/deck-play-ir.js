@@ -21,7 +21,6 @@ function deckPlayEffect(kind, obj, defaultTarget, api) {
         const extra=['playAsType','playedCardEnterPlayEffect'];
         const searchObj={...obj,ctx:{...obj.ctx,pendingSelection:true},props:new Map([...obj.props].filter(([key])=>!extra.includes(key)))};
         const search=deckPlayEffect('deckSearch',searchObj,defaultTarget,api);
-        if(!obj.props.has('multiSelectCondition'))fail(obj.ctx,obj.node,'multiple-deck-play-missing-multiselect');
         const play={kind:'playCardSystem',helper:'playCard',playType:'playFromOutOfPlay',nested:true,adjustCost:{kind:'costAdjuster',adjustment:'free'},playAsType:obj.props.has('playAsType')?literal(obj.props.get('playAsType'),obj.ctx):'any',target:'searchSelected'};
         if(obj.props.has('playedCardEnterPlayEffect')) {const raw=unwrap(obj.props.get('playedCardEnterPlayEffect'));play.enterPlayEffect=ts.isArrayLiteralExpression(raw)?{kind:'simultaneous',effects:raw.elements.map(n=>effect(n,obj.ctx,'playedCard'))}:effect(raw,obj.ctx,'playedCard');}
         return {...search,kind,selectionOrder:'playInSelectedOrder',selectedCardsImmediateEffect:play};
@@ -88,10 +87,11 @@ function deckPlayEffect(kind, obj, defaultTarget, api) {
         return result;
     }
     if(kind==='chooseModalEffects') {
-        check(['target','amountOfChoices','choices','canChooseSameOptionMoreThanOnce']);
+        check(['target','amountOfChoices','choices','canChooseSameOptionMoreThanOnce','activePromptTitle']);
         if(!obj.props.has('choices')||!obj.props.has('amountOfChoices'))fail(obj.ctx,obj.node,'modal-missing-choices-or-count');
-        const choices=object(obj.props.get('choices'),obj.ctx);
-        const result={kind,target:target(obj.props.get('target'),obj.ctx,defaultTarget),amountOfChoices:derived(obj.props.get('amountOfChoices'),'modalChoiceCount'),canChooseSameOptionMoreThanOnce:obj.props.has('canChooseSameOptionMoreThanOnce')?literal(obj.props.get('canChooseSameOptionMoreThanOnce'),obj.ctx):false,choices:[...choices.props].map(([label,value])=>({label,effect:effect(value,choices.ctx,defaultTarget)}))};
+        let choices;try{const raw=object(obj.props.get('choices'),obj.ctx);choices=[...raw.props].map(([label,value])=>({label,effect:effect(value,raw.ctx,defaultTarget)}));}catch(error){if(!error.diagnostic)throw error;choices=require('./view-deck-systems').modalChoiceDefinitions(obj.props.get('choices'),obj.ctx,api,defaultTarget);}
+        const result={kind,target:target(obj.props.get('target'),obj.ctx,defaultTarget),amountOfChoices:derived(obj.props.get('amountOfChoices'),'modalChoiceCount'),canChooseSameOptionMoreThanOnce:obj.props.has('canChooseSameOptionMoreThanOnce')?literal(obj.props.get('canChooseSameOptionMoreThanOnce'),obj.ctx):false,choices};
+        if(obj.props.has('activePromptTitle'))result.activePromptTitleParts=contextTitle(obj.props.get('activePromptTitle'),obj.ctx);
         return result;
     }
     return null;

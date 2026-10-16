@@ -1,5 +1,6 @@
 'use strict';
 const privatePrograms=require('./private-programs');
+const {ongoingValueAdapter}=require('./ongoing-value-adapters');
 const history=require('./event-history');
 const MARKERS={assignIndirectDamageDealtToOpponents:['player','assignIndirectDamageDealtToOpponents'],assignIndirectDamageDealtByUnit:['card','assignIndirectDamageDealtByUnit'],damageDealtByThisCardIsUnpreventable:['card','damageDealtByThisCardIsUnpreventable'],canAttackBaseWhileUsingAmbush:['card','canAttackBaseWhileUsingAmbush'],cannotAttackBase:['card','cannotAttackBase'],cannotAttack:['card','cannotAttack'],cannotBeDefeatedByDamage:['card','cannotBeDefeatedByDamage'],blankEventCard:['card','blank'],isLeader:['card','isLeader'],loseAllAbilitiesExceptFromSource:['card','blankExceptFromSourceCard'],ignorePilotingPilotLimit:['card','canBePlayedWithPilotingIgnoringPilotLimit'],noMulligan:['card','noMulligan'],doubleDeckSearchCount:['player','doubleDeckSearchCount']};
 const RECORDS={overridePrintedAttributes:['card','printedAttributesOverride',['title','subtitle','aspects','defaultArena','printedType','printedCost','printedPower','printedHp','printedUpgradePower','printedUpgradeHp','printedTraits','printedKeywords']],modifyStartingHandSize:['card','modifyStartingHandSize',['amount']],modifyPilotingLimit:['card','modifyPilotLimit',['amount']],modifyIndirectDamage:['player','modifyIndirectDamage',['amount','opponentsOnly']],multiplyNumericKeyword:['card','multiplyNumericKeyword',['keyword','multiplier']],loseAllOtherAbilities:['card','blankExceptKeyword',['exceptKeyword']],canAttackMultipleUnitsSimultaneously:['card','canAttackMultipleUnitsSimultaneously',['amount']],mustAttack:['card','mustAttack',['targetUnitIfAble']],canPlayFromDiscard:['card','canPlayFromDiscard',['player']]};
@@ -12,6 +13,7 @@ function ongoingValue(input,ctx,api,roles=['game']) {
 }
 function ongoingContract(call,ctx,duration,target,api) {
  const {access,literal,fail,object,ts,unwrap}=api,p=access(call.expression,ctx);
+ const adapter=ongoingValueAdapter(call,ctx,duration,target,{...api,value:ongoingValue});if(adapter)return adapter;
  const out=(scope,type,value={kind:'undefined'},extra={})=>({kind:'ongoingContract',scope,effectType:type,target,duration,valueMode:'static',value,...extra});
  if(p.length===3&&p[0]==='OngoingEffectBuilder'&&['card','player','allCardsForPlayer'].includes(p[1])&&p[2]==='static') {
   if(ctx.scope.has(p[0])||ctx.constants.has(p[0])||call.arguments.length<1||call.arguments.length>2)fail(ctx,call,'ongoing-static-builder-binding');
@@ -19,6 +21,7 @@ function ongoingContract(call,ctx,duration,target,api) {
  }
  if(p.length!==3||!['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(p[0])||p[1]!=='ongoingEffects')return null;
  const name=p[2];
+ if(name==='gainKeywords'){if(call.arguments.length!==1)fail(ctx,call,'ongoing-keywords-arity');const n=unwrap(call.arguments[0]);if(!ts.isArrowFunction(n)&&!ts.isFunctionExpression(n))fail(ctx,n,'ongoing-keywords-callback');return out('card','gainKeyword',ongoingValue(n,ctx,api,['targetCard','ongoingContext']),{valueMode:'dynamic',valueAdapter:'GainKeyword',valueAdapterGame:'currentGame'});}
  if(name==='gainTraits'){if(call.arguments.length!==1)fail(ctx,call,'ongoing-traits-arity');return out('card','gainTrait',ongoingValue(call.arguments[0],ctx,api,['targetCard','ongoingContext']),{valueMode:'dynamic'});}
  if(name==='unitsEnterPlayReady'){if(call.arguments.length!==1)fail(ctx,call,'ongoing-entry-ready-arity');const o=object(call.arguments[0],ctx),properties={};for(const[k,v]of o.props){if(!['cardTypeFilter','entryType','match','limit'].includes(k))fail(ctx,v,'ongoing-entry-ready-field:'+k);properties[k]=k==='limit'?history.activationLimit(v,o.ctx,api):ongoingValue(v,o.ctx,api,k==='match'?['enteringUnit','entryContext']:['game']);}if(!o.props.has('entryType'))fail(ctx,call,'ongoing-entry-ready-missing-entry');return out('player','unitsEnterPlayReady',{kind:'unitsEnterPlayReadyValue',properties,defaultCardType:'unit',cloneLimitPerApplication:true});}
  if(ctx.explicitOngoingContract&&['modifyStats','gainKeyword'].includes(name)){if(call.arguments.length!==1)fail(ctx,call,'ongoing-value-arity');const n=unwrap(call.arguments[0]),dynamic=ts.isArrowFunction(n)||ts.isFunctionExpression(n);return out('card',name,ongoingValue(n,ctx,api,['targetCard','ongoingContext','game']),{valueMode:dynamic?'dynamic':'static'});}

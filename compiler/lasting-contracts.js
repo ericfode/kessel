@@ -4,7 +4,8 @@ const {playerCostModifier}=require('./cost-resource-systems');
 const {playerPhaseModifier}=require('./player-phase-effects');
 const history=require('./event-history');
 function lastingContract(kind,input,context,defaultTarget,api) {
- if(!['playerLastingEffect','cardLastingEffect','whileSourceInPlayCardEffect','allCardsForPlayerLastingEffect'].includes(kind))return null;
+ const fixedDurations={forThisPhaseCardEffect:'untilEndOfPhase',forThisAttackCardEffect:'untilEndOfAttack'};
+ if(!Object.hasOwn(fixedDurations,kind)&&!['playerLastingEffect','cardLastingEffect','whileSourceInPlayCardEffect','allCardsForPlayerLastingEffect'].includes(kind))return null;
  const {ts,unwrap,object,literal,expr,target,modifierEffects,fail,contextTitle}=api,node=unwrap(input);
  const callbackContext={...context,ongoingExpression:true};
  const binding=ts.isArrowFunction(node)||ts.isFunctionExpression(node)?bindAttackCallback(node,callbackContext,['systemContext'],api):null;
@@ -12,7 +13,8 @@ function lastingContract(kind,input,context,defaultTarget,api) {
  const scope=kind==='playerLastingEffect'?'player':kind==='allCardsForPlayerLastingEffect'?'allCardsForPlayer':'card';
  const fields=['target','effect','duration','until','condition','ability','title','ongoingEffectDescription','ongoingEffectTargetDescription',...(scope==='allCardsForPlayer'?['matchCondition','cardTargetMode']:[])];
  for(const[k,v]of props)if(!fields.includes(k))fail(ctx,v,'lasting-contract-field:'+k);
- const duration=kind==='whileSourceInPlayCardEffect'?'whileSourceInPlay':props.has('duration')?literal(props.get('duration'),ctx):null;
+ if(Object.hasOwn(fixedDurations,kind)&&props.has('duration'))fail(ctx,props.get('duration'),'fixed-lasting-duration-override');
+ const duration=Object.hasOwn(fixedDurations,kind)?fixedDurations[kind]:kind==='whileSourceInPlayCardEffect'?'whileSourceInPlay':props.has('duration')?literal(props.get('duration'),ctx):null;
  if(!['persistent','untilEndOfAttack','untilEndOfPhase','untilEndOfRound','whileSourceInPlay','custom'].includes(duration))fail(ctx,obj.node,'lasting-contract-duration');
  if(!props.has('effect'))fail(ctx,obj.node,'lasting-contract-missing-effect');
  const recipient=target(props.get('target'),ctx,scope==='card'?defaultTarget:'ownPlayer');
@@ -22,6 +24,7 @@ function lastingContract(kind,input,context,defaultTarget,api) {
   return modifierEffects(n,{...ctx,explicitOngoingContract:true},duration,scope==='card'?'lastingCard':'lastingPlayer');
  });
  const out={kind:'lastingEffectContract',scope,target:recipient,duration,effects,applicationContext:'retainSourceAbility',effectContext:'pinnedOngoingFrameworkContext',sourceZoneFilter:scope==='card'?'any':'anyArena',isLastingEffect:true,cardApplicability:scope==='card'?'suppressGainWhenBlankAndCheckCannotApplyLastingEffects':'unfiltered',requiresSourceInPlayAtApplication:kind==='whileSourceInPlayCardEffect',sourceLifetime:duration==='whileSourceInPlay'?'expireWhenSourceOutOfPlayDuringEffectResolution':'independent'};
+ if(Object.hasOwn(fixedDurations,kind)){out.fixedDurationWrapper=kind;out.conditionEvaluation=['applicabilityCheck','application','ongoingFrameworkRefresh'];}
  if(props.has('condition'))out.condition=callbackValue(props.get('condition'),ctx,['ongoingContext'],api);
  if(props.has('ability'))out.ability=expr(props.get('ability'),ctx);
  if(props.has('until')){const hooks=history.hooks(obj.node,{...ctx,eventHistory:true},{...api,object:(input,context)=>{const o=object(input,context);if(o.props.has('until')){const props=new Map(o.props);props.set('when',props.get('until'));return {...o,props};}return o;}});if(!hooks)fail(ctx,props.get('until'),'lasting-contract-custom-hooks');out.until=hooks;}

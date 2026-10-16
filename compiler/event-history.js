@@ -122,24 +122,25 @@ function predicate(input,ctx,api,names=['historyEntry','historyIndex','historyAr
 function path(input,ctx,api) {
     const {ts,unwrap}=api,n=unwrap(input);
     if(ts.isIdentifier(n)) {
-        const b=ctx.scope.get(n.text);if(b?.kind==='ref'&&(['event','context'].includes(b.path[0])||ctx.dataRoots?.has(b.path[0])))return {root:b.path[0]==='context'?['context']:b.path,rootNode:n,steps:[]};return null;
+        const b=ctx.scope.get(n.text);if(b?.kind==='ref'&&(['event','context'].includes(b.path[0])||ctx.dataRoots?.has(b.path[0])||ctx.typedCallbackRoots?.has(b.path[0])))return {root:b.path[0]==='context'?['context']:b.path,rootNode:n,steps:[]};return null;
     }
     if(ts.isPropertyAccessExpression(n)){const p=path(n.expression,ctx,api);return p&&{...p,steps:[...p.steps,{key:n.name.text,optional:!!n.questionDotToken}]};}
     if(ts.isElementAccessExpression(n)&&n.argumentExpression){const p=path(n.expression,ctx,api);return p&&{...p,steps:[...p.steps,{index:n.argumentExpression,optional:!!n.questionDotToken}]};}
     return null;
 }
 function origin(p,ctx,api) {
-    const {ts,fail}=api;if(p.root[0].startsWith('data:'))return {};
+    const {ts,fail}=api;if(p.root[0].startsWith('data:'))return {};if(ctx.typedCallbackRoots?.has(p.root[0]))return {argumentBinding:{root:p.root[0],role:ctx.typedCallbackRoles?.get(p.root[0])||'callback',bindAt:'callbackInvocation',readAt:'expressionEvaluation',reference:'lexicalContextObject'}};
     if(p.root[0]==='context')return {contextBinding:require('./event-result-context').contextBinding(p.rootNode,ctx,api)};
     for(let a=p.rootNode.parent;a;a=a.parent){if(!a.parameters)continue;const index=a.parameters.findIndex(x=>ts.isIdentifier(x.name)&&x.name.text===p.rootNode.text);if(index<0)continue;return {argumentBinding:{id:'callback:'+a.getStart(ctx.source)+':'+index,bindAt:'callbackInvocation',readAt:'expressionEvaluation'}};}
     fail(ctx,p.rootNode,'event-argument-origin');
 }
 function dataReceiver(n,ctx,api) {
-    const p=path(n,ctx,api);return p&&(p.root[0]==='event'||p.root[0].startsWith('data:')||p.root[0]==='context'&&(p.steps[0]?.key==='event'||ctx.pendingResultArray&&['events','resolvedEvents'].includes(p.steps[0]?.key)||p.steps.some(s=>['activeAttack','currentAttack'].includes(s.key))||['game','replacementEffectWindow'].includes(p.steps[0]?.key)));
+    const p=path(n,ctx,api);return p&&(p.root[0]==='event'||p.root[0].startsWith('data:')||(ctx.typedCallbackRoots?.has(p.root[0])&&['events','resolvedEvents'].includes(p.steps[0]?.key))||p.root[0]==='context'&&(p.steps[0]?.key==='event'||ctx.pendingResultArray&&['events','resolvedEvents'].includes(p.steps[0]?.key)||p.steps.some(s=>['activeAttack','currentAttack'].includes(s.key))||['game','replacementEffectWindow'].includes(p.steps[0]?.key)));
 }
 function pendingResultAccess(input,ctx,api) {
     const {ts,unwrap}=api,n=unwrap(input),p=path(n,ctx,api);
-    if(p?.root[0]==='context'&&['events','resolvedEvents'].includes(p.steps[0]?.key)) {
+    if(p&&(p.root[0]==='context'||ctx.typedCallbackRoots?.has(p.root[0]))&&['events','resolvedEvents'].includes(p.steps[0]?.key)) {
+        if(ctx.typedCallbackRoots?.has(p.root[0]))return true;
         const [collection,index,...tail]=p.steps;if(!index?.index||!ts.isNumericLiteral(unwrap(index.index))||!tail.length)return true;
         const keys=tail.map(x=>x.index&&ts.isNumericLiteral(unwrap(x.index))?Number(unwrap(x.index).text):x.key);
         const known=keys.length===1&&['card','generatedTokens','willDefeat','availableExcessDamage','totalDistributed'].includes(keys[0])||keys.length===2&&keys[0]==='card'&&['printedCost','cost','title','type','aspects'].includes(keys[1])||keys.length===2&&keys[0]==='generatedTokens'&&typeof keys[1]==='number'||keys.length===2&&keys[0]==='lastKnownInformation'&&['power','hp','cost','card','arena','controller','parentCard','title','exhausted','type'].includes(keys[1])||keys.length===3&&keys[0]==='individualEvents'&&typeof keys[1]==='number'&&keys[2]==='card';
@@ -173,6 +174,7 @@ function capturedHistory(input,ctx,api) {
 }
 function normalize(input,ctx,api) {
     const {ts,unwrap,expr,fail,object,literal,unshadowedEnum}=api,n=unwrap(input);
+    if(ctx.historyHelpers?.size&&(ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n))&&isHistorySyntax(n.expression,ctx,api))ctx={...ctx,eventHistory:true};
     if(pendingResultAccess(n,ctx,api))ctx={...ctx,eventHistory:true,pendingResultArray:true};
     const captured=capturedHistory(n,ctx,api);if(captured)return captured;
     if(ctx.eventHistory&&Object.hasOwn(ctx.enums,n.getText(ctx.source))){let root=n;while(ts.isPropertyAccessExpression(root))root=root.expression;if(ts.isIdentifier(root))unshadowedEnum(root,ctx,root.text);return {kind:'const',value:ctx.enums[n.getText(ctx.source)]};}
@@ -202,19 +204,19 @@ function normalize(input,ctx,api) {
         if(ctx.eventHistory&&ts.isIdentifier(r)&&r.text==='Array'&&name==='from'){unshadowedEnum(r,ctx,'Array');if(n.arguments.length!==1||n.questionDotToken||call.questionDotToken)fail(ctx,n,'replacement-array-from');return {kind:'arrayFrom',value:expr(n.arguments[0],ctx)};}
         if(ctx.eventHistory&&r.kind===ts.SyntaxKind.ThisKeyword&&name==='getObject'){if(n.arguments.length!==1||n.questionDotToken||call.questionDotToken)fail(ctx,n,'history-object-lookup');return {kind:'historyObjectLookup',id:expr(n.arguments[0],ctx)};}
         if(ctx.eventHistory&&ts.isIdentifier(r)&&r.text==='Helpers'&&name==='pluralize'){unshadowedEnum(r,ctx,'Helpers');if(n.arguments.length!==3||n.questionDotToken||call.questionDotToken)fail(ctx,n,'history-pluralize');return {kind:'historyPluralize',count:expr(n.arguments[0],ctx),singular:literal(n.arguments[1],ctx),plural:literal(n.arguments[2],ctx)};}
-        if(ctx.eventHistory&&['canBeInPlay','isNonTokenUnit','isAttached'].includes(name)&&!dataReceiver(r,ctx,api)){if(n.arguments.length||n.questionDotToken||call.questionDotToken)fail(ctx,n,'event-card-query-shape');return {kind:'dataCall',method:name,receiver:expr(r,ctx),args:[],optionalCall:false,optionalReceiver:false};}
+        if(ctx.eventHistory&&['canBeInPlay','isNonTokenUnit','isAttached'].includes(name)&&!(ts.isIdentifier(r)&&r.text==='EnumHelpers')&&!dataReceiver(r,ctx,api)){if(n.arguments.length||n.questionDotToken||call.questionDotToken)fail(ctx,n,'event-card-query-shape');return {kind:'dataCall',method:name,receiver:expr(r,ctx),args:[],optionalCall:false,optionalReceiver:false};}
         if(ctx.eventHistory&&ts.isIdentifier(r)&&r.text==='DefeatCardSystem'&&name==='defeatSourceCard'){unshadowedEnum(r,ctx,'DefeatCardSystem');if(n.arguments.length!==1||n.questionDotToken||call.questionDotToken)fail(ctx,n,'defeat-source-query');return {kind:'defeatSourceCard',event:expr(n.arguments[0],ctx)};}
         if(ts.isIdentifier(r)&&r.text==='AttackHelpers'&&['defenderWasDefeated','attackerSurvived'].includes(name)) {
             unshadowedEnum(r,ctx,'AttackHelpers');const w=n.arguments[1];if(n.questionDotToken||call.questionDotToken||n.arguments.length!==2||!ts.isPropertyAccessExpression(w)||w.expression.kind!==ts.SyntaxKind.ThisKeyword||ctx.watchers?.bindings.get(w.name.text)?.factory!=='cardsDefeatedThisPhase')fail(ctx,n,'history-attack-helper');
             return {kind:'historyAttackCheck',test:name,attack:expr(n.arguments[0],{...ctx,eventHistory:true}),watcher:'cardsDefeatedThisPhase',binding:w.name.text};
         }
-        if(ctx.eventHistory&&(dataReceiver(r,ctx,api)||isHistorySyntax(r,ctx,api))) {
-            const methods=new Set(['some','every','filter','find','map','flatMap','reduce','includes','indexOf','concat','slice','isAttackAction','getArenaCards','getTopCardsOfDeck','getTopCardOfDeck','getShieldsNotQueuedForDefeat','getArenaUnits','getLeader','getLeaderUnit','getLeaderCards','getLeaderSide','getPlayers','join','getPrintedPower','getPrintedHp','getTriggeredAbilities','isNonTokenUnit','getLegalTargets','getSingleTarget','getAllTargets','getDefendingPlayer','getAttacker','targetIsUnit','targetIsBase','isUnit','isBase','isLeader','isLeaderUnit','isNonLeaderUnit','isUpgrade','isToken','isTokenUnit','isTokenUpgrade','isShield','isExperience','isWeakness','isUpgraded','isDeployableLeader','isInPlay','isDeployed','isAttacking','isDefending','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','hasCost','getPower','getHp','getCost','getPrintedCost','canBeInPlay','canRegisterTriggeredAbilities','isAction','isActivated','isTriggered','isEvent','hasTargets','hasSome','has','isSmuggle','isWhenDefeated','isWhenPlayed','isOnAttack']);
+        if(ctx.eventHistory&&(dataReceiver(r,ctx,api)||isHistorySyntax(r,ctx,api)||(()=>{const p=path(r,ctx,api);return p&&ctx.typedCallbackRoots?.has(p.root[0])&&p.steps[0]?.key==='event';})())) {
+            const methods=new Set(['some','every','filter','find','map','flatMap','reduce','includes','indexOf','concat','slice','isAttackAction','attackerDealsCombatDamageFirst','canBeExhausted','isCard','isForceToken','getArenaCards','getTopCardsOfDeck','getTopCardOfDeck','getShieldsNotQueuedForDefeat','getArenaUnits','getLeader','getLeaderUnit','getLeaderCards','getLeaderSide','getPlayers','join','getPrintedPower','getPrintedHp','getTriggeredAbilities','isNonTokenUnit','getLegalTargets','getSingleTarget','getAllTargets','getDefendingPlayer','getAttacker','targetIsUnit','targetIsBase','isUnit','isBase','isLeader','isLeaderUnit','isNonLeaderUnit','isUpgrade','isToken','isTokenUnit','isTokenUpgrade','isShield','isExperience','isWeakness','isUpgraded','isDeployableLeader','isInPlay','isDeployed','isAttacking','isDefending','hasSomeTrait','hasEveryTrait','hasSomeAspect','hasEveryAspect','hasSomeKeyword','hasEveryKeyword','hasCost','getPower','getHp','getCost','getPrintedCost','canBeInPlay','canRegisterTriggeredAbilities','isAction','isActivated','isTriggered','isEvent','hasTargets','hasSome','has','isSmuggle','isWhenDefeated','isWhenPlayed','isOnAttack']);
             if(!methods.has(name))fail(ctx,n,'event-history-method:'+name);
             const args=n.arguments.map((a,i)=>{const v=unwrap(a);return ts.isArrowFunction(v)||ts.isFunctionExpression(v)?predicate(v,ctx,api,name==='reduce'?['accumulator','historyEntry','historyIndex','historyArray']:undefined):expr(a,{...ctx,allowArenaList:true});});
             return {kind:'dataCall',method:name,receiver:expr(r,ctx),args,optionalCall:!!n.questionDotToken,optionalReceiver:!!call.questionDotToken};
         }
-        if(ctx.eventHistory&&ts.isIdentifier(r)&&r.text==='EnumHelpers'&&['isUnit','isUpgrade','isLeaderUnit','isNonLeaderUnit','isBase','isLeader','arenaName','isArena'].includes(name)) {
+        if(ctx.eventHistory&&ts.isIdentifier(r)&&r.text==='EnumHelpers'&&['isUnit','isUpgrade','isLeaderUnit','isNonLeaderUnit','isNonTokenUnit','isBase','isLeader','arenaName','isArena'].includes(name)) {
             unshadowedEnum(r,ctx,'EnumHelpers');return {kind:'enumTypeTest',test:name,args:n.arguments.map(a=>expr(a,ctx))};
         }
     }
@@ -224,7 +226,7 @@ function normalize(input,ctx,api) {
         if(ts.isObjectLiteralExpression(n)){const o=object(n,ctx);return {kind:'dataRecord',fields:Object.fromEntries([...o.props].map(([k,v])=>[k,expr(v,ctx)]))};}
         if(ts.isTemplateExpression(n))return {kind:'dataTemplate',parts:[n.head.text,...n.templateSpans.flatMap(s=>[expr(s.expression,ctx),s.literal.text])]};
         const p=path(n,ctx,api);
-        if(p&&(p.root[0]==='event'||p.root[0].startsWith('data:')||p.root[0]==='context'&&(p.steps[0]?.key==='event'||ctx.pendingResultArray&&['events','resolvedEvents'].includes(p.steps[0]?.key)||p.steps.some(s=>['activeAttack','currentAttack'].includes(s.key))||['game','replacementEffectWindow'].includes(p.steps[0]?.key)))) {
+        if(p&&(p.root[0]==='event'||p.root[0].startsWith('data:')||(ctx.typedCallbackRoots?.has(p.root[0])&&['events','resolvedEvents'].includes(p.steps[0]?.key))||p.root[0]==='context'&&(p.steps[0]?.key==='event'||ctx.pendingResultArray&&['events','resolvedEvents'].includes(p.steps[0]?.key)||p.steps.some(s=>['activeAttack','currentAttack'].includes(s.key))||['game','replacementEffectWindow'].includes(p.steps[0]?.key)))) {
             const root=p.root,steps=p.steps;
             return {kind:'dataPath',root,...origin(p,ctx,api),steps:steps.map(s=>s.index?{index:expr(s.index,ctx),optional:s.optional}:s)};
         }
@@ -246,6 +248,7 @@ function isHistorySyntax(n,ctx,api) {
     return false;
 }
 function activationLimit(input,ctx,api) {
+    const shared=require('./limit-factory-contract').sharedActivationLimit(input,ctx,api);if(shared)return shared;
     const {ts,unwrap,literal,fail}=api,n=unwrap(input);
     if(!ts.isCallExpression(n)||n.questionDotToken||!ts.isPropertyAccessExpression(n.expression)||n.expression.questionDotToken||!ts.isPropertyAccessExpression(n.expression.expression)||n.expression.expression.name.text!=='limit'||n.expression.expression.questionDotToken)fail(ctx,n,'history-activation-limit');
     const root=n.expression.expression.expression;if(!ts.isIdentifier(root))fail(ctx,n,'history-limit-factory-binding');

@@ -35,7 +35,8 @@ function choiceResolver(obj,api){
  result.chooser=props.has('choosingPlayer')?expr(props.get('choosingPlayer'),ctx):{kind:'const',value:'self'};
  for(const field of ['condition','highlightCards'])if(props.has(field))result[field]=expr(props.get(field),ctx);
  for(const field of ['checkTarget','showUnresolvable','logSelection','hideIfNoLegalTargets'])if(props.has(field)){const value=literal(props.get(field),ctx);if(typeof value!=='boolean')fail(ctx,node,'choice-boolean:'+field);result[field]=value;}
- for(const field of ['mustChangeGameState','appendToDefaultTitle','waitingPromptTitle'])if(props.has(field))result[field]=literal(props.get(field),ctx);
+ for(const field of ['mustChangeGameState','appendToDefaultTitle'])if(props.has(field))result[field]=literal(props.get(field),ctx);
+ require('./selection-contracts').applyWaitingPromptTitle(result,{...obj,ctx},api);
  if(props.has('activePromptTitle'))result.promptTitleParts=contextTitle(props.get('activePromptTitle'),ctx);
  if(mode==='select'){
   if(!props.has('choices'))fail(ctx,node,'choice-map-required');result.choices=choiceMap(props.get('choices'),ctx,api);
@@ -69,10 +70,26 @@ function lookAtOptions(node,context,defaultTarget,api){
  const captures=[],scope=new Map(ctx.scope),constants=new Map(ctx.constants);
  ctx={...ctx,scope,constants};
  const stage=ctx.callbackStage;
- if(!(ts.isArrowFunction(factory)||ts.isFunctionExpression(factory))&&[...ctx.constants.values()].some(n=>ctx.constantStages?.get(n)===stage))fail(ctx,node,'choice-external-capture-stage');
+ const constructedObject=ctx.pendingSystemConstruction&&!(ts.isArrowFunction(factory)||ts.isFunctionExpression(factory));
+ if(constructedObject){
+  // The enclosing construction frame owns declaration timing. Validate only
+  // references used by this branch; an unrelated system declaration may still
+  // be under construction, and must never be recaptured here.
+  const visit=(input,shadowed=new Set())=>{
+   const n=unwrap(input);if(ctx.constructionValues?.has(n))return;
+   if(ts.isArrowFunction(n)||ts.isFunctionExpression(n)){shadowed=new Set(shadowed);for(const p of n.parameters)if(ts.isIdentifier(p.name))shadowed.add(p.name.text);}
+   if(ts.isIdentifier(n)&&!shadowed.has(n.text)&&constants.has(n.text)){
+    const parent=n.parent,propertyName=ts.isPropertyAccessExpression(parent)&&parent.name===n||ts.isPropertyAssignment(parent)&&parent.name===n;
+    const init=constants.get(n.text),captured=ctx.constructionValues?.get(unwrap(init));
+    if(!propertyName&&ctx.constantStages?.get(init)&&!captured)fail(ctx,n,'choice-external-capture-stage');
+    if(!propertyName&&captured){scope.set(n.text,captured);constants.delete(n.text);ctx.usedConstants.add(init);}
+   }
+   ts.forEachChild(n,c=>visit(c,shadowed));
+  };for(const input of obj.props.values())visit(input);
+ }else if(!(ts.isArrowFunction(factory)||ts.isFunctionExpression(factory))&&[...ctx.constants.values()].some(n=>ctx.constantStages?.get(n)===stage))fail(ctx,node,'choice-external-capture-stage');
  // Scalar/card declarations run once in the property factory. Button objects
  // remain declarative syntax, with references redirected to these captures.
- for(const binding of ctx.bindings||[]){
+ for(const binding of constructedObject?[]:ctx.bindings||[]){
   if(ctx.constantStages?.get(binding.node)!==stage||constants.get(binding.name)!==binding.node)continue;
   const init=unwrap(binding.node);
   if(ts.isObjectLiteralExpression(init)||ts.isArrayLiteralExpression(init)||ts.isArrowFunction(init)||ts.isFunctionExpression(init)||ts.isConditionalExpression(init)&&[init.whenTrue,init.whenFalse].every(x=>ts.isArrayLiteralExpression(unwrap(x))))continue;

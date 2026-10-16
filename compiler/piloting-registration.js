@@ -26,7 +26,7 @@ function registrationHooks(input,ctx,api) {
  for(const [event,value]of obj.props){
   const n=unwrap(value);
   if(aliases.has(event)){if(literal(n,obj.ctx)!==true)fail(ctx,n,'attached-trigger-alias-true');hooks.push({alias:event,enabled:true});}
-  else {if(!events.has(event)||!(ts.isArrowFunction(n)||ts.isFunctionExpression(n)))fail(ctx,n,'attached-trigger-hook:'+event);hooks.push({event,predicate:expr(value,{...obj.ctx,pendingRegistration:true},['event','context'])});}
+  else {const extended=!events.has(event);if(extended&&!Object.entries(ctx.enums).some(([k,v])=>k.startsWith('EventName.')&&v===event)||!(ts.isArrowFunction(n)||ts.isFunctionExpression(n)))fail(ctx,n,'attached-trigger-hook:'+event);hooks.push({event,predicate:expr(value,{...obj.ctx,pendingRegistration:true,...extended?{eventHistory:true}:{}},['event','context']),...extended?{contract:'pinnedEventName'}:{}});}
  }
  return hooks;
 }
@@ -63,6 +63,7 @@ function compileGrantedAbility(input,context,api,options={}) {
   if(props.has('condition'))program.condition=api.expr(props.get('condition'),ctx);
   if(props.has('replaceWith')){const replace=object(props.get('replaceWith'),ctx);api.knownProperties(replace,['replacementImmediateEffect']);if(!replace.props.has('replacementImmediateEffect'))fail(ctx,replace.node,'attached-replacement-effect');program.replacement=effect(replace.props.get('replacementImmediateEffect'),replace.ctx,'self');}
   else program.replacement={kind:'cancelMatchedEvent'};
+  if(hooks.some(h=>h.contract==='pinnedEventName')){program.nullifiedEventCountsAsResolved=false;if(props.has('effect'))program.effectText=api.contextTitle(props.get('effect'),ctx);if(props.has('effectArgs'))program.effectArguments=api.expr(props.get('effectArgs'),{...ctx,eventHistory:true});}
  } else program=ability(input,ctx,options.trigger||(type==='action'?'action':'eventHooks'),{...obj,props,ctx});
  if(hooks)program.hooks=hooks;
  return {type,program,...extra};
@@ -119,6 +120,7 @@ function registrationEffect(node,ctx,defaultTarget,api){
  if(p.length!==3||!['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(p[0])||p[1]!=='immediateEffects'||!['attachUpgrade','detachPilot','flipAndAttachPilotLeader','deployAndAttachPilotLeader','indirectDamageToPlayer','distributeDamageAmong','distributeHealingAmong','payResources','giveAdvantage','rescue'].includes(kind))return null;
  if(node.arguments.length>1)fail(ctx,node,'registration-effect-arity');
  const obj=node.arguments.length?object(node.arguments[0],ctx):{props:new Map(),ctx,node};
+ if(kind==='giveAdvantage'&&(obj.props.has('createdBy')||obj.props.has('highPriorityRemoval')))return null;
  const allowed={rescue:['target'],payResources:['amount','target'],giveAdvantage:['amount','target'],attachUpgrade:['upgrade','target','controller','takeControl'],detachPilot:['target'],flipAndAttachPilotLeader:['leaderPilotCard','target'],deployAndAttachPilotLeader:['leaderPilotCard','target'],indirectDamageToPlayer:['amount','target'],distributeDamageAmong:['amountToDistribute','canChooseNoTargets','canDistributeLess','controller','cardTypeFilter','zoneFilter','cardCondition'],distributeHealingAmong:['amountToDistribute','canChooseNoTargets','canDistributeLess','controller','cardTypeFilter','zoneFilter','cardCondition']}[kind];
  api.knownProperties(obj,allowed);
  const properties={};for(const [key,value]of obj.props)properties[key]=expr(value,obj.ctx,key==='cardCondition'?['card','context']:['context']);

@@ -37,6 +37,7 @@ function registration(name,input,context,api,validatedObject=null) {
             const r=object(props.get('replaceWith'),ctx);knownProperties(r,['replacementImmediateEffect','target']);
             out.replaceWith={kind:'replacementSystemProperties',evaluateAt:unwrap(props.get('replaceWith')).kind===ts.SyntaxKind.ObjectLiteralExpression?'abilitySetup':'replacementContext'};
             if(r.props.has('target'))out.replaceWith.target=expr(r.props.get('target'),r.ctx);
+            if(r.props.has('effect')){out.replaceWith.effectParts=contextTitle(r.props.get('effect'),r.ctx);out.replaceWith.effectEvaluation='replacementPropertyGeneration';}
             if(r.props.has('replacementImmediateEffect'))out.replaceWith.replacementImmediateEffect=effect(r.props.get('replacementImmediateEffect'),r.ctx,'replacedEventCard');
         }
         // Omitting replaceWith is the source's ordinary event cancellation:

@@ -1,14 +1,29 @@
 'use strict';
 
+function applyWaitingPromptTitle(result,obj,api){
+ if(!obj.props.has('waitingPromptTitle'))return;
+ const {ts,unwrap,literal,contextTitle,fail}=api,input=obj.props.get('waitingPromptTitle'),ctx=obj.ctx;
+ try{result.waitingPromptTitle=literal(input,ctx);return;}catch(error){if(!error.diagnostic)throw error;}
+ const root=unwrap(input);if(ts.isArrowFunction(root)||ts.isFunctionExpression(root))fail(ctx,root,'waiting-title-must-be-constructed-string');
+ const visit=node=>{
+  const n=unwrap(node);if(ctx.constructionValues?.has(n))return;
+  if(ts.isIdentifier(n)&&ctx.constants.has(n.text)&&ctx.constantStages?.get(ctx.constants.get(n.text))){
+   const p=n.parent;if(!(ts.isPropertyAccessExpression(p)&&p.name===n))fail(ctx,n,'waiting-title-saved-binding-requires-program');
+  }
+  ts.forEachChild(n,visit);
+ };visit(root);
+ result.waitingPromptTitleValue={kind:'constructedPromptText',parts:contextTitle(input,ctx),evaluateAt:'resolverPropertiesConstruction',result:'string'};
+}
 function numberResolver(obj,api){
  const {literal,expr,contextTitle,fail}=api,{props,node}=obj,ctx={...obj.ctx,pendingSelection:true,pendingChoice:true,pendingSelectionContract:true};
  if(!props.has('mode')||literal(props.get('mode'),ctx)!=='chooseNumber')return null;
  api.knownProperties(obj,['mode','min','max','condition','logSelection','choosingPlayer','immediateEffect','dependsOn','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle']);
  if(!props.has('min')||!props.has('max'))fail(ctx,node,'number-resolver-range-required');
  const result={kind:'numberSelection',mode:'chooseNumber',min:expr(props.get('min'),ctx),max:expr(props.get('max'),ctx),chooser:props.has('choosingPlayer')?expr(props.get('choosingPlayer'),ctx):{kind:'const',value:'self'},resultBinding:'select',resolverName:'target',namedResultStorage:'selects[name].choice',contextSelectAssignment:'onlyWhenNameIsTarget',resultRepresentation:'decimalString',rangeAssertions:['integerMinimum','integerMaximum','maximumAtLeastMinimum'],sameEndpoints:'automaticStringSelection',logSelection:props.has('logSelection')?literal(props.get('logSelection'),ctx):true,defaults:'NumberTargetResolver'};
+ for(const field of ['dependsOn','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle'])if(props.has(field))result[field]=literal(props.get(field),ctx);
  if(props.has('condition'))result.condition=expr(props.get('condition'),ctx);
  if(props.has('activePromptTitle'))result.promptTitleParts=contextTitle(props.get('activePromptTitle'),ctx);
- if(props.has('waitingPromptTitle'))result.waitingPromptTitle=literal(props.get('waitingPromptTitle'),ctx);
+ applyWaitingPromptTitle(result,{...obj,ctx},api);
  return result;
 }
 function selectionContractExpression(input,ctx,api){
@@ -32,6 +47,7 @@ function selectionContractExpression(input,ctx,api){
  const p=chain(n);
  if(p){
   const binding=ctx.scope.get(p.root);
+  if(ctx.selectionContextArgument&&!p.path.length&&binding?.kind==='ref'&&binding.path.join('.')==='context')return {kind:'selectionContextReference',contextBinding:require('./event-result-context').contextBinding(p.rootNode,ctx,api)};
   if(binding?.kind==='ref'&&binding.path.join('.')==='context'&&['controllingPlayer','selectedPromptCards'].includes(p.path[0]))return {kind:'selectionContextRead',contextBinding:require('./event-result-context').contextBinding(p.rootNode,ctx,api),path:p.path,optionalAccess:p.optional,semantics:p.path[0]==='controllingPlayer'?'attachmentController':'physicalPromptSelection'};
   if(ctx.extendedNamedSelection&&binding?.kind==='ref'){
    let path=[...binding.path,...p.path];if(path[0]==='context')path=path.slice(1);
@@ -46,7 +62,7 @@ function selectionContractExpression(input,ctx,api){
  if(ts.isCallExpression(n)&&ts.isPropertyAccessExpression(n.expression)){
   const method=n.expression.name.text,receiverPath=chain(n.expression.expression);
   const special=receiverPath&&ctx.scope.get(receiverPath.root)?.path?.join('.')==='context'&&['controllingPlayer','selectedPromptCards'].includes(receiverPath.path[0]);
-  if((ctx.extendedNamedSelection||special)&&['canAttach','canAttachPilot','hasCost','includes','isTokenUnit','isAttacking','isDefending','isUpgrade','isUnit','getPower','getHp','hasSomeTrait'].includes(method))return {kind:'selectionMethodCall',method,receiver:expr(n.expression.expression,ctx),args:n.arguments.map(a=>expr(a,ctx)),optionalReceiver:!!n.expression.questionDotToken,optionalCall:!!n.questionDotToken};
+  if((ctx.extendedNamedSelection||special||!ctx.namedTargets?.size&&['canAttach','canAttachPilot'].includes(method))&&['canAttach','canAttachPilot','hasCost','includes','isTokenUnit','isAttacking','isDefending','isUpgrade','isUnit','getPower','getHp','hasSomeTrait'].includes(method))return {kind:'selectionMethodCall',method,receiver:expr(n.expression.expression,ctx),args:n.arguments.map(a=>expr(a,{...ctx,selectionContextArgument:['canAttach','canAttachPilot'].includes(method)})),optionalReceiver:!!n.expression.questionDotToken,optionalCall:!!n.questionDotToken};
  }
  return null;
 }
@@ -56,10 +72,10 @@ function selectionSystem(node,ctx,defaultTarget,api){
  if(node.arguments.length!==1)fail(ctx,node,'selection-system-properties');
  const obj=object(node.arguments[0],{...ctx,pendingSelection:true,pendingChoice:true,pendingSelectionContract:true});
  if(kind==='selectCard'){
-  if(!obj.props.has('name'))return null;
+  if(!['name','player','isCost','cancelIfNoTargets'].some(key=>obj.props.has(key)))return null;
   api.knownProperties(obj,['name','target','player','isCost','cancelIfNoTargets','mode','cardTypeFilter','controller','zoneFilter','cardCondition','optional','numCards','canChooseNoCards','immediateEffect','choosingPlayer',...api.EXTRA_FIELDS]);
   if(!obj.props.has('immediateEffect'))fail(ctx,node,'named-select-card-inner-required');
-  const name=literal(obj.props.get('name'),obj.ctx);if(typeof name!=='string'||!/^[_A-Za-z][_A-Za-z0-9]{0,63}$/.test(name))fail(ctx,node,'named-select-card-name');
+  const name=obj.props.has('name')?literal(obj.props.get('name'),obj.ctx):obj.props.has('isCost')&&literal(obj.props.get('isCost'),obj.ctx)?'cost':'target';if(typeof name!=='string'||!/^[_A-Za-z][_A-Za-z0-9]{0,63}$/.test(name))fail(ctx,node,'named-select-card-name');
   const mode=obj.props.has('mode')?literal(obj.props.get('mode'),obj.ctx):'single',slots=new Map(obj.ctx.namedTargets||[]);slots.set(name,{array:mode!=='single'});
   const child={...obj.ctx,namedTargets:slots,extendedNamedSelection:true},props=new Map(obj.props);
   for(const key of ['name','target','player','isCost','cancelIfNoTargets'])props.delete(key);
@@ -88,6 +104,7 @@ function extendedNamedResolvers(input,context,api){
   let dependsOn;if(raw.props.has('dependsOn')){dependsOn=literal(raw.props.get('dependsOn'),raw.ctx);if(!slots.has(dependsOn)||dependents.has(dependsOn))fail(raw.ctx,value,'extended-named-target-dependency');dependents.add(dependsOn);}
   const selection=['select','selectUnless','dropdownList','chooseNumber'].includes(mode),array=!['single','player'].includes(mode)&&!selection,scope=new Map(slots);scope.set(name,{array,selection});
   const ctx={...raw.ctx,pendingSelection:true,pendingChoice:true,extendedNamedSelection:true,pendingSelectionContract:true,namedTargets:scope},props=new Map(raw.props);props.delete('dependsOn');
+  if(!selection)api.knownProperties({...raw,props,ctx},['mode','cardTypeFilter','controller','zoneFilter','cardCondition','optional','numCards','canChooseNoCards','immediateEffect','choosingPlayer',...api.EXTRA_FIELDS]);
   let resolver=numberResolver({...raw,props,ctx},api)||api.choiceResolver({...raw,props,ctx},api)||api.richResolver({...raw,props,ctx},api,true);
   if(!resolver)fail(ctx,value,'extended-named-target-resolver');resolver.resultBinding=name;resolver.resolverName=name;if(resolver.kind==='choiceSelection'){resolver.namedResultBinding='selects.'+name+'.choice';resolver.contextSelectAssignment='onlyWhenNameIsTarget';}
   const entry={name,targetResolver:resolver,chooser:resolver.chooser,...(dependsOn?{dependsOn}:{})};
@@ -114,9 +131,9 @@ function choiceFactoryMap(input,context,api){
 function attachmentSelectionSystem(node,context,defaultTarget,api){
  const {access,object,expr,fail}=api,p=access(node.expression,context);
  if(p.length!==3||p[1]!=='immediateEffects'||p[2]!=='attachUpgrade'||node.arguments.length!==1)return null;
- const obj=object(node.arguments[0],context);if(!obj.props.has('newController'))return null;
+ const obj=object(node.arguments[0],context);if(!obj.props.has('newController')&&(context.pendingSelection||context.pendingRegistration))return null;
  api.knownProperties(obj,['target','upgrade','newController']);
  if(!obj.props.has('upgrade'))fail(obj.ctx,obj.node,'attachment-upgrade-required');
- return {kind:'attachUpgradeWithController',upgrade:expr(obj.props.get('upgrade'),obj.ctx),target:obj.props.has('target')?expr(obj.props.get('target'),obj.ctx):defaultTarget,newController:expr(obj.props.get('newController'),obj.ctx),controllerResolution:'outOfPlayNonTokenAlwaysContextPlayerOtherwiseRelativeChoiceOrUpgradeController',contract:'AttachUpgradeSystem.getFinalController',event:'onUpgradeAttached',attachmentIdentity:'physicalUpgradeAndHost',eventRechecksCanAttach:true,cleanup:'InPlayCard.attachToAndUnitCleanupContingentEvents'};
+ return {kind:obj.props.has('newController')?'attachUpgradeWithController':'attachUpgradeSystem',upgrade:expr(obj.props.get('upgrade'),obj.ctx),target:obj.props.has('target')?expr(obj.props.get('target'),obj.ctx):defaultTarget,newController:obj.props.has('newController')?expr(obj.props.get('newController'),obj.ctx):{kind:'nativeUpgradeControllerDefault'},controllerResolution:'outOfPlayNonTokenAlwaysContextPlayerOtherwiseRelativeChoiceOrUpgradeController',contract:'AttachUpgradeSystem.getFinalController',event:'onUpgradeAttached',attachmentIdentity:'physicalUpgradeAndHost',eventRechecksCanAttach:true,cleanup:'InPlayCard.attachToAndUnitCleanupContingentEvents'};
 }
-module.exports={attachmentSelectionSystem,choiceFactoryMap,numberResolver,selectionContractExpression,selectionSystem,extendedNamedResolvers};
+module.exports={applyWaitingPromptTitle,attachmentSelectionSystem,choiceFactoryMap,numberResolver,selectionContractExpression,selectionSystem,extendedNamedResolvers};

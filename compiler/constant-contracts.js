@@ -1,7 +1,9 @@
 'use strict';
 const {callbackValue}=require('./attack-initiation');
+const {playerCostConstant}=require('./cost-resource-systems');
 function constantContract(input,context,api,validated=null) {
  const {object,knownProperties,modifierEffects,displayText,literal,fail}=api,obj=validated||object(input,context),{props,ctx}=obj;
+ const playerCost=playerCostConstant(obj,api);if(playerCost)return playerCost;
  knownProperties(obj,['title','condition','matchTarget','ongoingEffect','sourceZoneFilter','targetController','targetCardTypeFilter','targetZoneFilter']);
  if(!props.has('ongoingEffect'))fail(ctx,obj.node,'constant-contract-missing-modifier');
  const properties={};const callbackContext={...ctx,ongoingExpression:true};

@@ -1,5 +1,8 @@
 'use strict';
+const {compileDoubleSidedLeaderContract}=require('./double-sided-leader-contract');
 const {compileNativeTokenLifecycle}=require('./native-token-lifecycle');
+const {compileNativeTokenGraph}=require('./native-token-graphs');
+const {compileTokenInheritance}=require('./native-token-base');
 
 const fs = require('fs');
 const path = require('path');
@@ -67,6 +70,8 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     if (!fs.existsSync(sourceDir)) throw new Error(`Missing engine card source: ${sourceDir}; initialize the pinned submodule or pass --source`);
     if (!fs.existsSync(cardDir)) throw new Error(`Missing downloaded card data: ${cardDir}; run npm --prefix forceteki run get-cards`);
     const enums = loadEnums(source);
+    const sharedClassContracts=new Map();
+    const doubleSided=compileDoubleSidedLeaderContract(source,enums);if(doubleSided)sharedClassContracts.set(doubleSided.className,doubleSided);
     const sharedBases=new Map();
     for(const relative of ['05_LOF/common/LofCommonForceBase.ts','07_LAW/common/LAWCommonBase.ts']) {
         const sharedPath=path.join(sourceDir,relative),sourcePath=path.posix.join('game/cards',relative);
@@ -90,13 +95,13 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             continue;
         }
         let converted;
-        try { converted = compileSource(text, sourcePath, enums, {sharedBases}); }
+        try { converted = compileSource(text, sourcePath, enums, {sharedBases,sharedClassContracts}); }
         catch (error) {
             // A compiler defect is a build failure, never an "unsupported" card.
             throw new Error(`Compiler failed on ${sourcePath}: ${error.stack || error}`);
         }
         sources.push(converted);
-        const lifecycle=compileNativeTokenLifecycle(text,sourcePath,source,enums);if(lifecycle)unmatchedSources.push(lifecycle);
+        const lifecycle=require('./source-exclusions').sourceExclusion(sourcePath)?null:compileNativeTokenLifecycle(text,sourcePath,source,enums)||compileNativeTokenGraph(text,sourcePath,source,enums,compileTokenInheritance);if(lifecycle)unmatchedSources.push(lifecycle);
         if (converted.id) {
             if (byId.has(converted.id)) throw new Error(`Duplicate source identity ${converted.id}: ${sourcePath}`);
             byId.set(converted.id, converted);

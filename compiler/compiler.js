@@ -1,7 +1,18 @@
 'use strict';
+const {tokenRecordConstruction,explicitForceTokenSystem}=require('./token-record-construction');
 
 const fs = require('fs');
+const {nativeDamageRecipientAmount}=require('./damage-recipient-amount');
+const {bindTokenEventFactories}=require('./token-event-factory');
+const {limitFactoryValue,limitObjectExpression}=require('./limit-factory-contract');
+const {deployLeaderSystem}=require('./deploy-leader-system');
+const {classMethodContract,classSystem}=require('./finite-class-contracts');
+const {queryContract,queryCollectionContract}=require('./query-contracts');
+const {textProgramExpression}=require('./text-programs');
+const {readonlyFunctionCall}=require('./readonly-functions');
 const {ongoingExpression}=require('./ongoing-expressions');
+const attachedInterception=require('./attached-interception');
+const {ongoingClassMethod}=require('./ongoing-class-contracts');
 const pureApi=()=>privateApi();
 const {lastingContract}=require('./lasting-contracts');
 const {constantContract,attachedConstantContract}=require('./constant-contracts');
@@ -12,6 +23,10 @@ const {deploymentOverride}=require('./leader-deploy-cost');
 const {randomResourceValue}=require('./resource-random-query');
 const {playCostRegistration,preEnterPlayRegistration}=require('./play-cost-registration');
 const {playerResourceSystem,playerDiscardSystem}=require('./player-resource-systems');
+const {domainSystem,domainMessageExpression,bountyKeywordExpression}=require('./domain-systems');
+const {playRestrictionAbility,selectionOnlyStep}=require('./ability-step-contracts');
+const {abilityProtocolProperties,attachedCoordinate}=require('./ability-protocols');
+const {cardObjectPropertiesSystem}=require('./card-object-properties');
 const { installPureScalarHelpers } = require('./pure-scalar-helpers');
 const { inspectSelectedCostHelpers, selectedCostHelperCall } = require('./selected-cost-fold');
 const { extendedResourceSystem, extendedTokenSystem, extendTopDeckResources, ignoreAspectAbility } = require('./resource-token-systems');
@@ -23,7 +38,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { normalizeAttackUnitCondition } = require('./attack-unit-condition');
 const { normalizeAttackEventCall } = require('./attack-duration');
-const { compileAttackSystem,normalizeAttackExpression } = require('./attack-initiation');
+const { compileAttackSystem,normalizeAttackExpression,callbackValue } = require('./attack-initiation');
 const {normalizeActiveAttackValue,provenanceOptionalValue,attackPermissionModifier}=require('./active-attack-values');
 const {compileRoundCardEffect}=require('./round-card-effects');
 const {compileDamageProvenance}=require('./damage-provenance');
@@ -50,7 +65,9 @@ const selectionApi = () => ({ts,unwrap,access,lambda,object,literal,expr,effect,
 const pilotingApi = () => ({ts,unwrap,access,object,literal,ability,constantAbility,standardTriggeredAbilities,expr,effect,knownProperties,modifierEffects,displayText,contextTitle,fail});
 const eventHistory = require('./event-history');
 const privatePrograms=require('./private-programs');
-const privateApi=()=>({ts,unwrap,expr,object,literal,effect,fail,unshadowedEnum,access,lambda,contextTitle,systemConstructionValue});
+const privateAbilityValues=require('./private-ability-values');
+const helperRegistrations=require('./helper-registrations');
+const privateApi=()=>({ts,unwrap,expr,object,literal,effect,ability,fail,unshadowedEnum,access,lambda,contextTitle,modifierEffects,systemConstructionValue});
 const replacementRegistration = require('./replacement-registration');
 const registrationMetadata = require('./registration-metadata');
 const {unlessResolver}=require('./continuation-registration');
@@ -67,6 +84,7 @@ const { bountyAbility, bountyGrant } = require('./bounty-registration');
 const {deckPlayEffect,objectSystemBatch,deckExpression}=require('./deck-play-ir');
 const {sourceExclusion}=require('./source-exclusions');
 const {deferredSystem}=require('./deferred-systems');
+const {viewDeckSystem}=require('./view-deck-systems');
 const {systemArrayFactory,systemPropertiesFactory,systemConstructionValue,constructionExpression}=require('./system-array-factory');
 
 const TRIGGERS = { addActionAbility: 'action', addWhenPlayedAbility: 'whenPlayed', addOnAttackAbility: 'onAttack', addWhenDefeatedAbility: 'whenDefeated', setEventAbility: 'event', setEpicActionAbility: 'epicAction', addOnDefenseAbility: 'onDefense', addWhenAttackEndsAbility: 'whenAttackEnds' };
@@ -136,6 +154,7 @@ function titleHelper(node, ctx) {
     node=unwrap(node);
     if(ctx.constantTemplateSource&&ts.isCallExpression(node)&&node.expression.getText(ctx.source)==='KeywordHelpers.keywordDescription'){if(node.arguments.length!==1)fail(ctx,node,'keyword-description-arity');const keyword=literal(node.arguments[0],ctx);if(typeof keyword!=='string')fail(ctx,node,'keyword-description-value');return keyword.charAt(0).toUpperCase()+keyword.slice(1);}
     const text=node.getText(ctx.source);
+    if(ctx.pureProgram&&ts.isCallExpression(node)&&/^TextHelper\.(keyword|resource|Restore|Raid|Exploit|aspect|trait|aspectList)$/.test(node.expression.getText(ctx.source))){try{node.arguments.forEach(a=>literal(a,ctx));}catch(error){if(!(error instanceof Unsupported))throw error;return null;}}
     if(ts.isPropertyAccessExpression(node)&&text.startsWith('TextHelper.')) {
         const trait=/^TextHelper\.Trait\.([A-Za-z]+)$/.exec(text);
         if(trait) {
@@ -156,6 +175,7 @@ function titleHelper(node, ctx) {
             // Env defaults NODE_ENV to test: preserve the real headless labels.
             return `${amount} resource${amount!==1?'s':''}`;
         }
+        if(['TextHelper.aspect','TextHelper.trait'].includes(node.expression.getText(ctx.source))){if(node.arguments.length!==1)fail(ctx,node,'unsupported-title-helper');const value=literal(node.arguments[0],ctx);if(typeof value!=='string')fail(ctx,node,'title-helper-string');return node.expression.name.text==='trait'?value.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '):value.charAt(0).toUpperCase()+value.slice(1);}
         if(node.expression.getText(ctx.source)==='TextHelper.keyword') {
             if(node.arguments.length!==1)fail(ctx,node,'unsupported-title-helper');
             const input=unwrap(node.arguments[0]);
@@ -196,7 +216,7 @@ function displayText(node, ctx) {
     node = unwrap(node);
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
     if (ts.isTemplateExpression(node)) return node.head.text + node.templateSpans.map((span) => {
-        const helper=titleHelper(span.expression,ctx);
+        let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){if(!(error instanceof Unsupported)||!textProgramExpression(span.expression,ctx,{ts,unwrap,expr,fail,unshadowedEnum}))throw error;helper=null;}
         return (helper ?? '[value]')+span.literal.text;
     }).join('');
     return 'Resolve ability';
@@ -205,18 +225,19 @@ function displayText(node, ctx) {
 // Its expressions remain pure IR and are evaluated in the current ability context.
 function contextTitle(input, context) {
     const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return [constructed];
-    const {node,ctx}=lambda(input,context);
+    let lowered;try{lowered=lambda(input,context);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(input,context,privateApi(),['contextTitleContext']);if(!callback)throw error;return [{kind:'contextTitleProgram',callback,evaluation:'nativeContextTitleInvocation'}];}
+    const {node,ctx}=lowered;
     const part=(n)=>{
         n=unwrap(n);
         if(ts.isPropertyAccessExpression(n)&&n.questionDotToken&&ctx.pendingSelection)return expr(n,ctx);
         if(ts.isPropertyAccessExpression(n)&&n.questionDotToken) {
             // Only nullable attached-card title access is supported here.
             const receiver=expr(n.expression,ctx);
-            if(n.name.text!=='title'||receiver.kind!=='ref'||receiver.path.join('.')!=='source.parentUnit')fail(ctx,n,'unsupported-context-title-optional');
+            if(n.name.text!=='title'||receiver.kind!=='ref'||receiver.path.join('.')!=='source.parentUnit')return expr(n,{...ctx,pendingSelection:true});
             return reference(...receiver.path,'title');
         }
         if(ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.QuestionQuestionToken)return {kind:'binary',op:'??',left:part(n.left),right:part(n.right)};
-        const helper=titleHelper(n,ctx);
+        let helper;try{helper=titleHelper(n,ctx);}catch(error){if(!(error instanceof Unsupported))throw error;const text=textProgramExpression(n,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(text)return text;throw error;}
         if(helper!==null)return constant(helper);
         return expr(n,ctx);
     };
@@ -280,9 +301,10 @@ function normalizeRef(parts) {
 function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = false) {
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
+    if (!controllerOnly && ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text==='Set') return true;
     if (!controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text==='upgrades') return true;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
-    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['getArenaUnits','getArenaUpgrades','getInPlayCards','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle','getLeaderCards','getConstantAbilities','getActionAbilities','getTriggeredAbilities'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
+    if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['countUniqueAspects','countUniqueKeywords','getOtherPlayer','hasSomeCard','getArenaUnits','getArenaUpgrades','getInPlayCards','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle','getLeaderCards','getConstantAbilities','getActionAbilities','getTriggeredAbilities'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
         const initializer = ctx.constants.get(node.text);
         if (seen.has(initializer)) return false; // Normal alias resolution diagnoses cycles.
@@ -544,22 +566,44 @@ function singletonArenaMembership(node, ctx) {
     return {kind:'binary', op:'&&', left:{kind:'binary', op:'===', left:units, right:constant(1)}, right:containsSource};
 }
 function expr(input, context, params = ['context']) {
+    try{return legacyExpr(input,context,params);}catch(error){
+        if(!(error instanceof Unsupported))throw error;
+        const fn=unwrap(input);if((ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&ts.isBlock(fn.body))return privatePrograms.compileCallback(fn,context,privateApi(),params);
+        if(context.liveStats||context.legacyKeywordValue||context.constructionFactorySuppressed&&!context.pendingSystemConstruction)throw error;
+        const {node,ctx}=lambda(input,context,params);
+        const text=textProgramExpression(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum,titleHelper});if(text)return text;
+        const localCall=readonlyFunctionCall(node,ctx,{...privateApi(),readConstant,constantContext});if(localCall)return localCall;
+        const contract=queryContract(node,ctx,{ts,unwrap,expr,object,fail,unshadowedEnum,lambda});
+        if(contract)return contract;throw error;
+    }
+}
+function legacyExpr(input, context, params = ['context']) {
     const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return constructed;
     if(context.pureProgram&&(ts.isArrowFunction(unwrap(input))||ts.isFunctionExpression(unwrap(input))))return privatePrograms.compileCallback(input,context,privateApi(),params);
     const program=eventHistory.callbackProgram(input,context,{ts,unwrap,expr,object,literal,fail,unshadowedEnum},params);if(program)return program;
-    let { node, ctx } = lambda(input, context, params);
+    let lowered;
+    try{lowered=lambda(input,context,params);}catch(error){
+        const fn=unwrap(input);
+        if(!(error instanceof Unsupported)||(!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||!ts.isBlock(fn.body))throw error;
+        return privatePrograms.compileCallback(fn,context,privateApi(),params);
+    }
+    let { node, ctx } = lowered;
     node = unwrap(node);
+    const bountyKeywords=bountyKeywordExpression(node,ctx,privateApi());if(bountyKeywords)return bountyKeywords;
+    const domainMessage=domainMessageExpression(node,ctx,privateApi());if(domainMessage)return domainMessage;
     const randomResources=randomResourceValue(node,ctx,{ts,expr,fail});if(randomResources)return randomResources;
+    const limitObject=limitObjectExpression(node,ctx,{ts,unwrap,literal,expr,fail});if(limitObject)return limitObject;
+    const limitValue=limitFactoryValue(node,ctx,{ts,unwrap,literal,fail});if(limitValue)return limitValue;
     const privateValue=privatePrograms.normalizeExpression(node,ctx,privateApi());if(privateValue)return privateValue;
     const ongoingLeaf=ongoingExpression(node,ctx,{...contractApi(),value:(n,c)=>ongoingValue(n,c,ongoingApi()),additionalCost,targetResolverProperties});if(ongoingLeaf)return ongoingLeaf;
     const selectionContract=selectionContractExpression(node,ctx,selectionApi());if(selectionContract)return selectionContract;
-    const constructedExpression=constructionExpression(node,ctx,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(constructedExpression)return constructedExpression;
+    const constructedExpression=constructionExpression(node,ctx.constructionProgram?{...ctx,pendingSystemConstruction:true}:ctx,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle,modifierEffects});if(constructedExpression)return constructedExpression;
     const attackExpression=normalizeAttackExpression(node,ctx,{ts,unwrap,expr,object,fail,lambda});if(attackExpression)return attackExpression;
     const deckValue=deckExpression(node,ctx,{ts,unwrap,expr,fail});if(deckValue)return deckValue;
     const choiceValue=choiceExpression(node,ctx,choiceApi());if(choiceValue)return choiceValue;
     const selectionValue=selectionExpression(node,ctx,selectionApi());if(selectionValue)return selectionValue;
     const registrationValue=registrationExpression(node,ctx,pilotingApi());if(registrationValue)return registrationValue;
-    if(ctx.watchers?.bindings.size||ctx.privatePrograms?.size)ctx={...ctx,eventHistory:true};
+    if(ctx.watchers?.bindings.size||[...ctx.privatePrograms?.values()||[]].some(h=>!h.legacyChoice||h.usedGraph))ctx={...ctx,eventHistory:true};
     if(ctx.eventHistory&&(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&ts.isIdentifier(node.expression.expression)&&node.expression.expression.text==='TextHelper'||ts.isPropertyAccessExpression(node)&&node.getText(ctx.source).startsWith('TextHelper.'))){const display=titleHelper(node,ctx);if(display!==null)return constant(display);}
     const historical=eventHistory.normalize(node,ctx,{ts,unwrap,expr,object,literal,fail,unshadowedEnum,readConstant});if(historical)return historical;
     // Lexical event reads take precedence over generic optional member paths.
@@ -752,11 +796,13 @@ function expr(input, context, params = ['context']) {
             return {kind:'query',name:'hasSomeAspect',receiver,args:[constant(value)]};
         }
         if (['some', 'every', 'filter', 'map', 'find', 'includes', 'concat', 'slice'].includes(name)) {
+            const scopedCollection=queryCollectionContract(node,ctx,{ts,unwrap,expr,object,fail,unshadowedEnum,lambda});if(scopedCollection)return scopedCollection;
             const receiver = expr(call.expression, ctx);
             if (isArenaList(receiver)) fail(ctx, node, 'unsupported-arena-collection:' + name);
             const args = node.arguments.map((a) => expr(a, ctx, ['card', 'index']));
             return { kind: 'collection', name, receiver, args, limit: 256 };
         }
+        const printedLeaf=ongoingExpression(node,{...ctx,explicitPrintedQuery:true},{...contractApi(),value:(n,c)=>ongoingValue(n,c,ongoingApi())});if(printedLeaf)return printedLeaf;
         fail(ctx, node, 'unsupported-query:' + name);
     }
     fail(ctx, node, 'expression:' + ts.SyntaxKind[node.kind], node.getText(ctx.source));
@@ -774,7 +820,8 @@ function object(input, context) {
             if (name === null) fail(ctx, p, 'computed-object-key');
             if (props.has(name)) fail(ctx, p, 'duplicate-object-key:' + name);
             props.set(name, p.initializer);
-        } else if(ts.isSpreadAssignment(p)){const spread=object(p.expression,ctx);for(const [name,value]of spread.props){if(props.has(name))fail(ctx,p,'overlapping-object-spread:'+name);props.set(name,value);}} else if (ts.isShorthandPropertyAssignment(p) && ctx.constants.has(p.name.text)) props.set(p.name.text, readConstant(p.name.text, ctx));
+        } else if(ts.isMethodDeclaration(p)&&p.name?.getText(ctx.source)==='effectArgs'){if(props.has('effectArgs'))fail(ctx,p,'duplicate-object-key:effectArgs');props.set('effectArgs',p);} else if(ts.isSpreadAssignment(p)){const spread=object(p.expression,ctx);for(const [name,value]of spread.props){if(props.has(name))fail(ctx,p,'overlapping-object-spread:'+name);props.set(name,value);}} else if (ts.isShorthandPropertyAssignment(p) && ctx.constants.has(p.name.text)) props.set(p.name.text, readConstant(p.name.text, ctx));
+        else if(ts.isShorthandPropertyAssignment(p)&&(ctx.pureProgram||ctx.pendingSystemConstruction)&&ctx.scope.has(p.name.text))props.set(p.name.text,p.name);
         else fail(ctx, p, 'object-property:' + ts.SyntaxKind[p.kind]);
     }
     return { props, ctx, node };
@@ -1031,7 +1078,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
         while (ts.isIdentifier(value) && ctx.constants.has(value.text)) value = unwrap(readConstant(value.text, ctx));
         const dynamic = ts.isArrowFunction(value) || ts.isFunctionExpression(value);
         if (kind === 'modifyStats') {
-            if (dynamic && ['phase','attack'].includes(duration)) fail(ctx,value,'dynamic-ongoing-stat-modifier');
+            if (dynamic && ['phase','attack'].includes(duration)) return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
             const lowered = dynamic ? lambda(value,{...ctx,liveStats:true},['modifierTarget','context']) : {node:value,ctx};
             const obj = object(lowered.node,lowered.ctx);
             // Every modifier field is semantic; descriptive-property exemptions
@@ -1043,7 +1090,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
                 let v=unwrap(obj.props.get(stat));
                 while(ts.isIdentifier(v)&&obj.ctx.constants.has(v.text))v=unwrap(readConstant(v.text,obj.ctx));
                 if(ts.isArrowFunction(v)||ts.isFunctionExpression(v))fail(ctx,v,'function-valued-stat-modifier');
-                if(dynamic) {out[stat]=expr(v,obj.ctx);liveStatBounds(out[stat],obj.ctx,v);}
+                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
                 else if(duration === 'persistent') { const n=literal(v,obj.ctx); if(!Number.isSafeInteger(n))fail(ctx,v,'noninteger-stat-modifier'); out[stat]=constant(n); }
                 else out[stat]=expr(v,obj.ctx);
             }
@@ -1054,8 +1101,8 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(!list.length||list.length>8||list.some(k=>!MODIFIER_KEYWORDS.has(k)))fail(ctx,value,'unsupported-modifier-keyword');
             return list.map(keyword=>({kind,target:targetValue,duration,keyword}));
         }
-        if(dynamic&&['phase','attack'].includes(duration))fail(ctx,value,'dynamic-ongoing-keyword-modifier');
-        const lowered=dynamic?lambda(value,ctx,['card','context']):{node:value,ctx};
+        if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
+        const lowered=dynamic?lambda(value,{...ctx,legacyKeywordValue:true},['card','context']):{node:value,ctx};
         let keyword,amount=constant(1);
         if(ts.isObjectLiteralExpression(lowered.node)) {
             const obj=object(lowered.node,lowered.ctx);
@@ -1085,24 +1132,27 @@ function effect(input, context, defaultTarget = 'self') {
     const parts = access(node.expression, ctx);
     if (parts.length !== 3 || !['AbilityHelper', 'abilityHelper', 'StaticAbilityHelper'].includes(parts[0]) || parts[1] !== 'immediateEffects') fail(ctx, node, 'unsupported-effect-call:' + parts.join('.'));
     const kind = parts[2];
-    if(!['simultaneous','sequential'].includes(kind)){const factory=systemPropertiesFactory(node,ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(factory)return factory;}
+    const objectProperties=cardObjectPropertiesSystem(node,ctx,kind,defaultTarget,{...privateApi(),lambda});if(objectProperties)return objectProperties;
+    if(!['simultaneous','sequential'].includes(kind)){const factory=systemPropertiesFactory(node,ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle,modifierEffects});if(factory)return factory;}
     const promptSystem=selectionSystem(node,ctx,defaultTarget,selectionApi());if(promptSystem)return promptSystem;
     const menuNoAction=choiceNoAction(node,ctx,choiceApi());if(menuNoAction)return menuNoAction;
     const viewOptions=lookAtOptions(node,ctx,defaultTarget,choiceApi());if(viewOptions)return viewOptions;
     const selectedPlayer=selectedPlayerEffect(node,ctx,selectionApi());if(selectedPlayer)return selectedPlayer;
     const attachment=attachmentSelectionSystem(node,ctx,defaultTarget,selectionApi());if(attachment)return attachment;
+    if(['giveShield','giveExperience','giveAdvantage'].includes(kind)){const optionObject=node.arguments.length?object(node.arguments[0],ctx):{props:new Map(),ctx,node};const tokenOptions=viewDeckSystem(kind,optionObject,defaultTarget,{ts,unwrap,expr,effect,target,literal,contextTitle,fail,lambda},node);if(tokenOptions)return tokenOptions;}
     const pendingRegistration=registrationEffect(node,ctx,defaultTarget,pilotingApi());if(pendingRegistration)return pendingRegistration;
-    const pendingInventory=pendingInventoryEffect(node,ctx,defaultTarget,{ts,unwrap,fail});if(pendingInventory)return pendingInventory;
+    const pendingInventory=pendingInventoryEffect(node,ctx,defaultTarget,{ts,unwrap,fail,object,expr,effect,target,literal,access,lambda,contextTitle});if(pendingInventory)return pendingInventory;
     if(kind!=='heal'&&ctx.otherBaseTargetScope)ctx={...ctx,otherBaseTargetScope:false};
     if(kind!=='damage'&&ctx.damageRecipientScope)ctx={...ctx,damageRecipientScope:false};
+    const tokenRecord=tokenRecordConstruction(node,ctx,kind,{ts,unwrap,fail});if(tokenRecord)return tokenRecord;
     if (node.arguments.length > 1) fail(ctx, node, 'effect-helper-arity');
     if (['simultaneous', 'sequential'].includes(kind)) {
         if(node.arguments.length===1){const batch=objectSystemBatch(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,object,literal,effect,fail});if(batch)return batch;}
         if(node.arguments.length===1&&!ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) {
             if(kind==='simultaneous'){try{return finiteHandGroupFactory(node.arguments[0],ctx);}catch(error){if(!(error instanceof Unsupported))throw error;}}
             const helperFactory=lambda(node.arguments[0],ctx);const privateBatch=privatePrograms.effectCall(helperFactory.node,helperFactory.ctx,defaultTarget,privateApi());if(privateBatch)return {kind:'privateConstructionBatch',mode:kind,call:privateBatch,invocationPolicy:'eachNativePropertyGeneration',resolutionMode:'someGameSystemsMustBeLegal'};
-            const factory=systemArrayFactory(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(factory)return factory;
-            if(ts.isCallExpression(unwrap(node.arguments[0]))||ts.isConditionalExpression(unwrap(node.arguments[0])))return {kind:'constructedSystemGroup',mode:kind,systems:systemConstructionValue(node.arguments[0],ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle}),resolutionMode:'someGameSystemsMustBeLegal'};
+            const factory=systemArrayFactory(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle,modifierEffects});if(factory)return factory;
+            if(ts.isCallExpression(unwrap(node.arguments[0]))||ts.isConditionalExpression(unwrap(node.arguments[0]))||ts.isBinaryExpression(unwrap(node.arguments[0]))&&unwrap(node.arguments[0]).operatorToken.kind===ts.SyntaxKind.QuestionQuestionToken)return {kind:'constructedSystemGroup',mode:kind,systems:systemConstructionValue(node.arguments[0],ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle,modifierEffects}),resolutionMode:'someGameSystemsMustBeLegal'};
         }
         if (node.arguments.length !== 1 || !ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) fail(ctx, node, 'invalid-effect-sequence');
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
@@ -1113,8 +1163,12 @@ function effect(input, context, defaultTarget = 'self') {
     if(kind==='forThisPhasePlayerEffect'&&node.arguments.length===1){const playerEffect=compilePlayerPhaseEffect(node.arguments[0],ctx,{ts,unwrap,access,object,knownProperties,literal,expr,target,modifierEffects,fail,displayText,contextTitle,lambda});if(playerEffect)return playerEffect;}
     if(kind==='attack')return compileAttackSystem(node.arguments[0]||ts.factory.createObjectLiteralExpression(),ctx,defaultTarget,{ts,unwrap,object,knownProperties,literal,expr,target,modifierEffects,fail,displayText,contextTitle,lambda});
     let obj = node.arguments[0] ? object(node.arguments[0], ctx) : { props: new Map(), ctx, node };
+    const domain=domainSystem(kind,obj,defaultTarget,{...privateApi(),target,targetResolverProperties});if(domain)return domain;
+    const deployEffect=deployLeaderSystem(kind,obj,defaultTarget,{target,fail});if(deployEffect)return deployEffect;
+    const classEffect=classSystem(kind,obj,defaultTarget,{target,fail});if(classEffect)return classEffect;
     const deferred=deferredSystem(kind,obj,defaultTarget,{ts,unwrap,expr,literal,effect,target,object,access,fail,contextTitle});if(deferred)return deferred;
-    const deckPlay=deckPlayEffect(kind,obj,defaultTarget,{ts,unwrap,expr,literal,effect,target,object,access,fail,contextTitle});if(deckPlay)return deckPlay;
+    const viewDeck=viewDeckSystem(kind,obj,defaultTarget,{ts,unwrap,expr,effect,target,literal,contextTitle,fail,lambda},node);if(viewDeck)return viewDeck;
+    const deckPlay=deckPlayEffect(kind,obj,defaultTarget,{ts,unwrap,expr,literal,effect,target,object,access,fail,contextTitle,lambda});if(deckPlay)return deckPlay;
     if (kind === 'capture') {
         // Representation only: the Rust engine has no capture zone/lifecycle yet.
         for(const [key,value]of obj.props)if(!['target','captor','fromOutOfPlay'].includes(key))fail(obj.ctx,value,'unsupported-capture-field:'+key);
@@ -1173,6 +1227,7 @@ function effect(input, context, defaultTarget = 'self') {
         return { kind:dynamicAmount?'createTokenUnitsDynamic':'createTokenUnit', tokenType:tokenTypes[kind], amount:dynamicAmount||constant(amount), target:tokenTarget, entersReady };
     }
     if (['forThisPhaseCardEffect','forThisAttackCardEffect'].includes(kind)) {
+        if(obj.props.has('condition'))return lastingContract(kind,node.arguments[0],ctx,defaultTarget,contractApi());
         // Lasting stat modifiers have their values captured when the immediate
         // system resolves. A function passed to modifyStats itself is different:
         // the engine keeps reevaluating it as board state changes.
@@ -1183,8 +1238,12 @@ function effect(input, context, defaultTarget = 'self') {
         return modifierEffects(obj.props.get('effect'), obj.ctx, duration, target(obj.props.get('target'), obj.ctx, defaultTarget));
     }
     if (kind === 'conditional') {
-        knownProperties(obj, ['condition', 'onTrue', 'onFalse']);
+        knownProperties(obj, ['condition', 'onTrue', 'onFalse','target']);
         if (!obj.props.has('condition')) fail(ctx, node, 'conditional-without-condition');
+        if(obj.props.has('target')) {
+            const condition=unwrap(obj.props.get('condition'));
+            return {kind:'conditionalSystem',target:target(obj.props.get('target'),obj.ctx,defaultTarget),condition:ts.isArrowFunction(condition)||ts.isFunctionExpression(condition)?callbackValue(condition,obj.ctx,['systemContext','conditionalProperties'],{ts,unwrap,lambda,expr,fail}):expr(condition,obj.ctx),onTrue:obj.props.has('onTrue')?effect(obj.props.get('onTrue'),obj.ctx,'conditionalInnerDefault'):{kind:'noAction'},onFalse:obj.props.has('onFalse')?effect(obj.props.get('onFalse'),obj.ctx,'conditionalInnerDefault'):{kind:'noAction'},innerTargetDefaults:{setAt:'eachNativePropertyGeneration',value:'aggregateTargetUnlessNullOrEmptyThenEachChildNativeDefault',explicitChildTarget:'overridesDefault'},assertion:'atLeastOneBranchNotNoAction'};
+        }
         return { kind, condition: expr(obj.props.get('condition'), obj.ctx), onTrue: obj.props.has('onTrue') ? effect(obj.props.get('onTrue'), obj.ctx, defaultTarget) : { kind: 'noAction' }, onFalse: obj.props.has('onFalse') ? effect(obj.props.get('onFalse'), obj.ctx, defaultTarget) : { kind: 'noAction' } };
     }
     if(kind==='distributeDamageAmong'&&obj.props.has('source'))return compileDamageProvenance(node.arguments[0],ctx,defaultTarget,true,{ts,unwrap,object,expr,target,literal,fail,lambda,contextTitle});
@@ -1198,13 +1257,15 @@ function effect(input, context, defaultTarget = 'self') {
         const spec = {...targetResolverProperties(obj),...registrationMetadata.metadata(obj,{literal,expr,fail},['showUnresolvable'])};
         if (obj.props.has('activePromptTitle')&&!spec.kind) {
             const node = unwrap(obj.props.get('activePromptTitle'));
-            if (!(ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node) && node.templateSpans.every(span => titleHelper(span.expression, obj.ctx) !== null))) fail(obj.ctx, node, 'inline-prompt-title');
+            if(!obj.ctx.pendingSystemConstruction&&!(ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node) && node.templateSpans.every(span => titleHelper(span.expression, obj.ctx) !== null))) fail(obj.ctx, node, 'inline-prompt-title');
             const title = displayText(node, obj.ctx);
             if (!title.length || title.length > 1024) fail(obj.ctx, node, 'inline-prompt-title');
             spec.promptTitle = title;
+            if(obj.ctx.pendingSystemConstruction)spec.promptTitleParts=contextTitle(node,obj.ctx);
         }
         return { kind: 'select', targetResolver: spec, effect: effect(obj.props.get('immediateEffect'), {...obj.ctx,...(spec.kind?{pendingSelection:true}:{}),...(spec.kind==='playerSelection'?{selectedPlayerTarget:reference('selectedPlayer')}:{})}, 'chosen') };
     }
+    const explicitForce=explicitForceTokenSystem(kind,obj,{target,fail});if(explicitForce)return explicitForce;
     if (kind === 'useTheForce' || kind === 'theForceIsWithYou') {
         if (defaultTarget !== 'self') fail(ctx, node, 'force-inherited-target');
         knownProperties(obj, []);
@@ -1230,19 +1291,26 @@ function effect(input, context, defaultTarget = 'self') {
         let amount=unwrap(obj.props.get('amount')),amountContext=obj.ctx;
         // A readonly alias does not change DamageSystem's callback argument.
         // Retain each initializer's lexical context and capture-stage checks.
-        while(kind==='damage'&&ts.isIdentifier(amount)&&amountContext.constants.has(amount.text)){
+        while(['damage','heal'].includes(kind)&&ts.isIdentifier(amount)&&amountContext.constants.has(amount.text)){
             const initializer=readConstant(amount.text,amountContext);
             amountContext=constantContext(initializer,amountContext);amount=unwrap(initializer);
         }
-        if(kind==='damage'&&(ts.isArrowFunction(amount)||ts.isFunctionExpression(amount))){
-            if(!obj.ctx.damageRecipientScope||result.target!=='chosen'||amount.parameters.length!==1)fail(obj.ctx,amount,'damage-recipient-callback-scope');
-            const value=expr(amount,amountContext,['target']);
-            // This bounded family reads the actual recipient parameter. A
-            // captured outer target may lower to the same ref but is a snapshot.
-            const body=unwrap(amount.body),parameter=amount.parameters[0].name;
-            if(!ts.isIdentifier(parameter)||!ts.isBinaryExpression(body)||body.operatorToken.kind!==ts.SyntaxKind.MinusToken||!ts.isPropertyAccessExpression(unwrap(body.left))||unwrap(body.left).name.text!=='remainingHp'||!ts.isIdentifier(unwrap(unwrap(body.left).expression))||unwrap(unwrap(body.left).expression).text!==parameter.text)fail(obj.ctx,amount,'damage-recipient-callback-shape');
-            if(value.kind!=='binary'||value.op!=='-'||value.left.kind!=='ref'||value.left.path.join('.')!=='target.remainingHp'||value.right.kind!=='const'||value.right.value!==1)fail(obj.ctx,amount,'damage-recipient-callback-shape');
-            result.amount=value;
+        if(kind==='heal'&&(ts.isArrowFunction(amount)||ts.isFunctionExpression(amount))){
+            result.amount={kind:'healRecipientAmount',callback:callbackValue(amount,amountContext,['healedCard'],{ts,unwrap,lambda,expr,fail}),evaluateAt:'addPropertiesToEachHealEvent',legalityComparison:'nativePropertyFunctionComparedToZero'};
+        }else if(kind==='damage'&&(ts.isArrowFunction(amount)||ts.isFunctionExpression(amount))){
+            try {
+                if(!obj.ctx.damageRecipientScope||result.target!=='chosen'||amount.parameters.length!==1)fail(obj.ctx,amount,'damage-recipient-callback-scope');
+                const value=expr(amount,amountContext,['target']);
+                // Preserve the existing exact lowering before the pending native
+                // callback contract handles additional recipient expressions.
+                const body=unwrap(amount.body),parameter=amount.parameters[0].name;
+                if(!ts.isIdentifier(parameter)||!ts.isBinaryExpression(body)||body.operatorToken.kind!==ts.SyntaxKind.MinusToken||!ts.isPropertyAccessExpression(unwrap(body.left))||unwrap(body.left).name.text!=='remainingHp'||!ts.isIdentifier(unwrap(unwrap(body.left).expression))||unwrap(unwrap(body.left).expression).text!==parameter.text)fail(obj.ctx,amount,'damage-recipient-callback-shape');
+                if(value.kind!=='binary'||value.op!=='-'||value.left.kind!=='ref'||value.left.path.join('.')!=='target.remainingHp'||value.right.kind!=='const'||value.right.value!==1)fail(obj.ctx,amount,'damage-recipient-callback-shape');
+                result.amount=value;
+            } catch(error) {
+                if(!(error instanceof Unsupported))throw error;
+                result.amount=nativeDamageRecipientAmount(amount,amountContext,{...privateApi(),target});
+            }
         }else {
             // Only expression result positions matter here. Arena-query
             // predicate arguments remain callbacks with their own typed roles.
@@ -1311,13 +1379,14 @@ function targetResolverProperties(obj) {
     if(props.has('disableCostReordering')){const value=literal(props.get('disableCostReordering'),ctx);if(typeof value!=='boolean')fail(ctx,node,'disable-cost-reordering-boolean');result.disableCostReordering=value;}
     if (props.has('optional')) result.optional = literal(props.get('optional'), ctx);
     if (props.has('cardCondition')) {
+        // Capture analysis follows optional syntax without lowering the read.
         const capturedTarget=(n,bound=new Set(),seen=new Set())=>{
             if(ts.isArrowFunction(n)||ts.isFunctionExpression(n)) {const local=new Set(bound);for(const p of n.parameters)if(ts.isIdentifier(p.name))local.add(p.name.text);return capturedTarget(n.body,local,seen);}
             if(ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n)) {
                 let root=n;while(ts.isPropertyAccessExpression(root)||ts.isElementAccessExpression(root))root=root.expression;
                 if(ts.isIdentifier(root)&&!bound.has(root.text)&&ctx.scope.has(root.text)) {
                     const binding=ctx.scope.get(root.text);
-                    if(binding.kind==='ref'&&!isEventResultAccess(n,ctx,{ts,unwrap})) {const parts=normalizeRef([...binding.path,...access(n,ctx).slice(1)]);if(['target','targets'].includes(parts[0]) && !ctx.namedTargets)fail(ctx,n,'target-resolver-outer-target-capture');}
+                    if(binding.kind==='ref'&&!isEventResultAccess(n,ctx,{ts,unwrap})) {const segments=[];let chain=n;while(ts.isPropertyAccessExpression(chain)||ts.isElementAccessExpression(chain)){segments.unshift(ts.isPropertyAccessExpression(chain)?chain.name.text:ts.isStringLiteral(chain.argumentExpression)||ts.isNumericLiteral(chain.argumentExpression)?chain.argumentExpression.text:'computedIndex');chain=chain.expression;}const parts=normalizeRef([...binding.path,...segments]);if(['target','targets'].includes(parts[0]) && !ctx.namedTargets)fail(ctx,n,'target-resolver-outer-target-capture');}
                 }
             }
             if(ts.isIdentifier(n)&&!bound.has(n.text)&&ctx.constants.has(n.text)&&!(ts.isPropertyAccessExpression(n.parent)&&n.parent.name===n)) {
@@ -1561,6 +1630,7 @@ function legacyAttachedConstantAbility(input,context,host) {
 }
 function attachedKeywordAbility(input, context) {
     const obj = object(input, context);
+    const coordinate=attachedCoordinate(obj,{...privateApi(),coordinateAbility});if(coordinate)return coordinate;
     // Bounty grants retain the entire nested collection registration as IR.
     // Other keywords retain the narrower installed-keyword shape.
     if(obj.props.has('ability')) {
@@ -1665,6 +1735,15 @@ function normalizeSingletonExhaust(result) {
     next.effect.effects.forEach(effect=>{effect.target='chosen';});return result;
 }
 function ability(input, context, trigger = null, validatedObject = null) {
+    if(!validatedObject){const merged=privateAbilityValues.merge(input,context,trigger,privateApi());if(merged)return merged;}
+    if(!validatedObject){const privateAbility=privatePrograms.abilityCall(input,context,privateApi());if(privateAbility)return privateAbility;}
+    const fn=unwrap(input);
+    if(!validatedObject&&!context.abilityProgramAttempt&&(ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&(ts.isBlock(fn.body)||privateAbilityValues.isCall(fn.body,context,privateApi()))){
+        try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
+    }
+    return legacyAbility(input,context,trigger,validatedObject);
+}
+function legacyAbility(input, context, trigger = null, validatedObject = null) {
     const rawFactory=unwrap(input);
     if(!validatedObject&&!context.explicitAbilityFactory&&(ts.isArrowFunction(rawFactory)||ts.isFunctionExpression(rawFactory))) {
         // Preserve existing exact lowering byte for byte. Only a factory whose
@@ -1685,14 +1764,16 @@ function ability(input, context, trigger = null, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const {props,node}=obj;let ctx=obj.ctx;
     if(ctx.namedTargets?.size && (props.has('targetResolver')||props.has('targetResolvers')||props.has('cost'))) fail(ctx,node,'named-continuation-targeting-or-cost');
-    knownProperties(obj, ['title', 'optional', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'ifYouDoNot', 'limit', 'optionalMakesAbilityNonCancelable','attackerMustSurvive','initiateAttack','cannotTargetFirst','disableCostReordering','playerChoosingOptional','canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle',...(ctx.eventHistory?['collectiveTrigger']:[])]);
+    knownProperties(obj, ['title', 'optional', 'optionalButtonTextOverride', 'customConfirmation', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'ifYouDoNot', 'limit', 'optionalMakesAbilityNonCancelable','attackerMustSurvive','initiateAttack','cannotTargetFirst','disableCostReordering','playerChoosingOptional','canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle',...(ctx.eventHistory?['collectiveTrigger']:[])]);
     const result = { ...(trigger ? { trigger } : {}), title: props.has('title') ? displayText(props.get('title'), ctx) : '', costs: costs(props.get('cost'), ctx) };
+    if(props.has('effectArgs')&&ts.isMethodDeclaration(unwrap(props.get('effectArgs'))))result.displayMessageProgram={kind:'abilityDisplayMessage',...(props.has('effect')?{explicitEffectMessage:literal(props.get('effect'),ctx)}:{}),effectArgs:privatePrograms.compileCallback(props.get('effectArgs'),{...ctx,displayArgumentMethod:true},privateApi(),['abilityContext']),callStyle:'detachedStrictFunction',invokeWhen:'explicitEffectMessageTruthy',implicitFirstArgument:'targetOrSource',argumentJoin:'concatReturnedValue',consumer:'CardAbilityStep.displayMessage'};
     Object.assign(result,registrationMetadata.metadata(obj,{literal,expr,fail},['canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle']));
     if(props.has('contextTitle'))result.contextTitle=contextTitle(props.get('contextTitle'),ctx);
-    if((ctx.pendingRegistration||ctx.pendingSelection||ctx.typedCallbackRoots?.size)&&props.has('title')&&ts.isTemplateExpression(unwrap(props.get('title'))))result.titleParts=contextTitle(props.get('title'),ctx);
+    if((ctx.pendingRegistration||ctx.pendingSelection||ctx.pureProgram||ctx.pendingSystemConstruction||ctx.typedCallbackRoots?.size)&&props.has('title')&&ts.isTemplateExpression(unwrap(props.get('title'))))result.titleParts=contextTitle(props.get('title'),ctx);
     if(props.has('attackerMustSurvive')){const value=literal(props.get('attackerMustSurvive'),ctx);if(trigger!=='whenAttackEnds'||typeof value!=='boolean')fail(ctx,node,'attack-end-survival-field');result.attackerMustSurvive=value;}
     if(props.has('cannotTargetFirst')){const value=literal(props.get('cannotTargetFirst'),ctx);if(typeof value!=='boolean')fail(ctx,node,'cannot-target-first-boolean');result.cannotTargetFirst=value;}
     if (props.has('optional')) result.optional = literal(props.get('optional'), ctx);
+    Object.assign(result,abilityProtocolProperties(obj,{...privateApi(),displayText}));
     if(props.has('playerChoosingOptional')){const chooser=literal(props.get('playerChoosingOptional'),ctx);if(!['self','opponent'].includes(chooser))fail(ctx,node,'optional-chooser');result.playerChoosingOptional=chooser;}
     if (props.has('condition')) result.condition = expr(props.get('condition'), ctx);
     if (props.has('optionalMakesAbilityNonCancelable')) result.optionalMakesAbilityNonCancelable = literal(props.get('optionalMakesAbilityNonCancelable'), ctx);
@@ -1716,7 +1797,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
         result.targetResolver = {...targetResolverProperties({...resolver,ctx:{...resolver.ctx,aspectIncludesAlias}}),...registrationMetadata.metadata(resolver,{literal,expr,fail},['showUnresolvable'])};
         if(result.targetResolver.kind==='unlessSelection')result.effect={kind:'resolveSelectedUnlessEffect',selection:'select'};
         if (resolver.props.has('immediateEffect')) {
-            if(ctx.pendingRegistration&&result.targetResolver.mode==='player'){const immediate=unwrap(resolver.props.get('immediateEffect'));if(!ts.isCallExpression(immediate)||!ts.isPropertyAccessExpression(immediate.expression))fail(ctx,immediate,'registration-player-effect');const parts=access(immediate.expression,ctx);if(parts.length!==3||parts[1]!=='immediateEffects'||!['AbilityHelper','abilityHelper'].includes(parts[0])||!['readyResources','indirectDamageToPlayer'].includes(parts[2]))fail(ctx,immediate,'registration-player-effect');const body=immediate.arguments.length?object(immediate.arguments[0],resolver.ctx):{props:new Map(),ctx:resolver.ctx,node:immediate};knownProperties(body,['amount']);result.effect={kind:'selectedPlayerSystem',system:parts[2],amount:body.props.has('amount')?expr(body.props.get('amount'),body.ctx):constant(1),target:'chosenPlayer'};}
+            if(ctx.pendingRegistration&&result.targetResolver.mode==='player'){const immediate=unwrap(resolver.props.get('immediateEffect'));if(!ts.isCallExpression(immediate)||!ts.isPropertyAccessExpression(immediate.expression))fail(ctx,immediate,'registration-player-effect');const parts=access(immediate.expression,ctx);if(parts.length!==3||parts[1]!=='immediateEffects'||!['AbilityHelper','abilityHelper'].includes(parts[0]))fail(ctx,immediate,'registration-player-effect');if(!['readyResources','indirectDamageToPlayer'].includes(parts[2])){result.effect={kind:'playerResolverSystemBinding',selectedPlayer:reference('selectedPlayer'),overrideDefaultTargetOn:'rootSystemThenAggregateChildrenAtEachPropertyGeneration',preserveExplicitPropertyTarget:true,effect:effect(immediate,{...resolver.ctx,selectedPlayerTarget:reference('selectedPlayer'),pendingSelection:true},reference('selectedPlayer'))};}else {const body=immediate.arguments.length?object(immediate.arguments[0],resolver.ctx):{props:new Map(),ctx:resolver.ctx,node:immediate};knownProperties(body,['amount']);result.effect={kind:'selectedPlayerSystem',system:parts[2],amount:body.props.has('amount')?expr(body.props.get('amount'),body.ctx):constant(1),target:'chosenPlayer'};}}
             const otherBaseTargetScope=result.targetResolver.type==='base'&&!result.targetResolver.mode&&!result.targetResolver.count;
             const damageRecipientScope=['unit','nonLeaderUnit','tokenUnit'].includes(result.targetResolver.type)&&!result.targetResolver.mode&&!result.targetResolver.count;
             if(!result.effect)result.effect = effect(resolver.props.get('immediateEffect'), {...resolver.ctx,otherBaseTargetScope,damageRecipientScope,...(result.targetResolver.kind==='playerSelection'?{selectedPlayerTarget:reference('selectedPlayer')}:{}),...(result.targetResolver.kind?{pendingSelection:true}:{}),...(result.targetResolver.kind==='numberSelection'?{pendingChoice:true,pendingSelectionContract:true}:{})}, 'chosen');
@@ -1734,6 +1815,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     }
     if(!result.effect&&result.targetResolver?.kind==='choiceSelection'&&result.targetResolver.mode!=='dropdownList')result.effect={kind:'resolveChoice',resultBinding:'select'};
     if(!result.effect&&result.targetResolver?.kind&&['then','ifYouDo'].some(key=>props.has(key)))result.effect={kind:'resolveTargetSelection',resultBinding:result.targetResolver.resultBinding};
+    if(!result.effect){const selectionOnly=selectionOnlyStep(result,props);if(selectionOnly)result.effect=selectionOnly;}
     if (!result.effect) fail(ctx, node, 'ability-without-effect');
     for (const branch of ['then', 'ifYouDo','ifYouDoNot']) if (props.has(branch)) result[branch] = ability(props.get(branch),result.targetResolver?.kind?{...ctx,pendingSelection:true,...(['choiceSelection','numberSelection'].includes(result.targetResolver.kind)?{pendingChoice:true,pendingSelectionContract:true}:{})}:ctx);
     if(result.ifYouDoNot)result.ifYouDoNot={kind:'unresolvedContinuation',contract:'CardAbilityStep.ifYouDoNot',triggerHandlingMode:'resolvesTriggers',program:result.ifYouDoNot};
@@ -1804,7 +1886,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
         };
         check(result);
     }
-    if (createsTokens && capturesTokenEvent) fail(ctx, node, 'token-event-result-capture');
+    if (createsTokens && capturesTokenEvent && !bindTokenEventFactories(result)) fail(ctx, node, 'token-event-result-capture');
     if (discardsDeck && capturesTokenEvent) fail(ctx, node, 'deck-discard-event-result-capture');
     if (discardsHand && capturesTokenEvent) fail(ctx, node, 'hand-discard-event-result-capture');
     return normalizeSingletonExhaust(result);
@@ -1931,7 +2013,11 @@ function compileSource(text, file, enums = {}, options = {}) {
         if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);
     }
     installPureScalarHelpers(cls,ctx,{ts,unwrap});
+    for(const member of cls.members)if(ts.isMethodDeclaration(member)&&member.name.getText(source)==='deployActionAbilityProps'&&member.body?.statements.length===1&&ts.isReturnStatement(member.body.statements[0])){const returned=member.body.statements[0].expression;if(returned&&ts.isObjectLiteralExpression(returned)&&returned.properties.some(p=>ts.isPropertyAssignment(p)&&p.name.getText(source)==='limit'))ctx.historyHelpers.delete('deployActionAbilityProps');}
+    ctx.privateClassConstants=privatePrograms.inspectConstants(cls,ctx,{ts});
+    ctx.helperRegistrations=helperRegistrations.inspect(cls,ctx,{ts,unwrap});
     ctx.privatePrograms=out.baseClass.startsWith('Token')?new Map():privatePrograms.inspect(cls,ctx,{ts,unwrap});
+    for(const name of ctx.privatePrograms.keys()){if(ctx.historyHelpers.has(name))ctx.historyHelpers.delete(name);if(ctx.selectedCostHelpers.has(name)&&ctx.selectedCostHelpers.get(name).member===ctx.privatePrograms.get(name).member)ctx.selectedCostHelpers.delete(name);}
     for(const name of ctx.choiceHelpers.keys())if([ctx.maximumHelpers,ctx.resultHelpers,ctx.reductionHelpers,ctx.arenaDamageHelpers,ctx.physicalAttachmentHelpers,ctx.defeatedUnitCountHelpers,ctx.selectedCostHelpers,ctx.constantRegistrarHelpers,ctx.historyHelpers].some(map=>map?.has(name)))ctx.choiceHelpers.delete(name);
     for (const member of cls.members) {
         if (ts.isMethodDeclaration(member) && member.name.getText(source) === 'getImplementationId') {
@@ -1947,11 +2033,14 @@ function compileSource(text, file, enums = {}, options = {}) {
     }
     if (!options.abstractDefinition && (!out.id || !out.internalName)) diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'missing-implementation-identity', file, line: 1, column: 1, message: 'Card does not expose a constant implementation identity' });
     const supportedBases = new Set(['NonLeaderUnitCard', 'LeaderUnitCard', 'BaseCard', 'EventCard', 'UpgradeCard', 'TokenUpgradeCard', 'TokenUnitCard']);
+    const inheritedClass=options.sharedClassContracts?.get(out.baseClass);
+    if(inheritedClass)out.abilities.card.push({trigger:'classDefinition',title:'',costs:[],effect:{kind:'classDefinition',definition:inheritedClass,sideMethods:{setupLeaderSideAbilities:'front',setupLeaderBackSideAbilities:'back'}}});
     const inherited=options.sharedBases?.get(out.baseClass);
-    if (!supportedBases.has(out.baseClass) && !inherited) diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'custom-inheritance:' + out.baseClass, file, line: 1, column: 1, message: 'Inherited custom behavior requires conversion' });
+    if (!supportedBases.has(out.baseClass) && !inherited && !inheritedClass) diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'custom-inheritance:' + out.baseClass, file, line: 1, column: 1, message: 'Inherited custom behavior requires conversion' });
     for (const member of cls.members) {
         const name = member.name?.getText(source);
         if (name === 'getImplementationId'||ctx.watchers.members.has(member)) continue;
+        if(ctx.privateClassConstants?.get(name)?.member===member)continue;
         if (ts.isPropertyDeclaration(member)) {
             if (name === 'overrideNotImplemented') diagnostics.push({ code: 'ENGINE_UNIMPLEMENTED', pattern: 'engine-override-not-implemented', file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Engine marks this definition unimplemented' });
             else diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'class-state:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Class-local persistent state requires conversion' });
@@ -1961,9 +2050,11 @@ function compileSource(text, file, enums = {}, options = {}) {
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'class-member:' + ts.SyntaxKind[member.kind], file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class behavior requires conversion' });
             continue;
         }
-        if(name==='deployActionAbilityProps'&&out.baseClass==='LeaderUnitCard'&&!ctx.historyHelpers.has(name)){try{if(out.deploymentOverride)fail(ctx,member,'duplicate-deploy-override');out.deploymentOverride=deploymentOverride(member,ctx,{ts,object,expr,costs,fail});}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);}continue;}
+        if(['getAbilityRegistrar','isClone'].includes(name)&&out.baseClass==='NonLeaderUnitCard'){try{const method=ongoingClassMethod(member,cls,ctx,out.baseClass,{ts,unwrap,fail});if(method)(out.classMethods||=[]).push(method);}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);}continue;}
+        if(name==='deployActionAbilityProps'&&out.baseClass==='LeaderUnitCard'&&!ctx.historyHelpers.has(name)){try{if(out.deploymentOverride)fail(ctx,member,'duplicate-deploy-override');out.deploymentOverride=deploymentOverride(member,ctx,{ts,object,expr,costs,fail});if(out.deploymentOverride&&(member.parameters.length===0||out.deploymentOverride.properties.limit))out.abilities.card.push({trigger:'classDefinition',title:'',costs:[],effect:{kind:'classDefinition',definition:out.deploymentOverride}});}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);}continue;}
         if (!(name in SIDE_METHODS)) {
-            if(ctx.privatePrograms.get(name)?.member===member || ctx.choiceHelpers.get(name)?.member===member || ctx.selectedCostHelpers.get(name)?.member===member || ctx.constantRegistrarHelpers.get(name)?.member===member || ctx.historyHelpers.get(name)?.member===member || ctx.resultHelpers.get(name)?.member===member || ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
+            try{const contract=classMethodContract(member,ctx,out.baseClass,{ts,unwrap,expr,literal,fail});if(contract){let definition=out.abilities.card.find(a=>a.effect?.kind==='classDefinition'&&a.effect?.definition?.kind==='sourceMethodOverrides');if(!definition){definition={trigger:'classDefinition',title:'',costs:[],effect:{kind:'classDefinition',definition:{kind:'sourceMethodOverrides',baseClass:out.baseClass,methods:[]}}};out.abilities.card.push(definition);}definition.effect.definition.methods.push(contract);continue;}}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);continue;}
+            if(ctx.helperRegistrations.members.has(member)||ctx.privatePrograms.get(name)?.member===member || ctx.choiceHelpers.get(name)?.member===member || ctx.selectedCostHelpers.get(name)?.member===member || ctx.constantRegistrarHelpers.get(name)?.member===member || ctx.historyHelpers.get(name)?.member===member || ctx.resultHelpers.get(name)?.member===member || ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
@@ -1986,16 +2077,19 @@ function compileSource(text, file, enums = {}, options = {}) {
                     }
                     continue;
                 }
+                const validationOverride=helperRegistrations.setupValidation(statement,local,{ts,literal,fail});if(validationOverride){(out.setupValidationOverrides??=[]).push({...validationOverride,setupMethod:name,statementIndex:[...member.body.statements].indexOf(statement)});continue;}
                 if (!ts.isExpressionStatement(statement) || !ts.isCallExpression(statement.expression)) fail(local, statement, 'setup-statement:' + ts.SyntaxKind[statement.kind]);
                 const call = statement.expression;
+                const helperSetup=helperRegistrations.setupCall(call,local,member,{ts,unwrap,fail,bindConstant,ability,standardTriggeredAbilities,constantAbility});if(helperSetup){out.abilities[SIDE_METHODS[name]].push(...helperSetup);continue;}
                 const parts = access(call.expression, local);
                 const template=compileConstantRegistrarCall(call,local,member,{ts,access,literal,fail,bindConstant,constantAbility});
                 if(template){out.abilities[SIDE_METHODS[name]].push(template);continue;}
                 const registration = parts.at(-1);
-                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!['addAdditionalPlayCost','addAlternatePlayCost','addPreEnterPlayAbility'].includes(registration) && !REGISTRATIONS.has(registration) && !TRIGGERS[registration] && !replacementRegistration.REGISTRATIONS.has(registration) && registration !== 'addIgnoreAllAspectPenaltiesAbility' && registration !== 'addIgnoreSpecificAspectPenaltyAbility' && registration !== 'addAdjustCostAbility' && registration !== 'addDecreaseCostAbility' && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addBountyAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
+                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!['addAdditionalPlayCost','addAlternatePlayCost','addPreEnterPlayAbility','addPlayRestrictionAbility'].includes(registration) && !REGISTRATIONS.has(registration) && !TRIGGERS[registration] && !replacementRegistration.REGISTRATIONS.has(registration) && !attachedInterception.REGISTRATIONS.has(registration) && registration !== 'addIgnoreAllAspectPenaltiesAbility' && registration !== 'addIgnoreSpecificAspectPenaltyAbility' && registration !== 'addAdjustCostAbility' && registration !== 'addDecreaseCostAbility' && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addBountyAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
                 if(REGISTRATIONS.has(registration)&&registration!=='addGainOnAttackAbilityTargetingAttached'){out.abilities[SIDE_METHODS[name]].push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));continue;}
                 if (call.arguments.length !== 1) fail(local, call, 'registration-arity');
                 if(['addAdditionalPlayCost','addAlternatePlayCost'].includes(registration))out.abilities[SIDE_METHODS[name]].push(playCostRegistration(registration,call.arguments[0],local,{object,fail,literal,displayText,costs,effect,ability}));
+                else if(registration==='addPlayRestrictionAbility'){if(out.baseClass!=='EventCard'||name!=='setupCardAbilities')fail(local,call,'play-restriction-event-source');out.abilities.card.push(playRestrictionAbility(call.arguments[0],local,{...privateApi(),displayText}));}
                 else if(registration==='addPreEnterPlayAbility')out.abilities[SIDE_METHODS[name]].push(preEnterPlayRegistration(call.arguments[0],local,{ability}));
                 else if(['addIgnoreAllAspectPenaltiesAbility','addIgnoreSpecificAspectPenaltyAbility'].includes(registration))out.abilities[SIDE_METHODS[name]].push(ignoreAspectAbility(call.arguments[0],local,registration,{ts,unwrap,expr,object,literal,displayText,fail,access,adjustCostAbility}));
                 else if(registration==='addAdjustCostAbility')out.abilities[SIDE_METHODS[name]].push(adjustCostAbility(call.arguments[0],local,{ts,unwrap,expr,object,literal,displayText,fail,access}));
@@ -2025,6 +2119,7 @@ function compileSource(text, file, enums = {}, options = {}) {
                     if(out.baseClass!=='NonLeaderUnitCard'||name!=='setupCardAbilities')fail(local,call,'bounty-source-side');
                     out.abilities.card.push(bountyAbility(call.arguments[0],local,{ability,fail}));
                 }
+                else if(attachedInterception.REGISTRATIONS.has(registration)){if(out.baseClass!=='UpgradeCard'||name!=='setupCardAbilities')fail(local,call,'attached-interception-source-side');out.abilities.card.push(attachedInterception.attachedInterception(registration,call.arguments[0],local,{...contractApi(),eventHistory}));}
                 else if (replacementRegistration.REGISTRATIONS.has(registration)) {
                     // Native token constructors remain an indivisible adapter
                     // boundary. A partial registration would change its pinned
@@ -2037,12 +2132,14 @@ function compileSource(text, file, enums = {}, options = {}) {
             } catch (e) { if (e instanceof Unsupported) diagnostics.push(e.diagnostic); else throw e; }
         }
     }
+    if(inheritedClass)for(const [side,abilities]of Object.entries(out.abilities))for(const ability of abilities)if(ability.effect?.kind!=='classDefinition')ability.classSetupSide=side==='leader'?'front':side==='unit'?'back':'card';
     for (const binding of ctx.bindings) if (!ctx.usedConstants.has(binding.node)) {
         const location = source.getLineAndCharacterOfPosition(binding.node.getStart(source));
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
     for(const [name,helper]of ctx.selectedCostHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-selected-cost-helper:'+name).diagnostic);
-    if(ctx.privatePrograms.size)try{out.privatePrograms=privatePrograms.definitions(ctx,privateApi());}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
+    if(ctx.privateClassConstants.size)try{out.privateClassConstants=privatePrograms.constantDefinitions(ctx,privateApi());}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
+    if(ctx.privatePrograms.size)try{const programs=privatePrograms.definitions(ctx,privateApi());if(programs.length||[...ctx.privatePrograms.values()].some(h=>!h.legacyChoice))out.privatePrograms=programs;}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
     if(ctx.historyHelpers.size)try{out.historyHelpers=eventHistory.helperDefinitions(ctx,{ts,unwrap,expr,object,literal,fail,unshadowedEnum});}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
     for(const [name,helper]of ctx.constantRegistrarHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-constant-registrar-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.choiceHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-choice-helper:'+name).diagnostic);

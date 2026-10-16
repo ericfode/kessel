@@ -65,13 +65,14 @@ function normalizeInventoryExpression(input,ctx,{ts,unwrap,expr,fail}) {
  return null;
 }
 
-function pendingInventoryEffect(node,ctx,defaultTarget,{ts,unwrap,fail}) {
+function pendingInventoryEffect(node,ctx,defaultTarget,api) {
+ const {ts,unwrap,fail}=api;
  const ref=(...path)=>({kind:'ref',path});
  const path=(v,names)=>names.length===1?ts.isIdentifier(v)&&v.text===names[0]:ts.isPropertyAccessExpression(v)&&!v.questionDotToken&&v.name.text===names.at(-1)&&path(v.expression,names.slice(0,-1));
  const call=(v,names,arity)=>ts.isCallExpression(v)&&!v.questionDotToken&&v.arguments.length===arity&&path(v.expression,names);
  if(!ts.isCallExpression(node)||!ts.isPropertyAccessExpression(node.expression))return null;
  const kind=node.expression.name.text;
- if(['useWhenPlayedAbility','useWhenDefeatedAbility'].includes(kind)) {if(node.arguments.length)fail(ctx,node,'triggered-inventory-effect-arity');return {kind,target:defaultTarget};}
+ if(['useWhenPlayedAbility','useWhenDefeatedAbility'].includes(kind)) {if(!node.arguments.length)return {kind,target:defaultTarget};return require('./triggered-inventory-systems').compileTriggeredInventorySystem(node,ctx,defaultTarget,api);}
  if(kind!=='giveTokenUpgrade')return null;
  const reject=()=>fail(ctx,node,'token-upgrade-copy-factory');
  if(node.arguments.length!==1)reject();const fn=unwrap(node.arguments[0]);

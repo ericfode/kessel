@@ -1,4 +1,5 @@
 'use strict';
+const {attackLastingValue}=require('./attack-lasting-values');
 
 // Attack callbacks bind different contexts from the enclosing ability. Keep
 // lexical references and callback parameters distinct, and retain factory time.
@@ -19,8 +20,15 @@ function attackCallback(input, ctx, roles, api) {
     return {lowered,parameters:node.parameters.map((_,i)=>({root:roots[i],role:roles[i]})),body:()=>expr(lowered.node,lowered.ctx)};
 }
 function callbackValue(input,ctx,roles,api) {
-    const callback=attackCallback(input,ctx,roles,api);
-    return {kind:'attackCallback',parameters:callback.parameters,body:callback.body()};
+    try {
+        const callback=attackCallback(input,ctx,roles,api);
+        return {kind:'attackCallback',parameters:callback.parameters,body:callback.body()};
+    } catch(error) {
+        if(!error.diagnostic?.pattern?.startsWith('callback-statement:'))throw error;
+        const callback=require('./private-programs').compileCallback(input,ctx,api,roles);
+        if(!callback)throw error;
+        return {kind:'attackCallbackProgram',callback,argumentRoles:roles,invocation:'nativeAttackCallback',capture:'lexicalReferences'};
+    }
 }
 function compileAttackProperties(input,context,defaultTarget,api) {
     const {ts,unwrap,object,knownProperties,literal,expr,target,modifierEffects,fail,displayText,contextTitle}=api;
@@ -45,7 +53,7 @@ function compileAttackProperties(input,context,defaultTarget,api) {
     if(props.has('messageArgs'))result.messageArgs=callbackValue(props.get('messageArgs'),ctx,['attack','systemContext'],api);
     for(const participant of ['attacker','defender']) {
         const key=participant+'LastingEffects';if(!props.has(key))continue;
-        const raw=unwrap(props.get(key)),entries=ts.isArrayLiteralExpression(raw)?raw.elements:[raw];
+        const raw=unwrap(props.get(key));const bound=attackLastingValue(raw,ctx,participant,{...api,bindAttackCallback:attackCallback,callbackValue});if(bound){result[key]=bound;continue;}const entries=ts.isArrayLiteralExpression(raw)?raw.elements:[raw];
         if(!entries.length||entries.length>16)fail(ctx,raw,'attack-lasting-entry-bound');
         result[key]=entries.map(entry=>{
             const n=unwrap(entry),isFactory=ts.isArrowFunction(n)||ts.isFunctionExpression(n);
@@ -106,7 +114,8 @@ function normalizeAttackExpression(node,ctx,api) {
         return {kind:'query',name:name==='getAllTargets'?'getAllAttackTargets':'attackDefendingPlayer',receiver,args:[]};
     }
     if(attack&&name==='targetIsUnit') {
-        if(node.arguments.length>1)fail(ctx,node,'attack-target-predicate-arity');
+        if(node.arguments.length>2)fail(ctx,node,'attack-target-predicate-arity');
+        if(node.arguments.length===2)return {kind:'attackTargetUnitPredicate',attack:receiver,condition:callbackValue(node.arguments[0],ctx,['candidate'],api),allowMultipleMatches:expr(node.arguments[1],ctx),targetFilter:['unit','inPlay'],result:'atLeastOneMatches',whenMultipleDisallowed:'assertOriginalTargetCountAtMostOne'};
         return {kind:'query',name:'attackTargetIsUnit',receiver,args:node.arguments.length?[callbackValue(node.arguments[0],ctx,['candidate'],api)]:[]};
     }
     if(player&&['getArenaUnits','hasSomeArenaUnit'].includes(name)) {
