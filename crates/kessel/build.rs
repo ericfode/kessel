@@ -104,7 +104,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
         let hp = number(hp)?;
         let targets = targets(target)?;
         return Ok(format!(
-            r#"let delta=PhaseStatDelta{{power:{power},hp:{hp}}};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{self.modify_phase_stats(s,id,delta)?;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
+            r#"let delta=PhaseStatDelta{{power:{power},hp:{hp}}};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{self.modify_phase_stats(s,id,delta)?;result+=1;}}}}}}self.finish_scalar_effect(s)?;s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
         ));
     }
     // Damage/Defeat/Ready/Exhaust return through apply_effect above.
@@ -115,7 +115,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
             r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#),
         _ => return Err("effect operation requires interpreter".into()),
     };
-    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}} s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
+    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} self.finish_scalar_effect(s)?; s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
 fn lower(p: &Program) -> Result<String, String> {
     if p.trigger == "constant" {

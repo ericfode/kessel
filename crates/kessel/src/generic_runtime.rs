@@ -1719,7 +1719,7 @@ impl Engine {
                     let Instruction::Select(r)=&p.instructions[s.ability_pc as usize] else { unreachable!() }; (r,None)
                 };
                 let named=p.instructions[s.ability_pc as usize].is_named_group();
-                if !named && !s.ability_committed && s.ability_return==0 { out.push(Action::button("Cancel","cancel")); }
+                if !named && !s.ability_committed && s.ability_return==ProgramContinuation::Finish.raw() { out.push(Action::button("Cancel","cancel")); }
                 if child.is_none() && p.optional && s.ability_pc==0 { out.push(Action::button("Pass","passAbility")); }
                 let picks=if child.is_some() { s.event_group.picks } else { s.ability_selection };
                 if r.is_multiple() {
@@ -1730,7 +1730,7 @@ impl Engine {
                         out.push(Action::button("Choose nothing","done"));
                     } else { out.push(Action::button("Choose no target","noTarget")); }
                 }
-                if named && !s.ability_committed && s.ability_return==0 { out.push(Action::button("Cancel","cancel")); }
+                if named && !s.ability_committed && s.ability_return==ProgramContinuation::Finish.raw() { out.push(Action::button("Cancel","cancel")); }
                 let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
                     self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
                 };
@@ -1857,17 +1857,16 @@ impl Engine {
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();
         s.ability_selection=Selection::default(); s.event_group=EventGroupState::default();
-        if next == 2 {
-            self.process_deaths(s)
-        } else if next == 1 {
-            self.process_triggers(s)
-        } else {
-            self.finish(s)
+        match ProgramContinuation::from_raw(next) {
+            Some(ProgramContinuation::Deaths) => self.process_deaths(s),
+            Some(ProgramContinuation::Triggers) => self.process_triggers(s),
+            // Historical raw values outside the two resumable cases finish.
+            _ => self.finish(s),
         }
     }
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
         loop {
-            if self.open_deaths(s,1)? {return Ok(());}
+            if self.open_deaths(s,DeathContinuation::Program.raw())? {return Ok(());}
             let p = self.program(s.ability_program - 1);
             if self.rules_backend != RulesBackend::Interpreter {
                 match p.executable {
@@ -2128,7 +2127,7 @@ impl Engine {
         // event buffer or Shield replacement stash is borrowed by this window.
         for target in &targets {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(*target).owner,..Card::default()};tokens.push(id);}
         for (target,id) in targets.iter().zip(tokens) {let previous=if xp{work.card(*target).experience}else{work.card(*target).shield};work.card_mut(id).next_token=previous;if xp{work.card_mut(*target).experience=id;}else{work.card_mut(*target).shield=id;}self.attach(&mut work,id,*target);}
-        self.check_stat_capacity(&work)?;self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);*s=work;Ok((targets.len() as u16,true))
+        self.check_stat_capacity(&work)?;self.finish_effect_window(&mut work)?;*s=work;Ok((targets.len() as u16,true))
     }
     fn heal_card(&self, s: &mut State, id: CardId, amount: u16) -> u16 {
         let healed = amount.min(s.card(id).damage);
@@ -2181,6 +2180,20 @@ impl Engine {
         Ok(())
     }
 
+    // A complete scalar window observes lost HP before checking the winner.
+    // Group damage and arena keyword grants retain their distinct callback and
+    // win-before-sweep boundaries; they must not use this as a universal hook.
+    fn finish_effect_window(&self, s: &mut State) -> Result<(), String> {
+        self.sweep_stat_defeats(s)?;
+        self.check_win(s);
+        Ok(())
+    }
+
+    fn finish_scalar_effect(&self, s: &mut State) -> Result<(), String> {
+        if !s.event_group.resolving { self.finish_effect_window(s)?; }
+        Ok(())
+    }
+
     fn apply_effect(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         let result=self.apply_effect_inner(s,e)?;
         // Neutral leaves clear prior event counters without inventing an event
@@ -2198,7 +2211,7 @@ impl Engine {
                 let mut work=*s;
                 let events=StepEventResult::for_state(&work);
                 self.defeat_many(&mut work,&targets)?;
-                self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);
+                self.finish_effect_window(&mut work)?;
                 work.event_result=events;
                 *s=work;
                 return Ok((targets.len() as u16,!targets.is_empty()));
@@ -2219,7 +2232,7 @@ impl Engine {
             for id in &targets {if self.in_arena(s,*id) {events.defeated_units[s.card(*id).owner.index()]+=1;}}
             self.defeat_many(s,&targets)?;
             s.event_result=events;
-            self.sweep_stat_defeats(s)?;self.check_win(s);
+            self.finish_effect_window(s)?;
             return Ok((targets.len() as u16,!targets.is_empty()));
         }
         if matches!(e, Effect::PhaseModifiers { .. }) {
@@ -2238,7 +2251,7 @@ impl Engine {
             let mut work=*s;let mut tokens=Vec::with_capacity(count);
             for host in targets {for _ in 0..amount {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(host).owner,..Card::default()};tokens.push((id,host));}}
             for (token,host) in tokens {self.attach(&mut work,token,host);}
-            self.check_stat_capacity(&work)?;if !work.event_group.resolving {self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);}
+            self.check_stat_capacity(&work)?;self.finish_scalar_effect(&mut work)?;
             work.event_result=StepEventResult::for_state(&work);*s=work;
             return Ok((count as u16,count>0));
         }
@@ -2395,7 +2408,7 @@ impl Engine {
                 _ => {}
             }
         }
-        if !s.event_group.resolving { self.sweep_stat_defeats(s)?; self.check_win(s); }
+        self.finish_scalar_effect(s)?;
         s.event_result=events;
         Ok((
             result,
@@ -2629,7 +2642,7 @@ impl Engine {
         self.process_deaths(s)?;Ok(true)
     }
     pub(super) fn merge_enter_deaths(&self,s:&mut State)->Result<(),String> {
-        if s.trigger_context!=1 || s.death_pending.len==0 || (s.pending_programs==0 && s.pending_triggers==0) {return Ok(());}
+        if !s.trigger_context_is(TriggerContext::Enter) || s.death_pending.len==0 || (s.pending_programs==0 && s.pending_triggers==0) {return Ok(());}
         let old=s.death_pending;let mut merged=DeathWindow::default();
         for (i,&program) in self.card_programs(s,s.source).iter().enumerate() {
             if s.pending_programs&(1<<i)==0 {continue;}
@@ -2708,7 +2721,7 @@ impl Engine {
         s.death_window=window;s.ability_program=0;
         // Prior framework deaths keep their own nested window rather than
         // becoming declaration triggers in the same player-choice menu.
-        if !self.open_deaths(s,6)? {self.process_deaths(s)?;}
+        if !self.open_deaths(s,DeathContinuation::ParentDeaths.raw())? {self.process_deaths(s)?;}
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
@@ -2744,8 +2757,8 @@ impl Engine {
         s.death_window.entries[n-1]=DeathTrigger::default();e
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
-        let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.trigger_context=0;
-        if e.keyword!=0 {s.trigger_context=4;self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,2)}
+        let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
+        if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths.raw())}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
         loop {
@@ -2766,7 +2779,16 @@ impl Engine {
                 if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;continue;}
                 let n=s.death_depth as usize-1;let frame=s.death_frames[n];s.death_frames[n]=DeathFrame::default();s.death_depth-=1;
                 s.death_window=frame.window;frame.context.restore(s);
-                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),_=>Err("invalid defeat continuation".into())};
+                return match frame.continuation() {
+                    Some(DeathContinuation::Program)=>self.run_program(s),
+                    Some(DeathContinuation::Triggers)=>self.process_triggers(s),
+                    Some(DeathContinuation::Finish)=>self.finish(s),
+                    Some(DeathContinuation::PhaseExpiry)=>self.advance_after_expiry(s),
+                    Some(DeathContinuation::CombatAfterDamage)=>self.combat_after_damage(s),
+                    Some(DeathContinuation::ParentDeaths)=>self.process_deaths(s),
+                    Some(DeathContinuation::NativeAttackAfterEarlyEffects)=>self.native_attack_after_early_effects(s),
+                    None=>Err("invalid defeat continuation".into()),
+                };
             }
             s.active=s.death_window.player;
             if s.death_window.resolve_all {
@@ -2854,7 +2876,7 @@ impl Engine {
         }
     }
     pub(super) fn process_all_triggers(&self, s: &mut State) -> Result<(), String> {
-        if s.is_terminal() && s.trigger_context != 2 {
+        if s.is_terminal() && !s.trigger_context_is(TriggerContext::Attack) {
             return if s.pending_triggers==0 && s.pending_programs==0 && s.death_pending.len==0 && s.death_depth==0 {self.finish(s)} else {Ok(())};
         }
         let triggers = self.ordered_triggers(s);
@@ -2873,7 +2895,7 @@ impl Engine {
         if s.pending_triggers != 0 || s.pending_programs != 0 {
             return self.resolve_ordered_trigger(s, 0);
         }
-        if s.trigger_context == 2 {
+        if s.trigger_context_is(TriggerContext::Attack) {
             if self.in_arena(s, s.source)
                 && (self.in_arena(s, s.target) || self.def(s, s.target).info.is("base"))
             {
@@ -3028,7 +3050,7 @@ impl Engine {
         for id in s.player(player).ground.as_slice().iter().chain(s.player(player).space.as_slice()).copied(){
             if !self.def(s,id).info.aspects().iter().any(|a|a==aspect){continue;}
             let power=i32::try_from(self.evaluated_power(s,id)).map_err(|_|"maximum power exceeds capture capacity")?;
-            if power>capture.power{capture=MaximumCapture{power,sole:id,count:1};}else if power==capture.power{capture.count=capture.count.checked_add(1).ok_or("maximum tie count exceeds capacity")?;if capture.sole==0{capture.sole=id;}}
+            capture.observe(power,id)?;
         }
         s.maximum_capture=capture;Ok(())
     }
