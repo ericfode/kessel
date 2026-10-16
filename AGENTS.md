@@ -18,3 +18,10 @@ Codex work too.
   `npm run cards:reference -- import`. Kessel depends on neither Holocron nor swu_bot.
 - `.agents/skills/swu-card-conversion/SKILL.md` is the card conversion workflow.
 - Basic development needs no service credentials. Keep tokens and `.env` files out of Git.
+
+## Cursor Cloud specific instructions
+
+- There is no dev server. `cargo test`, `npm test`, and `kessel check` on a compiled fixture are the end-to-end checks.
+- `wasm-bindgen-cli` 0.2.129 (pinned by `crates/kessel-wasm`) needs rustc 1.86 or newer. A machine whose `rustc --version` is older should `rustup toolchain install stable --profile minimal` and `rustup default stable` before `npm run wasm:build -- --install-tools`.
+- `CARGO_PROFILE_DEV_OPT_LEVEL=2 cargo test --locked --workspace` matches CI. Reference conformance is the slow test.
+- `npm run cards:check` rebuilds the catalog from the pinned forceteki sources and the card JSON `get-cards` just downloaded. The official card API can add or renumber cards after `compiler/generated/` was committed; the check then fails while `npm run cards:test` still passes. Leave the committed catalog alone unless the regeneration is intentional.
