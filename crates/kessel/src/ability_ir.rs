@@ -1322,7 +1322,7 @@ fn arena_keyword_registration(a:&Ability)->bool {
     header&&((a.trigger=="event"&&validate_arena_keyword_group(&a.effect).is_ok())||(a.trigger=="onAttack"&&matches!(&a.effect,Effect::GainKeyword{target:Target::ArenaList(list),keyword,amount:Expr::Const{value},duration} if keyword=="restore"&&value.as_u64()==Some(1)&&duration=="phase"&&validate_keyword_list(list).is_ok()&&matches!(&list.receiver,Expr::Ref{path} if path==&["player"])&&keyword_trait_and_exclusion(&list.predicate)==(true,true))))
 }
 #[derive(Clone,Copy,PartialEq,Eq)]
-enum WeaknessExtension { Torrent, Picador, Mixed, Sequence }
+enum WeaknessExtension { Torrent, Picador, Mixed, Sequence, LeaderHeal }
 // A scalar action and optional attack trigger reuse the existing Weakness
 // lifecycle. Leader side topology is checked against the complete card below.
 fn scalar_weakness_registration(a:&Ability)->bool {
@@ -1347,7 +1347,26 @@ fn torrent_title(a:&Ability)->bool {
     let Effect::GiveWeakness{amount:Expr::Conditional{condition,..},..}=&a.effect else{return false;};
     a.context_title.len()==5&&matches!(&a.context_title[0],Expr::Const{value} if value.as_str()==Some("Give "))&&matches!(&a.context_title[1],Expr::Conditional{condition:c,then,r#else} if serde_json::to_value(c).unwrap()==serde_json::to_value(condition).unwrap()&&matches!(then.as_ref(),Expr::Const{value} if value.as_str()==Some("2 Weakness tokens"))&&matches!(r#else.as_ref(),Expr::Const{value} if value.as_str()==Some("a Weakness token")))&&matches!(&a.context_title[2],Expr::Const{value} if value.as_str()==Some(" to "))&&matches!(&a.context_title[3],Expr::Conditional{condition,then,r#else} if matches!(condition.as_ref(),Expr::Ref{path} if path==&["target"])&&matches!(then.as_ref(),Expr::Ref{path} if path==&["target","title"])&&matches!(r#else.as_ref(),Expr::Const{value} if value.as_str()==Some("a unit")))&&matches!(&a.context_title[4],Expr::Const{value} if value.as_str()==Some(""))
 }
+fn leader_heal_weakness_registration(a:&Ability)->bool {
+    if a.trigger!="action" || a.optional || a.requires_confirmation || a.coordinate || !a.context_title.is_empty() || a.gained_host.is_some() || a.attached_context.is_some()
+        || !matches!(a.costs.as_slice(),[Cost::ExhaustSelf]) || !a.target_resolvers.is_empty() || a.condition.is_some() || a.then.is_some() || a.if_you_do.is_some() {return false;}
+    let Some(r)=&a.target_resolver else{return false;};
+    if r.owner!="opponent" || r.card_type!="any" || r.zone.as_deref()!=Some("anyAttackable") || r.arena.is_some() || r.optional || r.mode.is_some() || r.count.is_some() || r.prompt_title.is_some() {return false;}
+    let damaged=r.predicate.as_ref().is_some_and(|p|matches!(p,Expr::Binary{op,left,right} if op=="&&"
+        && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"]))
+        && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&matches!(left.as_ref(),Expr::Ref{path} if path==&["card","damage"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0)))));
+    damaged && matches!(&a.effect,Effect::Simultaneous{effects} if effects.len()==2 && matches!(&effects[0],Effect::Heal{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1)) && selected_weakness(&effects[1]))
+}
+fn token_upgrade_attack_registration(a:&Ability)->bool {
+    let query=|name:&str|serde_json::json!({"kind":"query","name":name,"receiver":{"kind":"ref","path":["card"]},"args":[]});
+    let predicate=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"&&","left":query("isUnit"),"right":query("isUpgraded")},"right":{"kind":"collection","name":"some","receiver":{"kind":"ref","path":["card","upgrades"]},"args":[query("isTokenUpgrade")],"limit":256}});
+    a.trigger=="onAttack" && a.optional && !a.requires_confirmation && !a.coordinate && a.costs.is_empty() && a.context_title.is_empty() && a.gained_host.is_none() && a.attached_context.is_none()
+        && a.target_resolvers.is_empty() && a.condition.is_none() && a.then.is_none() && a.if_you_do.is_none()
+        && matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(2))
+        && a.target_resolver.as_ref().is_some_and(|r|r.owner=="any" && r.card_type=="unit" && r.zone.as_deref()==Some("anyAttackable") && r.arena.is_none() && !r.optional && r.mode.is_none() && r.count.is_none() && r.prompt_title.is_none() && r.predicate.as_ref().is_some_and(|p|serde_json::to_value(p).ok().as_ref()==Some(&predicate)))
+}
 fn weakness_extension(a:&Ability)->Option<WeaknessExtension> {
+    if leader_heal_weakness_registration(a) {return Some(WeaknessExtension::LeaderHeal);}
     let header=!a.requires_confirmation&&!a.coordinate&&a.costs.is_empty()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.if_you_do.is_none();
     if !header{return None;}
     if a.trigger=="event"&&!a.optional&&a.then.is_none()&&a.target_resolver.as_ref().is_some_and(|r|weakness_selector(r,"any"))&&matches!(&a.effect,Effect::GiveWeakness{target:Target::Name(n),amount} if n=="chosen"&&torrent_amount(amount))&&torrent_title(a){return Some(WeaknessExtension::Torrent);}
@@ -1716,7 +1735,7 @@ impl Program {
         if depth==0 {if let Some(form)=weakness_extension(ability) {
             if let Some(r)=&ability.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));}
             match form {
-                WeaknessExtension::Torrent|WeaknessExtension::Mixed=>self.instructions.push(Instruction::Group(ability.effect.clone())),
+                WeaknessExtension::Torrent|WeaknessExtension::Mixed|WeaknessExtension::LeaderHeal=>self.instructions.push(Instruction::Group(ability.effect.clone())),
                 WeaknessExtension::Sequence=>self.compile_effect(&ability.effect,0)?,
                 WeaknessExtension::Picador=>{self.compile_effect(&ability.effect,0)?;let next=ability.then.as_ref().unwrap();let r=next.target_resolver.as_ref().unwrap();r.validate()?;self.instructions.push(Instruction::Select(r.clone()));self.compile_effect(&next.effect,1)?;},
             }
@@ -2519,7 +2538,12 @@ impl Catalogue {
                         matches!(&a.effect,Effect::GiveWeakness{amount:Expr::Const{value},target:Target::Name(n)} if value.as_u64()==Some(1)&&n=="chosen") &&
                         a.target_resolver.as_ref().is_some_and(|r|r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&r.predicate.is_none()));
                 let extension=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|weakness_extension(a).is_some());
-                if extension {
+                let leader_heal=sides.leader.iter().any(leader_heal_weakness_registration);
+                if leader_heal && (source_class!=Some("LeaderUnitCard") || !exact_type("leader") || !sides.card.is_empty() || sides.leader.len()!=1 || sides.unit.len()!=1
+                    || !token_upgrade_attack_registration(&sides.unit[0]) || entry["keywordValues"]!=serde_json::json!({}) || entry["card"]["keywords"]!=serde_json::json!([])
+                    || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || !entry["attachCondition"].is_null()
+                    || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null()))) {return Err("leader heal/Weakness requires complete scalar action and bounded optional attack sides".into());}
+                if extension && !leader_heal {
                     let source=if sides.card.iter().any(|a|weakness_extension(a)==Some(WeaknessExtension::Mixed)) {
                         sides.card.len()==2&&sides.card.iter().all(|a|weakness_extension(a)==Some(WeaknessExtension::Mixed))&&sides.card.iter().any(|a|a.trigger=="whenPlayed")&&sides.card.iter().any(|a|a.trigger=="whenDefeated")&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")
                     }else {sides.card.len()==1&&((weakness_extension(&sides.card[0])==Some(WeaknessExtension::Torrent)&&entry["baseClass"]=="EventCard"&&exact_type("event"))||(matches!(weakness_extension(&sides.card[0]),Some(WeaknessExtension::Picador|WeaknessExtension::Sequence))&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")))};

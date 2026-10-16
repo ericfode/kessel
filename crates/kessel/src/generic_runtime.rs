@@ -1962,7 +1962,7 @@ impl Engine {
             self.weakness_def.ok_or("catalogue needs Weakness token")?;
             let mut tokens=0usize;let mut records=0usize;
             for op in group_ops(e) {let GroupOp::Leaf(effect)=op else{return Err("Weakness window must have scalar primary events".into());};
-                let target=match effect {Effect::GiveWeakness{target,..}|Effect::Damage{target,..}=>target,_=>return Err("unsupported Weakness window primitive".into())};
+                let target=match effect {Effect::GiveWeakness{target,..}|Effect::Damage{target,..}|Effect::Heal{target,..}=>target,_=>return Err("unsupported Weakness window primitive".into())};
                 let count=self.effect_targets(s,target).into_iter().filter(|v|matches!(v,Eval::Card(id) if *id!=0&&self.in_arena(s,*id))).count();
                 if let Effect::GiveWeakness{amount,..}=effect {let n=self.effect_amount(s,amount)? as usize;if !(1..=2).contains(&n){return Err("Weakness window amount must be one or two".into());}tokens+=n*count;records+=n*count;}else{records+=count;}
             }
@@ -3303,3 +3303,7 @@ mod maximum_snapshot_tests;
 #[cfg(test)]
 #[path="native_predicate_tests.rs"]
 mod native_predicate_tests;
+
+#[cfg(test)]
+#[path="native_heal_weakness_tests.rs"]
+mod native_heal_weakness_tests;

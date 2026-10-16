@@ -121,6 +121,22 @@ cycles and unsupported duration/value shapes remain rejected. Intrinsic
 keywords require the engine's printed-text match: a keyword in the downloaded
 metadata may only be mentioned or granted to another card.
 
+Unconditional self-only static registrations support `cannotAttack`,
+`cannotAttackBase`, and the all-zone `entersPlayReady` form on complete ordinary
+units. Attack restrictions apply to action availability and target legality,
+including Saboteur, while legal Overwhelm damage remains independent. Ready entry
+initializes exhaustion before uniqueness and entry triggers; importing or placing
+a unit preserves its supplied readiness. Conditional effects and wider ongoing
+target domains remain rejected.
+
+Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
+`includes`, retaining order, duplicates, empty-array truthiness, and physical
+identity. Each callback has its own card binding while the source and outer
+target remain unchanged. Inventory equality and numeric coercion remain rejected.
+The attachment-defeat families snapshot the full list, finish its primary
+removals, and then perform one stat-defeat sweep. This does not implement arbitrary
+list-target systems or grouped movement.
+
 Standard self-defeat registrations retain their source and controller through
 zone movement and nested trigger windows. Standard multi-trigger aliases use
 the same programs. Printed Coordinate enables supported constant and on-attack
@@ -189,6 +205,13 @@ before exhausting the surviving captured recipient if it is unique. Physical
 death can precede a later step while death triggers wait for the parent ability.
 Beast creation requires the reviewed Beast definition in the selected pool.
 These bounded forms use the shared interpreter in native and Wasm Auto mode.
+
+Physical `hasExperience`, `hasShield`, and `hasWeakness` predicates require their
+reviewed native definitions in the selected pool, even when no token is created.
+Bounded scalar leader actions and optional unit-side attacks can give Weakness;
+the complete two-sided source, costs, target filters, and continuations remain
+admission boundaries. Staged Credit and Advantage lifecycle programs remain
+distinct from executable native adapters.
 
 A bounded self-resource operation moves an existing event or defeated ordinary
 unit into its owner's resources, exhausted, without allocating a new card.

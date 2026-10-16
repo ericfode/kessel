@@ -1,13 +1,13 @@
 use super::*;
 
 fn catalogue()->Value {serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()}
-fn engine()->Engine {Engine::from_catalogue_value(&catalogue()).unwrap()}
-fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
+pub(super) fn engine()->Engine {Engine::from_catalogue_value(&catalogue()).unwrap()}
+pub(super) fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
     let id=s.next_id;s.next_id+=1;
     *s.card_mut(id)=Card{present:true,def:*e.by_code.get(code).unwrap_or_else(||panic!("{code}: {:?}",e.rejected_cards().unwrap().get(code))),owner:seat,..Card::default()};id
 }
-fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
-fn board(e:&Engine,actor:Seat,code:&str)->State {
+pub(super) fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
+pub(super) fn board(e:&Engine,actor:Seat,code:&str)->State {
     let mut s=State::default();s.hidden_history_exact=true;s.force_state_exact=true;s.active=actor;s.action_player=Some(actor);
     for seat in [Seat::P1,Seat::P2] {
         let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,if seat==actor {code}else{"SOR_014"});
@@ -17,7 +17,7 @@ fn board(e:&Engine,actor:Seat,code:&str)->State {
     s
 }
 fn predicate(token:&str)->Value {json!({"kind":"nativeTokenPredicate","operation":match token {"experience"=>"hasExperience","weakness"=>"hasWeakness",_=>"hasShield"},"receiver":{"kind":"ref","path":["card"]},"domain":"physicalAttachments","tokenType":token,"optionalReceiver":false,"optionalCall":false})}
-fn has(e:&Engine,s:&State,id:CardId,token:&str)->bool {
+pub(super) fn has(e:&Engine,s:&State,id:CardId,token:&str)->bool {
     let p:Expr=serde_json::from_value(predicate(token)).unwrap();e.eval_with_card(s,s.player(s.active).leader,id,id,&p).truth()
 }
 
@@ -67,17 +67,17 @@ fn native_predicate_staged_identity_reconciliation_does_not_admit_new_native_ada
     eprintln!("native predicate admission: {}; converted: {}; additions versus admission report: {:?}",e.definitions.len(),cards.iter().filter(|c|c["status"]=="supported").count(),new);
 }
 
-fn choose(e:&Engine,s:&State,id:CardId)->State {
+pub(super) fn choose(e:&Engine,s:&State,id:CardId)->State {
     let a=e.card_action(s,id);assert!(e.legal_actions(s).contains(&a),"{id}: {:?}",e.legal_actions(s));e.apply(s,&a).unwrap()
 }
-fn button(e:&Engine,s:&State,label:&str)->State {
+pub(super) fn button(e:&Engine,s:&State,label:&str)->State {
     let a=e.legal_actions(s).into_iter().find(|a|a.label==label).unwrap_or_else(||panic!("{label}: {:?}",e.legal_actions(s)));e.apply(s,&a).unwrap()
 }
-fn front(e:&Engine,s:&State)->State {
+pub(super) fn front(e:&Engine,s:&State)->State {
     let mut t=choose(e,s,s.player(s.active).leader);
     if t.decision==Decision::AbilityMenu {let a=e.legal_actions(&t).into_iter().find(|a|a.label.starts_with("Give ")).unwrap();t=e.apply(&t,&a).unwrap();}t
 }
-fn weakness(e:&Engine,s:&mut State,host:CardId) {
+pub(super) fn weakness(e:&Engine,s:&mut State,host:CardId) {
     s.source=s.player(s.active).leader;s.ability_target=host;
     let effect:Effect=serde_json::from_value(json!({"kind":"giveWeakness","target":"chosen","amount":{"kind":"const","value":1}})).unwrap();e.apply_effect(s,&effect).unwrap();
     s.source=0;s.ability_target=0;
