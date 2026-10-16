@@ -8,7 +8,7 @@ const { createSimulator } = require('../node');
 const { records, checkRecords } = require('../check');
 const fixtures = path.resolve(__dirname, '../../../kessel/tests/fixtures');
 const compiledFixtures = path.resolve(__dirname, '../../../kessel/tests/compiled-fixtures');
-const cataloguePath = path.resolve(__dirname, '../../../../compiler/generated/catalog.json');
+const cataloguePath = path.resolve(__dirname, '../../../../compiler/generated');
 
 test('Wasm adapter matches every engine decision and state in all committed fixtures', async () => {
     const simulator = await createSimulator();
@@ -87,7 +87,7 @@ test('compiled Wasm programmes replay all sixteen expanded engine games with exa
 });
 
 test('catalogue JSON supports both all-admitted cards and an exact raw subset pool', async () => {
-    const catalogueJson = fs.readFileSync(cataloguePath, 'utf8');
+    const catalogueJson = require('../../../../compiler/load-catalog').catalogJsonText(cataloguePath);
     const poolJson = fs.readFileSync(path.join(compiledFixtures, 'pool.json'), 'utf8');
     const subset = await createSimulator({ catalogueJson, poolJson });
     const all = await createSimulator({ catalogueJson });

@@ -55,13 +55,12 @@ for(const format of ['manifest.json','manifest.json.gz']) test(format+' adoption
     const raw=Buffer.from(JSON.stringify(doc([old])));fs.writeFileSync(path.join(destination,format),format.endsWith('.gz')?zlib.gzipSync(raw):raw);lib.writeManifest(incoming,doc([b,old,a,b]));
     // Duplicate incoming records are normally rejected by verification; remove the repeated b.
     lib.writeManifest(incoming,doc([b,old,a]));
-    const catalogue=path.join(root,'catalog.json'),native=path.join(root,'native');fs.writeFileSync(catalogue,'{}');fs.writeFileSync(native,'fake native for orchestration test');let comparisons=0;
+    // Legacy monolith file is still a valid --catalogue target for orchestration tests.
+    const catalogue=path.join(root,'catalog.json'),native=path.join(root,'native');fs.writeFileSync(catalogue,JSON.stringify({schema:'swu-card-ir/v1',cards:[]}));fs.writeFileSync(native,'fake native for orchestration test');let comparisons=0;
     const wrapped={...lib,defaultCorpus:destination,corpus:d=>lib.corpus(d??destination),verify:d=>lib.verify(d??destination)};
     const check=moduleWith('check.js',{'./library':wrapped,'node:child_process':{spawnSync:(_binary,args)=>{comparisons++;return {status:0,stdout:args.filter(a=>a.endsWith('.jsonl.gz')).map(()=>JSON.stringify({matched:true,decisions:1,windows:1})).join('\n')};}},'../../crates/kessel-wasm/js/node':{createSimulator:async()=>({free(){}})},'../../crates/kessel-wasm/js/check':{records:()=>[],checkRecords:()=>({matched:true,runtime:'wasm',decisions:1,windows:1})}},'\n// Isolate orchestration from runtime files in this storage test.\n');
-    // check() defaults resolve its catalogue/package relative to repo; intercept only those reads.
-    const originalRead=fs.readFileSync,originalList=fs.readdirSync;
-    fs.readFileSync=function(file,...args){if(String(file).endsWith('/compiler/generated/catalog.json'))return originalRead(catalogue,...args);return originalRead(file,...args);};
+    const originalList=fs.readdirSync;
     fs.readdirSync=function(file,...args){if(String(file).endsWith('/crates/kessel-wasm/pkg/node'))return [];return originalList(file,...args);};
-    try{await check.adopt({corpus:incoming,native});}finally{fs.readFileSync=originalRead;fs.readdirSync=originalList;}
+    try{await check.adopt({corpus:incoming,native,catalogue});}finally{fs.readdirSync=originalList;}
     assert.ok(comparisons);assert.deepEqual(lib.corpus(destination).recordings,[old,b,a]);assert.equal(path.basename(lib.manifestArtifact(destination).path),format);
 });

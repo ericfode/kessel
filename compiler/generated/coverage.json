@@ -1,8 +1,8 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
-  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "37137c7fee38c26b68af20a959b814d7cbf2f2cbe34c834fe2ffec96f6b25ee5",
-  "knownCards": 2458,
+  "sourceTreeHash": "0b00c1657344de81dbeafd9cf78b851f824921b764978f85b8a725e2a5d8b01f",
+  "compilerHash": "bf059cb2a58c57dfec91147b9ed3fc5d68fa28898455a62e302f7de4cc435a0b",
+  "knownCards": 2459,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
@@ -10,7 +10,7 @@
   "converted": 1070,
   "sourceAstConverted": 698,
   "dataOnlyConverted": 372,
-  "unconverted": 1388,
+  "unconverted": 1389,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -304,8 +304,12 @@
     "IBH_079",
     "IBH_082",
     "IBH_095",
-    "IBH_099",
     "IBH_104",
+    "IC27_010",
+    "IC27_011",
+    "IC27_025",
+    "IC27_154",
+    "IC27_184",
     "JTL_019",
     "JTL_022",
     "JTL_024",
@@ -603,7 +607,6 @@
     "LOF_236",
     "LOF_237",
     "LOF_238",
-    "LOF_239",
     "LOF_240",
     "LOF_241",
     "LOF_242",
@@ -801,7 +804,6 @@
     "SHD_180",
     "SHD_188",
     "SHD_190",
-    "SHD_196",
     "SHD_200",
     "SHD_201",
     "SHD_209",
@@ -831,7 +833,6 @@
     "SOR_020",
     "SOR_021",
     "SOR_023",
-    "SOR_024",
     "SOR_025",
     "SOR_026",
     "SOR_027",
@@ -955,7 +956,6 @@
     "TWI_021",
     "TWI_023",
     "TWI_024",
-    "TWI_026",
     "TWI_027",
     "TWI_028",
     "TWI_029",
@@ -1121,6 +1121,7 @@
         "HMW_094",
         "HMW_103",
         "HMW_145",
+        "IC27_016",
         "JTL_004",
         "JTL_006",
         "JTL_010",
@@ -1216,7 +1217,6 @@
         "TWI_010",
         "TWI_014",
         "TWI_017",
-        "TWI_031",
         "TWI_040",
         "TWI_042",
         "TWI_052",
@@ -1303,6 +1303,7 @@
         "ASH_223",
         "HMW_016",
         "HMW_017",
+        "IC27_016",
         "JTL_089",
         "JTL_197",
         "LAW_005",
@@ -1331,7 +1332,6 @@
         "TWI_002",
         "TWI_006",
         "TWI_017",
-        "TWI_031",
         "TWI_086",
         "TWI_143",
         "TWI_186",
@@ -1434,7 +1434,7 @@
     },
     {
       "pattern": "no-source-for-rules-text",
-      "occurrences": 36,
+      "occurrences": 37,
       "cards": [
         "ASH_074",
         "ASH_095",
@@ -1443,6 +1443,9 @@
         "ASH_154",
         "ASH_215",
         "ASH_222",
+        "IC27_052",
+        "IC27_093",
+        "IC27_099",
         "JTL_108",
         "JTL_159",
         "JTL_196",
@@ -1457,12 +1460,10 @@
         "SEC_226",
         "SHD_036",
         "SHD_065",
-        "SHD_070",
         "SHD_089",
         "SHD_111",
         "SHD_119",
         "SHD_149",
-        "SOR_120",
         "TOKEN_ADVANTAGE",
         "TS26_045",
         "TWI_037",
@@ -2268,7 +2269,7 @@
         "ASH_172",
         "ASH_203",
         "HMW_041",
-        "IBH_010",
+        "IC27_161",
         "JTL_238",
         "LOF_014",
         "LOF_067",
@@ -2578,6 +2579,7 @@
       "occurrences": 10,
       "cards": [
         "ASH_079",
+        "IC27_016",
         "LAW_109",
         "LAW_161",
         "LOF_263",
@@ -2585,7 +2587,6 @@
         "SEC_083",
         "SOR_002",
         "SOR_051",
-        "TWI_031",
         "TWI_143"
       ]
     },
@@ -3730,8 +3731,8 @@
       "pattern": "immediateEffect:lookMoveDeckCardsTopOrBottom",
       "occurrences": 2,
       "cards": [
-        "SOR_031",
-        "SOR_236"
+        "IC27_186",
+        "SOR_031"
       ]
     },
     {
@@ -11937,21 +11938,6 @@
       ]
     },
     {
-      "setCode": "IBH_010",
-      "internalName": "han-solo#scruffylooking-nerf-herder",
-      "sourcePath": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:forThisAttackCardEffect",
-          "message": "immediateEffect:forThisAttackCardEffect",
-          "file": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
-          "line": 16,
-          "column": 30
-        }
-      ]
-    },
-    {
       "setCode": "IBH_021",
       "internalName": "improvised-detonation",
       "sourcePath": "game/cards/06_IBH/events/ImprovisedDetonation.ts",
@@ -11993,6 +11979,112 @@
           "file": "game/cards/06_IBH/units/HothLieutenant.ts",
           "line": 17,
           "column": 29
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_016",
+      "internalName": "rune-haako#scheming-second",
+      "sourcePath": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-state:cardsDefeatedThisPhaseWatcher",
+          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
+          "line": 9,
+          "column": 1,
+          "message": "Class-local persistent state requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:setupStateWatchers",
+          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
+          "line": 18,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unsupported-query:someDefeatedUnitControlledByPlayer",
+          "message": "unsupported-query:someDefeatedUnitControlledByPlayer",
+          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
+          "line": 29,
+          "column": 45
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_052",
+      "internalName": "resilient",
+      "sourcePath": null,
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/resilient.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_093",
+      "internalName": "academy-training",
+      "sourcePath": null,
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/academy-training.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_099",
+      "internalName": "eighth-brother#illfated-escape",
+      "sourcePath": null,
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/eighth-brother#illfated-escape.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_161",
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "sourcePath": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "immediateEffect:forThisAttackCardEffect",
+          "message": "immediateEffect:forThisAttackCardEffect",
+          "file": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
+          "line": 16,
+          "column": 30
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_186",
+      "internalName": "r2d2#ignoring-protocol",
+      "sourcePath": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "immediateEffect:lookMoveDeckCardsTopOrBottom",
+          "message": "immediateEffect:lookMoveDeckCardsTopOrBottom",
+          "file": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
+          "line": 20,
+          "column": 30
         }
       ]
     },
@@ -24771,21 +24863,6 @@
       ]
     },
     {
-      "setCode": "SHD_070",
-      "internalName": "resilient",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/resilient.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "SHD_071",
       "internalName": "top-target",
       "sourcePath": "game/cards/02_SHD/upgrades/TopTarget.ts",
@@ -28145,21 +28222,6 @@
       ]
     },
     {
-      "setCode": "SOR_120",
-      "internalName": "academy-training",
-      "sourcePath": null,
-      "diagnostics": [
-        {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/academy-training.json",
-          "line": 1,
-          "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
-        }
-      ]
-    },
-    {
       "setCode": "SOR_121",
       "internalName": "hardpoint-heavy-blaster",
       "sourcePath": "game/cards/01_SOR/upgrades/HardpointHeavyBlaster.ts",
@@ -29285,21 +29347,6 @@
           "file": "game/cards/01_SOR/events/GalacticAmbition.ts",
           "line": 23,
           "column": 34
-        }
-      ]
-    },
-    {
-      "setCode": "SOR_236",
-      "internalName": "r2d2#ignoring-protocol",
-      "sourcePath": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:lookMoveDeckCardsTopOrBottom",
-          "message": "immediateEffect:lookMoveDeckCardsTopOrBottom",
-          "file": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
-          "line": 20,
-          "column": 30
         }
       ]
     },
@@ -31302,37 +31349,6 @@
           "file": "game/cards/03_TWI/bases/ShadowCollectiveCamp.ts",
           "line": 17,
           "column": 35
-        }
-      ]
-    },
-    {
-      "setCode": "TWI_031",
-      "internalName": "rune-haako#scheming-second",
-      "sourcePath": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "class-state:cardsDefeatedThisPhaseWatcher",
-          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
-          "line": 9,
-          "column": 1,
-          "message": "Class-local persistent state requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "method:setupStateWatchers",
-          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
-          "line": 18,
-          "column": 1,
-          "message": "Additional class method requires conversion"
-        },
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-query:someDefeatedUnitControlledByPlayer",
-          "message": "unsupported-query:someDefeatedUnitControlledByPlayer",
-          "file": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
-          "line": 29,
-          "column": 45
         }
       ]
     },

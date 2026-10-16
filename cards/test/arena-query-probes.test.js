@@ -1,7 +1,7 @@
 "use strict";
 const test=require("node:test"),a=require("node:assert/strict"),path=require("node:path");
 const {classifyArenaQuery,planArenaQueryProbes,quiet,nativeSpy}=require("../pipeline/arena-query-probes");
-const cat=require(process.env.SWU_RULES_CATALOGUE??path.resolve(__dirname,"../../compiler/generated/catalog.json"));
+const cat=(process.env.SWU_RULES_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_RULES_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog());
 const get=id=>structuredClone(cat.cards.find(e=>e.setCode===id));
 test("complete structural query families and84 both-seat definitions",()=>{for(const [id,n] of [["ASH_098",26],["JTL_217",28],["SEC_014",30]]){const e=get(id),p=planArenaQueryProbes(e,{catalogue:cat});a.ok(classifyArenaQuery(e));a.equal(p.cases.length,n);a.equal(p.cases.filter(c=>c.probe.sourceSeat===2).length,n/2);a.equal(new Set(p.cases.map(c=>c.id)).size,n);}});
 test("source identity/name is not effect dispatch",()=>{for(const id of ["ASH_098","JTL_217","SEC_014"]){const e=get(id);e.setCode="TEST_999";e.card.title="Renamed structural source";e.card.internalName="renamed";a.ok(classifyArenaQuery(e));a.ok(planArenaQueryProbes(e,{catalogue:cat}).cases.every(c=>c.focusCardIds[0]==="TEST_999"));}});

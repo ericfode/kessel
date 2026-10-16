@@ -12,11 +12,15 @@ async function check(options = {}) {
     const manifest = lib.corpus(directory), index = lib.registry();
     const cases = new Set(lib.selectCases(options, index, manifest.recordings).map(c => c.id));
     const rows = manifest.recordings.filter(r => cases.has(r.caseId)); assert.ok(rows.length, 'No matching recordings');
-    const cataloguePath = path.resolve(options.catalogue ?? path.join(repo, 'compiler/generated/catalog.json'));
+    const { catalogBytes, isDirectoryCatalog, resolveCatalogueTarget } = require('../../compiler/load-catalog');
+    const cataloguePath = resolveCatalogueTarget(options.catalogue ?? path.join(repo, 'compiler/generated'));
     const runtime = options.runtime ?? 'both'; assert.ok(['native', 'wasm', 'both'].includes(runtime), 'Use native, wasm or both');
     const results = [];
     const native = path.resolve(options.native ?? path.join(repo, 'target/release/kessel'));
-        const identities = { catalogueSha256: sha256(fs.readFileSync(cataloguePath)) };
+    const catalogueIdentity = () => isDirectoryCatalog(cataloguePath) || fs.statSync(cataloguePath).isDirectory()
+        ? catalogBytes(cataloguePath)
+        : fs.readFileSync(cataloguePath);
+        const identities = { catalogueSha256: sha256(catalogueIdentity()) };
     if (runtime !== 'wasm') identities.nativeSha256 = sha256(fs.readFileSync(native));
     // Node loader resolves the exact Wasm package; its files are hashed below when present.
     if (runtime !== 'native') {
@@ -40,7 +44,7 @@ async function check(options = {}) {
             finally { if (options.dispatchDir) fs.writeFileSync(path.join(options.dispatchDir, poolSha256 + '-wasm-' + (options.backend ?? 'auto') + '.json'), JSON.stringify(simulator.rulesBackendReport(), null, 2) + '\n', {flag:'wx'}); simulator.free(); }
         }
     }
-    assert.equal(sha256(fs.readFileSync(cataloguePath)), identities.catalogueSha256, 'Catalogue changed during checks');
+    assert.equal(sha256(catalogueIdentity()), identities.catalogueSha256, 'Catalogue changed during checks');
     if (identities.nativeSha256) assert.equal(sha256(fs.readFileSync(native)), identities.nativeSha256, 'Native binary changed during checks');
     if (identities.wasmPackage) for (const [file, hash] of Object.entries(identities.wasmPackage)) assert.equal(sha256(fs.readFileSync(path.join(path.resolve(options.wasmPackage ?? path.join(repo, 'crates/kessel-wasm/pkg/node')), file))), hash, 'Wasm package changed during checks');
     const receipt = { schema: 'swu-reference-check/v1', identities, recordings: rows.length, results };
@@ -50,7 +54,14 @@ async function check(options = {}) {
 async function adopt(options) {
     assert.ok(options.corpus, 'import needs --corpus GENERATED_DIRECTORY');
     // Import into the accepted corpus only after both current runtimes agree.
-    const verification = await check({ corpus: options.corpus, native: options.native, runtime: 'both', diagnostics: true });
+    const verification = await check({
+        corpus: options.corpus,
+        native: options.native,
+        catalogue: options.catalogue,
+        wasmPackage: options.wasmPackage,
+        runtime: 'both',
+        diagnostics: true,
+    });
     const incoming = lib.corpus(options.corpus), current = lib.corpus(), keys = new Set(current.recordings.map(r => r.caseId + ':' + r.traceSha256));
     for (const row of incoming.recordings) {
         if (keys.has(row.caseId + ':' + row.traceSha256)) continue;

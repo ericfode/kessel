@@ -5,7 +5,7 @@ const path = require('node:path');
 const lib = require('../../../../cards/reference/library');
 const { createSimulator } = require('../node');
 const { records, checkRecords } = require('../check');
-const cataloguePath = path.resolve(__dirname, '../../../../compiler/generated/catalog.json');
+const cataloguePath = path.resolve(__dirname, '../../../../compiler/generated');
 test('all reference cases match current Wasm programs and immutable engine recordings', async () => {
     lib.verify();
     const rows = lib.corpus().recordings;

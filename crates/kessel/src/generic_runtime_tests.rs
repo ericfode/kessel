@@ -1,8 +1,21 @@
 use super::*;
 use std::path::Path;
+use std::sync::OnceLock;
+fn committed_catalogue() -> &'static serde_json::Value {
+    static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
+    CATALOG.get_or_init(|| {
+        crate::catalogue_io::load_catalogue_value(&crate::catalogue_io::default_generated_dir())
+            .expect("committed concern-split catalogue")
+    })
+}
+fn committed_catalogue_bytes() -> &'static [u8] {
+    static BYTES: OnceLock<Vec<u8>> = OnceLock::new();
+    BYTES
+        .get_or_init(|| serde_json::to_vec(committed_catalogue()).expect("serialize catalogue"))
+        .as_slice()
+}
 fn engine() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json"))
-        .unwrap()
+    Engine::from_catalogue_bytes(committed_catalogue_bytes()).unwrap()
 }
 #[test]
 fn catalogue_admission_is_explicit_and_original_leaders_use_programs() {
@@ -32,7 +45,7 @@ fn catalogue_admission_is_explicit_and_original_leaders_use_programs() {
 #[test]
 fn generated_programs_match_all_committed_engine_traces() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let e=Engine::from_compiled_pool_bytes(include_bytes!("../data/pool.json"),include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let e=Engine::from_compiled_pool_bytes(include_bytes!("../data/pool.json"),committed_catalogue_bytes()).unwrap();
     for file in std::fs::read_dir(root.join("tests/fixtures")).unwrap() {
         let path = file.unwrap().path();
         if path.extension().is_some_and(|e| e == "gz") {
@@ -136,7 +149,7 @@ fn shield_consumes_oldest_identity_and_experience_round_trips() {
 #[test]
 fn native_tokens_fail_closed_if_source_or_stats_change() {
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json"))
+        serde_json::from_slice(committed_catalogue_bytes())
             .unwrap();
     for (field, value) in [
         ("sourceHash", json!("changed")),
@@ -161,7 +174,7 @@ fn subset_pool_binds_provenance_and_rejects_metadata_changes() {
     let e = engine();
     let mut pool = e.compiled_pool().unwrap();
     let bytes = serde_json::to_vec(&pool).unwrap();
-    let catalog = include_bytes!("../../../compiler/generated/catalog.json");
+    let catalog = committed_catalogue_bytes();
     let subset = Engine::from_compiled_pool_bytes(&bytes, catalog).unwrap();
     assert_eq!(subset.pool_hash(), format!("{:x}", Sha256::digest(&bytes)));
     pool["cards"][0]["power"] = json!(999);
@@ -1554,7 +1567,7 @@ fn grouped_upgrade_selection_is_rejected_while_scalar_upgrade_defeat_remains_sup
 #[test]
 fn grouped_upgrade_source_defeat_is_rejected_for_name_reference_and_conditional_targets() {
     for target in [json!("self"),json!({"kind":"ref","path":["source"]}),json!({"kind":"conditional","condition":{"kind":"const","value":true},"then":{"kind":"ref","path":["source"]},"else":{"kind":"ref","path":["target"]}})] {
-        let mut catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        let mut catalogue:Value=committed_catalogue().clone();
         let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|entry|entry["setCode"]=="SOR_057").unwrap();
         entry["abilities"]=json!({"leader":[],"unit":[],"card":[{"trigger":"whenPlayed","title":"Unsupported attachment defeat","effect":{"kind":"simultaneous","effects":[{"kind":"defeat","target":target}]}}]});
         let engine=Engine::from_catalogue_value(&catalogue).unwrap();assert!(!engine.by_code.contains_key("SOR_057"));
@@ -1728,7 +1741,7 @@ fn token_unit_selector_and_aura_exclude_upgrades_opponents_and_ordinary_units() 
 }
 #[test]
 fn attachment_predicate_cannot_capture_live_modifier_binding() {
-    let mut catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|entry|entry["setCode"]=="SOR_057").unwrap();entry["attachCondition"]=json!({"kind":"binary","op":">","left":{"kind":"ref","path":["modifierTarget","damage"]},"right":{"kind":"const","value":0}});
+    let mut catalogue:Value=committed_catalogue().clone();let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|entry|entry["setCode"]=="SOR_057").unwrap();entry["attachCondition"]=json!({"kind":"binary","op":">","left":{"kind":"ref","path":["modifierTarget","damage"]},"right":{"kind":"const","value":0}});
     let e=Engine::from_catalogue_value(&catalogue).unwrap();assert!(!e.by_code.contains_key("SOR_057"));assert!(e.rejected_cards().unwrap()["SOR_057"].contains("cannot capture"));
 }
 #[test]
@@ -1785,7 +1798,7 @@ fn cards_are_admitted_only_with_the_tokens_they_create() {
     // Experience also has a reviewed-metadata check, which rejects the card first with its own reason.
     for (token, card, reason) in [("TOKEN_EXPERIENCE", "LAW_037", "reviewed Experience token unavailable"), ("TOKEN_XWING", "JTL_099", "creates TOKEN_XWING, which is not admitted")] {
         assert!(engine().by_code.contains_key(card));
-        let mut catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        let mut catalogue:Value=committed_catalogue().clone();
         let entry=catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|entry|entry["setCode"]==token).unwrap();
         entry["card"]["cost"]=json!(5000);
         let e=Engine::from_catalogue_value(&catalogue).unwrap();
@@ -1796,7 +1809,7 @@ fn cards_are_admitted_only_with_the_tokens_they_create() {
 }
 #[test]
 fn restricted_pools_must_hold_the_tokens_their_cards_create() {
-    let catalogue=include_bytes!("../../../compiler/generated/catalog.json");
+    let catalogue=committed_catalogue_bytes();
     let mut pool=engine().compiled_pool().unwrap();
     pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_XWING");
     let err=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap();
@@ -1849,7 +1862,7 @@ fn aot_identity_is_content_based_and_unknown_programs_have_explicit_fallback() {
     let hash=format!("{:x}",Sha256::digest(&bytes));
     assert_eq!(generated_backend(&hash,&bytes),p.executable);
     assert!(generated_backend(&hash,b"changed operand").is_err());
-    let mut value:serde_json::Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut value:serde_json::Value=committed_catalogue().clone();
     let card=value["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TWI_170").unwrap();
     card["abilities"]["card"][0]["effect"]["amount"]["value"]=serde_json::json!(3);
     let mut external=Engine::from_catalogue_value(&value).unwrap();
@@ -2209,7 +2222,7 @@ fn defense_initial_attack_stat_death_joins_one_declaration_owner_window() {
 }
 #[test]
 fn defense_metadata_scope_rejects_unwitnessed_token_leader_upgrade_and_front_sources() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=committed_catalogue().clone();
     for (types,base) in [(json!(["unit","token"]),"TokenUnitCard"),(json!(["leader"]),"LeaderUnitCard"),(json!(["upgrade"]),"UpgradeCard"),(json!(["base"]),"BaseCard"),(json!(["event"]),"EventCard"),(json!(["unit"]),"UnknownUnitBase")] {
         let mut value=original.clone();let entry=value["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]=="TWI_049").unwrap();entry["card"]["types"]=types;entry["baseClass"]=json!(base);let engine=Engine::from_catalogue_value(&value).unwrap();assert!(!engine.by_code.contains_key("TWI_049"));assert!(engine.rejected_cards().unwrap()["TWI_049"].contains(if base=="BaseCard"{"base-zone ongoing source requires exact"}else{"ordinary nonleader unit"}));
     }
@@ -2381,7 +2394,7 @@ fn actual_c3po_without_ewok_still_selects_its_entering_rebel_source() {
 
 #[test]
 fn named_descriptors_fail_closed_for_dependencies_duplicates_and_other_systems() {
-    let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let card=catalogue["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="JTL_253").unwrap();let valid=card["abilities"]["card"][0].clone();
+    let catalogue:Value=committed_catalogue().clone();let card=catalogue["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="JTL_253").unwrap();let valid=card["abilities"]["card"][0].clone();
     let compile=|v:Value|->bool {serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok())};assert!(compile(valid.clone()));
     let mut invalid=Vec::new();
     for name in ["","target","groundUnit","bad.name"] {let mut v=valid.clone();v["targetResolvers"][1]["name"]=json!(name);invalid.push(v);}
@@ -2406,7 +2419,7 @@ fn synthetic_overlapping_named_traits_retain_two_same_recipient_events_and_phase
 }
 #[test]
 fn named_descriptor_catalogue_sources_exclude_leaders_tokens_and_upgrades() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let template=original["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="HMW_255").unwrap();
+    let original:Value=committed_catalogue().clone();let template=original["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="HMW_255").unwrap();
     for base_class in ["LeaderCard","UpgradeCard","TokenUnitCard","BaseCard"] {let mut entry=template.clone();entry["baseClass"]=json!(base_class);let catalogue=json!({"schema":original["schema"],"cards":[entry]});let loaded=crate::ability_ir::Catalogue::load(&catalogue).unwrap();assert!(loaded.rejected.contains_key("HMW_255"),"{base_class}");}
     for types in [json!([]),json!(["leader","unit"]),json!(["upgrade"]),json!(["base"]),json!(["event"]),json!(["unit","event"])] {let mut entry=template.clone();entry["card"]["types"]=types;let loaded=crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap();assert!(loaded.rejected.contains_key("HMW_255"));}
     let event=original["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="JTL_253").unwrap();for types in [json!(["unit"]),json!(["event","leader"]),json!([])] {let mut entry=event.clone();entry["card"]["types"]=types;let loaded=crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap();assert!(loaded.rejected.contains_key("JTL_253"));}
@@ -2419,7 +2432,7 @@ fn weakness_admission_is_three_sources_plus_one_reviewed_native_token() {
     let e=engine();for code in ["HMW_059","HMW_087","HMW_242","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
     for code in ["HMW_065"] {assert!(!e.by_code.contains_key(code),"{code}");}
     assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=committed_catalogue().clone();
     for (field,value) in [("power",json!(1)),("upgradeHp",json!(0)),("types",json!(["unit","token"])),("traits",json!([])),("aspects",json!(["heroism"])),("text",json!("Draw a card")),("unique",json!(true)),("cost",json!(1))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token["card"][field]=value;let altered=Engine::from_catalogue_value(&catalog).unwrap();assert!(!altered.by_code.contains_key("TOKEN_WEAKNESS"),"{field}");}
     for (field,value) in [("keywordValues",json!({"hidden":1})),("abilities",json!({"leader":[],"unit":[],"card":[{"trigger":"whenPlayed","title":"Injected","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}]}))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token[field]=value;assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key("TOKEN_WEAKNESS"));}
     let mut catalog=original.clone();catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap()["sourceHash"]=json!("changed");assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key("TOKEN_WEAKNESS"));
@@ -2455,7 +2468,7 @@ fn actual_weakness_death_sources_preserve_owner_and_damaged_selector() {
 }
 #[test]
 fn weakness_raw_shapes_reject_arrays_groups_other_registrations_and_nonliteral_amounts() {
-    let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let valid=catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_059").unwrap()["abilities"]["card"][0].clone();
+    let catalogue:Value=committed_catalogue().clone();let valid=catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_059").unwrap()["abilities"]["card"][0].clone();
     let compile=|v:Value|serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok());assert!(compile(valid.clone()));let mut bad=Vec::new();
     for trigger in ["event","action","onAttack","onDefense","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
     for amount in [json!({"kind":"const","value":0}),json!({"kind":"const","value":2}),json!({"kind":"ref","path":["source","damage"]})] {let mut v=valid.clone();v["effect"]["amount"]=amount;bad.push(v);}
@@ -2478,10 +2491,10 @@ fn weakness_targets_token_units_and_deployed_leaders_and_returns_to_outside() {
 }
 #[test]
 fn weakness_static_native_dependency_rejects_missing_invalid_and_unselected_token() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=committed_catalogue().clone();
     for remove in [true,false] {let mut v=original.clone();if remove {v["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");}else{v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap()["card"]["title"]=json!("Unreviewed token");}let e=Engine::from_catalogue_value(&v).unwrap();for code in ["HMW_059","HMW_087","HMW_242"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap()[code].contains("Weakness token unavailable"));}}
-    let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!("../../../compiler/generated/catalog.json")).err().unwrap().contains("GiveWeakness cards must include"));
-    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),committed_catalogue_bytes()).err().unwrap().contains("GiveWeakness cards must include"));
+    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),committed_catalogue_bytes()).unwrap();
 }
 #[test]
 fn arena_stat_filter_admission_is_exact_two_and_unary_plus_normalizes_only_here() {
@@ -2506,7 +2519,7 @@ fn actual_rampage_static_traits_snapshot_beast_owner_and_empty_cost_confirmation
 }
 #[test]
 fn arena_stat_filter_guards_do_not_widen_defeat_keywords_or_nested_registrations() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let valid=catalog["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="LOF_127").unwrap()["abilities"]["card"][0].clone();let compile=|v:Value|serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok());assert!(compile(valid.clone()));let mut bad=Vec::new();
+    let catalog:Value=committed_catalogue().clone();let valid=catalog["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="LOF_127").unwrap()["abilities"]["card"][0].clone();let compile=|v:Value|serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok());assert!(compile(valid.clone()));let mut bad=Vec::new();
     for trigger in ["onAttack","onDefense","action","whenDefeated","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
     for (key,value) in [("optional",json!(true)),("coordinate",json!(true)),("condition",json!({"kind":"const","value":true})),("costs",json!([{"kind":"exhaustSelf"}])),("targetResolver",json!({"type":"unit","zone":"arena"})),("contextTitle",json!([{"kind":"const","value":"Dynamic"}]))] {let mut v=valid.clone();v[key]=value;bad.push(v);}
     for key in ["then","ifYouDo"] {let mut v=valid.clone();v[key]=json!({"title":"Draw","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}});bad.push(v);let mut nested=valid.clone();nested.as_object_mut().unwrap().remove("trigger");bad.push(json!({"trigger":"event","title":"Nested","effect":{"kind":"noAction"},key:nested}));}
@@ -2519,7 +2532,7 @@ fn arena_stat_filter_guards_do_not_widen_defeat_keywords_or_nested_registrations
 }
 #[test]
 fn arena_stat_filter_source_domains_and_malformed_exclusions_reject() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let lander=original["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_111").unwrap();
+    let original:Value=committed_catalogue().clone();let lander=original["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_111").unwrap();
     for (field,value) in [("baseClass",json!("LeaderCard")),("baseClass",json!("TokenUnitCard")),("types",json!(["unit","leader"])),("types",json!(["event"])),("types",json!(["unit","token"]))] {let mut entry=lander.clone();if field=="types" {entry["card"][field]=value;}else{entry[field]=value;}let c=crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap();assert!(c.rejected.contains_key("HMW_111"));}
     for side in ["unit","leader"] {let mut entry=lander.clone();entry["abilities"][side]=entry["abilities"]["card"].clone();entry["abilities"]["card"]=json!([]);let c=crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap();assert!(c.rejected.contains_key("HMW_111"));}
     let rampage=original["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="LOF_127").unwrap();let mut entry=rampage.clone();entry["card"]["types"]=json!(["unit"]);assert!(crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap().rejected.contains_key("LOF_127"));
@@ -2548,7 +2561,7 @@ fn force_version_ids_and_selected_native_are_strict() {
 }
 #[test]
 fn force_native_identity_pin_and_static_dependencies_fail_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for field in ["title","types","text","cost"] {let mut c=original.clone();let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="TOKEN_THE_FORCE").unwrap();token["card"][field]=json!("altered");let e=Engine::from_catalogue_value(&c).unwrap();for code in ["TOKEN_THE_FORCE","LOF_146","LOF_193","LOF_195"]{assert!(!e.by_code.contains_key(code),"{field} {code}");}}
  let mut c=original.clone();c["cards"].as_array_mut().unwrap().retain(|v|v["setCode"]!="TOKEN_THE_FORCE");let e=Engine::from_catalogue_value(&c).unwrap();for code in ["LOF_146","LOF_193","LOF_195"]{assert!(!e.by_code.contains_key(code));}
  let e=engine();let mut legacy=e.snapshot(&board(&e));legacy.as_object_mut().unwrap().remove("forceStateVersion");for seat in ["p1","p2"]{legacy["players"][seat].as_object_mut().unwrap().remove("forceToken");}assert!(e.load_state(&legacy).unwrap_err().contains("Force"));
@@ -2572,7 +2585,7 @@ fn terminal_trigger_handoff_does_not_discard_pending_registrations() {
 }
 #[test]
 fn force_continuation_admission_is_exact_eight_and_raw_shapes_fail_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let e=engine();
+ let original:Value=committed_catalogue().clone();let e=engine();
  for code in ["LOF_031","LOF_035","LOF_048","LOF_075","LOF_149","LOF_159","LOF_172","LOF_173"]{assert!(e.by_code.contains_key(code),"{code}");}
  for (field,value) in [("costs",json!([{"kind":"exhaustSelf"}])),("optional",json!(false)),("trigger",json!("onAttack")),("condition",json!({"kind":"const","value":true})),("then",json!({"effect":{"kind":"noAction"}}))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_035").unwrap();card["abilities"]["card"][0][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_035"),"{field}");}
  for (field,value) in [("optional",json!(true)),("then",json!({"effect":{"kind":"noAction"}})),("condition",json!({"kind":"const","value":true})),("targetResolvers",json!([{}]))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_035").unwrap();card["abilities"]["card"][0]["ifYouDo"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_035"),"child {field}");}
@@ -2602,7 +2615,7 @@ fn force_presence_sentinel_changes_attack_domain_and_overrides_hidden() {
 }
 #[test]
 fn force_presence_selected_queries_require_native_and_explicit_history_even_when_absent() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let mut bad=original.clone();bad["cards"].as_array_mut().unwrap().retain(|v|v["setCode"]!="TOKEN_THE_FORCE");let rejected=Engine::from_catalogue_value(&bad).unwrap();for code in ["LOF_050","LOF_196","LOF_231","LOF_237"]{assert!(!rejected.by_code.contains_key(code));}
+ let original:Value=committed_catalogue().clone();let mut bad=original.clone();bad["cards"].as_array_mut().unwrap().retain(|v|v["setCode"]!="TOKEN_THE_FORCE");let rejected=Engine::from_catalogue_value(&bad).unwrap();for code in ["LOF_050","LOF_196","LOF_231","LOF_237"]{assert!(!rejected.by_code.contains_key(code));}
  let mut e=engine();let mut snapshot=e.snapshot(&board(&e));snapshot.as_object_mut().unwrap().remove("forceStateVersion");for seat in ["p1","p2"]{snapshot["players"][seat].as_object_mut().unwrap().remove("forceToken");}
  e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_050","TOKEN_THE_FORCE"].contains(&code.as_str()));assert!(e.load_state(&snapshot).unwrap_err().contains("Force"));e.catalogue.as_mut().unwrap().metadata.remove("LOF_050");assert!(e.load_state(&snapshot).is_ok());
 }
@@ -2613,14 +2626,14 @@ fn force_presence_tyranus_ambush_is_captured_at_entry_not_invented_on_later_gain
 }
 #[test]
 fn force_presence_recursive_scope_rejects_nonconstant_and_wrong_receivers() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for path in [json!(["opponent","hasTheForce"]),json!(["source","hasTheForce"]),json!(["player","hasTheForce","extra"])] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_050").unwrap();card["abilities"]["card"][0]["condition"]["path"]=path;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_050"));}
  for (field,value) in [("trigger",json!("whenPlayed")),("optional",json!(true)),("then",json!({"condition":{"kind":"ref","path":["player","hasTheForce"]},"effect":{"kind":"noAction"}})),("condition",json!({"kind":"unary","op":"!","value":{"kind":"ref","path":["player","hasTheForce"]}}))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_050").unwrap();card["abilities"]["card"][0][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_050"),"{field}");}
  let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_146").unwrap();card["abilities"]["card"][0]["ifYouDo"]["condition"]=json!({"kind":"ref","path":["player","hasTheForce"]});assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_146"));
 }
 #[test]
 fn force_presence_pool_dependency_uses_selected_programs_and_preserves_unrelated_legacy() {
- let e=engine();let catalogue=include_bytes!("../../../compiler/generated/catalog.json");let metadata=&e.catalogue.as_ref().unwrap().metadata;
+ let e=engine();let catalogue=committed_catalogue_bytes();let metadata=&e.catalogue.as_ref().unwrap().metadata;
  let make=|codes:&[&str]|serde_json::to_vec(&json!({"schema":"omni-rs-pool-v1","cards":codes.iter().map(|code|{let mut card=metadata[*code].clone();card["setCode"]=json!(code);card}).collect::<Vec<_>>()})).unwrap();
  let unrelated=make(&["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD"]);assert!(Engine::from_compiled_pool_bytes(&unrelated,catalogue).is_ok());
  let missing=make(&["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","LOF_050"]);assert!(Engine::from_compiled_pool_bytes(&missing,catalogue).err().unwrap().contains("TOKEN_THE_FORCE"));
@@ -2628,7 +2641,7 @@ fn force_presence_pool_dependency_uses_selected_programs_and_preserves_unrelated
 }
 #[test]
 fn force_presence_unwitnessed_hp_changes_and_nonordinary_sources_reject() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for hp in [-2,2] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_237").unwrap();card["abilities"]["card"][0]["effect"]["hp"]["value"]=json!(hp);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_237"));}
  for types in [json!(["leader","unit"]),json!(["unit","token"]),json!(["event"])] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_050").unwrap();card["card"]["types"]=types;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_050"));}
 }
@@ -2658,7 +2671,7 @@ fn force_triggers_saber_unique_same_host_auto_old_and_departed_new_still_heals()
 }
 #[test]
 fn force_triggers_raw_shapes_preserve_timing_and_upgrade_domains() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for trigger in ["action","onDefense","event"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_129").unwrap();card["abilities"]["card"][0]["trigger"]=json!(trigger);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_129"));}
  let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_129").unwrap();card["abilities"]["card"][0]["effect"]["kind"]=json!("useForce");card["abilities"]["card"][0]["optional"]=json!(true);card["abilities"]["card"][0]["ifYouDo"]=json!({"effect":{"kind":"ready","target":"self"}});assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_129"));
  for (field,value) in [("kind",json!("damage")),("target",json!("self"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_102").unwrap();card["abilities"]["card"][0]["ifYouDo"]["effect"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_102"),"{field}");}
@@ -2680,7 +2693,7 @@ fn resource_self_eeth_spends_force_even_when_secondary_is_ineffective() {
 #[test]
 fn resource_self_raw_shapes_fail_closed_and_exact_three_admit() {
  let e=engine();for code in ["LAW_159","LOF_097","TWI_127"] {assert!(e.by_code.contains_key(code),"{code}");}assert!(!e.by_code.contains_key("SHD_107"));
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for (field,value) in [("target",json!("chosen")),("amount",json!({"kind":"const","value":1})),("readyResource",json!(true)),("targetPlayer",json!("enemyPlayer"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="TWI_127").unwrap();card["abilities"]["card"][0]["effect"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TWI_127"),"{field}");}
  for types in [json!(["unit"]),json!(["event","token"]),json!(["leader","event"])] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="TWI_127").unwrap();card["card"]["types"]=types;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TWI_127"));}
 }
@@ -2706,7 +2719,7 @@ fn named_attack_falcon_arena_domains_literal_negative_zero_and_declines() {
 }
 #[test]
 fn named_attack_raw_shapes_reject_unwitnessed_primitive_headers_and_literals() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for (field,value) in [("kind",json!("damage")),("duration",json!("persistent")),("target",json!("self"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_031").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["effect"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_031"));}
  for expression in [json!({"kind":"unary","op":"+","value":{"kind":"const","value":1}}),json!({"kind":"unary","op":"-","value":{"kind":"ref","path":["source","power"]}})] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_031").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["effect"]["power"]=expression;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_031"));}
  let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_031").unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["targetResolver"]["optional"]=json!(false);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_031"));
@@ -2733,7 +2746,7 @@ fn named_damage_ziton_real_ambush_and_self_lethal_preserve_captured_second() {
 #[test]
 fn named_damage_missing_first_still_resolves_second_and_raw_guards_reject() {
  let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"TS26_029");s.players[0].discard.push(source).unwrap();let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert_eq!(done.card(enemy).damage,1);
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("base")),("promptTitle",json!("Custom"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
+ let original:Value=committed_catalogue().clone();for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("base")),("promptTitle",json!("Custom"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
  for trigger in ["event","onDefense","action"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["trigger"]=json!(trigger);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
 }
 #[test]
@@ -2755,7 +2768,7 @@ fn named_mixed_sanctuary_missing_enemy_pays_then_shields_cheap_own() {
 }
 #[test]
 fn named_mixed_raw_shapes_reject_broad_headers_operations_and_predicates() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for code in ["SOR_218","TS26_072"] {for (field,value) in [("owner",json!("opponent")),("optional",json!(true)),("type",json!("base")),("zone",json!("resource"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]==code).unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}/{field}");}}
+ let original:Value=committed_catalogue().clone();for code in ["SOR_218","TS26_072"] {for (field,value) in [("owner",json!("opponent")),("optional",json!(true)),("type",json!("base")),("zone",json!("resource"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]==code).unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}/{field}");}}
  let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SOR_218").unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["targetResolver"]["predicate"]["right"]["right"]["value"]=json!(4);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SOR_218"));
 }
 #[test]
@@ -2769,7 +2782,7 @@ fn named_mixed_token_capacity_preflight_has_no_partial_card_allocation() {
 }
 #[test]
 fn named_mixed_mislead_rejects_hp_damage_and_dynamic_token_shapes() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for (field,value) in [("hp",json!({"kind":"unary","op":"-","value":{"kind":"const","value":1}})),("power",json!({"kind":"ref","path":["source","power"]})),("duration",json!("persistent"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="TS26_081").unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["effect"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TS26_081"));}
+ let original:Value=committed_catalogue().clone();for (field,value) in [("hp",json!({"kind":"unary","op":"-","value":{"kind":"const","value":1}})),("power",json!({"kind":"ref","path":["source","power"]})),("duration",json!("persistent"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="TS26_081").unwrap();card["abilities"]["card"][0]["targetResolvers"][1]["effect"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TS26_081"));}
 }
 #[test]
 fn named_mixed_all_empty_confirms_before_costs_and_cost_filter_is_printed() {
@@ -2818,7 +2831,7 @@ fn named_unit_base_damage_missing_ground_preserves_base_and_combat() {
 
 #[test]
 fn named_unit_base_damage_raw_scope_is_fail_closed() {
-    let original: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original: Value = committed_catalogue().clone();
     let alterations = [
         ("/abilities/card/0/optional", json!(true)),
         ("/abilities/card/0/targetResolvers/0/chooser", json!("opponent")),
@@ -2859,7 +2872,7 @@ fn named_chooser_wrecker_shield_priority_and_combined_defeat_owners() {
 }
 #[test]
 fn named_chooser_raw_shapes_fail_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for (field,value) in [("chooser",json!("self")),("name",json!(""))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("nonLeaderUnit")),("arena",json!("ground"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for (field,value) in [("pilotText",json!("Pilot")),("keywords",json!(["ambush"])),("types",json!(["leader","unit"])),("unique",json!(null))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["card"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
@@ -2869,7 +2882,7 @@ fn named_chooser_raw_shapes_fail_closed() {
 
 #[test]
 fn weakness_upgrade_raw_scope_requires_sole_optional_play_and_native() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=committed_catalogue().clone();
     assert!(Engine::from_catalogue_value(&original).unwrap().by_code.contains_key("HMW_097"));
     for kind in 0..8 {
         let mut catalogue=original.clone();
@@ -2912,7 +2925,7 @@ fn weakness_upgrade_enemy_host_preserves_source_actor_and_recipient_owner() {
 #[test]
 fn arena_uniform_damage_admits_complete_five_and_rejects_raw_scope() {
     let e=engine();for code in ["IBH_072","LOF_170","SEC_263","SHD_158","TWI_164"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=committed_catalogue().clone();
     for variant in 0..8 {let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="IBH_072").unwrap();match variant {
         0=>entry["abilities"]["card"][0]["optional"]=json!(true),
         1=>entry["abilities"]["card"][0]["effect"]["amount"]["value"]=json!(4),
@@ -2948,12 +2961,12 @@ fn arena_uniform_damage_same_owner_shields_rotate_alternates() {
 }
 
 fn arena_keyword4_effect(code:&str)->Effect {
- let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let entry=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();serde_json::from_value(entry["abilities"]["card"][0]["effect"].clone()).unwrap()
+ let catalogue:Value=committed_catalogue().clone();let entry=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();serde_json::from_value(entry["abilities"]["card"][0]["effect"].clone()).unwrap()
 }
 #[test]
 fn arena_keyword4_admits_four_and_rejects_nested_mixed_and_metadata() {
  let e=engine();for code in ["JTL_077","LOF_152","TWI_250","LOF_045"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for variant in 0..9 {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_152").unwrap();match variant {
  0=>card["abilities"]["card"][0]["optional"]=json!(true),1=>card["abilities"]["card"][0]["condition"]=json!({"kind":"const","value":true}),2=>card["abilities"]["card"][0]["effect"]["effects"][0]["target"]["receiver"]=json!({"kind":"ref","path":["unknown"]}),3=>card["abilities"]["card"][0]["effect"]["effects"][0]["amount"]["value"]=json!(65536),4=>card["abilities"]["card"][0]["effect"]["effects"][1]=json!({"kind":"ready","target":"self"}),5=>card["card"]["types"]=json!(["event","leader"]),6=>card["card"]["pilotText"]=json!("unmodeled"),7=>{let original=card["abilities"]["card"][0]["effect"].clone();card["abilities"]["card"][0]["effect"]=json!({"kind":"noAction"});card["abilities"]["card"][0]["then"]=json!({"effect":original});},_=>card["abilities"]["card"][0]["effect"]["effects"][0]["target"]["predicate"]=json!({"kind":"ref","path":["card","damage"]})}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_152"),"variant{variant}");}
  for trait_name in ["jedi","!=='hasSomeTrait'"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_045").unwrap();card["abilities"]["card"][0]["effect"]["target"]["predicate"]=json!({"kind":"query","name":"hasSomeTrait","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":trait_name}]});assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_045"));}
@@ -2983,13 +2996,13 @@ fn arena_keyword4_restore_source_exclusion_and_sentinel_hp_expiry() {
 #[test]
 fn weakness4_admission_preserves_whole_sources_and_native_dependencies() {
  let e=engine();for code in ["HMW_100","HMW_199","HMW_202","HMW_231"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}assert_eq!(e.definitions[*e.by_code.get("HMW_202").unwrap() as usize].programs.card.len(),2);
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for token in ["TOKEN_WEAKNESS","TOKEN_BEAST"] {for malformed in [false,true] {let mut c=original.clone();if malformed {c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==token).unwrap()["card"]["title"]=json!("Wrong native");}else{c["cards"].as_array_mut().unwrap().retain(|e|e["setCode"]!=token);}let e=Engine::from_catalogue_value(&c).unwrap();assert!(!e.by_code.contains_key("HMW_199"));if token=="TOKEN_WEAKNESS" {for code in ["HMW_100","HMW_202","HMW_231"] {assert!(!e.by_code.contains_key(code));}}}}
  assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 #[test]
 fn weakness4_raw_shapes_fail_closed_without_mixed_group_relaxation() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for (code,key,value) in [("HMW_100","optional",json!(true)),("HMW_199","optional",json!(true)),("HMW_231","optional",json!(false)),("HMW_202","condition",json!({"kind":"const","value":true}))] {let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();entry["abilities"]["card"][0][key]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}
  for variant in 0..6 {let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="HMW_202").unwrap();match variant {0=>{entry["abilities"]["card"].as_array_mut().unwrap().pop();},1=>entry["abilities"]["card"][0]["effect"]["effects"][0]["amount"]["value"]=json!(2),2=>entry["card"]["types"]=json!(["unit","leader"]),3=>entry["card"]["pilotText"]=json!("unmodeled"),4=>entry["abilities"]["card"][0]["targetResolver"]["owner"]=json!("self"),_=>entry["abilities"]["card"][0]["effect"]["effects"].as_array_mut().unwrap().reverse()}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("HMW_202"),"variant{variant}");}
  for code in ["HMW_199","HMW_231"] {let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();entry["abilities"]["card"][0]["ifYouDo"]=json!({"effect":{"kind":"noAction"}});assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}
@@ -3026,12 +3039,12 @@ fn weakness4_pending_generation_and_direct_mutable_capacity_are_exact() {
 #[test]
 fn weakness4_picador_captured_dead_source_and_selected_pool_dependencies() {
  let e=engine();let mut s=board(&e);let snoke=unit(&e,&mut s,Seat::P2,"SHD_037");let source=hand(&e,&mut s,"HMW_199");let beast=s.next_id;let choice=e.apply(&s,&e.card_action(&s,source)).unwrap();assert!(choice.players[0].discard.contains(source));assert!(e.in_arena(&choice,snoke));assert!(e.in_arena(&choice,beast));assert_eq!(e.hp(&choice,beast),1);assert_eq!(choice.decision,Decision::AbilityTarget);let token=choice.next_id;let done=e.apply(&choice,&e.card_action(&choice,beast)).unwrap();assert_eq!(done.next_id,token+1);assert!(!e.in_arena(&done,beast));assert_eq!(done.card(beast).parent,0);assert_eq!(done.card(token).parent,0);assert_eq!(done.card(beast).owner,Seat::P1);assert_eq!(done.card(token).owner,Seat::P1);
- let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let pool=e.compiled_pool().unwrap();for missing in ["TOKEN_WEAKNESS","TOKEN_BEAST"] {let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!=missing);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&p).unwrap(),&serde_json::to_vec(&catalogue).unwrap()).is_err(),"{missing}");}
+ let catalogue:Value=committed_catalogue().clone();let pool=e.compiled_pool().unwrap();for missing in ["TOKEN_WEAKNESS","TOKEN_BEAST"] {let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!=missing);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&p).unwrap(),&serde_json::to_vec(&catalogue).unwrap()).is_err(),"{missing}");}
  for side in ["unit","leader"] {let mut c=catalogue.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="HMW_199").unwrap();card["abilities"][side]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("HMW_199"));}
 }
 #[test]
 fn weakness4_beast_dependency_requires_compiled_admission_and_outer_shape() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let valid=engine();let pool=valid.compiled_pool().unwrap();
+ let original:Value=committed_catalogue().clone();let valid=engine();let pool=valid.compiled_pool().unwrap();
  for (field,value) in [("attachCondition",json!({"kind":"const","value":true})),("piloting",json!({"unmodeled":true})),("status",json!("unsupported")),("abilities",json!({"leader":[],"unit":[],"card":[{"trigger":"unknown","title":"Injected","effect":{"kind":"noAction"}}]}))] {
   let mut c=original.clone();let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="TOKEN_BEAST").unwrap();token[field]=value;let altered=Engine::from_catalogue_value(&c).unwrap();assert!(!altered.by_code.contains_key("HMW_199"),"{field}");assert!(altered.rejected_cards().unwrap()["HMW_199"].contains("Beast token unavailable"),"{field}");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),&serde_json::to_vec(&c).unwrap()).is_err(),"{field}");
  }
@@ -3044,7 +3057,7 @@ fn force3_selection_five_checked_copy_hash() {
 #[test]
 fn force3_admission_exact_source_forms_and_dependencies() {
  let e=engine();for code in ["LOF_039","LOF_041","LOF_072"]{assert!(e.by_code.contains_key(code),"{code}");}
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for code in ["LOF_039","LOF_041","LOF_072"] {for key in ["condition","then"] {let mut c=original.clone();let a=&mut c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["abilities"]["card"][0];a[key]=if key=="condition" {json!({"kind":"const","value":true})}else{json!({"title":"extra","effect":{"kind":"noAction"}})};assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}}
  let mut c=original.clone();c["cards"].as_array_mut().unwrap().retain(|e|e["setCode"]!="TOKEN_THE_FORCE");let e=Engine::from_catalogue_value(&c).unwrap();for code in ["LOF_039","LOF_041","LOF_072"] {assert!(!e.by_code.contains_key(code));}
 }
@@ -3065,11 +3078,11 @@ fn force3_sidious_force_loss_physically_precedes_child_snapshot() {
 #[test]
 fn force3_five_token_preflight_is_atomic_and_sixth_crafted_pick_rejects() {
  let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_072");s.source=source;s.ability_program=e.card_programs(&s,source)[0]+1;s.ability_pc=4;s.event_group.active=true;for _ in 0..5 {let id=unit(&e,&mut s,Seat::P1,"LOF_254");s.event_group.context.toggle(id).unwrap();}s.next_id=(MAX_CARDS-3) as u16;let before=s;let effect:Effect=serde_json::from_value(json!({"kind":"giveShield","target":"chosen","amount":{"kind":"const","value":1}})).unwrap();assert!(e.generate_group(&mut s,&effect).is_err());assert_eq!(s,before);assert_eq!(s.zobrist(),before.zobrist());
- let mut c:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for n in [4,6] {let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_072").unwrap();card["abilities"]["card"][0]["ifYouDo"]["targetResolver"]["count"]["value"]=json!(n);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_072"));}
+ let mut c:Value=committed_catalogue().clone();for n in [4,6] {let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_072").unwrap();card["abilities"]["card"][0]["ifYouDo"]["targetResolver"]["count"]["value"]=json!(n);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_072"));}
 }
 #[test]
 fn force3_recursive_selected_dependencies_and_source_domains_fail_closed() {
- let e=engine();let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let e=engine();let catalogue:Value=committed_catalogue().clone();
  for code in ["LOF_039","LOF_041","LOF_072"] {let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD",code].contains(&c["setCode"].as_str().unwrap()));let result=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),&serde_json::to_vec(&catalogue).unwrap());assert!(result.err().unwrap().contains("Force"));}
  for (code,types) in [("LOF_039",json!(["unit","leader"])),("LOF_041",json!(["unit"])),("LOF_072",json!(["token","unit"]))] {let mut c=catalogue.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();card["card"]["types"]=types;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}
  let mut c=catalogue.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_041").unwrap();card["abilities"]["card"][0]["effect"]["effects"][0]["targetResolver"]["owner"]=json!("opponent");assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_041"));
@@ -3078,7 +3091,7 @@ fn force3_recursive_selected_dependencies_and_source_domains_fail_closed() {
 
 #[test]
 fn force3_wave_predicate_retains_expression_depth_validation() {
- let mut c:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_039").unwrap();let p=&mut card["abilities"]["card"][0]["ifYouDo"]["effect"]["target"]["predicate"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_039"));
+ let mut c:Value=committed_catalogue().clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_039").unwrap();let p=&mut card["abilities"]["card"][0]["ifYouDo"]["effect"]["target"]["predicate"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_039"));
 }
 
 #[test]
@@ -3097,13 +3110,13 @@ fn parent_upgrade2_exact_title_and_getter_lifetime() {
 }
 #[test]
 fn parent_upgrade2_headers_metadata_and_selected_dependencies_reject() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let e=engine();for code in ["HMW_038","HMW_264"] {assert!(e.by_code.contains_key(code));for field in ["optional","coordinate","requiresConfirmation"] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]==code).unwrap()["abilities"]["card"][0][field]=json!(true);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{field}");}for (field,value) in [("baseClass",json!("NonLeaderUnitCard")),("attachCondition",json!({"kind":"const","value":true})),("piloting",json!({"unknown":true}))] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]==code).unwrap()[field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}}
+ let original:Value=committed_catalogue().clone();let e=engine();for code in ["HMW_038","HMW_264"] {assert!(e.by_code.contains_key(code));for field in ["optional","coordinate","requiresConfirmation"] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]==code).unwrap()["abilities"]["card"][0][field]=json!(true);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{field}");}for (field,value) in [("baseClass",json!("NonLeaderUnitCard")),("attachCondition",json!({"kind":"const","value":true})),("piloting",json!({"unknown":true}))] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]==code).unwrap()[field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}}
  let mut p=e.compiled_pool().unwrap();p["cards"].as_array_mut().unwrap().retain(|x|x["setCode"]!="TOKEN_BEAST");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&p).unwrap(),&serde_json::to_vec(&original).unwrap()).is_err());for field in ["status","attachCondition","piloting"] {let mut c=original.clone();let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]=="TOKEN_BEAST").unwrap();token[field]=if field=="status" {json!("unsupported")}else{json!({"unknown":true})};assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("HMW_038"));}
 }
 
 #[test]
 fn parent_upgrade2_raw_parent_and_title_forms_stay_bounded() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+ let original:Value=committed_catalogue().clone();
  for (code,path,value) in [
  ("HMW_038",vec!["effect","condition","left","left"],json!({"kind":"ref","path":["target"]})),
  ("HMW_038",vec!["effect","onTrue","amount"],json!({"kind":"const","value":2})),
@@ -3141,13 +3154,13 @@ fn keyword_inventory2_force_gain_cached_lethal_and_loss_before_continuation() {
 }
 #[test]
 fn keyword_inventory2_raw_scope_recursion_and_dependency_cycles_reject() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let inventory=json!({"kind":"ref","path":["card","keywords","length"]});for code in ["ASH_100","ASH_214"] {for field in ["condition","then","contextTitle"] {let mut c=original.clone();let a=&mut c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["abilities"]["card"][0];a[field]=match field {"condition"=>inventory.clone(),"contextTitle"=>json!([inventory.clone()]),_=>json!({"title":"nested","effect":{"kind":"draw","target":"ownPlayer","amount":inventory.clone()}})};assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}for types in [json!(["leader","unit"]),json!(["token","unit"]),json!(["upgrade"])] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["card"]["types"]=types;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}}
+ let original:Value=committed_catalogue().clone();let inventory=json!({"kind":"ref","path":["card","keywords","length"]});for code in ["ASH_100","ASH_214"] {for field in ["condition","then","contextTitle"] {let mut c=original.clone();let a=&mut c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["abilities"]["card"][0];a[field]=match field {"condition"=>inventory.clone(),"contextTitle"=>json!([inventory.clone()]),_=>json!({"title":"nested","effect":{"kind":"draw","target":"ownPlayer","amount":inventory.clone()}})};assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}for types in [json!(["leader","unit"]),json!(["token","unit"]),json!(["upgrade"])] {let mut c=original.clone();c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["card"]["types"]=types;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}}
  for field in ["condition","amount","predicate"] {let mut c=original.clone();let a=&mut c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="ASH_100").unwrap()["abilities"]["card"][0];a["effect"]=json!({"kind":"gainKeyword","keyword":"sentinel","duration":"persistent","target":"chosen","amount":{"kind":"const","value":1}});match field {"condition"=>a["condition"]=inventory.clone(),"amount"=>a["effect"]["amount"]=inventory.clone(),_=>{}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("ASH_100"));}
 }
 
 #[test]
 fn keyword_inventory2_coordinate_metadata_instances_and_values_agree() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let valid=engine();let pool=valid.compiled_pool().unwrap();assert!(valid.by_code.contains_key("TWI_045"));
+ let original:Value=committed_catalogue().clone();let valid=engine();let pool=valid.compiled_pool().unwrap();assert!(valid.by_code.contains_key("TWI_045"));
  for mode in ["duplicate-metadata","missing-metadata","zero-value","missing-value","duplicate-program"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="TWI_045").unwrap();match mode {"duplicate-metadata"=>card["card"]["keywords"]=json!(["coordinate","coordinate"]),"missing-metadata"=>card["card"]["keywords"]=json!([]),"zero-value"=>card["keywordValues"]["coordinate"]=json!(0),"missing-value"=>{card["keywordValues"].as_object_mut().unwrap().remove("coordinate");},_=>{let duplicate=card["abilities"]["card"][0].clone();card["abilities"]["card"].as_array_mut().unwrap().push(duplicate);}}let altered=Engine::from_catalogue_value(&c).unwrap();assert!(!altered.by_code.contains_key("TWI_045"),"{mode}");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),&serde_json::to_vec(&c).unwrap()).is_err(),"{mode}");}
  let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="LOF_254").unwrap();card["keywordValues"]["coordinate"]=json!(1);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_254"));
 }
@@ -3174,7 +3187,7 @@ fn conditional_arena2_saw_restore_order_and_own_base_threshold() {
 }
 #[test]
 fn conditional_arena2_raw_wrapper_scope_and_depth_remain_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for code in ["ASH_112","TWI_150"] {for mode in ["optional","wrong-condition","wrong-receiver","wrong-amount","false-effect","nested","continuation","side","type","extra-companion","deep-condition"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"wrong-condition"=>a["effect"]["condition"]["right"]["value"]=json!(3),"wrong-receiver"=>a["effect"]["onTrue"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"wrong-amount"=>a["effect"]["onTrue"]["amount"]["value"]=json!(2),"false-effect"=>a["effect"]["onFalse"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}),"nested"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":effect,"onFalse":{"kind":"noAction"}});},"continuation"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}});a["then"]=json!({"title":"nested","effect":effect});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"extra-companion"=>{card["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"constant","coordinate":true,"title":"extra","effect":{"kind":"gainKeyword","target":"self","keyword":"raid","duration":"persistent","amount":{"kind":"const","value":2}}}));},_=>{let p=&mut a["effect"]["condition"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let original:Value=committed_catalogue().clone();for code in ["ASH_112","TWI_150"] {for mode in ["optional","wrong-condition","wrong-receiver","wrong-amount","false-effect","nested","continuation","side","type","extra-companion","deep-condition"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"wrong-condition"=>a["effect"]["condition"]["right"]["value"]=json!(3),"wrong-receiver"=>a["effect"]["onTrue"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"wrong-amount"=>a["effect"]["onTrue"]["amount"]["value"]=json!(2),"false-effect"=>a["effect"]["onFalse"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}),"nested"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":effect,"onFalse":{"kind":"noAction"}});},"continuation"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}});a["then"]=json!({"title":"nested","effect":effect});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"extra-companion"=>{card["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"constant","coordinate":true,"title":"extra","effect":{"kind":"gainKeyword","target":"self","keyword":"raid","duration":"persistent","amount":{"kind":"const","value":2}}}));},_=>{let p=&mut a["effect"]["condition"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
  let e=engine();for code in ["ASH_151","LOF_141","SEC_183"] {assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 
@@ -3207,17 +3220,17 @@ fn uniform_token4_current_predicates_and_physical_exclusion() {
 }
 #[test]
 fn uniform_token4_raw_shapes_and_reviewed_experience_dependency() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for code in ["ASH_064","SEC_119","SEC_252","SOR_037"] {for mode in ["optional","amount","receiver","nested","side","type","missing-unique","null-unique","nonbool-unique","depth"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"amount"=>a["effect"]["amount"]["value"]=json!(2),"receiver"=>a["effect"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"nested"=>{a["effect"]=json!({"kind":"simultaneous","effects":[a["effect"].clone()]});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"null-unique"=>card["card"]["unique"]=Value::Null,"nonbool-unique"=>card["card"]["unique"]=json!("true"),_=>{let p=&mut a["effect"]["target"]["predicate"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let original:Value=committed_catalogue().clone();for code in ["ASH_064","SEC_119","SEC_252","SOR_037"] {for mode in ["optional","amount","receiver","nested","side","type","missing-unique","null-unique","nonbool-unique","depth"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"amount"=>a["effect"]["amount"]["value"]=json!(2),"receiver"=>a["effect"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"nested"=>{a["effect"]=json!({"kind":"simultaneous","effects":[a["effect"].clone()]});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"null-unique"=>card["card"]["unique"]=Value::Null,"nonbool-unique"=>card["card"]["unique"]=json!("true"),_=>{let p=&mut a["effect"]["target"]["predicate"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
  for mode in ["missing","title","status","attach","piloting","abilities"] {let mut c=original.clone();if mode=="missing"{c["cards"].as_array_mut().unwrap().retain(|e|e["setCode"]!="TOKEN_EXPERIENCE");}else{let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="TOKEN_EXPERIENCE").unwrap();match mode {"title"=>token["card"]["title"]=json!("Changed"),"status"=>token["status"]=json!("supported"),"attach"=>token["attachCondition"]=json!({"kind":"const","value":true}),"piloting"=>token["piloting"]=json!({}),_=>token["abilities"]["card"]=json!([{"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}}])}}let e=Engine::from_catalogue_value(&c).unwrap();for code in ["SEC_119","SEC_252","SOR_037"]{assert!(!e.by_code.contains_key(code),"{mode}:{code}");}assert!(e.by_code.contains_key("ASH_064"));}
 }
 #[test]
 fn uniform_token4_unique_new_capture_and_selected_pool_dependency() {
  let e=engine();for seat in [Seat::P1,Seat::P2] {for keep_new in [false,true] {let mut s=board(&e);let old=unit(&e,&mut s,seat,"SEC_119");let donor=unit(&e,&mut s,seat,"ASH_061");let new=conditional_wave_hand(&e,&mut s,seat,"SEC_119");let choice=e.apply(&s,&e.card_action(&s,new)).unwrap();assert_eq!(choice.decision,Decision::Unique);let dead=if keep_new{old}else{new};let mut done=e.apply(&choice,&e.card_action(&choice,dead)).unwrap();for _ in 0..10 {if done.decision==Decision::Window{break;}let actions=e.legal_actions(&done);let next=actions.iter().find(|a|a.id().is_none()).unwrap();done=e.apply(&done,next).unwrap();}assert!(done.player(seat).discard.contains(dead));assert_eq!(e.token_count(&done,done.card(donor).experience),2);assert_eq!(e.token_count(&done,done.card(if keep_new{new}else{old}).experience),if keep_new{1}else{2});}}
- let catalogue=include_bytes!("../../../compiler/generated/catalog.json");let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ let catalogue=committed_catalogue_bytes();let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 #[test]
 fn uniform_token4_shield_native_outer_metadata_fails_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for mode in ["title","class","status","path","side","attach","piloting"] {let mut c=original.clone();let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="TOKEN_SHIELD").unwrap();match mode {"title"=>token["card"]["title"]=json!("Changed"),"class"=>token["baseClass"]=json!("EventCard"),"status"=>token["status"]=json!("supported"),"path"=>token["sourcePath"]=json!("changed"),"side"=>token["abilities"]["unit"]=json!([{"trigger":"whenPlayed","effect":{"kind":"noAction"},"title":"extra"}]),"attach"=>token["attachCondition"]=json!({"kind":"const","value":true}),_=>token["piloting"]=json!({})}assert!(Engine::from_catalogue_value(&c).is_err(),"{mode}");}
+ let original:Value=committed_catalogue().clone();for mode in ["title","class","status","path","side","attach","piloting"] {let mut c=original.clone();let token=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="TOKEN_SHIELD").unwrap();match mode {"title"=>token["card"]["title"]=json!("Changed"),"class"=>token["baseClass"]=json!("EventCard"),"status"=>token["status"]=json!("supported"),"path"=>token["sourcePath"]=json!("changed"),"side"=>token["abilities"]["unit"]=json!([{"trigger":"whenPlayed","effect":{"kind":"noAction"},"title":"extra"}]),"attach"=>token["attachCondition"]=json!({"kind":"const","value":true}),_=>token["piloting"]=json!({})}assert!(Engine::from_catalogue_value(&c).is_err(),"{mode}");}
 }
 #[test]
 fn uniform_token4_forty_shielded_recipients_preserve_existing_token_ids() {
@@ -3237,7 +3250,7 @@ fn basezone3_pau_printed_hp_survival_and_actual_base_lethal_threshold() {
 }
 #[test]
 fn basezone3_raw_whole_source_side_and_metadata_scope_fail_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let original:Value=committed_catalogue().clone();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
  let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 
@@ -3253,14 +3266,14 @@ fn arena_query3_sly_false_confirmation_true_cost_and_spy_identity() {
 }
 #[test]
 fn arena_query3_scope_candidate_unique_and_spy_dependency_rejections() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for value in [Value::Null,json!("false")] {let mut v=original.clone();let donor=v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="ASH_131").unwrap();donor["card"]["unique"]=value;let e=Engine::from_catalogue_value(&v).unwrap();assert!(!e.by_code.contains_key("ASH_131"));}let mut v=original.clone();v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="ASH_131").unwrap()["card"].as_object_mut().unwrap().remove("unique");assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key("ASH_131"));
+ let original:Value=committed_catalogue().clone();for value in [Value::Null,json!("false")] {let mut v=original.clone();let donor=v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="ASH_131").unwrap();donor["card"]["unique"]=value;let e=Engine::from_catalogue_value(&v).unwrap();assert!(!e.by_code.contains_key("ASH_131"));}let mut v=original.clone();v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="ASH_131").unwrap()["card"].as_object_mut().unwrap().remove("unique");assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key("ASH_131"));
  for mode in 0..3 {let mut v=original.clone();let cards=v["cards"].as_array_mut().unwrap();let spy=cards.iter().find(|c|c["setCode"]=="TOKEN_SPY").unwrap().clone();if mode==0 {cards.retain(|c|c["setCode"]!="TOKEN_SPY");}else {cards.iter_mut().find(|c|c["setCode"]=="TOKEN_SPY").unwrap()["card"]["title"]=json!("changed");if mode==2{let mut clone=spy;clone["setCode"]=json!("WRONG_SPY");cards.push(clone);}}assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key("SEC_014"));}
  let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_SPY");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),&serde_json::to_vec(&original).unwrap()).is_err());
  for code in ["ASH_098","JTL_217","SEC_014"] {let mut v=original.clone();let row=v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]==code).unwrap();row["card"]["unique"]=Value::Null;assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key(code));}
 }
 #[test]
 fn arena_query3_raw_lists_metadata_and_deep_queries_fail_closed() {
- let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let list=json!({"kind":"arenaList","receiver":{"kind":"ref","path":["player"]},"predicate":{"kind":"const","value":true}});
+ let original:Value=committed_catalogue().clone();let list=json!({"kind":"arenaList","receiver":{"kind":"ref","path":["player"]},"predicate":{"kind":"const","value":true}});
  for mode in 0..4 {let mut v=original.clone();let row=v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="ASH_098").unwrap();let a=&mut row["abilities"]["card"][0];match mode {0=>a["condition"]=list.clone(),1=>a["effect"]["amount"]=list.clone(),2=>a["contextTitle"]=json!([list.clone()]),_=>a["targetResolver"]=json!({"owner":"self","type":"unit","predicate":list.clone()})};assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key("ASH_098"));}
  for field in ["text","deployBox","epicAction","rules"] {let mut v=original.clone();v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="SEC_014").unwrap()["card"][field]=json!("different mechanic");assert!(!Engine::from_catalogue_value(&v).unwrap().by_code.contains_key("SEC_014"));}
  let mut deep:Expr=serde_json::from_value(json!({"kind":"arenaLength","receiver":list})).unwrap();for _ in 0..12 {deep=Expr::Binary{op:"+".into(),left:Box::new(deep),right:Box::new(Expr::Const{value:json!(0)})};}assert!(deep.validate().is_err());

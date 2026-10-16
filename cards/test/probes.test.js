@@ -2,7 +2,7 @@
 const test = require('node:test'),
     assert = require('node:assert/strict');
 const { planCardProbes } = require('../pipeline/probes');
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const plan = (id) =>
     planCardProbes(
         catalogue.cards.find((c) => c.setCode === id),

@@ -81,7 +81,8 @@ to a Kessel commit, for the referee's Rust simulations.
 ## Card data
 
 Official card data is not fetched by the build of the crates, but the committed generated
-files contain it: `compiler/generated/catalog.json` and `runtime-pool.json`, the reference pools in
+files contain it: the concern-split catalogue under `compiler/generated/` (`manifest.json`,
+`cards.json`, `diagnostics.json`, `inputs.json`) and `runtime-pool.json`, the reference pools in
 `cards/reference/fixtures/pools/`, `crates/kessel/tests/compiled-fixtures/pool.json` and
 `crates/kessel/data/pool.json` carry card titles, stats and rules text derived from forceteki's
 `get-cards` download. They are here so the simulator can be checked against the engine; they belong to

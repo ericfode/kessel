@@ -1,7 +1,7 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
 const {classifyBaseZone,planBaseZoneProbes,blankBase}=require("../pipeline/base-zone-probes");
-const catalogue=JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE??path.resolve(__dirname,"../../compiler/generated/catalog.json")));
+const catalogue=(process.env.SWU_PROBE_TEST_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_PROBE_TEST_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog());
 const copy=x=>JSON.parse(JSON.stringify(x));
 const examples=["TWI_019","TWI_028","HMW_007"].map(id=>catalogue.cards.find(e=>e.setCode===id));
 test("three complete initial-slot families classify with all36 definitions",()=>{

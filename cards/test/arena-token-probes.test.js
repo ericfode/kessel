@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {classifyArenaToken} = require("../pipeline/arena-token-probes");
 const fs = require("node:fs");
 const path = require("node:path");
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_PROBE_TEST_CATALOGUE ?? path.resolve(__dirname,"../../compiler/generated/catalog.json"))).cards;
+const catalogue = (process.env.SWU_PROBE_TEST_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_PROBE_TEST_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog()).cards;
 const copy = value => JSON.parse(JSON.stringify(value));
 const examples = ["ASH_064", "SEC_119", "SEC_252", "SOR_037"].map(code => catalogue.find(e => e.setCode === code));
 test("four complete structural token families classify", () => {

@@ -4,9 +4,10 @@ const { snapshot } = require('./inventory');
 const ref = require('./reference/library');
 const { planCardProbes } = require('./pipeline/probes');
 const generated = path.resolve(__dirname, '../compiler/generated');
+const { loadCatalog } = require('../compiler/load-catalog');
 function load() {
     const inventory = snapshot(generated);
-    const compiled = ref.read(path.join(generated, 'catalog.json'));
+    const compiled = loadCatalog(generated);
     const cases = ref.registry(), corpus = ref.corpus();
     return { inventory, compiled, cases, corpus };
 }

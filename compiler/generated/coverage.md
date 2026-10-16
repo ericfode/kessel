@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **1070** (698 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1388**. Excluded test mocks: 21.
+Known card definitions: **2459**. IR-converted definitions: **1070** (698 from source AST; 372 metadata-only plain cards). Explicitly blocked definitions: **1389**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
@@ -11,7 +11,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | class-state:cardsDefeatedThisPhaseWatcher | 44 | 44 |
 | immediateEffect:deckSearch | 43 | 43 |
 | trigger-alias-hook:onCardPlayed | 38 | 42 |
-| no-source-for-rules-text | 36 | 36 |
+| no-source-for-rules-text | 37 | 37 |
 | registrar:addDecreaseCostAbility | 35 | 35 |
 | trigger-alias-hook:onDamageDealt | 30 | 34 |
 | unused-source-binding | 29 | 37 |
@@ -523,4 +523,4 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-title-helper | 1 | 1 |
 | unsupported-token-field:enterPlayEffect | 1 | 1 |
 
-Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented in [catalog.json](catalog.json).
+Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented across the concern-split catalogue shards (`manifest.json`, `cards.json`, `diagnostics.json`, `inputs.json`).

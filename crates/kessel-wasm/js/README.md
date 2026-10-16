@@ -54,7 +54,7 @@ the compiler's coverage report retains explicit reasons for unsupported cards.
 
 ```js
 const simulator = await createSimulator({
-    cataloguePath: './compiler/generated/catalog.json',
+    cataloguePath: './compiler/generated',
     poolPath: './crates/kessel/tests/compiled-fixtures/pool.json',
 });
 ```
@@ -89,7 +89,7 @@ The browser loader also accepts `catalogueJson`, with optional `poolJson`, using
 ```sh
 # Exact fixture/corpus replay through the JavaScript adapter.
 node crates/kessel-wasm/js/check.js crates/kessel/tests/fixtures/*.jsonl.gz
-node crates/kessel-wasm/js/check.js crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated/catalog.json --pool crates/kessel/tests/compiled-fixtures/pool.json
+node crates/kessel-wasm/js/check.js crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated --pool crates/kessel/tests/compiled-fixtures/pool.json
 
 # In Holocron, next to this checkout: the JS match runner, using Wasm for complete endgame searches.
 node bots/omni/solve-games.js --engine wasm --pool ../kessel/crates/kessel/data/pool.json --bots aggro,control --seeds 101 --budget 2000 --depth 12 --sample 0 --out replays/wasm-solves

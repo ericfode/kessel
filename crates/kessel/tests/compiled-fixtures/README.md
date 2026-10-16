@@ -34,7 +34,7 @@ Run from the repository root:
 
 ```sh
 cargo test -p kessel --test compiled_conformance
-target/debug/kessel check crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated/catalog.json --pool crates/kessel/tests/compiled-fixtures/pool.json
+target/debug/kessel check crates/kessel/tests/compiled-fixtures/*.jsonl.gz --catalogue compiler/generated --pool crates/kessel/tests/compiled-fixtures/pool.json
 ```
 
 To create new receipts without overwriting this immutable pool (in Holocron, next to this checkout, which records forceteki games):
