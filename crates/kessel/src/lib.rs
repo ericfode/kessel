@@ -6,6 +6,7 @@ pub use model::{Action, Seat, State};
 pub use simulator::{Engine, RulesBackend};
 pub mod ability_ir;
 mod bounded_reductions;
+pub mod static_ongoing;
 mod live_power_maximum;
 pub mod check;
 pub mod validation;

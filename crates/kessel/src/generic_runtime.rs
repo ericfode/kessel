@@ -759,6 +759,15 @@ impl Engine {
         }
         effects
     }
+    /// These immutable source-only registrations have no callback or aura domain.
+    /// Hand entry and attack legality share this leaf across all execution backends.
+    pub(super) fn self_static_ongoing(&self, s:&State, source:CardId, kind:crate::static_ongoing::SelfEffect)->bool {
+        if self.catalogue.is_none() || source==s.disabled_ongoing_source {return false;}
+        self.card_programs(s,source).iter().any(|&id| {
+            let p=self.program(id);
+            p.trigger=="constant" && p.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if r.effect_type()==kind))
+        })
+    }
     pub(super) fn constant_stats(&self, s: &State, target: CardId) -> (i64, i64) {
         let mut total = (0, 0);
         for (source, effect) in self.constant_effects_matching(s, target, ConstantScope::Stats) {

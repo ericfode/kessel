@@ -398,6 +398,7 @@ impl Engine {
         }
     }
     fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
+        if self.self_static_ongoing(s,source,crate::static_ongoing::SelfEffect::CannotAttack) {return vec![];}
         let d = self.def(s, source);
         let opp = s.player(s.card(source).owner.other());
         let zone = if d.info.arena.as_deref() == Some("space") {
@@ -417,7 +418,7 @@ impl Engine {
             .filter(|&c| !sentinel || self.keyword_amount(s, c, "sentinel") > 0)
             .filter(|&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
             .collect();
-        if !ambush && !sentinel {
+        if !ambush && !sentinel && !self.self_static_ongoing(s,source,crate::static_ongoing::SelfEffect::CannotAttackBase) {
             out.push(opp.base);
         }
         out
@@ -692,7 +693,7 @@ impl Engine {
                     }
                     self.spend(&mut t, self.cost(s, id));
                     t.player_mut(seat).hand.remove(id);
-                    t.card_mut(id).exhausted = true;
+                    t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
                     t.card_mut(id).set_hidden_qualified(true);
                     self.add_arena(&mut t, id)?;
                     t.source = id;

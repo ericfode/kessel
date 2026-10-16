@@ -8,6 +8,9 @@ mod bounded_reductions;
 #[allow(dead_code)]
 #[path = "src/live_power_maximum.rs"]
 mod live_power_maximum;
+#[allow(dead_code)]
+#[path = "src/static_ongoing.rs"]
+mod static_ongoing;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -124,6 +127,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/static_ongoing.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
     let value =

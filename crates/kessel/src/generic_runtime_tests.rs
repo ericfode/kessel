@@ -2269,10 +2269,17 @@ fn hidden_live_qualification_and_numeric_storage_are_separate() {
 #[test]
 fn legacy_hidden_guard_uses_selected_pool_and_rejects_both_modifier_masks() {
     let mut e=engine();let mut s=board(&e);unit(&e,&mut s,Seat::P1,"LOF_256");
-    let mut v=e.snapshot(&s);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
-    for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array_mut().unwrap() {card.as_object_mut().unwrap().remove("hiddenQualified");}}}
+    let legacy_snapshot=|engine:&Engine| {
+        let mut v=engine.snapshot(&s);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
+        for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array_mut().unwrap() {card.as_object_mut().unwrap().remove("hiddenQualified");}}}
+        v
+    };
+    let v=legacy_snapshot(&e);
     assert!(e.load_state(&v).unwrap_err().contains("requires explicit Hidden"));
     e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
+    // Recreate under the selected pool: unrelated Support versioning from the
+    // full catalogue is not part of this legacy Hidden-free input.
+    let v=legacy_snapshot(&e);
     assert!(!e.needs_hidden_history());let legacy=e.load_state(&v).unwrap();assert!(!legacy.hidden_history_exact);assert_eq!(e.snapshot(&legacy),v);
     for (field,value) in [("phaseKeywords",json!({"hidden":1})),("phaseLostKeywords",json!(["hidden"]))] {let mut bad=v.clone();bad["players"]["p1"]["ground"][0][field]=value;assert!(e.load_state(&bad).is_err());}
     let mut bad=v.clone();bad["players"]["p1"]["ground"][0]["hiddenQualified"]=json!(false);assert!(e.load_state(&bad).is_err());
@@ -3733,3 +3740,6 @@ mod ahsoka_integrated_tests;
 
 #[path="force_cost_tests.rs"]
 mod force_cost_tests;
+
+#[path="static_ongoing_tests.rs"]
+mod static_ongoing_tests;

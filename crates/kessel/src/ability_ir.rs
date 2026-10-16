@@ -731,6 +731,7 @@ pub enum Cost {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Effect {
+    ConstantEffectRegistration(crate::static_ongoing::Registration),
     DiscardOwnHand {amount:Expr,target:Target},
     DiscardDeck {amount:Expr,target:Target},
     CreateTokenUnit { #[serde(rename="tokenType")] token_type:String, amount:Expr, target:Target, #[serde(default,rename="entersReady")] enters_ready:bool },
@@ -865,7 +866,7 @@ impl Effect {
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
             Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
-            | Self::GiveWeakness { .. } | Self::NoAction => {}
+            | Self::GiveWeakness { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
         }
     }
 }
@@ -1344,6 +1345,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::static_ongoing::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::static_ongoing::registration(ability) {return Err("static self ongoing contracts require a sole unconditional root constant".into());}
         if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && gained_host_kind(ability).is_none() {return Err("gained host requires one exact reviewed root attack template".into());}
         if let Some(context)=&ability.attached_context {
             if !["upgrade","host"].contains(&context.as_str()) || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() {
@@ -1472,6 +1474,7 @@ impl Program {
                 let expected = if selected { "chosen" } else { "self" };
                 let valid_target = |target: &Target, duration: &str| duration == "persistent" && matches!(target, Target::Name(n) if n == expected || (!selected && n == "parent"));
                 match effect {
+                    Effect::ConstantEffectRegistration(r) if !selected => r.validate(),
                     Effect::ModifyStats {power,hp,duration,target} if valid_target(target,duration)=>{power.live_stat_bounds()?;hp.live_stat_bounds()?;Ok(())},
                     Effect::CopyKeywords {target,duration,domain} if valid_target(target,duration) && domain.iter().map(String::as_str).collect::<Vec<_>>()==COPY_KEYWORDS=>Ok(()),
                     Effect::GainKeyword { target, amount, duration, .. } if valid_target(target, duration) && !amount.depends_on_keywords() => Ok(()),
@@ -2056,6 +2059,7 @@ impl Program {
             return Err("effect nesting exceeds capacity".into());
         }
         match effect {
+            Effect::ConstantEffectRegistration(r) => {if depth!=0 || self.trigger!="constant" {return Err("static self ongoing contract must be a root constant".into());}r.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::DiscardDeck {amount,target} => {Self::scalar_deck_amount(amount,target)?;self.instructions.push(Instruction::Group(effect.clone()));}
             Effect::DiscardOwnHand {amount,target} => {Self::scalar_hand_amount(amount,target)?;self.instructions.push(Instruction::Group(effect.clone()));}
             Effect::CreateTokenUnit {token_type,amount,target,..} => {Self::token_unit_amount(token_type,amount,target)?;self.instructions.push(Instruction::Group(effect.clone()));}
@@ -2219,6 +2223,7 @@ impl Catalogue {
                 fn parent_reference(value:&Value)->bool {
                     (value["kind"]=="ref" && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit")) || (value["target"]=="parent") || match value {Value::Array(a)=>a.iter().any(parent_reference),Value::Object(o)=>o.values().any(parent_reference),_=>false}
                 }
+                if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
                 if crate::live_power_maximum::marker(entry)&&!crate::live_power_maximum::entry(entry){return Err("live maximum requires complete two-sided leader metadata and registrations".into());}
                 if power_feedback&&crate::bounded_reductions::leader_entry(entry){return Err("power maximum keyword grant conflicts with keyword-dependent stat source".into());}
