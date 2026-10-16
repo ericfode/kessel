@@ -3929,3 +3929,22 @@ fn shared_source_context_preserves_closed_fields_and_hook_watcher_exception() {
         }
     }
 }
+
+#[test]
+fn prepared_capture_freezes_stat_values_before_handler_mutations() {
+    let e=engine();let mut s=board(&e);
+    let source=unit(&e,&mut s,Seat::P1,"SHD_056");
+    s.source=source;s.ability_target=source;s.card_mut(source).damage=1;
+    let group=Effect::Simultaneous {effects:vec![Effect::ModifyStats {
+        target:Target::name("self"),duration:"phase".into(),
+        power:Expr::Ref {path:vec!["source".into(),"damage".into()]},hp:Expr::number(1),
+    }]};
+    s.event_group.active=true;s.event_group.initiator=s.active;
+    e.generate_group(&mut s,&group).unwrap();
+    assert_eq!(s.event_group.records[0].power,1);
+    s.card_mut(source).damage=2;
+    e.resolve_group(&mut s,&group).unwrap();
+    assert_eq!(s.card(source).phase_power,1);
+    assert_eq!(s.card(source).phase_hp,1);
+    assert!(e.in_arena(&s,source));
+}
