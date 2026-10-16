@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "2516a98e71f5806bd0710cf0cb0047a0be42a2fe9abef6255944451bb9828059",
+  "compilerHash": "99d11ab42dc69999dca8a7b6e9d991c863ef073aeb2531381c3594730b7255aa",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -88266,23 +88266,118 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Create a Beast token. An opponent creates a Beast token. Give a Weakness token to it.",
+            "costs": [],
+            "effect": {
+              "kind": "systemArrayFactory",
+              "mode": "sequential",
+              "parameters": [
+                {
+                  "root": "attackBinding1_0",
+                  "role": "systemFactoryContext"
+                }
+              ],
+              "captures": [
+                {
+                  "name": "systemCapture739_0",
+                  "role": "staticProperty",
+                  "value": {
+                    "kind": "ref",
+                    "path": [
+                      "attackBinding1_0",
+                      "player"
+                    ]
+                  },
+                  "evaluateAt": "arrayFactoryInvocation",
+                  "order": 0
+                },
+                {
+                  "name": "systemCapture739_1",
+                  "role": "staticProperty",
+                  "value": {
+                    "kind": "ref",
+                    "path": [
+                      "attackBinding1_0",
+                      "player",
+                      "opponent"
+                    ]
+                  },
+                  "evaluateAt": "arrayFactoryInvocation",
+                  "order": 1
+                }
+              ],
+              "constructionOrder": "readonlyDeclarationsThenArrayLeftToRight",
+              "captureIdentity": "valueOrPhysicalObjectReference",
+              "callbacks": "deferredWithLexicalBindings",
+              "invocationPolicy": "eachNativePropertyGeneration",
+              "resolutionMode": "someGameSystemsMustBeLegal",
+              "effects": [
+                {
+                  "kind": "createTokenUnitSystem",
+                  "tokenType": "beast",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  },
+                  "controllers": {
+                    "kind": "ref",
+                    "path": [
+                      "systemFactoryCaptures",
+                      "systemCapture739_0"
+                    ]
+                  },
+                  "entersReady": false,
+                  "creationTiming": "eventUpdate",
+                  "entryTiming": "contingentEvents"
+                },
+                {
+                  "kind": "createTokenUnitSystem",
+                  "tokenType": "beast",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  },
+                  "controllers": {
+                    "kind": "ref",
+                    "path": [
+                      "systemFactoryCaptures",
+                      "systemCapture739_1"
+                    ]
+                  },
+                  "entersReady": false,
+                  "creationTiming": "eventUpdate",
+                  "entryTiming": "contingentEvents",
+                  "entryEffects": [
+                    {
+                      "kind": "tokenEntryEffect",
+                      "targetBinding": "enteringUnit",
+                      "forceEventTarget": true,
+                      "system": {
+                        "kind": "giveWeakness",
+                        "target": "enteringUnit",
+                        "amount": {
+                          "kind": "const",
+                          "value": 1
+                        }
+                      }
+                    }
+                  ],
+                  "entryEffectTiming": "afterEntryBeforeStateCheck"
+                }
+              ]
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
-          "file": "game/cards/09_HMW/events/EasyPrey.ts",
-          "line": 16,
-          "column": 30
-        }
-      ],
+      "diagnostics": [],
       "className": "EasyPrey",
       "baseClass": "EventCard",
       "id": "4168307965",
       "internalName": "easy-prey",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Easy Prey",
         "subtitle": "",
@@ -88322,7 +88417,18 @@
       "dataHash": "8a92c50c1040f105b90541aefd74145832accda901031a76e051fcb2233445c5",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "cardType:event",
+        "ir:const",
+        "ir:createTokenUnitSystem",
+        "ir:giveWeakness",
+        "ir:ref",
+        "ir:systemArrayFactory",
+        "ir:tokenEntryEffect",
+        "ref:attackBinding1_0.player",
+        "ref:attackBinding1_0.player.opponent",
+        "ref:systemFactoryCaptures.systemCapture739_0",
+        "ref:systemFactoryCaptures.systemCapture739_1",
+        "trigger:event"
       ]
     },
     {
@@ -104495,11 +104601,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/04_JTL/units/AnnihilatorTaggesFlagship.ts",
-          "line": 33,
-          "column": 33
+          "line": 36,
+          "column": 71
         }
       ],
       "className": "AnnihilatorTaggesFlagship",
@@ -115761,10 +115867,10 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:indirectDamageToPlayer",
+          "message": "immediateEffect:indirectDamageToPlayer",
           "file": "game/cards/04_JTL/events/LightspeedAssault.ts",
-          "line": 20,
+          "line": 37,
           "column": 34
         }
       ],
@@ -115962,11 +116068,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/04_JTL/events/FocusFire.ts",
           "line": 21,
-          "column": 78
+          "column": 34
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -157660,8 +157766,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-named-target-property",
-          "message": "unsupported-named-target-property",
+          "pattern": "control-change-player-reference",
+          "message": "control-change-player-reference",
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
           "line": 33,
           "column": 44
@@ -165627,11 +165733,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/07_LAW/units/QuiGonJinnInfluencingChance.ts",
-          "line": 24,
-          "column": 30
+          "line": 35,
+          "column": 74
         }
       ],
       "className": "QuiGonJinnInfluencingChance",
@@ -219358,11 +219464,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/06_SEC/events/LetsTalk.ts",
-          "line": 49,
-          "column": 21
+          "line": 48,
+          "column": 34
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -227783,11 +227889,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:rescue",
-          "message": "immediateEffect:rescue",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/06_SEC/events/Arrest.ts",
-          "line": 34,
-          "column": 42
+          "line": 27,
+          "column": 72
         }
       ],
       "className": "Arrest",
@@ -231708,23 +231814,186 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": []
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Draw 3 cards, then put one card from your hand on the top of your deck and another card from your hand on the bottom of your deck",
+            "costs": [],
+            "effect": {
+              "kind": "draw",
+              "target": "ownPlayer",
+              "amount": {
+                "kind": "const",
+                "value": 3
+              }
+            },
+            "then": {
+              "title": "Put a card from your hand on top of your deck and another card from your hand on the bottom of your deck",
+              "costs": [],
+              "targetResolvers": [
+                {
+                  "name": "topCard",
+                  "targetResolver": {
+                    "kind": "cardSelection",
+                    "mode": "single",
+                    "chooser": "self",
+                    "resultBinding": "topCard",
+                    "defaults": "pinnedTargetResolver",
+                    "contextBinding": "target",
+                    "choosingPlayerOverride": "contextOverrideFirst",
+                    "delayOpponentBeforeCosts": true,
+                    "cardTypes": {
+                      "kind": "const",
+                      "value": "any"
+                    },
+                    "zones": {
+                      "kind": "const",
+                      "value": "hand"
+                    },
+                    "controller": {
+                      "kind": "const",
+                      "value": "self"
+                    },
+                    "promptTitleParts": [
+                      {
+                        "kind": "const",
+                        "value": "Choose a card to put on top of your deck"
+                      }
+                    ]
+                  },
+                  "chooser": "self"
+                },
+                {
+                  "name": "bottomCard",
+                  "targetResolver": {
+                    "kind": "cardSelection",
+                    "mode": "single",
+                    "chooser": "self",
+                    "resultBinding": "bottomCard",
+                    "defaults": "pinnedTargetResolver",
+                    "contextBinding": "target",
+                    "choosingPlayerOverride": "contextOverrideFirst",
+                    "delayOpponentBeforeCosts": true,
+                    "cardTypes": {
+                      "kind": "const",
+                      "value": "any"
+                    },
+                    "zones": {
+                      "kind": "const",
+                      "value": "hand"
+                    },
+                    "controller": {
+                      "kind": "const",
+                      "value": "self"
+                    },
+                    "predicate": {
+                      "kind": "binary",
+                      "op": "!==",
+                      "left": {
+                        "kind": "ref",
+                        "path": [
+                          "namedTargets",
+                          "topCard"
+                        ]
+                      },
+                      "right": {
+                        "kind": "ref",
+                        "path": [
+                          "selectionCandidate"
+                        ]
+                      }
+                    },
+                    "mustChangeGameState": "mustFullyResolve",
+                    "promptTitleParts": [
+                      {
+                        "kind": "const",
+                        "value": "Choose a card to put on the bottom of your deck"
+                      }
+                    ]
+                  },
+                  "chooser": "self",
+                  "effect": {
+                    "kind": "systemArrayFactory",
+                    "mode": "simultaneous",
+                    "parameters": [
+                      {
+                        "root": "attackBinding1_0",
+                        "role": "systemFactoryContext"
+                      }
+                    ],
+                    "captures": [
+                      {
+                        "name": "systemCapture1943_0",
+                        "role": "staticProperty",
+                        "value": {
+                          "kind": "ref",
+                          "path": [
+                            "attackBinding1_0",
+                            "targets",
+                            "topCard"
+                          ]
+                        },
+                        "evaluateAt": "arrayFactoryInvocation",
+                        "order": 0
+                      },
+                      {
+                        "name": "systemCapture1943_1",
+                        "role": "staticProperty",
+                        "value": {
+                          "kind": "ref",
+                          "path": [
+                            "attackBinding1_0",
+                            "targets",
+                            "bottomCard"
+                          ]
+                        },
+                        "evaluateAt": "arrayFactoryInvocation",
+                        "order": 1
+                      }
+                    ],
+                    "constructionOrder": "readonlyDeclarationsThenArrayLeftToRight",
+                    "captureIdentity": "valueOrPhysicalObjectReference",
+                    "callbacks": "deferredWithLexicalBindings",
+                    "invocationPolicy": "eachNativePropertyGeneration",
+                    "resolutionMode": "someGameSystemsMustBeLegal",
+                    "effects": [
+                      {
+                        "kind": "moveToTopOfDeck",
+                        "target": {
+                          "kind": "ref",
+                          "path": [
+                            "systemFactoryCaptures",
+                            "systemCapture1943_0"
+                          ]
+                        }
+                      },
+                      {
+                        "kind": "moveToBottomOfDeck",
+                        "target": {
+                          "kind": "ref",
+                          "path": [
+                            "systemFactoryCaptures",
+                            "systemCapture1943_1"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "effect": {
+                "kind": "noAction"
+              }
+            }
+          }
+        ]
       },
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-effects",
-          "message": "simultaneous-factory-effects",
-          "file": "game/cards/06_SEC/events/KreiasWhispers.ts",
-          "line": 34,
-          "column": 100
-        }
-      ],
+      "diagnostics": [],
       "className": "KreiasWhispers",
       "baseClass": "EventCard",
       "id": "3661373584",
       "internalName": "kreias-whispers",
-      "status": "unsupported",
+      "status": "supported",
       "card": {
         "title": "Kreia's Whispers",
         "subtitle": "",
@@ -231765,7 +232034,26 @@
       "dataHash": "11c0f0bac1c3307f0834759ef0b119b86962c96d39a4c3b0a59f0e9f7b0eb67d",
       "keywordValues": {},
       "requiredCapabilities": [
-        "cardType:event"
+        "ability:then",
+        "binary:!==",
+        "cardType:event",
+        "ir:binary",
+        "ir:cardSelection",
+        "ir:const",
+        "ir:draw",
+        "ir:moveToBottomOfDeck",
+        "ir:moveToTopOfDeck",
+        "ir:noAction",
+        "ir:ref",
+        "ir:systemArrayFactory",
+        "ref:attackBinding1_0.targets.bottomCard",
+        "ref:attackBinding1_0.targets.topCard",
+        "ref:namedTargets.topCard",
+        "ref:selectionCandidate",
+        "ref:systemFactoryCaptures.systemCapture1943_0",
+        "ref:systemFactoryCaptures.systemCapture1943_1",
+        "targetMode:single",
+        "trigger:event"
       ]
     },
     {
@@ -253631,11 +253919,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:cardLastingEffect",
+          "message": "immediateEffect:cardLastingEffect",
           "file": "game/cards/02_SHD/events/GiveInToYourAnger.ts",
-          "line": 20,
-          "column": 34
+          "line": 22,
+          "column": 21
         }
       ],
       "className": "GiveInToYourAnger",
@@ -262133,11 +262421,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/02_SHD/units/DjBlatantThief.ts",
-          "line": 20,
-          "column": 30
+          "line": 21,
+          "column": 70
         }
       ],
       "className": "DjBlatantThief",
@@ -286814,11 +287102,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "unsupported-query:getHeroicCountFromCards",
+          "message": "unsupported-query:getHeroicCountFromCards",
           "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
-          "line": 18,
-          "column": 74
+          "line": 20,
+          "column": 37
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -286827,6 +287115,30 @@
           "line": 55,
           "column": 1,
           "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 20,
+          "column": 37,
+          "message": "Unused binding heroicCount may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 21,
+          "column": 49,
+          "message": "Unused binding opponentBaseRemainingHp may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 24,
+          "column": 38,
+          "message": "Unused binding revealEffect may contain unconverted behavior"
         }
       ],
       "className": "ForACauseIBelieveIn",
@@ -300188,11 +300500,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/FirstBattleMemorial.ts",
           "line": 17,
-          "column": 74
+          "column": 30
         }
       ],
       "className": "FirstBattleMemorial",
@@ -300405,11 +300717,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
           "line": 21,
-          "column": 74
+          "column": 30
         }
       ],
       "className": "ExecutionersArena",
@@ -306740,11 +307052,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/events/GalacticEscalation.ts",
           "line": 17,
-          "column": 74
+          "column": 30
         }
       ],
       "className": "GalacticEscalation",
@@ -314091,18 +314403,18 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:flipDoubleSidedLeader",
+          "message": "immediateEffect:flipDoubleSidedLeader",
           "file": "game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts",
-          "line": 31,
-          "column": 25
+          "line": 34,
+          "column": 21
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:flipDoubleSidedLeader",
+          "message": "immediateEffect:flipDoubleSidedLeader",
           "file": "game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts",
-          "line": 46,
+          "line": 50,
           "column": 25
         }
       ],
@@ -337223,11 +337535,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/03_TWI/events/AidFromTheInnocent.ts",
-          "line": 28,
-          "column": 21
+          "line": 27,
+          "column": 34
         }
       ],
       "className": "AidFromTheInnocent",

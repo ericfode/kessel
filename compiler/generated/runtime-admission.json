@@ -1,8 +1,8 @@
 {
-  "catalogueHash": "24922ebfa06836d9b1b15d664028c6f662d2a4aaced113c7d9173dfb6e6435f4",
+  "catalogueHash": "270fc15d9ec552f8b00a789daa87688dc96aa3c7133f7a902096fd13b85eaf36",
   "dataOnlyConvertedCount": 382,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 2040,
+  "irConvertedCount": 2042,
   "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 382,
@@ -6605,7 +6605,7 @@
     },
     {
       "internalName": "easy-prey",
-      "reason": "easy-prey: compiler rejected \"easy-prey\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/09_HMW/events/EasyPrey.ts\",\"line\":16,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "easy-prey: invalid ability IR: unknown variant `systemArrayFactory`, expected one of `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "HMW_237"
     },
     {
@@ -6845,7 +6845,7 @@
     },
     {
       "internalName": "annihilator#tagges-flagship",
-      "reason": "annihilator#tagges-flagship: compiler rejected \"annihilator#tagges-flagship\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/04_JTL/units/AnnihilatorTaggesFlagship.ts\",\"line\":33,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "annihilator#tagges-flagship: compiler rejected \"annihilator#tagges-flagship\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":71,\"file\":\"game/cards/04_JTL/units/AnnihilatorTaggesFlagship.ts\",\"line\":36,\"message\":\"system-factory-nested-property-factory\",\"pattern\":\"system-factory-nested-property-factory\"}]",
       "setCode": "JTL_041"
     },
     {
@@ -7070,7 +7070,7 @@
     },
     {
       "internalName": "lightspeed-assault",
-      "reason": "lightspeed-assault: compiler rejected \"lightspeed-assault\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/04_JTL/events/LightspeedAssault.ts\",\"line\":20,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "lightspeed-assault: compiler rejected \"lightspeed-assault\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/04_JTL/events/LightspeedAssault.ts\",\"line\":37,\"message\":\"immediateEffect:indirectDamageToPlayer\",\"pattern\":\"immediateEffect:indirectDamageToPlayer\"}]",
       "setCode": "JTL_127"
     },
     {
@@ -7080,7 +7080,7 @@
     },
     {
       "internalName": "focus-fire",
-      "reason": "focus-fire: compiler rejected \"focus-fire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":78,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":21,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":26,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"}]",
+      "reason": "focus-fire: compiler rejected \"focus-fire\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":21,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/04_JTL/events/FocusFire.ts\",\"line\":26,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getDamageFromContext\"}]",
       "setCode": "JTL_129"
     },
     {
@@ -8090,7 +8090,7 @@
     },
     {
       "internalName": "doublecross",
-      "reason": "doublecross: compiler rejected \"doublecross\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":44,\"file\":\"game/cards/07_LAW/events/DoubleCross.ts\",\"line\":33,\"message\":\"unsupported-named-target-property\",\"pattern\":\"unsupported-named-target-property\"}]",
+      "reason": "doublecross: compiler rejected \"doublecross\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":44,\"file\":\"game/cards/07_LAW/events/DoubleCross.ts\",\"line\":33,\"message\":\"control-change-player-reference\",\"pattern\":\"control-change-player-reference\"}]",
       "setCode": "LAW_170"
     },
     {
@@ -8300,7 +8300,7 @@
     },
     {
       "internalName": "quigon-jinn#influencing-chance",
-      "reason": "quigon-jinn#influencing-chance: compiler rejected \"quigon-jinn#influencing-chance\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_LAW/units/QuiGonJinnInfluencingChance.ts\",\"line\":24,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "quigon-jinn#influencing-chance: compiler rejected \"quigon-jinn#influencing-chance\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_LAW/units/QuiGonJinnInfluencingChance.ts\",\"line\":35,\"message\":\"system-factory-nested-property-factory\",\"pattern\":\"system-factory-nested-property-factory\"}]",
       "setCode": "LAW_237"
     },
     {
@@ -9395,7 +9395,7 @@
     },
     {
       "internalName": "lets-talk",
-      "reason": "lets-talk: compiler rejected \"lets-talk\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":49,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":70,\"message\":\"unimplemented-context-field:undefined\",\"pattern\":\"unimplemented-context-field:undefined\"}]",
+      "reason": "lets-talk: compiler rejected \"lets-talk\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":48,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/06_SEC/events/LetsTalk.ts\",\"line\":70,\"message\":\"unimplemented-context-field:undefined\",\"pattern\":\"unimplemented-context-field:undefined\"}]",
       "setCode": "SEC_131"
     },
     {
@@ -9620,7 +9620,7 @@
     },
     {
       "internalName": "arrest",
-      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":34,\"message\":\"immediateEffect:rescue\",\"pattern\":\"immediateEffect:rescue\"}]",
+      "reason": "arrest: compiler rejected \"arrest\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":72,\"file\":\"game/cards/06_SEC/events/Arrest.ts\",\"line\":27,\"message\":\"system-factory-nested-property-factory\",\"pattern\":\"system-factory-nested-property-factory\"}]",
       "setCode": "SEC_195"
     },
     {
@@ -9725,7 +9725,7 @@
     },
     {
       "internalName": "kreias-whispers",
-      "reason": "kreias-whispers: compiler rejected \"kreias-whispers\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":100,\"file\":\"game/cards/06_SEC/events/KreiasWhispers.ts\",\"line\":34,\"message\":\"simultaneous-factory-effects\",\"pattern\":\"simultaneous-factory-effects\"}]",
+      "reason": "kreias-whispers: invalid ability IR: unknown field `cardTypes`, expected one of `promptTitle`, `promptTitleParts`, `owner`, `type`, `arena`, `zone`, `optional`, `predicate`, `mode`, `count`",
       "setCode": "SEC_232"
     },
     {
@@ -10295,7 +10295,7 @@
     },
     {
       "internalName": "give-in-to-your-anger",
-      "reason": "give-in-to-your-anger: compiler rejected \"give-in-to-your-anger\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/02_SHD/events/GiveInToYourAnger.ts\",\"line\":20,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "give-in-to-your-anger: compiler rejected \"give-in-to-your-anger\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/02_SHD/events/GiveInToYourAnger.ts\",\"line\":22,\"message\":\"immediateEffect:cardLastingEffect\",\"pattern\":\"immediateEffect:cardLastingEffect\"}]",
       "setCode": "SHD_144"
     },
     {
@@ -10535,7 +10535,7 @@
     },
     {
       "internalName": "dj#blatant-thief",
-      "reason": "dj#blatant-thief: compiler rejected \"dj#blatant-thief\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/02_SHD/units/DjBlatantThief.ts\",\"line\":20,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "dj#blatant-thief: compiler rejected \"dj#blatant-thief\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":70,\"file\":\"game/cards/02_SHD/units/DjBlatantThief.ts\",\"line\":21,\"message\":\"system-factory-nested-property-factory\",\"pattern\":\"system-factory-nested-property-factory\"}]",
       "setCode": "SHD_213"
     },
     {
@@ -11090,7 +11090,7 @@
     },
     {
       "internalName": "for-a-cause-i-believe-in",
-      "reason": "for-a-cause-i-believe-in: compiler rejected \"for-a-cause-i-believe-in\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":18,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":55,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getHeroicCountFromCards\"}]",
+      "reason": "for-a-cause-i-believe-in: compiler rejected \"for-a-cause-i-believe-in\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":20,\"message\":\"unsupported-query:getHeroicCountFromCards\",\"pattern\":\"unsupported-query:getHeroicCountFromCards\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":55,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:getHeroicCountFromCards\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":20,\"message\":\"Unused binding heroicCount may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":49,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":21,\"message\":\"Unused binding opponentBaseRemainingHp may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/01_SOR/events/ForACauseIBelieveIn.ts\",\"line\":24,\"message\":\"Unused binding revealEffect may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "SOR_152"
     },
     {
@@ -11385,7 +11385,7 @@
     },
     {
       "internalName": "first-battle-memorial",
-      "reason": "first-battle-memorial: compiler rejected \"first-battle-memorial\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/bases/FirstBattleMemorial.ts\",\"line\":17,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
+      "reason": "first-battle-memorial: compiler rejected \"first-battle-memorial\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/bases/FirstBattleMemorial.ts\",\"line\":17,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "TS26_009"
     },
     {
@@ -11395,7 +11395,7 @@
     },
     {
       "internalName": "executioners-arena",
-      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":21,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
+      "reason": "executioners-arena: compiler rejected \"executioners-arena\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/bases/ExecutionersArena.ts\",\"line\":21,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "TS26_011"
     },
     {
@@ -11545,7 +11545,7 @@
     },
     {
       "internalName": "galactic-escalation",
-      "reason": "galactic-escalation: compiler rejected \"galactic-escalation\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":74,\"file\":\"game/cards/07_TS26/events/GalacticEscalation.ts\",\"line\":17,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
+      "reason": "galactic-escalation: compiler rejected \"galactic-escalation\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/07_TS26/events/GalacticEscalation.ts\",\"line\":17,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "TS26_056"
     },
     {
@@ -11720,7 +11720,7 @@
     },
     {
       "internalName": "chancellor-palpatine#playing-both-sides",
-      "reason": "chancellor-palpatine#playing-both-sides: compiler rejected \"chancellor-palpatine#playing-both-sides\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":1,\"message\":\"Inherited custom behavior requires conversion\",\"pattern\":\"custom-inheritance:DoubleSidedLeaderCard\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":31,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":46,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
+      "reason": "chancellor-palpatine#playing-both-sides: compiler rejected \"chancellor-palpatine#playing-both-sides\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":1,\"message\":\"Inherited custom behavior requires conversion\",\"pattern\":\"custom-inheritance:DoubleSidedLeaderCard\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":34,\"message\":\"immediateEffect:flipDoubleSidedLeader\",\"pattern\":\"immediateEffect:flipDoubleSidedLeader\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts\",\"line\":50,\"message\":\"immediateEffect:flipDoubleSidedLeader\",\"pattern\":\"immediateEffect:flipDoubleSidedLeader\"}]",
       "setCode": "TWI_017"
     },
     {
@@ -12145,7 +12145,7 @@
     },
     {
       "internalName": "aid-from-the-innocent",
-      "reason": "aid-from-the-innocent: compiler rejected \"aid-from-the-innocent\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":21,\"file\":\"game/cards/03_TWI/events/AidFromTheInnocent.ts\",\"line\":28,\"message\":\"simultaneous-factory-shape\",\"pattern\":\"simultaneous-factory-shape\"}]",
+      "reason": "aid-from-the-innocent: compiler rejected \"aid-from-the-innocent\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/03_TWI/events/AidFromTheInnocent.ts\",\"line\":27,\"message\":\"invalid-effect-sequence\",\"pattern\":\"invalid-effect-sequence\"}]",
       "setCode": "TWI_201"
     },
     {
@@ -12306,5 +12306,5 @@
   ],
   "runtimeRejectedCount": 1403,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 1658
+  "sourceAstConvertedCount": 1660
 }

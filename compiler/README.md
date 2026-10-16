@@ -600,3 +600,15 @@ contract must distinguish these stages and preserve saved physical identities.
 Dynamic system dispatch and native token constructor/lifecycle behavior also stay
 unconverted. Runtime admission, Support hash coverage, State/search-copy cost and
 engine verification remain separate follow-up work.
+
+
+Pure array factories use the existing explicit callback/capture convention via
+`systemArrayFactory`. Each native property-generation invocation gets its own
+frame: readonly declarations and computed static child properties are captured
+in source order before child resolution. Physical cards/players retain identity;
+scalar values remain saved values. Deferred predicate callbacks retain lexical
+bindings. Ordinary child-system lowering still validates every represented field.
+Existing admitted factory forms keep their old lowering. Nested system property
+factories, dynamic system dispatch and returned system objects stay rejected by
+this bounded form; they need a richer construction graph rather than a live-read
+substitution. This compiler-only node adds no runtime execution.

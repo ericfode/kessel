@@ -1,35 +1,35 @@
 # Card source conversion coverage
 
-Known card definitions: **2458**. IR-converted definitions: **2040** (1658 from source AST; 382 metadata-only plain cards). Explicitly blocked definitions: **418**. Excluded test mocks: 21.
+Known card definitions: **2458**. IR-converted definitions: **2042** (1660 from source AST; 382 metadata-only plain cards). Explicitly blocked definitions: **416**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
 | Unsupported source pattern | Affected cards | Occurrences |
 |---|---:|---:|
 | no-source-for-rules-text | 26 | 26 |
-| unused-source-binding | 18 | 27 |
+| unused-source-binding | 19 | 30 |
 | computed-object-key | 13 | 13 |
 | non-path-reference | 13 | 13 |
 | expected-declarative-object | 12 | 21 |
-| unsupported-named-target-property | 10 | 10 |
-| invalid-effect-sequence | 8 | 9 |
+| unsupported-named-target-property | 9 | 9 |
 | unsupported-modifier:OngoingEffectBuilder.card.static | 8 | 8 |
 | callback-statement:IfStatement | 7 | 7 |
+| invalid-effect-sequence | 7 | 7 |
 | named-target-cost-or-limit | 7 | 7 |
-| simultaneous-factory-shape | 7 | 7 |
 | unimplemented-context-field:controllingPlayer | 7 | 7 |
 | unsupported-field:min | 7 | 7 |
 | nonconstant-value | 6 | 6 |
 | rich-named-target-mode | 6 | 6 |
 | deck-discard-player-target | 5 | 5 |
 | immediateEffect:attachUpgrade | 5 | 5 |
+| immediateEffect:indirectDamageToPlayer | 5 | 5 |
 | immediateEffect:playerLastingEffect | 5 | 5 |
 | quarantined-source | 5 | 5 |
 | unsupported-modifier:AbilityHelper.ongoingEffects.canPlayFromDiscard | 5 | 5 |
 | unsupported-query:getPlayers | 5 | 5 |
 | attached-constant-installed-keyword-only | 4 | 4 |
-| immediateEffect:indirectDamageToPlayer | 4 | 4 |
 | method:isUnitPlayedEvent | 4 | 4 |
+| system-factory-nested-property-factory | 4 | 4 |
 | unimplemented-context-field:selectedPromptCards | 4 | 4 |
 | unsupported-attached-constant-field:gainCondition | 4 | 4 |
 | unsupported-live-stat-expression | 4 | 4 |
@@ -111,6 +111,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | class-state:highPriorityRemoval | 1 | 1 |
 | class-state:replaceRaidWithRestore | 1 | 1 |
 | class-state:replaceRestoreWithRaid | 1 | 1 |
+| control-change-player-reference | 1 | 1 |
 | controlled-trait-arity | 1 | 1 |
 | cost-adjuster-limit | 1 | 1 |
 | custom-inheritance:DoubleSidedLeaderCard | 1 | 1 |
@@ -123,15 +124,16 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | force-inherited-target | 1 | 1 |
 | history-helper-statement:FirstStatement | 1 | 1 |
 | immediateEffect:allCardsForPlayerLastingEffect | 1 | 1 |
+| immediateEffect:cardLastingEffect | 1 | 1 |
 | immediateEffect:combatDamage | 1 | 1 |
 | immediateEffect:defeatBase | 1 | 1 |
 | immediateEffect:deploy | 1 | 1 |
 | immediateEffect:distributeExperienceAmong | 1 | 1 |
 | immediateEffect:distributeWeaknessAmong | 1 | 1 |
 | immediateEffect:excessDamage | 1 | 1 |
+| immediateEffect:flipDoubleSidedLeader | 1 | 2 |
 | immediateEffect:handler | 1 | 1 |
 | immediateEffect:loseGame | 1 | 1 |
-| immediateEffect:rescue | 1 | 1 |
 | immediateEffect:revealAndChooseOption | 1 | 1 |
 | immediateEffect:revealAndSelectCard | 1 | 1 |
 | immediateEffect:takeControlOfCreditToken | 1 | 1 |
@@ -225,7 +227,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | registrar:addLookTrigger | 1 | 2 |
 | registrar:addPlayUnitReadyAbility | 1 | 2 |
 | registration-player-effect | 1 | 1 |
-| simultaneous-factory-effects | 1 | 1 |
 | token-unit-query-receiver | 1 | 1 |
 | unbound-reference:TextHelper | 1 | 1 |
 | unimplemented-context-field:damage | 1 | 1 |
@@ -284,6 +285,7 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-query:disclosedCardSharesAspect | 1 | 2 |
 | unsupported-query:flatMap | 1 | 1 |
 | unsupported-query:getAllTargets | 1 | 1 |
+| unsupported-query:getHeroicCountFromCards | 1 | 1 |
 | unsupported-query:getJedisInPlay | 1 | 1 |
 | unsupported-query:getOtherFriendlyPilotUnitsAndUpgradesCount | 1 | 2 |
 | unsupported-query:getPrintedPower | 1 | 1 |

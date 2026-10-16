@@ -53,6 +53,7 @@ const { bountyAbility, bountyGrant } = require('./bounty-registration');
 const {deckPlayEffect,objectSystemBatch,deckExpression}=require('./deck-play-ir');
 const {sourceExclusion}=require('./source-exclusions');
 const {deferredSystem}=require('./deferred-systems');
+const {systemArrayFactory}=require('./system-array-factory');
 
 const TRIGGERS = { addActionAbility: 'action', addWhenPlayedAbility: 'whenPlayed', addOnAttackAbility: 'onAttack', addWhenDefeatedAbility: 'whenDefeated', setEventAbility: 'event', setEpicActionAbility: 'epicAction', addOnDefenseAbility: 'onDefense', addWhenAttackEndsAbility: 'whenAttackEnds' };
 const SIDE_METHODS = { setupCardAbilities: 'card', setupLeaderSideAbilities: 'leader', setupLeaderUnitSideAbilities: 'unit', setupLeaderBackSideAbilities: 'unit' };
@@ -189,6 +190,7 @@ function displayText(node, ctx) {
 // Unlike cosmetic effect text, contextTitle is part of the legal action protocol.
 // Its expressions remain pure IR and are evaluated in the current ability context.
 function contextTitle(input, context) {
+    const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return [constructed];
     const {node,ctx}=lambda(input,context);
     const part=(n)=>{
         n=unwrap(n);
@@ -528,6 +530,7 @@ function singletonArenaMembership(node, ctx) {
     return {kind:'binary', op:'&&', left:{kind:'binary', op:'===', left:units, right:constant(1)}, right:containsSource};
 }
 function expr(input, context, params = ['context']) {
+    const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return constructed;
     const program=eventHistory.callbackProgram(input,context,{ts,unwrap,expr,object,literal,fail,unshadowedEnum},params);if(program)return program;
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
@@ -628,6 +631,7 @@ function expr(input, context, params = ['context']) {
         if (parts.includes('activeAttack') && !(parts.join('.')==='card.activeAttack.attacker' && ctx.attackDefenders?.has('card'))) fail(ctx,node,'unsupported-attack-reference');
         if (ctx.liveStats && parts.length===3 && parts[0]==='card' && parts[1]==='zone' && parts[2]==='name') parts=['card','zoneName'];
         const roots = new Set(['source', 'player', 'opponent', 'target', 'targets', 'card', 'event', 'attack']);
+        if(ctx.pendingSystemConstruction)roots.add('systemFactoryCaptures');
         if(ctx.pendingChoice)for(const root of ['select','selects','choiceCaptures'])roots.add(root);
         if(ctx.pendingSelection)for(const root of ['selectionCandidate','selectedCards','selectionAccumulator','selectedCard','relativePlayer'])roots.add(root);
         if (ctx.arenaReceiver) roots.add('game');
@@ -870,6 +874,7 @@ function topDeckResourceSourceShape(out) {
 }
 
 function target(node, ctx, fallback = 'self') {
+    if(node){const constructed=ctx.constructionValues?.get(unwrap(node));if(constructed)return constructed;}
     if (!node) return fallback;
     const ordered=orderedArenaTarget(node,ctx);
     if(ordered)return ordered;
@@ -1063,7 +1068,10 @@ function effect(input, context, defaultTarget = 'self') {
     if (node.arguments.length > 1) fail(ctx, node, 'effect-helper-arity');
     if (['simultaneous', 'sequential'].includes(kind)) {
         if(node.arguments.length===1){const batch=objectSystemBatch(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,object,literal,effect,fail});if(batch)return batch;}
-        if(node.arguments.length===1&&!ts.isArrayLiteralExpression(unwrap(node.arguments[0]))&&kind==='simultaneous')return finiteHandGroupFactory(node.arguments[0],ctx);
+        if(node.arguments.length===1&&!ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) {
+            if(kind==='simultaneous'){try{return finiteHandGroupFactory(node.arguments[0],ctx);}catch(error){if(!(error instanceof Unsupported))throw error;}}
+            const factory=systemArrayFactory(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda});if(factory)return factory;
+        }
         if (node.arguments.length !== 1 || !ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) fail(ctx, node, 'invalid-effect-sequence');
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
     }

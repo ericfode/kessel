@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "2516a98e71f5806bd0710cf0cb0047a0be42a2fe9abef6255944451bb9828059",
+  "compilerHash": "99d11ab42dc69999dca8a7b6e9d991c863ef073aeb2531381c3594730b7255aa",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2050,
-  "converted": 2040,
-  "sourceAstConverted": 1658,
+  "converted": 2042,
+  "sourceAstConverted": 1660,
   "dataOnlyConverted": 382,
-  "unconverted": 418,
+  "unconverted": 416,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -439,6 +439,7 @@
     "HMW_233",
     "HMW_235",
     "HMW_236",
+    "HMW_237",
     "HMW_238",
     "HMW_240",
     "HMW_241",
@@ -1350,6 +1351,7 @@
     "SEC_228",
     "SEC_229",
     "SEC_230",
+    "SEC_232",
     "SEC_233",
     "SEC_234",
     "SEC_235",
@@ -2090,7 +2092,7 @@
     },
     {
       "pattern": "unused-source-binding",
-      "occurrences": 27,
+      "occurrences": 30,
       "cards": [
         "ASH_182",
         "ASH_230",
@@ -2109,6 +2111,7 @@
         "SHD_002",
         "SHD_039",
         "SHD_102",
+        "SOR_152",
         "TWI_199"
       ]
     },
@@ -2170,32 +2173,17 @@
     },
     {
       "pattern": "unsupported-named-target-property",
-      "occurrences": 10,
+      "occurrences": 9,
       "cards": [
         "JTL_056",
         "JTL_070",
         "JTL_173",
         "JTL_242",
         "LAW_163",
-        "LAW_170",
         "LOF_147",
         "LOF_248",
         "SOR_170",
         "TWI_204"
-      ]
-    },
-    {
-      "pattern": "invalid-effect-sequence",
-      "occurrences": 9,
-      "cards": [
-        "HMW_237",
-        "JTL_041",
-        "JTL_127",
-        "LAW_237",
-        "SHD_144",
-        "SHD_213",
-        "TWI_017",
-        "TWI_138"
       ]
     },
     {
@@ -2226,6 +2214,19 @@
       ]
     },
     {
+      "pattern": "invalid-effect-sequence",
+      "occurrences": 7,
+      "cards": [
+        "JTL_129",
+        "SEC_131",
+        "TS26_009",
+        "TS26_011",
+        "TS26_056",
+        "TWI_138",
+        "TWI_201"
+      ]
+    },
+    {
       "pattern": "named-target-cost-or-limit",
       "occurrences": 7,
       "cards": [
@@ -2236,19 +2237,6 @@
         "SEC_010",
         "SEC_018",
         "SOR_010"
-      ]
-    },
-    {
-      "pattern": "simultaneous-factory-shape",
-      "occurrences": 7,
-      "cards": [
-        "JTL_129",
-        "SEC_131",
-        "SOR_152",
-        "TS26_009",
-        "TS26_011",
-        "TS26_056",
-        "TWI_201"
       ]
     },
     {
@@ -2324,6 +2312,17 @@
       ]
     },
     {
+      "pattern": "immediateEffect:indirectDamageToPlayer",
+      "occurrences": 5,
+      "cards": [
+        "JTL_127",
+        "JTL_143",
+        "JTL_149",
+        "JTL_152",
+        "JTL_237"
+      ]
+    },
+    {
       "pattern": "immediateEffect:playerLastingEffect",
       "occurrences": 5,
       "cards": [
@@ -2378,16 +2377,6 @@
       ]
     },
     {
-      "pattern": "immediateEffect:indirectDamageToPlayer",
-      "occurrences": 4,
-      "cards": [
-        "JTL_143",
-        "JTL_149",
-        "JTL_152",
-        "JTL_237"
-      ]
-    },
-    {
       "pattern": "method:isUnitPlayedEvent",
       "occurrences": 4,
       "cards": [
@@ -2395,6 +2384,16 @@
         "LOF_010",
         "LOF_180",
         "SEC_109"
+      ]
+    },
+    {
+      "pattern": "system-factory-nested-property-factory",
+      "occurrences": 4,
+      "cards": [
+        "JTL_041",
+        "LAW_237",
+        "SEC_195",
+        "SHD_213"
       ]
     },
     {
@@ -3057,6 +3056,13 @@
       ]
     },
     {
+      "pattern": "control-change-player-reference",
+      "occurrences": 1,
+      "cards": [
+        "LAW_170"
+      ]
+    },
+    {
       "pattern": "controlled-trait-arity",
       "occurrences": 1,
       "cards": [
@@ -3141,6 +3147,13 @@
       ]
     },
     {
+      "pattern": "immediateEffect:cardLastingEffect",
+      "occurrences": 1,
+      "cards": [
+        "SHD_144"
+      ]
+    },
+    {
       "pattern": "immediateEffect:combatDamage",
       "occurrences": 1,
       "cards": [
@@ -3183,6 +3196,13 @@
       ]
     },
     {
+      "pattern": "immediateEffect:flipDoubleSidedLeader",
+      "occurrences": 2,
+      "cards": [
+        "TWI_017"
+      ]
+    },
+    {
       "pattern": "immediateEffect:handler",
       "occurrences": 1,
       "cards": [
@@ -3194,13 +3214,6 @@
       "occurrences": 1,
       "cards": [
         "SHD_208"
-      ]
-    },
-    {
-      "pattern": "immediateEffect:rescue",
-      "occurrences": 1,
-      "cards": [
-        "SEC_195"
       ]
     },
     {
@@ -3855,13 +3868,6 @@
       ]
     },
     {
-      "pattern": "simultaneous-factory-effects",
-      "occurrences": 1,
-      "cards": [
-        "SEC_232"
-      ]
-    },
-    {
       "pattern": "token-unit-query-receiver",
       "occurrences": 1,
       "cards": [
@@ -4265,6 +4271,13 @@
       "occurrences": 1,
       "cards": [
         "TWI_202"
+      ]
+    },
+    {
+      "pattern": "unsupported-query:getHeroicCountFromCards",
+      "occurrences": 1,
+      "cards": [
+        "SOR_152"
       ]
     },
     {
@@ -5843,21 +5856,6 @@
       ]
     },
     {
-      "setCode": "HMW_237",
-      "internalName": "easy-prey",
-      "sourcePath": "game/cards/09_HMW/events/EasyPrey.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
-          "file": "game/cards/09_HMW/events/EasyPrey.ts",
-          "line": 16,
-          "column": 30
-        }
-      ]
-    },
-    {
       "setCode": "HMW_248",
       "internalName": "defoliator-tank",
       "sourcePath": "game/cards/09_HMW/units/DefoliatorTank.ts",
@@ -6116,11 +6114,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/04_JTL/units/AnnihilatorTaggesFlagship.ts",
-          "line": 33,
-          "column": 33
+          "line": 36,
+          "column": 71
         }
       ]
     },
@@ -6398,10 +6396,10 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:indirectDamageToPlayer",
+          "message": "immediateEffect:indirectDamageToPlayer",
           "file": "game/cards/04_JTL/events/LightspeedAssault.ts",
-          "line": 20,
+          "line": 37,
           "column": 34
         }
       ]
@@ -6413,11 +6411,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/04_JTL/events/FocusFire.ts",
           "line": 21,
-          "column": 78
+          "column": 34
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -7480,8 +7478,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unsupported-named-target-property",
-          "message": "unsupported-named-target-property",
+          "pattern": "control-change-player-reference",
+          "message": "control-change-player-reference",
           "file": "game/cards/07_LAW/events/DoubleCross.ts",
           "line": 33,
           "column": 44
@@ -7738,11 +7736,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/07_LAW/units/QuiGonJinnInfluencingChance.ts",
-          "line": 24,
-          "column": 30
+          "line": 35,
+          "column": 74
         }
       ]
     },
@@ -8980,11 +8978,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/06_SEC/events/LetsTalk.ts",
-          "line": 49,
-          "column": 21
+          "line": 48,
+          "column": 34
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -9132,11 +9130,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "immediateEffect:rescue",
-          "message": "immediateEffect:rescue",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/06_SEC/events/Arrest.ts",
-          "line": 34,
-          "column": 42
+          "line": 27,
+          "column": 72
         }
       ]
     },
@@ -9303,21 +9301,6 @@
           "file": "game/cards/06_SEC/events/Implicate.ts",
           "line": 16,
           "column": 35
-        }
-      ]
-    },
-    {
-      "setCode": "SEC_232",
-      "internalName": "kreias-whispers",
-      "sourcePath": "game/cards/06_SEC/events/KreiasWhispers.ts",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-effects",
-          "message": "simultaneous-factory-effects",
-          "file": "game/cards/06_SEC/events/KreiasWhispers.ts",
-          "line": 34,
-          "column": 100
         }
       ]
     },
@@ -9904,11 +9887,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:cardLastingEffect",
+          "message": "immediateEffect:cardLastingEffect",
           "file": "game/cards/02_SHD/events/GiveInToYourAnger.ts",
-          "line": 20,
-          "column": 34
+          "line": 22,
+          "column": 21
         }
       ]
     },
@@ -10100,11 +10083,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "system-factory-nested-property-factory",
+          "message": "system-factory-nested-property-factory",
           "file": "game/cards/02_SHD/units/DjBlatantThief.ts",
-          "line": 20,
-          "column": 30
+          "line": 21,
+          "column": 70
         }
       ]
     },
@@ -10683,11 +10666,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "unsupported-query:getHeroicCountFromCards",
+          "message": "unsupported-query:getHeroicCountFromCards",
           "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
-          "line": 18,
-          "column": 74
+          "line": 20,
+          "column": 37
         },
         {
           "code": "UNSUPPORTED_SOURCE",
@@ -10696,6 +10679,30 @@
           "line": 55,
           "column": 1,
           "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 20,
+          "column": 37,
+          "message": "Unused binding heroicCount may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 21,
+          "column": 49,
+          "message": "Unused binding opponentBaseRemainingHp may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/01_SOR/events/ForACauseIBelieveIn.ts",
+          "line": 24,
+          "column": 38,
+          "message": "Unused binding revealEffect may contain unconverted behavior"
         }
       ]
     },
@@ -11201,11 +11208,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/FirstBattleMemorial.ts",
           "line": 17,
-          "column": 74
+          "column": 30
         }
       ]
     },
@@ -11216,11 +11223,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/bases/ExecutionersArena.ts",
           "line": 21,
-          "column": 74
+          "column": 30
         }
       ]
     },
@@ -11375,11 +11382,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/07_TS26/events/GalacticEscalation.ts",
           "line": 17,
-          "column": 74
+          "column": 30
         }
       ]
     },
@@ -11552,18 +11559,18 @@
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:flipDoubleSidedLeader",
+          "message": "immediateEffect:flipDoubleSidedLeader",
           "file": "game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts",
-          "line": 31,
-          "column": 25
+          "line": 34,
+          "column": 21
         },
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "invalid-effect-sequence",
-          "message": "invalid-effect-sequence",
+          "pattern": "immediateEffect:flipDoubleSidedLeader",
+          "message": "immediateEffect:flipDoubleSidedLeader",
           "file": "game/cards/03_TWI/leaders/ChancellorPalpatinePlayingBothSides.ts",
-          "line": 46,
+          "line": 50,
           "column": 25
         }
       ]
@@ -11915,11 +11922,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "simultaneous-factory-shape",
-          "message": "simultaneous-factory-shape",
+          "pattern": "invalid-effect-sequence",
+          "message": "invalid-effect-sequence",
           "file": "game/cards/03_TWI/events/AidFromTheInnocent.ts",
-          "line": 28,
-          "column": 21
+          "line": 27,
+          "column": 34
         }
       ]
     },
