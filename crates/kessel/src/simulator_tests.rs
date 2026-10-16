@@ -54,8 +54,8 @@ fn state_is_inline_copy_and_hash_covers_prompts_and_deck_order() {
     // Captured grantor IDs add 2 bytes × 64 entries × 10 windows = 1280 bytes.
     // Event/LKI adds1456 bytes; maximum captures add112 in this combined
     // layout (72 payload bytes plus40 padding across suspended contexts).
-    // Keep the reviewed fixed Copy-state budget tight: 20472 + 5992 + 1456 + 112 = 28032 (bounded Support history).
-    assert!(std::mem::size_of::<State>() <= 28032, "inline state bytes: {}", std::mem::size_of::<State>());
+    // Keep the exact Copy-state budget tight; phase history adds136 bytes and attack context adds40.
+    assert!(std::mem::size_of::<State>() <= EXPECTED_INLINE_STATE_BYTES, "inline state bytes: {}", std::mem::size_of::<State>());
     eprintln!("inline state bytes: {}; card bytes: {}", std::mem::size_of::<State>(), std::mem::size_of::<Card>());
     let e = engine();
     let mut s = board(&e);

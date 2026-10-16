@@ -3,6 +3,9 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
+// Exact test budget: prior inline state 28,032 + phase history 136 + attack context 40.
+#[cfg(test)]
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_208;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
