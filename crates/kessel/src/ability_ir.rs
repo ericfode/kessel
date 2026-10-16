@@ -35,9 +35,26 @@ pub const MAX_GROUP_RECORDS: usize = 32;
 pub const MAX_GROUP_OPS: usize = 128;
 pub const MAX_ABILITY_NESTING: usize = 8;
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
-pub enum Expr {
+// One portable variant inventory drives both views. The separate remote
+// deserializer is required: deriving Deserialize on the runtime untagged variant
+// erases useful unknown-kind/field errors even with skip_deserializing.
+macro_rules! expression_variants {
+    ($($variants:tt)*) => {
+        #[derive(Debug, Clone, Serialize)]
+        #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
+        pub enum Expr {
+            $($variants)*
+            /// Executable attachment; serialization remains the portable node.
+            #[serde(untagged, skip_deserializing)]
+            Compiled(CompiledExpr),
+        }
+        #[derive(Deserialize)]
+        #[allow(dead_code)]
+        #[serde(remote = "Expr", tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
+        enum PortableExpr { $($variants)* }
+    };
+}
+expression_variants! {
     NativeTokenPredicate {
         operation: String,
         receiver: Box<Expr>,
@@ -91,56 +108,31 @@ pub enum Expr {
         #[serde(default)]
         args: Vec<Expr>,
     },
-    /// Runtime attachment only: serialized content remains the portable expression.
-    /// Raw IR cannot select an executable index.
-    #[serde(untagged, skip_deserializing)]
-    Compiled(CompiledExpr),
-}
-// Keep deserialization strictly tagged. Deriving it on Expr with the runtime
-// untagged variant would erase useful unknown-kind/field diagnostics, even when
-// that variant is marked skip_deserializing. The remote derive constructs Expr
-// directly and exposes only its original portable variants to raw IR.
-#[derive(Deserialize)]
-#[allow(dead_code)]
-#[serde(remote = "Expr", tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
-enum PortableExpr {
-    NativeTokenPredicate {
-        operation: String,
-        receiver: Box<Expr>,
-        domain: String,
-        #[serde(rename = "tokenType")]
-        token_type: String,
-        #[serde(rename = "optionalReceiver")]
-        optional_receiver: bool,
-        #[serde(rename = "optionalCall")]
-        optional_call: bool,
-    },
-    HistoryQuery(crate::phase_history::Query),
-    DataMember {receiver:crate::phase_history::List,key:crate::phase_history::Length,optional:bool},
-
-    HistoryAttackCheck {test:String,attack:crate::attack_history::AttackContextPath,watcher:String,binding:String},
-    ArenaList { receiver: Box<Expr>, predicate: Box<Expr> },
-    ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
-    ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
-    ArenaLength { receiver: Box<Expr> },
-    Collection { name: String, receiver: Box<Expr>, args: Vec<Expr>, limit: usize },
-    Array { items: Vec<Expr> },
-    Math { name: String, args: Vec<Expr> },
-    Const { value: Value },
-    Ref { path: Vec<String> },
-    Binary { op: String, left: Box<Expr>, right: Box<Expr> },
-    Unary { op: String, value: Box<Expr> },
-    Conditional { condition: Box<Expr>, then: Box<Expr>, r#else: Box<Expr> },
-    Query {
-        name: String,
-        receiver: Box<Expr>,
-        #[serde(default)]
-        args: Vec<Expr>,
-    },
 }
 impl<'de> Deserialize<'de> for Expr {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         PortableExpr::deserialize(deserializer)
+    }
+}
+#[cfg(test)]
+mod expression_schema_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn expression_schema_keeps_portable_errors_and_hides_executable_attachments() {
+        let portable=json!({"kind":"binary","op":"+","left":{"kind":"const","value":2},
+            "right":{"kind":"query","name":"getPower","receiver":{"kind":"ref","path":["source"]},"args":[]}});
+        let expression:Expr=serde_json::from_value(portable.clone()).unwrap();
+        assert_eq!(serde_json::to_value(&expression).unwrap(),portable);
+        let compiled=Expr::Compiled(CompiledExpr {original:Box::new(expression),index:99});
+        assert_eq!(serde_json::to_value(compiled).unwrap(),portable);
+        let unknown=serde_json::from_value::<Expr>(json!({"kind":"compiled","index":99})).unwrap_err().to_string();
+        assert!(unknown.contains("unknown variant `compiled`"),"{unknown}");
+        let field=serde_json::from_value::<Expr>(json!({"kind":"ref","path":["source"],"extra":true})).unwrap_err().to_string();
+        assert!(field.contains("unknown field `extra`") && field.contains("`path`"),"{field}");
+        let nested=serde_json::from_value::<Expr>(json!({"kind":"unary","op":"!","value":{"kind":"ref","path":["source"],"extra":true}})).unwrap_err().to_string();
+        assert_eq!(nested,field);
     }
 }
 #[derive(Debug, Clone, Serialize)]
