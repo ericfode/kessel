@@ -3,10 +3,12 @@ use super::*;
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, Target, TargetResolver};
 
 #[derive(Clone, Copy)]
-enum ConstantScope<'a> { Stats, Keyword(Option<&'a str>), #[cfg(test)] All }
+enum ConstantScope<'a> { Stats, AmbushBase, Keyword(Option<&'a str>), #[cfg(test)] All }
 impl ConstantScope<'_> {
     fn accepts(self,e:&Effect)->bool {match (self,e) {
         (Self::Stats,Effect::ModifyStats{..})=>true,
+        (Self::Stats,Effect::ConstantEffectRegistration(r))=>matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::StatCount(_))),
+        (Self::AmbushBase,Effect::ConstantEffectRegistration(r))=>matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase)),
         (Self::Keyword(filter),Effect::CopyKeywords{..})=>filter.is_none_or(|name|crate::ability_ir::COPY_KEYWORDS.contains(&name)),
         (Self::Keyword(filter),Effect::GainKeyword{keyword,..}|Effect::LoseKeyword{keyword,..})=>filter.is_none_or(|name|name==keyword),
         #[cfg(test)] (Self::All,_)=>true,
@@ -784,7 +786,8 @@ impl Engine {
                     }
                 });
                 let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}) if n=="parent"));
-                if resolver.map_or(if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
+                let friendly_ambush=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase))));
+                if resolver.map_or(if friendly_ambush {s.card(source).owner!=s.card(target).owner}else if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
                     !self.matching_targets(s, effect_source, r).contains(&target)
                 }) {
                     continue;
@@ -796,14 +799,40 @@ impl Engine {
         }
         effects
     }
-    /// These immutable source-only registrations have no callback or aura domain.
-    /// Hand entry and attack legality share this leaf across all execution backends.
+    /// Source-only entry conditions are evaluated at the actual hand-play entry
+    /// boundary. They do not invent entry events for snapshot or plain placement.
     pub(super) fn self_static_ongoing(&self, s:&State, source:CardId, kind:crate::static_ongoing::SelfEffect)->bool {
         if self.catalogue.is_none() || source==s.disabled_ongoing_source {return false;}
         self.card_programs(s,source).iter().any(|&id| {
             let p=self.program(id);
-            p.trigger=="constant" && p.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if r.effect_type()==kind))
+            p.trigger=="constant" && p.instructions.iter().any(|i|match i {
+                Instruction::Apply(Effect::ConstantEffectRegistration(r)) => match r.native() {
+                    Ok(crate::static_ongoing::NativeModifier::SelfBoolean {kind:actual,condition}) => *actual==kind && condition.as_ref().is_none_or(|c|self.native_ongoing_condition(s,source,c)),
+                    _=>false,
+                },_=>false,
+            })
         })
+    }
+    fn native_ongoing_condition(&self,s:&State,source:CardId,c:&crate::static_ongoing::Condition)->bool {
+        use crate::static_ongoing::Condition;
+        let player=s.card(source).owner;
+        match c {
+            Condition::RoundEquals(round)=>s.round==*round,
+            Condition::ControlledTitle(title)=>self.controlled_in_play_title(s,player,title),
+            Condition::FriendlyNonUnique=>s.player(player).ground.as_slice().iter().chain(s.player(player).space.as_slice()).any(|id|!self.def(s,*id).info.unique),
+            Condition::OpponentArenaEmpty(arena)=>if *arena=="ground" {s.player(player.other()).ground.len==0}else{s.player(player.other()).space.len==0},
+        }
+    }
+    pub(super) fn ambush_can_attack_base(&self,s:&State,target:CardId)->bool {
+        !self.constant_effects_matching(s,target,ConstantScope::AmbushBase).is_empty()
+    }
+    fn native_ongoing_count(&self,s:&State,source:CardId,c:&crate::static_ongoing::Count)->i64 {
+        use crate::static_ongoing::Count;
+        let player=s.card(source).owner;
+        match c {
+            Count::OtherFriendlySameTitle=>s.player(player).ground.as_slice().iter().chain(s.player(player).space.as_slice()).filter(|id|**id!=source&&self.def(s,**id).info.title==self.def(s,source).info.title).count() as i64,
+            Count::DiscardUnitsWithTrait(trait_name)=>s.player(player).discard.as_slice().iter().filter(|id|self.def(s,**id).info.is("unit")&&self.card_has_trait(s,**id,trait_name)).count() as i64,
+        }
     }
     pub(super) fn constant_stats(&self, s: &State, target: CardId) -> (i64, i64) {
         let mut total = (0, 0);
@@ -811,6 +840,8 @@ impl Engine {
             if let Effect::ModifyStats { power, hp, .. } = effect {
                 total.0 += self.eval_live_stat(s,source,target,power).number();
                 total.1 += self.eval_live_stat(s,source,target,hp).number();
+            } else if let Effect::ConstantEffectRegistration(r)=effect {
+                if let Ok(crate::static_ongoing::NativeModifier::StatCount(count))=r.native() {total.0+=self.native_ongoing_count(s,source,count);}
             }
         }
         total

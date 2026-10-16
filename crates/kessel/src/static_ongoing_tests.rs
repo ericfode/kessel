@@ -273,7 +273,7 @@ fn static_ongoing_raw_contract_rejects_unknown_dynamic_and_widened_scopes() {
 }
 
 #[test]
-fn static_ongoing_admission_delta_is_exact_and_conditional_ready_stays_rejected() {
+fn static_ongoing_original_admission_delta_remains_exact() {
     let original: Value =
         serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
     let admitted = Engine::from_catalogue_value(&original).unwrap();
@@ -299,16 +299,270 @@ fn static_ongoing_admission_delta_is_exact_and_conditional_ready_stays_rejected(
         .by_code
         .keys()
         .all(|code| admitted.by_code.contains_key(code)));
-    for code in ["HMW_208", "LAW_210", "LAW_223", "SEC_170"] {
-        assert!(
-            !admitted.by_code.contains_key(code),
-            "conditional all-zone readiness remains rejected: {code}"
-        );
-    }
     eprintln!(
         "static_ongoing runtime-admitted delta: {:?}; count {} -> {}",
         added,
         baseline.by_code.len(),
         admitted.by_code.len()
     );
+}
+
+// Source expectations: PutIntoPlaySystem checks these conditions immediately
+// before entry, with the entering controller. Arena membership excludes the
+// entering card. Card::name is an alias for its printed title. Discard counts
+// use only that controller's live discard pile, including type+trait filters.
+fn ongoing_paid_hand(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
+    s.active=seat;
+    let id=add(e,s,seat,code);
+    s.player_mut(seat).hand.push(id).unwrap();
+    while s.player(seat).resources.len < e.cost(s,id) as u8 {
+        let resource=add(e,s,seat,"LOF_254");
+        s.player_mut(seat).resources.push(resource).unwrap();
+    }
+    id
+}
+#[test]
+fn static_ongoing_conditional_ready_round_and_opponent_arena_are_live() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine(); e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            for round in [1,2,3] {
+                let mut s=board(&e);s.round=round;
+                let source=ongoing_paid_hand(&e,&mut s,seat,"HMW_208");
+                let played=e.apply(&s,&e.card_action(&s,source)).unwrap();
+                assert!(e.in_arena(&played,source));
+                assert_eq!(played.card(source).exhausted,round!=1);
+                assert_eq!(e.power(&played,source,false),1);
+                assert_eq!(e.power(&played,source,true),2);
+            }
+            for enemy_ground in [false,true] {
+                let mut s=board(&e);
+                let _space=unit(&e,&mut s,seat.other(),"TWI_253");
+                let _friendly_ground=unit(&e,&mut s,seat,"LOF_256");
+                if enemy_ground {unit(&e,&mut s,seat.other(),"LOF_256");}
+                let source=ongoing_paid_hand(&e,&mut s,seat,"SEC_170");
+                let played=e.apply(&s,&e.card_action(&s,source)).unwrap();
+                assert!(e.in_arena(&played,source));
+                assert_eq!(played.card(source).exhausted,enemy_ground);
+                // Readiness grants no lasting attack or stat modifier.
+                assert_eq!(e.power(&played,source,false),5);
+                assert_eq!(e.hp(&played,source),5);
+            }
+        }
+    }
+}
+#[test]
+fn static_ongoing_rose_ready_checks_control_and_does_not_count_incoming_unit() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            for friendly_nonunique in [false,true] {
+                let mut s=board(&e);
+                // Enemy nonunique units never satisfy a friendly predicate.
+                unit(&e,&mut s,seat.other(),"LOF_256");
+                if friendly_nonunique {unit(&e,&mut s,seat,"LOF_256");}
+                let source=ongoing_paid_hand(&e,&mut s,seat,"LAW_223");
+                let played=e.apply(&s,&e.card_action(&s,source)).unwrap();
+                assert!(e.in_arena(&played,source));
+                assert_eq!(played.card(source).exhausted,!friendly_nonunique);
+                assert_eq!(e.hp(&played,source),5);
+            }
+        }
+    }
+}
+#[test]
+fn static_ongoing_salacious_title_checks_in_play_and_current_controller() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        // Setup diagnostic only: no executable Jabba source is admitted yet.
+        // A vanilla unit supplies the exact printed-title predicate without
+        // pretending to implement any unsupported Jabba card ability.
+        let setup_def=e.by_code["LOF_256"];
+        e.definitions[setup_def as usize].info.title="Jabba the Hutt".into();
+        for seat in [Seat::P1,Seat::P2] {
+            for location in ["friendly","enemy","hand","discard","absent"] {
+                let mut s=board(&e);
+                match location {
+                    "friendly"=>{unit(&e,&mut s,seat,"LOF_256");},
+                    "enemy"=>{unit(&e,&mut s,seat.other(),"LOF_256");},
+                    "hand"|"discard"=>{let setup=add(&e,&mut s,seat,"LOF_256");if location=="hand" {s.player_mut(seat).hand.push(setup).unwrap();}else{s.player_mut(seat).discard.push(setup).unwrap();}},
+                    _=>{},
+                }
+                let source=ongoing_paid_hand(&e,&mut s,seat,"LAW_210");
+                let played=e.apply(&s,&e.card_action(&s,source)).unwrap();
+                assert!(e.in_arena(&played,source));
+                assert_eq!(played.card(source).exhausted,location!="friendly");
+                assert_eq!(e.power(&played,source,true),2);
+            }
+        }
+    }
+}
+#[test]
+fn static_ongoing_swarm_counts_other_friendly_same_title_and_updates_after_departure() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            let mut s=board(&e);
+            let source=unit(&e,&mut s,seat,"JTL_256");
+            let original=e.power(&s,source,false);
+            let friend=unit(&e,&mut s,seat,"JTL_256");
+            let friend2=unit(&e,&mut s,seat,"JTL_256");
+            unit(&e,&mut s,seat.other(),"JTL_256");
+            unit(&e,&mut s,seat,"TWI_253");
+            assert_eq!(e.power(&s,source,false),original+2);
+            assert_eq!(e.power(&s,friend,false),original+2);
+            assert_eq!(e.power(&s,friend2,false),original+2);
+            let hp=e.hp(&s,source);
+            e.defeat(&mut s,friend).unwrap();
+            assert_eq!(e.power(&s,source,false),original+1);
+            assert_eq!(e.hp(&s,source),hp);
+            // A full copy/import retains the live count, not a cached stat value.
+            let copy=s;assert_eq!(e.power(&copy,source,false),original+1);
+            let imported=e.load_state(&e.snapshot(&copy)).unwrap();
+            assert_eq!(e.power(&imported,source,false),original+1);
+        }
+    }
+}
+#[test]
+fn static_ongoing_enoch_live_discard_count_checks_owner_type_trait_and_movement() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            let mut s=board(&e);
+            let source=unit(&e,&mut s,seat,"LOF_083");
+            let original=e.power(&s,source,false);
+            let trooper=unit(&e,&mut s,seat,"SOR_128");
+            let other=add(&e,&mut s,seat,"LOF_256");s.player_mut(seat).discard.push(other).unwrap();
+            let enemy=add(&e,&mut s,seat.other(),"SOR_128");s.player_mut(seat.other()).discard.push(enemy).unwrap();
+            let hidden=add(&e,&mut s,seat,"SOR_128");s.player_mut(seat).hand.push(hidden).unwrap();
+            assert_eq!(e.power(&s,source,false),original);
+            e.defeat(&mut s,trooper).unwrap();
+            assert_eq!(e.power(&s,source,false),original+1);
+            // Trooper upgrades/events would not be units: the source filters both.
+            let setup=e.by_code["LOF_256"];
+            e.definitions[setup as usize].traits=vec!["trooper".into()];
+            let metadata=json!({"title":"Synthetic Trooper Event","types":["event"]});
+            e.definitions[setup as usize].info=serde_json::from_value(metadata).unwrap();
+            assert_eq!(e.power(&s,source,false),original+1);
+            s.player_mut(seat).discard.remove(trooper);s.player_mut(seat).hand.push(trooper).unwrap();
+            assert_eq!(e.power(&s,source,false),original);
+        }
+    }
+}
+#[test]
+fn static_ongoing_firespray_ambush_base_permission_is_friendly_live_and_respects_sentinel() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            let mut s=board(&e);
+            let source=unit(&e,&mut s,seat,"LOF_256");
+            let own_base=s.player(seat).base;let enemy_base=s.player(seat.other()).base;
+            assert!(!e.attack_targets(&s,source,true).contains(&enemy_base));
+            let firespray=unit(&e,&mut s,seat,"HMW_053");
+            assert!(e.attack_targets(&s,source,true).contains(&enemy_base));
+            assert!(e.attack_targets(&s,firespray,true).contains(&enemy_base));
+            let restricted=unit(&e,&mut s,seat,"ASH_034");
+            assert!(!e.attack_targets(&s,restricted,true).contains(&enemy_base));
+            let unable=unit(&e,&mut s,seat,"LOF_044");
+            assert!(e.attack_targets(&s,unable,true).is_empty());
+            let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+            assert!(!e.attack_targets(&s,enemy,true).contains(&own_base));
+            let sentinel=unit(&e,&mut s,seat.other(),"LOF_044");
+            assert_eq!(e.attack_targets(&s,source,true),vec![sentinel]);
+            e.defeat(&mut s,sentinel).unwrap();
+            // Actual mid-game attack resolves using the Ambush target protocol.
+            s.active=seat;s.source=source;s.decision=Decision::AttackTarget;s.ambush=true;
+            let fought=e.apply(&s,&e.card_action(&s,enemy_base)).unwrap();
+            assert_eq!(fought.card(enemy_base).damage,1);
+            e.defeat(&mut s,firespray).unwrap();
+            assert!(!e.attack_targets(&s,source,true).contains(&enemy_base));
+        }
+    }
+}
+#[test]
+fn static_ongoing_new_contracts_reject_scope_capture_and_unknown_mutations() {
+    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    for code in ["HMW_208","LAW_210","LAW_223","SEC_170","JTL_256","LOF_083","HMW_053"] {
+        let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
+        let load=|v|Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[v]})).unwrap();
+        assert!(load(entry.clone()).cards.contains_key(code),"{code}");
+        for mutation in ["properties","value","native","mode","source","target","condition","extra-side","metadata"] {
+            let mut v=entry.clone();let a=&mut v["abilities"]["card"][0];
+            match mutation {
+                "properties"=>a["effect"]["properties"]["unmodeled"]=json!(true),
+                "value"=>a["effect"]["modifier"]["value"]["unmodeled"]=json!(true),
+                "native"=>a["effect"]["native"]=json!({"forged":true}),
+                "mode"=>a["effect"]["modifier"]["valueMode"]=json!("unmodeled"),
+                "source"=>a["effect"]["properties"]["sourceZoneFilter"]=json!("discard"),
+                "target"=>a["effect"]["properties"]["targetZoneFilter"]=json!("any"),
+                "condition"=>a["effect"]["properties"]["condition"]=json!({"kind":"const","value":true}),
+                "extra-side"=>v["abilities"]["unit"]=v["abilities"]["card"].clone(),
+                _=>v["card"]["types"]=json!(["unit","leader"]),
+            }
+            assert!(load(v).rejected.contains_key(code),"{code}:{mutation}");
+        }
+    }
+}
+#[test]
+fn static_ongoing_firespray_opens_real_hand_play_ambush_against_an_empty_board() {
+    for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            for aura in [false,true] {
+                let mut s=board(&e);
+                if aura {unit(&e,&mut s,seat,"HMW_053");}
+                let source=ongoing_paid_hand(&e,&mut s,seat,"LOF_257");
+                let entered=e.apply(&s,&e.card_action(&s,source)).unwrap();
+                if aura {
+                    assert_eq!(entered.decision,Decision::Ambush);
+                    assert_eq!(e.legal_actions(&entered),vec![Action::button("Trigger","trigger"),Action::button("Pass","pass")]);
+                    let choosing=e.apply(&entered,&Action::button("Trigger","trigger")).unwrap();
+                    assert_eq!(choosing.decision,Decision::AttackTarget);
+                    let base=s.player(seat.other()).base;
+                    assert_eq!(e.legal_actions(&choosing),vec![e.card_action(&choosing,base)]);
+                    let fought=e.apply(&choosing,&e.card_action(&choosing,base)).unwrap();
+                    assert_eq!(fought.card(base).damage,2);
+                    assert!(fought.card(source).exhausted);
+                } else {
+                    assert_eq!(entered.decision,Decision::Window);
+                    assert_eq!(entered.card(entered.player(seat.other()).base).damage,0);
+                }
+            }
+        }
+    }
+}
+#[test]
+fn static_ongoing_rejects_nested_callback_capture_and_binding_mutations() {
+    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    for code in ["JTL_256","LOF_083","LAW_223"] {
+        let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
+        fn mutate(v:&mut Value,key:&str,value:Value)->bool {
+            if let Some(o)=v.as_object_mut() {
+                if o.contains_key(key) {o.insert(key.into(),value);return true;}
+                for child in o.values_mut() {if mutate(child,key,value.clone()) {return true;}}
+            } else if let Some(a)=v.as_array_mut() {for child in a {if mutate(child,key,value.clone()) {return true;}}}
+            false
+        }
+        for (key,value) in [("capture",json!("registrationSnapshot")),("invokeAt",json!("setup")),("bindingPattern",json!({"name":"x","unsupported":true})),("optionalReceiver",json!(true)),("role",json!("candidate"))] {
+            let mut v=entry.clone();
+            if !mutate(&mut v["abilities"],key,value) {continue;}
+            let c=Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[v]})).unwrap();
+            assert!(c.rejected.contains_key(code),"{code}:{key}");
+        }
+    }
+}
+#[test]
+fn static_ongoing_conditional_and_live_count_admission_delta_is_complete() {
+    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let focus=["HMW_053","HMW_208","JTL_256","LAW_210","LAW_223","LOF_083","SEC_170"];
+    let admitted=Engine::from_catalogue_value(&original).unwrap();
+    let mut baseline=original.clone();
+    for entry in baseline["cards"].as_array_mut().unwrap() {
+        if entry["setCode"].as_str().is_some_and(|code|focus.contains(&code)) {entry["status"]=json!("unsupported");}
+    }
+    let baseline=Engine::from_catalogue_value(&baseline).unwrap();
+    let delta:std::collections::BTreeSet<_>=admitted.by_code.keys().filter(|code|!baseline.by_code.contains_key(*code)).map(String::as_str).collect();
+    assert_eq!(delta,focus.into_iter().collect());
+    assert!(baseline.by_code.keys().all(|code|admitted.by_code.contains_key(code)));
+    eprintln!("ongoing conditional/live-count admission delta: {delta:?}; {} -> {}",baseline.by_code.len(),admitted.by_code.len());
 }

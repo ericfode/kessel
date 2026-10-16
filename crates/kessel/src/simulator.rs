@@ -408,7 +408,7 @@ impl Engine {
         let zone = if d.info.arena.as_deref() == Some("space") { &opp.space } else { &opp.ground };
         let sentinel = allowed && self.keyword_amount(s, source, "saboteur") == 0
             && zone.as_slice().iter().any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
-        let base = allowed && !ambush && !sentinel
+        let base = allowed && (!ambush || self.ambush_can_attack_base(s,source)) && !sentinel
             && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase);
         zone.as_slice().iter().copied()
             .filter(move |&c| allowed && (!sentinel || self.keyword_amount(s, c, "sentinel") > 0))

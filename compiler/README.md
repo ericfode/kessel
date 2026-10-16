@@ -121,13 +121,24 @@ cycles and unsupported duration/value shapes remain rejected. Intrinsic
 keywords require the engine's printed-text match: a keyword in the downloaded
 metadata may only be mentioned or granted to another card.
 
-Unconditional self-only static registrations support `cannotAttack`,
-`cannotAttackBase`, and the all-zone `entersPlayReady` form on complete ordinary
-units. Attack restrictions apply to action availability and target legality,
-including Saboteur, while legal Overwhelm damage remains independent. Ready entry
-initializes exhaustion before uniqueness and entry triggers; importing or placing
-a unit preserves its supplied readiness. Conditional effects and wider ongoing
-target domains remain rejected.
+Bounded native ongoing registrations support self `cannotAttack`,
+`cannotAttackBase`, and all-zone `entersPlayReady` on complete ordinary units.
+Ready conditions cover a literal round, a controlled in-play printed title, a
+friendly nonunique unit, or an empty opposing arena. They evaluate immediately
+before entry; importing or placing a unit preserves its supplied readiness.
+Attack restrictions apply to action availability and target legality, including
+Saboteur, while legal Overwhelm damage remains independent. A separate bounded
+friendly-unit aura permits base targets during Ambush, preserving Sentinel and
+the attacker's own restrictions.
+
+Two pure live stat-count callbacks also lower to native leaves: other friendly
+arena units with the source's printed title, and controller-owned discarded units
+with a literal trait. Callback slots, local declarations, evaluation timing,
+source defaults and the entire wrapper are checked before admission. Unknown
+fields, registration-time captures, optional chains, stat-dependent predicates,
+and unreviewed effects remain rejected. Auto and interpreter paths share these
+native leaves; generated stat and attack code does not evaluate a second version
+of their semantics.
 
 Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
 `includes`, retaining order, duplicates, empty-array truthiness, and physical
