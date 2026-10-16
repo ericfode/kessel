@@ -720,6 +720,12 @@ impl TargetResolver {
 pub enum Cost {
     ExhaustSelf,
     Resources { amount: Expr },
+    UseForceCost {
+        target: String,
+        timing: String,
+        #[serde(rename = "mustFullyResolve")]
+        must_fully_resolve: bool,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1538,7 +1544,15 @@ impl Program {
             return Err("duplicate exhaust cost cannot be paid".into());
         }
         let mut resource_cost = 0u64;
+        let mut force_cost = false;
         for cost in &p.costs {
+            if let Cost::UseForceCost { target, timing, must_fully_resolve } = cost {
+                if target != "ownPlayer" || timing != "abilityCostPayment" || !must_fully_resolve {
+                    return Err("Force cost requires own-player mandatory ability payment".into());
+                }
+                if force_cost { return Err("duplicate Force cost cannot be paid".into()); }
+                force_cost = true;
+            }
             if let Cost::Resources { amount } = cost {
                 let Expr::Const { value } = amount else {
                     return Err("dynamic resource costs require typed bounded evaluation".into());

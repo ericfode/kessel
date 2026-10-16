@@ -3381,7 +3381,7 @@ fn bounded_attached_context_rejects_wrong_source_types_and_pilot_metadata() {
 
 #[test]
 fn aspect_scaled_any_target_phase_stats_remain_quarantined_for_source_menu() {
- let e=engine();assert!(!e.by_code.contains_key("LAW_167"));let reason=e.rejected_cards().unwrap().get("LAW_167").unwrap();assert!(reason.contains("compiler rejected") && reason.contains("flatMap"),"{reason}");
+ let e=engine();assert!(!e.by_code.contains_key("LAW_167"));let reason=e.rejected_cards().unwrap().get("LAW_167").unwrap();assert!(reason.contains("unsupported runtime query arenaDistinctAspectCount"),"{reason}");
 }
 #[test]
 fn attached_context_scope_rejects_unreviewed_keywords_amounts_and_aura_domains() {
@@ -3730,3 +3730,6 @@ fn live_power_maximum_full_metadata_and_raw_display_boundaries_reject() {
 
 #[path="ahsoka_integrated_tests.rs"]
 mod ahsoka_integrated_tests;
+
+#[path="force_cost_tests.rs"]
+mod force_cost_tests;

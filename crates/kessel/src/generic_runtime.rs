@@ -187,7 +187,7 @@ fn program_needs_force(program: &Program) -> bool {
     fn title_force(v:&Value)->bool {
         (v["kind"]=="query" && v["name"]=="hasControlledInPlayTitle" && v["args"][0]["value"]=="The Force") || match v {Value::Object(o)=>o.values().any(title_force),Value::Array(a)=>a.iter().any(title_force),_=>false}
     }
-    title_force(&serde_json::to_value(program).expect("typed program serializes")) || crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|instruction| {
+    program.costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. })) || title_force(&serde_json::to_value(program).expect("typed program serializes")) || crate::ability_ir::contains_force_presence(program) || program.instructions.iter().any(|instruction| {
         let effect = match instruction {
             Instruction::Apply(effect) => Some(effect),
             other => other.group_effect(),
@@ -839,6 +839,8 @@ impl Engine {
                     && p.costs.iter().all(|c| match c {
                         Cost::ExhaustSelf => !s.card(id).exhausted,
                         Cost::Resources { .. } => true,
+                        Cost::UseForceCost { .. } => s.force_state_exact && self.force_def.is_some()
+                            && s.player(s.card(id).owner).force_id != 0 && s.player(s.card(id).owner).force_held,
                     })
                     && p.costs
                         .iter()
@@ -1629,6 +1631,13 @@ impl Engine {
             return Ok(());
         }
         let source = s.source;
+        // Mandatory Force payment must still be possible after targeting. Check
+        // before mutating any other cost, so a failed payment stays atomic.
+        if self.program(s.ability_program - 1).costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. }))
+            && (!s.force_state_exact || s.player(s.card(source).owner).force_id == 0
+                || self.force_def.is_none() || !s.player(s.card(source).owner).force_held) {
+            return Err("Force cost requires exact held Force identity".into());
+        }
         if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
             self.spend(s, self.cost(s, source));
             s.player_mut(s.active).hand.remove(source);
@@ -1643,6 +1652,7 @@ impl Engine {
                         .number()
                         .clamp(0, u16::MAX as i64) as u16,
                 ),
+                Cost::UseForceCost { .. } => s.player_mut(s.card(source).owner).force_held = false,
             }
         }
         s.ability_committed = true;

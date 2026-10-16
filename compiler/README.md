@@ -161,7 +161,14 @@ grant self Grit, Sentinel or Ambush, or a friendly power-only aura. Grit, Sentin
 and power update live when Force changes; Ambush registration is captured on
 entry, so gaining Force later does not create an attack. Presence reads require
 the same native-token and versioned-state evidence even when Force is absent.
-Force-dependent HP changes, other query receivers, costs, groups, hooks and
+Action costs may require the controller's Force, including alongside exhaustion
+and bounded resource costs. Targeting and cancellation precede payment; a
+confirmed no-effect action still pays. Payment checks the exact held token
+identity before any cost changes and spends it once. Duplicate Force costs,
+other payers, partial payment, and triggered additional costs remain rejected.
+Both generated and interpreted programs use this shared cost boundary.
+
+Force-dependent HP changes, other query receivers, groups, hooks and
 continuations remain explicit rejections. Source conversion and runtime admission
 remain separate.
 
