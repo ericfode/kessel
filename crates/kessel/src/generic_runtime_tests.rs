@@ -3758,3 +3758,6 @@ mod selector_tests;
 
 #[path="attached_registration_tests.rs"]
 mod attached_registration_tests;
+
+#[path="native_attack_tests.rs"]
+mod native_attack_tests;

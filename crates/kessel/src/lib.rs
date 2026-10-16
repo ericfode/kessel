@@ -26,3 +26,5 @@ fn expression_backend(bytes: &[u8]) -> Option<usize> {
 mod attack_history;
 
 mod attached_registration;
+
+mod native_attack;

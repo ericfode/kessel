@@ -1,5 +1,8 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/native_attack.rs"]
+mod native_attack;
+#[allow(dead_code)]
 #[path = "src/ability_ir.rs"]
 mod ability_ir;
 #[allow(dead_code)]

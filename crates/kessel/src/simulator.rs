@@ -364,7 +364,7 @@ impl Engine {
         d.info.cost().max(0) as u16 + penalty
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
-        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0
+        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
     }
     pub fn power(&self,s:&State,id:CardId,attacking:bool)->u16 {u16::try_from(self.raw_power(s,id,attacking).max(0)).expect("power exceeds validated compact capacity")}
     fn leader_available(&self, s: &State) -> (bool, bool) {
@@ -489,7 +489,7 @@ impl Engine {
                 out.push(Action::button("Cancel", out.len()));
             }
             Decision::AttackTarget => {
-                if s.support.pending {out.push(Action::button("Cancel", "cancel"));out.push(Action::button("Pass attack", "passAbility"));}
+                if s.support.pending {out.push(Action::button("Cancel", "cancel"));if !s.support.native_attack || s.support.optional_attack {out.push(Action::button("Pass attack", "passAbility"));}}
                 else if !s.ambush {out.push(Action::button("Cancel", "cancel"));}
                 for id in self.attack_targets(s, s.source, s.ambush) {
                     out.push(self.card_action(s, id));

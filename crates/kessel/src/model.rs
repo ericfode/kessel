@@ -3,9 +3,9 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
-// Exact test budget: prior inline state 28,032 + phase history 136 + attack context 40.
+// Exact test budget: prior 28,032 + phase history 136 + attack context 40 + modified attack grants 64.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_208;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_272;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -187,20 +187,24 @@ pub const MAX_SUPPORT_PROGRAMS: usize = 80;
 pub struct SupportGrant {
     pub target: CardId,
     pub donor: CardId,
+    pub native_attack: bool,
+    pub power: i16,
     pub programs: [u16; MAX_SUPPORT_PROGRAMS],
     pub len: u8,
     pub keywords: [u16; 9],
     pub presence: u16,
 }
-impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
+impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupportState {
     pub grants: [SupportGrant; MAX_SUPPORT_GRANTS],
     pub len: u8,
     pub pending: bool,
+    pub native_attack: bool,
+    pub optional_attack: bool,
     pub context: ResolutionContext,
 }
-impl Default for SupportState {fn default()->Self {Self {grants:[SupportGrant::default();MAX_SUPPORT_GRANTS],len:0,pending:false,context:ResolutionContext::default()}}}
+impl Default for SupportState {fn default()->Self {Self {grants:[SupportGrant::default();MAX_SUPPORT_GRANTS],len:0,pending:false,native_attack:false,optional_attack:false,context:ResolutionContext::default()}}}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Zone {
@@ -657,11 +661,13 @@ impl State {
         if self.support.len != 0 || self.support.pending {
             put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
             for g in &self.support.grants[..self.support.len as usize] {
+                if g.native_attack {put(0x4e41544956454154);put(g.power as u64);}
                 put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);
                 for &p in &g.programs[..g.len as usize] {put(p as u64);}
                 for n in g.keywords {put(n as u64);}
             }
             if self.support.pending {
+                if self.support.native_attack {put(0x4e41544956455041);put(self.support.optional_attack as u64);}
                 context_values(&self.support.context,&mut put);
             }
         }

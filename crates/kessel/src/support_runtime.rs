@@ -5,6 +5,40 @@ use super::*;
 use crate::ability_ir::{Effect, Instruction, Program};
 
 impl Engine {
+    pub(super) fn native_attack_power(&self,s:&State,target:CardId)->i64 {
+        s.support.grants[..s.support.len as usize].iter().filter(|g|g.target==target).map(|g|g.power as i64).sum()
+    }
+    pub(super) fn native_attack_eligible(&self,s:&State,source:CardId,target:CardId,p:&crate::native_attack::Properties)->bool {
+        target!=0 && self.in_arena(s,target) && s.card(target).owner==s.card(source).owner
+            && !s.card(target).exhausted && !self.attack_targets(s,target,false).is_empty()
+            && p.predicate().ok().is_some_and(|predicate|predicate.is_none_or(|e|self.native_attack_predicate(s,source,target,&e)))
+    }
+    pub(super) fn begin_native_attack(&self,s:&mut State,p:&crate::native_attack::Properties,optional:bool)->Result<(),String> {
+        if s.support.pending {return Err("nested modified attack exceeds the admitted lifecycle".into());}
+        let modifiers=p.modifiers()?;
+        if (modifiers.power!=0||modifiers.presence!=0) && s.support.len as usize==MAX_SUPPORT_GRANTS {return Err("modified attack lasting-effect capacity exceeded (32)".into());}
+        // Targeting and parent costs have completed. The early event applies its
+        // captured literal modifiers before the defender prompt, and cancellation
+        // retains them exactly like the existing Support grant lifecycle.
+        if modifiers.power!=0||modifiers.presence!=0 {
+            s.support.grants[s.support.len as usize]=SupportGrant {target:s.ability_target,donor:s.source,native_attack:true,power:modifiers.power,keywords:modifiers.keywords,presence:modifiers.presence,..SupportGrant::default()};
+            s.support.len+=1;
+        }
+        s.ability_pc+=1;s.ability_succeeded=true;s.ability_result=1;
+        s.support.context=ResolutionContext::capture(s);s.support.pending=true;s.support.native_attack=true;s.support.optional_attack=optional;
+        s.source=s.ability_target;s.target=0;s.ability_program=0;s.ability_target=0;s.ability_pc=0;
+        s.pending_programs=0;s.pending_triggers=0;s.after_attack_programs=0;s.after_attack_triggers=0;s.trigger_context=0;s.ambush=false;
+        s.decision=Decision::AttackTarget;self.check_stat_capacity(s)?;self.sweep_stat_defeats(s)?;
+        if self.open_deaths(s,7)? {return Ok(());}
+        self.native_attack_after_early_effects(s)
+    }
+    pub(super) fn native_attack_after_early_effects(&self,s:&mut State)->Result<(),String> {
+        // Early lasting effects are a real framework event window. A grant can
+        // change a keyword-dependent HP aura; complete its deaths before the
+        // nested attack resolver checks its physical attacker again.
+        if !self.in_arena(s,s.source)||s.card(s.source).exhausted||self.attack_targets(s,s.source,false).is_empty() {return self.resume_support(s);}
+        s.decision=Decision::AttackTarget;Ok(())
+    }
     pub(super) fn support_programs(&self, s: &State, target: CardId) -> Vec<u16> {
         s.support.grants[..s.support.len as usize]
             .iter()
@@ -98,10 +132,12 @@ impl Engine {
     }
     pub(super) fn resume_support(&self, s: &mut State) -> Result<(), String> {
         let context = s.support.context;
+        let native=s.support.native_attack;
+        s.support.native_attack=false;s.support.optional_attack=false;
         s.support.pending = false;
         s.support.context = ResolutionContext::default();
         context.restore(s);
-        self.process_triggers(s)
+        if native {self.run_program(s)} else {self.process_triggers(s)}
     }
     pub(super) fn remove_support_target(&self, s: &mut State, target: CardId) {
         let mut len = 0;
@@ -121,6 +157,7 @@ impl Engine {
     fn definition_needs_support_state(&self, definition: &Definition) -> bool {
         fn effect_needs_support(effect: &Effect) -> bool {
             match effect {
+                Effect::InitiateAttack{..}=>true,
                 Effect::GainKeyword { keyword, .. } => keyword == "support",
                 Effect::CopyKeywords { domain, .. } => domain.iter().any(|k| k == "support"),
                 Effect::Sequence { effects } | Effect::Simultaneous { effects }
@@ -159,11 +196,15 @@ impl Engine {
     }
     pub(super) fn support_snapshot(&self, s: &State) -> Value {
         let catalogue = self.catalogue.as_ref().expect("Support requires catalogue");
-        json!(s.support.grants[..s.support.len as usize].iter().map(|g|json!({
-            "target":format!("c{}",g.target-1),"donor":format!("c{}",g.donor-1),
-            "programs":g.programs[..g.len as usize].iter().map(|&p|serde_json::to_value(&catalogue.programs[p as usize]).expect("serializable program")).collect::<Vec<_>>(),
-            "keywords":g.keywords,"presence":g.presence
-        })).collect::<Vec<_>>())
+        json!(s.support.grants[..s.support.len as usize].iter().map(|g|{
+            let mut value=json!({
+                "target":format!("c{}",g.target-1),"donor":format!("c{}",g.donor-1),
+                "programs":g.programs[..g.len as usize].iter().map(|&p|serde_json::to_value(&catalogue.programs[p as usize]).expect("serializable program")).collect::<Vec<_>>(),
+                "keywords":g.keywords,"presence":g.presence
+            });
+            if g.native_attack {value["kind"]=json!("modifiedAttack");value["power"]=json!(g.power);}
+            value
+        }).collect::<Vec<_>>())
     }
     pub(super) fn load_support_state(&self, s: &mut State, v: &Value) -> Result<(), String> {
         if v.get("supportAttackPending").is_some() {
@@ -193,7 +234,7 @@ impl Engine {
             .ok_or("Support grants require catalogue")?;
         for raw in grants {
             if !raw.as_object().is_some_and(|o| {
-                o.len() == 5
+                (o.len() == 5 || o.len()==7&&o.get("kind")==Some(&json!("modifiedAttack"))&&o.contains_key("power"))
                     && ["target", "donor", "programs", "keywords", "presence"]
                         .iter()
                         .all(|k| o.contains_key(*k))
@@ -212,10 +253,11 @@ impl Engine {
                 donor: id("donor")?,
                 ..SupportGrant::default()
             };
-            if !self.in_arena(s, g.target)
+            let native=raw["kind"]=="modifiedAttack";
+            if !native && (!self.in_arena(s, g.target)
                 || g.target == g.donor
                 || s.card(g.target).owner != s.card(g.donor).owner
-                || self.def(s, g.donor).flags & SUPPORT == 0
+                || self.def(s, g.donor).flags & SUPPORT == 0)
             {
                 return Err(
                     "Support grant requires distinct friendly unit identities and intrinsic donor"
@@ -267,6 +309,13 @@ impl Engine {
                 if (i != 6 && i != 7 && n > 1) || (n > 0 && g.presence & (1 << i) == 0) {
                     return Err("invalid Support keyword snapshot".into());
                 }
+            }
+            if native {
+                g.native_attack=true;g.power=raw["power"].as_i64().and_then(|n|i16::try_from(n).ok()).ok_or("invalid modified attack power")?;
+                if !self.in_arena(s,g.target)||s.card(g.target).owner!=s.card(g.donor).owner||g.len!=0 {return Err("modified attack grant requires friendly in-play recipient and no copied programs".into());}
+                let expected=crate::native_attack::Modifiers{power:g.power,keywords:g.keywords,presence:g.presence};
+                let valid=(expected.power!=0||expected.presence!=0)&&self.card_programs(s,g.donor).iter().any(|p|self.program(*p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::InitiateAttack{properties,..}) if properties.modifiers().ok().as_ref()==Some(&expected))));
+                if !valid {return Err("modified attack grant does not match its admitted physical donor".into());}
             }
             s.support.grants[s.support.len as usize] = g;
             s.support.len += 1;

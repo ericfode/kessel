@@ -140,6 +140,27 @@ and unreviewed effects remain rejected. Auto and interpreter paths share these
 native leaves; generated stat and attack code does not evaluate a second version
 of their semantics.
 
+Ordinary units and events can initiate one chosen-unit attack from a sole event,
+When Played, or action registration. A typed, closed attack-properties contract
+supports literal early power bonuses and Grit, Saboteur, Overwhelm, Raid, or
+Restore grants. Candidate predicates may read bounded unit traits/aspects,
+nonleader identity, and the initiating source's identity. Enemy, exhausted, and
+attack-restricted units remain ineligible. Parent targeting precedes payment;
+attack exhaustion follows defender selection. A parent exhaustion cost can make
+its previously selected source ineligible before attack initiation resolves.
+
+The nested attack retains the initiating ability's continuation and resumes it
+only after declaration triggers, combat, attack-end triggers, and cleanup.
+Unconditional modifiers apply before defender selection, including Saboteur
+legality; their state-change window settles before the attack resolver rechecks
+its attacker. Cancelling or passing that attack retains its early modifiers until
+an actual attack completes or the recipient leaves play. These grants reuse the
+versioned Support snapshot, with an explicit modified-attack kind and validated
+physical donor. They use the interpreter fallback in Auto mode. General attack
+factories, attack-end/on-attack initiation, exhausted-attacker permissions,
+defender modifiers, altered damage, and unverified continuations remain rejected.
+
+
 Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
 `includes`, retaining order, duplicates, empty-array truthiness, and physical
 identity. Each callback has its own card binding while the source and outer

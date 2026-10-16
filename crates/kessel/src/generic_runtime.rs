@@ -708,7 +708,7 @@ impl Engine {
             let power = d.info.power.unwrap_or(0) as i64
                 + self.token_count(s, s.card(id).experience) as i64
                 + s.card(id).phase_power as i64
-                + constant_power + self.upgrade_stats(s,id).0
+                + constant_power + self.upgrade_stats(s,id).0 + self.native_attack_power(s,id)
                 + if self.keyword_amount(s, id, "grit") > 0 {
                     s.card(id).damage as i64
                 } else {
@@ -1371,6 +1371,9 @@ impl Engine {
         }
         out
     }
+    pub(super) fn native_attack_predicate(&self,s:&State,source:CardId,candidate:CardId,e:&Expr)->bool {
+        self.eval_with_card(s,source,candidate,candidate,e).truth()
+    }
     fn effect_can_affect(
         &self,
         s: &State,
@@ -1380,6 +1383,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
@@ -1796,7 +1800,7 @@ impl Engine {
             self.finish(s)
         }
     }
-    fn run_program(&self, s: &mut State) -> Result<(), String> {
+    pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
         loop {
             if self.open_deaths(s,1)? {return Ok(());}
             let p = self.program(s.ability_program - 1);
@@ -1853,6 +1857,14 @@ impl Engine {
                     };
                 }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
+                Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
+                    self.commit_program(s)?;
+                    if self.native_attack_eligible(s,s.source,s.ability_target,properties) {
+                        self.begin_native_attack(s,properties,p.optional)?;
+                        return Ok(());
+                    }
+                    s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
+                }
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
@@ -3148,7 +3160,7 @@ impl Engine {
                 if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;continue;}
                 let n=s.death_depth as usize-1;let frame=s.death_frames[n];s.death_frames[n]=DeathFrame::default();s.death_depth-=1;
                 s.death_window=frame.window;frame.context.restore(s);
-                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),_=>Err("invalid defeat continuation".into())};
+                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),_=>Err("invalid defeat continuation".into())};
             }
             s.active=s.death_window.player;
             if s.death_window.resolve_all {
