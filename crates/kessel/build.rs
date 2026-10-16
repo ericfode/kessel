@@ -107,20 +107,13 @@ fn primitive(e: &Effect) -> Result<String, String> {
             r#"let delta=PhaseStatDelta{{power:{power},hp:{hp}}};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{self.modify_phase_stats(s,id,delta)?;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
         ));
     }
-    let (kind, target, amount) = match e {
-        Effect::Draw { target, amount } => ("draw", target, number(amount)?),
-        Effect::Damage { target, amount } => ("damage", target, number(amount)?),
-        Effect::Heal { target, amount } => ("heal", target, number(amount)?),
-        Effect::Ready { target } => ("ready", target, "1i64".into()),
-        Effect::Exhaust { target } => ("exhaust", target, "1i64".into()),
+    // Damage/Defeat/Ready/Exhaust return through apply_effect above.
+    let (target, amount, operation) = match e {
+        Effect::Draw { target, amount } => (target, number(amount)?,
+            r#"if let Eval::Player(seat)=target {let draw=self.draw_cards(s,seat,amount)?;result=result.saturating_add(draw.drawn);resolved|=draw.resolved;}"#),
+        Effect::Heal { target, amount } => (target, number(amount)?,
+            r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#),
         _ => return Err("effect operation requires interpreter".into()),
-    };
-    let operation=match kind {
-        "draw"=>r#"if let Eval::Player(seat)=target {let draw=self.draw_cards(s,seat,amount)?;result=result.saturating_add(draw.drawn);resolved|=draw.resolved;}"#,
-        "damage"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {resolved |= amount>0 && s.card(id).shield!=0;let before=s.card(id).damage;self.damage(s,id,amount);result=result.saturating_add(s.card(id).damage.saturating_sub(before));}}"#,
-        "heal"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#,
-        "ready"=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,false);}}",
-        _=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,true);}}",
     };
     Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}} s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
