@@ -1117,9 +1117,8 @@ fn parent_defense_registration(a:&Ability)->bool {
 }
 pub(crate) fn parent_defense_upgrade_entry(entry:&Value)->bool {
     let Ok(sides)=serde_json::from_value::<Sides>(entry["abilities"].clone()) else{return false;};
-    entry["baseClass"]=="UpgradeCard"&&entry["card"]["types"]==serde_json::json!(["upgrade"])&&entry["card"]["unique"]==false&&sides.card.len()==1&&sides.unit.is_empty()&&sides.leader.is_empty()&&parent_defense_registration(&sides.card[0])&&
-    entry["keywordValues"]==serde_json::json!({})&&entry["card"]["keywords"]==serde_json::json!([])&&entry["piloting"].is_null()&&["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().all(|k|entry["card"][*k].is_null())&&(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")&&
-    [("upgradePower","power"),("upgradeHp","hp")].iter().all(|(derived,printed)|entry["card"][*derived].as_i64().is_some_and(|n|(-1000..=1000).contains(&n))&&entry["card"][*derived]==entry["card"][*printed])&&
+    crate::attached_registration::complete_single_upgrade(entry,&sides)
+        && entry["card"]["unique"]==false && parent_defense_registration(&sides.card[0]) &&
     entry["attachCondition"]==serde_json::json!({"kind":"unary","op":"!","value":{"kind":"query","name":"hasSomeTrait","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":"vehicle"}]}})
 }
 fn maximum_registration(a:&Ability)->bool {
@@ -1351,7 +1350,7 @@ pub(crate) fn gained_host_upgrade_kind(entry:&Value)->Option<usize> {
  fn markers(v:&Value)->usize {match v {Value::Object(o)=>usize::from(o.contains_key("gainedHost"))+o.values().map(markers).sum::<usize>(),Value::Array(a)=>a.iter().map(markers).sum(),_=>0}}
  if markers(entry)!=1 {return None;}
  let sides:Sides=serde_json::from_value(entry["abilities"].clone()).ok()?;
- if entry["baseClass"]!="UpgradeCard"||entry["card"]["types"]!=serde_json::json!(["upgrade"])||sides.card.len()!=1||!sides.leader.is_empty()||!sides.unit.is_empty()||!entry["piloting"].is_null()||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().any(|k|!entry["card"][k].is_null())||!(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")||![("upgradePower","power"),("upgradeHp","hp")].iter().all(|(derived,printed)|entry["card"][*derived].as_i64().is_some_and(|n|(-1000..=1000).contains(&n))&&entry["card"][*derived]==entry["card"][*printed]) {return None;}
+ if !crate::attached_registration::complete_single_upgrade(entry,&sides) {return None;}
  let kind=gained_host_kind(&sides.card[0])?;
  let trait_query=|name:&str|serde_json::json!({"kind":"query","name":"hasSomeTrait","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":name}]});
  let attach=match kind {0=>trait_query("force"),1=>serde_json::json!({"kind":"unary","op":"!","value":trait_query("vehicle")}),2=>Value::Null,_=>return None};
@@ -1672,24 +1671,7 @@ impl Program {
         }
         if crate::static_ongoing::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::static_ongoing::registration(ability) {return Err("static self ongoing contracts require a sole unconditional root constant".into());}
         if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && gained_host_kind(ability).is_none() {return Err("gained host requires one exact reviewed root attack template".into());}
-        if let Some(context)=&ability.attached_context {
-            if !["upgrade","host"].contains(&context.as_str()) || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() {
-                return Err("attached contexts require bounded constant keyword registrations".into());
-            }
-            fn keywords(e:&Effect,selected:bool,context:&str)->bool {match e {
-                Effect::GainTrait{target:Target::Name(n),trait_name,duration}|Effect::LoseTrait{target:Target::Name(n),trait_name,duration}=>duration=="persistent" && context=="upgrade" && !selected && n=="parent" && !trait_name.is_empty() && trait_name.len()<=64,
-                Effect::GainKeyword {target:Target::Name(n),keyword,amount:Expr::Const{value},duration}=>duration=="persistent" && n==if selected {"chosen"}else if context=="upgrade" {"parent"}else{"self"} && ["grit","sentinel","restore","raid","overwhelm"].contains(&keyword.as_str()) && value.as_u64().is_some_and(|n|(1..=2).contains(&n)),
-                Effect::Simultaneous{effects}=>!effects.is_empty()&&effects.len()<=8&&effects.iter().all(|e|keywords(e,selected,context)),_=>false}}
-            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) && !crate::attached_constants::host_trait_aura(ability) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
-            if context=="host" {
-                fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Collection{receiver,args,..}|Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
-                if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
-                if let Some(r)=&ability.target_resolver {
-                    let expected=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}});
-                    if !crate::attached_constants::host_trait_aura(ability) && (r.owner!="self" || r.card_type!="unit" || r.zone.as_deref()!=Some("arena") || r.optional || r.count.is_some() || r.mode.is_some() || r.arena.is_some() || r.prompt_title.is_some() || r.predicate.as_ref().and_then(|p|serde_json::to_value(p).ok())!=Some(expected)) {return Err("delegated host aura requires other friendly arena units by host identity and controller".into());}
-                }
-            }
-        }
+        crate::attached_constants::validate_context(ability)?;
         if contains_arena_scalar(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !arena_query_ability(ability) {return Err("arena scalar queries require exact reviewed registration".into());}
         if attachment_defeat_marker(&ability.effect)&&!attachment_defeat_registration(ability){return Err("attachment list defeat requires complete reviewed scalar-unit selector and event window".into());}
         if parent_upgrade_registration(ability)==Some(false) {
@@ -2785,13 +2767,13 @@ impl Catalogue {
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
                 let parent_title=parent_printed_title(&entry["abilities"]);
                 if (attached_context || parent_title) && !crate::attached_constants::entry(entry) {
-                    if entry["baseClass"]!="UpgradeCard" || !exact_type("upgrade") || sides.card.len()!=1 || !sides.unit.is_empty() || !sides.leader.is_empty() || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) || entry["keywordValues"]!=serde_json::json!({}) || !entry["card"]["keywords"].as_array().is_some_and(|keywords|keywords.iter().all(|k|k.as_str().is_some_and(|k|CORE_KEYWORDS.contains(&k)))) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
+                    if !crate::attached_registration::delegated_upgrade_metadata(entry,&sides) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
                 }
                 if contains_keyword_inventory(&entry["abilities"]) {
                     if entry["baseClass"]!="NonLeaderUnitCard"||!exact_type("unit")||sides.card.len()!=1||!sides.card.iter().all(keyword_inventory_registration)||!sides.unit.is_empty()||!sides.leader.is_empty()||!entry["piloting"].is_null()||!entry["attachCondition"].is_null()||!entry["card"]["unique"].is_boolean()||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) {return Err("keyword inventory requires sole ordinary nonleader unit metadata".into());}
                 }
                 if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|parent_upgrade_registration(a).is_some()) {
-                    if entry["baseClass"]!="UpgradeCard"||!exact_type("upgrade")||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||entry["card"]["unique"]!=false||!entry["card"]["title"].is_string()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null())||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([]) {return Err("parent token play requires sole ordinary nonunique attached upgrade metadata".into());}
+                    if !crate::attached_registration::delegated_upgrade_metadata(entry,&sides)||entry["card"]["unique"]!=false||!entry["card"]["title"].is_string()||!entry["attachCondition"].is_null()||entry["card"]["keywords"]!=serde_json::json!([]) {return Err("parent token play requires sole ordinary nonunique attached upgrade metadata".into());}
                 }
                 if sides.card.iter().any(|a|a.target_resolvers.iter().any(|d|d.chooser!="self")) {
                     let no_keywords=entry["keywordValues"].as_object().is_some_and(|v|v.is_empty())&&entry["card"]["keywords"].as_array().is_some_and(|v|v.is_empty());

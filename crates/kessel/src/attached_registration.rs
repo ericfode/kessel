@@ -20,6 +20,56 @@ struct Grant {
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct Registration { r#type:String, program:Value }
 
+/// Shared physical-parent scope for triggered aliases and constant wrappers.
+/// Source/controller rebinding is a separate contract: the grantor stays the
+/// upgrade even when a registration executes with its host as source.
+pub(crate) struct ParentScope<'a> {
+    pub target: &'a str,
+    pub controller: &'a str,
+    pub types: &'a [String],
+    pub zone: &'a str,
+    pub requires_grantor: bool,
+}
+impl ParentScope<'_> {
+    pub(crate) fn accepts(&self) -> bool {
+        self.target == "parent" && self.controller == "any"
+            && self.types == ["unit", "base"] && self.zone == "anyAttackable"
+            && self.requires_grantor
+    }
+}
+
+/// Metadata shared by whole-upgrade contracts. Legacy delegated contexts have
+/// historically checked fewer printed fields; that remains an explicit policy.
+#[derive(Clone, Copy)]
+pub(crate) enum UpgradeMetadata { Complete, LegacyContext }
+impl UpgradeMetadata {
+    pub(crate) fn accepts(self, entry: &Value) -> bool {
+        entry["baseClass"] == "UpgradeCard" && entry["card"]["types"] == json!(["upgrade"])
+            && entry["piloting"].is_null() && entry["keywordValues"] == json!({})
+            && ["pilotText", "pilotBox", "pilotingBox"].iter().all(|key|entry["card"][*key].is_null())
+            && match self {
+                Self::LegacyContext => true,
+                Self::Complete => ["deployBox", "deployCost"].iter().all(|key|entry["card"][*key].is_null())
+                    && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "")
+                    && [("power", "upgradePower"), ("hp", "upgradeHp")].iter().all(|(printed, derived)|
+                        entry["card"][*printed] == entry["card"][*derived]
+                            && entry["card"][*printed].as_i64().is_some_and(|n|(-1000..=1000).contains(&n))),
+            }
+    }
+}
+pub(crate) fn complete_single_upgrade(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::Complete.accepts(entry) && sides.card.len() == 1
+        && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["keywords"] == json!([])
+}
+pub(crate) fn delegated_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::LegacyContext.accepts(entry) && sides.card.len() == 1
+        && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["unique"].is_boolean()
+        && entry["card"]["keywords"].as_array().is_some_and(|keywords|
+            keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
+}
+
 fn marker(v:&Value)->bool {
     v["kind"]=="attachedAbilityRegistration" || match v {
         Value::Object(o)=>o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false
@@ -46,12 +96,8 @@ fn normalize_zone_names(v:&mut Value) {
 }
 pub(crate) fn plain_upgrade(e:&Value)->bool {
     if !crate::admission::SourceContextPolicy::Closed.accepts(e) {return false;}
-    e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
-    && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
-    && mention_keywords(e) && e["piloting"].is_null()
-    && ["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().all(|k|e["card"][*k].is_null())
-    && (e["card"]["epicAction"].is_null()||e["card"]["epicAction"]=="")
-    && [("power","upgradePower"),("hp","upgradeHp")].iter().all(|(a,b)|e["card"][*a]==e["card"][*b]&&e["card"][*a].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
+    UpgradeMetadata::Complete.accepts(e)
+    && e["card"]["unique"].is_boolean() && mention_keywords(e)
     && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
 }
 fn invalid_host_scope(v:&Value)->bool {
@@ -61,11 +107,12 @@ fn invalid_host_scope(v:&Value)->bool {
 fn program(v:&Value)->Result<Ability,String> {
     let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
     let g=w.effect;
+    let scope=ParentScope { target:&g.target, controller:&g.target_controller,
+        types:&g.target_types, zone:&g.target_zone, requires_grantor:g.requires_grantor_in_play };
     if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="attachedAbilityRegistration"
-        ||g.registration_mode!="upgrade"||g.target!="parent"||g.target_controller!="any"
-        ||g.source_binding!="attachedHost"||g.controller_binding!="hostController"
-        ||!g.requires_grantor_in_play||g.requires_attachable||g.source_mode!="upgrade"
-        ||g.target_zone!="anyAttackable"||g.target_types!=["unit","base"]||g.registration.r#type!="triggered" {
+        ||g.registration_mode!="upgrade"||!scope.accepts()
+        ||!crate::attached_constants::AttachmentContext::Host.matches_source_binding(&g.source_binding)||g.controller_binding!="hostController"
+        ||g.requires_attachable||g.source_mode!="upgrade"||g.registration.r#type!="triggered" {
         return Err("attached registration requires exact ordinary upgrade/host/controller contract".into());
     }
     let mut p=g.registration.program;
