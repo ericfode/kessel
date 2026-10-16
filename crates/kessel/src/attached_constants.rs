@@ -16,7 +16,7 @@ struct Contract {
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct TraitModifier {kind:String,scope:String,effect_type:String,target:String,duration:String,value_mode:String,value:Value}
-pub(crate) fn marker(v:&Value)->bool {v["kind"]=="attachedConstantContract"||match v {Value::Object(o)=>o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false}}
+pub(crate) fn marker(v:&Value)->bool { crate::ability_ir::contains(v,|v|v["kind"]=="attachedConstantContract") }
 fn trait_name(v:&Value)->Option<&str> {let o=v.as_object()?;if o.len()!=2||v["kind"]!="const" {return None;}v["value"].as_str().filter(|n|!n.is_empty()&&n.len()<=64&&n.chars().all(|c|c.is_ascii_lowercase()||c=='-'||c==' '))}
 fn trait_leaf(v:Value)->Result<Value,String> {
     let m:TraitModifier=serde_json::from_value(v).map_err(|e|format!("attached trait modifier: {e}"))?;

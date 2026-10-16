@@ -234,15 +234,8 @@ pub(crate) fn registration(a: &Ability) -> bool {
         _ => false,
     }
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    v.get("hooks").is_some()
-        || v["trigger"] == "eventHooks"
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v.get("hooks").is_some()
+        || v["trigger"] == "eventHooks") }
 pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
     crate::admission::SourceContextPolicy::LegacyEmptyWatchers.accepts(e)
         && e["baseClass"] == "NonLeaderUnitCard"

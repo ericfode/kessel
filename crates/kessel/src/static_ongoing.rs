@@ -306,14 +306,7 @@ pub(crate) fn trait_dependencies(e:&Value)->Vec<(String,String)> {
     }).collect()
 }
 
-pub(crate) fn marker(v: &Value) -> bool {
-    v["kind"] == "constantEffectRegistration"
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "constantEffectRegistration") }
 pub(crate) fn registration(a: &Ability) -> bool {
     let Effect::ConstantEffectRegistration(r) = &a.effect else {
         return false;

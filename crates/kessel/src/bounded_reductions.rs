@@ -42,14 +42,7 @@ fn same(a: &Ability, mut expected: Value) -> bool {
 pub(crate) fn power_maximum_grant(a: &Ability) -> bool {
     same(a, max_grant())
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    v["kind"] == "query" && v["name"].as_str().is_some_and(|s| QUERIES.contains(&s))
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "query" && v["name"].as_str().is_some_and(|s| QUERIES.contains(&s))) }
 pub(crate) fn leader_entry(e: &Value) -> bool {
     let Ok(s) = serde_json::from_value::<crate::ability_ir::Sides>(e["abilities"].clone()) else {
         return false;
@@ -125,37 +118,14 @@ pub(crate) fn entry(e: &Value) -> bool {
 // converted stat registration, including sources that later admission may reject.
 // A future selected-pool dependency solver may narrow this explicit rejection.
 pub(crate) fn power_feedback(e: &Value) -> bool {
-    fn mentions_overwhelm(v: &Value) -> bool {
-        v["kind"] == "const" && v["value"] == "overwhelm"
-            || match v {
-                Value::Object(o) => o.values().any(mentions_overwhelm),
-                Value::Array(a) => a.iter().any(mentions_overwhelm),
-                _ => false,
-            }
-    }
-    fn keyword(v: &Value) -> bool {
-        v["kind"] == "query" && v["name"] == "hasSomeKeyword" && mentions_overwhelm(&v["args"])
-            || v["kind"] == "ref" && v["path"] == json!(["card", "keywords", "length"])
-            || match v {
-                Value::Object(o) => o.values().any(keyword),
-                Value::Array(a) => a.iter().any(keyword),
-                _ => false,
-            }
-    }
-    fn stats(v: &Value) -> bool {
-        v["kind"] == "modifyStats"
-            || match v {
-                Value::Object(o) => o.values().any(stats),
-                Value::Array(a) => a.iter().any(stats),
-                _ => false,
-            }
-    }
+    fn keyword(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "query" && v["name"] == "hasSomeKeyword" && crate::ability_ir::contains(&v["args"],|v|v["kind"] == "const" && v["value"] == "overwhelm")
+            || v["kind"] == "ref" && v["path"] == json!(["card", "keywords", "length"])) }
     e["status"] == "supported"
         && ["card", "leader", "unit"].iter().any(|side| {
             e["abilities"][*side].as_array().is_some_and(|a| {
                 a.iter().any(|a| {
                     a["trigger"] == "constant"
-                        && stats(&a["effect"])
+                        && crate::ability_ir::contains(&a["effect"],|v|v["kind"] == "modifyStats")
                         && (keyword(&a["condition"]) || keyword(&a["targetResolver"]))
                 })
             })

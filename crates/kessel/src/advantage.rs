@@ -19,14 +19,7 @@ pub enum Owner {
     #[serde(rename = "recipientController")]
     RecipientController,
 }
-pub fn marker(v: &Value) -> bool {
-    v["kind"] == "giveAdvantage"
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "giveAdvantage") }
 pub fn validate_amount(amount: &Expr) -> Result<(), String> {
     // One bounded native creation batch. Dynamic values other than the exact
     // live opposing unit count need a separate expression/timing contract.

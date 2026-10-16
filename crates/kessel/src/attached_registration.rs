@@ -70,15 +70,8 @@ pub(crate) fn delegated_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
             keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
 }
 
-fn marker(v:&Value)->bool {
-    v["kind"]=="attachedAbilityRegistration" || match v {
-        Value::Object(o)=>o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false
-    }
-}
-fn internal(v:&Value)->bool {match v {
-    Value::Object(o)=>o.contains_key("attachedHost")||o.values().any(internal),
-    Value::Array(a)=>a.iter().any(internal),_=>false
-}}
+fn marker(v:&Value)->bool { crate::ability_ir::contains(v,|v|v["kind"]=="attachedAbilityRegistration") }
+fn internal(v:&Value)->bool {crate::ability_ir::contains(v,|v|v.as_object().is_some_and(|o|o.contains_key("attachedHost"))) }
 fn mention_keywords(e:&Value)->bool {
     let Some(names)=e["card"]["keywords"].as_array() else{return false;};
     names.iter().all(|name|name.as_str().is_some_and(|n|["raid","restore","grit"].contains(&n))&&e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|
@@ -100,10 +93,7 @@ pub(crate) fn plain_upgrade(e:&Value)->bool {
     && e["card"]["unique"].is_boolean() && mention_keywords(e)
     && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
 }
-fn invalid_host_scope(v:&Value)->bool {
-    v["target"]=="parent"||(v["kind"]=="ref"&&v["path"][0]=="source"&&matches!(v["path"][1].as_str(),Some("parentCard"|"parentUnit")))
-        ||match v {Value::Object(o)=>o.values().any(invalid_host_scope),Value::Array(a)=>a.iter().any(invalid_host_scope),_=>false}
-}
+fn invalid_host_scope(v:&Value)->bool { crate::ability_ir::contains(v,|v|v["target"]=="parent"||(v["kind"]=="ref"&&v["path"][0]=="source"&&matches!(v["path"][1].as_str(),Some("parentCard"|"parentUnit")))) }
 fn program(v:&Value)->Result<Ability,String> {
     let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
     let g=w.effect;

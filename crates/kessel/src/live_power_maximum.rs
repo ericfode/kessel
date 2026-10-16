@@ -47,15 +47,8 @@ fn same(a: &Ability, expected: &Ability) -> bool {
     a.title.clear();
     serde_json::to_value(a).ok() == serde_json::to_value(expected).ok()
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    v["kind"] == "query" && v["name"] == DISPLAY_QUERY
-        || v["text"] == PRINTED_ACTION
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "query" && v["name"] == DISPLAY_QUERY
+        || v["text"] == PRINTED_ACTION) }
 pub(crate) fn entry(e: &Value) -> bool {
     let Ok(s) = serde_json::from_value::<crate::ability_ir::Sides>(e["abilities"].clone()) else {
         return false;

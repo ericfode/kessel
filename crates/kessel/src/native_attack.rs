@@ -223,15 +223,7 @@ pub(crate) fn ability(a: &Ability) -> bool {
                 && r.prompt_title_parts.is_empty()
         })
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    match v {
-        Value::Object(o) => {
-            o.get("kind").is_some_and(|k| k == "initiateAttack") || o.values().any(marker)
-        }
-        Value::Array(a) => a.iter().any(marker),
-        _ => false,
-    }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v.as_object().is_some_and(|o|o.get("kind").is_some_and(|k|k=="initiateAttack"))) }
 pub(crate) fn entry(e: &Value) -> bool {
     let Ok(s) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
