@@ -325,14 +325,40 @@ fn on_attack_suicide_latches_winner_but_combat_still_finishes() {
 }
 #[test]
 fn simultaneous_resource_choices_can_be_ordered_for_sound_proof() {
+    use crate::search::Game;
     let e = engine();
     let s = board(&e);
     let mut s = button(&e, button(&e, s, "Pass"), "Pass");
-    e.order_regroup(&mut s, Seat::P2);
+    Game::order_regroup(&e, &mut s, Seat::P2);
     assert_eq!(s.active, Seat::P2);
     let mut s = button(&e, s, "Skip Resourcing");
-    e.order_regroup(&mut s, Seat::P2);
+    Game::order_regroup(&e, &mut s, Seat::P2);
     assert_eq!(s.active, Seat::P1);
+}
+
+#[test]
+fn swu_proof_adapter_preserves_every_attack_reply_and_transition() {
+    use crate::search::Game;
+    let e = engine();
+    let mut s = board(&e);
+    let attacker = unit(&e, &mut s, Seat::P1, "LOF_254");
+    let defender = unit(&e, &mut s, Seat::P2, "LOF_254");
+    let s = click(&e, s, attacker);
+    assert_eq!(s.decision, Decision::AttackTarget);
+    let legal = e.legal_actions(&s);
+    let ordered = Game::actions(&e, &s);
+    assert_eq!(ordered.len(), legal.len());
+    assert_eq!(ordered[0].id(), Some(s.player(Seat::P2).base));
+    assert!(ordered.iter().any(|action| action.id() == Some(defender)));
+    for action in &legal {
+        assert_eq!(ordered.iter().filter(|other| *other == action).count(), 1);
+        assert_eq!(Game::apply(&e, &s, action), e.apply(&s, action));
+    }
+    assert_eq!(Game::actor(&e, &s), s.actor());
+    assert_eq!(Game::hash(&e, &s), s.zobrist());
+    assert_eq!(Game::terminal(&e, &s), s.is_terminal());
+    assert_eq!(Game::winner(&e, &s), s.winner());
+    assert_eq!(Game::window(&e, &s), s.is_action_window());
 }
 
 #[test]

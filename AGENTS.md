@@ -18,3 +18,11 @@ Codex work too.
   `npm run cards:reference -- import`. Kessel depends on neither Holocron nor swu_bot.
 - `.agents/skills/swu-card-conversion/SKILL.md` is the card conversion workflow.
 - Basic development needs no service credentials. Keep tokens and `.env` files out of Git.
+
+## Proof dependency boundary
+
+- `search.rs` is the bounded two-player graph prover. `swu_search.rs` implements
+  its `Game` interface for the SWU `Engine`, including reply ordering, UI
+  cancellation and simultaneous resource-choice policy. Keep SWU state and card
+  rules out of the prover. Run `cargo test --locked -p kessel --test proof_boundary`:
+  it compiles the real prover with only `seat.rs`, not the simulator/model/IR.
