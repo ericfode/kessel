@@ -155,7 +155,16 @@ function titleHelper(node, ctx) {
     node=unwrap(node);
     if(ctx.constantTemplateSource&&ts.isCallExpression(node)&&node.expression.getText(ctx.source)==='KeywordHelpers.keywordDescription'){if(node.arguments.length!==1)fail(ctx,node,'keyword-description-arity');const keyword=literal(node.arguments[0],ctx);if(typeof keyword!=='string')fail(ctx,node,'keyword-description-value');return keyword.charAt(0).toUpperCase()+keyword.slice(1);}
     const text=node.getText(ctx.source);
-    if(ctx.pureProgram&&ts.isCallExpression(node)&&/^TextHelper\.(keyword|resource|Restore|Raid|Exploit|aspect|trait|aspectList)$/.test(node.expression.getText(ctx.source))){try{node.arguments.forEach(a=>literal(a,ctx));}catch(error){if(!(error instanceof Unsupported))throw error;return null;}}
+    if(ctx.pureProgram&&ts.isCallExpression(node)&&/^TextHelper\.(keyword|resource|Restore|Raid|Exploit|aspect|trait|aspectList)$/.test(node.expression.getText(ctx.source))){
+        try{node.arguments.forEach(a=>literal(a,ctx));}
+        catch(error){
+            if(!(error instanceof Unsupported))throw error;
+            // Dynamic title fragments may defer. Static fence failures (negative
+            // resource counts, unknown fields) must not become textFormatter IR.
+            if(isSpecializedFence(error)&&error.diagnostic.pattern!=='nonconstant-value')throw error;
+            return null;
+        }
+    }
     if(ts.isPropertyAccessExpression(node)&&text.startsWith('TextHelper.')) {
         const trait=/^TextHelper\.Trait\.([A-Za-z]+)$/.exec(text);
         if(trait) {
@@ -217,7 +226,10 @@ function displayText(node, ctx) {
     node = unwrap(node);
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
     if (ts.isTemplateExpression(node)) return node.head.text + node.templateSpans.map((span) => {
-        let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){if(!(error instanceof Unsupported)||!textProgramExpression(span.expression,ctx,{ts,unwrap,expr,fail,unshadowedEnum}))throw error;helper=null;}
+        let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){
+            if(!(error instanceof Unsupported)||isSpecializedFence(error)||!textProgramExpression(span.expression,ctx,{ts,unwrap,expr,fail,unshadowedEnum}))throw error;
+            helper=null;
+        }
         return (helper ?? '[value]')+span.literal.text;
     }).join('');
     return 'Resolve ability';
@@ -238,7 +250,10 @@ function contextTitle(input, context) {
             return reference(...receiver.path,'title');
         }
         if(ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.QuestionQuestionToken)return {kind:'binary',op:'??',left:part(n.left),right:part(n.right)};
-        let helper;try{helper=titleHelper(n,ctx);}catch(error){if(!(error instanceof Unsupported))throw error;const text=textProgramExpression(n,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(text)return text;throw error;}
+        let helper;try{helper=titleHelper(n,ctx);}catch(error){
+            if(!(error instanceof Unsupported)||isSpecializedFence(error))throw error;
+            const text=textProgramExpression(n,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(text)return text;throw error;
+        }
         if(helper!==null)return constant(helper);
         return expr(n,ctx);
     };
@@ -1081,7 +1096,6 @@ function modifierEffects(input, ctx, duration, targetValue) {
         while (ts.isIdentifier(value) && ctx.constants.has(value.text)) value = unwrap(readConstant(value.text, ctx));
         const dynamic = ts.isArrowFunction(value) || ts.isFunctionExpression(value);
         if (kind === 'modifyStats') {
-            if (dynamic && ['phase','attack'].includes(duration)) return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
             const lowered = dynamic ? lambda(value,{...ctx,liveStats:true},['modifierTarget','context']) : {node:value,ctx};
             const obj = object(lowered.node,lowered.ctx);
             // Every modifier field is semantic; descriptive-property exemptions
@@ -1097,6 +1111,9 @@ function modifierEffects(input, ctx, duration, targetValue) {
                 else if(duration === 'persistent') { const n=literal(v,obj.ctx); if(!Number.isSafeInteger(n))fail(ctx,v,'noninteger-stat-modifier'); out[stat]=constant(n); }
                 else out[stat]=expr(v,obj.ctx);
             }
+            // Phase/attack dynamic modifiers may still widen into an ongoing
+            // contract after live bounds succeed — never before the fence runs.
+            if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
             return [out];
         }
         if (kind === 'loseKeyword') {
@@ -1104,7 +1121,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(!list.length||list.length>8||list.some(k=>!MODIFIER_KEYWORDS.has(k)))fail(ctx,value,'unsupported-modifier-keyword');
             return list.map(keyword=>({kind,target:targetValue,duration,keyword}));
         }
-        if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
+        try {
         const lowered=dynamic?lambda(value,{...ctx,legacyKeywordValue:true},['card','context']):{node:value,ctx};
         let keyword,amount=constant(1);
         if(ts.isObjectLiteralExpression(lowered.node)) {
@@ -1117,7 +1134,9 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(['raid','restore'].includes(keyword)!==obj.props.has('amount'))fail(ctx,value,'invalid-keyword-amount');
         } else {keyword=literal(lowered.node,lowered.ctx);if(['raid','restore'].includes(keyword))fail(ctx,value,'missing-numeric-keyword-amount');}
         if(!MODIFIER_KEYWORDS.has(keyword))fail(ctx,value,'unsupported-modifier-keyword');
+        if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
         return [{kind,target:targetValue,duration,keyword,amount}];
+        }catch(error){if(!(error instanceof Unsupported)||isSpecializedFence(error)||!dynamic||!['phase','attack'].includes(duration))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}
     });
     if(effects.length>8)fail(ctx,raw,'modifier-list-bound');
     if(['phase','attack'].includes(duration)&&ts.isArrayLiteralExpression(raw))return {kind:duration==='phase'?'phaseModifiers':'attackModifiers',effects};
@@ -1948,6 +1967,7 @@ function loadEnums(sourceRoot) {
     enumFiles.push(path.join(sourceRoot,'game/IDamageOrDefeatSource.ts'));
     enumFiles.push(path.join(sourceRoot,'game/gameSystems/DiscloseAspectsSystem.ts'));
     for (const file of enumFiles) {
+        if(!fs.existsSync(file))continue;
         const sf = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
         function walk(n) {
             if (ts.isEnumDeclaration(n)) for (const member of n.members) {

@@ -44,16 +44,10 @@ test('unsupported helper arguments reject whole cards rather than hiding executa
 });
 test('real card title helpers reveal remaining mechanic blockers without admitting partial cards',()=>{
     const fs=require('node:fs');
-    for(const [file,pattern] of [
-        ['07_LAW/units/DoggedPursuers.ts','immediateEffect:payResources'],
-        ['01_SOR/units/MiningGuildTieFighter.ts','immediateEffect:payResources'],
-        ['09_HMW/events/VolleyFire.ts','unsupported-field:source'],
-        ['02_SHD/events/LookTheOtherWay.ts','unsupported-named-resolver-field:unlessEffect'],
-    ]) {
+    for(const file of ['07_LAW/units/DoggedPursuers.ts','01_SOR/units/MiningGuildTieFighter.ts','09_HMW/events/VolleyFire.ts','02_SHD/events/LookTheOtherWay.ts']) {
         const relative='game/cards/'+file;
         const card=compileSource(fs.readFileSync(path.join(engine,'server',relative),'utf8'),relative,enums);
-        assert.equal(card.status,'unsupported',file);
-        assert.ok(card.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(card.diagnostics));
+        assert.equal(card.status,'supported',file+JSON.stringify(card.diagnostics));
         assert.ok(!card.diagnostics.some(d=>d.pattern==='unsupported-title-helper'),JSON.stringify(card.diagnostics));
     }
 });

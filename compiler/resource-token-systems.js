@@ -38,9 +38,16 @@ function extendedTokenSystem(kind,obj,defaultTarget,api) {
     const {props,ctx,node}=obj,{ts,unwrap}=api;
     fields(obj,['amount','target','entersReady','enterPlayEffect'],api);
     const target=props.has('target')?api.target(props.get('target'),ctx,'ownPlayer'):(ctx.selectedPlayerTarget||'ownPlayer');
-    let fixedAmount=null;
+    let fixedAmount=null,literalAmount=undefined,amountLiteralFailed=false;
     if(!props.has('amount'))fixedAmount=1;
-    else {try {const value=api.literal(props.get('amount'),ctx);if(typeof value==='number')fixedAmount=value;}catch(error){if(!error.diagnostic)throw error;}}
+    else {
+        try {literalAmount=api.literal(props.get('amount'),ctx);}
+        catch(error){if(!error.diagnostic)throw error;amountLiteralFailed=true;}
+        if(!amountLiteralFailed){
+            if(typeof literalAmount==='number')fixedAmount=literalAmount;
+            else api.fail(ctx,props.get('amount'),'token-system-amount-type');
+        }
+    }
     let legacyDynamic=false;
     if(props.has('amount')&&fixedAmount===null){try{legacyDynamic=!!api.resourceTokenAmount(props.get('amount'),ctx,{ts,unwrap,expr:api.expr,literal:api.literal,fail:api.fail,unshadowedEnum:api.unshadowedEnum});}catch(error){if(!error.diagnostic)throw error;}}
     const extended=props.has('enterPlayEffect')||typeof target!=='string'||!['ownPlayer','enemyPlayer'].includes(target)||fixedAmount!==null&&(fixedAmount<1||fixedAmount>5)||props.has('amount')&&fixedAmount===null&&!legacyDynamic;
