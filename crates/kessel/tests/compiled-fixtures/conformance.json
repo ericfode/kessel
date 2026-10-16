@@ -63,9 +63,9 @@
     "LOF_192",
     "LOF_214",
     "LOF_230",
-    "LOF_239",
+    "IC27_184",
     "LOF_247",
-    "LOF_250",
+    "IC27_191",
     "LOF_251",
     "LOF_253",
     "LOF_256",
@@ -86,7 +86,7 @@
     "SHD_079",
     "SHD_152",
     "SHD_162",
-    "SHD_196",
+    "IC27_154",
     "SHD_200",
     "SHD_240",
     "SOR_044",
@@ -95,7 +95,7 @@
     "SOR_064",
     "SOR_073",
     "SOR_077",
-    "SOR_128",
+    "IC27_097",
     "SOR_157",
     "SOR_169",
     "SOR_194",
@@ -113,10 +113,10 @@
     "TWI_140",
     "TWI_170",
     "TWI_174",
-    "TWI_214",
+    "IC27_173",
     "TWI_228",
-    "TWI_230",
-    "TWI_241",
+    "IC27_180",
+    "IC27_189",
     "TWI_253"
   ],
   "maxShieldsOnUnit": 2,
@@ -177,7 +177,7 @@
     "giveExperience": {
       "file": "effect-interactions-4001.jsonl.gz",
       "step": 48,
-      "sourceSetCode": "LOF_239",
+      "sourceSetCode": "IC27_184",
       "event": "onUpgradeAttached",
       "target": "Compassionate Senator"
     }
@@ -203,14 +203,14 @@
       {
         "file": "effect-interactions-4001.jsonl.gz",
         "step": 48,
-        "sourceSetCode": "LOF_239",
+        "sourceSetCode": "IC27_184",
         "event": "onUpgradeAttached",
         "target": "Compassionate Senator"
       },
       {
         "file": "effect-interactions-4001.jsonl.gz",
         "step": 48,
-        "sourceSetCode": "LOF_239",
+        "sourceSetCode": "IC27_184",
         "event": "onDamageDealt",
         "target": "Compassionate Senator",
         "amount": 2

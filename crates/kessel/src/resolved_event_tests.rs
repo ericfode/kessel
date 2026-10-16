@@ -100,7 +100,7 @@ fn resolved_event_controlled_trait_includes_base_front_leader_and_enemy_host_upg
     let base=s.players[0].base;let definition=s.card(base).def as usize;e.definitions[definition].traits.push("resistance".into());assert!(e.has_keyword(&s,source,"sentinel"));e.definitions[definition].traits.retain(|t|t!="resistance");
     let leader=s.players[0].leader;let definition=s.card(leader).def as usize;e.definitions[definition].traits.push("resistance".into());assert!(e.has_keyword(&s,source,"sentinel"));
     e.catalogue.as_mut().unwrap().metadata.get_mut("SOR_014").unwrap()["backSideTraits"]=json!(["jedi"]);s.card_mut(leader).deployed=true;e.add_arena(&mut s,leader).unwrap();assert!(!e.has_keyword(&s,source,"sentinel"));
-    let host=unit(&e,&mut s,Seat::P2,"LOF_256");let upgrade=add(&e,&mut s,Seat::P1,"SHD_070");let definition=s.card(upgrade).def as usize;e.definitions[definition].traits.push("resistance".into());e.attach(&mut s,upgrade,host);assert!(e.has_keyword(&s,source,"sentinel"));
+    let host=unit(&e,&mut s,Seat::P2,"LOF_256");let upgrade=add(&e,&mut s,Seat::P1,"IC27_052");let definition=s.card(upgrade).def as usize;e.definitions[definition].traits.push("resistance".into());e.attach(&mut s,upgrade,host);assert!(e.has_keyword(&s,source,"sentinel"));
     s.card_mut(upgrade).owner=Seat::P2;assert!(!e.has_keyword(&s,source,"sentinel"));s.card_mut(upgrade).owner=Seat::P1;e.leave_play_primary(&mut s,upgrade).unwrap();assert!(!e.has_keyword(&s,source,"sentinel"));
 }
 
