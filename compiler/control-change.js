@@ -11,10 +11,11 @@ function compileControlChange(input,context,defaultTarget,api) {
     for(const [key,value]of props)if(!['target','newController','excludeLeaderUnit'].includes(key))fail(ctx,value,'control-change-field:'+key);
     if(!props.has('newController'))fail(ctx,obj.node,'control-change-missing-controller');
     const newController=expr(props.get('newController'),ctx);
-    if(newController.kind!=='ref'||!['player','opponent','owner','controller'].includes(newController.path.at(-1)))fail(ctx,props.get('newController'),'control-change-player-reference');
+    const pendingPlayer=newController.kind==='namedSelectionRead'&&['owner','controller'].includes(newController.path.at(-1))||newController.kind==='selectionContextRead'&&newController.path[0]==='controllingPlayer'||newController.kind==='ref'&&newController.path[0]==='systemFactoryCaptures';
+    if(!pendingPlayer&&(newController.kind!=='ref'||!['player','opponent','owner','controller'].includes(newController.path.at(-1))))fail(ctx,props.get('newController'),'control-change-player-reference');
     const excludeLeaderUnit=props.has('excludeLeaderUnit')?literal(props.get('excludeLeaderUnit'),ctx):true;
     if(typeof excludeLeaderUnit!=='boolean')fail(ctx,obj.node,'control-change-exclude-leader-boolean');
-    const effect={kind:'takeControlOfUnit',target:target(props.get('target'),ctx,defaultTarget),newController,excludeLeaderUnit,
+    const effect={kind:pendingPlayer?'pendingControlChange':'takeControlOfUnit',target:target(props.get('target'),ctx,defaultTarget),newController,excludeLeaderUnit,
         requiresInPlay:true,tokenUpgradeController:'newController',leaderControllerChange:'replaceWithFrameworkDefeat'};
     return binding?{kind:'controlPropertiesFactory',parameters:binding.parameters,body:effect}:effect;
 }

@@ -1,4 +1,5 @@
 'use strict';
+const {compileNativeTokenLifecycle}=require('./native-token-lifecycle');
 
 const fs = require('fs');
 const path = require('path');
@@ -95,6 +96,7 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             throw new Error(`Compiler failed on ${sourcePath}: ${error.stack || error}`);
         }
         sources.push(converted);
+        const lifecycle=compileNativeTokenLifecycle(text,sourcePath,source,enums);if(lifecycle)unmatchedSources.push(lifecycle);
         if (converted.id) {
             if (byId.has(converted.id)) throw new Error(`Duplicate source identity ${converted.id}: ${sourcePath}`);
             byId.set(converted.id, converted);

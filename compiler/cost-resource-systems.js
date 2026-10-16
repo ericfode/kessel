@@ -113,7 +113,7 @@ function additionalCost(call, kind, ctx, api) {
         const damage=kind==='dealDamageSpecific';if(call.arguments.length!==(damage?2:1))fail(ctx,call,'cost-helper-arity');
         return {kind:'directSystemCost',system:{kind:damage?'damage':'defeat',target:api.target(call.arguments[damage?1:0],ctx,'self'),isCost:true,...(damage?{amount:expr(call.arguments[0],ctx),damageType:'ability'}:{})},timing:'abilityCostPayment',mustFullyResolve:true};
     }
-    const simple={useTheForce:{kind:'useForceCost',target:'ownPlayer'},defeatSelf:{kind:'defeatSelfCost',target:'self'},exhaustFriendlyUnit:null,readyEnemyUnit:null};
+    const simple={returnSelfToHandFromPlay:{kind:'directSystemCost',system:{kind:'returnToHand',target:'self',isCost:true,destination:'hand'}},useTheForce:{kind:'useForceCost',target:'ownPlayer'},defeatSelf:{kind:'defeatSelfCost',target:'self'},exhaustFriendlyUnit:null,readyEnemyUnit:null};
     if(Object.hasOwn(simple,kind)&&simple[kind]) {
         if(call.arguments.length)fail(ctx,call,'cost-helper-arity');
         return {...simple[kind],timing:'abilityCostPayment',mustFullyResolve:true};
@@ -163,8 +163,10 @@ function costCollectionCount(node,ctx,api) {
 
 function costLimit(input,ctx,api) {
     const {ts,unwrap,access,literal,fail}=api,n=unwrap(input);
-    if(!ts.isCallExpression(n)||n.questionDotToken||n.arguments.length!==1)fail(ctx,n,'cost-adjuster-limit');
+    if(!ts.isCallExpression(n)||n.questionDotToken)fail(ctx,n,'cost-adjuster-limit');
     const parts=access(n.expression,ctx);
+    if(parts.length===3&&['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(parts[0])&&parts[1]==='limit'&&parts[2]==='unlimited'&&n.arguments.length===0)return {kind:'costAdjusterLimit',scope:'unlimited',clonePerEffectApplication:true,tracksUsagePerPlayer:true};
+    if(n.arguments.length!==1)fail(ctx,n,'cost-adjuster-limit');
     if(parts.length!==3||!['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(parts[0])||parts[1]!=='limit'||!['perPhase','perRound','perGame','perPlayerPerGame'].includes(parts[2]))fail(ctx,n,'cost-adjuster-limit');
     const max=literal(n.arguments[0],ctx);if(!Number.isSafeInteger(max)||max<1||max>64)fail(ctx,n,'cost-adjuster-limit-bound');
     return {kind:'costAdjusterLimit',scope:parts[2],max,clonePerEffectApplication:true};
@@ -240,4 +242,4 @@ function adjustCostAbility(input,ctx,api,validatedObject=null) {
     if(obj.props.has('condition'))result.condition=callback(obj.props.get('condition'),obj.ctx,['context'],'constantCondition',api);
     return result;
 }
-module.exports={decreaseCostAbility,adjustCostAbility,costResourceSystem,additionalCost,costCollectionCount,playerCostConstant,playerCostModifier,adjustmentProperties,costCallback:callback};
+module.exports={playerTarget,scalarProperty,decreaseCostAbility,adjustCostAbility,costResourceSystem,additionalCost,costCollectionCount,playerCostConstant,playerCostModifier,adjustmentProperties,costCallback:callback};

@@ -1,6 +1,17 @@
 'use strict';
 
 const fs = require('fs');
+const {ongoingExpression}=require('./ongoing-expressions');
+const pureApi=()=>privateApi();
+const {lastingContract}=require('./lasting-contracts');
+const {constantContract,attachedConstantContract}=require('./constant-contracts');
+const contractApi=()=>({ts,unwrap,object,expr,literal,access,lambda,fail,target,modifierEffects,contextTitle,displayText,knownProperties,costs,effect,unshadowedEnum});
+const {ongoingContract,ongoingValue}=require('./ongoing-contracts');
+const ongoingApi=()=>({...pureApi(),access,lambda,costs,target,additionalCost,targetResolverProperties,contextTitle});
+const {deploymentOverride}=require('./leader-deploy-cost');
+const {randomResourceValue}=require('./resource-random-query');
+const {playCostRegistration,preEnterPlayRegistration}=require('./play-cost-registration');
+const {playerResourceSystem,playerDiscardSystem}=require('./player-resource-systems');
 const { installPureScalarHelpers } = require('./pure-scalar-helpers');
 const { inspectSelectedCostHelpers, selectedCostHelperCall } = require('./selected-cost-fold');
 const { extendedResourceSystem, extendedTokenSystem, extendTopDeckResources, ignoreAspectAbility } = require('./resource-token-systems');
@@ -32,11 +43,14 @@ const { normalizeKeywordCopy } = require('./keyword-copy');
 const { normalizeInventoryExpression, pendingInventoryEffect } = require('./inventory-ir');
 const { REGISTRATIONS, pilotingRegistration, registrationExpression, registrationEffect, registrationModifier } = require('./piloting-registration');
 const { richResolver, richNamedResolvers, selectedPlayerEffect, selectionExpression } = require('./selection-ir');
+const { numberResolver, selectionContractExpression, selectionSystem, extendedNamedResolvers, attachmentSelectionSystem } = require('./selection-contracts');
 const { choiceResolver, choiceExpression, lookAtOptions, choiceNoAction, inspectChoiceHelpers, choiceHelperCall } = require('./choice-ir');
 const choiceApi = () => ({ts,unwrap,access,lambda,object,literal,expr,effect,knownProperties,contextTitle,fail});
-const selectionApi = () => ({ts,unwrap,access,object,literal,expr,effect,knownProperties,contextTitle,fail});
+const selectionApi = () => ({ts,unwrap,access,lambda,object,literal,expr,effect,knownProperties,contextTitle,fail,unshadowedEnum,richResolver,choiceResolver,EXTRA_FIELDS:require('./selection-ir').EXTRA_FIELDS});
 const pilotingApi = () => ({ts,unwrap,access,object,literal,ability,constantAbility,standardTriggeredAbilities,expr,effect,knownProperties,modifierEffects,displayText,contextTitle,fail});
 const eventHistory = require('./event-history');
+const privatePrograms=require('./private-programs');
+const privateApi=()=>({ts,unwrap,expr,object,literal,effect,fail,unshadowedEnum,access,lambda,contextTitle,systemConstructionValue});
 const replacementRegistration = require('./replacement-registration');
 const registrationMetadata = require('./registration-metadata');
 const {unlessResolver}=require('./continuation-registration');
@@ -53,7 +67,7 @@ const { bountyAbility, bountyGrant } = require('./bounty-registration');
 const {deckPlayEffect,objectSystemBatch,deckExpression}=require('./deck-play-ir');
 const {sourceExclusion}=require('./source-exclusions');
 const {deferredSystem}=require('./deferred-systems');
-const {systemArrayFactory}=require('./system-array-factory');
+const {systemArrayFactory,systemPropertiesFactory,systemConstructionValue,constructionExpression}=require('./system-array-factory');
 
 const TRIGGERS = { addActionAbility: 'action', addWhenPlayedAbility: 'whenPlayed', addOnAttackAbility: 'onAttack', addWhenDefeatedAbility: 'whenDefeated', setEventAbility: 'event', setEpicActionAbility: 'epicAction', addOnDefenseAbility: 'onDefense', addWhenAttackEndsAbility: 'whenAttackEnds' };
 const SIDE_METHODS = { setupCardAbilities: 'card', setupLeaderSideAbilities: 'leader', setupLeaderUnitSideAbilities: 'unit', setupLeaderBackSideAbilities: 'unit' };
@@ -531,15 +545,22 @@ function singletonArenaMembership(node, ctx) {
 }
 function expr(input, context, params = ['context']) {
     const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return constructed;
+    if(context.pureProgram&&(ts.isArrowFunction(unwrap(input))||ts.isFunctionExpression(unwrap(input))))return privatePrograms.compileCallback(input,context,privateApi(),params);
     const program=eventHistory.callbackProgram(input,context,{ts,unwrap,expr,object,literal,fail,unshadowedEnum},params);if(program)return program;
     let { node, ctx } = lambda(input, context, params);
     node = unwrap(node);
+    const randomResources=randomResourceValue(node,ctx,{ts,expr,fail});if(randomResources)return randomResources;
+    const privateValue=privatePrograms.normalizeExpression(node,ctx,privateApi());if(privateValue)return privateValue;
+    const ongoingLeaf=ongoingExpression(node,ctx,{...contractApi(),value:(n,c)=>ongoingValue(n,c,ongoingApi()),additionalCost,targetResolverProperties});if(ongoingLeaf)return ongoingLeaf;
+    const selectionContract=selectionContractExpression(node,ctx,selectionApi());if(selectionContract)return selectionContract;
+    const constructedExpression=constructionExpression(node,ctx,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(constructedExpression)return constructedExpression;
     const attackExpression=normalizeAttackExpression(node,ctx,{ts,unwrap,expr,object,fail,lambda});if(attackExpression)return attackExpression;
     const deckValue=deckExpression(node,ctx,{ts,unwrap,expr,fail});if(deckValue)return deckValue;
     const choiceValue=choiceExpression(node,ctx,choiceApi());if(choiceValue)return choiceValue;
     const selectionValue=selectionExpression(node,ctx,selectionApi());if(selectionValue)return selectionValue;
     const registrationValue=registrationExpression(node,ctx,pilotingApi());if(registrationValue)return registrationValue;
-    if(ctx.watchers?.bindings.size)ctx={...ctx,eventHistory:true};
+    if(ctx.watchers?.bindings.size||ctx.privatePrograms?.size)ctx={...ctx,eventHistory:true};
+    if(ctx.eventHistory&&(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&ts.isIdentifier(node.expression.expression)&&node.expression.expression.text==='TextHelper'||ts.isPropertyAccessExpression(node)&&node.getText(ctx.source).startsWith('TextHelper.'))){const display=titleHelper(node,ctx);if(display!==null)return constant(display);}
     const historical=eventHistory.normalize(node,ctx,{ts,unwrap,expr,object,literal,fail,unshadowedEnum,readConstant});if(historical)return historical;
     // Lexical event reads take precedence over generic optional member paths.
     const explicitResult=normalizeEventResultExpression(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(explicitResult)return explicitResult;
@@ -640,6 +661,7 @@ function expr(input, context, params = ['context']) {
         if (ctx.liveStats) roots.add('modifierTarget');
         if (ctx.namedTargets) roots.add('namedTargets');
         for(const root of ctx.typedCallbackRoots||[])roots.add(root);
+        for(const root of ctx.dataRoots||[])roots.add(root);
         if (!roots.has(parts[0])) fail(ctx, node, 'unimplemented-context-field:' + parts[0]);
         return reference(...parts);
     }
@@ -691,6 +713,7 @@ function expr(input, context, params = ['context']) {
             if (node.questionDotToken || call.questionDotToken) fail(ctx,node,'optional-arena-leader-query');
             if (node.arguments.length) fail(ctx,node,'arena-leader-query-arity');
             const receiver=expr(call.expression,ctx);
+            if(ctx.pendingSystemConstruction&&receiver.kind==='ref'&&ctx.typedCallbackRoles?.has(receiver.path[0]))return {kind:'query',name:'isLeaderUnit',receiver,args:[]};
             if (!ctx.arenaLeaderCandidate || receiver.kind!=='ref' || receiver.path.length!==1 || receiver.path[0]!=='card') fail(ctx,node,'arena-leader-query-scope');
             return {kind:'binary',op:'&&',left:{kind:'query',name:'isUnit',receiver,args:[]},right:{kind:'query',name:'isLeader',receiver,args:[]}};
         }
@@ -742,15 +765,16 @@ function object(input, context) {
     let { node, ctx } = lambda(input, context);
     node = unwrap(node);
     if (ts.isIdentifier(node) && ctx.constants.has(node.text)) { const initializer=readConstant(node.text,ctx); return object(initializer,constantContext(initializer,ctx)); }
+    const privateObject=privatePrograms.objectTemplate(node,ctx,privateApi());if(privateObject)return object(privateObject.node,privateObject.ctx);
     if (!ts.isObjectLiteralExpression(node)) fail(ctx, node, 'expected-declarative-object');
     const props = new Map();
     for (const p of node.properties) {
         if (ts.isPropertyAssignment(p)) {
-            const name = ts.isIdentifier(p.name) || ts.isStringLiteral(p.name) ? p.name.text : null;
+            const name = ts.isIdentifier(p.name) || ts.isStringLiteral(p.name) ? p.name.text : ts.isComputedPropertyName(p.name)?privatePrograms.computedKey(p.name.expression,ctx,privateApi()):null;
             if (name === null) fail(ctx, p, 'computed-object-key');
             if (props.has(name)) fail(ctx, p, 'duplicate-object-key:' + name);
             props.set(name, p.initializer);
-        } else if (ts.isShorthandPropertyAssignment(p) && ctx.constants.has(p.name.text)) props.set(p.name.text, readConstant(p.name.text, ctx));
+        } else if(ts.isSpreadAssignment(p)){const spread=object(p.expression,ctx);for(const [name,value]of spread.props){if(props.has(name))fail(ctx,p,'overlapping-object-spread:'+name);props.set(name,value);}} else if (ts.isShorthandPropertyAssignment(p) && ctx.constants.has(p.name.text)) props.set(p.name.text, readConstant(p.name.text, ctx));
         else fail(ctx, p, 'object-property:' + ts.SyntaxKind[p.kind]);
     }
     return { props, ctx, node };
@@ -999,6 +1023,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
         const permission=attackPermissionModifier(call,ctx,duration,targetValue,{access,literal});if(permission)return [permission];
         const special=restrictionModifier(call,ctx,duration,targetValue,{ts,unwrap,access,object,literal,expr,fail,lambda})||simpleAttackModifier(call,ctx,duration,targetValue,{access,literal,fail});
         if(special)return [special];
+        const contract=ongoingContract(call,ctx,duration,targetValue,ongoingApi());if(contract)return [contract];
         const parts = access(call.expression, ctx), kind = parts[2];
         if (parts.length !== 3 || !['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(parts[0]) || parts[1] !== 'ongoingEffects' || !['modifyStats','gainKeyword','loseKeyword'].includes(kind)) fail(ctx, call, 'unsupported-modifier:' + parts.join('.'));
         if (call.arguments.length !== 1) fail(ctx, call, 'modifier-arity');
@@ -1051,16 +1076,21 @@ function modifierEffects(input, ctx, duration, targetValue) {
 function effect(input, context, defaultTarget = 'self') {
     let { node, ctx } = lambda(input, context);
     node = unwrap(node);
+    if(ts.isIdentifier(node)&&ctx.constructedSystemBindings?.has(node.text))return {kind:'constructedSystemReference',reference:ctx.constructedSystemBindings.get(node.text)};
     if (ts.isIdentifier(node) && ctx.constants.has(node.text)) return effect(readConstant(node.text, ctx), ctx, defaultTarget);
+    const privateEffect=privatePrograms.effectCall(node,ctx,defaultTarget,privateApi());if(privateEffect)return privateEffect;
     if (!ts.isCallExpression(node)) fail(ctx, node, 'effect-is-not-helper-call');
     const choiceHelper=choiceHelperCall(node,ctx,defaultTarget,choiceApi());if(choiceHelper)return choiceHelper;
     const maximum=maximumHelperCall(node,ctx,{ts,unwrap,fail});if(maximum)return maximum;
     const parts = access(node.expression, ctx);
     if (parts.length !== 3 || !['AbilityHelper', 'abilityHelper', 'StaticAbilityHelper'].includes(parts[0]) || parts[1] !== 'immediateEffects') fail(ctx, node, 'unsupported-effect-call:' + parts.join('.'));
     const kind = parts[2];
+    if(!['simultaneous','sequential'].includes(kind)){const factory=systemPropertiesFactory(node,ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(factory)return factory;}
+    const promptSystem=selectionSystem(node,ctx,defaultTarget,selectionApi());if(promptSystem)return promptSystem;
     const menuNoAction=choiceNoAction(node,ctx,choiceApi());if(menuNoAction)return menuNoAction;
     const viewOptions=lookAtOptions(node,ctx,defaultTarget,choiceApi());if(viewOptions)return viewOptions;
     const selectedPlayer=selectedPlayerEffect(node,ctx,selectionApi());if(selectedPlayer)return selectedPlayer;
+    const attachment=attachmentSelectionSystem(node,ctx,defaultTarget,selectionApi());if(attachment)return attachment;
     const pendingRegistration=registrationEffect(node,ctx,defaultTarget,pilotingApi());if(pendingRegistration)return pendingRegistration;
     const pendingInventory=pendingInventoryEffect(node,ctx,defaultTarget,{ts,unwrap,fail});if(pendingInventory)return pendingInventory;
     if(kind!=='heal'&&ctx.otherBaseTargetScope)ctx={...ctx,otherBaseTargetScope:false};
@@ -1070,11 +1100,14 @@ function effect(input, context, defaultTarget = 'self') {
         if(node.arguments.length===1){const batch=objectSystemBatch(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,object,literal,effect,fail});if(batch)return batch;}
         if(node.arguments.length===1&&!ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) {
             if(kind==='simultaneous'){try{return finiteHandGroupFactory(node.arguments[0],ctx);}catch(error){if(!(error instanceof Unsupported))throw error;}}
-            const factory=systemArrayFactory(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda});if(factory)return factory;
+            const helperFactory=lambda(node.arguments[0],ctx);const privateBatch=privatePrograms.effectCall(helperFactory.node,helperFactory.ctx,defaultTarget,privateApi());if(privateBatch)return {kind:'privateConstructionBatch',mode:kind,call:privateBatch,invocationPolicy:'eachNativePropertyGeneration',resolutionMode:'someGameSystemsMustBeLegal'};
+            const factory=systemArrayFactory(node.arguments[0],ctx,kind,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle});if(factory)return factory;
+            if(ts.isCallExpression(unwrap(node.arguments[0]))||ts.isConditionalExpression(unwrap(node.arguments[0])))return {kind:'constructedSystemGroup',mode:kind,systems:systemConstructionValue(node.arguments[0],ctx,defaultTarget,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle}),resolutionMode:'someGameSystemsMustBeLegal'};
         }
         if (node.arguments.length !== 1 || !ts.isArrayLiteralExpression(unwrap(node.arguments[0]))) fail(ctx, node, 'invalid-effect-sequence');
         return { kind: kind === 'sequential' ? 'sequence' : 'simultaneous', effects: unwrap(node.arguments[0]).elements.map((e) => effect(e, ctx, defaultTarget)) };
     }
+    if(['playerLastingEffect','cardLastingEffect','whileSourceInPlayCardEffect','allCardsForPlayerLastingEffect'].includes(kind)){if(node.arguments.length!==1)fail(ctx,node,'lasting-properties-required');return lastingContract(kind,node.arguments[0],ctx,defaultTarget,contractApi());}
     if(kind==='forThisRoundCardEffect'){if(node.arguments.length!==1)fail(ctx,node,'round-card-properties-required');return compileRoundCardEffect(node.arguments[0],ctx,defaultTarget,{ts,unwrap,object,target,modifierEffects,fail,expr,lambda});}
     if(kind==='takeControlOfUnit'){if(node.arguments.length!==1)fail(ctx,node,'control-change-properties-required');return compileControlChange(node.arguments[0],ctx,defaultTarget,{ts,unwrap,object,expr,target,literal,fail,lambda});}
     if(kind==='forThisPhasePlayerEffect'&&node.arguments.length===1){const playerEffect=compilePlayerPhaseEffect(node.arguments[0],ctx,{ts,unwrap,access,object,knownProperties,literal,expr,target,modifierEffects,fail,displayText,contextTitle,lambda});if(playerEffect)return playerEffect;}
@@ -1094,7 +1127,11 @@ function effect(input, context, defaultTarget = 'self') {
     const expandedToken=extendedTokenSystem(kind,obj,defaultTarget,{ts,unwrap,expr,literal,target,effect,fail,resourceTokenAmount,unshadowedEnum});if(expandedToken)return expandedToken;
     if(kind==='resourceCard'){const expandedResource=extendedResourceSystem(obj,defaultTarget,{ts,unwrap,expr,literal,target,fail});if(expandedResource)return expandedResource;}
     const costResource=costResourceSystem(kind,obj,defaultTarget,{ts,unwrap,expr,literal,target,fail,object,access,targetResolverProperties,contextTitle});if(costResource)return costResource;
+    const playerResourceApi={ts,unwrap,expr,literal,target,fail,object,access};
+    const playerResource=playerResourceSystem(kind,obj,playerResourceApi);if(playerResource)return playerResource;
+    if(kind==='discardCardsFromOpponentsHand')return playerDiscardSystem(kind,obj,playerResourceApi);
     if (kind === 'discardCardsFromOwnHand') {
+        try {
         // The wrapper changes who chooses, not who is targeted. Its inherited
         // PlayerTargetSystem default is the opponent, despite the helper name.
         for (const [key, value] of obj.props) if (!['amount', 'target', 'cardTypeFilter'].includes(key)) fail(obj.ctx, value, 'unsupported-hand-discard-field:' + key);
@@ -1106,8 +1143,10 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'hand-discard-player-target');
         return { kind:'discardOwnHand', amount:constant(amount), target:playerTarget };
+        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     if (kind === 'discardFromDeck') {
+        try {
         for (const [key, value] of obj.props) if (!['amount', 'target'].includes(key)) fail(obj.ctx, value, 'unsupported-deck-discard-field:' + key);
         // DiscardFromDeckSystem supplies no amount default; the inherited
         // PlayerTargetSystem default targets the opponent.
@@ -1117,6 +1156,7 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'deck-discard-player-target');
         return { kind:'discardDeck', amount:constant(amount), target:playerTarget };
+        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     const tokenTypes = { createBattleDroid:'battleDroid', createCloneTrooper:'cloneTrooper', createXWing:'xwing', createTieFighter:'tieFighter', createSpy:'spy', createBeast:'beast', createMandalorian:'mandalorian' };
     if (Object.hasOwn(tokenTypes, kind)) {
@@ -1154,7 +1194,7 @@ function effect(input, context, defaultTarget = 'self') {
         return { kind: kind === 'distributeHealingAmong' ? 'distributeHealing' : 'distributeDamage', amount: expr(obj.props.get('amountToDistribute'), obj.ctx), ...(obj.props.has('maxTargets') ? { maxTargets: literal(obj.props.get('maxTargets'), obj.ctx) } : {}), canChooseNoTargets: obj.props.has('canChooseNoTargets') ? literal(obj.props.get('canChooseNoTargets'), obj.ctx) : false, canDistributeLess: obj.props.has('canDistributeLess') ? literal(obj.props.get('canDistributeLess'), obj.ctx) : kind === 'distributeHealingAmong', targetResolver: spec };
     }
     if (kind === 'selectCard') {
-        knownProperties(obj, ['cardTypeFilter', 'controller', 'zoneFilter', 'cardCondition', 'optional', 'mode', 'numCards', 'canChooseNoCards', 'immediateEffect', 'choosingPlayer','numCardsFunc','multiSelectCardCondition','minNumCardsFunc','maxNumCardsFunc','useSingleSelectModeFunc','cardStat','maxStat','capturedByFilter','condition','effectChoices','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle','choices','options','unlessEffect','defaultEffect','checkTarget','showUnresolvable','highlightCards','logSelection']);
+        knownProperties(obj, ['cardTypeFilter', 'controller', 'zoneFilter', 'cardCondition', 'optional', 'mode', 'numCards', 'canChooseNoCards', 'immediateEffect', 'choosingPlayer','numCardsFunc','multiSelectCardCondition','minNumCardsFunc','maxNumCardsFunc','useSingleSelectModeFunc','cardStat','maxStat','capturedByFilter','condition','effectChoices','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle','choices','options','unlessEffect','defaultEffect','checkTarget','showUnresolvable','highlightCards','logSelection','min','max']);
         const spec = {...targetResolverProperties(obj),...registrationMetadata.metadata(obj,{literal,expr,fail},['showUnresolvable'])};
         if (obj.props.has('activePromptTitle')&&!spec.kind) {
             const node = unwrap(obj.props.get('activePromptTitle'));
@@ -1246,6 +1286,7 @@ function finiteHandGroupFactory(input,context) {
 }
 function targetResolverProperties(obj) {
     const { props, ctx, node } = obj;
+    const number=numberResolver(obj,selectionApi());if(number)return number;
     const unless=unlessResolver(obj,selectionApi());if(unless)return unless;
     const choice=choiceResolver(obj,choiceApi());if(choice)return choice;
     const rich=richResolver(obj,selectionApi());if(rich)return rich;
@@ -1267,6 +1308,7 @@ function targetResolverProperties(obj) {
     if (!zones[zoneRaw]) fail(ctx, props.get('zoneFilter') || node, 'target-zone:' + zoneRaw);
     const result = { owner, type, zone: zones[zoneRaw] };
     if (zoneRaw === 'groundArena' || zoneRaw === 'spaceArena') result.arena = zoneRaw === 'groundArena' ? 'ground' : 'space';
+    if(props.has('disableCostReordering')){const value=literal(props.get('disableCostReordering'),ctx);if(typeof value!=='boolean')fail(ctx,node,'disable-cost-reordering-boolean');result.disableCostReordering=value;}
     if (props.has('optional')) result.optional = literal(props.get('optional'), ctx);
     if (props.has('cardCondition')) {
         const capturedTarget=(n,bound=new Set(),seen=new Set())=>{
@@ -1303,6 +1345,13 @@ function costs(input, ctx) {
         if(!ts.isArrowFunction(factory)||factory.parameters.length>1)fail(ctx,factory,'cost-factory-binding');
         const lowered=lambda(factory,ctx,['context']);
         return [{kind:'costFactory',evaluation:'eachGetCostsCall',costs:costs(lowered.node,lowered.ctx)}];
+    }
+    if(ts.isPropertyAccessExpression(factory)&&!factory.questionDotToken){
+        const p=access(factory,ctx);
+        if(p.length===3&&['AbilityHelper','abilityHelper','StaticAbilityHelper'].includes(p[0])&&p[1]==='costs'&&['exhaustSelf','useTheForce','defeatSelf','returnSelfToHandFromPlay'].includes(p[2])){
+            const cost=p[2]==='exhaustSelf'?{kind:'exhaustSelf'}:additionalCost(ts.factory.createCallExpression(factory,undefined,[]),p[2],ctx,{ts,unwrap,expr,object,literal,fail,targetResolverProperties,contextTitle,target});
+            return [{kind:'costFactory',evaluation:'eachGetCostsCall',factorySource:'uninvokedCostHelperReference',costs:[cost]}];
+        }
     }
     const nodes = ts.isArrayLiteralExpression(unwrap(input)) ? unwrap(input).elements : [input];
     return nodes.map((n) => {
@@ -1378,7 +1427,8 @@ function unshadowedEnum(node,ctx,root) {
     for(let a=node.parent;a;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'syntax-alias-enum-binding');
     if(ctx.scope.has(root)||ctx.constants.has(root))fail(ctx,node,'syntax-alias-enum-binding');
 }
-function constantAbility(input, context, validatedObject = null) {
+function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
+function legacyConstantAbility(input, context, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const playerCost=playerCostConstant(obj,{ts,unwrap,expr,literal,target,fail,object,access,displayText});if(playerCost)return playerCost;
     knownProperties(obj, ['title', 'condition', 'ongoingEffect', 'matchTarget', 'targetController', 'targetCardTypeFilter', 'targetZoneFilter','sourceZoneFilter']);
@@ -1501,7 +1551,8 @@ function gainedHostSourceShape(out) {
         same(a,{...base,optional:true,targetResolver:{owner:'any',type:'any',zone:'anyAttackable',predicate:{kind:'binary',op:'&&',left:other,right:{kind:'query',name:'isUnit',receiver:reference('card'),args:[]}}},effect:{kind:'modifyStats',target:'chosen',duration:'phase',power:constant(3),hp:constant(0)},gainedHost:true})&&same(out.attachCondition,{kind:'unary',op:'!',value:attach('vehicle')}) ||
         same(a,{...base,effect:{kind:'discardOwnHand',amount:constant(1),target:'ownPlayer'},gainedHost:true})&&!out.attachCondition;
 }
-function attachedConstantAbility(input,context,host) {
+function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;return attachedConstantContract(input,context,host,contractApi());}}
+function legacyAttachedConstantAbility(input,context,host) {
     const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
     for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
     const result=constantAbility(input,obj.ctx,obj);result.attachedContext=host?'host':'upgrade';
@@ -1634,7 +1685,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const {props,node}=obj;let ctx=obj.ctx;
     if(ctx.namedTargets?.size && (props.has('targetResolver')||props.has('targetResolvers')||props.has('cost'))) fail(ctx,node,'named-continuation-targeting-or-cost');
-    knownProperties(obj, ['title', 'optional', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'ifYouDoNot', 'limit', 'optionalMakesAbilityNonCancelable','attackerMustSurvive','initiateAttack','cannotTargetFirst','playerChoosingOptional','canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle',...(ctx.eventHistory?['collectiveTrigger']:[])]);
+    knownProperties(obj, ['title', 'optional', 'cost', 'condition', 'immediateEffect', 'targetResolver', 'targetResolvers', 'ifYouDo', 'ifYouDoCondition', 'then', 'thenCondition', 'ifYouDoNot', 'limit', 'optionalMakesAbilityNonCancelable','attackerMustSurvive','initiateAttack','cannotTargetFirst','disableCostReordering','playerChoosingOptional','canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle',...(ctx.eventHistory?['collectiveTrigger']:[])]);
     const result = { ...(trigger ? { trigger } : {}), title: props.has('title') ? displayText(props.get('title'), ctx) : '', costs: costs(props.get('cost'), ctx) };
     Object.assign(result,registrationMetadata.metadata(obj,{literal,expr,fail},['canBeTriggeredBy','zoneFilter','sourceZoneFilter','showUnresolvable','appendOverrideTitle']));
     if(props.has('contextTitle'))result.contextTitle=contextTitle(props.get('contextTitle'),ctx);
@@ -1649,8 +1700,8 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if(ctx.eventHistory){for(const field of ['collectiveTrigger','showUnresolvable'])if(props.has(field)){const value=literal(props.get(field),ctx);if(typeof value!=='boolean')fail(ctx,props.get(field),'event-registration-boolean:'+field);result[field]=value;}if(props.has('sourceZoneFilter'))result.sourceZoneFilter=literal(props.get('sourceZoneFilter'),ctx);}
     if(props.has('targetResolvers')) {
         if(props.has('targetResolver')||props.has('immediateEffect'))fail(ctx,node,'multiple-target-system-properties');
-        if(props.has('cost')||props.has('limit'))fail(ctx,node,'named-target-cost-or-limit');
-        let named;try{named=namedResolvers(props.get('targetResolvers'),ctx);}catch(error){if(!(error instanceof Unsupported))throw error;named=richNamedResolvers(props.get('targetResolvers'),ctx,selectionApi());}
+        if(props.has('cost')||props.has('limit'))result.namedTargetTiming={contract:'PlayerOrCardAbility.namedTargetResolversWithCosts',selfPreTarget:true,opponentAfterPayment:true,sharedLimitIdentity:true};
+        let named;try{named=namedResolvers(props.get('targetResolvers'),ctx);}catch(error){if(!(error instanceof Unsupported))throw error;try{named=richNamedResolvers(props.get('targetResolvers'),ctx,selectionApi());}catch(error){if(!(error instanceof Unsupported))throw error;named=extendedNamedResolvers(props.get('targetResolvers'),ctx,selectionApi());}}
         result.targetResolvers=named.entries;ctx=named.ctx;
         // Sentinel for absence of a direct parent system. An absent child
         // system remains absent because it controls dependency feasibility.
@@ -1660,7 +1711,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if (props.has('targetResolver')) {
         if (props.has('immediateEffect')) fail(ctx, node, 'both-targeted-and-direct-effects');
         const resolver = object(props.get('targetResolver'), ctx);
-        knownProperties(resolver, ['cardTypeFilter', 'controller', 'zoneFilter', 'cardCondition', 'optional', 'mode', 'numCards', 'canChooseNoCards', 'immediateEffect', 'choosingPlayer','numCardsFunc','multiSelectCardCondition','minNumCardsFunc','maxNumCardsFunc','useSingleSelectModeFunc','cardStat','maxStat','capturedByFilter','condition','effectChoices','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle','choices','options','unlessEffect','defaultEffect','checkTarget','showUnresolvable','highlightCards','logSelection']);
+        knownProperties(resolver, ['cardTypeFilter', 'controller', 'zoneFilter', 'cardCondition', 'optional', 'mode', 'numCards', 'canChooseNoCards', 'immediateEffect', 'choosingPlayer','numCardsFunc','multiSelectCardCondition','minNumCardsFunc','maxNumCardsFunc','useSingleSelectModeFunc','cardStat','maxStat','capturedByFilter','condition','effectChoices','mustChangeGameState','hideIfNoLegalTargets','appendToDefaultTitle','choices','options','unlessEffect','defaultEffect','checkTarget','showUnresolvable','highlightCards','logSelection','min','max']);
         const aspectIncludesAlias=trigger==='whenDefeated'&&result.optional===true&&result.costs.length===0&&!props.has('condition')&&!props.has('then')&&!props.has('ifYouDo');
         result.targetResolver = {...targetResolverProperties({...resolver,ctx:{...resolver.ctx,aspectIncludesAlias}}),...registrationMetadata.metadata(resolver,{literal,expr,fail},['showUnresolvable'])};
         if(result.targetResolver.kind==='unlessSelection')result.effect={kind:'resolveSelectedUnlessEffect',selection:'select'};
@@ -1668,7 +1719,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
             if(ctx.pendingRegistration&&result.targetResolver.mode==='player'){const immediate=unwrap(resolver.props.get('immediateEffect'));if(!ts.isCallExpression(immediate)||!ts.isPropertyAccessExpression(immediate.expression))fail(ctx,immediate,'registration-player-effect');const parts=access(immediate.expression,ctx);if(parts.length!==3||parts[1]!=='immediateEffects'||!['AbilityHelper','abilityHelper'].includes(parts[0])||!['readyResources','indirectDamageToPlayer'].includes(parts[2]))fail(ctx,immediate,'registration-player-effect');const body=immediate.arguments.length?object(immediate.arguments[0],resolver.ctx):{props:new Map(),ctx:resolver.ctx,node:immediate};knownProperties(body,['amount']);result.effect={kind:'selectedPlayerSystem',system:parts[2],amount:body.props.has('amount')?expr(body.props.get('amount'),body.ctx):constant(1),target:'chosenPlayer'};}
             const otherBaseTargetScope=result.targetResolver.type==='base'&&!result.targetResolver.mode&&!result.targetResolver.count;
             const damageRecipientScope=['unit','nonLeaderUnit','tokenUnit'].includes(result.targetResolver.type)&&!result.targetResolver.mode&&!result.targetResolver.count;
-            if(!result.effect)result.effect = effect(resolver.props.get('immediateEffect'), {...resolver.ctx,otherBaseTargetScope,damageRecipientScope,...(result.targetResolver.kind==='playerSelection'?{selectedPlayerTarget:reference('selectedPlayer')}:{}),...(result.targetResolver.kind?{pendingSelection:true}:{})}, 'chosen');
+            if(!result.effect)result.effect = effect(resolver.props.get('immediateEffect'), {...resolver.ctx,otherBaseTargetScope,damageRecipientScope,...(result.targetResolver.kind==='playerSelection'?{selectedPlayerTarget:reference('selectedPlayer')}:{}),...(result.targetResolver.kind?{pendingSelection:true}:{}),...(result.targetResolver.kind==='numberSelection'?{pendingChoice:true,pendingSelectionContract:true}:{})}, 'chosen');
         }
     }
     if (props.has('immediateEffect')) {
@@ -1684,7 +1735,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if(!result.effect&&result.targetResolver?.kind==='choiceSelection'&&result.targetResolver.mode!=='dropdownList')result.effect={kind:'resolveChoice',resultBinding:'select'};
     if(!result.effect&&result.targetResolver?.kind&&['then','ifYouDo'].some(key=>props.has(key)))result.effect={kind:'resolveTargetSelection',resultBinding:result.targetResolver.resultBinding};
     if (!result.effect) fail(ctx, node, 'ability-without-effect');
-    for (const branch of ['then', 'ifYouDo','ifYouDoNot']) if (props.has(branch)) result[branch] = ability(props.get(branch),result.targetResolver?.kind?{...ctx,pendingSelection:true,...(result.targetResolver.kind==='choiceSelection'?{pendingChoice:true}:{})}:ctx);
+    for (const branch of ['then', 'ifYouDo','ifYouDoNot']) if (props.has(branch)) result[branch] = ability(props.get(branch),result.targetResolver?.kind?{...ctx,pendingSelection:true,...(['choiceSelection','numberSelection'].includes(result.targetResolver.kind)?{pendingChoice:true,pendingSelectionContract:true}:{})}:ctx);
     if(result.ifYouDoNot)result.ifYouDoNot={kind:'unresolvedContinuation',contract:'CardAbilityStep.ifYouDoNot',triggerHandlingMode:'resolvesTriggers',program:result.ifYouDoNot};
     if(result.targetResolver&&ctx.pendingRegistration&&props.has('targetResolver')){const r=object(props.get('targetResolver'),ctx);if(r.props.has('activePromptTitle'))result.targetResolver.promptTitleParts=contextTitle(r.props.get('activePromptTitle'),r.ctx);}
     if(result.targetResolver&&ctx.powerMaximumSource&&props.has('targetResolver')) {
@@ -1790,7 +1841,8 @@ function coordinateAbility(input, context) {
     const props = new Map(obj.props);
     props.delete('type');
     let result;
-    if (type === 'constant') result = constantAbility(input, obj.ctx, { ...obj, props });
+    if(type==='action')result=ability(input,obj.ctx,'action',{...obj,props});
+    else if (type === 'constant') result = constantAbility(input, obj.ctx, { ...obj, props });
     else if (type === 'triggered') {
         if (!props.has('when')) fail(obj.ctx, obj.node, 'coordinate-without-when');
         const when = object(props.get('when'), obj.ctx);
@@ -1822,7 +1874,7 @@ function loadEnums(sourceRoot) {
 function compileSource(text, file, enums = {}, options = {}) {
     const exclusion=sourceExclusion(file,hash(text));if(exclusion)return exclusion;
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
-    const ctx = { source, file, enums, scope: new Map(), constants: new Map(), constantScopes: new Map(), constantEnvs: new Map(), constantStages: new Map(), bindings: [], usedConstants: new Set(), inventoryUsage:new Set() };
+    const ctx = { source, file, enums, scope: new Map(), constants: new Map(), constantScopes: new Map(), constantEnvs: new Map(), constantStages: new Map(), bindings: [], usedConstants: new Set(), registeredPlayCostNames:new Set(), inventoryUsage:new Set() };
     const diagnostics = [];
     const out = { sourcePath: file, sourceHash: hash(text), abilities: { leader: [], unit: [], card: [] }, diagnostics };
     if (source.parseDiagnostics.length) {
@@ -1879,6 +1931,7 @@ function compileSource(text, file, enums = {}, options = {}) {
         if(helper&&cls.members.filter(m=>m.name?.getText(source)===member.name.getText(source)).length===1)ctx.arenaDamageHelpers.set(member.name.text,helper);
     }
     installPureScalarHelpers(cls,ctx,{ts,unwrap});
+    ctx.privatePrograms=out.baseClass.startsWith('Token')?new Map():privatePrograms.inspect(cls,ctx,{ts,unwrap});
     for(const name of ctx.choiceHelpers.keys())if([ctx.maximumHelpers,ctx.resultHelpers,ctx.reductionHelpers,ctx.arenaDamageHelpers,ctx.physicalAttachmentHelpers,ctx.defeatedUnitCountHelpers,ctx.selectedCostHelpers,ctx.constantRegistrarHelpers,ctx.historyHelpers].some(map=>map?.has(name)))ctx.choiceHelpers.delete(name);
     for (const member of cls.members) {
         if (ts.isMethodDeclaration(member) && member.name.getText(source) === 'getImplementationId') {
@@ -1908,8 +1961,9 @@ function compileSource(text, file, enums = {}, options = {}) {
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'class-member:' + ts.SyntaxKind[member.kind], file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class behavior requires conversion' });
             continue;
         }
+        if(name==='deployActionAbilityProps'&&out.baseClass==='LeaderUnitCard'&&!ctx.historyHelpers.has(name)){try{if(out.deploymentOverride)fail(ctx,member,'duplicate-deploy-override');out.deploymentOverride=deploymentOverride(member,ctx,{ts,object,expr,costs,fail});}catch(error){if(!(error instanceof Unsupported))throw error;diagnostics.push(error.diagnostic);}continue;}
         if (!(name in SIDE_METHODS)) {
-            if(ctx.choiceHelpers.get(name)?.member===member || ctx.selectedCostHelpers.get(name)?.member===member || ctx.constantRegistrarHelpers.get(name)?.member===member || ctx.historyHelpers.get(name)?.member===member || ctx.resultHelpers.get(name)?.member===member || ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
+            if(ctx.privatePrograms.get(name)?.member===member || ctx.choiceHelpers.get(name)?.member===member || ctx.selectedCostHelpers.get(name)?.member===member || ctx.constantRegistrarHelpers.get(name)?.member===member || ctx.historyHelpers.get(name)?.member===member || ctx.resultHelpers.get(name)?.member===member || ctx.maximumHelpers.get(name)?.member===member || ctx.defeatedUnitCountHelpers.get(name)?.member===member || ctx.reductionHelpers.get(name)?.member===member || ctx.arenaDamageHelpers.get(name)?.member===member || ctx.physicalAttachmentHelpers.get(name)?.member===member)continue;
             diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'method:' + name, file, line: source.getLineAndCharacterOfPosition(member.getStart()).line + 1, column: 1, message: 'Additional class method requires conversion' });
             continue;
         }
@@ -1938,10 +1992,12 @@ function compileSource(text, file, enums = {}, options = {}) {
                 const template=compileConstantRegistrarCall(call,local,member,{ts,access,literal,fail,bindConstant,constantAbility});
                 if(template){out.abilities[SIDE_METHODS[name]].push(template);continue;}
                 const registration = parts.at(-1);
-                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!REGISTRATIONS.has(registration) && !TRIGGERS[registration] && !replacementRegistration.REGISTRATIONS.has(registration) && registration !== 'addIgnoreAllAspectPenaltiesAbility' && registration !== 'addIgnoreSpecificAspectPenaltyAbility' && registration !== 'addAdjustCostAbility' && registration !== 'addDecreaseCostAbility' && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addBountyAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
+                if (parts.length !== 2 || parts[0] !== member.parameters[0]?.name.getText(source) || (!['addAdditionalPlayCost','addAlternatePlayCost','addPreEnterPlayAbility'].includes(registration) && !REGISTRATIONS.has(registration) && !TRIGGERS[registration] && !replacementRegistration.REGISTRATIONS.has(registration) && registration !== 'addIgnoreAllAspectPenaltiesAbility' && registration !== 'addIgnoreSpecificAspectPenaltyAbility' && registration !== 'addAdjustCostAbility' && registration !== 'addDecreaseCostAbility' && registration !== 'addConstantAbility' && registration !== 'addGainOnAttackAbilityTargetingAttached' && registration !== 'addTriggeredAbility' && registration !== 'addBountyAbility' && registration !== 'addCoordinateAbility' && registration !== 'addGainKeywordTargetingAttached' && registration !== 'setAttachCondition' && registration !== 'addConstantAbilityTargetingAttached' && registration !== 'addGainConstantAbilityTargetingAttached')) fail(local, call, 'registrar:' + registration);
                 if(REGISTRATIONS.has(registration)&&registration!=='addGainOnAttackAbilityTargetingAttached'){out.abilities[SIDE_METHODS[name]].push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));continue;}
                 if (call.arguments.length !== 1) fail(local, call, 'registration-arity');
-                if(['addIgnoreAllAspectPenaltiesAbility','addIgnoreSpecificAspectPenaltyAbility'].includes(registration))out.abilities[SIDE_METHODS[name]].push(ignoreAspectAbility(call.arguments[0],local,registration,{ts,unwrap,expr,object,literal,displayText,fail,access,adjustCostAbility}));
+                if(['addAdditionalPlayCost','addAlternatePlayCost'].includes(registration))out.abilities[SIDE_METHODS[name]].push(playCostRegistration(registration,call.arguments[0],local,{object,fail,literal,displayText,costs,effect,ability}));
+                else if(registration==='addPreEnterPlayAbility')out.abilities[SIDE_METHODS[name]].push(preEnterPlayRegistration(call.arguments[0],local,{ability}));
+                else if(['addIgnoreAllAspectPenaltiesAbility','addIgnoreSpecificAspectPenaltyAbility'].includes(registration))out.abilities[SIDE_METHODS[name]].push(ignoreAspectAbility(call.arguments[0],local,registration,{ts,unwrap,expr,object,literal,displayText,fail,access,adjustCostAbility}));
                 else if(registration==='addAdjustCostAbility')out.abilities[SIDE_METHODS[name]].push(adjustCostAbility(call.arguments[0],local,{ts,unwrap,expr,object,literal,displayText,fail,access}));
                 else if(registration==='addDecreaseCostAbility')out.abilities[SIDE_METHODS[name]].push(decreaseCostAbility(call.arguments[0],local,{ts,unwrap,expr,object,literal,displayText,fail}));
                 else if (['addGainKeywordTargetingAttached', 'setAttachCondition'].includes(registration)) {
@@ -1960,9 +2016,10 @@ function compileSource(text, file, enums = {}, options = {}) {
                     catch(error){if(!(error instanceof Unsupported))throw error;out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));}
                 }
                 else if (registration === 'addCoordinateAbility') {
-                    if (out.baseClass !== 'NonLeaderUnitCard' || name !== 'setupCardAbilities') fail(local, call, 'coordinate-source-side');
-                    if (out.abilities.card.some(a => a.coordinate)) fail(local, call, 'coordinate-multiple-definitions');
-                    out.abilities.card.push(coordinateAbility(call.arguments[0], local));
+                    const leaderCoordinate=out.baseClass==='LeaderUnitCard'&&['setupLeaderSideAbilities','setupLeaderUnitSideAbilities'].includes(name);
+                    if (!leaderCoordinate&&(out.baseClass !== 'NonLeaderUnitCard' || name !== 'setupCardAbilities')) fail(local, call, 'coordinate-source-side');
+                    const side=SIDE_METHODS[name];if(out.abilities[side].some(a=>a.coordinate))fail(local,call,'coordinate-multiple-definitions');
+                    const body=coordinateAbility(call.arguments[0],local);out.abilities[side].push(leaderCoordinate?{trigger:'constant',title:body.title,costs:[],effect:{kind:'leaderCoordinateContract',side,sourceZone:side==='leader'?'base':'anyArena',sideZoneMerge:'appendToExplicitZoneFilter',threshold:3,keywordGate:'printedCoordinateInstanceNotBlank',registration:body}}:body);
                 }
                 else if (registration === 'addBountyAbility') {
                     if(out.baseClass!=='NonLeaderUnitCard'||name!=='setupCardAbilities')fail(local,call,'bounty-source-side');
@@ -1985,6 +2042,7 @@ function compileSource(text, file, enums = {}, options = {}) {
         diagnostics.push({ code: 'UNSUPPORTED_SOURCE', pattern: 'unused-source-binding', file, line: location.line + 1, column: location.character + 1, message: `Unused binding ${binding.name} may contain unconverted behavior` });
     }
     for(const [name,helper]of ctx.selectedCostHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-selected-cost-helper:'+name).diagnostic);
+    if(ctx.privatePrograms.size)try{out.privatePrograms=privatePrograms.definitions(ctx,privateApi());}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
     if(ctx.historyHelpers.size)try{out.historyHelpers=eventHistory.helperDefinitions(ctx,{ts,unwrap,expr,object,literal,fail,unshadowedEnum});}catch(e){if(e instanceof Unsupported)diagnostics.push(e.diagnostic);else throw e;}
     for(const [name,helper]of ctx.constantRegistrarHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-constant-registrar-helper:'+name).diagnostic);
     for(const [name,helper]of ctx.choiceHelpers)if(!helper.used)diagnostics.push(new Unsupported(ctx,helper.member,'unused-choice-helper:'+name).diagnostic);

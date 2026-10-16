@@ -3,18 +3,19 @@
 function choiceContext(context){return {...context,pendingChoice:true,pendingSelection:true};}
 function choiceMap(input,context,api){
  const {ts,unwrap,lambda,effect,contextTitle,fail}=api,lowered=lambda(input,choiceContext(context)),ctx=lowered.ctx,node=unwrap(lowered.node);
- const original=unwrap(input);
+ const original=unwrap(input);let captured=false;
  if(ts.isArrowFunction(original)||ts.isFunctionExpression(original)){
   const outer=original.parameters[0]?.name;
   if(outer&&ts.isIdentifier(outer)){
    const search=(n,bound=true)=>{
     if(n!==original&&(ts.isArrowFunction(n)||ts.isFunctionExpression(n))&&n.parameters.some(p=>ts.isIdentifier(p.name)&&p.name.text===outer.text))bound=false;
-    if(bound&&(ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n))){let root=n,first;while(ts.isPropertyAccessExpression(root)||ts.isElementAccessExpression(root)){first=ts.isPropertyAccessExpression(root)?root.name.text:ts.isStringLiteral(root.argumentExpression)?root.argumentExpression.text:null;root=root.expression;}if(ts.isIdentifier(root)&&root.text===outer.text&&['target','targets','select','selects'].includes(first))fail(ctx,n,'choice-factory-target-capture');}
+    if(bound&&(ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n))){let root=n,first;while(ts.isPropertyAccessExpression(root)||ts.isElementAccessExpression(root)){first=ts.isPropertyAccessExpression(root)?root.name.text:ts.isStringLiteral(root.argumentExpression)?root.argumentExpression.text:null;root=root.expression;}if(ts.isIdentifier(root)&&root.text===outer.text&&['target','targets','select','selects'].includes(first))captured=true;}
     ts.forEachChild(n,c=>search(c,bound));
    };search(original.body);
   }
  }
 
+ if(captured)return require('./selection-contracts').choiceFactoryMap(input,context,api);
  if(!ts.isObjectLiteralExpression(node))fail(ctx,node,'choice-map-object');
  if(!node.properties.length||node.properties.length>32)fail(ctx,node,'choice-map-bound');
  const entries=[];
@@ -60,10 +61,10 @@ function choiceExpression(input,ctx,api){
 }
 function lookAtOptions(node,context,defaultTarget,api){
  const {ts,unwrap,access,object,expr,effect,contextTitle,literal,fail}=api;
- const p=access(node.expression,context);if(p.length!==3||p[1]!=='immediateEffects'||p[2]!=='lookAtAndChooseOption')return null;
+ const p=access(node.expression,context);if(p.length!==3||p[1]!=='immediateEffects'||!['lookAtAndChooseOption','revealAndChooseOption'].includes(p[2]))return null;
  if(node.arguments.length!==1)fail(context,node,'look-at-options-arity');
  const factory=unwrap(node.arguments[0]),obj=object(factory,choiceContext(context));let ctx=obj.ctx;
- api.knownProperties(obj,['target','player','useDisplayPrompt','perCardButtons','message']);
+ api.knownProperties(obj,['target','player','useDisplayPrompt','perCardButtons','message',...(p[2]==='revealAndChooseOption'?['promptedPlayer']:[])]);
  if(!obj.props.has('perCardButtons'))fail(ctx,obj.node,'look-at-buttons-required');
  const captures=[],scope=new Map(ctx.scope),constants=new Map(ctx.constants);
  ctx={...ctx,scope,constants};
@@ -97,7 +98,9 @@ function lookAtOptions(node,context,defaultTarget,api){
    return {textParts:contextTitle(button.props.get('text'),ctx),arg,effect:effect(button.props.get('immediateEffect'),ctx,'viewedCard')};
   })};
  };
- const result={kind:'lookAtOptions',interactMode:'perCardButtons',captures,captureStage:'propertyFactory',target:obj.props.has('target')?expr(obj.props.get('target'),ctx):defaultTarget,buttons:buttons(obj.props.get('perCardButtons')),defaults:'pinnedLookAtSystem',buttonDefaultTargetOverride:'clickedPhysicalCard',resolveWindow:'afterDisplayComplete'};
+ const reveal=p[2]==='revealAndChooseOption';
+ const result={kind:reveal?'revealOptions':'lookAtOptions',interactMode:'perCardButtons',captures,captureStage:'propertyFactory',target:obj.props.has('target')?expr(obj.props.get('target'),ctx):defaultTarget,buttons:buttons(obj.props.get('perCardButtons')),defaults:'pinnedLookAtSystem',buttonDefaultTargetOverride:'clickedPhysicalCard',resolveWindow:'afterDisplayComplete'};
+ if(reveal){result.revealContract={event:'onCardRevealed',legalZones:['deck','hand','resource'],checkEventCondition:'allCardsStillRevealable',revealedFromZone:'sharedZoneIfAllSame',defaultPromptedPlayer:'self'};if(obj.props.has('promptedPlayer'))result.promptedPlayer=expr(obj.props.get('promptedPlayer'),ctx);}
  if(obj.props.has('player'))result.player=expr(obj.props.get('player'),ctx);
  if(obj.props.has('useDisplayPrompt'))result.useDisplayPrompt=literal(obj.props.get('useDisplayPrompt'),ctx);
  if(obj.props.has('activePromptTitle'))result.promptTitleParts=contextTitle(obj.props.get('activePromptTitle'),ctx);

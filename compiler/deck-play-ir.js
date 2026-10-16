@@ -68,7 +68,7 @@ function deckPlayEffect(kind, obj, defaultTarget, api) {
         check(['target','ignoredRequirements','entersReady','playType','playAsType','adjustCost','nested','canPlayFromAnyZone','exploitValue','attachTargetCondition','enterPlayEffect','optional']);
         if(kind!=='playCard'&&(obj.props.has('playType')||obj.props.has('optional')))fail(obj.ctx,obj.node,'play-wrapper-owned-properties');
         const result={kind:'playCardSystem',helper:kind,target:target(obj.props.get('target'),obj.ctx,defaultTarget),ignoredRequirements:['phase'],optional:false,entersReady:false,playType:kind==='playCardFromOutOfPlay'?'playFromOutOfPlay':'playFromHand',playAsType:'any',nested:false,canPlayFromAnyZone:false};
-        for(const key of ['ignoredRequirements','optional','entersReady','playType','playAsType','nested','canPlayFromAnyZone'])if(obj.props.has(key))result[key]=literal(obj.props.get(key),obj.ctx);
+        for(const key of ['ignoredRequirements','optional','entersReady','playType','playAsType','nested','canPlayFromAnyZone'])if(obj.props.has(key)){try{result[key]=literal(obj.props.get(key),obj.ctx);}catch(error){if(!error.diagnostic||!obj.ctx.pendingSystemConstruction)throw error;result[key]={kind:'systemPropertyValue',property:key,value:expr(obj.props.get(key),obj.ctx),readAt:'nativePropertyGeneration',invalidValue:'nativeAssertionOrSwitchContract'};}}
         if(obj.props.has('exploitValue'))result.exploitValue=derived(obj.props.get('exploitValue'),'playExploitValue');
         if(obj.props.has('attachTargetCondition'))result.attachTargetCondition=derived(obj.props.get('attachTargetCondition'),'playAttachFilter',['card','context']);
         if(obj.props.has('adjustCost')) {
