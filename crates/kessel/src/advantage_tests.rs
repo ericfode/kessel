@@ -371,13 +371,15 @@ fn advantage_raw_contract_rejects_unknown_or_nondefault_creation_semantics() {
         assert!(serde_json::from_value::<Effect>(v).is_err());
     }
     let entries=catalogue();
-    let original_entry=entries["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="ASH_251").unwrap().clone();
-    let admits=|entry:Value| crate::ability_ir::Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[entry]})).unwrap().cards.contains_key("ASH_251");
-    assert!(admits(original_entry.clone()));
-    for key in ["stateWatchers", "historyHelpers", "privatePrograms", "classMethods", "privateClassConstants", "inheritedSource", "deploymentOverride", "setupValidationOverrides"] {
-        let mut bad=original_entry.clone();
-        bad[key]=json!([{"kind":"unimplementedSourceContext"}]);
-        assert!(!admits(bad),"{key}");
+    for code in ["ASH_251", "ASH_036"] {
+        let original_entry=entries["cards"].as_array().unwrap().iter().find(|v|v["setCode"]==code).unwrap().clone();
+        let admits=|entry:Value| crate::ability_ir::Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[entry]})).unwrap().cards.contains_key(code);
+        assert!(admits(original_entry.clone()),"{code}");
+        for key in ["stateWatchers", "historyHelpers", "privatePrograms", "classMethods", "privateClassConstants", "inheritedSource", "deploymentOverride", "setupValidationOverrides"] {
+            let mut bad=original_entry.clone();
+            bad[key]=json!([{"kind":"unimplementedSourceContext"}]);
+            assert!(!admits(bad),"{code}/{key}");
+        }
     }
     for class in [
         "LeaderUnitCard",

@@ -1643,7 +1643,7 @@ fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_
     let token=unit(&e,&mut s,Seat::P2,"TOKEN_MANDALORIAN");let leader=s.players[0].leader;s.card_mut(leader).deployed=true;s.card_mut(leader).epic_used=true;e.add_arena(&mut s,leader).unwrap();assert_eq!(e.arena_units(&s),vec![late,early,token,leader]);
     // Legacy evidence is valid only for a selected pool without future listener registrations.
     let mut legacy_engine=engine();legacy_engine.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
-    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
+    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");legacy.as_object_mut().unwrap().remove("supportStateVersion");legacy.as_object_mut().unwrap().remove("supportGrants");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
 }
 #[test]
 fn repeated_defeat_records_prepare_repeated_cleanup_before_deduplicated_handlers() {

@@ -695,9 +695,10 @@ when no explicit target was supplied. Advantage grants preserve creator identity
 recipient-controller ownership and one batched creation event. Advantage
 distribution instead retains a separate creation event per recipient and its
 aggregate result. Phase player-cost effects preserve one lasting-effect
-application with expiry at phase end. These IR forms require later runtime
-implementation, native token definitions and engine verification; catalog
-conversion does not admit them for play.
+application with expiry at phase end. Only the bounded Advantage grant contracts described above execute in Rust;
+other resource/token forms still need runtime implementation and native token
+contracts. Catalog conversion alone does not admit them for play, and executed
+source-engine verification remains pending.
 
 Extended resource/token systems retain explicit resource-controller and readiness
 properties, top-deck card/list queries, ordered token-controller arrays, and token

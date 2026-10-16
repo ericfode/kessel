@@ -306,8 +306,12 @@ pub(crate) fn registration(a: &Ability) -> bool {
 pub(crate) fn has_leader_trait_union(p:&crate::ability_ir::Program)->bool {
     p.instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(NativeModifier::Traits(TraitRule::LeaderUnion{..})))))
 }
+/// Watchers are checked separately by callers with a supported watcher contract.
+pub(crate) fn closed_source_helpers(e:&Value)->bool {
+    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|key|e[*key].is_null() || e[*key].as_array().is_some_and(Vec::is_empty))
+}
 pub(crate) fn closed_source_context(e:&Value)->bool {
-    ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|key|e[*key].is_null() || e[*key].as_array().is_some_and(Vec::is_empty))
+    closed_source_helpers(e) && (e["stateWatchers"].is_null() || e["stateWatchers"].as_array().is_some_and(Vec::is_empty))
 }
 pub(crate) fn entry(e: &Value) -> bool {
     let Ok(sides) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {

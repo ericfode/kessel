@@ -93,6 +93,8 @@ fn unit(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = add(e, s, seat, code);
     s.player_mut(seat).ground.push(id).unwrap();
     s.arena_unit_order[0].push(id).unwrap();
+    // These units are constructed in known physical entry order.
+    s.registration_order.push(id).unwrap();
     id
 }
 fn click(e: &Engine, s: &State, id: CardId) -> State {
