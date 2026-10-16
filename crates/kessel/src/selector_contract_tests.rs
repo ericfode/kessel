@@ -79,7 +79,35 @@ fn reviewed_arena_queries_preserve_normalized_ability_fingerprints_and_bindings(
         .collect::<Vec<_>>();
     let mut checked = 0;
     for original in &originals {
-        for changed in mutations(original) {
+        let mut candidates = mutations(original);
+        for (field, value) in [
+            ("gainedHost", json!(false)),
+            ("attachedContext", json!("host")),
+            ("attackerMustSurvive", json!(true)),
+            ("requiresConfirmation", json!(true)),
+            ("contextTitle", json!([{"kind":"const","value":"context"}])),
+            (
+                "targetResolvers",
+                json!([{"name":"extra","chooser":"self","targetResolver":{"type":"unit"},"effect":{"kind":"noAction"}}]),
+            ),
+            (
+                "then",
+                json!({"title":"continuation","effect":{"kind":"noAction"}}),
+            ),
+            (
+                "ifYouDo",
+                json!({"title":"continuation","effect":{"kind":"noAction"}}),
+            ),
+            (
+                "targetResolver",
+                json!({"kind":"cardSelection","mode":"single","chooser":"self","resultBinding":"target","defaults":"pinnedTargetResolver","contextBinding":"target","choosingPlayerOverride":"contextOverrideFirst","delayOpponentBeforeCosts":true,"cardTypes":{"kind":"const","value":"unit"},"zones":{"kind":"const","value":"anyAttackable"},"controller":{"kind":"const","value":"any"}}),
+            ),
+        ] {
+            let mut changed = original.clone();
+            changed[field] = value;
+            candidates.push(changed);
+        }
+        for changed in candidates {
             if let Ok(ability) = serde_json::from_value::<Ability>(changed) {
                 let legacy =
                     expected.contains(&without_titles(serde_json::to_value(&ability).unwrap()));
@@ -181,4 +209,31 @@ fn named_selector_contracts_preserve_scalar_modes_bindings_and_domain_boundaries
         let resolver: TargetResolver = serde_json::from_value(value_with_field).unwrap();
         assert_eq!(scalar_arena_unit(&resolver), accepted, "{field}");
     }
+}
+
+#[test]
+fn emitted_arena_scope_keeps_exact_ground_and_space_operands() {
+    let mut checked = 0;
+    for arena in ["groundArena", "spaceArena"] {
+        let raw = json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":arena}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":arena},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":arena}}}}});
+        let expression: Expr = serde_json::from_value(raw.clone()).unwrap();
+        assert!(crate::ability_ir::emitted_arena_scope(&expression, arena));
+        let other = if arena == "groundArena" {
+            "spaceArena"
+        } else {
+            "groundArena"
+        };
+        assert!(!crate::ability_ir::emitted_arena_scope(&expression, other));
+        for changed in mutations(&raw) {
+            if let Ok(expression) = serde_json::from_value::<Expr>(changed) {
+                assert_eq!(
+                    crate::ability_ir::emitted_arena_scope(&expression, arena),
+                    serde_json::to_value(&expression).unwrap() == raw
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked > 0);
+    eprintln!("checked {checked} exact emitted arena-scope mutations across ground and space");
 }

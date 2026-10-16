@@ -220,58 +220,6 @@ fn nullable_other_than_source(expr: &Expr) -> bool {
 fn arena_list(expr: &Expr, owner: &str, predicate_matches: impl FnOnce(&Expr) -> bool) -> bool {
     matches!(expr.original(), Expr::ArenaList { receiver, predicate } if reference(receiver, &[owner]) && predicate_matches(predicate))
 }
-fn native_space_scope(expr: &Expr) -> bool {
-    // Preserve the emitted nullable zone test and operand order. Recognizing an
-    // equivalent boolean expression would broaden this reviewed source family.
-    let space = |e: &Expr| literal_value(e, &Value::from("spaceArena"));
-    binary(
-        expr,
-        "&&",
-        |e| literal_value(e, &Value::Bool(true)),
-        |e| {
-            binary(
-                e,
-                "||",
-                |e| unary(e, "!", space),
-                |e| {
-                    binary(
-                        e,
-                        "||",
-                        |e| {
-                            binary(e, "===", space, |e| {
-                                literal_value(e, &Value::from("anyArena"))
-                            })
-                        },
-                        |e| binary(e, "===", |e| reference(e, &["card", "zoneName"]), space),
-                    )
-                },
-            )
-        },
-    )
-}
-fn no_extra_arena_context(ability: &super::Ability) -> bool {
-    ability.hooks.is_empty()
-        && ability.gained_host.is_none()
-        && ability.attached_context.is_none()
-        && ability.target_resolvers.is_empty()
-        && !ability.attacker_must_survive
-        && !ability.coordinate
-        && ability.context_title.is_empty()
-        && !ability.requires_confirmation
-        && ability.then.is_none()
-        && ability.if_you_do.is_none()
-}
-fn ordinary_unit_resolver(resolver: &TargetResolver) -> bool {
-    scalar_arena_unit(resolver)
-        && resolver.owner == "any"
-        && resolver.zone.as_deref() == Some("anyAttackable")
-        && resolver.arena.is_none()
-        && !resolver.optional
-        && resolver.predicate.is_none()
-        && resolver.prompt_title.is_none()
-        && resolver.prompt_title_parts.is_empty()
-        && resolver.native.is_none()
-}
 fn named_target(target: &super::Target, name: &str) -> bool {
     matches!(target, super::Target::Name(actual) if actual == name)
 }
@@ -281,7 +229,17 @@ fn named_target(target: &super::Target, name: &str) -> bool {
 /// the separate raw whole-source fingerprint remains a provenance boundary.
 pub(super) fn reviewed_arena_query_ability(ability: &super::Ability) -> bool {
     use super::{Cost, Effect};
-    if !no_extra_arena_context(ability) {
+    if !ability.hooks.is_empty()
+        || ability.gained_host.is_some()
+        || ability.attached_context.is_some()
+        || !ability.target_resolvers.is_empty()
+        || ability.attacker_must_survive
+        || ability.coordinate
+        || !ability.context_title.is_empty()
+        || ability.requires_confirmation
+        || ability.then.is_some()
+        || ability.if_you_do.is_some()
+    {
         return false;
     }
     match ability.trigger.as_str() {
@@ -297,11 +255,13 @@ pub(super) fn reviewed_arena_query_ability(ability: &super::Ability) -> bool {
         }
         "whenPlayed" => {
             ability.optional && ability.costs.is_empty() && ability.condition.is_none()
-                && ability.target_resolver.as_ref().is_some_and(ordinary_unit_resolver)
+                && ability.target_resolver.as_ref().is_some_and(|r|
+                    super::RecipeSelector::one("any", "unit", "anyAttackable").matches(r)
+                        && r.predicate.is_none() && r.prompt_title_parts.is_empty() && r.native.is_none())
                 && matches!(&ability.effect, Effect::Conditional { condition, on_true, on_false }
                     if binary(condition, ">", |e| matches!(e.original(), Expr::ArenaLength { receiver }
                         if matches!(receiver.original(), Expr::ArenaFilter { receiver, predicate }
-                            if arena_list(receiver, "player", native_space_scope) && other_than_source(predicate))),
+                            if arena_list(receiver, "player", |e| super::emitted_arena_scope(e, "spaceArena")) && other_than_source(predicate))),
                         |e| literal_value(e, &Value::from(0)))
                     && matches!(on_true.as_ref(), Effect::Exhaust { target } if named_target(target, "chosen"))
                     && matches!(on_false.as_deref(), Some(Effect::NoAction)))

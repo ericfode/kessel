@@ -566,10 +566,10 @@ pub enum ControllerOrder { PlayerFirst, OpponentFirst, SeatOrder }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ArenaListKind { #[serde(rename = "arenaList")] ArenaList }
-// Exact emitted ground scope shared by controller-ordered, conditional damage
-// and native-token snapshots. Do not normalize equivalent predicates: the family
-// fence also fixes the source/candidate binding and emitted traversal contract.
-fn emitted_ground_scope(expr: &Expr) -> bool {
+// Exact emitted arena scope shared by controller-ordered, conditional damage,
+// native-token snapshots and selector eligibility. Exact predicates also fix
+// source/candidate binding and the emitted traversal contract.
+fn emitted_arena_scope(expr: &Expr, arena: &str) -> bool {
     fn binary<'a>(expr: &'a Expr, operator: &str) -> Option<(&'a Expr, &'a Expr)> {
         match expr.original() {
             Expr::Binary { op, left, right } if op == operator => Some((left, right)),
@@ -582,11 +582,11 @@ fn emitted_ground_scope(expr: &Expr) -> bool {
     let Some((all, scope)) = binary(expr, "&&") else { return false; };
     if !matches!(all.original(), Expr::Const { value } if value.as_bool() == Some(true)) { return false; }
     let Some((absent, alternatives)) = binary(scope, "||") else { return false; };
-    if !matches!(absent.original(), Expr::Unary { op, value } if op == "!" && text(value, "groundArena")) { return false; }
+    if !matches!(absent.original(), Expr::Unary { op, value } if op == "!" && text(value, arena)) { return false; }
     let Some((any, candidate)) = binary(alternatives, "||") else { return false; };
-    let Some((arena, any_arena)) = binary(any, "===") else { return false; };
-    let Some((zone, ground)) = binary(candidate, "===") else { return false; };
-    text(arena, "groundArena") && text(any_arena, "anyArena") && text(ground, "groundArena")
+    let Some((selected, any_arena)) = binary(any, "===") else { return false; };
+    let Some((zone, selected_arena)) = binary(candidate, "===") else { return false; };
+    text(selected, arena) && text(any_arena, "anyArena") && text(selected_arena, arena)
         && matches!(zone.original(), Expr::Ref { path } if path == &["card", "zoneName"])
 }
 fn emitted_unshielded_unit(expr: &Expr) -> bool {
@@ -601,7 +601,7 @@ fn emitted_unshielded_unit(expr: &Expr) -> bool {
 }
 impl ArenaListTarget {
     fn validate_ordered_ground(&self)->Result<(),String> {
-        if self.controller_order.is_none() || !matches!(&self.receiver,Expr::Ref{path} if path==&["game"]) || !emitted_ground_scope(&self.predicate) {return Err("ordered lists require global controller partitions and exact ground scope".into());}
+        if self.controller_order.is_none() || !matches!(&self.receiver,Expr::Ref{path} if path==&["game"]) || !emitted_arena_scope(&self.predicate, "groundArena") {return Err("ordered lists require global controller partitions and exact ground scope".into());}
         Ok(())
     }
 
@@ -1386,7 +1386,7 @@ fn arena_token_kind(a:&Ability)->Option<u8> {
  let (list,shield)=match &a.effect {Effect::GiveShield{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,true),Effect::GiveExperience{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,false),_=>return None};
  if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["player"])||list.predicate.validate().is_err(){return None;}
  // Exact friendly ground unit snapshot excluding physical native Shields.
- if shield && a.trigger=="whenPlayed" && !a.requires_confirmation && a.attached_context.is_none() && matches!(list.predicate.original(), Expr::Binary { op, left, right } if op == "&&" && emitted_ground_scope(left) && emitted_unshielded_unit(right)) {return Some(4);}
+ if shield && a.trigger=="whenPlayed" && !a.requires_confirmation && a.attached_context.is_none() && matches!(list.predicate.original(), Expr::Binary { op, left, right } if op == "&&" && emitted_arena_scope(left, "groundArena") && emitted_unshielded_unit(right)) {return Some(4);}
  let Expr::Binary{op,left,right}=&list.predicate else{return None};if op!="&&"||!matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true)){return None;}
  let reference=|e:&Expr,name:&str|matches!(e,Expr::Ref{path} if path==&[name]);
  if shield {if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Query{name,receiver,args} if name=="hasSomeKeyword"&&reference(receiver,"card")&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("shielded"))){return Some(0);}return None;}
@@ -1416,7 +1416,7 @@ fn conditional_arena_damage_ability(a:&Ability)->bool {
     if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["opponent"]){return false;}
     let Expr::Binary{op,left,right}=condition else{return false;};if op!=">="{return false;}
     if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(4))&&value.as_u64()==Some(3)&&matches!(&list.predicate,Expr::Const{value} if value.as_bool()==Some(true))&&matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="arenaUnitCount"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_bool()==Some(true))) {return true;}
-    a.trigger=="onAttack"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(15))&&value.as_u64()==Some(1)&&matches!(left.as_ref(),Expr::Ref{path} if path==&["player","base","damage"])&&emitted_ground_scope(&list.predicate)
+    a.trigger=="onAttack"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(15))&&value.as_u64()==Some(1)&&matches!(left.as_ref(),Expr::Ref{path} if path==&["player","base","damage"])&&emitted_arena_scope(&list.predicate, "groundArena")
 }
 fn arena_damage_ability(a:&Ability)->bool {
     arena_damage_header(a)&&(matches!(&a.effect,Effect::Damage{target:Target::ArenaList(_),amount:Expr::Const{value}} if value.as_u64().is_some_and(|n|(1..=3).contains(&n)))||conditional_arena_damage_ability(a))
