@@ -663,7 +663,7 @@ fn internal_selection_commits_event_and_uses_choose_nothing_while_outer_can_canc
             .unwrap()
             .programs
             .push(crate::ability_ir::Program::compile(&ability).unwrap());
-        e.begin_program(&mut s, index, 0).unwrap();
+        e.begin_program(&mut s, index, ProgramContinuation::Finish).unwrap();
         assert_eq!(s.decision, Decision::AbilityTarget);
         let actions = e.legal_actions(&s);
         assert_eq!(actions.iter().any(|a| a.label == "Cancel"), !internal);
@@ -967,7 +967,7 @@ fn live_raid_and_overwhelm_do_not_redirect_replaced_shield_damage() {
 fn begin_group_test(e:&mut Engine,s:&mut State,source:CardId,value:Value) {
     register_keyword_program(e,s,source,value);
     let p=*e.def(s,source).programs.card.last().unwrap(); s.source=source;
-    e.begin_program(s,p,0).unwrap();
+    e.begin_program(s,p,ProgramContinuation::Finish).unwrap();
 }
 #[test]
 fn event_group_defers_damage_deaths_and_checks_both_lethal_bases_together() {
@@ -1200,8 +1200,8 @@ fn nested_sacrifice_restores_parent_if_you_do_result_and_source() {
 fn death_capacity_and_unsettled_group_fail_explicitly_and_hash_covers_context() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");death_program(&mut e,&s,source,draw_death(true));
     s.death_pending.len=MAX_DEATH_TRIGGERS as u8;assert!(e.defeat(&mut s,source).unwrap_err().contains("capacity"));assert!(e.in_arena(&s,source));
-    s.death_pending=DeathWindow::default();e.capture_death(&mut s,source).unwrap();s.event_group.active=true;assert!(e.open_deaths(&mut s,3).unwrap_err().contains("settled"));
-    s.event_group.active=false;s.death_depth=MAX_DEATH_DEPTH as u8;assert!(e.open_deaths(&mut s,3).unwrap_err().contains("nested"));
+    s.death_pending=DeathWindow::default();e.capture_death(&mut s,source).unwrap();s.event_group.active=true;assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap_err().contains("settled"));
+    s.event_group.active=false;s.death_depth=MAX_DEATH_DEPTH as u8;assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap_err().contains("nested"));
     let original=s.zobrist();s.death_frames[0].context.ability_succeeded=true;assert_ne!(s.zobrist(),original);
     let original=s.zobrist();s.death_pending.entries[0].player=Seat::P2;assert_ne!(s.zobrist(),original);
 }
@@ -1220,7 +1220,7 @@ fn nested_explicit_defeat_steps_share_the_initiating_ability_trigger_window() {
 fn sequence_passes_defeat_triggers_to_initiating_window_after_following_draw() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");let victim=unit(&e,&mut s,Seat::P1,"ASH_029");death_program(&mut e,&s,victim,draw_death(true));deck_card(&e,&mut s,Seat::P1);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Defeat then draw","targetResolver":{"owner":"self","type":"unit","zone":"arena"},"effect":{"kind":"sequence","effects":[{"kind":"defeat","target":"chosen"},{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}]}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();s=e.apply(&s,&e.card_action(&s,victim)).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);assert_eq!(s.players[0].hand.len,1);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();s=e.apply(&s,&e.card_action(&s,victim)).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);assert_eq!(s.players[0].hand.len,1);
     s=e.apply(&s,&Action::button("Pass","pass")).unwrap();assert_eq!(s.players[0].hand.len,1);assert_eq!(s.death_depth,0);
 }
 #[test]
@@ -1236,7 +1236,7 @@ fn coordinate_stats_follow_both_friendly_arenas_and_attack_registration_is_captu
     let hp=e.hp(&s,source);death_program(&mut e,&s,source,json!({"trigger":"constant","coordinate":true,"title":"Coordinate HP","effect":{"kind":"modifyStats","duration":"persistent","target":"self","power":{"kind":"const","value":0},"hp":{"kind":"const","value":3}}}));assert_eq!(e.hp(&s,source),hp+3);
     let program=death_program(&mut e,&s,source,json!({"trigger":"onAttack","coordinate":true,"title":"Draw a card","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}));let drawn=deck_card(&e,&mut s,Seat::P1);
     s.source=source;e.queue_programs(&mut s,"onAttack");let captured=s.pending_programs;assert_ne!(captured,0);
-    e.leave_play(&mut s,third).unwrap();assert_eq!(e.hp(&s,source),hp);assert_eq!(s.pending_programs,captured);e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));
+    e.leave_play(&mut s,third).unwrap();assert_eq!(e.hp(&s,source),hp);assert_eq!(s.pending_programs,captured);e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));
     s.source=source;e.queue_programs(&mut s,"onAttack");assert_eq!(s.pending_programs,0);assert!(e.in_arena(&s,second));
 }
 #[test]
@@ -1245,7 +1245,7 @@ fn simultaneous_explicit_defeat_conditions_capture_before_any_source_moves() {
     let mut ability=draw_death(false);ability["condition"]=json!({"kind":"binary","op":">=","left":{"kind":"query","name":"arenaUnitCount","receiver":{"kind":"ref","path":["player"]},"args":[{"kind":"const","value":true}]},"right":{"kind":"const","value":2}});
     death_program(&mut e,&s,first,ability);deck_card(&e,&mut s,Seat::P1);deck_card(&e,&mut s,Seat::P1);
     let source=s.players[0].leader;let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Defeat two units","targetResolver":{"owner":"self","type":"unit","zone":"arena","mode":"upTo","count":{"kind":"const","value":2}},"effect":{"kind":"defeat","target":"chosen"}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();s=e.apply(&s,&e.card_action(&s,first)).unwrap();s=e.apply(&s,&e.card_action(&s,second)).unwrap();
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();s=e.apply(&s,&e.card_action(&s,first)).unwrap();s=e.apply(&s,&e.card_action(&s,second)).unwrap();
     let done=e.legal_actions(&s).into_iter().find(|a|a.label=="Done").unwrap();s=e.apply(&s,&done).unwrap();assert_eq!(s.players[0].ground.len,0);assert_eq!(s.decision,Decision::DeathBatch);
     s=e.apply(&s,&Action::button("Resolve all (2)","all")).unwrap();assert_eq!(s.players[0].hand.len,2);
 }
@@ -1253,7 +1253,7 @@ fn simultaneous_explicit_defeat_conditions_capture_before_any_source_moves() {
 fn created_token_units_keep_owner_readiness_printed_keywords_and_leave_play_zones() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let start=s.next_id;
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Create spies","effect":{"kind":"createTokenUnit","tokenType":"spy","amount":{"kind":"const","value":2},"target":"enemyPlayer","entersReady":true}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.players[1].ground.as_slice(),&[start,start+1]);assert_eq!(s.next_id,start+2);
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.players[1].ground.as_slice(),&[start,start+1]);assert_eq!(s.next_id,start+2);
     for id in [start,start+1] {assert_eq!(s.card(id).owner,Seat::P2);assert!(!s.card(id).exhausted);assert_eq!(e.power(&s,id,false),0);assert_eq!(e.power(&s,id,true),2);}
     let snapshot=e.snapshot(&s);assert_eq!(e.snapshot(&e.load_state(&snapshot).unwrap()),snapshot);
     e.defeat(&mut s,start).unwrap();assert!(!s.players[1].discard.contains(start));assert!(!s.players[1].ground.contains(start));
@@ -1273,17 +1273,17 @@ fn owner_discard_selects_before_simultaneous_draw_and_restores_ability_player() 
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;
     let first=add(&e,&mut s,Seat::P2,"LOF_254");let second=add(&e,&mut s,Seat::P2,"ASH_029");s.players[1].hand.push(first).unwrap();s.players[1].hand.push(second).unwrap();let draw=deck_card(&e,&mut s,Seat::P1);
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard and draw","effect":{"kind":"simultaneous","effects":[{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}},{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}]}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert!(s.players[0].deck.contains(draw));assert_eq!(e.legal_actions(&s),vec![e.card_action(&s,first),e.card_action(&s,second)]);
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert!(s.players[0].deck.contains(draw));assert_eq!(e.legal_actions(&s),vec![e.card_action(&s,first),e.card_action(&s,second)]);
     s=e.apply(&s,&e.card_action(&s,second)).unwrap();assert!(s.players[1].discard.contains(second));assert!(s.players[1].hand.contains(first));assert!(s.players[0].hand.contains(draw));assert_eq!(s.active,Seat::P2);
 }
 #[test]
 fn exact_two_card_discard_toggles_at_cap_and_zero_hand_skips_prompt() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let mut cards=vec![];
     for code in ["LOF_254","LOF_256","ASH_029"] {let id=add(&e,&mut s,Seat::P2,code);s.players[1].hand.push(id).unwrap();cards.push(id);}
-    let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard two","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":2}}}));s.source=source;e.begin_program(&mut s,p,0).unwrap();
+    let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard two","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":2}}}));s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     s=e.apply(&s,&e.card_action(&s,cards[0])).unwrap();assert!(!e.legal_actions(&s).iter().any(|a|a.label=="Done"));s=e.apply(&s,&e.card_action(&s,cards[2])).unwrap();assert!(!e.legal_actions(&s).iter().any(|a|a.id()==Some(cards[1])));assert!(e.legal_actions(&s).iter().any(|a|a.id()==Some(cards[0])));
     s=e.apply(&s,&Action::button("Done","done")).unwrap();assert_eq!(s.players[1].discard.as_slice(),&[cards[0],cards[2]]);
-    let mut empty=board(&e);empty.source=empty.players[0].leader;e.begin_program(&mut empty,p,1).unwrap();assert_eq!(empty.decision,Decision::Window);assert_eq!(empty.players[1].discard.len,0);
+    let mut empty=board(&e);empty.source=empty.players[0].leader;e.begin_program(&mut empty,p,ProgramContinuation::Triggers).unwrap();assert_eq!(empty.decision,Decision::Window);assert_eq!(empty.players[1].discard.len,0);
 }
 #[test]
 fn terminal_optional_opponent_prompt_preserves_latched_action_priority() {
@@ -1301,7 +1301,7 @@ fn empty_deck_draw_resolves_fatigue_and_preserves_if_you_do_discard() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;
     let discard=add(&e,&mut s,Seat::P1,"LOF_254");s.players[0].hand.push(discard).unwrap();
     let program=death_program(&mut e,&s,source,json!({"trigger":"whenPlayed","title":"Draw then discard","optional":true,"effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"ifYouDo":{"title":"Discard a card","effect":{"kind":"discardOwnHand","target":"ownPlayer","amount":{"kind":"const","value":1}}}}));
-    s.source=source;e.begin_program(&mut s,program,1).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);
     let declined=e.apply(&s,&Action::button("Pass","pass")).unwrap();assert_eq!(declined.card(declined.players[0].base).damage,0);assert!(declined.players[0].hand.contains(discard));
     s=e.apply(&s,&Action::button("Trigger","trigger")).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.ability_result,0);assert!(!s.ability_succeeded);assert_eq!(s.card(s.players[0].base).damage,3);
     s=e.apply(&s,&e.card_action(&s,discard)).unwrap();assert!(s.players[0].discard.contains(discard));assert_eq!(s.players[0].hand.len,0);assert_eq!(s.card(s.players[0].base).damage,3);
@@ -1345,7 +1345,7 @@ fn empty_discard_group_does_not_inherit_a_preceding_draw_success_for_if_you_do()
         let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let drawn=deck_card(&e,&mut s,Seat::P1);
         let enemy_card=if enemy_has_card {let id=add(&e,&mut s,Seat::P2,"LOF_254");s.players[1].hand.push(id).unwrap();Some(id)}else{None};
         let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Draw then discard","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"then":{"title":"Enemy discards","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}},"ifYouDo":{"title":"Pay damage","effect":{"kind":"damage","target":"ownBase","amount":{"kind":"const","value":1}}}}}));
-        s.source=source;e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));
+        s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));
         if let Some(id)=enemy_card {
             assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert_eq!(s.ability_result,1);assert!(!s.ability_succeeded);
             s=e.apply(&s,&e.card_action(&s,id)).unwrap();assert!(s.players[1].discard.contains(id));
@@ -1358,13 +1358,13 @@ fn empty_discard_group_does_not_inherit_a_preceding_draw_success_for_if_you_do()
 fn omitted_conditional_else_cannot_inherit_a_preceding_draw_success() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let drawn=deck_card(&e,&mut s,Seat::P1);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Draw then condition","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"then":{"title":"No discard","effect":{"kind":"conditional","condition":{"kind":"const","value":false},"onTrue":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}}},"ifYouDo":{"title":"Pay damage","effect":{"kind":"damage","target":"ownBase","amount":{"kind":"const","value":1}}}}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));assert_eq!(s.card(s.players[0].base).damage,0);assert_eq!(s.decision,Decision::Window);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));assert_eq!(s.card(s.players[0].base).damage,0);assert_eq!(s.decision,Decision::Window);
 }
 #[test]
 fn group_generation_preserves_parent_distribution_amount_before_resetting_its_result() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");s.card_mut(source).damage=2;let hp=e.hp(&s,source);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Heal and grow","effect":{"kind":"distributeHealing","amount":{"kind":"const","value":2},"maxTargets":1,"targetResolver":{"owner":"self","type":"unit","zone":"arena"}},"ifYouDo":{"title":"Grow","effect":{"kind":"phaseModifiers","effects":[{"kind":"modifyStats","target":"self","duration":"phase","power":{"kind":"const","value":0},"hp":{"kind":"ref","path":["event","totalDistributed"]}}]}}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);
     let action=e.legal_actions(&s).into_iter().find(|a|a.arg.as_ref().is_some_and(|v|v[0][1].as_u64()==Some(2))).unwrap();s=e.apply(&s,&action).unwrap();assert_eq!(s.card(source).damage,0);assert_eq!(e.hp(&s,source),hp+2);
 }
 
@@ -1439,7 +1439,7 @@ fn mandalorian_creation_preserves_pinned_metadata_defaults_and_shielded_trigger(
     assert_eq!(token.info.internal_name,"mandalorian");assert_eq!(token.info.power,Some(2));assert_eq!(token.info.hp,Some(2));
     assert_eq!(token.info.arena.as_deref(),Some("ground"));assert_eq!(token.info.aspects(),vec!["vigilance"]);assert_eq!(token.flags&SHIELDED,SHIELDED);
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Create Mandalorian","effect":{"kind":"createTokenUnit","tokenType":"mandalorian","amount":{"kind":"const","value":1},"target":"ownPlayer"}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     assert_eq!(s.players[0].ground.as_slice(),&[start]);assert_eq!(s.players[1].ground.len,0);
     assert!(s.card(start).exhausted);assert_eq!(s.card(start).owner,Seat::P1);assert_ne!(s.card(start).shield,0);
     assert_eq!(e.power(&s,start,false),2);assert_eq!(e.hp(&s,start),2);
@@ -2608,7 +2608,7 @@ fn force_continuation_selects_only_after_spend_and_retains_source_actor() {
 }
 #[test]
 fn force_death_continuation_opponent_chooses_discard_after_source_departure() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_159");let card=add(&e,&mut s,Seat::P2,"LOF_256");s.players[1].hand.push(card).unwrap();let program=e.def(&s,source).programs.card[0];e.leave_play(&mut s,source).unwrap();s.source=source;s.players[0].force_held=true;e.begin_program(&mut s,program,0).unwrap();let selected=named_button(&e,&s,"Trigger");assert!(!selected.players[0].force_held);assert_eq!(selected.active,Seat::P2);assert!(e.legal_actions(&selected).iter().any(|a|a.card==Some(format!("c{}",card-1))));let action=e.legal_actions(&selected).into_iter().find(|a|a.card==Some(format!("c{}",card-1))).unwrap();let done=e.apply(&selected,&action).unwrap();assert!(done.players[1].discard.contains(card));assert!(!done.players[1].hand.contains(card));
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_159");let card=add(&e,&mut s,Seat::P2,"LOF_256");s.players[1].hand.push(card).unwrap();let program=e.def(&s,source).programs.card[0];e.leave_play(&mut s,source).unwrap();s.source=source;s.players[0].force_held=true;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();let selected=named_button(&e,&s,"Trigger");assert!(!selected.players[0].force_held);assert_eq!(selected.active,Seat::P2);assert!(e.legal_actions(&selected).iter().any(|a|a.card==Some(format!("c{}",card-1))));let action=e.legal_actions(&selected).into_iter().find(|a|a.card==Some(format!("c{}",card-1))).unwrap();let done=e.apply(&selected,&action).unwrap();assert!(done.players[1].discard.contains(card));assert!(!done.players[1].hand.contains(card));
 }
 #[test]
 fn force_presence_live_grit_and_aura_follow_controller_not_active_player() {
@@ -2658,7 +2658,7 @@ fn force_presence_power_aura_covers_both_arenas_tokens_and_deployed_leaders() {
 #[test]
 fn force_triggers_acolyte_attack_and_defeat_gain_keep_identity_and_owner() {
  let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_129");s.card_mut(source).exhausted=false;let enemybase=s.players[1].base;let next=s.next_id;let identity=s.players[0].force_id;s.players[1].force_held=true;let attack=e.apply(&s,&e.card_action(&s,source)).unwrap();let target=e.legal_actions(&attack).into_iter().find(|a|a.card==Some(format!("c{}",enemybase-1))).unwrap();let mut done=e.apply(&attack,&target).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
- done.players[0].force_held=false;let wd=e.def(&done,source).programs.card.iter().copied().find(|p|e.program(*p).trigger=="whenDefeated").unwrap();e.leave_play(&mut done,source).unwrap();done.source=source;done.active=Seat::P2;e.begin_program(&mut done,wd,0).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
+ done.players[0].force_held=false;let wd=e.def(&done,source).programs.card.iter().copied().find(|p|e.program(*p).trigger=="whenDefeated").unwrap();e.leave_play(&mut done,source).unwrap();done.source=source;done.active=Seat::P2;e.begin_program(&mut done,wd,ProgramContinuation::Finish).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
 }
 #[test]
 fn force_triggers_saber_preserves_attachment_stats_and_uses_upgrade_controller() {
@@ -2694,7 +2694,7 @@ fn resource_self_capacity_is_atomic_and_arena_is_ineffective() {
 }
 #[test]
 fn resource_self_eeth_spends_force_even_when_secondary_is_ineffective() {
- let e=engine();for arena in [true,false] {let mut s=board(&e);let source=if arena {unit(&e,&mut s,Seat::P1,"LOF_097")}else{let id=add(&e,&mut s,Seat::P1,"LOF_097");s.players[0].resources.push(id).unwrap();s.card_mut(id).exhausted=false;id};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);if arena {assert!(e.in_arena(&done,source));}else{assert!(done.players[0].resources.contains(source));assert!(!done.card(source).exhausted);}}
+ let e=engine();for arena in [true,false] {let mut s=board(&e);let source=if arena {unit(&e,&mut s,Seat::P1,"LOF_097")}else{let id=add(&e,&mut s,Seat::P1,"LOF_097");s.players[0].resources.push(id).unwrap();s.card_mut(id).exhausted=false;id};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);if arena {assert!(e.in_arena(&done,source));}else{assert!(done.players[0].resources.contains(source));assert!(!done.card(source).exhausted);}}
 }
 #[test]
 fn resource_self_raw_shapes_fail_closed_and_exact_three_admit() {
@@ -2706,8 +2706,8 @@ fn resource_self_raw_shapes_fail_closed_and_exact_three_admit() {
 
 #[test]
 fn resource_self_eeth_nonarena_zones_and_mercenary_condition_are_distinct() {
- let e=engine();for zone in ["hand","deck","discard"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LOF_097");match zone {"hand"=>s.players[0].hand.push(source).unwrap(),"deck"=>s.players[0].deck.push(source).unwrap(),_=>s.players[0].discard.push(source).unwrap()};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);assert!(done.players[0].resources.contains(source));assert!(done.card(source).exhausted);}
- let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LAW_159");s.players[0].hand.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_ne!(s.decision,Decision::AbilityOptional);assert!(s.players[0].hand.contains(source));assert!(!s.players[0].resources.contains(source));
+ let e=engine();for zone in ["hand","deck","discard"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LOF_097");match zone {"hand"=>s.players[0].hand.push(source).unwrap(),"deck"=>s.players[0].deck.push(source).unwrap(),_=>s.players[0].discard.push(source).unwrap()};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);assert!(done.players[0].resources.contains(source));assert!(done.card(source).exhausted);}
+ let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LAW_159");s.players[0].hand.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_ne!(s.decision,Decision::AbilityOptional);assert!(s.players[0].hand.contains(source));assert!(!s.players[0].resources.contains(source));
  for code in ["TOKEN_SHIELD","SOR_014"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,code);s.source=source;s.players[0].discard.push(source).unwrap();assert!(!e.resource_source_eligible(&s,source));assert_eq!(e.resource_source(&mut s,source).unwrap(),0);}
 }
 #[test]
@@ -2751,7 +2751,7 @@ fn named_damage_ziton_real_ambush_and_self_lethal_preserve_captured_second() {
 }
 #[test]
 fn named_damage_missing_first_still_resolves_second_and_raw_guards_reject() {
- let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"TS26_029");s.players[0].discard.push(source).unwrap();let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert_eq!(done.card(enemy).damage,1);
+ let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"TS26_029");s.players[0].discard.push(source).unwrap();let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert_eq!(done.card(enemy).damage,1);
  let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("base")),("promptTitle",json!("Custom"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
  for trigger in ["event","onDefense","action"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["trigger"]=json!(trigger);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
 }
@@ -2869,7 +2869,7 @@ fn named_chooser_event_pays_original_actor_before_opponent_and_restores() {
 #[test]
 fn named_chooser_unit_missing_opponent_and_entering_self_defeat() {
  let e=engine();let mut s=board(&e);let source=hand(&e,&mut s,"LAW_099");let first=e.apply(&s,&e.card_action(&s,source)).unwrap();assert_eq!(first.active,Seat::P1);assert_eq!(first.decision,Decision::AbilityTarget);assert_eq!(e.legal_actions(&first).iter().filter_map(Action::id).collect::<Vec<_>>(),vec![source]);let done=e.apply(&first,&e.card_action(&first,source)).unwrap();assert!(done.players[0].discard.contains(source));assert_eq!(done.active,Seat::P2);
- let mut s=board(&e);let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let source=add(&e,&mut s,Seat::P1,"LAW_099");s.players[0].discard.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.active,Seat::P2);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert!(done.players[1].discard.contains(enemy));assert_ne!(done.decision,Decision::AbilityTarget);
+ let mut s=board(&e);let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let source=add(&e,&mut s,Seat::P1,"LAW_099");s.players[0].discard.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.active,Seat::P2);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert!(done.players[1].discard.contains(enemy));assert_ne!(done.decision,Decision::AbilityTarget);
 }
 #[test]
 fn named_chooser_wrecker_shield_priority_and_combined_defeat_owners() {
@@ -2947,14 +2947,14 @@ fn arena_uniform_damage_admits_complete_five_and_rejects_raw_scope() {
 fn arena_uniform_damage_over_32_recipients_and_combined_lethal() {
     let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let mut targets=vec![];
     for seat in [Seat::P1,Seat::P2] {for _ in 0..24 {targets.push(unit(&e,&mut s,seat,"LOF_112"));}}
-    s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();
+    s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     for target in targets {assert_eq!(s.card(target).damage,1);}
     assert_eq!(s.card(source).damage,0);assert_eq!(s.event_group.uniform_damage,UniformDamageState::default());
-    let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_129");let enemy=unit(&e,&mut s,Seat::P2,"LOF_129");for id in [own,enemy] {s.card_mut(id).damage=e.hp(&s,id)-1;}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert!(s.players[0].discard.contains(own));assert!(s.players[1].discard.contains(enemy));assert_eq!(s.decision,Decision::DeathPlayer);
+    let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_129");let enemy=unit(&e,&mut s,Seat::P2,"LOF_129");for id in [own,enemy] {s.card_mut(id).damage=e.hp(&s,id)-1;}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert!(s.players[0].discard.contains(own));assert!(s.players[1].discard.contains(enemy));assert_eq!(s.decision,Decision::DeathPlayer);
 }
 #[test]
 fn arena_uniform_damage_shield_context_ids_both_owner_orders() {
-    let e=engine();for label in ["You","Opponent"] {let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_112");let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let mut tokens=vec![];for id in [own,enemy] {let oldest=s.next_id;e.create_token(&mut s,id,false).unwrap();let newer=s.next_id;e.create_token(&mut s,id,false).unwrap();tokens.push((oldest,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);let copied=s;assert_eq!(s.zobrist(),copied.zobrist());let done=named_button(&e,&s,label);for (i,id) in [own,enemy].into_iter().enumerate() {let first=(label=="You"&&i==0)||(label=="Opponent"&&i==1);let consumed=if first {tokens[i].0}else {tokens[i].1};let survivor=if first {tokens[i].1}else {tokens[i].0};assert_eq!(done.card(id).damage,0);assert_eq!(done.card(consumed).parent,0);assert_eq!(done.card(id).shield,survivor);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());}
+    let e=engine();for label in ["You","Opponent"] {let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_112");let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let mut tokens=vec![];for id in [own,enemy] {let oldest=s.next_id;e.create_token(&mut s,id,false).unwrap();let newer=s.next_id;e.create_token(&mut s,id,false).unwrap();tokens.push((oldest,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);let copied=s;assert_eq!(s.zobrist(),copied.zobrist());let done=named_button(&e,&s,label);for (i,id) in [own,enemy].into_iter().enumerate() {let first=(label=="You"&&i==0)||(label=="Opponent"&&i==1);let consumed=if first {tokens[i].0}else {tokens[i].1};let survivor=if first {tokens[i].1}else {tokens[i].0};assert_eq!(done.card(id).damage,0);assert_eq!(done.card(consumed).parent,0);assert_eq!(done.card(id).shield,survivor);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());}
 }
 #[test]
 fn arena_uniform_damage_storage_hash_and_size_are_explicit() {
@@ -2963,7 +2963,7 @@ fn arena_uniform_damage_storage_hash_and_size_are_explicit() {
 }
 #[test]
 fn arena_uniform_damage_same_owner_shields_rotate_alternates() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let first=unit(&e,&mut s,Seat::P1,"LOF_112");let second=unit(&e,&mut s,Seat::P1,"HMW_116");let mut tokens=vec![];for target in [first,second] {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let newer=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.event_group.shield_count,2);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(first).shield,tokens[0].1);assert_eq!(done.card(second).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let first=unit(&e,&mut s,Seat::P1,"LOF_112");let second=unit(&e,&mut s,Seat::P1,"HMW_116");let mut tokens=vec![];for target in [first,second] {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let newer=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.event_group.shield_count,2);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(first).shield,tokens[0].1);assert_eq!(done.card(second).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
 }
 
 fn arena_keyword4_effect(code:&str)->Effect {
@@ -3179,7 +3179,7 @@ fn conditional_arena2_luke_counts_after_uniqueness_and_captured_departure() {
 #[test]
 fn conditional_arena2_luke_over32_and_ordered_shield_resume() {
  let e=engine();let mut s=board(&e);for _ in 0..3 {unit(&e,&mut s,Seat::P1,"LOF_254");}let targets=(0..40).map(|i|unit(&e,&mut s,Seat::P2,if i%2==0 {"ASH_061"}else{"JTL_251"})).collect::<Vec<_>>();let source=conditional_wave_hand(&e,&mut s,Seat::P1,"ASH_112");let done=e.apply(&s,&e.card_action(&s,source)).unwrap();for target in targets {assert_eq!(done.card(target).damage,3);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
- let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let targets=[unit(&e,&mut s,Seat::P2,"LOF_112"),unit(&e,&mut s,Seat::P2,"HMW_116")];let mut tokens=vec![];for target in targets {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let new=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,new));}s.source=source;let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.source,source);assert_eq!(s.event_group.uniform_damage.count,2);let copy=s;assert_eq!(copy.zobrist(),s.zobrist());
+ let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let targets=[unit(&e,&mut s,Seat::P2,"LOF_112"),unit(&e,&mut s,Seat::P2,"HMW_116")];let mut tokens=vec![];for target in targets {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let new=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,new));}s.source=source;let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.source,source);assert_eq!(s.event_group.uniform_damage.count,2);let copy=s;assert_eq!(copy.zobrist(),s.zobrist());
  // Primitive pending-window diagnostic: removing a quiet support after capture must not re-evaluate the already-taken condition.
  e.defeat(&mut s,supports[0]).unwrap();assert_eq!(s.players[0].ground.len,3);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(targets[0]).shield,tokens[0].1);assert_eq!(done.card(targets[1]).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
 }
@@ -3199,7 +3199,7 @@ fn conditional_arena2_raw_wrapper_scope_and_depth_remain_closed() {
 
 #[test]
 fn conditional_arena2_combined_primary_deaths_precede_captured_wd_waves() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let hevy=unit(&e,&mut s,Seat::P2,"TWI_164");s.card_mut(hevy).damage=1;let acolyte=unit(&e,&mut s,Seat::P2,"LOF_129");let survivor=unit(&e,&mut s,Seat::P2,"JTL_251");s.source=source;let p=e.card_programs(&s,source)[0];e.begin_program(&mut s,p,0).unwrap();assert!(s.players[1].discard.contains(hevy));assert!(s.players[1].discard.contains(acolyte));assert_eq!(s.card(survivor).damage,3);let copied=s;assert_eq!(copied.zobrist(),s.zobrist());
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let hevy=unit(&e,&mut s,Seat::P2,"TWI_164");s.card_mut(hevy).damage=1;let acolyte=unit(&e,&mut s,Seat::P2,"LOF_129");let survivor=unit(&e,&mut s,Seat::P2,"JTL_251");s.source=source;let p=e.card_programs(&s,source)[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert!(s.players[1].discard.contains(hevy));assert!(s.players[1].discard.contains(acolyte));assert_eq!(s.card(survivor).damage,3);let copied=s;assert_eq!(copied.zobrist(),s.zobrist());
  for _ in 0..8 {if s.decision==Decision::Window {break;}let a=e.legal_actions(&s).into_iter().find(|a|a.id().is_none()).expect("mandatory captured death choice");s=e.apply(&s,&a).unwrap();}
  assert_eq!(s.decision,Decision::Window);assert!(s.players[1].force_held);assert_eq!(s.card(source).damage,1);for id in supports {assert!(s.players[0].discard.contains(id));assert_eq!(s.card(id).damage,0);}assert_eq!(s.players[0].ground.len,1);assert_eq!(s.card(survivor).damage,3);assert_eq!(s.event_group.uniform_damage,UniformDamageState::default());
 }
@@ -3268,7 +3268,7 @@ fn arena_query3_candidate_binding_and_large_ordered_list() {
 }
 #[test]
 fn arena_query3_sly_false_confirmation_true_cost_and_spy_identity() {
- let e=engine();for seat in [Seat::P1,Seat::P2] {for count in [3,4,5] {let mut s=board(&e);s.active=seat;s.action_player=Some(seat);let source=s.player(seat).leader;s.card_mut(source).def=e.by_code["SEC_014"];upgrade_resources(&e,&mut s,seat);for i in 0..count {let id=unit(&e,&mut s,if i%2==0{seat}else{seat.other()},if i%3==0{"JTL_251"}else{"ASH_131"});s.card_mut(id).exhausted=true;}let before=s;let p=e.def(&s,source).programs.leader[0];s.source=source;e.begin_program(&mut s,p,0).unwrap();if count==3 {assert_eq!(s.decision,Decision::AbilityNoEffect);let canceled=named_button(&e,&s,"Cancel");assert!(!canceled.card(source).exhausted);assert_eq!(canceled.next_id,before.next_id);s=named_button(&e,&s,"Use it anyway");}assert!(s.card(source).exhausted);assert_eq!(s.player(seat).resources.as_slice().iter().filter(|id|s.card(**id).exhausted).count(),1);assert_eq!(s.next_id,before.next_id+u16::from(count>=4));if count>=4 {let id=before.next_id;assert_eq!(e.def(&s,id).code,"TOKEN_SPY");assert_eq!(s.card(id).owner,seat);assert!(s.card(id).exhausted);}}}
+ let e=engine();for seat in [Seat::P1,Seat::P2] {for count in [3,4,5] {let mut s=board(&e);s.active=seat;s.action_player=Some(seat);let source=s.player(seat).leader;s.card_mut(source).def=e.by_code["SEC_014"];upgrade_resources(&e,&mut s,seat);for i in 0..count {let id=unit(&e,&mut s,if i%2==0{seat}else{seat.other()},if i%3==0{"JTL_251"}else{"ASH_131"});s.card_mut(id).exhausted=true;}let before=s;let p=e.def(&s,source).programs.leader[0];s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();if count==3 {assert_eq!(s.decision,Decision::AbilityNoEffect);let canceled=named_button(&e,&s,"Cancel");assert!(!canceled.card(source).exhausted);assert_eq!(canceled.next_id,before.next_id);s=named_button(&e,&s,"Use it anyway");}assert!(s.card(source).exhausted);assert_eq!(s.player(seat).resources.as_slice().iter().filter(|id|s.card(**id).exhausted).count(),1);assert_eq!(s.next_id,before.next_id+u16::from(count>=4));if count>=4 {let id=before.next_id;assert_eq!(e.def(&s,id).code,"TOKEN_SPY");assert_eq!(s.card(id).owner,seat);assert!(s.card(id).exhausted);}}}
 }
 #[test]
 fn arena_query3_scope_candidate_unique_and_spy_dependency_rejections() {
@@ -3728,7 +3728,7 @@ fn live_power_maximum_extracted_attack_uses_live_source_and_preserves_both_heade
  for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
  let mut e=engine();e.set_rules_backend(backend).unwrap();let mut s=board(&e);let source=s.players[0].leader;let p=live_power_maximum_extracted(&mut e,&s,source,true);s.card_mut(source).deployed=true;e.add_arena(&mut s,source).unwrap();let target=unit(&e,&mut s,Seat::P2,"LOF_256");let high=unit(&e,&mut s,Seat::P2,"SHD_189");let a=crate::live_power_maximum::registration(true);let resolver=a.target_resolver.unwrap();
  assert_eq!(e.program_menu_title(&s,source,p),format!("Give a unit with less than {} power +2/+0 for this phase",e.power(&s,source,false)));assert!(e.matching_targets(&s,source,&resolver).contains(&target));assert!(!e.matching_targets(&s,source,&resolver).contains(&high));
- s.card_mut(source).phase_power=3;assert!(e.matching_targets(&s,source,&resolver).contains(&high));s.source=source;e.begin_program(&mut s,p,1).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let declined=named_button(&e,&s,"Pass");assert_eq!(declined.card(target).phase_power,0);let done=e.apply(&s,&e.card_action(&s,target)).unwrap();assert_eq!(done.card(target).phase_power,2);assert_eq!(done.card(high).phase_power,0);
+ s.card_mut(source).phase_power=3;assert!(e.matching_targets(&s,source,&resolver).contains(&high));s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let declined=named_button(&e,&s,"Pass");assert_eq!(declined.card(target).phase_power,0);let done=e.apply(&s,&e.card_action(&s,target)).unwrap();assert_eq!(done.card(target).phase_power,2);assert_eq!(done.card(high).phase_power,0);
  }
 }
 #[test]
@@ -3947,4 +3947,62 @@ fn prepared_capture_freezes_stat_values_before_handler_mutations() {
     assert_eq!(s.card(source).phase_power,1);
     assert_eq!(s.card(source).phase_hp,1);
     assert!(e.in_arena(&s,source));
+}
+
+#[test]
+fn typed_continuation_program_entry_keeps_raw_return_and_commit_policy() {
+    let mut e=engine();let mut initial=board(&e);
+    let source=unit(&e,&mut initial,Seat::P1,"LOF_254");
+    deck_card(&e,&mut initial,Seat::P1);initial.source=source;
+    let program=death_program(&mut e,&initial,source,draw_death(true));
+    for continuation in [ProgramContinuation::Finish,ProgramContinuation::Triggers,ProgramContinuation::Deaths] {
+        let mut s=initial;
+        e.begin_program(&mut s,program,continuation).unwrap();
+        assert_eq!(s.decision,Decision::AbilityOptional);
+        assert_eq!(s.ability_program,program+1);
+        assert_eq!(s.ability_return,continuation.raw());
+        assert_eq!(s.ability_committed,continuation!=ProgramContinuation::Finish);
+    }
+}
+
+#[test]
+fn typed_continuation_death_entry_keeps_numeric_frames_and_expiry_initiator() {
+    let mut e=engine();let mut initial=board(&e);
+    let source=unit(&e,&mut initial,Seat::P1,"LOF_254");
+    deck_card(&e,&mut initial,Seat::P1);
+    death_program(&mut e,&initial,source,draw_death(true));
+    initial.initiative=Seat::P2;e.defeat(&mut initial,source).unwrap();
+    for continuation in [DeathContinuation::Program,DeathContinuation::Triggers,DeathContinuation::Finish,
+        DeathContinuation::PhaseExpiry,DeathContinuation::CombatAfterDamage,DeathContinuation::ParentDeaths,
+        DeathContinuation::NativeAttackAfterEarlyEffects] {
+        let mut s=initial;
+        assert!(e.open_deaths(&mut s,continuation).unwrap());
+        assert_eq!(s.decision,Decision::AbilityOptional);
+        assert_eq!(s.death_depth,1);
+        assert_eq!(s.death_frames[0].resume,continuation.raw());
+        assert_eq!(s.death_frames[0].continuation(),Some(continuation));
+        assert_eq!(s.death_window.initiator,if continuation==DeathContinuation::PhaseExpiry {Seat::P2}else{Seat::P1});
+        assert_eq!(s.ability_return,ProgramContinuation::Deaths.raw());
+    }
+    let mut empty=board(&e);let before=empty;
+    assert!(!e.open_deaths(&mut empty,DeathContinuation::Finish).unwrap());
+    assert_eq!(empty,before);
+}
+
+#[test]
+fn typed_continuation_keeps_unknown_persisted_program_fallback_and_death_error() {
+    let e=engine();let initial=board(&e);
+    let mut expected=initial;e.end_program(&mut expected).unwrap();
+    for raw in [3,99,u8::MAX] {
+        let mut s=initial;s.ability_return=raw;
+        e.end_program(&mut s).unwrap();
+        assert_eq!(s,expected,"legacy program return {raw} must still finish");
+    }
+    for raw in [0,8,u8::MAX] {
+        let mut s=initial;s.death_depth=1;
+        s.death_frames[0]=DeathFrame{context:ResolutionContext::capture(&initial),resume:raw,..DeathFrame::default()};
+        assert_eq!(e.process_deaths(&mut s).unwrap_err(),"invalid defeat continuation");
+        assert_eq!(s.death_depth,0);
+        assert_eq!(s.death_frames[0],DeathFrame::default());
+    }
 }

@@ -66,7 +66,7 @@ fn collection_query_extracted_bossk_front_targets_tokens_and_deals_two_damage() 
         // Compile only its unchanged unit registration onto a diagnostic host.
         let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
         let ability=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="HMW_015").unwrap()["abilities"]["unit"][0].clone();
-        let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,0).unwrap();
+        let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();
         // On Attack is optional; the existing scheduler offers targets with Pass.
         assert_eq!(s.decision,Decision::AbilityTarget);
         let targets:Vec<_>=e.legal_actions(&s).iter().filter_map(Action::id).collect();assert!(targets.contains(&xp_host));assert!(targets.contains(&shield_host));assert!(!targets.contains(&plain));assert!(!targets.contains(&ordinary_host));assert!(!targets.contains(&source));
@@ -135,9 +135,9 @@ fn collection_query_extracted_nonunique_defeat_snapshots_order_then_sweeps_paren
         // SEC149's Plot keyword remains unsupported: use its complete unchanged
         // When Played registration on a diagnostic ordinary-unit host only.
         let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let ability=catalogue["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SEC_149").unwrap()["abilities"]["card"][0].clone();
-        let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,0).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,host)).unwrap();
+        let program=death_program(&mut e,&s,source,ability);s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,host)).unwrap();
         assert!(!e.in_arena(&done,host));assert_eq!(done.players[1].discard.as_slice(),&[first,second,unique,host]);for id in [first,unique,second,xp,shield] {assert_eq!(done.card(id).parent,0);}
-        let mut alive=before_damage;alive.source=source;e.begin_program(&mut alive,program,0).unwrap();let done=e.apply(&alive,&e.card_action(&alive,host)).unwrap();assert!(e.in_arena(&done,host));assert_eq!(e.upgrades(&done,host),vec![unique]);assert_eq!(done.players[1].discard.as_slice(),&[first,second]);
+        let mut alive=before_damage;alive.source=source;e.begin_program(&mut alive,program,ProgramContinuation::Finish).unwrap();let done=e.apply(&alive,&e.card_action(&alive,host)).unwrap();assert!(e.in_arena(&done,host));assert_eq!(e.upgrades(&done,host),vec![unique]);assert_eq!(done.players[1].discard.as_slice(),&[first,second]);
         // A full discard zone rejects the entire attachment window atomically.
         let mut full=before_damage;full.source=source;full.ability_target=host;for _ in 0..crate::model::MAX_ZONE {let id=add(&e,&mut full,Seat::P2,"LOF_254");full.players[1].discard.push(id).unwrap();}
         let original=full;let effect=e.program(program).instructions.iter().find_map(|i|if let crate::ability_ir::Instruction::Apply(effect)=i {Some(effect)}else{None}).unwrap();assert!(e.apply_effect(&mut full,effect).is_err());assert_eq!(full,original);assert_eq!(full.zobrist(),original.zobrist());

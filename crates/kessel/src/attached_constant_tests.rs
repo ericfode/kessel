@@ -43,7 +43,7 @@ fn attached_trait_leia_disguise_play_uses_upgrade_player_and_current_parent_titl
 fn attached_trait_leia_disguise_wrong_or_missing_parent_has_no_shield_and_no_dereference() {
     let e=engine();let mut s=board(&e);let host=unit(&e,&mut s,Seat::P1,"LOF_254");let upgrade=hand(&e,&mut s,"LAW_111");
     let prompt=e.apply(&s,&e.card_action(&s,upgrade)).unwrap();let done=e.apply(&prompt,&e.card_action(&prompt,host)).unwrap();assert_eq!(done.decision,Decision::Window);assert_eq!(done.card(host).shield,0);assert!(e.card_has_trait(&done,host,"underworld"));
-    let mut missing=done;e.leave_play_primary(&mut missing,upgrade).unwrap();let program=e.def(&missing,upgrade).programs.card.iter().copied().find(|&p|e.program(p).trigger=="whenPlayed").unwrap();missing.source=upgrade;e.begin_program(&mut missing,program,0).unwrap();assert_eq!(missing.card(host).shield,0);assert!(!e.card_has_trait(&missing,host,"underworld"));
+    let mut missing=done;e.leave_play_primary(&mut missing,upgrade).unwrap();let program=e.def(&missing,upgrade).programs.card.iter().copied().find(|&p|e.program(p).trigger=="whenPlayed").unwrap();missing.source=upgrade;e.begin_program(&mut missing,program,ProgramContinuation::Finish).unwrap();assert_eq!(missing.card(host).shield,0);assert!(!e.card_has_trait(&missing,host,"underworld"));
 }
 #[test]
 fn attached_trait_fulcrum_grants_rebel_and_host_relative_aura_excluding_host() {

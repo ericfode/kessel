@@ -58,7 +58,7 @@ fn resolved_event_single_reactor_counts_enemy_units_tokens_and_deployed_leader_o
         let mut s=board(&e);s.active=seat;let source=add(&e,&mut s,seat,"LAW_044");s.player_mut(seat).discard.push(source).unwrap();s.source=source;
         let own=unit(&e,&mut s,seat,"LOF_254");let enemy=unit(&e,&mut s,seat.other(),"LOF_256");let token=unit(&e,&mut s,seat.other(),"TOKEN_XWING");let leader=s.player(seat.other()).leader;s.card_mut(leader).deployed=true;e.add_arena(&mut s,leader).unwrap();
         s.ability_target=enemy;e.apply_effect(&mut s,&Effect::GiveExperience{target:Target::name("chosen"),amount:Expr::number(2)}).unwrap();e.apply_effect(&mut s,&Effect::GiveShield{target:Target::name("chosen"),amount:Expr::number(1)}).unwrap();
-        let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,1).unwrap();
+        let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();
         assert!(!e.in_arena(&s,own));assert!(!e.in_arena(&s,enemy));assert!(!e.in_arena(&s,token));assert!(!e.in_arena(&s,leader));assert!(!s.card(leader).deployed);assert_eq!(s.card(s.player(seat.other()).base).damage,3);assert_eq!(s.card(s.player(seat).base).damage,0);
     }
 }
@@ -128,7 +128,7 @@ fn resolved_event_damage_continuation_uses_actual_result_and_nested_death_frame(
     for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
         let mut e=engine();e.rules_backend=backend;let mut s=board(&e);let source=s.players[0].leader;let raddus=unit(&e,&mut s,Seat::P2,"JTL_104");let enemy=unit(&e,&mut s,Seat::P1,"LOF_256");s.card_mut(enemy).phase_hp=20;s.card_mut(raddus).damage=5;s.source=source;s.ability_target=raddus;
         let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Result diagnostic","targetResolver":{"owner":"opponent","type":"unit","zone":"arena"},"effect":{"kind":"damage","target":"chosen","amount":{"kind":"const","value":7}},"then":{"title":"Actual result","effect":{"kind":"damage","target":"enemyBase","amount":{"kind":"ref","path":["event","damageDealt"]}}}}));
-        e.begin_program(&mut s,program,1).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let action=e.card_action(&s,raddus);s=e.apply(&s,&action).unwrap();assert_eq!(s.card(s.players[1].base).damage,1);assert_eq!(s.source,raddus);assert_eq!(s.decision,Decision::AbilityTarget);assert!(s.death_depth>0);
+        e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let action=e.card_action(&s,raddus);s=e.apply(&s,&action).unwrap();assert_eq!(s.card(s.players[1].base).damage,1);assert_eq!(s.source,raddus);assert_eq!(s.decision,Decision::AbilityTarget);assert!(s.death_depth>0);
         let parent=s.death_frames[s.death_depth as usize-1].context;assert_eq!(parent.event_result.damage_dealt,1);assert_eq!(parent.event_result.source,source);assert_eq!(parent.event_result.program,program+1);
         let action=e.card_action(&s,enemy);s=e.apply(&s,&action).unwrap();assert_eq!(s.card(enemy).damage,8);
     }
@@ -164,7 +164,7 @@ fn resolved_event_neutral_arena_keyword_and_phase_batches_replace_preceding_resu
 fn resolved_event_distribution_completion_clears_prior_actual_result_before_next_prompt() {
     // Synthetic typed program diagnostic for a prompted neutral instruction.
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let first=unit(&e,&mut s,Seat::P1,"LOF_256");let second=unit(&e,&mut s,Seat::P1,"LOF_256");for id in [first,second] {s.card_mut(id).damage=1;}s.source=source;
-    let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Neutral distribution diagnostic","effect":{"kind":"distributeHealing","amount":{"kind":"const","value":1},"maxTargets":1,"targetResolver":{"owner":"self","type":"unit","zone":"arena"}},"then":{"title":"Next target","targetResolver":{"owner":"self","type":"unit","zone":"arena"},"effect":{"kind":"heal","target":"chosen","amount":{"kind":"const","value":1}}}}));e.begin_program(&mut s,program,1).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);s.event_result.damage_dealt=17;
+    let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Neutral distribution diagnostic","effect":{"kind":"distributeHealing","amount":{"kind":"const","value":1},"maxTargets":1,"targetResolver":{"owner":"self","type":"unit","zone":"arena"}},"then":{"title":"Next target","targetResolver":{"owner":"self","type":"unit","zone":"arena"},"effect":{"kind":"heal","target":"chosen","amount":{"kind":"const","value":1}}}}));e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);s.event_result.damage_dealt=17;
     let action=e.legal_actions(&s).into_iter().find(|a|a.kind=="distribute"&&a.arg==Some(json!([[format!("c{}",first-1),1]]))).unwrap();s=e.apply(&s,&action).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);assert_eq!(s.event_result.damage_dealt,0);assert_eq!(s.event_result.defeated_units,[0,0]);assert_eq!(s.event_result.source,source);assert_eq!(s.card(first).damage,0);assert_eq!(s.card(second).damage,1);
 }
 

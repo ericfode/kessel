@@ -151,7 +151,7 @@ fn phase_history_caretaker_uses_played_by_snapshot_and_live_force_trait() {
             s.action_player = Some(Seat::P1);
             s.source = matron;
             let p = e.available_programs(&s, matron, "action")[0];
-            e.begin_program(&mut s, p, 0).unwrap();
+            e.begin_program(&mut s, p, ProgramContinuation::Finish).unwrap();
             if s.decision == Decision::AbilityNoEffect {
                 let action = e
                     .legal_actions(&s)

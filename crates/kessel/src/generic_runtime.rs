@@ -1780,7 +1780,9 @@ impl Engine {
         }
         out
     }
-    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: u8) -> Result<(), String> {
+    /// New work chooses a named continuation; only suspended state stores its
+    /// historical numeric representation. Legacy raw return decoding stays in end_program.
+    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -1791,8 +1793,8 @@ impl Engine {
         if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;}
         s.ability_result = 0;
         s.ability_succeeded = false;
-        s.ability_return = return_to;
-        s.ability_committed = return_to != 0;
+        s.ability_return = return_to.raw();
+        s.ability_committed = return_to != ProgramContinuation::Finish;
         if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
@@ -1805,7 +1807,7 @@ impl Engine {
             return Ok(());
         }
         if !self.program_has_effect_mode(s, s.source, p, false) {
-            if return_to == 0 {
+            if return_to == ProgramContinuation::Finish {
                 s.decision = Decision::AbilityNoEffect;
                 return Ok(());
             }
@@ -1866,7 +1868,7 @@ impl Engine {
     }
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
         loop {
-            if self.open_deaths(s,DeathContinuation::Program.raw())? {return Ok(());}
+            if self.open_deaths(s,DeathContinuation::Program)? {return Ok(());}
             let p = self.program(s.ability_program - 1);
             if self.rules_backend != RulesBackend::Interpreter {
                 match p.executable {
@@ -2465,7 +2467,7 @@ impl Engine {
                     self.begin_program(
                         &mut t,
                         self.available_programs(s, s.source, "action")[index],
-                        0,
+                        ProgramContinuation::Finish,
                     )?;
                 }
             }
@@ -2623,13 +2625,14 @@ impl Engine {
         Ok(())
     }
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
-    pub(super) fn open_deaths(&self,s:&mut State,resume:u8)->Result<bool,String> {
+    /// New frames accept a known continuation; persisted raw frames still decode on resumption.
+    pub(super) fn open_deaths(&self,s:&mut State,resume:DeathContinuation)->Result<bool,String> {
         let ready=|e:&DeathTrigger|e.after_pc==0 || (e.defer_depth==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
         if !s.death_pending.entries[..s.death_pending.len as usize].iter().any(ready) {return Ok(false);}
         if s.event_group!=EventGroupState::default() {return Err("defeat window opened before event group settled".into());}
         let n=s.death_depth as usize;
         if n==MAX_DEATH_DEPTH {return Err("nested defeat window capacity exceeded (8)".into());}
-        s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume};
+        s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume:resume.raw()};
         s.death_depth+=1;
         let pending=s.death_pending; s.death_window=DeathWindow::default();s.death_pending=DeathWindow::default();
         for e in &pending.entries[..pending.len as usize] {
@@ -2637,7 +2640,7 @@ impl Engine {
             w.entries[w.len as usize]=*e;w.len+=1;
         }
         // Engine active player is the action's player, even during opponent-owned nested triggers.
-        s.death_window.initiator=if n==0 {if resume==4 {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
+        s.death_window.initiator=if n==0 {if resume==DeathContinuation::PhaseExpiry {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
         s.ability_program=0;s.pending_programs=0;s.pending_triggers=0;s.event_group=EventGroupState::default();
         self.process_deaths(s)?;Ok(true)
     }
@@ -2715,13 +2718,13 @@ impl Engine {
         s.death_pending.entries[start..end].fill(DeathTrigger::default());s.death_pending.len=start as u8;
         s.pending_programs=0;s.pending_triggers=0;
         let initiator=if n==0 {s.active}else{s.death_window.initiator};
-        s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume:2};s.death_depth+=1;
+        s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume:DeathContinuation::Triggers.raw()};s.death_depth+=1;
         let mut window=DeathWindow::default();window.initiator=initiator;
         for entry in entries {let index=window.len as usize;window.entries[index]=entry;window.len+=1;}
         s.death_window=window;s.ability_program=0;
         // Prior framework deaths keep their own nested window rather than
         // becoming declaration triggers in the same player-choice menu.
-        if !self.open_deaths(s,DeathContinuation::ParentDeaths.raw())? {self.process_deaths(s)?;}
+        if !self.open_deaths(s,DeathContinuation::ParentDeaths)? {self.process_deaths(s)?;}
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
@@ -2758,7 +2761,7 @@ impl Engine {
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
         let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
-        if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths.raw())}
+        if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
         loop {
@@ -2871,7 +2874,7 @@ impl Engine {
             Trigger::Keyword(bit) => self.resolve_trigger(s, bit),
             Trigger::Program(i, p) => {
                 s.pending_programs &= !(1 << i);
-                self.begin_program(s, p, 1)
+                self.begin_program(s, p, ProgramContinuation::Triggers)
             }
         }
     }

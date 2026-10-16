@@ -30,7 +30,7 @@ impl Engine {
         s.ability_program=0;s.ability_target=0;s.ability_pc=0;
         self.enter_granted_attack_window(s,attacker)?;
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,7)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::NativeAttackAfterEarlyEffects)? {return Ok(());}
         self.native_attack_after_early_effects(s)
     }
     pub(super) fn native_attack_after_early_effects(&self,s:&mut State)->Result<(),String> {

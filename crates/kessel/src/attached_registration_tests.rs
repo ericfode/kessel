@@ -37,7 +37,7 @@ fn attached_alias_defeat_token_families_keep_captured_host_player_after_cleanup(
         let host=unit(&e,&mut s,seat,"LOF_254");let grantor=attach(&e,&mut s,seat.other(),code,host);
         e.defeat(&mut s,host).unwrap();assert_eq!(s.card(grantor).parent,0);assert!(s.player(seat.other()).discard.contains(grantor));assert!(s.player(seat).discard.contains(host));
         assert_eq!(s.death_pending.len,1);assert_eq!(s.death_pending.entries[0].source,host);assert_eq!(s.death_pending.entries[0].player,seat);assert_eq!(s.death_pending.entries[0].grantor,grantor);
-        assert!(e.open_deaths(&mut s,3).unwrap());
+        assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap());
         let created=e.arena_units(&s).into_iter().filter(|&id|s.card(id).owner==seat).filter(|&id|e.def(&s,id).code==token).collect::<Vec<_>>();assert_eq!(created.len(),1,"{code}");assert!(s.card(created[0]).exhausted);assert!(e.arena_units(&s).iter().all(|&id|s.card(id).owner==seat));
     }}}
 }
@@ -47,7 +47,7 @@ fn attached_alias_defeat_selector_remains_live_and_optional_after_parent_removal
         let e=engine();let mut s=board(&e);s.round=5;let host=unit(&e,&mut s,seat,"LOF_254");
         let target=unit(&e,&mut s,seat.other(),"LOF_256");s.card_mut(target).damage=e.hp(&s,target)-3;
         let high=unit(&e,&mut s,seat.other(),"LOF_256");
-        let grantor=attach(&e,&mut s,seat.other(),code,host);e.defeat(&mut s,host).unwrap();assert!(e.open_deaths(&mut s,3).unwrap());
+        let grantor=attach(&e,&mut s,seat.other(),code,host);e.defeat(&mut s,host).unwrap();assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap());
         assert_eq!(s.decision,Decision::AbilityTarget);assert_eq!(s.source,host);assert_eq!(s.active,seat);assert_eq!(s.card(grantor).parent,0);
         let legal=e.legal_actions(&s);assert!(legal.iter().any(|a|a.id()==Some(target)));if code=="SEC_039"{assert!(!legal.iter().any(|a|a.id()==Some(high)));}
         let declined=named_button(&e,&s,"Pass");assert!(e.in_arena(&declined,target));
@@ -61,7 +61,7 @@ fn attached_alias_sith_traditions_attack_and_death_are_separate_host_registratio
         let host=unit(&e,&mut s,seat,"LOF_254");let ally=unit(&e,&mut s,seat,"LOF_254");let enemy=unit(&e,&mut s,seat.other(),"LOF_254");
         attach(&e,&mut s,seat.other(),"TS26_052",host);let base=s.player(seat.other()).base;
         let done=attack(&e,s,host,base);assert_eq!(e.upgrades(&done,host).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),1);
-        let mut dead=done;e.defeat(&mut dead,host).unwrap();assert_eq!(dead.death_pending.len,1);e.open_deaths(&mut dead,3).unwrap();assert_eq!(dead.decision,Decision::AbilityTarget);
+        let mut dead=done;e.defeat(&mut dead,host).unwrap();assert_eq!(dead.death_pending.len,1);e.open_deaths(&mut dead,DeathContinuation::Finish).unwrap();assert_eq!(dead.decision,Decision::AbilityTarget);
         let actions=e.legal_actions(&dead);assert!(actions.iter().any(|a|a.id()==Some(ally)));assert!(!actions.iter().any(|a|a.id()==Some(enemy)));
         let done=e.apply(&dead,&e.card_action(&dead,ally)).unwrap();assert_eq!(e.upgrades(&done,ally).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),1);
     }

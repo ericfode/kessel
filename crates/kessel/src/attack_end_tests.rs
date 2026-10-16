@@ -65,7 +65,7 @@ fn attack_end_defeat_identity_latch_survives_nested_context_and_reentry() {
     s.player_mut(Seat::P1).discard.remove(source);e.add_arena(&mut s,source).unwrap();assert!(e.in_arena(&s,source));
     let context=s.death_frames[0].context;s.death_depth=0;s.death_frames[0]=DeathFrame::default();context.restore(&mut s);
     assert_ne!(s.zobrist(),before);assert!(!e.death_has_effect(&s,captured.entries[0]));
-    let program=captured.entries[0].program;e.begin_program(&mut s,program,1).unwrap();assert!(e.in_arena(&s,low));assert_eq!(s.decision,Decision::Window);
+    let program=captured.entries[0].program;e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();assert!(e.in_arena(&s,low));assert_eq!(s.decision,Decision::Window);
 }
 
 // Internal incarnation boundary: a non-defeat departure does not count as a

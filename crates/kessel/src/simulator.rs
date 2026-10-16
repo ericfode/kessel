@@ -678,7 +678,7 @@ impl Engine {
                         t.set_trigger_context(TriggerContext::Action);
                         let programs = self.available_programs(&t, id, "event");
                         let program = *programs.first().ok_or("event has no executable ability")?;
-                        self.begin_program(&mut t, program, 0)?;
+                        self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                         return Ok(t);
                     }
                     t.phase_history.preflight_play(seat)?;
@@ -701,7 +701,7 @@ impl Engine {
                     t.set_trigger_context(TriggerContext::Action);
                     let programs = self.available_programs(&t, id, "action");
                     if t.card(id).exhausted && programs.len() == 1 {
-                        self.begin_program(&mut t, programs[0], 0)?;
+                        self.begin_program(&mut t, programs[0], ProgramContinuation::Finish)?;
                     } else {
                         t.decision = if programs.is_empty() {
                             Decision::AttackTarget
@@ -749,7 +749,7 @@ impl Engine {
                             as usize
                             - usize::from(deploy);
                         let program = self.available_programs(&t, id, "action")[index];
-                        self.begin_program(&mut t, program, 0)?;
+                        self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                     } else {
                         self.use_leader(&mut t)?;
                     }
@@ -916,7 +916,7 @@ impl Engine {
                 .available_programs(s, id, "action")
                 .first()
                 .ok_or("leader has no executable action")?;
-            return self.begin_program(s, program, 0);
+            return self.begin_program(s, program, ProgramContinuation::Finish);
         }
         self.use_legacy_leader(s)
     }
@@ -981,7 +981,7 @@ impl Engine {
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.trigger_context_is(TriggerContext::DeathKeyword) {return self.process_deaths(s);}
         self.merge_enter_deaths(s)?;
-        if self.open_deaths(s,DeathContinuation::Triggers.raw())? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Triggers)? {return Ok(());}
         if self.catalogue.is_some() {
             return self.process_all_triggers(s);
         }
@@ -1133,17 +1133,17 @@ impl Engine {
         }
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.combat_after_damage(s)
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
         let source=s.source;
         self.capture_attack_end(s)?;
-        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.clear_support_grants(s);
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         if s.support.pending {return self.resume_support(s);}
         self.check_win(s);
         if s.is_terminal() {
@@ -1251,7 +1251,7 @@ impl Engine {
     }
     fn finish(&self, s: &mut State) -> Result<(), String> {
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,DeathContinuation::Finish.raw())? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Finish)? {return Ok(());}
         if s.death_depth>0 {return self.process_deaths(s);}
         if s.is_terminal() {
             s.prev_passed = false;
@@ -1281,7 +1281,7 @@ impl Engine {
                 s.card_mut(id).clear_hidden_phase_effects();
             }
             self.sweep_stat_defeats(s)?;
-            if self.open_deaths(s,DeathContinuation::PhaseExpiry.raw())? {return Ok(());}
+            if self.open_deaths(s,DeathContinuation::PhaseExpiry)? {return Ok(());}
             return self.advance_after_expiry(s);
         } else {
             if !s.player(s.active.other()).out {s.active=s.active.other();}
