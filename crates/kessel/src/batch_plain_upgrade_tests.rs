@@ -87,12 +87,12 @@ fn plain_upgrade_paid_attachment(code: &str, base: &str, cost: usize, power: u16
 
 #[test]
 fn batch_plain_academy_training_pays_two_for_two_two_on_either_host() {
-    plain_upgrade_paid_attachment("SOR_120", "SOR_023", 2, 2, 2);
+    plain_upgrade_paid_attachment("IC27_093", "SOR_023", 2, 2, 2);
 }
 
 #[test]
 fn batch_plain_resilient_pays_one_for_zero_three_on_either_host() {
-    plain_upgrade_paid_attachment("SHD_070", "ASH_019", 1, 0, 3);
+    plain_upgrade_paid_attachment("IC27_052", "ASH_019", 1, 0, 3);
 }
 
 #[test]

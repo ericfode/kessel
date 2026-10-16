@@ -1,7 +1,7 @@
 'use strict';
 const same=require('node:util').isDeepStrictEqual;
 const shape={
-  "setCode": "SOR_039",
+  "setCode": "IC27_027",
   "sourcePath": "game/cards/01_SOR/units/AT-ATSuppressor.ts",
   "sourceHash": "6f07a2716913f9f408fc34599cc1dc2cce9d7979237bc664fe0c80f93ceaeeeb",
   "className": "ATATSuppressor",
@@ -127,7 +127,7 @@ const shape={
 };
 const designs=[
   {
-    "name": "SOR_039-thirty-five-ground-recipients-no-truncation-p1",
+    "name": "IC27_027-thirty-five-ground-recipients-no-truncation-p1",
     "capacity": true,
     "units": [
       {
@@ -373,16 +373,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-thirty-five-ground-recipients-no-truncation-p2",
+    "name": "IC27_027-thirty-five-ground-recipients-no-truncation-p2",
     "capacity": true,
     "units": [
       {
@@ -628,16 +628,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-interleaved-ready-arrivals-p1",
+    "name": "IC27_027-interleaved-ready-arrivals-p1",
     "units": [
       {
         "key": "f1",
@@ -672,16 +672,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-interleaved-ready-arrivals-p2",
+    "name": "IC27_027-interleaved-ready-arrivals-p2",
     "units": [
       {
         "key": "f1",
@@ -716,16 +716,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-reverse-interleaved-ready-arrivals-p1",
+    "name": "IC27_027-reverse-interleaved-ready-arrivals-p1",
     "units": [
       {
         "key": "e2",
@@ -760,16 +760,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-reverse-interleaved-ready-arrivals-p2",
+    "name": "IC27_027-reverse-interleaved-ready-arrivals-p2",
     "units": [
       {
         "key": "e2",
@@ -804,16 +804,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-only-ready-ground-p1",
+    "name": "IC27_027-own-only-ready-ground-p1",
     "units": [
       {
         "key": "f1",
@@ -834,16 +834,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-only-ready-ground-p2",
+    "name": "IC27_027-own-only-ready-ground-p2",
     "units": [
       {
         "key": "f1",
@@ -864,16 +864,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-only-ready-ground-p1",
+    "name": "IC27_027-enemy-only-ready-ground-p1",
     "units": [
       {
         "key": "e1",
@@ -894,16 +894,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-only-ready-ground-p2",
+    "name": "IC27_027-enemy-only-ready-ground-p2",
     "units": [
       {
         "key": "e1",
@@ -924,16 +924,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-mixed-ready-cancelled-opponent-and-own-p1",
+    "name": "IC27_027-mixed-ready-cancelled-opponent-and-own-p1",
     "units": [
       {
         "key": "f1",
@@ -982,16 +982,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-mixed-ready-cancelled-opponent-and-own-p2",
+    "name": "IC27_027-mixed-ready-cancelled-opponent-and-own-p2",
     "units": [
       {
         "key": "f1",
@@ -1040,16 +1040,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-all-ground-already-exhausted-p1",
+    "name": "IC27_027-all-ground-already-exhausted-p1",
     "noEffect": true,
     "units": [
       {
@@ -1085,16 +1085,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-all-ground-already-exhausted-p2",
+    "name": "IC27_027-all-ground-already-exhausted-p2",
     "noEffect": true,
     "units": [
       {
@@ -1130,48 +1130,48 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-source-alone-no-effective-exhaust-p1",
+    "name": "IC27_027-source-alone-no-effective-exhaust-p1",
     "noEffect": true,
     "units": [],
     "ownSeat": 0,
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-source-alone-no-effective-exhaust-p2",
+    "name": "IC27_027-source-alone-no-effective-exhaust-p2",
     "noEffect": true,
     "units": [],
     "ownSeat": 1,
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-only-space-distractors-p1",
+    "name": "IC27_027-only-space-distractors-p1",
     "noEffect": true,
     "units": [
       {
@@ -1202,16 +1202,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-only-space-distractors-p2",
+    "name": "IC27_027-only-space-distractors-p2",
     "noEffect": true,
     "units": [
       {
@@ -1242,16 +1242,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ready-native-ground-tokens-and-space-exclusion-p1",
+    "name": "IC27_027-ready-native-ground-tokens-and-space-exclusion-p1",
     "units": [
       {
         "key": "fSpace",
@@ -1298,16 +1298,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ready-native-ground-tokens-and-space-exclusion-p2",
+    "name": "IC27_027-ready-native-ground-tokens-and-space-exclusion-p2",
     "units": [
       {
         "key": "fSpace",
@@ -1354,16 +1354,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-exhausted-native-ground-tokens-cancel-p1",
+    "name": "IC27_027-exhausted-native-ground-tokens-cancel-p1",
     "units": [
       {
         "key": "ready",
@@ -1390,16 +1390,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-exhausted-native-ground-tokens-cancel-p2",
+    "name": "IC27_027-exhausted-native-ground-tokens-cancel-p2",
     "units": [
       {
         "key": "ready",
@@ -1426,16 +1426,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-predeployed-leader-ready-p1",
+    "name": "IC27_027-own-predeployed-leader-ready-p1",
     "deployedLeader": true,
     "units": [
       {
@@ -1450,16 +1450,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-predeployed-leader-ready-p2",
+    "name": "IC27_027-own-predeployed-leader-ready-p2",
     "deployedLeader": true,
     "units": [
       {
@@ -1474,16 +1474,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-actual-deploy-ready-leader-p1",
+    "name": "IC27_027-own-actual-deploy-ready-leader-p1",
     "actualLeader": "own",
     "units": [
       {
@@ -1500,18 +1500,18 @@ const designs=[
         "from": "leader"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-actual-deploy-ready-leader-p2",
+    "name": "IC27_027-own-actual-deploy-ready-leader-p2",
     "actualLeader": "own",
     "units": [
       {
@@ -1528,18 +1528,18 @@ const designs=[
         "from": "leader"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-actual-deploy-ready-leader-p1",
+    "name": "IC27_027-enemy-actual-deploy-ready-leader-p1",
     "actualLeader": "enemy",
     "enemyLeader": true,
     "units": [
@@ -1558,18 +1558,18 @@ const designs=[
         "actor": "enemy"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-actual-deploy-ready-leader-p2",
+    "name": "IC27_027-enemy-actual-deploy-ready-leader-p2",
     "actualLeader": "enemy",
     "enemyLeader": true,
     "units": [
@@ -1588,18 +1588,18 @@ const designs=[
         "actor": "enemy"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-actual-deploy-attack-exhausted-leader-p1",
+    "name": "IC27_027-own-actual-deploy-attack-exhausted-leader-p1",
     "actualLeader": "own",
     "attackLeader": true,
     "units": [
@@ -1622,18 +1622,18 @@ const designs=[
         "target": "enemyBase"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-own-actual-deploy-attack-exhausted-leader-p2",
+    "name": "IC27_027-own-actual-deploy-attack-exhausted-leader-p2",
     "actualLeader": "own",
     "attackLeader": true,
     "units": [
@@ -1656,18 +1656,18 @@ const designs=[
         "target": "enemyBase"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-actual-deploy-attack-exhausted-leader-p1",
+    "name": "IC27_027-enemy-actual-deploy-attack-exhausted-leader-p1",
     "actualLeader": "enemy",
     "enemyLeader": true,
     "attackLeader": true,
@@ -1693,18 +1693,18 @@ const designs=[
         "target": "ownBase"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-enemy-actual-deploy-attack-exhausted-leader-p2",
+    "name": "IC27_027-enemy-actual-deploy-attack-exhausted-leader-p2",
     "actualLeader": "enemy",
     "enemyLeader": true,
     "attackLeader": true,
@@ -1730,22 +1730,22 @@ const designs=[
         "target": "ownBase"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ordinary-second-copy-no-uniqueness-p1",
+    "name": "IC27_027-ordinary-second-copy-no-uniqueness-p1",
     "units": [
       {
         "key": "copy",
-        "code": "SOR_039",
+        "code": "IC27_027",
         "owner": "own",
         "exhausted": false,
         "shields": 0
@@ -1762,20 +1762,20 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ordinary-second-copy-no-uniqueness-p2",
+    "name": "IC27_027-ordinary-second-copy-no-uniqueness-p2",
     "units": [
       {
         "key": "copy",
-        "code": "SOR_039",
+        "code": "IC27_027",
         "owner": "own",
         "exhausted": false,
         "shields": 0
@@ -1792,16 +1792,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-existing-native-shields-preserved-p1",
+    "name": "IC27_027-existing-native-shields-preserved-p1",
     "units": [
       {
         "key": "f",
@@ -1822,16 +1822,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-existing-native-shields-preserved-p2",
+    "name": "IC27_027-existing-native-shields-preserved-p2",
     "units": [
       {
         "key": "f",
@@ -1852,16 +1852,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-bounce-and-replay-physical-arrival-p1",
+    "name": "IC27_027-bounce-and-replay-physical-arrival-p1",
     "reentry": true,
     "units": [
       {
@@ -1896,18 +1896,18 @@ const designs=[
         "from": "late"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-bounce-and-replay-physical-arrival-p2",
+    "name": "IC27_027-bounce-and-replay-physical-arrival-p2",
     "reentry": true,
     "units": [
       {
@@ -1942,18 +1942,18 @@ const designs=[
         "from": "late"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-one-shot-regroup-readies-again-p1",
+    "name": "IC27_027-one-shot-regroup-readies-again-p1",
     "regroup": true,
     "units": [
       {
@@ -1989,16 +1989,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-one-shot-regroup-readies-again-p2",
+    "name": "IC27_027-one-shot-regroup-readies-again-p2",
     "regroup": true,
     "units": [
       {
@@ -2034,16 +2034,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-live-sentinel-and-raid-conditions-p1",
+    "name": "IC27_027-live-sentinel-and-raid-conditions-p1",
     "liveKeywords": true,
     "units": [
       {
@@ -2072,16 +2072,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-live-sentinel-and-raid-conditions-p2",
+    "name": "IC27_027-live-sentinel-and-raid-conditions-p2",
     "liveKeywords": true,
     "units": [
       {
@@ -2110,16 +2110,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-matched-aspect-printed-payment-eight-p1",
+    "name": "IC27_027-matched-aspect-printed-payment-eight-p1",
     "leaderCode": "SOR_007",
     "baseCode": "ASH_019",
     "matchedPayment": true,
@@ -2157,16 +2157,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-matched-aspect-printed-payment-eight-p2",
+    "name": "IC27_027-matched-aspect-printed-payment-eight-p2",
     "leaderCode": "SOR_007",
     "baseCode": "ASH_019",
     "matchedPayment": true,
@@ -2204,16 +2204,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-actual-calm-native-experience-shield-preserved-p1",
+    "name": "IC27_027-actual-calm-native-experience-shield-preserved-p1",
     "calmBefore": true,
     "units": [
       {
@@ -2237,18 +2237,18 @@ const designs=[
         "target": "recipient"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 0,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-actual-calm-native-experience-shield-preserved-p2",
+    "name": "IC27_027-actual-calm-native-experience-shield-preserved-p2",
     "calmBefore": true,
     "units": [
       {
@@ -2272,18 +2272,18 @@ const designs=[
         "target": "recipient"
       },
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "ownSeat": 1,
     "baseDamage": 0,
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ambush-first-dead-source-live-array-p1",
+    "name": "IC27_027-ambush-first-dead-source-live-array-p1",
     "ambush": true,
     "units": [
       {
@@ -2312,16 +2312,16 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   },
   {
-    "name": "SOR_039-ambush-first-dead-source-live-array-p2",
+    "name": "IC27_027-ambush-first-dead-source-live-array-p2",
     "ambush": true,
     "units": [
       {
@@ -2350,11 +2350,11 @@ const designs=[
     "baseDamage": 0,
     "plan": [
       {
-        "code": "SOR_039"
+        "code": "IC27_027"
       }
     ],
     "actualScriptedCardIds": [
-      "SOR_039"
+      "IC27_027"
     ],
     "family": "ordered-ground-exhaust"
   }

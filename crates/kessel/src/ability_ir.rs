@@ -3150,7 +3150,7 @@ mod bounded_unit_helper_metadata_tests {
     }
     #[test]
     fn preserves_existing_forms_and_executable_scope_mutants() {
-        for id in ["SEC_130","SHD_156","TWI_099","TWI_137","LOF_234","LOF_246","SEC_005","TWI_044"] {assert!(admitted(entry(id)),"preserve {id}");}
+        for id in ["SEC_130","SHD_156","TWI_099","IC27_108","LOF_234","LOF_246","SEC_005","TWI_044"] {assert!(admitted(entry(id)),"preserve {id}");}
         for owner in ["any","self","opponent"] {let mut a=entry("SOR_097");a["abilities"]["card"][0]["targetResolver"]["owner"]=json!(owner);assert!(admitted(a));for kind in ["any","unit","base"] {let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["targetResolver"]=json!({"owner":owner,"type":kind,"zone":"anyAttackable"});assert!(admitted(h));}}
         for condition in [true,false] {let mut tie=entry("JTL_135");tie["abilities"]["card"][0]["effect"]["condition"]=json!({"kind":"const","value":condition});assert!(admitted(tie.clone()));tie["baseClass"]=json!("UnknownCard");assert!(!admitted(tie));}
         let mut h=entry("JTL_071");h["abilities"]["card"][0]["effect"]["amount"]["value"]=json!(4);assert!(!admitted(h));
@@ -3201,7 +3201,7 @@ mod ordered_ground_metadata_tests {
  fn entry(code:&str)->Value {let c:Value=serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array().unwrap().iter().find(|c|c["setCode"]==code).unwrap().clone()}
  fn admitted(e:Value)->bool {let id=e["setCode"].as_str().unwrap().to_string();Catalogue::load(&json!({"schema":SCHEMA,"cards":[e]})).unwrap().cards.contains_key(&id)}
  #[test]fn ordered_ground_metadata_is_complete_and_operation_specific(){
-  for id in ["LOF_235","SOR_039","TWI_173"] {
+  for id in ["IC27_182","IC27_027","TWI_173"] {
    let e=entry(id);assert!(admitted(e.clone()),"original {id}");
    for order in ["playerFirst","opponentFirst","seatOrder"] {let mut x=e.clone();x["abilities"]["card"][0]["effect"]["target"]["controllerOrder"]=json!(order);assert!(admitted(x),"order sensitivity {id} {order}");}
    for (path,value) in [("/baseClass",json!("MysteryCard")),("/card/types",json!(["leader"])),("/card/unique",json!(true)),("/card/keywords",json!(["shielded"])),("/keywordValues",json!({"restore":4})),("/card/deployBox",json!("deploy")),("/card/upgradeHp",json!(1)),("/piloting",json!({})),("/attachCondition",json!({"kind":"const","value":true})),("/abilities/card/0/optional",json!(true)),("/abilities/card/0/requiresConfirmation",json!(true)),("/abilities/card/0/coordinate",json!(true)),("/abilities/card/0/condition",json!({"kind":"const","value":false})),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/targetResolver",json!({"owner":"any","type":"unit","zone":"anyAttackable"})),("/abilities/card/0/then",json!({"title":"extra","trigger":"then","effect":{"kind":"noAction"}})),("/abilities/card/0/effect/target/receiver",json!({"kind":"ref","path":["player"]})),("/abilities/card/0/effect/target/predicate",json!({"kind":"const","value":true}))] {

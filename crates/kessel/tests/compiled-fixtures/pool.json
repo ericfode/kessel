@@ -4662,7 +4662,7 @@
       ],
       "power": 4,
       "rules": null,
-      "setCode": "IBH_014",
+      "setCode": "IC27_080",
       "setCodes": [
         {
           "number": 14,
@@ -4792,7 +4792,7 @@
       ],
       "power": 6,
       "rules": null,
-      "setCode": "IBH_020",
+      "setCode": "IC27_082",
       "setCodes": [
         {
           "number": 20,
@@ -5693,7 +5693,7 @@
       "keywords": [],
       "power": 5,
       "rules": null,
-      "setCode": "IBH_099",
+      "setCode": "IC27_025",
       "setCodes": [
         {
           "number": 99,
@@ -5732,7 +5732,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "JTL_019",
+      "setCode": "IC27_009",
       "setCodes": [
         {
           "number": 19,
@@ -6369,7 +6369,7 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "JTL_095",
+      "setCode": "IC27_073",
       "setCodes": [
         {
           "number": 95,
@@ -7043,7 +7043,7 @@
       ],
       "power": 4,
       "rules": null,
-      "setCode": "JTL_241",
+      "setCode": "IC27_181",
       "setCodes": [
         {
           "number": 241,
@@ -7083,7 +7083,7 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "JTL_248",
+      "setCode": "IC27_190",
       "setCodes": [
         {
           "number": 248,
@@ -10770,7 +10770,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "LOF_239",
+      "setCode": "IC27_184",
       "setCodes": [
         {
           "number": 239,
@@ -10891,7 +10891,7 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "LOF_250",
+      "setCode": "IC27_191",
       "setCodes": [
         {
           "number": 250,
@@ -12406,7 +12406,7 @@
       ],
       "power": 1,
       "rules": null,
-      "setCode": "SEC_213",
+      "setCode": "IC27_169",
       "setCodes": [
         {
           "number": 213,
@@ -13883,7 +13883,7 @@
       "keywords": [],
       "power": 0,
       "rules": null,
-      "setCode": "SHD_196",
+      "setCode": "IC27_154",
       "setCodes": [
         {
           "number": 196,
@@ -14559,7 +14559,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "SOR_024",
+      "setCode": "IC27_010",
       "setCodes": [
         {
           "number": 24,
@@ -15236,7 +15236,7 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "SOR_128",
+      "setCode": "IC27_097",
       "setCodes": [
         {
           "number": 128,
@@ -15723,7 +15723,7 @@
       "keywords": [],
       "power": 2,
       "rules": null,
-      "setCode": "SOR_225",
+      "setCode": "IC27_178",
       "setCodes": [
         {
           "number": 225,
@@ -16602,7 +16602,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "TWI_026",
+      "setCode": "IC27_011",
       "setCodes": [
         {
           "number": 26,
@@ -17774,7 +17774,7 @@
       ],
       "power": 4,
       "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
-      "setCode": "TWI_214",
+      "setCode": "IC27_173",
       "setCodes": [
         {
           "number": 214,
@@ -17894,7 +17894,7 @@
       "keywords": [],
       "power": 4,
       "rules": null,
-      "setCode": "TWI_230",
+      "setCode": "IC27_180",
       "setCodes": [
         {
           "number": 230,
@@ -18017,7 +18017,7 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "TWI_241",
+      "setCode": "IC27_189",
       "setCodes": [
         {
           "number": 241,
@@ -18101,7 +18101,7 @@
       ],
       "power": 3,
       "rules": null,
-      "setCode": "TWI_244",
+      "setCode": "IC27_192",
       "setCodes": [
         {
           "number": 244,

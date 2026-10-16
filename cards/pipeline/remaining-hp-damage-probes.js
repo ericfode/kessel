@@ -589,7 +589,7 @@ const designs = [
       },
       {
         "key": "other",
-        "code": "SOR_225",
+        "code": "IC27_178",
         "owner": "enemy",
         "damage": 0,
         "shields": 0
@@ -620,7 +620,7 @@ const designs = [
       },
       {
         "key": "other",
-        "code": "SOR_225",
+        "code": "IC27_178",
         "owner": "enemy",
         "damage": 0,
         "shields": 0

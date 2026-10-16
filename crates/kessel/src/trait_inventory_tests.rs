@@ -77,11 +77,11 @@ fn trait_inventory_shared_parent_leaves_apply_gain_then_loss_and_recompute_aura_
         let mut e=engine();let mut s=board(&e);
         let host=unit(&e,&mut s,seat,"LOF_256");
         let _source=unit(&e,&mut s,seat,"LAW_212");
-        let gain=add(&e,&mut s,seat.other(),"SHD_070");e.attach(&mut s,gain,host);
+        let gain=add(&e,&mut s,seat.other(),"IC27_052");e.attach(&mut s,gain,host);
         diagnostic_parent_trait(&mut e,&s,gain,"gainTrait","creature");
         assert!(e.card_has_trait(&s,host,"creature"));
         assert!(e.card_has_trait(&s,host,"underworld"));
-        let loss=add(&e,&mut s,seat,"SOR_120");e.attach(&mut s,loss,host);
+        let loss=add(&e,&mut s,seat,"IC27_093");e.attach(&mut s,loss,host);
         diagnostic_parent_trait(&mut e,&s,loss,"loseTrait","creature");
         assert!(!e.card_has_trait(&s,host,"creature"));
         assert!(!e.card_has_trait(&s,host,"underworld"));
@@ -100,13 +100,13 @@ fn trait_inventory_zam_uses_live_gained_and_lost_deployed_leader_traits() {
         let mut e=engine();let mut s=board(&e);
         let source=unit(&e,&mut s,seat,"HMW_134");
         let leader=s.player(seat).leader;s.card_mut(leader).deployed=true;s.card_mut(leader).epic_used=true;e.add_arena(&mut s,leader).unwrap();
-        let gain=add(&e,&mut s,seat,"SHD_070");e.attach(&mut s,gain,leader);
+        let gain=add(&e,&mut s,seat,"IC27_052");e.attach(&mut s,gain,leader);
         diagnostic_parent_trait(&mut e,&s,gain,"gainTrait","trooper");
         assert!(e.card_has_trait(&s,leader,"trooper"));assert!(e.card_has_trait(&s,source,"trooper"));
         let query:crate::ability_ir::Expr=serde_json::from_value(json!({"kind":"query","name":"leaderTraits","receiver":{"kind":"ref","path":["player"]},"args":[]})).unwrap();
         let Eval::Array(inventory)=e.eval(&s,source,0,&query) else {panic!("leader trait inventory")};
         assert!(inventory.contains(&Eval::Text("trooper".into())));
-        let loss=add(&e,&mut s,seat.other(),"SOR_120");e.attach(&mut s,loss,leader);
+        let loss=add(&e,&mut s,seat.other(),"IC27_093");e.attach(&mut s,loss,leader);
         diagnostic_parent_trait(&mut e,&s,loss,"loseTrait","trooper");
         assert!(!e.card_has_trait(&s,source,"trooper"));
         let copied=s;assert!(!e.card_has_trait(&copied,source,"trooper"));
@@ -167,7 +167,7 @@ fn trait_inventory_foreign_control_imports_remain_explicitly_rejected() {
     let e=engine();let mut s=board(&e);
     unit(&e,&mut s,Seat::P1,"LAW_212");
     let host=unit(&e,&mut s,Seat::P1,"LOF_257");
-    let upgrade=add(&e,&mut s,Seat::P2,"SHD_070");e.attach(&mut s,upgrade,host);
+    let upgrade=add(&e,&mut s,Seat::P2,"IC27_052");e.attach(&mut s,upgrade,host);
     let snapshot=e.snapshot(&s);
     assert!(e.load_state(&snapshot).is_ok(),"enemy-owned attachment is a supported control identity");
     for field in ["owner","controller"] {
@@ -214,7 +214,7 @@ fn trait_inventory_generated_trait_predicate_uses_same_live_inventory_as_interpr
     let index=row["index"].as_u64().unwrap() as usize;
     let expression:crate::ability_ir::Expr=serde_json::from_value(expr_json).unwrap();
     let source=unit(&e,&mut s,Seat::P1,"LAW_212");
-    let loss=add(&e,&mut s,Seat::P2,"SHD_070");e.attach(&mut s,loss,creature);
+    let loss=add(&e,&mut s,Seat::P2,"IC27_052");e.attach(&mut s,loss,creature);
     diagnostic_parent_trait(&mut e,&s,loss,"loseTrait","underworld");
     for (stage,expected) in [(0,false),(1,true),(2,false)] {
         if stage==1 {e.defeat(&mut s,loss).unwrap();}
