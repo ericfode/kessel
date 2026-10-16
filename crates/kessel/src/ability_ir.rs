@@ -15,6 +15,9 @@ pub(crate) fn contains_force_presence<T: Serialize>(value:&T)->bool {
     visit(&serde_json::to_value(value).expect("typed IR serializes"))
 }
 
+#[path = "selector_contract.rs"]
+pub mod selector_contract;
+
 pub const SCHEMA: &str = "swu-card-ir/v1";
 pub const MAX_PROGRAM_INSTRUCTIONS: usize = 128;
 pub const MAX_GROUP_RECORDS: usize = 32;
@@ -693,32 +696,19 @@ impl Target {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[derive(Debug, Clone)]
 pub struct TargetResolver {
-    #[serde(default, skip_serializing_if="Option::is_none")]
     pub prompt_title: Option<String>,
-    #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub prompt_title_parts: Vec<Expr>,
-    #[serde(default = "any_owner")]
     pub owner: String,
-    #[serde(rename = "type", default = "any_owner")]
     pub card_type: String,
-    #[serde(default)]
     pub arena: Option<String>,
-    #[serde(default)]
     pub zone: Option<String>,
-    #[serde(default)]
     pub optional: bool,
-    #[serde(default)]
     pub predicate: Option<Expr>,
-    #[serde(default)]
     pub mode: Option<String>,
-    #[serde(default)]
     pub count: Option<Expr>,
-}
-fn any_owner() -> String {
-    "any".into()
+    pub native: Option<selector_contract::NativeCardSelection>,
 }
 impl TargetResolver {
     /// A positive type predicate supplies the selector inventory domain; ordinary
@@ -730,7 +720,10 @@ impl TargetResolver {
             Expr::Binary {op,left,right} if op=="||"=>implies(left)&&implies(right),
             _=>false,
         }}
-        self.card_type=="upgrade" || (self.card_type=="any" && self.predicate.as_ref().is_some_and(implies))
+        if let Some(native)=&self.native {
+            return native.types().is_ok_and(|types|types.iter().all(|t|t.matches(selector_contract::CardTypeFilter::BasicUpgrade)||t.matches(selector_contract::CardTypeFilter::TokenUpgrade))&&types.iter().all(|t|!t.matches(selector_contract::CardTypeFilter::BasicUnit)&&!t.matches(selector_contract::CardTypeFilter::Base)));
+        }
+        selector_contract::CardTypeFilter::parse(&self.card_type).is_ok_and(|filter|filter.upgrade_only()) || (self.card_type=="any" && self.predicate.as_ref().is_some_and(implies))
     }
     fn mentions_upgrade_query(&self)->bool {
         fn mentions(e:&Expr)->bool {match e.original() {
@@ -759,6 +752,11 @@ impl TargetResolver {
         let mut r=self.clone();r.prompt_title=None;r.validate()
     }
     pub fn validate(&self) -> Result<(), String> {
+        if let Some(native)=&self.native {
+            native.validate()?;
+            if let Some(predicate)=&self.predicate {predicate.validate()?;}
+            return Ok(());
+        }
         if !self.prompt_title_parts.is_empty() {
             let expected=serde_json::json!([{"kind":"const","value":"Choose a unit to deal "},{"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]},{"kind":"const","value":" damage to"}]);
             let source_power_parts=self.prompt_title_parts.len()<=32 && self.prompt_title_parts.iter().all(|e|match e {Expr::Const{value}=>value.as_str().is_some(),Expr::Query{name,receiver,args}=>name=="getPower"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["source"]),_=>false}) && self.prompt_title_parts.iter().map(|e|match e {Expr::Const{value}=>value.as_str().map_or(0,str::len),_=>0}).sum::<usize>()<=1024;
@@ -771,11 +769,11 @@ impl TargetResolver {
         if !["self", "opponent", "any"].contains(&self.owner.as_str()) {
             return Err(format!("unsupported target owner {}", self.owner));
         }
-        if !["unit", "base", "any", "nonLeaderUnit", "leaderUnit", "upgrade", "tokenUnit"]
-            .contains(&self.card_type.as_str())
-        {
-            return Err(format!("unsupported target type {}", self.card_type));
-        }
+        let filter=selector_contract::CardTypeFilter::parse(&self.card_type)?;
+        if self.card_type!="any" && self.zone.as_deref()!=Some("discard") && filter.matches(selector_contract::CardTypeFilter::TokenCard) {return Err("selector base-token inventory requires physical base-zone tokens".into());}
+        if self.card_type!="any" && !filter.upgrade_only() && self.zone.as_deref()!=Some("discard") && filter.matches(selector_contract::CardTypeFilter::BasicUpgrade) {return Err("mixed upgrade selector domains require a separately reviewed inventory".into());}
+        let legal=if self.zone.as_deref()==Some("discard") {filter.legal_in_discard()}else if self.zone.as_deref()==Some("base") {filter.legal_in_base()}else if self.zone.as_deref()==Some("arena")||self.arena.is_some() {filter.legal_in_arena()}else{filter.legal_in_arena()||filter.legal_in_base()};
+        if !legal {return Err("selector type/zone filters have no legal overlap".into());}
         if self
             .arena
             .as_deref()
@@ -1458,6 +1456,19 @@ fn damage_result_continuation(a:&Ability)->bool {
     matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if ["chosen","self","enemyBase","ownBase"].contains(&n.as_str())&&value.as_u64().is_some_and(|n|n<=65535))&&
     matches!(&next.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Ref{path}} if ["enemyBase","ownBase"].contains(&n.as_str())&&path==&["event","damageDealt"])
 }
+pub(crate) fn native_single_weakness_group(effect:&Effect)->bool {
+    matches!(effect,Effect::Select{target_resolver,effect} if target_resolver.native.as_ref().is_some_and(|n|n.is_opponent()&&n.is_root_binding()) && selected_weakness(effect))
+}
+fn native_opponent_registration(a:&Ability)->bool {
+    let Some(r)=&a.target_resolver else{return false;};
+    let Some(native)=&r.native else{return false;};
+    if !native.is_opponent()||!native.is_root_binding()||r.optional||r.predicate.is_some()||!native.types().is_ok_and(|types|types.iter().all(|t|matches!(t,selector_contract::CardTypeFilter::Unit|selector_contract::CardTypeFilter::NonLeaderUnit))) {return false;}
+    if !["event","whenPlayed","onAttack"].contains(&a.trigger.as_str())||a.optional||a.requires_confirmation||a.coordinate||a.gained_host.is_some()||a.attached_context.is_some()||!a.context_title.is_empty()||!a.costs.is_empty()||a.condition.is_some()||!a.target_resolvers.is_empty()||a.then.is_some()||a.if_you_do.is_some(){return false;}
+    matches!(&a.effect,Effect::Defeat{target:Target::Name(n)} if n=="chosen")
+        || matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64().is_some_and(|n|(1..=65535).contains(&n)))
+        || a.trigger=="whenPlayed"&&selected_weakness(&a.effect)
+}
+
 impl Program {
     /// Where the effect of the selection at `pc` ends. A selection inside an effect covers its own effect, the way
     /// forceteki's SelectCardSystem checks only its immediate effect; an ability's target covers the rest of the program.
@@ -1483,6 +1494,14 @@ impl Program {
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
         if crate::phase_history::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::phase_history::ability(ability){return Err("phase history requires a bounded ordinary root registration".into());}
+        fn native_opponent(v:&Value)->bool {(v["kind"]=="cardSelection"&&v["chooser"]=="opponent")||match v {Value::Object(o)=>o.values().any(native_opponent),Value::Array(a)=>a.iter().any(native_opponent),_=>false}}
+        if native_opponent(&serde_json::to_value(&ability.effect).map_err(|e|e.to_string())?) {return Err("opponent selection inside an effect requires its own chooser/context protocol".into());}
+        if ability.target_resolver.as_ref().and_then(|r|r.native.as_ref()).is_some_and(|n|!n.is_root_binding()) {return Err("root native selector requires the target result binding".into());}
+        for descriptor in &ability.target_resolvers {
+            if let Some(native)=&descriptor.target_resolver.native {
+                if !native.matches_named_binding(&descriptor.name,&descriptor.chooser) {return Err("native named selector binding/chooser must match its descriptor".into());}
+            }
+        }
         if crate::static_ongoing::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::static_ongoing::registration(ability) {return Err("static self ongoing contracts require a sole unconditional root constant".into());}
         if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && gained_host_kind(ability).is_none() {return Err("gained host requires one exact reviewed root attack template".into());}
         if let Some(context)=&ability.attached_context {
@@ -1734,6 +1753,14 @@ impl Program {
             let base=self.instructions.len();self.instructions.extend([Instruction::Select(resolver.clone()),Instruction::Conditional{condition:condition.clone(),skip:base+4},Instruction::Group(*on_true.clone()),Instruction::Jump{to:base+5},Instruction::Apply(Effect::NoAction)]);return Ok(());
         }
         if depth!=0 && (ability.attacker_must_survive || ability.trigger=="whenAttackEnds") {return Err("attack-end registration metadata cannot appear in a continuation".into());}
+        if ability.target_resolver.as_ref().and_then(|r|r.native.as_ref()).is_some_and(|n|n.is_opponent()) {
+            if depth!=0||!native_opponent_registration(ability){return Err("opponent single-card selector requires a bounded standalone ordinary damage/defeat/Weakness registration".into());}
+            let r=ability.target_resolver.as_ref().unwrap();r.validate()?;
+            let effect=Effect::Select{target_resolver:r.clone(),effect:Box::new(ability.effect.clone())};
+            self.validate_group(&effect,1)?;
+            self.instructions.push(Instruction::NamedChooserGroup{effect,choosers:vec![NamedChooser::Opponent]});
+            return Ok(());
+        }
         if let Effect::MaximumPowerExperience{aspect}=&ability.effect {
             if depth!=0||!maximum_registration(ability){return Err("maximum capture requires a standalone bounded leader action/attack".into());}
             let base=self.instructions.len();
@@ -2085,13 +2112,13 @@ impl Program {
                 Effect::NoAction => (0,false,false),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
-                    let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
+                    let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
                     if array && amount.is_some_and(target_dependent) { return Err("array-dependent group amount is unsupported".into()); }
                     if array && matches!(primitive, Effect::ModifyStats {power,hp,..} if target_dependent(power)||target_dependent(hp)) { return Err("array-dependent phase modifier values are unsupported".into()); }
-                    let destination=match primitive { Effect::Damage {target,..}|Effect::Heal {target,..}|Effect::GiveShield {target,..}|Effect::GiveExperience {target,..}|Effect::Ready {target}|Effect::Exhaust {target}|Effect::Defeat {target}|Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..} => target, _ => unreachable!() };
+                    let destination=match primitive { Effect::Damage {target,..}|Effect::Heal {target,..}|Effect::GiveShield {target,..}|Effect::GiveExperience {target,..}|Effect::GiveWeakness {target,..}|Effect::Ready {target}|Effect::Exhaust {target}|Effect::Defeat {target}|Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..} => target, _ => unreachable!() };
                     let expanded=multiplicity(destination,targets,array)?;
                     match primitive {
-                        Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} => {
+                        Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} => {
                             let Expr::Const {value} = amount else { return Err("group tokens require literal bounded amounts".into()); };
                             let n=value.as_u64().filter(|n| (1..=2).contains(n)).ok_or("group tokens require one or two per target")? as usize;
                             (expanded * n * 2,false,true)
@@ -2119,6 +2146,7 @@ impl Program {
             if n>MAX_GROUP_OPS {return Err("event group operation budget exceeds capacity".into());}Ok(n)
         }
         fn contains_select(e: &Effect) -> bool { match e { Effect::Select {..}=>true,Effect::Simultaneous {effects}|Effect::PhaseModifiers {effects}|Effect::Sequence {effects}=>effects.iter().any(contains_select),Effect::Conditional {on_true,on_false,..}=>contains_select(on_true)||on_false.as_deref().is_some_and(contains_select),_=>false } }
+        if contains_weakness(effect)&&contains_select(effect)&&!native_single_weakness_group(effect) {return Err("selected Weakness group requires the bounded native opponent single-card contract".into());}
         fn primitive_captures_target(e: &Effect) -> bool {
             fn target(t: &Target) -> bool { match t { Target::Name(n)=>n=="chosen",Target::Expression(e)=>target_dependent(e),Target::ArenaList(_)=>true } }
             match e {
@@ -2392,6 +2420,7 @@ impl Catalogue {
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = serde_json::from_value(entry["abilities"].clone())
                     .map_err(|e| format!("invalid ability IR: {e}"))?;
+                if selector_contract::expanded_selector_marker(&entry["abilities"]) && !selector_contract::native_source_entry(entry,&sides) {return Err("expanded selectors require complete ordinary unit/event card-side source metadata without unimplemented registration contexts".into());}
                 if ["abilities","attachCondition","piloting"].iter().any(|k|parent_defense_marker(&entry[*k]))&&!parent_defense_upgrade_entry(entry){return Err("parent defense requires complete nonunique non-Vehicle-attached upgrade metadata".into());}
 
                 let exact_type=|expected:&str|entry["card"]["types"].as_array().is_some_and(|types|types.len()==1&&types[0]==expected);
@@ -2770,7 +2799,7 @@ mod tests {
         let portable: Expr = serde_json::from_slice(&bytes).unwrap();
         assert!(matches!(portable, Expr::Const { .. }));
         assert_eq!(bytes, serde_json::to_vec(&portable).unwrap());
-        let resolver = TargetResolver { owner: "any".into(), card_type:"unit".into(), arena:None,
+        let resolver = TargetResolver { native:None, owner: "any".into(), card_type:"unit".into(), arena:None,
             zone:None, optional:false, predicate:None, mode:Some("upTo".into()), count:Some(expression), prompt_title:None, prompt_title_parts:vec![] };
         assert_eq!(resolver.max_targets(), Ok(3));
     }

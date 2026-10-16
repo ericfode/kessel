@@ -1293,6 +1293,7 @@ impl Engine {
         }
     }
     fn matching_targets(&self, s: &State, source: CardId, r: &TargetResolver) -> Vec<CardId> {
+        if let Some(native)=&r.native {return self.native_selector_candidates(s,source,r,native).into_iter().filter(|id|r.predicate.as_ref().is_none_or(|p|self.eval(s,source,*id,p).truth())).collect();}
         let owner = s.card(source).owner;
         let mut out = Vec::new();
         for seat in [Seat::P1, Seat::P2] {
@@ -1311,26 +1312,15 @@ impl Engine {
                     .chain(p.space.as_slice())
                     .copied()
                     .chain(std::iter::once(p.base))
+                    .chain((r.card_type!="any" && p.leader!=0 && !s.card(p.leader).deployed && self.selector_type_matches(s,p.leader,&r.card_type)).then_some(p.leader))
                     .collect()
             };
             for id in candidates {
                 let d = self.def(s, id);
                 let base = id == p.base;
-                let leader = d.info.is("leader");
-                if match r.card_type.as_str() {
-                    "upgrade" => !d.info.is("upgrade"),
-                    "any" if r.is_upgrade_domain()=>!d.info.is("upgrade"),
-                    "tokenUnit"=> !(d.info.is("token")&&d.info.is("unit")),
-                    "unit" => !(d.info.is("unit") || (leader && s.card(id).deployed)),
-                    "base" => !base,
-                    "nonLeaderUnit" => !d.info.is("unit") || leader,
-                    "leaderUnit" => !leader || !s.card(id).deployed,
-                    _ => false,
-                } {
-                    continue;
-                }
+                if !(if r.card_type=="any" && r.is_upgrade_domain() {d.info.is("upgrade")}else{self.selector_type_matches(s,id,&r.card_type)}) {continue;}
                 if r.zone.as_deref() == Some("arena") && base
-                    || r.zone.as_deref() == Some("base") && !base
+                    || r.zone.as_deref() == Some("base") && !base && !(id==p.leader&&!s.card(id).deployed)
                 {
                     continue;
                 }
@@ -1418,9 +1408,9 @@ impl Engine {
                             (unit || base)
                                 && (!require_change || (amount > 0 && s.card(id).damage > 0))
                         }
-                        Effect::Ready { .. } => unit && (!require_change || s.card(id).exhausted),
+                        Effect::Ready { .. } => self.exhaustible_card(s,id) && (!require_change || s.card(id).exhausted),
                         Effect::Exhaust { .. } => {
-                            unit && (!require_change || !s.card(id).exhausted)
+                            self.exhaustible_card(s,id) && (!require_change || !s.card(id).exhausted)
                         }
                         Effect::Defeat { .. } => unit || self.attached_in_play(s,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="ownTopDeck" => self.resource_top_deck_eligible(&context,id),
@@ -1960,12 +1950,13 @@ impl Engine {
     }
     fn allocate_named_tokens(&self,s:&mut State,e:&Effect)->Result<(),String> {
         let ops=group_ops(e);
-        let records=(0..s.event_group.count as usize).filter(|i|s.event_group.records[*i].token==0 && matches!(ops[s.event_group.records[*i].op as usize],GroupOp::Leaf(Effect::GiveShield{..}|Effect::GiveExperience{..}))).collect::<Vec<_>>();
+        let records=(0..s.event_group.count as usize).filter(|i|s.event_group.records[*i].token==0 && matches!(ops[s.event_group.records[*i].op as usize],GroupOp::Leaf(Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}))).collect::<Vec<_>>();
         if s.next_id as usize+records.len()>MAX_CARDS {return Err("card capacity exceeded generating named tokens".into());}
         if records.iter().any(|i|matches!(ops[s.event_group.records[*i].op as usize],GroupOp::Leaf(Effect::GiveExperience{..}))) && self.experience_def.is_none() {return Err("catalogue needs Experience token".into());}
+        if records.iter().any(|i|matches!(ops[s.event_group.records[*i].op as usize],GroupOp::Leaf(Effect::GiveWeakness{..}))) && self.weakness_def.is_none() {return Err("catalogue needs Weakness token".into());}
         for i in records {
             let r=s.event_group.records[i];let token=s.next_id;s.next_id+=1;
-            let def=if matches!(ops[r.op as usize],GroupOp::Leaf(Effect::GiveExperience{..})) {self.experience_def.unwrap()} else {self.shield_def};
+            let def=if matches!(ops[r.op as usize],GroupOp::Leaf(Effect::GiveWeakness{..})) {self.weakness_def.unwrap()}else if matches!(ops[r.op as usize],GroupOp::Leaf(Effect::GiveExperience{..})) {self.experience_def.unwrap()} else {self.shield_def};
             *s.card_mut(token)=Card{present:true,def,owner:s.card(r.target).owner,..Card::default()};s.event_group.records[i].token=token;
         }
         Ok(())
@@ -2001,7 +1992,9 @@ impl Engine {
             if s.next_id as usize+n>MAX_CARDS||s.event_group.count as usize+n>32{return Err("five-pick Shield generation capacity exceeded".into());}
         }
 
-        if s.event_group.pc==0&&effect_has(e,|e|matches!(e,Effect::GiveWeakness{..})) {
+        // A named single Weakness selection allocates only after its chosen record
+        // exists; allocate_named_tokens performs the same capacity/token checks.
+        if s.event_group.pc==0&&effect_has(e,|e|matches!(e,Effect::GiveWeakness{..}))&&!crate::ability_ir::native_single_weakness_group(e) {
             self.weakness_def.ok_or("catalogue needs Weakness token")?;
             let mut tokens=0usize;let mut records=0usize;
             for op in group_ops(e) {let GroupOp::Leaf(effect)=op else{return Err("Weakness window must have scalar primary events".into());};
@@ -2671,6 +2664,7 @@ impl Engine {
                     if id != 0
                         && (self.in_arena(s, id)
                             || self.def(s, id).info.is("base")
+                            || (matches!(e,Effect::Ready{..}|Effect::Exhaust{..}) && self.exhaustible_card(s,id))
                             || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.attached_in_play(s,id))
                             || (matches!(e, Effect::ReturnToHand { .. })
                                 && s.player(s.card(id).owner).discard.contains(id))) =>
@@ -2690,10 +2684,10 @@ impl Engine {
                         Effect::Heal { .. } => {
                             result = result.saturating_add(self.heal_card(s, id, amount));
                         }
-                        Effect::Ready { .. } if in_arena => {
+                        Effect::Ready { .. } if self.exhaustible_card(s,id) => {
                             result += self.set_card_exhausted(s, id, false);
                         }
-                        Effect::Exhaust { .. } if in_arena => {
+                        Effect::Exhaust { .. } if self.exhaustible_card(s,id) => {
                             result += self.set_card_exhausted(s, id, true);
                         }
                         Effect::ReturnToHand { .. } if !self.def(s, id).info.is("leader") => {

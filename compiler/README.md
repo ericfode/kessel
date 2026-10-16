@@ -352,7 +352,24 @@ creation capacity, and Plot remain explicit engine backlog. No gameplay support
 is implied by the compiler's supported status; the current Rust loader rejects
 these new nodes and continuation fields.
 
-## Compiler-only event hooks and phase history
+## Bounded native selectors
+
+Rust retains typed `cardSelection` descriptors for single-card selection with
+literal card-type unions, zones and controller filters. Candidate predicates
+have their own binding; they do not replace the initiating source or player.
+The admitted ordinary unit/event subset includes a bounded opponent chooser for
+damage, defeat or one Weakness, using the existing suspended-group protocol to
+pay event costs before the opponent chooses and restore the initiator afterward.
+Front leaders can be readied through the ordinary exhaustion mutation helper.
+
+Unknown fields, dynamic selection counts, explicit must-change-state overrides,
+resolution-time selector conditions, captured candidate scopes, arena upgrade
+inventories and physical base-token inventories remain rejected. Complete source
+metadata is required; expanding a type filter does not admit unrelated leader,
+attachment or history registrations. Existing action-window snapshot support is
+unchanged; the new pending selector prompts have copy/action-set assertions.
+
+## Event hooks and phase history
 
 `eventHooks` retains a single registration with alternative named event predicates
 or standard aliases. Optionality, collective triggering, source-zone filters and
@@ -374,9 +391,20 @@ helper/predicate arguments, block scopes, readonly locals, branches, switch
 cases, templates, optional member accesses and finite named query calls.
 They contain data operations, with no executable source strings. Unsupported
 statements and unknown query operations still reject the complete card.
-These additions require an executor for the new nodes, callback capture frames,
-phase histories, registration limits and event scheduling. Conversion is not a
-claim of runtime admission or gameplay verification.
+Rust executes a bounded subset of these contracts: complete ordinary-unit
+registrations using the reviewed entered/played watcher predicates and play
+counts, plus unconditional attacker-owned `whenAttackEnds` registrations and
+the exact defender-defeated watcher check. Phase history records physical
+identities and controller-at-event, persists after departure, and resets at phase
+end. Import requires versioned exact history when a selected card can read it;
+arena contents cannot reconstruct missing history. Attack history follows the
+original attacker and defender through suspended trigger windows and departure
+or re-entry, with attack cleanup after the shared combat event window.
+
+Other event hooks, saved callback values, watcher operations, registration limits
+and conditional attack-end captures remain rejected. Conversion is not a claim
+of runtime admission or gameplay verification. Focused Rust assertions exercise
+the admitted subset; differential parity for these additions remains unverified.
 
 Damage-modification grants use the same pinned registration contract with the
 recipient as ability source and the grantor retained separately. Explicit ordinary

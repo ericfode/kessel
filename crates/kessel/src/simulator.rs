@@ -2,6 +2,8 @@
 mod generic_runtime;
 #[path = "support_runtime.rs"]
 mod support_runtime;
+#[path = "selector_runtime.rs"]
+mod selector_runtime;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};

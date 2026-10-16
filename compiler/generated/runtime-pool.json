@@ -512,6 +512,48 @@
     {
       "arena": "ground",
       "aspects": [
+        "command",
+        "aggression",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4800098984",
+      "internalName": "wicket#yub-nub",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": "Units that can’t attack bases can still damage bases through other abilities, like Overwhelm.\n",
+      "setCode": "ASH_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "ASH"
+      },
+      "subtitle": "Yub Nub!",
+      "text": "Saboteur\nThis unit can't attack bases.",
+      "title": "Wicket",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "aggression",
         "cunning",
         "heroism"
@@ -4785,6 +4827,46 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: You may give a Weakness token to a unit.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "3060442176",
+      "internalName": "doctor-hemlock#emotion-has-no-place-here",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "HMW_003",
+      "setCodes": [
+        {
+          "number": 3,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 3,
+        "set": "HMW"
+      },
+      "subtitle": "Emotion Has No Place Here",
+      "text": "Action [1 resource, Exhaust]: Give a Weakness token to a unit without a Weakness token on it.",
+      "title": "Doctor Hemlock",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "command",
         "villainy"
       ],
@@ -4817,6 +4899,46 @@
         "force",
         "imperial",
         "sith"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may deal 2 damage to a unit with a token upgrade on it. (Shield and Weakness tokens are token upgrades.)",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 5,
+      "id": "9900684268",
+      "internalName": "bossk#cruel-hunter",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "HMW_015",
+      "setCodes": [
+        {
+          "number": 15,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 15,
+        "set": "HMW"
+      },
+      "subtitle": "Cruel Hunter",
+      "text": "Action [Exhaust]: Heal 1 damage from a damaged enemy unit and give a Weakness token to it.",
+      "title": "Bossk",
+      "traits": [
+        "underworld",
+        "bounty hunter"
       ],
       "types": [
         "leader"
@@ -5511,6 +5633,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7755474526",
+      "internalName": "talzins-shuttle#mysterious-arrival",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_040",
+      "setCodes": [
+        {
+          "number": 40,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 40,
+        "set": "HMW"
+      },
+      "subtitle": "Mysterious Arrival",
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\nWhen Played: If an opponent played 2 or more cards this phase, you may give 2 Weakness tokens to a unit.",
+      "title": "Talzin's Shuttle",
+      "traits": [
+        "night",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -5791,6 +5956,46 @@
         "imperial",
         "clone",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "2558977875",
+      "internalName": "clone-of-the-zillo-beast#emperors-experiment",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "HMW_065",
+      "setCodes": [
+        {
+          "number": 65,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 65,
+        "set": "HMW"
+      },
+      "subtitle": "Emperor's Experiment",
+      "text": "Other friendly units get –2/–2.\nOn Attack: You may give a Weakness token to a unit.",
+      "title": "Clone of the Zillo Beast",
+      "traits": [
+        "clone",
+        "creature"
       ],
       "types": [
         "unit"
@@ -6717,6 +6922,47 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "0054868207",
+      "internalName": "disposable-b1",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_103",
+      "setCodes": [
+        {
+          "number": 103,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 103,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: If another friendly unit entered play this phase (including leader and token units), draw a card.",
+      "title": "Disposable B1",
+      "traits": [
+        "separatist",
+        "droid",
+        "trooper"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -8584,6 +8830,45 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 2,
+      "id": "4318148716",
+      "internalName": "cid-scaleback#cant-be-trusted",
+      "keywords": [],
+      "power": 2,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "HMW_197",
+      "setCodes": [
+        {
+          "number": 197,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 197,
+        "set": "HMW"
+      },
+      "subtitle": "Can't Be Trusted",
+      "text": "When Played: An opponent chooses a unit they control. Give a Weakness token to it.",
+      "title": "Cid Scaleback",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 1,
       "id": "8767838857",
       "internalName": "treacherous-pyke",
@@ -8731,6 +9016,47 @@
       "traits": [
         "imperial",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8195968327",
+      "internalName": "victor-squadron#in-attack-formation",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "HMW_203",
+      "setCodes": [
+        {
+          "number": 203,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 203,
+        "set": "HMW"
+      },
+      "subtitle": "In Attack Formation",
+      "text": "This unit enters play ready.",
+      "title": "Victor Squadron",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -12775,6 +13101,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4332645242",
+      "internalName": "corporate-defense-shuttle",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "This unit can't attack.",
+      "title": "Corporate Defense Shuttle",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -14772,6 +15138,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6938023363",
+      "internalName": "piercing-shot",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_180",
+      "setCodes": [
+        {
+          "number": 180,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 180,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Defeat all Shield tokens on a unit. Deal 3 damage to that unit.",
+      "title": "Piercing Shot",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning",
@@ -15345,6 +15748,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "5052103576",
+      "internalName": "resistance-xwing",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_247",
+      "setCodes": [
+        {
+          "number": 247,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 247,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "While this unit has a Pilot on it, it gets +1/+1.",
+      "title": "Resistance X-Wing",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "heroism"
@@ -15692,6 +16135,91 @@
       "traits": [
         "underworld",
         "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "command",
+        "villainy"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "8331101999",
+      "internalName": "hounds-tooth#hunters-approach",
+      "keywords": [],
+      "power": 4,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n\"When Attack Ends\" abilities trigger at the same time the attacking unit deals combat damage. Hound’s Tooth must survive the attack in order to defeat a unit.\n",
+      "setCode": "LAW_033",
+      "setCodes": [
+        {
+          "number": 33,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 33,
+        "set": "LAW"
+      },
+      "subtitle": "Hunters' Approach",
+      "text": "When Attack Ends: If this unit survived, you may defeat a unit with less power than this unit.",
+      "title": "Hound's Tooth",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6434420907",
+      "internalName": "chewbacca#mighty-rescuer",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 4,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n\"When Attack Ends\" abilities trigger at the same time the attacking unit deals combat damage. If Chewbacca is defeated by combat damage, you cannot heal him or give him an Experience token.\n",
+      "setCode": "LAW_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "LAW"
+      },
+      "subtitle": "Mighty Rescuer",
+      "text": "Overwhelm\nWhen Attack Ends: If the defending unit was defeated, give an Experience token to this unit and heal 3 damage from him.",
+      "title": "Chewbacca",
+      "traits": [
+        "rebel",
+        "wookiee"
       ],
       "types": [
         "unit"
@@ -19874,6 +20402,88 @@
       "arena": "ground",
       "aspects": [
         "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may give a unit –1/–1 for this phase.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "2520636620",
+      "internalName": "mother-talzin#power-through-magick",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_002",
+      "setCodes": [
+        {
+          "number": 2,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 2,
+        "set": "LOF"
+      },
+      "subtitle": "Power Through Magick",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give a unit –1/–1 for this phase.",
+      "title": "Mother Talzin",
+      "traits": [
+        "force",
+        "night"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: You may give a friendly unit Sentinel for this phase.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "7077983867",
+      "internalName": "ahsoka-tano#fighting-for-peace",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 5,
+      "rules": "Ahsoka's unit side ability can be used to give herself Sentinel.\n",
+      "setCode": "LOF_003",
+      "setCodes": [
+        {
+          "number": 3,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 3,
+        "set": "LOF"
+      },
+      "subtitle": "Fighting For Peace",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give a friendly unit Sentinel for this phase. (Enemy units in its arena must attack a sentinel when they attack you.)",
+      "title": "Ahsoka Tano",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
         "heroism"
       ],
       "cost": 6,
@@ -19947,6 +20557,47 @@
         "force",
         "first order",
         "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may give an Experience token to another unit without an Experience token on it.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "2693401411",
+      "internalName": "obiwan-kenobi#courage-makes-heroes",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_008",
+      "setCodes": [
+        {
+          "number": 8,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 8,
+        "set": "LOF"
+      },
+      "subtitle": "Courage Makes Heroes",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give an Experience token to a unit without an Experience token on it.",
+      "title": "Obi-Wan Kenobi",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
       ],
       "types": [
         "leader"
@@ -20126,6 +20777,49 @@
         "vigilance",
         "villainy"
       ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 9,
+      "id": "8633377277",
+      "internalName": "pong-krell#its-treason-then",
+      "keywords": [
+        "grit"
+      ],
+      "power": 2,
+      "rules": "A unit must survive an attack to trigger its \"when this unit completes an attack\" abilities.\nAbilities that refer to a card’s power include temporary modifiers.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "LOF_038",
+      "setCodes": [
+        {
+          "number": 38,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 38,
+        "set": "LOF"
+      },
+      "subtitle": "It's Treason, Then",
+      "text": "Grit\nWhen this unit completes an attack (and survives): You may defeat a unit with less remaining HP than this unit's power.",
+      "title": "Pong Krell",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
       "cost": 8,
       "deployBox": null,
       "epicAction": "",
@@ -20196,6 +20890,47 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "7504035101",
+      "internalName": "lothwolf",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_044",
+      "setCodes": [
+        {
+          "number": 44,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 44,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nThis unit can't attack.",
+      "title": "Loth-Wolf",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -23397,6 +24132,46 @@
         "cunning",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4024881604",
+      "internalName": "adept-of-anger",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Exhaust a unit.",
+      "title": "Adept of Anger",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -24766,6 +25541,44 @@
       "title": "Refugee of The Path",
       "traits": [
         "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6800160263",
+      "internalName": "caretaker-matron",
+      "keywords": [],
+      "power": 0,
+      "rules": "Caretaker Matron's ability can still be used as an action even if you haven't played a Force card this phase (but you don't draw a card).\n",
+      "setCode": "LOF_243",
+      "setCodes": [
+        {
+          "number": 243,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 243,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust]: If you played a Force card this phase, draw a card.",
+      "title": "Caretaker Matron",
+      "traits": [
         "fringe"
       ],
       "types": [
@@ -28230,6 +29043,46 @@
         "cunning",
         "villainy"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4195599545",
+      "internalName": "darth-traya#lord-of-betrayal",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_188",
+      "setCodes": [
+        {
+          "number": 188,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 188,
+        "set": "SEC"
+      },
+      "subtitle": "Lord of Betrayal",
+      "text": "On Attack: You may ready a non-unit leader.",
+      "title": "Darth Traya",
+      "traits": [
+        "force",
+        "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": "",
@@ -30344,6 +31197,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0518313150",
+      "internalName": "embo#stoic-and-resolute",
+      "keywords": [],
+      "power": 3,
+      "rules": "A unit must survive an attack to trigger its “when this unit completes an attack” abilities.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "SHD_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "SHD"
+      },
+      "subtitle": "Stoic and Resolute",
+      "text": "When this unit completes an attack: If the defender was defeated, heal up to 2 damage from a unit.",
+      "title": "Embo",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33126,6 +34018,85 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "8240629990",
+      "internalName": "avenger#hunting-star-destroyer",
+      "keywords": [],
+      "power": 8,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "SOR_040",
+      "setCodes": [
+        {
+          "number": 40,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 40,
+        "set": "SOR"
+      },
+      "subtitle": "Hunting Star Destroyer",
+      "text": "When Played/On Attack: An opponent chooses a non‑leader unit they control. Defeat that unit.",
+      "title": "Avenger",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "0176921487",
+      "internalName": "power-of-the-dark-side",
+      "keywords": [],
+      "power": null,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "SOR_041",
+      "setCodes": [
+        {
+          "number": 41,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 41,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "An opponent chooses a unit they control. Defeat that unit.",
+      "title": "Power of the Dark Side",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "villainy",
         "vigilance"
@@ -34845,6 +35816,46 @@
         "aggression",
         "heroism"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "9647945674",
+      "internalName": "zeb-orrelios#headstrong-warrior",
+      "keywords": [],
+      "power": 5,
+      "rules": "A unit must survive an attack to trigger its “when this unit completes an attack” abilities.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "SOR_146",
+      "setCodes": [
+        {
+          "number": 146,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 146,
+        "set": "SOR"
+      },
+      "subtitle": "Headstrong Warrior",
+      "text": "When this unit completes an attack: If the defender was defeated, you may deal 4 damage to a ground unit.",
+      "title": "Zeb Orrelios",
+      "traits": [
+        "rebel",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": null,
@@ -35313,6 +36324,48 @@
         "imperial",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "cunning"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "3684950815",
+      "internalName": "bounty-hunter-crew",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "SOR_183",
+      "setCodes": [
+        {
+          "number": 183,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 183,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Ambush (After you play this unit, it may ready and attack an enemy unit.)\n\nWhen Played: You may return an event from a discard pile to its owner's hand.",
+      "title": "Bounty Hunter Crew",
+      "traits": [
+        "underworld",
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -37331,6 +38384,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3034449380",
+      "internalName": "wartime-pirate",
+      "keywords": [],
+      "power": 4,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "TS26_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "On Attack: An opponent deals 1 damage to a unit.",
+      "title": "Wartime Pirate",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression"
@@ -38431,6 +39524,44 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "4036958275",
+      "internalName": "hello-there",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_052",
+      "setCodes": [
+        {
+          "number": 52,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 52,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Choose a unit that entered play this phase. It gets –4/–4 for this phase.",
+      "title": "Hello There",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
