@@ -106,8 +106,7 @@ impl Engine {
         }
         let end = s.death_pending.len as usize;
         for e in &s.death_pending.entries[start..end] {
-            let physical = if e.grantor != 0 { e.grantor } else { e.source };
-            if s.registration_order.position(physical).is_none() {
+            if s.registration_order.position(e.physical_source()).is_none() {
                 return Err(
                     "captured defeat registration missing physical entry chronology".into(),
                 );
@@ -116,7 +115,7 @@ impl Engine {
         let order = s.registration_order;
         s.death_pending.entries[start..end].sort_by_key(|e| {
             order
-                .position(if e.grantor != 0 { e.grantor } else { e.source })
+                .position(e.physical_source())
                 .unwrap()
         });
         Ok(())

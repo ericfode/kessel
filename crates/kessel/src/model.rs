@@ -428,6 +428,8 @@ impl Default for EventGroupState {
 /// Result of one resolved instruction window. Identity is local to the active
 /// resolution; nested death windows save and restore this payload with their parent.
 /// Defeat counts include direct, successful unit defeat events only.
+/// A zero payload clears the previous instruction's result; it is not a second
+/// cumulative counter. Consumers must retain the source/program/pc scope.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct StepEventResult {
     pub source: CardId, pub program: u16, pub pc: u8,
@@ -435,11 +437,57 @@ pub struct StepEventResult {
 }
 impl StepEventResult {
     pub fn for_state(s:&State)->Self {Self {source:s.source,program:s.ability_program,pc:s.ability_pc,..Self::default()}}
+    pub fn belongs_to(self,source:CardId,program:u16,pc:u8)->bool {
+        self.source==source && self.program==program && self.pc==pc
+    }
+}
+
+/// Named views of the existing numeric state. Keep raw fields in State and
+/// suspended contexts: their numeric hashing and legacy compatibility are stable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum TriggerContext { Action=0, Enter=1, Attack=2, ShieldOrder=3, DeathKeyword=4 }
+impl TriggerContext {
+    pub const fn raw(self)->u8 {self as u8}
+    pub const fn from_raw(raw:u8)->Option<Self> {match raw {
+        0=>Some(Self::Action),1=>Some(Self::Enter),2=>Some(Self::Attack),
+        3=>Some(Self::ShieldOrder),4=>Some(Self::DeathKeyword),_=>None,
+    }}
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum ProgramContinuation { Finish=0, Triggers=1, Deaths=2 }
+impl ProgramContinuation {
+    pub const fn raw(self)->u8 {self as u8}
+    pub const fn from_raw(raw:u8)->Option<Self> {match raw {
+        0=>Some(Self::Finish),1=>Some(Self::Triggers),2=>Some(Self::Deaths),_=>None,
+    }}
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum DeathContinuation {
+    Program=1, Triggers=2, Finish=3, PhaseExpiry=4, CombatAfterDamage=5,
+    ParentDeaths=6, NativeAttackAfterEarlyEffects=7,
+}
+impl DeathContinuation {
+    pub const fn raw(self)->u8 {self as u8}
+    pub const fn from_raw(raw:u8)->Option<Self> {match raw {
+        1=>Some(Self::Program),2=>Some(Self::Triggers),3=>Some(Self::Finish),
+        4=>Some(Self::PhaseExpiry),5=>Some(Self::CombatAfterDamage),
+        6=>Some(Self::ParentDeaths),7=>Some(Self::NativeAttackAfterEarlyEffects),_=>None,
+    }}
 }
 pub const MAX_DEATH_TRIGGERS: usize = 64;
 pub const MAX_DEATH_DEPTH: usize = 8;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathTrigger { pub last_known_power:u16, pub grantor:CardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub defer_depth: u8, pub keyword: u8 }
+impl DeathTrigger {
+    /// Registration chronology belongs to the physical grantor, while execution
+    /// retains the host as source. Ordinary registrations use their own source.
+    pub fn physical_source(self)->CardId {if self.grantor!=0 {self.grantor}else{self.source}}
+}
+/// A shared bounded trigger window, including attack, entry and defeat captures.
+/// The historical name does not imply every entry is a card's WhenDefeated.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DeathWindow {
     pub entries: [DeathTrigger; MAX_DEATH_TRIGGERS], pub len: u8,
@@ -452,8 +500,23 @@ impl Default for DeathWindow {
         group_program:0, group_source:0, group_keyword:0, resolve_all:false } }
 }
 /// One bounded property-factory evaluation, retained across its nested target prompt.
+/// ResolutionContext saves/restores it around nested windows; ending a program or
+/// clearing its action discards it. `sole` is the first maximum even for a tie;
+/// `count`, rather than that field's name, determines uniqueness.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct MaximumCapture {pub power:i32,pub sole:CardId,pub count:u16}
+impl MaximumCapture {
+    /// Record candidates in their existing order. Zero-power candidates count;
+    /// negative powers remain below the historical zero floor.
+    pub fn observe(&mut self,power:i32,id:CardId)->Result<(),String> {
+        if power>self.power {*self=Self {power,sole:id,count:1};}
+        else if power==self.power {
+            self.count=self.count.checked_add(1).ok_or("maximum tie count exceeds capacity")?;
+            if self.sole==0 {self.sole=id;}
+        }
+        Ok(())
+    }
+}
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ResolutionContext {
     pub active: Seat,
@@ -495,6 +558,9 @@ impl ResolutionContext {
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
+impl DeathFrame {
+    pub fn continuation(self)->Option<DeathContinuation> {DeathContinuation::from_raw(self.resume)}
+}
 
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -612,6 +678,8 @@ impl Default for State {
     }
 }
 impl State {
+    pub fn trigger_context_is(&self,context:TriggerContext)->bool {self.trigger_context==context.raw()}
+    pub fn set_trigger_context(&mut self,context:TriggerContext) {self.trigger_context=context.raw();}
     pub fn actor(&self) -> Option<Seat> {
         (!self.is_terminal()).then_some(self.active)
     }

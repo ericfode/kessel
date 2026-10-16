@@ -504,7 +504,7 @@ impl Engine {
                 }
             }
             Decision::VaderBase => {
-                if s.trigger_context == 0 {
+                if s.trigger_context_is(TriggerContext::Action) {
                     out.push(Action::button("Cancel", "cancel"));
                 }
                 for p in &s.players {
@@ -693,7 +693,7 @@ impl Engine {
                     if self.def(&t,id).info.is("upgrade") {t.source=id;t.decision=Decision::UpgradeTarget;return Ok(t);}
                     if self.catalogue.is_some() && self.def(&t, id).info.is("event") {
                         t.source = id;
-                        t.trigger_context = 0;
+                        t.set_trigger_context(TriggerContext::Action);
                         let programs = self.available_programs(&t, id, "event");
                         let program = *programs.first().ok_or("event has no executable ability")?;
                         self.begin_program(&mut t, program, 0)?;
@@ -707,7 +707,7 @@ impl Engine {
                     self.add_arena(&mut t, id)?;
                     t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
                     t.source = id;
-                    t.trigger_context = 1;
+                    t.set_trigger_context(TriggerContext::Enter);
                     if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
                         t.decision = Decision::Unique;
                     } else {
@@ -716,7 +716,7 @@ impl Engine {
                 } else {
                     t.source = id;
                     t.ambush = false;
-                    t.trigger_context = 0;
+                    t.set_trigger_context(TriggerContext::Action);
                     let programs = self.available_programs(&t, id, "action");
                     if t.card(id).exhausted && programs.len() == 1 {
                         self.begin_program(&mut t, programs[0], 0)?;
@@ -732,7 +732,7 @@ impl Engine {
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
                     let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
-                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
+                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
                         if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
@@ -782,7 +782,7 @@ impl Engine {
                     t.target = id;
                     let source = t.source;
                     t.card_mut(source).exhausted = true;
-                    t.trigger_context = 2;
+                    t.set_trigger_context(TriggerContext::Attack);
                     t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
@@ -810,15 +810,15 @@ impl Engine {
                 if arg == "cancel" {
                     self.cancel(&mut t);
                 } else {
-                    if t.trigger_context == 0 {
+                    if t.trigger_context_is(TriggerContext::Action) {
                         self.spend(&mut t, 1);
                         let leader = t.player(seat).leader;
                         t.card_mut(leader).exhausted = true;
                     }
-                    let amount = if t.trigger_context == 0 { 1 } else { 2 };
+                    let amount = if t.trigger_context_is(TriggerContext::Action) { 1 } else { 2 };
                     t.card_mut(id).damage += amount;
                     self.check_win(&mut t);
-                    if t.trigger_context == 0 {
+                    if t.trigger_context_is(TriggerContext::Action) {
                         self.finish(&mut t)?;
                     } else {
                         self.process_triggers(&mut t)?;
@@ -891,7 +891,7 @@ impl Engine {
             }
             Decision::ShieldOrder => {
                 t.attack_shield_opponent_first=a.arg.as_ref().and_then(Value::as_u64)==Some(1);
-                t.trigger_context = 3;
+                t.set_trigger_context(TriggerContext::ShieldOrder);
                 self.combat(&mut t)?;
             }
             Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
@@ -929,7 +929,7 @@ impl Engine {
         if self.catalogue.is_some() {
             let id = s.player(s.active).leader;
             s.source = id;
-            s.trigger_context = 0;
+            s.set_trigger_context(TriggerContext::Action);
             let program = *self
                 .available_programs(s, id, "action")
                 .first()
@@ -938,7 +938,7 @@ impl Engine {
         }
         let id = s.player(s.active).leader;
         s.source = id;
-        s.trigger_context = 0;
+        s.set_trigger_context(TriggerContext::Action);
         match self.def(s, id).code.as_str() {
             "SOR_014" => {
                 s.card_mut(id).exhausted = true;
@@ -964,7 +964,7 @@ impl Engine {
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
-        s.trigger_context = 0;
+        s.set_trigger_context(TriggerContext::Action);
         s.pending_triggers = 0;
         s.ambush = false;
         s.ability_program = 0;
@@ -977,7 +977,7 @@ impl Engine {
         s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
         s.ability_result = 0;
         s.ability_succeeded = false;
-        s.ability_return = 0;
+        s.ability_return = ProgramContinuation::Finish.raw();
         s.ability_committed = false;
         s.pending_programs = 0;
         s.after_attack_programs = 0;
@@ -1011,7 +1011,7 @@ impl Engine {
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
             | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
             | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
-        s.trigger_context = 1;
+        s.set_trigger_context(TriggerContext::Enter);
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
         // Ambush/Shielded also watch OnLeaderDeployed.
         if !self.def(s, s.source).info.is("leader") {
@@ -1019,13 +1019,13 @@ impl Engine {
         }
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
-        if s.trigger_context==4 {return self.process_deaths(s);}
+        if s.trigger_context_is(TriggerContext::DeathKeyword) {return self.process_deaths(s);}
         self.merge_enter_deaths(s)?;
-        if self.open_deaths(s,2)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Triggers.raw())? {return Ok(());}
         if self.catalogue.is_some() {
             return self.process_all_triggers(s);
         }
-        if s.is_terminal() && s.trigger_context != 2 {
+        if s.is_terminal() && !s.trigger_context_is(TriggerContext::Attack) {
             return Ok(());
         }
         if s.pending_triggers.count_ones() > 1
@@ -1043,7 +1043,7 @@ impl Engine {
             let bit = s.pending_triggers;
             return self.resolve_trigger(s, bit);
         }
-        if s.trigger_context == 2 {
+        if s.trigger_context_is(TriggerContext::Attack) {
             self.combat(s)
         } else {
             self.finish(s)
@@ -1123,7 +1123,7 @@ impl Engine {
     fn combat(&self, s: &mut State) -> Result<(), String> {
         let source = s.source;
         let target = s.target;
-        if s.trigger_context != 3
+        if !s.trigger_context_is(TriggerContext::ShieldOrder)
             && s.card(source).shield != 0
             && s.card(target).shield != 0
             && self.power(s, source, true) > 0
@@ -1145,7 +1145,7 @@ impl Engine {
             } else {
                 0
             };
-            if s.trigger_context==3 && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
+            if s.trigger_context_is(TriggerContext::ShieldOrder) && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
                 let (first,second)=if s.attack_shield_opponent_first { (target,source) } else { (source,target) };
                 let (first_token,second_token)=self.combat_shield_contexts(s,first,second);
                 self.remove_group_shield(s,first,first_token); self.remove_group_shield(s,second,second_token);
@@ -1173,17 +1173,17 @@ impl Engine {
         }
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s,5)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
         self.combat_after_damage(s)
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
         let source=s.source;
         self.capture_attack_end(s)?;
-        if self.open_deaths(s,5)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
         self.clear_support_grants(s);
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,5)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage.raw())? {return Ok(());}
         if s.support.pending {return self.resume_support(s);}
         self.check_win(s);
         if s.is_terminal() {
@@ -1201,7 +1201,7 @@ impl Engine {
                 s.after_attack_programs = 0;
                 s.pending_triggers = s.after_attack_triggers;
                 s.after_attack_triggers = 0;
-                s.trigger_context = 1;
+                s.set_trigger_context(TriggerContext::Enter);
                 self.process_triggers(s)?;
             } else {
                 self.finish(s)?;
@@ -1291,7 +1291,7 @@ impl Engine {
     }
     fn finish(&self, s: &mut State) -> Result<(), String> {
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,3)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Finish.raw())? {return Ok(());}
         if s.death_depth>0 {return self.process_deaths(s);}
         if s.is_terminal() {
             s.prev_passed = false;
@@ -1321,7 +1321,7 @@ impl Engine {
                 s.card_mut(id).clear_hidden_phase_effects();
             }
             self.sweep_stat_defeats(s)?;
-            if self.open_deaths(s,4)? {return Ok(());}
+            if self.open_deaths(s,DeathContinuation::PhaseExpiry.raw())? {return Ok(());}
             return self.advance_after_expiry(s);
         } else {
             if !s.player(s.active.other()).out {s.active=s.active.other();}
