@@ -198,36 +198,65 @@ fn data_path(root:&str,steps:&[&str])->Value {
     json!({"kind":"dataPath","root":[root],"steps":steps.iter().map(|s|json!({"key":s,"optional":false})).collect::<Vec<_>>()})
 }
 fn pure_callback(slot:&str,argument:&str,binding:&str,body:Value)->Value {
-    json!({"kind":"pureCallback","parameters":[{"slot":slot,"argument":argument,"bindingPattern":{"name":binding}}],"body":body,"capture":"lexicalReferences","invokeAt":"nativeCallbackInvocation"})
+    let parameter=PureBinding {slot,name:binding}.parameter(argument);
+    json!({"kind":"pureCallback","parameters":[parameter],"body":body,"capture":"lexicalReferences","invokeAt":"nativeCallbackInvocation"})
+}
+/// A lexical slot and its source spelling form one callback binding. Parsing
+/// names does not relax the complete wrapper comparisons at admission.
+#[derive(Clone, Copy)]
+struct PureBinding<'a> { slot: &'a str, name: &'a str }
+impl<'a> PureBinding<'a> {
+    fn read(value: &'a Value) -> Result<Self, String> {
+        Ok(Self { slot: name(&value["slot"])?, name: name(&value["bindingPattern"]["name"])? })
+    }
+    fn parameter(self, argument: &str) -> Value {
+        json!({"slot":self.slot,"argument":argument,"bindingPattern":{"name":self.name}})
+    }
+    fn callback(self, argument: &str, body: Value) -> Value {
+        pure_callback(self.slot, argument, self.name, body)
+    }
+}
+fn live_value(callback: Value) -> Value {
+    json!({"kind":"ongoingValueFactory","callback":callback})
+}
+fn length(receiver: Value) -> Value {
+    json!({"kind":"ongoingMember","receiver":receiver,"member":"length","optionalReceiver":false,"continuesOptionalChain":false})
+}
+fn returned(value: Value) -> Value { json!({"kind":"pureReturn","value":value}) }
+fn power_only(power: Value) -> Value {
+    json!({"kind":"dataRecord","fields":{"power":power,"hp":{"kind":"const","value":0}}})
 }
 fn stat_count(v:&Value)->Result<Count,String> {
     let c=&v["callback"];
-    let target=name(&c["parameters"][0]["slot"])?;
-    let binding=name(&c["parameters"][0]["bindingPattern"]["name"])?;
+    let target_binding=PureBinding::read(&c["parameters"][0])?;
+    let target=target_binding.slot;
     // This is a pure local declaration evaluated at each native invocation; it
     // cannot capture a value from registration or an earlier callback.
     let declaration=&c["body"]["statements"][0]["bindings"][0];
-    if let (Ok(local),Ok(local_name))=(name(&declaration["slot"]),name(&declaration["bindingPattern"]["name"])) {
+    if let Ok(local_binding)=PureBinding::read(declaration) {
+        let PureBinding {slot:local,name:local_name}=local_binding;
         let call=&declaration["value"]["receiver"];
         let candidate=&call["args"][0]["properties"]["condition"]["callback"];
-        if let (Ok(slot),Ok(candidate_name))=(name(&candidate["parameters"][0]["slot"]),name(&candidate["parameters"][0]["bindingPattern"]["name"])) {
+        if let Ok(candidate_binding)=PureBinding::read(&candidate["parameters"][0]) {
+            let slot=candidate_binding.slot;
             if slot!=target && slot!=local && local!=target {
                 let equality=json!({"kind":"binary","op":"===","left":data_path(slot,&["name"]),"right":data_path(target,&["name"])});
-                let count=json!({"kind":"ongoingMember","receiver":query("getArenaUnits",data_path(target,&["controller"]),vec![json!({"kind":"record","properties":{"condition":{"kind":"ongoingValueFactory","callback":pure_callback(slot,"candidate",candidate_name,json!({"kind":"pureReturn","value":equality}))},"otherThan":data_path(target,&[])}})]),"member":"length","optionalReceiver":false,"continuesOptionalChain":false});
-                let body=json!({"kind":"pureBlock","statements":[{"kind":"pureBindings","bindings":[{"slot":local,"mutable":false,"value":count,"bindingPattern":{"name":local_name},"evaluateAt":"declaration"}]},{"kind":"pureReturn","value":{"kind":"dataRecord","fields":{"power":data_path(local,&[]),"hp":{"kind":"const","value":0}}}}]});
-                if *v==json!({"kind":"ongoingValueFactory","callback":pure_callback(target,"targetCard",binding,body)}) {return Ok(Count::OtherFriendlySameTitle);}
+                let count=length(query("getArenaUnits",data_path(target,&["controller"]),vec![json!({"kind":"record","properties":{"condition":live_value(candidate_binding.callback("candidate",returned(equality))),"otherThan":data_path(target,&[])}})]));
+                let body=json!({"kind":"pureBlock","statements":[{"kind":"pureBindings","bindings":[{"slot":local,"mutable":false,"value":count,"bindingPattern":{"name":local_name},"evaluateAt":"declaration"}]},returned(power_only(data_path(local,&[])))]});
+                if *v==live_value(target_binding.callback("targetCard",body)) {return Ok(Count::OtherFriendlySameTitle);}
             }
         }
     }
     let count=&c["body"]["value"]["fields"]["power"];
     let candidate=&count["receiver"]["args"][0];
-    if let (Ok(slot),Ok(candidate_name))=(name(&candidate["parameters"][0]["slot"]),name(&candidate["parameters"][0]["bindingPattern"]["name"])) {
+    if let Ok(candidate_binding)=PureBinding::read(&candidate["parameters"][0]) {
+        let slot=candidate_binding.slot;
         if slot!=target {
             if let Some(trait_name)=candidate["body"]["value"]["right"]["args"][0]["value"].as_str().filter(|s|!s.is_empty()&&s.len()<=64) {
                 let predicate=json!({"kind":"binary","op":"&&","left":query("isUnit",data_path(slot,&[]),vec![]),"right":{"kind":"dataCall","method":"hasSomeTrait","receiver":data_path(slot,&[]),"args":[{"kind":"const","value":trait_name}],"optionalCall":false,"optionalReceiver":false}});
-                let count=json!({"kind":"ongoingMember","receiver":{"kind":"pureCollectionCall","method":"filter","receiver":data_path(target,&["controller","discardZone","cards"]),"args":[pure_callback(slot,"item",candidate_name,json!({"kind":"pureReturn","value":predicate}))],"optionalReceiver":false,"optionalCall":false},"member":"length","optionalReceiver":false,"continuesOptionalChain":false});
-                let body=json!({"kind":"pureReturn","value":{"kind":"dataRecord","fields":{"power":count,"hp":{"kind":"const","value":0}}}});
-                if *v==json!({"kind":"ongoingValueFactory","callback":pure_callback(target,"targetCard",binding,body)}) {return Ok(Count::DiscardUnitsWithTrait(trait_name.into()));}
+                let count=length(json!({"kind":"pureCollectionCall","method":"filter","receiver":data_path(target,&["controller","discardZone","cards"]),"args":[candidate_binding.callback("item",returned(predicate))],"optionalReceiver":false,"optionalCall":false}));
+                let body=returned(power_only(count));
+                if *v==live_value(target_binding.callback("targetCard",body)) {return Ok(Count::DiscardUnitsWithTrait(trait_name.into()));}
             }
         }
     }
@@ -246,28 +275,28 @@ fn unit_trait_aura(v:&Value)->Result<String,String> {
 }
 fn leader_trait_union(v:&Value)->Result<String,String> {
     let c=&v["callback"];
-    let target=name(&c["parameters"][0]["slot"])?;
-    let target_name=name(&c["parameters"][0]["bindingPattern"]["name"])?;
-    let context=name(&c["parameters"][1]["slot"])?;
-    let context_name=name(&c["parameters"][1]["bindingPattern"]["name"])?;
+    let target_binding=PureBinding::read(&c["parameters"][0])?;
+    let target=target_binding.slot;
+    let context_binding=PureBinding::read(&c["parameters"][1])?;
+    let context=context_binding.slot;
     let statements=&c["body"]["statements"];
     let declaration=&statements[0]["bindings"][0];
-    let local=name(&declaration["slot"])?;
-    let local_name=name(&declaration["bindingPattern"]["name"])?;
+    let local_binding=PureBinding::read(&declaration)?;
+    let PureBinding {slot:local,name:local_name}=local_binding;
     let leader_loop=&statements[1];
-    let leader=name(&leader_loop["slot"])?;
-    let leader_name=name(&leader_loop["bindingPattern"]["name"])?;
+    let leader_binding=PureBinding::read(&leader_loop)?;
+    let PureBinding {slot:leader,name:leader_name}=leader_binding;
     let trait_loop=&leader_loop["body"]["statements"][0];
-    let item=name(&trait_loop["slot"])?;
-    let item_name=name(&trait_loop["bindingPattern"]["name"])?;
+    let item_binding=PureBinding::read(&trait_loop)?;
+    let PureBinding {slot:item,name:item_name}=item_binding;
     let excluded=name(&trait_loop["body"]["statements"][0]["condition"]["right"]["value"])?;
     if excluded.len()>64 || [target,context,local,leader,item].into_iter().collect::<std::collections::BTreeSet<_>>().len()!=5 {return Err("trait union bindings or exclusion invalid".into());}
     let trait_body=json!({"kind":"pureBlock","statements":[{"kind":"pureIf","condition":{"kind":"binary","op":"!==","left":data_path(item,&[]),"right":{"kind":"const","value":excluded}},"then":{"kind":"pureBlock","statements":[{"kind":"pureEvaluate","value":{"kind":"pureSetMutation","method":"add","receiver":data_path(local,&[]),"value":data_path(item,&[])}}]}}]});
     let outer=json!({"kind":"pureForOf","slot":leader,"bindingPattern":{"name":leader_name},"iterable":query("getLeaderCards",data_path(context,&["player"]),vec![]),"iterationScope":"perIteration","body":{"kind":"pureBlock","statements":[{"kind":"pureForOf","slot":item,"bindingPattern":{"name":item_name},"iterable":data_path(leader,&["traits"]),"iterationScope":"perIteration","body":trait_body}]}});
     let body=json!({"kind":"pureBlock","statements":[{"kind":"pureBindings","bindings":[{"slot":local,"mutable":false,"value":{"kind":"pureSet","implementation":"Set","values":{"kind":"array","items":[]}},"bindingPattern":{"name":local_name},"evaluateAt":"declaration"}]},outer,{"kind":"pureReturn","value":{"kind":"arrayFrom","value":data_path(local,&[])}}]});
-    let mut expected=pure_callback(target,"targetCard",target_name,body);
-    expected["parameters"].as_array_mut().unwrap().push(json!({"slot":context,"argument":"ongoingContext","bindingPattern":{"name":context_name}}));
-    if *v==json!({"kind":"ongoingValueFactory","callback":expected}) {Ok(excluded.into())}else{Err("trait union requires live friendly leaders, bounded set insertion and literal exclusion".into())}
+    let mut expected=target_binding.callback("targetCard",body);
+    expected["parameters"].as_array_mut().unwrap().push(context_binding.parameter("ongoingContext"));
+    if *v==live_value(expected) {Ok(excluded.into())}else{Err("trait union requires live friendly leaders, bounded set insertion and literal exclusion".into())}
 }
 pub(crate) fn trait_dependencies(e:&Value)->Vec<(String,String)> {
     if e["status"]!="supported" || !e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|a["effect"]["kind"]=="constantEffectRegistration" && a["effect"]["modifier"]["effectType"]=="gainTrait")) || !entry(e) {return vec![];}

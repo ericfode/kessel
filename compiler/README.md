@@ -197,8 +197,10 @@ and X-Wing tokens, one to five at a time, for either player, with explicit ready
 entry. Token allocation precedes entry, and tokens leaving play stay out of
 ordinary hands and discard piles. Scalar hand-discard effects let the affected
 player choose their own cards. Their inherited default target is the opponent;
-the helper's name does not imply a friendly target. Player selectors remain
-rejected until their selected-player context can be preserved.
+the helper's name does not imply a friendly target. Source lowering preserves
+player selection and selected-player default targets (including named bindings);
+these represented selection contracts still require runtime choice, capture and
+continuation semantics and remain rejected by the Rust loader.
 
 Force token state records each player's persistent token ID and whether it is
 held. Gain, spend, and regain reuse that identity without allocating a card; the

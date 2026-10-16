@@ -718,3 +718,37 @@ fn support_free_selected_pool_preserves_committed_vader_trace() {
     let result = crate::check::check(&e, &path).unwrap();
     assert!(result.matched);
 }
+
+#[test]
+fn support_defender_window_retains_outer_trigger_cursor_until_resume() {
+    let e=engine();
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=start(&e,seat);
+        let donor=unit(&e,&mut s,seat,"ASH_130");
+        let attacker=unit(&e,&mut s,seat,"LOF_256");
+        s.source=donor;
+        s.target=s.player(seat.other()).base;
+        s.ability_pc=3;
+        s.ability_result=2;
+        s.ability_succeeded=true;
+        s.pending_programs=1;
+        s.after_attack_programs=2;
+        s.pending_triggers=4;
+        s.after_attack_triggers=8;
+        s.trigger_context=16;
+        s.ambush=true;
+        e.begin_support_attack(&mut s,attacker).unwrap();
+        assert_eq!(s.support.context.source,donor);
+        assert_eq!(s.support.context.ability_pc,3);
+        assert_eq!(s.support.context.ability_result,2);
+        assert_eq!(s.support.context.pending_programs,1);
+        assert_eq!(s.support.context.after_attack_triggers,8);
+        assert!(s.support.context.ambush);
+        assert_eq!(s.ability_pc,3,"Support retains its outer trigger cursor");
+        assert_eq!(s.source,attacker);
+        assert_eq!(s.target,0);
+        assert_eq!((s.pending_programs,s.after_attack_programs,s.pending_triggers,s.after_attack_triggers,s.trigger_context),(0,0,0,0,0));
+        assert!(!s.ambush);
+        assert_eq!(s.decision,Decision::AttackTarget);
+    }
+}

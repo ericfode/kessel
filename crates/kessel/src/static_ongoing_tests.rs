@@ -566,3 +566,38 @@ fn static_ongoing_conditional_and_live_count_admission_delta_is_complete() {
     assert!(baseline.by_code.keys().all(|code|admitted.by_code.contains_key(code)));
     eprintln!("ongoing conditional/live-count admission delta: {delta:?}; {} -> {}",baseline.by_code.len(),admitted.by_code.len());
 }
+
+#[test]
+fn static_ongoing_lexical_renaming_preserves_leaf_and_rejects_binding_aliases() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    fn rename(v:&mut Value,old:&str,new:&str) {
+        match v {
+            Value::String(s) if s==old=>*s=new.into(),
+            Value::Object(o)=>for child in o.values_mut() {rename(child,old,new)},
+            Value::Array(a)=>for child in a {rename(child,old,new)},
+            _=>{}
+        }
+    }
+    for code in ["JTL_256","LOF_083","HMW_134"] {
+        let a=&catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap()["abilities"]["card"][0];
+        let mut effect=a["effect"].clone();
+        effect.as_object_mut().unwrap().remove("kind");
+        let original:crate::static_ongoing::Registration=serde_json::from_value(effect.clone()).unwrap();
+        let expected=format!("{:?}",original.native().unwrap());
+        let mut raw=effect.clone();
+        let old=raw["modifier"]["value"]["callback"]["parameters"][0]["slot"].as_str().unwrap().to_owned();
+        rename(&mut raw,&old,"renamed-target-slot");
+        let renamed:crate::static_ongoing::Registration=serde_json::from_value(raw.clone()).unwrap();
+        assert_eq!(format!("{:?}",renamed.native().unwrap()),expected,"{code}");
+        // Source-name validation cannot erase a changed lexical identity or permit
+        // evaluation before the native callback invocation.
+        let other_slot=raw["modifier"]["value"]["callback"]["parameters"][1]["slot"].as_str().unwrap_or("different-slot").to_owned();
+        raw["modifier"]["value"]["callback"]["parameters"][0]["slot"]=json!(other_slot);
+        let aliased:crate::static_ongoing::Registration=serde_json::from_value(raw).unwrap();
+        assert!(aliased.validate().is_err(),"{code}");
+        let mut raw=effect;
+        raw["modifier"]["value"]["callback"]["invokeAt"]=json!("registration");
+        let premature:crate::static_ongoing::Registration=serde_json::from_value(raw).unwrap();
+        assert!(premature.validate().is_err(),"{code}");
+    }
+}
