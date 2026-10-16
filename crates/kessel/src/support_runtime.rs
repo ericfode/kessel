@@ -38,7 +38,7 @@ impl Engine {
             .filter(|&id| {
                 id != s.source
                     && !s.card(id).exhausted
-                    && !self.attack_targets(s, id, false).is_empty()
+                    && self.has_attack_target(s, id, false)
             })
             .collect()
     }

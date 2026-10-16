@@ -1593,7 +1593,7 @@ impl Engine {
                         out.len(),
                     ));
                 }
-                if !s.card(source).exhausted && !self.attack_targets(s, source, false).is_empty() {
+                if !s.card(source).exhausted && self.has_attack_target(s, source, false) {
                     out.push(Action::button("Attack", out.len()));
                 }
                 out.push(Action::button("Cancel", out.len()));

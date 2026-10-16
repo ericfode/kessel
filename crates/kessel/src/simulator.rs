@@ -399,31 +399,27 @@ impl Engine {
             _ => "Heal up to 2 damage from a unit. If you do, deal that much damage to your base",
         }
     }
-    fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
-        if self.self_static_ongoing(s,source,crate::static_ongoing::SelfEffect::CannotAttack) {return vec![];}
+    /// Keep one target-domain implementation for menus, availability and actual
+    /// selection; availability can stop at the first target without allocating.
+    fn attack_target_iter<'a>(&'a self, s: &'a State, source: CardId, ambush: bool) -> impl Iterator<Item = CardId> + 'a {
+        let allowed = !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttack);
         let d = self.def(s, source);
         let opp = s.player(s.card(source).owner.other());
-        let zone = if d.info.arena.as_deref() == Some("space") {
-            &opp.space
-        } else {
-            &opp.ground
-        };
-        let sentinel = self.keyword_amount(s, source, "saboteur") == 0
-            && zone
-                .as_slice()
-                .iter()
-                .any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
-        let mut out: Vec<_> = zone
-            .as_slice()
-            .iter()
-            .copied()
-            .filter(|&c| !sentinel || self.keyword_amount(s, c, "sentinel") > 0)
-            .filter(|&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
-            .collect();
-        if !ambush && !sentinel && !self.self_static_ongoing(s,source,crate::static_ongoing::SelfEffect::CannotAttackBase) {
-            out.push(opp.base);
-        }
-        out
+        let zone = if d.info.arena.as_deref() == Some("space") { &opp.space } else { &opp.ground };
+        let sentinel = allowed && self.keyword_amount(s, source, "saboteur") == 0
+            && zone.as_slice().iter().any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
+        let base = allowed && !ambush && !sentinel
+            && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase);
+        zone.as_slice().iter().copied()
+            .filter(move |&c| allowed && (!sentinel || self.keyword_amount(s, c, "sentinel") > 0))
+            .filter(move |&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
+            .chain(base.then_some(opp.base))
+    }
+    fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
+        self.attack_target_iter(s, source, ambush).collect()
+    }
+    fn has_attack_target(&self, s: &State, source: CardId, ambush: bool) -> bool {
+        self.attack_target_iter(s, source, ambush).next().is_some()
     }
     pub fn legal_actions(&self, s: &State) -> Vec<Action> {
         if s.is_terminal() {
@@ -441,7 +437,7 @@ impl Engine {
                     out.push(Action::button("Claim Initiative", "claimInitiative"));
                 }
                 for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {
-                    if (!s.card(id).exhausted && !self.attack_targets(s, id, false).is_empty())
+                    if (!s.card(id).exhausted && self.has_attack_target(s, id, false))
                         || !self.available_programs(s, id, "action").is_empty()
                     {
                         out.push(self.card_action(s, id));
@@ -618,7 +614,7 @@ impl Engine {
             T_RESTORE => s.card(s.player(s.active).base).damage > 0,
             T_SABOTEUR => s.card(s.target).shield != 0,
             T_AMBUSH => {
-                self.in_arena(s, s.source) && !self.attack_targets(s, s.source, true).is_empty()
+                self.in_arena(s, s.source) && self.has_attack_target(s, s.source, true)
             }
             T_SHIELD => self.in_arena(s, s.source),
             T_SUPPORT => !self.support_targets(s).is_empty(),
@@ -870,7 +866,7 @@ impl Engine {
                 if arg=="passAbility" {self.process_triggers(&mut t)?;}else{self.begin_support_attack(&mut t,id)?;}
             }
             Decision::Ambush => {
-                if arg == "trigger" && !self.attack_targets(&t, t.source, true).is_empty() {
+                if arg == "trigger" && self.has_attack_target(&t, t.source, true) {
                     t.after_attack_programs = t.pending_programs;
                     t.pending_programs = 0;
                     t.after_attack_triggers = t.pending_triggers;
