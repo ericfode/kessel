@@ -49,7 +49,9 @@ function extendedTokenSystem(kind,obj,defaultTarget,api) {
     let n=props.has('amount')&&unwrap(props.get('amount'));const seen=new Set();
     while(n&&ts.isIdentifier(n)&&ctx.constants.has(n.text)){if(seen.has(n.text))api.fail(ctx,n,'token-amount-alias-cycle');seen.add(n.text);n=unwrap(ctx.constants.get(n.text));}
     if(n&&(ts.isArrowFunction(n)||ts.isFunctionExpression(n)))api.fail(ctx,n,'token-amount-is-not-number');
-    if(fixedAmount!==null&&(!Number.isSafeInteger(fixedAmount)||fixedAmount<0||fixedAmount>64))api.fail(ctx,node,'token-system-fixed-amount-bound');
+    // Keep the specialized 1..5 fence for plain fixed amounts. Extended mode
+    // is for dynamic/controller/entry shapes, not for admitting amount 0.
+    if(fixedAmount!==null&&(!Number.isSafeInteger(fixedAmount)||fixedAmount<1||fixedAmount>64))api.fail(ctx,node,'token-system-fixed-amount-bound');
     const entersReady=props.has('entersReady')?api.literal(props.get('entersReady'),ctx):false;
     if(typeof entersReady!=='boolean')api.fail(ctx,node,'token-system-readiness-type');
     // Preserve source array order rather than compressing a player array to a

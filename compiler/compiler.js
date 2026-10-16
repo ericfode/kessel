@@ -226,7 +226,7 @@ function displayText(node, ctx) {
 // Its expressions remain pure IR and are evaluated in the current ability context.
 function contextTitle(input, context) {
     const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return [constructed];
-    let lowered;try{lowered=lambda(input,context);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(input,context,privateApi(),['contextTitleContext']);if(!callback)throw error;return [{kind:'contextTitleProgram',callback,evaluation:'nativeContextTitleInvocation'}];}
+    let lowered;try{lowered=lambda(input,context);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;const callback=privatePrograms.compileCallback(input,context,privateApi(),['contextTitleContext']);if(!callback)throw error;return [{kind:'contextTitleProgram',callback,evaluation:'nativeContextTitleInvocation'}];}
     const {node,ctx}=lowered;
     const part=(n)=>{
         n=unwrap(n);
@@ -569,9 +569,9 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     try{return legacyExpr(input,context,params);}catch(error){
         if(!(error instanceof Unsupported))throw error;
+        if(isSpecializedFence(error))throw error;
         const fn=unwrap(input);if((ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&ts.isBlock(fn.body))return privatePrograms.compileCallback(fn,context,privateApi(),params);
         if(context.liveStats||context.legacyKeywordValue||context.constructionFactorySuppressed&&!context.pendingSystemConstruction)throw error;
-        if(isSpecializedFence(error))throw error;
         const {node,ctx}=lambda(input,context,params);
         const text=textProgramExpression(node,ctx,{ts,unwrap,expr,fail,unshadowedEnum,titleHelper});if(text)return text;
         const localCall=readonlyFunctionCall(node,ctx,{...privateApi(),readConstant,constantContext});if(localCall)return localCall;
@@ -587,6 +587,7 @@ function legacyExpr(input, context, params = ['context']) {
     try{lowered=lambda(input,context,params);}catch(error){
         const fn=unwrap(input);
         if(!(error instanceof Unsupported)||(!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||!ts.isBlock(fn.body))throw error;
+        if(isSpecializedFence(error))throw error;
         return privatePrograms.compileCallback(fn,context,privateApi(),params);
     }
     let { node, ctx } = lowered;
@@ -1311,7 +1312,9 @@ function effect(input, context, defaultTarget = 'self') {
                 result.amount=value;
             } catch(error) {
                 if(!(error instanceof Unsupported))throw error;
-                if(isSpecializedFence(error)&&error.diagnostic.pattern!=='damage-recipient-callback-shape')throw error;
+                // damage-recipient-callback-shape is the exact remainingHp-1
+                // fence. Do not widen it into a pureCallback amount contract.
+                if(isSpecializedFence(error))throw error;
                 result.amount=nativeDamageRecipientAmount(amount,amountContext,{...privateApi(),target});
             }
         }else {

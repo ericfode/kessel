@@ -86,7 +86,7 @@ function systemPropertiesFactory(call,context,defaultTarget,api) {
         try{return effect(call,{...context,constructionFactorySuppressed:call},defaultTarget);}
         catch(error){if(!error.diagnostic)throw error;if(isSpecializedFence(error))throw error;}
     }
-    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemPropertiesContext'],'propertyFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;const program=require('./private-programs').compileSystemProperties(call,context,defaultTarget,api);if(program)return program;throw error;}
+    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemPropertiesContext'],'propertyFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;if(isSpecializedFence(error))throw error;const program=require('./private-programs').compileSystemProperties(call,context,defaultTarget,api);if(program)return program;throw error;}
     if(!ts.isObjectLiteralExpression(frame.node))fail(frame.ctx,frame.node,'system-properties-factory-object');
     frame.walk(frame.node);
     const bound=ts.factory.updateCallExpression(call,call.expression,call.typeArguments,[frame.node]);
