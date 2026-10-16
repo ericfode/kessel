@@ -5693,7 +5693,7 @@
       "keywords": [],
       "power": 5,
       "rules": null,
-      "setCode": "IC27_025",
+      "setCode": "IBH_099",
       "setCodes": [
         {
           "number": 99,
@@ -10770,7 +10770,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "IC27_184",
+      "setCode": "LOF_239",
       "setCodes": [
         {
           "number": 239,
@@ -13883,7 +13883,7 @@
       "keywords": [],
       "power": 0,
       "rules": null,
-      "setCode": "IC27_154",
+      "setCode": "SHD_196",
       "setCodes": [
         {
           "number": 196,
@@ -14559,7 +14559,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "IC27_010",
+      "setCode": "SOR_024",
       "setCodes": [
         {
           "number": 24,
@@ -16602,7 +16602,7 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "IC27_011",
+      "setCode": "TWI_026",
       "setCodes": [
         {
           "number": 26,

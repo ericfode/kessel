@@ -10988,6 +10988,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "5480486728",
+      "internalName": "blizzard-one#veers-at-the-helm",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "IBH_099",
+      "setCodes": [
+        {
+          "number": 99,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 99,
+        "set": "IBH"
+      },
+      "subtitle": "Veers at the Helm",
+      "text": "When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.",
+      "title": "Blizzard One",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance"
       ],
@@ -11016,217 +11057,6 @@
       "title": "The Desolation of Hoth",
       "traits": [
         "disaster"
-      ],
-      "types": [
-        "event"
-      ],
-      "unique": false,
-      "upgradeHp": null,
-      "upgradePower": null
-    },
-    {
-      "aspects": [
-        "command"
-      ],
-      "cost": null,
-      "deployBox": null,
-      "epicAction": null,
-      "hp": 30,
-      "id": "2055904747",
-      "internalName": "echo-base",
-      "keywords": [],
-      "power": null,
-      "rules": null,
-      "setCode": "IC27_010",
-      "setCodes": [
-        {
-          "number": 24,
-          "set": "SOR"
-        },
-        {
-          "number": 10,
-          "set": "IC27"
-        }
-      ],
-      "setId": {
-        "number": 10,
-        "set": "IC27"
-      },
-      "subtitle": null,
-      "text": null,
-      "title": "Echo Base",
-      "traits": [
-        "hoth"
-      ],
-      "types": [
-        "base"
-      ],
-      "unique": false,
-      "upgradeHp": null,
-      "upgradePower": null
-    },
-    {
-      "aspects": [
-        "aggression"
-      ],
-      "cost": null,
-      "deployBox": null,
-      "epicAction": null,
-      "hp": 30,
-      "id": "0109520913",
-      "internalName": "kcm-mining-facility",
-      "keywords": [],
-      "power": null,
-      "rules": null,
-      "setCode": "IC27_011",
-      "setCodes": [
-        {
-          "number": 26,
-          "set": "TWI"
-        },
-        {
-          "number": 11,
-          "set": "IC27"
-        }
-      ],
-      "setId": {
-        "number": 11,
-        "set": "IC27"
-      },
-      "subtitle": "",
-      "text": "",
-      "title": "KCM Mining Facility",
-      "traits": [
-        "mustafar"
-      ],
-      "types": [
-        "base"
-      ],
-      "unique": false,
-      "upgradeHp": null,
-      "upgradePower": null
-    },
-    {
-      "arena": "ground",
-      "aspects": [
-        "vigilance",
-        "villainy"
-      ],
-      "cost": 7,
-      "deployBox": null,
-      "epicAction": "",
-      "hp": 7,
-      "id": "5480486728",
-      "internalName": "blizzard-one#veers-at-the-helm",
-      "keywords": [],
-      "power": 5,
-      "rules": null,
-      "setCode": "IC27_025",
-      "setCodes": [
-        {
-          "number": 99,
-          "set": "IBH"
-        },
-        {
-          "number": 25,
-          "set": "IC27"
-        }
-      ],
-      "setId": {
-        "number": 25,
-        "set": "IC27"
-      },
-      "subtitle": "Veers at the Helm",
-      "text": "When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.",
-      "title": "Blizzard One",
-      "traits": [
-        "imperial",
-        "vehicle",
-        "walker"
-      ],
-      "types": [
-        "unit"
-      ],
-      "unique": true,
-      "upgradeHp": null,
-      "upgradePower": null
-    },
-    {
-      "arena": "ground",
-      "aspects": [
-        "cunning",
-        "heroism"
-      ],
-      "cost": 2,
-      "deployBox": null,
-      "epicAction": null,
-      "hp": 5,
-      "id": "6536128825",
-      "internalName": "grogu#irresistible",
-      "keywords": [],
-      "power": 0,
-      "rules": null,
-      "setCode": "IC27_154",
-      "setCodes": [
-        {
-          "number": 196,
-          "set": "SHD"
-        },
-        {
-          "number": 154,
-          "set": "IC27"
-        }
-      ],
-      "setId": {
-        "number": 154,
-        "set": "IC27"
-      },
-      "subtitle": "Irresistible",
-      "text": "Action [exhaust]: Exhaust an enemy unit.",
-      "title": "Grogu",
-      "traits": [
-        "force"
-      ],
-      "types": [
-        "unit"
-      ],
-      "unique": true,
-      "upgradeHp": null,
-      "upgradePower": null
-    },
-    {
-      "aspects": [
-        "villainy"
-      ],
-      "cost": 2,
-      "deployBox": null,
-      "epicAction": "",
-      "hp": null,
-      "id": "8621390428",
-      "internalName": "consumed-by-the-dark-side",
-      "keywords": [],
-      "power": null,
-      "rules": null,
-      "setCode": "IC27_184",
-      "setCodes": [
-        {
-          "number": 239,
-          "set": "LOF"
-        },
-        {
-          "number": 184,
-          "set": "IC27"
-        }
-      ],
-      "setId": {
-        "number": 184,
-        "set": "IC27"
-      },
-      "subtitle": "",
-      "text": "Give 2 Experience tokens to a unit, then deal 2 damage to it.",
-      "title": "Consumed by the Dark Side",
-      "traits": [
-        "force"
       ],
       "types": [
         "event"
@@ -22628,6 +22458,43 @@
       "deployBox": null,
       "epicAction": "",
       "hp": null,
+      "id": "8621390428",
+      "internalName": "consumed-by-the-dark-side",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_239",
+      "setCodes": [
+        {
+          "number": 239,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 239,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Give 2 Experience tokens to a unit, then deal 2 damage to it.",
+      "title": "Consumed by the Dark Side",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
       "id": "6553590382",
       "internalName": "in-the-shadows",
       "keywords": [
@@ -29265,6 +29132,45 @@
         "cunning",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "6536128825",
+      "internalName": "grogu#irresistible",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_196",
+      "setCodes": [
+        {
+          "number": 196,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 196,
+        "set": "SHD"
+      },
+      "subtitle": "Irresistible",
+      "text": "Action [exhaust]: Exhaust an enemy unit.",
+      "title": "Grogu",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": null,
@@ -30200,6 +30106,43 @@
       "title": "Command Center",
       "traits": [
         "death star"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 30,
+      "id": "2055904747",
+      "internalName": "echo-base",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_024",
+      "setCodes": [
+        {
+          "number": 24,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 24,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Echo Base",
+      "traits": [
+        "hoth"
       ],
       "types": [
         "base"
@@ -34621,6 +34564,43 @@
       "title": "Tipoca City",
       "traits": [
         "kamino"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 30,
+      "id": "0109520913",
+      "internalName": "kcm-mining-facility",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_026",
+      "setCodes": [
+        {
+          "number": 26,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 26,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "KCM Mining Facility",
+      "traits": [
+        "mustafar"
       ],
       "types": [
         "base"

@@ -1,7 +1,7 @@
 {
   "schema": "swu-card-ir-inputs/v1",
   "compilerHash": "20aba2ed54b1c176abee8462160dfa412d72b48535247d62b9a4ba5ded0e0d45",
-  "sourceTreeHash": "0b00c1657344de81dbeafd9cf78b851f824921b764978f85b8a725e2a5d8b01f",
+  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -89,7 +89,7 @@
     },
     {
       "file": "data/Card/academy-training.json",
-      "sha256": "438a2cb9a92ed53f1bd7585893e3a0f931a2ca49374dbd571bd618d69a64173c"
+      "sha256": "b2484c976f4179037edcc9f147ee914af7fe824780121119e5feff0a974639e2"
     },
     {
       "file": "data/Card/accelerate-our-plans.json",
@@ -945,7 +945,7 @@
     },
     {
       "file": "data/Card/blizzard-one#veers-at-the-helm.json",
-      "sha256": "635508cfc524b545f15e38ebe3e9605ee9b50b6b128913ef21e6f17c43870960"
+      "sha256": "d026cfe0aad31e938efb26444c5734c60ad3c97d197af05a12e4251cbdf4701a"
     },
     {
       "file": "data/Card/blockade-runner.json",
@@ -1909,7 +1909,7 @@
     },
     {
       "file": "data/Card/consumed-by-the-dark-side.json",
-      "sha256": "f8bd009918c8935be00110d8ce38996229c447a42f5cca50e84b472e0393460f"
+      "sha256": "3ad8508ba27e7b324310760c0adbaba43bba8dde5470e44b84d5d5527bedb96a"
     },
     {
       "file": "data/Card/contempt-for-culture.json",
@@ -2817,7 +2817,7 @@
     },
     {
       "file": "data/Card/echo-base.json",
-      "sha256": "f8686aa65213f7208a5c92a362d6d5fa80989603b1fbe089f49fcf3fe5fbba25"
+      "sha256": "0a956ee8165c9788afbfb5673a8329126640b9ebf98e1099a3312c23f5762083"
     },
     {
       "file": "data/Card/echo-caverns.json",
@@ -2842,10 +2842,6 @@
     {
       "file": "data/Card/eighth-brother#hunt-together.json",
       "sha256": "2acef5db9ca49d4bcdc39947056d434708f1bbac0f46134e3afa7a1707682a1c"
-    },
-    {
-      "file": "data/Card/eighth-brother#illfated-escape.json",
-      "sha256": "69c754342e9d04b707368e5bac579920b0e37bcd369a0e27ced65ae8ddbbfc12"
     },
     {
       "file": "data/Card/eject.json",
@@ -3901,7 +3897,7 @@
     },
     {
       "file": "data/Card/grogu#irresistible.json",
-      "sha256": "70d898dd0ccd17dc2cb75d91628541973543a3164f5731ad9afa554ab9a99ad5"
+      "sha256": "328cd44b3ed019fadc1987df94b9acbdc0c8756c5bb1afcffa2719df2e3b8e9d"
     },
     {
       "file": "data/Card/grogu#mysterious-child.json",
@@ -4013,7 +4009,7 @@
     },
     {
       "file": "data/Card/han-solo#scruffylooking-nerf-herder.json",
-      "sha256": "01e0d34cf1e55e27281800f74d3dd99439b603df6d876c17d71c3aa76f9d6bb9"
+      "sha256": "99c13c4de63514f425c53fab7386b47b042b9d1b9720081c77e33fd57921db91"
     },
     {
       "file": "data/Card/han-solo#worth-the-risk.json",
@@ -4957,7 +4953,7 @@
     },
     {
       "file": "data/Card/kcm-mining-facility.json",
-      "sha256": "f75004cb68093bf0f6b90a2328d6b50ffee038942e40ba1e7a276f7528bccaec"
+      "sha256": "3a89df19e448c5605a24059d86f410d3b139bbf433fd56d28d87e57f44ae0527"
     },
     {
       "file": "data/Card/keep-fighting.json",
@@ -7017,7 +7013,7 @@
     },
     {
       "file": "data/Card/r2d2#ignoring-protocol.json",
-      "sha256": "3e55a898f363a92385886ae453fb5e2a00c255d85d8df5a2d59029e243c70998"
+      "sha256": "99ea771dd9af609d8d4554d448d2b04a58dadd97949ccd0fad6f809c6aaef53a"
     },
     {
       "file": "data/Card/r2d2#known-to-make-mistakes.json",
@@ -7385,7 +7381,7 @@
     },
     {
       "file": "data/Card/resilient.json",
-      "sha256": "77ba946015e189f48f9a773420d3ad627b6b98018b9cab9360dfdcfffb120766"
+      "sha256": "8af6b1cb899b0b825cdeb6f613b913cc14b3271a21fe5e49377441b589d90067"
     },
     {
       "file": "data/Card/resistance-blue-squadron.json",
@@ -7597,7 +7593,7 @@
     },
     {
       "file": "data/Card/rune-haako#scheming-second.json",
-      "sha256": "62e3fbc9a7928af72af518168a63048197a73122b117c6cf7327d227be10a6a8"
+      "sha256": "223639038ada08306279c7e7e44184754e8107a0f1fb505a4bce89ea02a07939"
     },
     {
       "file": "data/Card/ruping-rider.json",

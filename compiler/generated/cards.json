@@ -2,7 +2,7 @@
   "schema": "swu-card-ir-cards/v1",
   "irSchema": "swu-card-ir/v1",
   "compilerHash": "20aba2ed54b1c176abee8462160dfa412d72b48535247d62b9a4ba5ded0e0d45",
-  "sourceTreeHash": "0b00c1657344de81dbeafd9cf78b851f824921b764978f85b8a725e2a5d8b01f",
+  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
   "cards": [
     {
       "setCode": "ASH_001",
@@ -43586,6 +43586,73 @@
       ]
     },
     {
+      "setCode": "IBH_010",
+      "sourcePath": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
+      "sourceHash": "d8406d4e509373adf5b9326d3b49b85ced76c698290d5c29305086c99a1ca94a",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "className": "HanSoloScruffyLookingNerfHerder",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "4136801536",
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "status": "unsupported",
+      "card": {
+        "title": "Han Solo",
+        "subtitle": "Scruffy-Looking Nerf Herder",
+        "cost": 6,
+        "hp": 6,
+        "power": 4,
+        "text": "Raid 2 (This unit gets +2/+0 while attacking.)\nOn Attack:The defender gets –2/–0 for this attack.",
+        "deployBox": null,
+        "epicAction": "",
+        "unique": true,
+        "rules": "(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "4136801536",
+        "aspects": [
+          "cunning",
+          "heroism"
+        ],
+        "traits": [
+          "rebel"
+        ],
+        "arena": "ground",
+        "keywords": [
+          "raid"
+        ],
+        "types": [
+          "unit"
+        ],
+        "setId": {
+          "set": "IBH",
+          "number": 10
+        },
+        "setCodes": [
+          {
+            "set": "IBH",
+            "number": 10
+          },
+          {
+            "set": "IBH",
+            "number": 42
+          }
+        ],
+        "internalName": "han-solo#scruffylooking-nerf-herder"
+      },
+      "dataHash": "99c13c4de63514f425c53fab7386b47b042b9d1b9720081c77e33fd57921db91",
+      "keywordValues": {
+        "raid": 2
+      },
+      "requiredCapabilities": [
+        "cardType:unit",
+        "keyword:raid"
+      ]
+    },
+    {
       "setCode": "IBH_011",
       "sourcePath": "game/cards/06_IBH/units/R2D2KnownToMakeMistakes.ts",
       "sourceHash": "31bd8f5731f5aa5bc56bced17e16b08e7596490a9de7c0b53f6ed890c4312ba6",
@@ -47079,6 +47146,126 @@
       ]
     },
     {
+      "setCode": "IBH_099",
+      "sourcePath": "game/cards/06_IBH/units/BlizzardOneVeersAtTheHelm.ts",
+      "sourceHash": "177c27cb9d36f7ebe94758c02424d552f9cdb6da79e9291c6602bf9919f5e31f",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "You may defeat a non-leader ground unit with 3 or less remaining HP",
+            "costs": [],
+            "optional": true,
+            "targetResolver": {
+              "owner": "any",
+              "type": "nonLeaderUnit",
+              "zone": "arena",
+              "arena": "ground",
+              "predicate": {
+                "kind": "binary",
+                "op": "&&",
+                "left": {
+                  "kind": "query",
+                  "name": "isUnit",
+                  "receiver": {
+                    "kind": "ref",
+                    "path": [
+                      "card"
+                    ]
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "binary",
+                  "op": "<=",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "card",
+                      "remainingHp"
+                    ]
+                  },
+                  "right": {
+                    "kind": "const",
+                    "value": 3
+                  }
+                }
+              }
+            },
+            "effect": {
+              "kind": "defeat",
+              "target": "chosen"
+            }
+          }
+        ]
+      },
+      "className": "BlizzardOneVeersAtTheHelm",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "5480486728",
+      "internalName": "blizzard-one#veers-at-the-helm",
+      "status": "supported",
+      "card": {
+        "title": "Blizzard One",
+        "subtitle": "Veers at the Helm",
+        "cost": 7,
+        "hp": 7,
+        "power": 5,
+        "text": "When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.",
+        "deployBox": null,
+        "epicAction": "",
+        "unique": true,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "5480486728",
+        "aspects": [
+          "vigilance",
+          "villainy"
+        ],
+        "traits": [
+          "imperial",
+          "vehicle",
+          "walker"
+        ],
+        "arena": "ground",
+        "keywords": [],
+        "types": [
+          "unit"
+        ],
+        "setId": {
+          "set": "IBH",
+          "number": 99
+        },
+        "setCodes": [
+          {
+            "set": "IBH",
+            "number": 99
+          }
+        ],
+        "internalName": "blizzard-one#veers-at-the-helm"
+      },
+      "dataHash": "d026cfe0aad31e938efb26444c5734c60ad3c97d197af05a12e4251cbdf4701a",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "binary:&&",
+        "binary:<=",
+        "cardType:unit",
+        "ir:binary",
+        "ir:const",
+        "ir:defeat",
+        "ir:query",
+        "ir:ref",
+        "query:isUnit",
+        "ref:card",
+        "ref:card.remainingHp",
+        "targetType:nonLeaderUnit",
+        "targetZone:arena",
+        "trigger:whenPlayed"
+      ]
+    },
+    {
       "setCode": "IBH_104",
       "sourcePath": "game/cards/06_IBH/events/TheDesolationOfHoth.ts",
       "sourceHash": "618f250ddd8f0059656e893070f76457591b1635f648041c675447c3fed664dd",
@@ -47197,804 +47384,6 @@
         "targetType:unit",
         "targetZone:anyAttackable",
         "trigger:event"
-      ]
-    },
-    {
-      "setCode": "IC27_010",
-      "id": "2055904747",
-      "internalName": "echo-base",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "supported",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "card": {
-        "title": "Echo Base",
-        "subtitle": null,
-        "cost": null,
-        "hp": 30,
-        "power": null,
-        "text": null,
-        "deployBox": null,
-        "epicAction": null,
-        "unique": false,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "2055904747",
-        "aspects": [
-          "command"
-        ],
-        "traits": [
-          "hoth"
-        ],
-        "keywords": [],
-        "types": [
-          "base"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 10
-        },
-        "setCodes": [
-          {
-            "set": "SOR",
-            "number": 24
-          },
-          {
-            "set": "IC27",
-            "number": 10
-          }
-        ],
-        "internalName": "echo-base"
-      },
-      "dataHash": "f8686aa65213f7208a5c92a362d6d5fa80989603b1fbe089f49fcf3fe5fbba25",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:base"
-      ]
-    },
-    {
-      "setCode": "IC27_011",
-      "id": "0109520913",
-      "internalName": "kcm-mining-facility",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "supported",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "card": {
-        "title": "KCM Mining Facility",
-        "subtitle": "",
-        "cost": null,
-        "hp": 30,
-        "power": null,
-        "text": "",
-        "deployBox": null,
-        "epicAction": null,
-        "unique": false,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "0109520913",
-        "aspects": [
-          "aggression"
-        ],
-        "traits": [
-          "mustafar"
-        ],
-        "keywords": [],
-        "types": [
-          "base"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 11
-        },
-        "setCodes": [
-          {
-            "set": "TWI",
-            "number": 26
-          },
-          {
-            "set": "IC27",
-            "number": 11
-          }
-        ],
-        "internalName": "kcm-mining-facility"
-      },
-      "dataHash": "f75004cb68093bf0f6b90a2328d6b50ffee038942e40ba1e7a276f7528bccaec",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:base"
-      ]
-    },
-    {
-      "setCode": "IC27_016",
-      "sourcePath": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
-      "sourceHash": "d2990f2db30427819bf46804cd498d9c6c093285f11952637fd85f66e023314f",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "className": "RuneHaakoSchemingSecond",
-      "baseClass": "NonLeaderUnitCard",
-      "id": "5333016146",
-      "internalName": "rune-haako#scheming-second",
-      "status": "unsupported",
-      "card": {
-        "title": "Rune Haako",
-        "subtitle": "Scheming Second",
-        "cost": 2,
-        "hp": 2,
-        "power": 3,
-        "text": "When Played: If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase.",
-        "deployBox": null,
-        "epicAction": null,
-        "unique": true,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "5333016146",
-        "aspects": [
-          "vigilance",
-          "villainy"
-        ],
-        "traits": [
-          "separatist",
-          "official"
-        ],
-        "arena": "ground",
-        "keywords": [],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 16
-        },
-        "setCodes": [
-          {
-            "set": "TWI",
-            "number": 31
-          },
-          {
-            "set": "IC27",
-            "number": 16
-          }
-        ],
-        "internalName": "rune-haako#scheming-second"
-      },
-      "dataHash": "62e3fbc9a7928af72af518168a63048197a73122b117c6cf7327d227be10a6a8",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:unit"
-      ]
-    },
-    {
-      "setCode": "IC27_025",
-      "sourcePath": "game/cards/06_IBH/units/BlizzardOneVeersAtTheHelm.ts",
-      "sourceHash": "177c27cb9d36f7ebe94758c02424d552f9cdb6da79e9291c6602bf9919f5e31f",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": [
-          {
-            "trigger": "whenPlayed",
-            "title": "You may defeat a non-leader ground unit with 3 or less remaining HP",
-            "costs": [],
-            "optional": true,
-            "targetResolver": {
-              "owner": "any",
-              "type": "nonLeaderUnit",
-              "zone": "arena",
-              "arena": "ground",
-              "predicate": {
-                "kind": "binary",
-                "op": "&&",
-                "left": {
-                  "kind": "query",
-                  "name": "isUnit",
-                  "receiver": {
-                    "kind": "ref",
-                    "path": [
-                      "card"
-                    ]
-                  },
-                  "args": []
-                },
-                "right": {
-                  "kind": "binary",
-                  "op": "<=",
-                  "left": {
-                    "kind": "ref",
-                    "path": [
-                      "card",
-                      "remainingHp"
-                    ]
-                  },
-                  "right": {
-                    "kind": "const",
-                    "value": 3
-                  }
-                }
-              }
-            },
-            "effect": {
-              "kind": "defeat",
-              "target": "chosen"
-            }
-          }
-        ]
-      },
-      "className": "BlizzardOneVeersAtTheHelm",
-      "baseClass": "NonLeaderUnitCard",
-      "id": "5480486728",
-      "internalName": "blizzard-one#veers-at-the-helm",
-      "status": "supported",
-      "card": {
-        "title": "Blizzard One",
-        "subtitle": "Veers at the Helm",
-        "cost": 7,
-        "hp": 7,
-        "power": 5,
-        "text": "When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.",
-        "deployBox": null,
-        "epicAction": "",
-        "unique": true,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "5480486728",
-        "aspects": [
-          "vigilance",
-          "villainy"
-        ],
-        "traits": [
-          "imperial",
-          "vehicle",
-          "walker"
-        ],
-        "arena": "ground",
-        "keywords": [],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 25
-        },
-        "setCodes": [
-          {
-            "set": "IBH",
-            "number": 99
-          },
-          {
-            "set": "IC27",
-            "number": 25
-          }
-        ],
-        "internalName": "blizzard-one#veers-at-the-helm"
-      },
-      "dataHash": "635508cfc524b545f15e38ebe3e9605ee9b50b6b128913ef21e6f17c43870960",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "binary:&&",
-        "binary:<=",
-        "cardType:unit",
-        "ir:binary",
-        "ir:const",
-        "ir:defeat",
-        "ir:query",
-        "ir:ref",
-        "query:isUnit",
-        "ref:card",
-        "ref:card.remainingHp",
-        "targetType:nonLeaderUnit",
-        "targetZone:arena",
-        "trigger:whenPlayed"
-      ]
-    },
-    {
-      "setCode": "IC27_052",
-      "id": "9059202647",
-      "internalName": "resilient",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "unsupported",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "card": {
-        "title": "Resilient",
-        "subtitle": null,
-        "cost": 1,
-        "hp": 3,
-        "power": 0,
-        "text": null,
-        "deployBox": null,
-        "epicAction": null,
-        "unique": false,
-        "rules": null,
-        "upgradePower": 0,
-        "upgradeHp": 3,
-        "id": "9059202647",
-        "aspects": [
-          "vigilance"
-        ],
-        "traits": [
-          "innate"
-        ],
-        "keywords": [],
-        "types": [
-          "upgrade"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 52
-        },
-        "setCodes": [
-          {
-            "set": "SOR",
-            "number": 69
-          },
-          {
-            "set": "SHD",
-            "number": 70
-          },
-          {
-            "set": "IC27",
-            "number": 52
-          }
-        ],
-        "internalName": "resilient"
-      },
-      "dataHash": "77ba946015e189f48f9a773420d3ad627b6b98018b9cab9360dfdcfffb120766",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:upgrade"
-      ]
-    },
-    {
-      "setCode": "IC27_093",
-      "id": "3463676231",
-      "internalName": "academy-training",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "unsupported",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "card": {
-        "title": "Academy Training",
-        "subtitle": null,
-        "cost": 2,
-        "hp": 2,
-        "power": 2,
-        "text": null,
-        "deployBox": null,
-        "epicAction": null,
-        "unique": false,
-        "rules": null,
-        "upgradePower": 2,
-        "upgradeHp": 2,
-        "id": "3463676231",
-        "aspects": [
-          "command"
-        ],
-        "traits": [
-          "learned"
-        ],
-        "keywords": [],
-        "types": [
-          "upgrade"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 93
-        },
-        "setCodes": [
-          {
-            "set": "SOR",
-            "number": 120
-          },
-          {
-            "set": "IC27",
-            "number": 93
-          }
-        ],
-        "internalName": "academy-training"
-      },
-      "dataHash": "438a2cb9a92ed53f1bd7585893e3a0f931a2ca49374dbd571bd618d69a64173c",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:upgrade"
-      ]
-    },
-    {
-      "setCode": "IC27_099",
-      "id": "0454689845",
-      "internalName": "eighth-brother#illfated-escape",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "unsupported",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "card": {
-        "title": "Eighth Brother",
-        "subtitle": "Ill-Fated Escape",
-        "cost": 2,
-        "hp": 1,
-        "power": 3,
-        "text": "When Defeated: You may ready an Imperial unit.",
-        "deployBox": null,
-        "epicAction": "",
-        "unique": true,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "0454689845",
-        "aspects": [
-          "aggression",
-          "villainy"
-        ],
-        "traits": [
-          "force",
-          "imperial",
-          "inquisitor"
-        ],
-        "arena": "ground",
-        "keywords": [],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 99
-        },
-        "setCodes": [
-          {
-            "set": "IC27",
-            "number": 99
-          }
-        ],
-        "internalName": "eighth-brother#illfated-escape"
-      },
-      "dataHash": "69c754342e9d04b707368e5bac579920b0e37bcd369a0e27ced65ae8ddbbfc12",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:unit"
-      ]
-    },
-    {
-      "setCode": "IC27_154",
-      "sourcePath": "game/cards/02_SHD/units/GroguIrresistible.ts",
-      "sourceHash": "31fcd7240824adb5184fb0824131bf0f7d7269985f9e1b2a31d3605454a45ba9",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": [
-          {
-            "trigger": "action",
-            "title": "Exhaust an enemy unit",
-            "costs": [
-              {
-                "kind": "exhaustSelf"
-              }
-            ],
-            "targetResolver": {
-              "owner": "opponent",
-              "type": "any",
-              "zone": "arena"
-            },
-            "effect": {
-              "kind": "exhaust",
-              "target": "chosen"
-            }
-          }
-        ]
-      },
-      "className": "GroguIrresistible",
-      "baseClass": "NonLeaderUnitCard",
-      "id": "6536128825",
-      "internalName": "grogu#irresistible",
-      "status": "supported",
-      "card": {
-        "title": "Grogu",
-        "subtitle": "Irresistible",
-        "cost": 2,
-        "hp": 5,
-        "power": 0,
-        "text": "Action [exhaust]: Exhaust an enemy unit.",
-        "deployBox": null,
-        "epicAction": null,
-        "unique": true,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "6536128825",
-        "aspects": [
-          "cunning",
-          "heroism"
-        ],
-        "traits": [
-          "force"
-        ],
-        "arena": "ground",
-        "keywords": [],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 154
-        },
-        "setCodes": [
-          {
-            "set": "SHD",
-            "number": 196
-          },
-          {
-            "set": "IC27",
-            "number": 154
-          }
-        ],
-        "internalName": "grogu#irresistible"
-      },
-      "dataHash": "70d898dd0ccd17dc2cb75d91628541973543a3164f5731ad9afa554ab9a99ad5",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:unit",
-        "ir:exhaust",
-        "ir:exhaustSelf",
-        "targetType:any",
-        "targetZone:arena",
-        "trigger:action"
-      ]
-    },
-    {
-      "setCode": "IC27_161",
-      "sourcePath": "game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts",
-      "sourceHash": "d8406d4e509373adf5b9326d3b49b85ced76c698290d5c29305086c99a1ca94a",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "className": "HanSoloScruffyLookingNerfHerder",
-      "baseClass": "NonLeaderUnitCard",
-      "id": "4136801536",
-      "internalName": "han-solo#scruffylooking-nerf-herder",
-      "status": "unsupported",
-      "card": {
-        "title": "Han Solo",
-        "subtitle": "Scruffy-Looking Nerf Herder",
-        "cost": 6,
-        "hp": 6,
-        "power": 4,
-        "text": "Raid 2 (This unit gets +2/+0 while attacking.)\nOn Attack:The defender gets –2/–0 for this attack.",
-        "deployBox": null,
-        "epicAction": "",
-        "unique": true,
-        "rules": "(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "4136801536",
-        "aspects": [
-          "cunning",
-          "heroism"
-        ],
-        "traits": [
-          "rebel"
-        ],
-        "arena": "ground",
-        "keywords": [
-          "raid"
-        ],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 161
-        },
-        "setCodes": [
-          {
-            "set": "IBH",
-            "number": 10
-          },
-          {
-            "set": "IC27",
-            "number": 161
-          },
-          {
-            "set": "IBH",
-            "number": 42
-          }
-        ],
-        "internalName": "han-solo#scruffylooking-nerf-herder"
-      },
-      "dataHash": "01e0d34cf1e55e27281800f74d3dd99439b603df6d876c17d71c3aa76f9d6bb9",
-      "keywordValues": {
-        "raid": 2
-      },
-      "requiredCapabilities": [
-        "cardType:unit",
-        "keyword:raid"
-      ]
-    },
-    {
-      "setCode": "IC27_184",
-      "sourcePath": "game/cards/05_LOF/events/ConsumedByTheDarkSide.ts",
-      "sourceHash": "1c893e6160ad295c90834f071d8613383908b8c0c34206ef9f202963542479d7",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": [
-          {
-            "trigger": "event",
-            "title": "Give 2 Experience tokens to a unit",
-            "costs": [],
-            "targetResolver": {
-              "owner": "any",
-              "type": "unit",
-              "zone": "anyAttackable"
-            },
-            "effect": {
-              "kind": "giveExperience",
-              "target": "chosen",
-              "amount": {
-                "kind": "const",
-                "value": 2
-              }
-            },
-            "then": {
-              "title": "Deal 2 damage to the unit",
-              "costs": [],
-              "effect": {
-                "kind": "damage",
-                "target": "chosen",
-                "amount": {
-                  "kind": "const",
-                  "value": 2
-                }
-              }
-            }
-          }
-        ]
-      },
-      "className": "ConsumedByTheDarkSide",
-      "baseClass": "EventCard",
-      "id": "8621390428",
-      "internalName": "consumed-by-the-dark-side",
-      "status": "supported",
-      "card": {
-        "title": "Consumed by the Dark Side",
-        "subtitle": "",
-        "cost": 2,
-        "hp": null,
-        "power": null,
-        "text": "Give 2 Experience tokens to a unit, then deal 2 damage to it.",
-        "deployBox": null,
-        "epicAction": "",
-        "unique": false,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "8621390428",
-        "aspects": [
-          "villainy"
-        ],
-        "traits": [
-          "force"
-        ],
-        "keywords": [],
-        "types": [
-          "event"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 184
-        },
-        "setCodes": [
-          {
-            "set": "LOF",
-            "number": 239
-          },
-          {
-            "set": "IC27",
-            "number": 184
-          }
-        ],
-        "internalName": "consumed-by-the-dark-side"
-      },
-      "dataHash": "f8bd009918c8935be00110d8ce38996229c447a42f5cca50e84b472e0393460f",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "ability:then",
-        "cardType:event",
-        "ir:const",
-        "ir:damage",
-        "ir:giveExperience",
-        "targetType:unit",
-        "targetZone:anyAttackable",
-        "trigger:event"
-      ]
-    },
-    {
-      "setCode": "IC27_186",
-      "sourcePath": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
-      "sourceHash": "a15cddf89ff7e1ba3ca3c3264b60010fead6a0f10979ebc7a11049d68f314fa5",
-      "abilities": {
-        "leader": [],
-        "unit": [],
-        "card": []
-      },
-      "className": "R2D2IgnoringProtocol",
-      "baseClass": "NonLeaderUnitCard",
-      "id": "9568000754",
-      "internalName": "r2d2#ignoring-protocol",
-      "status": "unsupported",
-      "card": {
-        "title": "R2-D2",
-        "subtitle": "Ignoring Protocol",
-        "cost": 1,
-        "hp": 4,
-        "power": 1,
-        "text": "When Played/On Attack: Look at the top card of your deck. You may put it on the bottom of your deck. (Otherwise, leave it on top of your deck.)",
-        "deployBox": null,
-        "epicAction": null,
-        "unique": true,
-        "rules": null,
-        "upgradePower": null,
-        "upgradeHp": null,
-        "id": "9568000754",
-        "aspects": [
-          "heroism"
-        ],
-        "traits": [
-          "rebel",
-          "droid"
-        ],
-        "arena": "ground",
-        "keywords": [],
-        "types": [
-          "unit"
-        ],
-        "setId": {
-          "set": "IC27",
-          "number": 186
-        },
-        "setCodes": [
-          {
-            "set": "SOR",
-            "number": 236
-          },
-          {
-            "set": "IC27",
-            "number": 186
-          }
-        ],
-        "internalName": "r2d2#ignoring-protocol"
-      },
-      "dataHash": "3e55a898f363a92385886ae453fb5e2a00c255d85d8df5a2d59029e243c70998",
-      "keywordValues": {},
-      "requiredCapabilities": [
-        "cardType:unit"
       ]
     },
     {
@@ -106717,6 +106106,100 @@
       ]
     },
     {
+      "setCode": "LOF_239",
+      "sourcePath": "game/cards/05_LOF/events/ConsumedByTheDarkSide.ts",
+      "sourceHash": "1c893e6160ad295c90834f071d8613383908b8c0c34206ef9f202963542479d7",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "event",
+            "title": "Give 2 Experience tokens to a unit",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "giveExperience",
+              "target": "chosen",
+              "amount": {
+                "kind": "const",
+                "value": 2
+              }
+            },
+            "then": {
+              "title": "Deal 2 damage to the unit",
+              "costs": [],
+              "effect": {
+                "kind": "damage",
+                "target": "chosen",
+                "amount": {
+                  "kind": "const",
+                  "value": 2
+                }
+              }
+            }
+          }
+        ]
+      },
+      "className": "ConsumedByTheDarkSide",
+      "baseClass": "EventCard",
+      "id": "8621390428",
+      "internalName": "consumed-by-the-dark-side",
+      "status": "supported",
+      "card": {
+        "title": "Consumed by the Dark Side",
+        "subtitle": "",
+        "cost": 2,
+        "hp": null,
+        "power": null,
+        "text": "Give 2 Experience tokens to a unit, then deal 2 damage to it.",
+        "deployBox": null,
+        "epicAction": "",
+        "unique": false,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "8621390428",
+        "aspects": [
+          "villainy"
+        ],
+        "traits": [
+          "force"
+        ],
+        "keywords": [],
+        "types": [
+          "event"
+        ],
+        "setId": {
+          "set": "LOF",
+          "number": 239
+        },
+        "setCodes": [
+          {
+            "set": "LOF",
+            "number": 239
+          }
+        ],
+        "internalName": "consumed-by-the-dark-side"
+      },
+      "dataHash": "3ad8508ba27e7b324310760c0adbaba43bba8dde5470e44b84d5d5527bedb96a",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "ability:then",
+        "cardType:event",
+        "ir:const",
+        "ir:damage",
+        "ir:giveExperience",
+        "targetType:unit",
+        "targetZone:anyAttackable",
+        "trigger:event"
+      ]
+    },
+    {
       "setCode": "LOF_240",
       "sourcePath": "game/cards/05_LOF/events/FlightOfTheInquisitor.ts",
       "sourceHash": "4e43f5b97d9d2a08bc451eaedcb6fd2169e0d64cbbd23c6ec90ee63fdad81bfd",
@@ -135394,6 +134877,64 @@
       ]
     },
     {
+      "setCode": "SHD_070",
+      "id": "9059202647",
+      "internalName": "resilient",
+      "sourcePath": null,
+      "sourceHash": null,
+      "status": "unsupported",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "card": {
+        "title": "Resilient",
+        "subtitle": null,
+        "cost": 1,
+        "hp": 3,
+        "power": 0,
+        "text": null,
+        "deployBox": null,
+        "epicAction": null,
+        "unique": false,
+        "rules": null,
+        "upgradePower": 0,
+        "upgradeHp": 3,
+        "id": "9059202647",
+        "aspects": [
+          "vigilance"
+        ],
+        "traits": [
+          "innate"
+        ],
+        "keywords": [],
+        "types": [
+          "upgrade"
+        ],
+        "setId": {
+          "set": "SHD",
+          "number": 70
+        },
+        "setCodes": [
+          {
+            "set": "SOR",
+            "number": 69
+          },
+          {
+            "set": "SHD",
+            "number": 70
+          }
+        ],
+        "internalName": "resilient"
+      },
+      "dataHash": "8af6b1cb899b0b825cdeb6f613b913cc14b3271a21fe5e49377441b589d90067",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:upgrade"
+      ]
+    },
+    {
       "setCode": "SHD_071",
       "sourcePath": "game/cards/02_SHD/upgrades/TopTarget.ts",
       "sourceHash": "6ada0221ec0e6be200061c273daca712e174344dac6ce2b862a4ce91bf751cc7",
@@ -145012,6 +144553,88 @@
       ]
     },
     {
+      "setCode": "SHD_196",
+      "sourcePath": "game/cards/02_SHD/units/GroguIrresistible.ts",
+      "sourceHash": "31fcd7240824adb5184fb0824131bf0f7d7269985f9e1b2a31d3605454a45ba9",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Exhaust an enemy unit",
+            "costs": [
+              {
+                "kind": "exhaustSelf"
+              }
+            ],
+            "targetResolver": {
+              "owner": "opponent",
+              "type": "any",
+              "zone": "arena"
+            },
+            "effect": {
+              "kind": "exhaust",
+              "target": "chosen"
+            }
+          }
+        ]
+      },
+      "className": "GroguIrresistible",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "6536128825",
+      "internalName": "grogu#irresistible",
+      "status": "supported",
+      "card": {
+        "title": "Grogu",
+        "subtitle": "Irresistible",
+        "cost": 2,
+        "hp": 5,
+        "power": 0,
+        "text": "Action [exhaust]: Exhaust an enemy unit.",
+        "deployBox": null,
+        "epicAction": null,
+        "unique": true,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "6536128825",
+        "aspects": [
+          "cunning",
+          "heroism"
+        ],
+        "traits": [
+          "force"
+        ],
+        "arena": "ground",
+        "keywords": [],
+        "types": [
+          "unit"
+        ],
+        "setId": {
+          "set": "SHD",
+          "number": 196
+        },
+        "setCodes": [
+          {
+            "set": "SHD",
+            "number": 196
+          }
+        ],
+        "internalName": "grogu#irresistible"
+      },
+      "dataHash": "328cd44b3ed019fadc1987df94b9acbdc0c8756c5bb1afcffa2719df2e3b8e9d",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:unit",
+        "ir:exhaust",
+        "ir:exhaustSelf",
+        "targetType:any",
+        "targetZone:arena",
+        "trigger:action"
+      ]
+    },
+    {
       "setCode": "SHD_197",
       "sourcePath": "game/cards/02_SHD/units/L3-37DroidRevolutionary.ts",
       "sourceHash": "6641db6fb83cd1cabdda5f65718114b791f60a31a9cecc56be1e8984554d4bdf",
@@ -151777,6 +151400,60 @@
       ]
     },
     {
+      "setCode": "SOR_024",
+      "id": "2055904747",
+      "internalName": "echo-base",
+      "sourcePath": null,
+      "sourceHash": null,
+      "status": "supported",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "card": {
+        "title": "Echo Base",
+        "subtitle": null,
+        "cost": null,
+        "hp": 30,
+        "power": null,
+        "text": null,
+        "deployBox": null,
+        "epicAction": null,
+        "unique": false,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "2055904747",
+        "aspects": [
+          "command"
+        ],
+        "traits": [
+          "hoth"
+        ],
+        "keywords": [],
+        "types": [
+          "base"
+        ],
+        "setId": {
+          "set": "SOR",
+          "number": 24
+        },
+        "setCodes": [
+          {
+            "set": "SOR",
+            "number": 24
+          }
+        ],
+        "internalName": "echo-base"
+      },
+      "dataHash": "0a956ee8165c9788afbfb5673a8329126640b9ebf98e1099a3312c23f5762083",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:base"
+      ]
+    },
+    {
       "setCode": "SOR_025",
       "sourcePath": "game/cards/01_SOR/bases/Tarkintown.ts",
       "sourceHash": "932a01243ed3cc62a574589a50a7d14018d88e8688b2adade10f04ab564e62fd",
@@ -158384,6 +158061,60 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:unit"
+      ]
+    },
+    {
+      "setCode": "SOR_120",
+      "id": "3463676231",
+      "internalName": "academy-training",
+      "sourcePath": null,
+      "sourceHash": null,
+      "status": "unsupported",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "card": {
+        "title": "Academy Training",
+        "subtitle": null,
+        "cost": 2,
+        "hp": 2,
+        "power": 2,
+        "text": null,
+        "deployBox": null,
+        "epicAction": null,
+        "unique": false,
+        "rules": null,
+        "upgradePower": 2,
+        "upgradeHp": 2,
+        "id": "3463676231",
+        "aspects": [
+          "command"
+        ],
+        "traits": [
+          "learned"
+        ],
+        "keywords": [],
+        "types": [
+          "upgrade"
+        ],
+        "setId": {
+          "set": "SOR",
+          "number": 120
+        },
+        "setCodes": [
+          {
+            "set": "SOR",
+            "number": 120
+          }
+        ],
+        "internalName": "academy-training"
+      },
+      "dataHash": "b2484c976f4179037edcc9f147ee914af7fe824780121119e5feff0a974639e2",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:upgrade"
       ]
     },
     {
@@ -166176,6 +165907,64 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:event"
+      ]
+    },
+    {
+      "setCode": "SOR_236",
+      "sourcePath": "game/cards/01_SOR/units/R2D2IgnoringProtocol.ts",
+      "sourceHash": "a15cddf89ff7e1ba3ca3c3264b60010fead6a0f10979ebc7a11049d68f314fa5",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "className": "R2D2IgnoringProtocol",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "9568000754",
+      "internalName": "r2d2#ignoring-protocol",
+      "status": "unsupported",
+      "card": {
+        "title": "R2-D2",
+        "subtitle": "Ignoring Protocol",
+        "cost": 1,
+        "hp": 4,
+        "power": 1,
+        "text": "When Played/On Attack: Look at the top card of your deck. You may put it on the bottom of your deck. (Otherwise, leave it on top of your deck.)",
+        "deployBox": null,
+        "epicAction": null,
+        "unique": true,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "9568000754",
+        "aspects": [
+          "heroism"
+        ],
+        "traits": [
+          "rebel",
+          "droid"
+        ],
+        "arena": "ground",
+        "keywords": [],
+        "types": [
+          "unit"
+        ],
+        "setId": {
+          "set": "SOR",
+          "number": 236
+        },
+        "setCodes": [
+          {
+            "set": "SOR",
+            "number": 236
+          }
+        ],
+        "internalName": "r2d2#ignoring-protocol"
+      },
+      "dataHash": "99ea771dd9af609d8d4554d448d2b04a58dadd97949ccd0fad6f809c6aaef53a",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:unit"
       ]
     },
     {
@@ -176819,6 +176608,60 @@
       ]
     },
     {
+      "setCode": "TWI_026",
+      "id": "0109520913",
+      "internalName": "kcm-mining-facility",
+      "sourcePath": null,
+      "sourceHash": null,
+      "status": "supported",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "card": {
+        "title": "KCM Mining Facility",
+        "subtitle": "",
+        "cost": null,
+        "hp": 30,
+        "power": null,
+        "text": "",
+        "deployBox": null,
+        "epicAction": null,
+        "unique": false,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "0109520913",
+        "aspects": [
+          "aggression"
+        ],
+        "traits": [
+          "mustafar"
+        ],
+        "keywords": [],
+        "types": [
+          "base"
+        ],
+        "setId": {
+          "set": "TWI",
+          "number": 26
+        },
+        "setCodes": [
+          {
+            "set": "TWI",
+            "number": 26
+          }
+        ],
+        "internalName": "kcm-mining-facility"
+      },
+      "dataHash": "3a89df19e448c5605a24059d86f410d3b139bbf433fd56d28d87e57f44ae0527",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:base"
+      ]
+    },
+    {
       "setCode": "TWI_027",
       "id": "3867306441",
       "internalName": "the-nest",
@@ -177063,6 +176906,65 @@
       "keywordValues": {},
       "requiredCapabilities": [
         "cardType:base"
+      ]
+    },
+    {
+      "setCode": "TWI_031",
+      "sourcePath": "game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts",
+      "sourceHash": "d2990f2db30427819bf46804cd498d9c6c093285f11952637fd85f66e023314f",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": []
+      },
+      "className": "RuneHaakoSchemingSecond",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "5333016146",
+      "internalName": "rune-haako#scheming-second",
+      "status": "unsupported",
+      "card": {
+        "title": "Rune Haako",
+        "subtitle": "Scheming Second",
+        "cost": 2,
+        "hp": 2,
+        "power": 3,
+        "text": "When Played: If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase.",
+        "deployBox": null,
+        "epicAction": null,
+        "unique": true,
+        "rules": null,
+        "upgradePower": null,
+        "upgradeHp": null,
+        "id": "5333016146",
+        "aspects": [
+          "vigilance",
+          "villainy"
+        ],
+        "traits": [
+          "separatist",
+          "official"
+        ],
+        "arena": "ground",
+        "keywords": [],
+        "types": [
+          "unit"
+        ],
+        "setId": {
+          "set": "TWI",
+          "number": 31
+        },
+        "setCodes": [
+          {
+            "set": "TWI",
+            "number": 31
+          }
+        ],
+        "internalName": "rune-haako#scheming-second"
+      },
+      "dataHash": "223639038ada08306279c7e7e44184754e8107a0f1fb505a4bce89ea02a07939",
+      "keywordValues": {},
+      "requiredCapabilities": [
+        "cardType:unit"
       ]
     },
     {

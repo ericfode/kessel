@@ -63,7 +63,7 @@
     "LOF_192",
     "LOF_214",
     "LOF_230",
-    "IC27_184",
+    "LOF_239",
     "LOF_247",
     "LOF_250",
     "LOF_251",
@@ -86,7 +86,7 @@
     "SHD_079",
     "SHD_152",
     "SHD_162",
-    "IC27_154",
+    "SHD_196",
     "SHD_200",
     "SHD_240",
     "SOR_044",
@@ -177,7 +177,7 @@
     "giveExperience": {
       "file": "effect-interactions-4001.jsonl.gz",
       "step": 48,
-      "sourceSetCode": "IC27_184",
+      "sourceSetCode": "LOF_239",
       "event": "onUpgradeAttached",
       "target": "Compassionate Senator"
     }
@@ -203,14 +203,14 @@
       {
         "file": "effect-interactions-4001.jsonl.gz",
         "step": 48,
-        "sourceSetCode": "IC27_184",
+        "sourceSetCode": "LOF_239",
         "event": "onUpgradeAttached",
         "target": "Compassionate Senator"
       },
       {
         "file": "effect-interactions-4001.jsonl.gz",
         "step": 48,
-        "sourceSetCode": "IC27_184",
+        "sourceSetCode": "LOF_239",
         "event": "onDamageDealt",
         "target": "Compassionate Senator",
         "amount": 2

@@ -1,9 +1,9 @@
 {
-  "catalogueHash": "ff54143ccda184fe90e97cb505834122b71e68e2f2305ed6d59dca2d8f47b80d",
+  "catalogueHash": "9b5e9f374efb13c816a27bde0d9892fb81b74bdc29447bc563e696df36023a22",
   "dataOnlyConvertedCount": 372,
   "gameConformance": "not assessed by this report",
   "irConvertedCount": 1070,
-  "knownCards": 2459,
+  "knownCards": 2458,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 372,
     "nativeAdapters": 4,
@@ -1367,33 +1367,13 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "blizzard-one#veers-at-the-helm",
+      "setCode": "IBH_099"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "the-desolation-of-hoth",
       "setCode": "IBH_104"
-    },
-    {
-      "implementation": "dataOnly",
-      "internalName": "echo-base",
-      "setCode": "IC27_010"
-    },
-    {
-      "implementation": "dataOnly",
-      "internalName": "kcm-mining-facility",
-      "setCode": "IC27_011"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "blizzard-one#veers-at-the-helm",
-      "setCode": "IC27_025"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "grogu#irresistible",
-      "setCode": "IC27_154"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "consumed-by-the-dark-side",
-      "setCode": "IC27_184"
     },
     {
       "implementation": "dataOnly",
@@ -2797,6 +2777,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "consumed-by-the-dark-side",
+      "setCode": "LOF_239"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "in-the-shadows",
       "setCode": "LOF_241"
     },
@@ -3621,6 +3606,11 @@
       "setCode": "SHD_190"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "grogu#irresistible",
+      "setCode": "SHD_196"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "liberated-slaves",
       "setCode": "SHD_200"
@@ -3739,6 +3729,11 @@
       "implementation": "dataOnly",
       "internalName": "command-center",
       "setCode": "SOR_023"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "echo-base",
+      "setCode": "SOR_024"
     },
     {
       "implementation": "dataOnly",
@@ -4299,6 +4294,11 @@
       "implementation": "dataOnly",
       "internalName": "tipoca-city",
       "setCode": "TWI_024"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "kcm-mining-facility",
+      "setCode": "TWI_026"
     },
     {
       "implementation": "dataOnly",
@@ -6399,6 +6399,11 @@
       "setCode": "IBH_009"
     },
     {
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "reason": "han-solo#scruffylooking-nerf-herder: compiler rejected \"han-solo#scruffylooking-nerf-herder\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts\",\"line\":16,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
+      "setCode": "IBH_010"
+    },
+    {
       "internalName": "improvised-detonation",
       "reason": "improvised-detonation: compiler rejected \"improvised-detonation\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_IBH/events/ImprovisedDetonation.ts\",\"line\":17,\"message\":\"immediateEffect:attack\",\"pattern\":\"immediateEffect:attack\"}]",
       "setCode": "IBH_021"
@@ -6417,36 +6422,6 @@
       "internalName": "hoth-lieutenant",
       "reason": "hoth-lieutenant: compiler rejected \"hoth-lieutenant\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/06_IBH/units/HothLieutenant.ts\",\"line\":17,\"message\":\"unsupported-field:initiateAttack\",\"pattern\":\"unsupported-field:initiateAttack\"}]",
       "setCode": "IBH_064"
-    },
-    {
-      "internalName": "rune-haako#scheming-second",
-      "reason": "rune-haako#scheming-second: compiler rejected \"rune-haako#scheming-second\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":29,\"message\":\"unsupported-query:someDefeatedUnitControlledByPlayer\",\"pattern\":\"unsupported-query:someDefeatedUnitControlledByPlayer\"}]",
-      "setCode": "IC27_016"
-    },
-    {
-      "internalName": "resilient",
-      "reason": "resilient: compiler rejected \"resilient\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/resilient.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "IC27_052"
-    },
-    {
-      "internalName": "academy-training",
-      "reason": "academy-training: compiler rejected \"academy-training\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/academy-training.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "IC27_093"
-    },
-    {
-      "internalName": "eighth-brother#illfated-escape",
-      "reason": "eighth-brother#illfated-escape: compiler rejected \"eighth-brother#illfated-escape\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/eighth-brother#illfated-escape.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
-      "setCode": "IC27_099"
-    },
-    {
-      "internalName": "han-solo#scruffylooking-nerf-herder",
-      "reason": "han-solo#scruffylooking-nerf-herder: compiler rejected \"han-solo#scruffylooking-nerf-herder\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/06_IBH/units/HanSoloScruffyLookingNerfHerder.ts\",\"line\":16,\"message\":\"immediateEffect:forThisAttackCardEffect\",\"pattern\":\"immediateEffect:forThisAttackCardEffect\"}]",
-      "setCode": "IC27_161"
-    },
-    {
-      "internalName": "r2d2#ignoring-protocol",
-      "reason": "r2d2#ignoring-protocol: compiler rejected \"r2d2#ignoring-protocol\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/units/R2D2IgnoringProtocol.ts\",\"line\":20,\"message\":\"immediateEffect:lookMoveDeckCardsTopOrBottom\",\"pattern\":\"immediateEffect:lookMoveDeckCardsTopOrBottom\"}]",
-      "setCode": "IC27_186"
     },
     {
       "internalName": "asajj-ventress#i-work-alone",
@@ -9934,6 +9909,11 @@
       "setCode": "SHD_069"
     },
     {
+      "internalName": "resilient",
+      "reason": "resilient: compiler rejected \"resilient\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/resilient.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
+      "setCode": "SHD_070"
+    },
+    {
       "internalName": "top-target",
       "reason": "top-target: compiler rejected \"top-target\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":22,\"file\":\"game/cards/02_SHD/upgrades/TopTarget.ts\",\"line\":18,\"message\":\"unsupported-attached-keyword-field:ability\",\"pattern\":\"unsupported-attached-keyword-field:ability\"}]",
       "setCode": "SHD_071"
@@ -10959,6 +10939,11 @@
       "setCode": "SOR_119"
     },
     {
+      "internalName": "academy-training",
+      "reason": "academy-training: compiler rejected \"academy-training\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/academy-training.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
+      "setCode": "SOR_120"
+    },
+    {
       "internalName": "hardpoint-heavy-blaster",
       "reason": "hardpoint-heavy-blaster: compiler rejected \"hardpoint-heavy-blaster\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/HardpointHeavyBlaster.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
       "setCode": "SOR_121"
@@ -11292,6 +11277,11 @@
       "internalName": "galactic-ambition",
       "reason": "galactic-ambition: compiler rejected \"galactic-ambition\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/01_SOR/events/GalacticAmbition.ts\",\"line\":23,\"message\":\"immediateEffect:playCardFromHand\",\"pattern\":\"immediateEffect:playCardFromHand\"}]",
       "setCode": "SOR_235"
+    },
+    {
+      "internalName": "r2d2#ignoring-protocol",
+      "reason": "r2d2#ignoring-protocol: compiler rejected \"r2d2#ignoring-protocol\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":30,\"file\":\"game/cards/01_SOR/units/R2D2IgnoringProtocol.ts\",\"line\":20,\"message\":\"immediateEffect:lookMoveDeckCardsTopOrBottom\",\"pattern\":\"immediateEffect:lookMoveDeckCardsTopOrBottom\"}]",
+      "setCode": "SOR_236"
     },
     {
       "internalName": "c3po#protocol-droid",
@@ -11732,6 +11722,11 @@
       "internalName": "shadow-collective-camp",
       "reason": "shadow-collective-camp: compiler rejected \"shadow-collective-camp\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/03_TWI/bases/ShadowCollectiveCamp.ts\",\"line\":17,\"message\":\"trigger-alias-hook:onLeaderDeployed\",\"pattern\":\"trigger-alias-hook:onLeaderDeployed\"}]",
       "setCode": "TWI_025"
+    },
+    {
+      "internalName": "rune-haako#scheming-second",
+      "reason": "rune-haako#scheming-second: compiler rejected \"rune-haako#scheming-second\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":9,\"message\":\"Class-local persistent state requires conversion\",\"pattern\":\"class-state:cardsDefeatedThisPhaseWatcher\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":1,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":18,\"message\":\"Additional class method requires conversion\",\"pattern\":\"method:setupStateWatchers\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/03_TWI/units/RuneHaakoSchemingSecond.ts\",\"line\":29,\"message\":\"unsupported-query:someDefeatedUnitControlledByPlayer\",\"pattern\":\"unsupported-query:someDefeatedUnitControlledByPlayer\"}]",
+      "setCode": "TWI_031"
     },
     {
       "internalName": "calculating-magnaguard",
@@ -12309,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1487,
+  "runtimeRejectedCount": 1486,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 698
 }
