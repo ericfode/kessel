@@ -129,7 +129,8 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     definitions.sort((a, b) => a.setCode.localeCompare(b.setCode));
     for (const source of sources) if (!sourceUsed.has(source.id)) unmatchedSources.push({ sourcePath: source.sourcePath, sourceHash: source.sourceHash, role: 'source-without-card-data', id: source.id, internalName: source.internalName, status: source.status, diagnostics: source.diagnostics });
     inputs.sort((a, b) => a.file.localeCompare(b.file));
-    const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
+    // Hash compiler implementation only — generated output and tests must not feedback into provenance.
+    const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep) && !f.startsWith('test' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
     const inputHash = hash(JSON.stringify(inputs));
     const compilerHash = hash(JSON.stringify(compilerFiles));
     return { schema: SCHEMA, compilerVersion: VERSION, typescriptVersion: ts.version, sourceTreeHash: inputHash, compilerHash, inputs, sourceSupport: unmatchedSources, cards: definitions, inventory: { knownCards: definitions.length, mockCardsExcluded: mockCount, sourceFiles: files(sourceDir, '.ts').length, sourceDefinitions: sources.length, definitionsWithSource: sourceUsed.size } };

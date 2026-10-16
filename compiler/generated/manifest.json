@@ -4,7 +4,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "0b00c1657344de81dbeafd9cf78b851f824921b764978f85b8a725e2a5d8b01f",
-  "compilerHash": "bf059cb2a58c57dfec91147b9ed3fc5d68fa28898455a62e302f7de4cc435a0b",
+  "compilerHash": "20aba2ed54b1c176abee8462160dfa412d72b48535247d62b9a4ba5ded0e0d45",
   "sourceSupport": [
     {
       "sourcePath": "game/cards/05_LOF/common/LofCommonForceBase.ts",

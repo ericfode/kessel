@@ -16,15 +16,14 @@ test('concern-split shards round-trip to the unified catalogue', () => {
             fs.writeFileSync(path.join(dir, name), JSON.stringify(value, null, 2) + '\n');
         }
         const { canonical } = require('../../cards/inventory');
-        assert.deepEqual(canonical(loadCatalog(dir)), canonical(catalog));
-        assert.equal(
-            JSON.stringify(canonical(JSON.parse(catalogBytes(dir).toString('utf8')))),
-            JSON.stringify(canonical(catalog)),
-        );
+        // JSON round-trips drop undefined sourceSupport fields; compare canonical JSON.
+        const same = (a, b) => assert.equal(JSON.stringify(canonical(a)), JSON.stringify(canonical(b)));
+        same(loadCatalog(dir), catalog);
+        same(JSON.parse(catalogBytes(dir).toString('utf8')), catalog);
         // Legacy monolith path still loads.
         const legacy = path.join(dir, 'legacy.json');
         fs.writeFileSync(legacy, JSON.stringify(catalog));
-        assert.deepEqual(canonical(loadCatalog(legacy)), canonical(catalog));
+        same(loadCatalog(legacy), catalog);
     } finally {
         fs.rmSync(dir, { recursive: true, force: true });
     }
