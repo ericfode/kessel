@@ -523,4 +523,4 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | unsupported-title-helper | 1 | 1 |
 | unsupported-token-field:enterPlayEffect | 1 | 1 |
 
-Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented in [catalog.json](catalog.json).
+Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented across the concern-split catalogue shards (`manifest.json`, `cards.json`, `diagnostics.json`, `inputs.json`).

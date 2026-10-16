@@ -5,7 +5,7 @@ const {
   classifyForceTriggers,
   planForceTriggerProbes,
 } = require("../pipeline/force-trigger-probes");
-const catalogue = require("../../compiler/generated/catalog.json");
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = (id) =>
   structuredClone(catalogue.cards.find((e) => e.setCode === id));
 test("two full sources classify and construct both printed trigger and attachment contracts", () => {

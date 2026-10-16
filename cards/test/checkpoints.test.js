@@ -9,6 +9,12 @@ const crypto = require('node:crypto');
 const { init, status, recordReviewedRun } = require('../pipeline/checkpoints');
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const digest = o => sha(JSON.stringify(o));
+
+function writeCatalogue(dir, catalogue) {
+    const { splitCatalog } = require('../../compiler/load-catalog');
+    const shards = splitCatalog({ schema: 'swu-card-ir/v1', compilerVersion: 1, typescriptVersion: 'test', sourceTreeHash: 'tree', compilerHash: catalogue.compilerHash, inputs: [], sourceSupport: [], cards: (catalogue.cards || []).map(c => ({ diagnostics: [], ...c })), inventory: { knownCards: (catalogue.cards || []).length, mockCardsExcluded: 0, sourceFiles: 0, sourceDefinitions: 0, definitionsWithSource: 0 } });
+    for (const [name, value] of Object.entries(shards)) fs.writeFileSync(path.join(dir, name), JSON.stringify(value, null, 2) + '\n');
+}
 function fixture(count=200) {
     const dir=fs.mkdtempSync(path.join(os.tmpdir(),'swu-cadence-')), repo=path.join(dir,'repo'), out=path.join(dir,'ledger');
     fs.mkdirSync(repo);
@@ -17,15 +23,15 @@ function fixture(count=200) {
     const admissionPath='admission.json';
     const write = (p,o) => fs.writeFileSync(p,JSON.stringify(o));
     write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:[{setCode:'OLD'}]}); fs.writeFileSync(path.join(repo,'impl.js'),'baseline');
-    fs.mkdirSync(path.join(repo,'compiler/generated'),{recursive:true}); fs.writeFileSync(path.join(repo,'compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned'})); git(['add','.']);git(['commit','-qm','baseline']);const before=git(['rev-parse','HEAD']);
+    fs.mkdirSync(path.join(repo,'compiler/generated'),{recursive:true}); writeCatalogue(path.join(repo,'compiler/generated'),{compilerHash:'pinned',cards:[]}); git(['add','.']);git(['commit','-qm','baseline']);const before=git(['rev-parse','HEAD']);
     const cards=Array.from({length:count},(_,i)=>'TST_'+String(i).padStart(3,'0'));
-    write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:['OLD','TOKEN_WEAKNESS',...cards].map(setCode=>({setCode}))}); fs.writeFileSync(path.join(repo,'impl.js'),'candidate'); fs.writeFileSync(path.join(repo,'compiler/generated/catalog.json'),JSON.stringify({compilerHash:'pinned',cards:cards.map(setCode=>({setCode,card:{},abilities:{},sourceHash:null,sourcePath:null}))}));
+    write(path.join(repo,admissionPath),{schema:'omni-rs-catalogue-report-v1',catalogueHash:'engine-pool-hash',runtimeAdmittedCards:['OLD','TOKEN_WEAKNESS',...cards].map(setCode=>({setCode}))}); fs.writeFileSync(path.join(repo,'impl.js'),'candidate'); writeCatalogue(path.join(repo,'compiler/generated'),{compilerHash:'pinned',cards:cards.map(setCode=>({setCode,card:{},abilities:{},sourceHash:null,sourcePath:null}))});
     git(['add','.']);git(['commit','-qm','candidate']);const after=git(['rev-parse','HEAD']);
     const pipelineDirectory=path.join(dir,'pipeline');fs.mkdirSync(path.join(pipelineDirectory,'review'),{recursive:true}); fs.copyFileSync(path.join(repo,admissionPath),path.join(pipelineDirectory,'admission.json'));
     const defs=cards.map(cardId=>({id:'auto/'+cardId+'/case',kind:'probe',focusCardIds:[cardId],source:{module:'../pipeline/probe-fixture.js',scenario:'test'}}));
     const corpus=path.join(pipelineDirectory,'reference'); fs.mkdirSync(path.join(corpus,'traces'),{recursive:true});fs.mkdirSync(path.join(corpus,'pools'));
     const pool=Buffer.from('{}'), poolSha=sha(pool); fs.writeFileSync(path.join(corpus,'pools',poolSha+'.json'),pool);
-    const catalogHash=sha(fs.readFileSync(path.join(repo,'compiler/generated/catalog.json')));
+    const catalogHash=sha(require('../../compiler/load-catalog').catalogBytes(path.join(repo,'compiler/generated')));
     const recordings=defs.map(def=>{
         const rows=[{type:'meta',schema:'omni-rs-trace-v1',pool:{sha256:poolSha},seed:1,scenario:'test',referenceCase:{id:def.id,definitionSha256:digest(def)}},{type:'state'},{type:'decision'},{type:'result'}];
         const bytes=require('node:zlib').gzipSync(rows.map(JSON.stringify).join('\n')), traceSha=sha(bytes);fs.writeFileSync(path.join(corpus,'traces',traceSha+'.jsonl.gz'),bytes);

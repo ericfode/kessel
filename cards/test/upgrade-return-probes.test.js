@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {classifyUpgradeReturn,planUpgradeReturnProbes}=require('../pipeline/upgrade-return-probes');
-const catalogue=require('../../compiler/generated/catalog.json');
+const catalogue=require('../../compiler/load-catalog').loadCatalog();
 const ids=['HMW_222','SHD_044','SHD_209','HMW_236','SEC_200'];
 const plan=id=>planUpgradeReturnProbes(catalogue.cards.find(e=>e.setCode===id),{catalogue});
 test('upgrade-return family recognizes complete source shapes and fails closed on unknown fields',()=>{

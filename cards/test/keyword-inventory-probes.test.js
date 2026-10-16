@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const p = require('../pipeline/keyword-inventory-probes');
-const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
+const catalogue = (process.env.SWU_DIAGNOSTIC_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_DIAGNOSTIC_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog());
 const get = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('complete aura and optional exhaust source shapes classify', () => {
     assert.equal(p.classifyKeywordInventory(get('ASH_100')).mode, 'other-friendly-aura');

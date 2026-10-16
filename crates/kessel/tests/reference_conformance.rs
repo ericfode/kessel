@@ -60,7 +60,7 @@ fn reference_manifest_reader_accepts_both_formats_and_rejects_damage() {
 #[test]
 fn every_reference_matches_current_programs_and_immutable_engine_recordings() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let catalogue = std::fs::read(root.join("../../compiler/generated/catalog.json")).unwrap();
+    let catalogue = kessel::catalogue_io::load_catalogue_bytes(&root.join("../../compiler/generated")).unwrap();
     let directory = root.join("../../cards/reference/fixtures");
     let manifest = read_manifest(&directory).unwrap();
     assert_eq!(manifest["schema"], "swu-reference-corpus/v1");

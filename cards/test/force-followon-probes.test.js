@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict');
 const { classifyForceFollowon, planForceFollowonProbes } = require('../pipeline/force-followon-probes');
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const ids = ['LOF_031','LOF_035','LOF_048','LOF_075','LOF_149','LOF_159','LOF_172','LOF_173'];
 const entry = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('all eight printed continuation shapes have bounded timing and finite-gap constructions', () => {

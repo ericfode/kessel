@@ -40,8 +40,8 @@ snapshots and stable action keys. Keep browser searches in a Worker so a synchro
 npm run cards:compile
 npm run cards:test
 npm run cards:check
-target/release/kessel catalogue compiler/generated/catalog.json
-target/release/kessel check trace.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
+target/release/kessel catalogue compiler/generated
+target/release/kessel check trace.jsonl.gz --catalogue compiler/generated --pool compiler/generated/runtime-pool.json
 ```
 
 The generated pool is an admission manifest, not evidence that every admitted card has been played. The compiler

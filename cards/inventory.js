@@ -14,11 +14,14 @@ function canonical(value) {
 }
 
 function snapshot(directory, revision) {
-    const names = ['catalog.json', 'coverage.json', 'runtime-admission.json', 'runtime-pool.json'];
+    const { loadCatalog, catalogBytes } = require('../compiler/load-catalog');
+    const shardNames = ['manifest.json', 'cards.json', 'inputs.json', 'diagnostics.json'];
+    const reportNames = ['coverage.json', 'runtime-admission.json', 'runtime-pool.json'];
+    const names = [...shardNames, ...reportNames];
     const bytes = Object.fromEntries(names.map((name) => [name, fs.readFileSync(path.join(directory, name))]));
     const coverage = JSON.parse(bytes['coverage.json']);
     const admission = JSON.parse(bytes['runtime-admission.json']);
-    const catalogue = JSON.parse(bytes['catalog.json']);
+    const catalogue = loadCatalog(directory);
     const pool = JSON.parse(bytes['runtime-pool.json']);
     assert.equal(admission.catalogueHash, sha256(JSON.stringify(canonical(catalogue))), 'Admission/catalogue hash mismatch');
     validatePool(catalogue, admission, pool);
@@ -35,7 +38,10 @@ function snapshot(directory, revision) {
     assert.equal(cards.filter((card) => card.admitted).length, admission.runtimeAdmittedCount);
     assert.equal(cards.filter((card) => card.converted).length, coverage.converted);
     return { schema: 'swu-card-inventory/v1', revision,
-        hashes: Object.fromEntries(names.map((name) => [name, sha256(bytes[name])])),
+        hashes: Object.fromEntries([
+            ...names.map((name) => [name, sha256(bytes[name])]),
+            ['catalogue.assembled.json', sha256(catalogBytes(directory))],
+        ]),
         sourceTreeHash: coverage.sourceTreeHash, compilerHash: coverage.compilerHash,
         sourceAstConverted: coverage.sourceAstConverted, dataOnlyConverted: coverage.dataOnlyConverted, cards };
 }
