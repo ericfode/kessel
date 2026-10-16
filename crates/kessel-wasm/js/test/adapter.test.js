@@ -103,7 +103,15 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
             assert.equal(player.space.length, 0);
         }
         const hiddenOnly = { ...structuredClone(initial), hiddenHistoryVersion: 1 };
-        assert.throws(() => all.loadState(hiddenOnly), /requires explicit Force state version/);
+        // All-admitted catalogues now carry defeat-hook sources, so chronology
+        // is required before the Force version gate can fire.
+        assert.throws(() => all.loadState(hiddenOnly), /registrationOrder/);
+        const registeredOnly = {
+            ...hiddenOnly,
+            arenaUnitOrder: { ground: [], space: [] },
+            registrationOrder: { version: 1, cards: [] },
+        };
+        assert.throws(() => all.loadState(registeredOnly), /requires explicit Force state version/);
         // Persistent Force identities come from an actual engine recording;
         // they cannot be reconstructed from an older snapshot's arena contents.
         const referenceFixtures = path.resolve(__dirname, '../../../../cards/reference/fixtures');
