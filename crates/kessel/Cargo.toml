@@ -18,3 +18,7 @@ web-time = "=1.1.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+
+[dev-dependencies]
+# Parse architecture checks as Rust, so comments and string fixtures are not edges.
+syn = { version = "3", features = ["full", "visit"] }

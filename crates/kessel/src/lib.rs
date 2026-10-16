@@ -1,10 +1,16 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod admission;
+mod death_hooks;
 pub mod model;
 pub mod search;
 pub mod simulator;
 pub use model::{Action, Seat, State};
 pub use simulator::{Engine, RulesBackend};
 pub mod ability_ir;
+mod bounded_reductions;
+pub mod static_ongoing;
+pub mod phase_history;
+mod live_power_maximum;
 pub mod catalogue_io;
 pub mod check;
 pub mod validation;
@@ -19,3 +25,18 @@ fn expression_backend(bytes: &[u8]) -> Option<usize> {
     use sha2::{Digest, Sha256};
     simulator::expression_backend(&format!("{:x}", Sha256::digest(bytes)), bytes)
 }
+
+mod attack_history;
+
+mod attached_registration;
+
+mod native_attack;
+
+mod advantage;
+
+mod attached_constants;
+
+mod deck_search;
+
+#[cfg(test)]
+mod admission_tests;

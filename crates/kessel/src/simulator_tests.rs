@@ -51,8 +51,11 @@ fn resources(e: &Engine, s: &mut State, seat: Seat, count: u8) {
 fn state_is_inline_copy_and_hash_covers_prompts_and_deck_order() {
     fn copy<T: Copy>() {}
     copy::<State>();
-    // Uniform arena damage retains 256 ordered targets; measured State size is 19,112 bytes.
-    assert!(std::mem::size_of::<State>() < 20000, "inline state bytes: {}", std::mem::size_of::<State>());
+    // Captured grantor IDs add 2 bytes × 64 entries × 10 windows = 1280 bytes.
+    // Event/LKI adds1456 bytes; maximum captures add112 in this combined
+    // layout (72 payload bytes plus40 padding across suspended contexts).
+    // Keep the exact Copy-state budget tight; phase history adds136 bytes and attack context adds40.
+    assert!(std::mem::size_of::<State>() <= EXPECTED_INLINE_STATE_BYTES, "inline state bytes: {}", std::mem::size_of::<State>());
     eprintln!("inline state bytes: {}; card bytes: {}", std::mem::size_of::<State>(), std::mem::size_of::<Card>());
     let e = engine();
     let mut s = board(&e);

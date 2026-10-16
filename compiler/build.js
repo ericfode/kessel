@@ -1,9 +1,14 @@
 'use strict';
+const {compileDoubleSidedLeaderContract}=require('./double-sided-leader-contract');
+const {compileNativeTokenLifecycle}=require('./native-token-lifecycle');
+const {compileNativeTokenGraph}=require('./native-token-graphs');
+const {compileTokenInheritance}=require('./native-token-base');
 
 const fs = require('fs');
 const path = require('path');
 const { SCHEMA, VERSION, hash, compileSource, loadEnums, ts } = require('./compiler');
 const { parseKeywords } = require('./keywords');
+const { isPlainUpgrade } = require('./plain-upgrade');
 const { splitCatalog, loadCatalog } = require('./load-catalog');
 
 const repository = path.resolve(__dirname, '..');
@@ -22,8 +27,8 @@ function requiredCapabilities(abilities, card, attachCondition) {
         if (value.kind === 'binary' || value.kind === 'unary') capabilities.add(`${value.kind}:${value.op}`);
         if (value.kind === 'ref') capabilities.add(`ref:${value.path.join('.')}`);
         if (value.targetResolver) {
-            capabilities.add(`targetType:${value.targetResolver.type}`);
-            capabilities.add(`targetZone:${value.targetResolver.zone}`);
+            if(value.targetResolver.type)capabilities.add(`targetType:${value.targetResolver.type}`);
+            if(value.targetResolver.zone)capabilities.add(`targetZone:${value.targetResolver.zone}`);
             if (value.targetResolver.mode) capabilities.add(`targetMode:${value.targetResolver.mode}`);
         }
         for (const [k, v] of Object.entries(value)) {
@@ -39,7 +44,7 @@ function requiredCapabilities(abilities, card, attachCondition) {
 }
 function keywordValues(card) {
     const values = {};
-    const parsedKeywords = new Map(['Sentinel', 'Raid', 'Overwhelm', 'Saboteur', 'Restore', 'Ambush', 'Grit', 'Shielded', 'Coordinate', 'Hidden'].map(name => [name.toLowerCase(), name]));
+    const parsedKeywords = new Map(['Sentinel', 'Raid', 'Overwhelm', 'Saboteur', 'Restore', 'Ambush', 'Grit', 'Shielded', 'Coordinate', 'Hidden', 'Support'].map(name => [name.toLowerCase(), name]));
     // Card's constructor parses text for units; leaders parse deployBox and
     // text separately. Metadata supplies expected names, including mentions
     // that do not become intrinsic keywords without an own-line text match.
@@ -66,6 +71,15 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     if (!fs.existsSync(sourceDir)) throw new Error(`Missing engine card source: ${sourceDir}; initialize the pinned submodule or pass --source`);
     if (!fs.existsSync(cardDir)) throw new Error(`Missing downloaded card data: ${cardDir}; run npm --prefix forceteki run get-cards`);
     const enums = loadEnums(source);
+    const sharedClassContracts=new Map();
+    const doubleSided=compileDoubleSidedLeaderContract(source,enums);if(doubleSided)sharedClassContracts.set(doubleSided.className,doubleSided);
+    const sharedBases=new Map();
+    for(const relative of ['05_LOF/common/LofCommonForceBase.ts','07_LAW/common/LAWCommonBase.ts']) {
+        const sharedPath=path.join(sourceDir,relative),sourcePath=path.posix.join('game/cards',relative);
+        if(!fs.existsSync(sharedPath))continue;
+        const definition=compileSource(fs.readFileSync(sharedPath,'utf8'),sourcePath,enums,{abstractDefinition:true});
+        sharedBases.set(definition.className,definition);
+    }
     const sources = [];
     const byId = new Map();
     const unmatchedSources = [];
@@ -82,10 +96,22 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             continue;
         }
         let converted;
-        try { converted = compileSource(text, sourcePath, enums); }
+        try { converted = compileSource(text, sourcePath, enums, {sharedBases,sharedClassContracts}); }
         catch (error) {
             // A compiler defect is a build failure, never an "unsupported" card.
             throw new Error(`Compiler failed on ${sourcePath}: ${error.stack || error}`);
+        }
+        const lifecycle=require('./source-exclusions').sourceExclusion(sourcePath)?null:compileNativeTokenLifecycle(text,sourcePath,source,enums)||compileNativeTokenGraph(text,sourcePath,source,enums,compileTokenInheritance);
+        if(lifecycle) {
+            unmatchedSources.push(lifecycle);
+            // A complete staged lifecycle can recover identity for a native file
+            // with multiple classes. It does not replace the active rejection or
+            // promote that card to executable/support status.
+            if(!converted.id && lifecycle.role==='staged-native-token-lifecycle' && lifecycle.status==='lifecycle-complete'
+                && lifecycle.sourcePath===converted.sourcePath && lifecycle.sourceHash===converted.sourceHash
+                && typeof lifecycle.identity?.id==='string' && typeof lifecycle.identity?.internalName==='string') {
+                converted={...converted,id:lifecycle.identity.id,internalName:lifecycle.identity.internalName};
+            }
         }
         sources.push(converted);
         if (converted.id) {
@@ -119,8 +145,9 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             const keywordsOnly = parseKeywords(card);
             const plainBase = card.types.includes('base') && !card.text && !card.epicAction;
             const vanilla = card.types.includes('unit') && keywordsOnly !== null && !card.types.includes('leader');
-            const supported = plainBase || vanilla;
-            compiled = { id: card.id, internalName: card.internalName, sourcePath: null, sourceHash: null, status: supported ? 'supported' : 'unsupported', abilities: { leader: [], unit: [], card: [] }, diagnostics: supported ? [] : [{ code: 'MISSING_IMPLEMENTATION', pattern: 'no-source-for-rules-text', file: `data/Card/${file}`, line: 1, column: 1, message: 'No source implementation and card is not a plain base or supported keyword-only unit' }] };
+            const plainUpgrade = isPlainUpgrade(card);
+            const supported = plainBase || vanilla || plainUpgrade;
+            compiled = { id: card.id, internalName: card.internalName, ...(plainUpgrade ? { baseClass: 'UpgradeCard' } : {}), sourcePath: null, sourceHash: null, status: supported ? 'supported' : 'unsupported', abilities: { leader: [], unit: [], card: [] }, diagnostics: supported ? [] : [{ code: 'MISSING_IMPLEMENTATION', pattern: 'no-source-for-rules-text', file: `data/Card/${file}`, line: 1, column: 1, message: 'No source implementation and card is not a plain base or supported keyword-only unit' }] };
         }
         const definition = { setCode, ...compiled, card, dataHash: hash(text), keywordValues: keywordValues(card) };
         definition.requiredCapabilities = requiredCapabilities(definition.abilities, card, definition.attachCondition);
@@ -154,7 +181,7 @@ function coverage(catalog) {
     return { schema: 'swu-card-compiler-coverage/v1', sourceTreeHash: catalog.sourceTreeHash, compilerHash: catalog.compilerHash, ...catalog.inventory, converted: converted.length, sourceAstConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath !== null).length, dataOnlyConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath === null).length, unconverted: unsupported.length, runtimeReady: null, runtimeReadyNote: 'Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.', convertedCards: converted, blockers: [...patterns.values()].sort((a, b) => b.cards.length - a.cards.length || a.pattern.localeCompare(b.pattern)), unsupportedCards: unsupported };
 }
 function reportMarkdown(report) {
-    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases and fully parsed keyword-only units without a source class. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented across the concern-split catalogue shards (`manifest.json`, `cards.json`, `diagnostics.json`, `inputs.json`).', ''].join('\n');
+    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented across the concern-split catalogue shards (`manifest.json`, `cards.json`, `diagnostics.json`, `inputs.json`).', ''].join('\n');
 }
 function args(argv) {
     const options = { source: path.join(repository, 'forceteki/server'), cards: path.join(repository, 'forceteki/test/json'), out: path.join(__dirname, 'generated'), check: false, strict: false };

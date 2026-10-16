@@ -44,6 +44,48 @@
     {
       "arena": "ground",
       "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "Support (When you deploy this leader, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: You may give a unit with less power than this unit +2/+0 for this phase.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "3086126864",
+      "internalName": "ahsoka-tano#trust-in-the-force",
+      "keywords": [
+        "support"
+      ],
+      "power": 5,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "ASH_009",
+      "setCodes": [
+        {
+          "number": 9,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 9,
+        "set": "ASH"
+      },
+      "subtitle": "Trust in the Force",
+      "text": "Action [Exhaust]: Choose a unit with less power than a friendly unit. It gets +2/+0 for this phase.",
+      "title": "Ahsoka Tano",
+      "traits": [
+        "force",
+        "jedi"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "aggression",
         "villainy"
       ],
@@ -470,6 +512,133 @@
     {
       "arena": "ground",
       "aspects": [
+        "command",
+        "aggression",
+        "villainy"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "3881321989",
+      "internalName": "grand-admiral-thrawn#orchestrating-his-return",
+      "keywords": [
+        "support"
+      ],
+      "power": 5,
+      "rules": "When Attack Ends abilities trigger at the same time as units deal combat damage.\nIf you use Thrawn's Support ability to attack with another unit and the defending unit is defeated by that attack, the attacking unit readies.\n",
+      "setCode": "ASH_033",
+      "setCodes": [
+        {
+          "number": 33,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 33,
+        "set": "ASH"
+      },
+      "subtitle": "Orchestrating His Return",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nWhen Attack Ends: If the defending unit was defeated, ready this unit.",
+      "title": "Grand Admiral Thrawn",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "aggression",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4800098984",
+      "internalName": "wicket#yub-nub",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": "Units that can’t attack bases can still damage bases through other abilities, like Overwhelm.\n",
+      "setCode": "ASH_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "ASH"
+      },
+      "subtitle": "Yub Nub!",
+      "text": "Saboteur\nThis unit can't attack bases.",
+      "title": "Wicket",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "cunning",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "5334076199",
+      "internalName": "rukh#from-the-shadows",
+      "keywords": [
+        "support"
+      ],
+      "power": 1,
+      "rules": "When Attack Ends abilities trigger at the same time as units deal combat damage. Rukh (or the supported unit) does not need to survive the attack in order to give Advantage tokens, so long as the defending unit was defeated.\n",
+      "setCode": "ASH_036",
+      "setCodes": [
+        {
+          "number": 36,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 36,
+        "set": "ASH"
+      },
+      "subtitle": "From the Shadows",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nWhen Attack Ends: If the defending unit was defeated, you may give 3 Advantage tokens to a unit.",
+      "title": "Rukh",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "aggression",
         "cunning",
         "heroism"
@@ -552,6 +721,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "8573360332",
+      "internalName": "scion-shuttle#at-morgans-bidding",
+      "keywords": [
+        "support"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "ASH_046",
+      "setCodes": [
+        {
+          "number": 46,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 46,
+        "set": "ASH"
+      },
+      "subtitle": "At Morgan's Bidding",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nWhile this unit is attacking, the defending unit gets –1/–1.",
+      "title": "Scion Shuttle",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance",
@@ -591,6 +803,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "1043323645",
+      "internalName": "shin-hati#going-somewhere",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "ASH_049",
+      "setCodes": [
+        {
+          "number": 49,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 49,
+        "set": "ASH"
+      },
+      "subtitle": "Going Somewhere?",
+      "text": "While this is the only friendly non-leader ground unit, she gains Sentinel. (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Shin Hati",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -765,6 +1018,48 @@
         "vigilance",
         "heroism"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8288798287",
+      "internalName": "leia-organa#vigilant-for-danger",
+      "keywords": [
+        "support"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "ASH"
+      },
+      "subtitle": "Vigilant for Danger",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: You may deal 1 damage to this unit. If you do, heal 2 damage from your base.",
+      "title": "Leia Organa",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -845,6 +1140,48 @@
         "vigilance",
         "heroism"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4924242543",
+      "internalName": "lukes-jedi-lightsaber#constructed-by-hand",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "ASH"
+      },
+      "subtitle": "Constructed by Hand",
+      "text": "Attach to a non-Vehicle unit.\nIf attached unit is Luke Skywalker, he gains Sentinel. (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Luke's Jedi Lightsaber",
+      "traits": [
+        "item",
+        "weapon",
+        "lightsaber"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 3
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -873,6 +1210,47 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0637436414",
+      "internalName": "domesticated-lothcat",
+      "keywords": [
+        "ambush",
+        "support"
+      ],
+      "power": 1,
+      "rules": "All enemy units lose and can't gain Ambush and Support while Domesticated Loth-Cat is in play. This ability applies to units as they are played.\n",
+      "setCode": "ASH_068",
+      "setCodes": [
+        {
+          "number": 68,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 68,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Enemy units lose Ambush and Support.",
+      "title": "Domesticated Loth-Cat",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -965,6 +1343,46 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "2812074334",
+      "internalName": "doctor-pershing#dedicated-to-research",
+      "keywords": [
+        "support"
+      ],
+      "power": 0,
+      "rules": "If you use Doctor Pershing's Support ability to attack with another unit, you only draw a card from the \"\"On Attack\"\" ability if the attacking unit has 3 or more remaining HP.\n",
+      "setCode": "ASH_072",
+      "setCodes": [
+        {
+          "number": 72,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 72,
+        "set": "ASH"
+      },
+      "subtitle": "Dedicated to Research",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: If this unit has 3 or more remaining HP, draw a card.",
+      "title": "Doctor Pershing",
+      "traits": [
+        "new republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 3,
       "id": "0408293505",
       "internalName": "palace-chef-droid",
@@ -990,6 +1408,47 @@
       "traits": [
         "underworld",
         "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "4307074948",
+      "internalName": "mos-eisley-modifier",
+      "keywords": [
+        "support",
+        "grit"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "ASH_074",
+      "setCodes": [
+        {
+          "number": 74,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 74,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nGrit (This unit gets +1/+0 for each damage on it.)",
+      "title": "Mos Eisley Modifier",
+      "traits": [
+        "fringe"
       ],
       "types": [
         "unit"
@@ -1350,6 +1809,50 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "8785481268",
+      "internalName": "remnant-interceptor",
+      "keywords": [
+        "support",
+        "restore"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nRestore 1 (When this unit attacks, heal 1 damage from your base.)",
+      "title": "Remnant Interceptor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -1477,6 +1980,50 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8244257655",
+      "internalName": "gozanti-assault-carrier",
+      "keywords": [
+        "support",
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": "If you use Gozanti Assault Carrier's Support ability to attack with another unit, the \"\"On Attack\"\" ability gives the attacking unit Sentinel for this phase.\n",
+      "setCode": "ASH_099",
+      "setCodes": [
+        {
+          "number": 99,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 99,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: This unit gains Sentinel for this phase.",
+      "title": "Gozanti Assault Carrier",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -1513,6 +2060,44 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9020748123",
+      "internalName": "long-live-the-empire",
+      "keywords": [],
+      "power": null,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "ASH_103",
+      "setCodes": [
+        {
+          "number": 103,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 103,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Defeat a friendly Imperial unit. If you do, resource the top card of your deck.",
+      "title": "Long Live the Empire",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -1682,6 +2267,91 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "7405707601",
+      "internalName": "mandalorian-flagship#captured-from-the-empire",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "ASH_113",
+      "setCodes": [
+        {
+          "number": 113,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 113,
+        "set": "ASH"
+      },
+      "subtitle": "Captured from the Empire",
+      "text": "While you control a leader unit, this unit gains Ambush. (When you play this unit, it may attack an enemy unit.)\nThis unit gets +1/+0 for each other friendly Mandalorian unit.",
+      "title": "Mandalorian Flagship",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "3331025130",
+      "internalName": "sabines-lightsaber#not-alone",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_114",
+      "setCodes": [
+        {
+          "number": 114,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 114,
+        "set": "ASH"
+      },
+      "subtitle": "Not Alone",
+      "text": "Attach to a non-Vehicle unit.\nIf attached unit is Sabine Wren or a Force unit, it gains Restore 2.",
+      "title": "Sabine's Lightsaber",
+      "traits": [
+        "item",
+        "weapon",
+        "lightsaber"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "aspects": [
         "command",
         "heroism"
@@ -1832,6 +2502,47 @@
       "traits": [
         "mandalorian",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6231847875",
+      "internalName": "blurrg",
+      "keywords": [
+        "support",
+        "overwhelm"
+      ],
+      "power": 3,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "ASH_121",
+      "setCodes": [
+        {
+          "number": 121,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 121,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOverwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)",
+      "title": "Blurrg",
+      "traits": [
+        "creature"
       ],
       "types": [
         "unit"
@@ -2006,6 +2717,47 @@
       "aspects": [
         "command"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9390678157",
+      "internalName": "the-twins#we-dont-want-war",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_127",
+      "setCodes": [
+        {
+          "number": 127,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 127,
+        "set": "ASH"
+      },
+      "subtitle": "We Don't Want War",
+      "text": "When Played/On Attack: You may give another friendly unit Sentinel for this phase.\nWhen another friendly unit is defeated: Heal 1 damage from your base.",
+      "title": "The Twins",
+      "traits": [
+        "underworld",
+        "hutt"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": "",
@@ -2034,6 +2786,48 @@
       "title": "Defenders of the Forest",
       "traits": [
         "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6082600222",
+      "internalName": "fang-fighter-squadron",
+      "keywords": [
+        "support"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "ASH_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)",
+      "title": "Fang Fighter Squadron",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -2079,6 +2873,43 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "9104765158",
+      "internalName": "warriors-legacy",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_134",
+      "setCodes": [
+        {
+          "number": 134,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 134,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “When Defeated: Create a Mandalorian token.”",
+      "title": "Warrior's Legacy",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 2
     },
     {
       "aspects": [
@@ -2401,6 +3232,90 @@
     {
       "arena": "ground",
       "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "1789576883",
+      "internalName": "honorable-nite-owl",
+      "keywords": [
+        "support",
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_154",
+      "setCodes": [
+        {
+          "number": 154,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 154,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nRaid 1 (This unit gets +1/+0 while attacking.)",
+      "title": "Honorable Nite Owl",
+      "traits": [
+        "mandalorian",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "0767161530",
+      "internalName": "danger-squadron-wingmen",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_157",
+      "setCodes": [
+        {
+          "number": 157,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 157,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "On Attack: You may give an Advantage token to another unit.",
+      "title": "Danger Squadron Wingmen",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "aggression"
       ],
       "cost": 1,
@@ -2509,6 +3424,46 @@
       "title": "Ewok Warrior",
       "traits": [
         "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "7534790849",
+      "internalName": "flarestar-attack-shuttle",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_167",
+      "setCodes": [
+        {
+          "number": 167,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 167,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played/When Defeated: You may give an Advantage token to a unit.",
+      "title": "Flarestar Attack Shuttle",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -2759,6 +3714,85 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "3333577035",
+      "internalName": "knobby-white-ice-spider",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 5,
+      "rules": "If a unit has Hidden and Sentinel at the same time, it can be attacked.\n",
+      "setCode": "ASH_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Hidden (This unit can't be attacked if it was played this phase.)\nWhen Played: For each enemy unit, give an Advantage token to this unit.",
+      "title": "Knobby White Ice Spider",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 9,
+      "id": "2424880043",
+      "internalName": "boba-fetts-rancor#emotionally-complex-creature",
+      "keywords": [],
+      "power": 8,
+      "rules": "(ERRATA) On Attack: Choose a base. You may deal 1 damage to it for every 5 damage on your base.\nBoba Fett's Rancor's \"\"When Played\"\" ability deals 2 instances of damage to a unit. If both instances of damage are dealt to a unit with a Shield token, the Shield will only prevent the first damage.\n",
+      "setCode": "ASH_179",
+      "setCodes": [
+        {
+          "number": 179,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 179,
+        "set": "ASH"
+      },
+      "subtitle": "Emotionally Complex Creature",
+      "text": "When Played: Deal 5 damage to your base. Then, deal 5 damage to an enemy ground unit. Then, deal 5 damage to the same unit.\nOn Attack: You may deal 1 damage to a base for every 5 damage on your base.",
+      "title": "Boba Fett's Rancor",
+      "traits": [
+        "underworld",
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "aggression"
       ],
@@ -2826,6 +3860,43 @@
       "title": "Intimidation",
       "traits": [
         "innate"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0632920954",
+      "internalName": "reckoning",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_187",
+      "setCodes": [
+        {
+          "number": 187,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 187,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Deal damage to a unit equal to the total amount of damage on all units you control.",
+      "title": "Reckoning",
+      "traits": [
+        "plan"
       ],
       "types": [
         "event"
@@ -3085,6 +4156,128 @@
     {
       "arena": "ground",
       "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "2631235511",
+      "internalName": "inspiring-veteran",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_205",
+      "setCodes": [
+        {
+          "number": 205,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 205,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: Give an Advantage token to each of up to 3 exhausted units.",
+      "title": "Inspiring Veteran",
+      "traits": [
+        "resistance",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8765396756",
+      "internalName": "ezra-bridger#the-force-is-all-i-need",
+      "keywords": [
+        "support"
+      ],
+      "power": 6,
+      "rules": "Ezra's \"\"On Attack\"\" ability gives a unit -3/-0 if the attacking unit is upgraded.\n",
+      "setCode": "ASH_209",
+      "setCodes": [
+        {
+          "number": 209,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 209,
+        "set": "ASH"
+      },
+      "subtitle": "The Force is All I Need",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: If this unit is upgraded, you may give a unit –3/–0 for this phase.",
+      "title": "Ezra Bridger",
+      "traits": [
+        "force",
+        "jedi",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "9650520838",
+      "internalName": "ddc-defender",
+      "keywords": [],
+      "power": 1,
+      "rules": "“On Defense” abilities trigger at the same time as “On Attack” abilities.\n",
+      "setCode": "ASH_210",
+      "setCodes": [
+        {
+          "number": 210,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 210,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains: “On Defense: You may deal 1 damage to a unit in this unit's arena and exhaust it.”",
+      "title": "DDC Defender",
+      "traits": [
+        "item",
+        "weapon"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 1
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "cunning"
       ],
       "cost": 1,
@@ -3158,6 +4351,211 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "8239713162",
+      "internalName": "flanking-tie-interceptor",
+      "keywords": [
+        "support"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_215",
+      "setCodes": [
+        {
+          "number": 215,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 215,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)",
+      "title": "Flanking TIE Interceptor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "5271028285",
+      "internalName": "ferry-droid",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "ASH_218",
+      "setCodes": [
+        {
+          "number": 218,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 218,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: Give 4 Advantage tokens to this unit.",
+      "title": "Ferry Droid",
+      "traits": [
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4212933603",
+      "internalName": "helix-starfighter",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_221",
+      "setCodes": [
+        {
+          "number": 221,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 221,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: If an opponent controls a space unit, give a Shield token to this unit. Otherwise, give 2 Advantage tokens to this unit.",
+      "title": "Helix Starfighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7360227381",
+      "internalName": "unsanctioned-patrol",
+      "keywords": [
+        "support",
+        "saboteur"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_222",
+      "setCodes": [
+        {
+          "number": 222,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 222,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nSaboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)",
+      "title": "Unsanctioned Patrol",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8632988996",
+      "internalName": "halo#not-according-to-plan",
+      "keywords": [
+        "support"
+      ],
+      "power": 4,
+      "rules": "When Attack Ends abilities trigger at the same time as units deal combat damage. If the defending unit was defeated, give a Shield token to the attacking unit.\n",
+      "setCode": "ASH_223",
+      "setCodes": [
+        {
+          "number": 223,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 223,
+        "set": "ASH"
+      },
+      "subtitle": "Not According to Plan",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nWhen Attack Ends: If the defending unit was defeated, give a Shield token to this unit.",
+      "title": "Halo",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -3320,6 +4718,44 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 3,
+      "id": "4232049843",
+      "internalName": "attendant-navigator",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_238",
+      "setCodes": [
+        {
+          "number": 238,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 238,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: You may give 2 Advantage tokens to a space unit.",
+      "title": "Attendant Navigator",
+      "traits": [
+        "first order"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 2,
       "id": "1379910767",
       "internalName": "imperial-loyalist",
@@ -3349,6 +4785,87 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "3523847566",
+      "internalName": "mandalorian-super-commandos",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_240",
+      "setCodes": [
+        {
+          "number": 240,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 240,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "While you control a leader unit, this unit gets +2/+0.",
+      "title": "Mandalorian Super Commandos",
+      "traits": [
+        "mandalorian",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "2817799723",
+      "internalName": "marroks-fiend-fighter#formidable-pursuer",
+      "keywords": [
+        "support",
+        "overwhelm"
+      ],
+      "power": 3,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "ASH_241",
+      "setCodes": [
+        {
+          "number": 241,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 241,
+        "set": "ASH"
+      },
+      "subtitle": "Formidable Pursuer",
+      "text": "Support\nOverwhelm\nThis unit gets +2/+0 while attacking a damaged unit.",
+      "title": "Marrok's Fiend Fighter",
+      "traits": [
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -3557,6 +5074,45 @@
       "aspects": [
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4169022992",
+      "internalName": "zealous-soldier",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_251",
+      "setCodes": [
+        {
+          "number": 251,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 251,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: Give an Advantage token to this unit.",
+      "title": "Zealous Soldier",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -3585,6 +5141,88 @@
       "traits": [
         "new republic",
         "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6234240452",
+      "internalName": "yellow-aces-bomber",
+      "keywords": [
+        "support"
+      ],
+      "power": 2,
+      "rules": "Yellow Aces Bomber's \"\"On Attack\"\" ability deals 2 damage to the a base if the attacking unit is upgraded.\n",
+      "setCode": "ASH_253",
+      "setCodes": [
+        {
+          "number": 253,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 253,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: If this unit is upgraded, deal 2 damage to a base.",
+      "title": "Yellow Aces Bomber",
+      "traits": [
+        "new republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "9397308249",
+      "internalName": "gallofree-transport",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_254",
+      "setCodes": [
+        {
+          "number": 254,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 254,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Give 2 Advantage tokens to a friendly unit.",
+      "title": "Gallofree Transport",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -3787,6 +5425,81 @@
       "upgradePower": null
     },
     {
+      "aspects": [],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0522959604",
+      "internalName": "a-new-order",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_264",
+      "setCodes": [
+        {
+          "number": 264,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 264,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Give an Advantage token to each of up to 2 units.",
+      "title": "A New Order",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: You may give a Weakness token to a unit.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "3060442176",
+      "internalName": "doctor-hemlock#emotion-has-no-place-here",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "HMW_003",
+      "setCodes": [
+        {
+          "number": 3,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 3,
+        "set": "HMW"
+      },
+      "subtitle": "Emotion Has No Place Here",
+      "text": "Action [1 resource, Exhaust]: Give a Weakness token to a unit without a Weakness token on it.",
+      "title": "Doctor Hemlock",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -3821,6 +5534,46 @@
         "force",
         "imperial",
         "sith"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may deal 2 damage to a unit with a token upgrade on it. (Shield and Weakness tokens are token upgrades.)",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 5,
+      "id": "9900684268",
+      "internalName": "bossk#cruel-hunter",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "HMW_015",
+      "setCodes": [
+        {
+          "number": 15,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 15,
+        "set": "HMW"
+      },
+      "subtitle": "Cruel Hunter",
+      "text": "Action [Exhaust]: Heal 1 damage from a damaged enemy unit and give a Weakness token to it.",
+      "title": "Bossk",
+      "traits": [
+        "underworld",
+        "bounty hunter"
       ],
       "types": [
         "leader"
@@ -4515,6 +6268,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7755474526",
+      "internalName": "talzins-shuttle#mysterious-arrival",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_040",
+      "setCodes": [
+        {
+          "number": 40,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 40,
+        "set": "HMW"
+      },
+      "subtitle": "Mysterious Arrival",
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\nWhen Played: If an opponent played 2 or more cards this phase, you may give 2 Weakness tokens to a unit.",
+      "title": "Talzin's Shuttle",
+      "traits": [
+        "night",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -4587,6 +6383,49 @@
       "title": "A'Koba",
       "traits": [
         "tusken"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "cunning"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "0941615068",
+      "internalName": "fetts-firespray#settling-the-score",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 6,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "HMW_053",
+      "setCodes": [
+        {
+          "number": 53,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 53,
+        "set": "HMW"
+      },
+      "subtitle": "Settling the Score",
+      "text": "Friendly units can attack bases while using Ambush.",
+      "title": "Fett's Firespray",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -4795,6 +6634,46 @@
         "imperial",
         "clone",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "2558977875",
+      "internalName": "clone-of-the-zillo-beast#emperors-experiment",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "HMW_065",
+      "setCodes": [
+        {
+          "number": 65,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 65,
+        "set": "HMW"
+      },
+      "subtitle": "Emperor's Experiment",
+      "text": "Other friendly units get –2/–2.\nOn Attack: You may give a Weakness token to a unit.",
+      "title": "Clone of the Zillo Beast",
+      "traits": [
+        "clone",
+        "creature"
       ],
       "types": [
         "unit"
@@ -5132,6 +7011,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "1962406139",
+      "internalName": "fambaa-shield-team",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "HMW_080",
+      "setCodes": [
+        {
+          "number": 80,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 80,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: Give a Shield token to each friendly ground unit without a Shield token on it.",
+      "title": "Fambaa Shield Team",
+      "traits": [
+        "creature",
+        "gungan"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -5692,6 +7611,47 @@
         "command",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "0054868207",
+      "internalName": "disposable-b1",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_103",
+      "setCodes": [
+        {
+          "number": 103,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 103,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: If another friendly unit entered play this phase (including leader and token units), draw a card.",
+      "title": "Disposable B1",
+      "traits": [
+        "separatist",
+        "droid",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -6181,6 +8141,47 @@
       "aspects": [
         "command"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "0155971288",
+      "internalName": "zam-wesell#not-what-she-seems",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 2,
+      "rules": "If a unit has Hidden and Sentinel at the same time, it can be attacked.\n",
+      "setCode": "HMW_134",
+      "setCodes": [
+        {
+          "number": 134,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 134,
+        "set": "HMW"
+      },
+      "subtitle": "Not What She Seems",
+      "text": "Hidden\nThis unit gains each friendly leader's traits except Force, even while she's not in play.",
+      "title": "Zam Wesell",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -6211,6 +8212,44 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "5032370330",
+      "internalName": "lifetree-caravan",
+      "keywords": [],
+      "power": 2,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "HMW_136",
+      "setCodes": [
+        {
+          "number": 136,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 136,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: If you control 3 or more units (including this one), you may resource the top card of your deck.",
+      "title": "Lifetree Caravan",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -7510,6 +9549,45 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 2,
+      "id": "4318148716",
+      "internalName": "cid-scaleback#cant-be-trusted",
+      "keywords": [],
+      "power": 2,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "HMW_197",
+      "setCodes": [
+        {
+          "number": 197,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 197,
+        "set": "HMW"
+      },
+      "subtitle": "Can't Be Trusted",
+      "text": "When Played: An opponent chooses a unit they control. Give a Weakness token to it.",
+      "title": "Cid Scaleback",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 1,
       "id": "8767838857",
       "internalName": "treacherous-pyke",
@@ -7666,6 +9744,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8195968327",
+      "internalName": "victor-squadron#in-attack-formation",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "HMW_203",
+      "setCodes": [
+        {
+          "number": 203,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 203,
+        "set": "HMW"
+      },
+      "subtitle": "In Attack Formation",
+      "text": "This unit enters play ready.",
+      "title": "Victor Squadron",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "cunning",
         "villainy"
@@ -7700,6 +9819,48 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3854292375",
+      "internalName": "luke-skywalker#dreaming-farmboy",
+      "keywords": [
+        "raid"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "HMW_208",
+      "setCodes": [
+        {
+          "number": 208,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 208,
+        "set": "HMW"
+      },
+      "subtitle": "Dreaming Farmboy",
+      "text": "Raid 1\nWhile it's the first round of the game, this unit enters play ready.",
+      "title": "Luke Skywalker",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -9834,6 +11995,47 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "1758639231",
+      "internalName": "improvised-detonation",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "IBH_021",
+      "setCodes": [
+        {
+          "number": 21,
+          "set": "IBH"
+        },
+        {
+          "number": 30,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 21,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. It gets +2/+0 for this attack. (You can only attack with a ready friendly unit.)",
+      "title": "Improvised Detonation",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "command",
@@ -9879,6 +12081,50 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8709200009",
+      "internalName": "general-rieekan#stalwart-tactician",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IBH_023",
+      "setCodes": [
+        {
+          "number": 23,
+          "set": "IBH"
+        },
+        {
+          "number": 36,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 23,
+        "set": "IBH"
+      },
+      "subtitle": "Stalwart Tactician",
+      "text": "Action [Exhaust]: Attack with another Heroism unit. It gets +2/+0 for this attack.  (You can only attack with a ready friendly unit.)",
+      "title": "General Rieekan",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -10445,6 +12691,50 @@
       "subtitle": "",
       "text": "",
       "title": "Snowtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "4512477799",
+      "internalName": "hoth-lieutenant",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IBH_064",
+      "setCodes": [
+        {
+          "number": 64,
+          "set": "IBH"
+        },
+        {
+          "number": 92,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 64,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "When Played: You may attack with another unit. It gets +2/+0 for this attack.  (You can only attack with a ready friendly unit.)",
+      "title": "Hoth Lieutenant",
       "traits": [
         "imperial",
         "trooper"
@@ -11066,6 +13356,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: You may give another Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 8,
+      "id": "8943696478",
+      "internalName": "admiral-holdo#were-not-alone",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_007",
+      "setCodes": [
+        {
+          "number": 7,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 7,
+        "set": "JTL"
+      },
+      "subtitle": "We're Not Alone",
+      "text": "Action [1 resource, Exhaust]: Give a Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase.",
+      "title": "Admiral Holdo",
+      "traits": [
+        "resistance",
+        "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance"
       ],
@@ -11574,6 +13904,133 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "5763330426",
+      "internalName": "the-ghost#heart-of-the-family",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "JTL_053",
+      "setCodes": [
+        {
+          "number": 53,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 53,
+        "set": "JTL"
+      },
+      "subtitle": "Heart of the Family",
+      "text": "Each other friendly Spectre unit gains this unit's keywords.\nWhile this unit is upgraded, it gains Sentinel.",
+      "title": "The Ghost",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6300552434",
+      "internalName": "gold-leader#fastest-ship-in-the-fleet",
+      "keywords": [
+        "shielded"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "JTL_054",
+      "setCodes": [
+        {
+          "number": 54,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 54,
+        "set": "JTL"
+      },
+      "subtitle": "Fastest Ship in the Fleet",
+      "text": "Shielded (When you play this unit, give a Shield token to it.)\nWhile this unit is defending, the attacker gets –1/–0.",
+      "title": "Gold Leader",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4332645242",
+      "internalName": "corporate-defense-shuttle",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "This unit can't attack.",
+      "title": "Corporate Defense Shuttle",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -11900,6 +14357,48 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "7610382003",
+      "internalName": "cr90-relief-runner",
+      "keywords": [
+        "restore"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "JTL_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\nWhen Defeated: Heal up to 3 damage from a unit or base.",
+      "title": "CR90 Relief Runner",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -11939,6 +14438,43 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "3291001746",
+      "internalName": "grim-valor",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "JTL_073",
+      "setCodes": [
+        {
+          "number": 73,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 73,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “When Defeated: You may exhaust a unit.”",
+      "title": "Grim Valor",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "aspects": [
@@ -12127,6 +14663,49 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1034181657",
+      "internalName": "first-order-tie-fighter",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_081",
+      "setCodes": [
+        {
+          "number": 81,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 81,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "While you control a token unit, this unit gains Raid 1. (It gets +1/+0 while attacking.)",
+      "title": "First Order TIE Fighter",
+      "traits": [
+        "first order",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -12458,6 +15037,49 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8779760486",
+      "internalName": "raddus#holdos-final-command",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 8,
+      "rules": "Damage dealt by Raddus' \"When Defeated\" ability includes any modifiers to Raddus' power when it was defeated.\n",
+      "setCode": "JTL_104",
+      "setCodes": [
+        {
+          "number": 104,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 104,
+        "set": "JTL"
+      },
+      "subtitle": "Holdo's Final Command",
+      "text": "While you control another Resistance card (unit, upgrade, or leader), this unit gains Sentinel.\nWhen Defeated: Deal damage equal to this unit's power to an enemy unit.",
+      "title": "Raddus",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -12796,6 +15418,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "0926549684",
+      "internalName": "resupply-carrier",
+      "keywords": [],
+      "power": 4,
+      "rules": "A card put into play as a resource enters play exhausted.\n(ERRATA) Templating update: “Put into play as a resource” becomes “resource”.\n",
+      "setCode": "JTL_119",
+      "setCodes": [
+        {
+          "number": 119,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 119,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: You may put the top card of your deck into play as a resource.",
+      "title": "Resupply Carrier",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "command"
       ],
@@ -12838,6 +15500,47 @@
         "aggression",
         "villainy"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9595057518",
+      "internalName": "special-forces-tie-fighter",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_135",
+      "setCodes": [
+        {
+          "number": 135,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 135,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: If an opponent controls more space units than you, ready this unit.",
+      "title": "Special Forces TIE Fighter",
+      "traits": [
+        "first order",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -12867,6 +15570,124 @@
         "underworld",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4033634907",
+      "internalName": "no-disintegrations",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_144",
+      "setCodes": [
+        {
+          "number": 144,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 144,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Deal damage to a non-leader unit equal to 1 less than its remaining HP.",
+      "title": "No Disintegrations",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6600603122",
+      "internalName": "massassi-tactical-officer",
+      "keywords": [],
+      "power": 0,
+      "rules": "If you use Massassi Tactical Officer’s ability, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "JTL_146",
+      "setCodes": [
+        {
+          "number": 146,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 146,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust]: Attack with a Fighter unit. It gets +2/+0 for this attack.",
+      "title": "Massassi Tactical Officer",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3389903389",
+      "internalName": "black-one#straight-at-them",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_147",
+      "setCodes": [
+        {
+          "number": 147,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 147,
+        "set": "JTL"
+      },
+      "subtitle": "Straight At Them",
+      "text": "While this unit is upgraded, it gets +1/+0.\nOn Attack: If you control Poe Dameron (as a unit, upgrade, or leader), you may deal 1 damage to a unit.",
+      "title": "Black One",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -13079,6 +15900,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "4019449999",
+      "internalName": "cham-syndulla#rallying-ryloth",
+      "keywords": [],
+      "power": 5,
+      "rules": "A card put into play as a resource enters play exhausted.\n(ERRATA) Templating update: “Put into play as a resource” becomes “resource”. \"Controls more\" becomes \"control fewer\".\n",
+      "setCode": "JTL_164",
+      "setCodes": [
+        {
+          "number": 164,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 164,
+        "set": "JTL"
+      },
+      "subtitle": "Rallying Ryloth",
+      "text": "When Played: If an opponent controls more resources than you, you may put the top card of your deck into play as a resource.",
+      "title": "Cham Syndulla",
+      "traits": [
+        "rebel",
+        "twi'lek"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression"
@@ -13244,6 +16104,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6938023363",
+      "internalName": "piercing-shot",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_180",
+      "setCodes": [
+        {
+          "number": 180,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 180,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Defeat all Shield tokens on a unit. Deal 3 damage to that unit.",
+      "title": "Piercing Shot",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning",
@@ -13321,6 +16218,47 @@
         "separatist",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "1965647391",
+      "internalName": "blade-squadron-bwing",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_199",
+      "setCodes": [
+        {
+          "number": 199,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 199,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "When Played: If another player controls 3 or more exhausted units, give a Shield token to a unit.",
+      "title": "Blade Squadron B-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -13653,6 +16591,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6413979593",
+      "internalName": "punch-it",
+      "keywords": [],
+      "power": null,
+      "rules": "If you play Punch It, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "JTL_231",
+      "setCodes": [
+        {
+          "number": 231,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 231,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Attack with a Vehicle unit. It gets +2/+0 for this attack.",
+      "title": "Punch It",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "villainy"
@@ -13767,6 +16742,46 @@
         "imperial",
         "vehicle",
         "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "5052103576",
+      "internalName": "resistance-xwing",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_247",
+      "setCodes": [
+        {
+          "number": 247,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 247,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "While this unit has a Pilot on it, it gets +1/+1.",
+      "title": "Resistance X-Wing",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -13975,6 +16990,45 @@
     {
       "arena": "space",
       "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "2177194044",
+      "internalName": "swarming-vulture-droid",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_256",
+      "setCodes": [
+        {
+          "number": 256,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 256,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "A deck can have up to 15 copies of this card.\nThis unit gets +1/+0 for each other friendly Swarming Vulture Droid.",
+      "title": "Swarming Vulture Droid",
+      "traits": [
+        "separatist",
+        "droid",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -14123,6 +17177,91 @@
       "traits": [
         "underworld",
         "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "command",
+        "villainy"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "8331101999",
+      "internalName": "hounds-tooth#hunters-approach",
+      "keywords": [],
+      "power": 4,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n\"When Attack Ends\" abilities trigger at the same time the attacking unit deals combat damage. Hound’s Tooth must survive the attack in order to defeat a unit.\n",
+      "setCode": "LAW_033",
+      "setCodes": [
+        {
+          "number": 33,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 33,
+        "set": "LAW"
+      },
+      "subtitle": "Hunters' Approach",
+      "text": "When Attack Ends: If this unit survived, you may defeat a unit with less power than this unit.",
+      "title": "Hound's Tooth",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6434420907",
+      "internalName": "chewbacca#mighty-rescuer",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 4,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n\"When Attack Ends\" abilities trigger at the same time the attacking unit deals combat damage. If Chewbacca is defeated by combat damage, you cannot heal him or give him an Experience token.\n",
+      "setCode": "LAW_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "LAW"
+      },
+      "subtitle": "Mighty Rescuer",
+      "text": "Overwhelm\nWhen Attack Ends: If the defending unit was defeated, give an Experience token to this unit and heal 3 damage from him.",
+      "title": "Chewbacca",
+      "traits": [
+        "rebel",
+        "wookiee"
       ],
       "types": [
         "unit"
@@ -14332,6 +17471,46 @@
       "text": "Ready a unit and give a Shield token to it.",
       "title": "Shadow Cloaking",
       "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "aggression",
+        "villainy"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "5657954810",
+      "internalName": "single-reactor-ignition",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LAW_044",
+      "setCodes": [
+        {
+          "number": 44,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 44,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Defeat all units. For each enemy unit defeated this way, deal 1 damage to its controller's base.",
+      "title": "Single Reactor Ignition",
+      "traits": [
+        "disaster",
         "tactic"
       ],
       "types": [
@@ -15061,6 +18240,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9574762282",
+      "internalName": "broken-horn#vizagos-pride",
+      "keywords": [],
+      "power": 5,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\nResources enter play exhausted.\n",
+      "setCode": "LAW_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "LAW"
+      },
+      "subtitle": "Vizago's Pride",
+      "text": "When Played: If you have fewer cards in hand than an opponent, draw a card. If you control fewer resources than an opponent, resource the top card of your deck.",
+      "title": "Broken Horn",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -15556,6 +18776,87 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2254545413",
+      "internalName": "lando-calrissian#eyes-open",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_108",
+      "setCodes": [
+        {
+          "number": 108,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 108,
+        "set": "LAW"
+      },
+      "subtitle": "Eyes Open",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nWhile this unit is defending, the attacker gets –1/–0.",
+      "title": "Lando Calrissian",
+      "traits": [
+        "rebel",
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "5334583399",
+      "internalName": "leias-disguise",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_111",
+      "setCodes": [
+        {
+          "number": 111,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 111,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains the Underworld trait.\nWhen Played: If attached unit is Leia Organa, give a Shield token to a friendly unit.",
+      "title": "Leia's Disguise",
+      "traits": [
+        "item",
+        "armor"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -15837,6 +19138,45 @@
       "unique": false,
       "upgradeHp": -1,
       "upgradePower": -1
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "7057086144",
+      "internalName": "veiled-strength",
+      "keywords": [
+        "grit"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "LAW_128",
+      "setCodes": [
+        {
+          "number": 128,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 128,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-leader unit.\nAttached unit gains Grit.",
+      "title": "Veiled Strength",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
     },
     {
       "aspects": [
@@ -16155,6 +19495,84 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1925389607",
+      "internalName": "jaunty-light-freighter",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_147",
+      "setCodes": [
+        {
+          "number": 147,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 147,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: Give an Experience token to this unit for each different aspect among units you control.",
+      "title": "Jaunty Light Freighter",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "4894267161",
+      "internalName": "fulcrum",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_150",
+      "setCodes": [
+        {
+          "number": 150,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 150,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains the Rebel trait and “Each other friendly Rebel unit gets +2/+2.”",
+      "title": "Fulcrum",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command"
@@ -16190,6 +19608,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "4459586752",
+      "internalName": "c3po#translation-protocol",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_152",
+      "setCodes": [
+        {
+          "number": 152,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 152,
+        "set": "LAW"
+      },
+      "subtitle": "Translation Protocol",
+      "text": "On Attack: You may give an Experience token to another non-leader unit that shares a Trait with a friendly leader.",
+      "title": "C-3PO",
+      "traits": [
+        "rebel",
+        "underworld",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -16466,6 +19924,43 @@
       "title": "Combat Exercise",
       "traits": [
         "learned"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8221105498",
+      "internalName": "stockpile",
+      "keywords": [],
+      "power": null,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "LAW_171",
+      "setCodes": [
+        {
+          "number": 171,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 171,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Resource this event and the top card of your deck.",
+      "title": "Stockpile",
+      "traits": [
+        "supply"
       ],
       "types": [
         "event"
@@ -16814,6 +20309,45 @@
         "aggression",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9472544840",
+      "internalName": "enfys-nests-helmet",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "LAW_186",
+      "setCodes": [
+        {
+          "number": 186,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 186,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains: “On Attack: You may give another unit +3/+0 for this phase.”",
+      "title": "Enfys Nest's Helmet",
+      "traits": [
+        "item",
+        "armor"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -17130,6 +20664,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "2443700984",
+      "internalName": "salacious-crumb#cackling-companion",
+      "keywords": [
+        "raid"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "LAW_210",
+      "setCodes": [
+        {
+          "number": 210,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 210,
+        "set": "LAW"
+      },
+      "subtitle": "Cackling Companion",
+      "text": "Raid 2\nIf you control Jabba the Hutt (as a leader or unit), this unit enters play ready.",
+      "title": "Salacious Crumb",
+      "traits": [
+        "underworld",
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning",
@@ -17169,6 +20745,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2947761350",
+      "internalName": "malakili#keeper-of-the-menagerie",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_212",
+      "setCodes": [
+        {
+          "number": 212,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 212,
+        "set": "LAW"
+      },
+      "subtitle": "Keeper of the Menagerie",
+      "text": "Each friendly Creature unit and each Creature unit you own that isn't in play gains the Underworld trait.",
+      "title": "Malakili",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -17336,6 +20951,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "1266774503",
+      "internalName": "rose-tico#now-its-worth-it",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "LAW_223",
+      "setCodes": [
+        {
+          "number": 223,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 223,
+        "set": "LAW"
+      },
+      "subtitle": "Now It's Worth It",
+      "text": "If you control a non-<uq> unit, this unit enters play ready.",
+      "title": "Rose Tico",
+      "traits": [
+        "resistance"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -17987,6 +21641,88 @@
       "arena": "ground",
       "aspects": [
         "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may give a unit –1/–1 for this phase.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "2520636620",
+      "internalName": "mother-talzin#power-through-magick",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_002",
+      "setCodes": [
+        {
+          "number": 2,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 2,
+        "set": "LOF"
+      },
+      "subtitle": "Power Through Magick",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give a unit –1/–1 for this phase.",
+      "title": "Mother Talzin",
+      "traits": [
+        "force",
+        "night"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: You may give a friendly unit Sentinel for this phase.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "7077983867",
+      "internalName": "ahsoka-tano#fighting-for-peace",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 5,
+      "rules": "Ahsoka's unit side ability can be used to give herself Sentinel.\n",
+      "setCode": "LOF_003",
+      "setCodes": [
+        {
+          "number": 3,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 3,
+        "set": "LOF"
+      },
+      "subtitle": "Fighting For Peace",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give a friendly unit Sentinel for this phase. (Enemy units in its arena must attack a sentinel when they attack you.)",
+      "title": "Ahsoka Tano",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
         "heroism"
       ],
       "cost": 6,
@@ -18019,6 +21755,88 @@
         "jedi",
         "rebel",
         "spectre"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "On Attack: Give an Experience token to the unit with the most power among friendly Villainy units.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "9919167831",
+      "internalName": "supreme-leader-snoke#in-the-seat-of-power",
+      "keywords": [],
+      "power": 4,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\nSnoke's ability only considers friendly Villainy units when determining which has the most power, regardless of the power of friendly non-Villainy units.\n",
+      "setCode": "LOF_006",
+      "setCodes": [
+        {
+          "number": 6,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 6,
+        "set": "LOF"
+      },
+      "subtitle": "In the Seat of Power",
+      "text": "Action [1 resource, Exhaust]: Give an Experience token to the unit with the most power among friendly Villainy units. (If multiple units are tied, choose one.)",
+      "title": "Supreme Leader Snoke",
+      "traits": [
+        "force",
+        "first order",
+        "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": "On Attack: You may give an Experience token to another unit without an Experience token on it.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "2693401411",
+      "internalName": "obiwan-kenobi#courage-makes-heroes",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_008",
+      "setCodes": [
+        {
+          "number": 8,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 8,
+        "set": "LOF"
+      },
+      "subtitle": "Courage Makes Heroes",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Give an Experience token to a unit without an Experience token on it.",
+      "title": "Obi-Wan Kenobi",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
       ],
       "types": [
         "leader"
@@ -18198,6 +22016,49 @@
         "vigilance",
         "villainy"
       ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 9,
+      "id": "8633377277",
+      "internalName": "pong-krell#its-treason-then",
+      "keywords": [
+        "grit"
+      ],
+      "power": 2,
+      "rules": "A unit must survive an attack to trigger its \"when this unit completes an attack\" abilities.\nAbilities that refer to a card’s power include temporary modifiers.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "LOF_038",
+      "setCodes": [
+        {
+          "number": 38,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 38,
+        "set": "LOF"
+      },
+      "subtitle": "It's Treason, Then",
+      "text": "Grit\nWhen this unit completes an attack (and survives): You may defeat a unit with less remaining HP than this unit's power.",
+      "title": "Pong Krell",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
       "cost": 8,
       "deployBox": null,
       "epicAction": "",
@@ -18268,6 +22129,47 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "7504035101",
+      "internalName": "lothwolf",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_044",
+      "setCodes": [
+        {
+          "number": 44,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 44,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nThis unit can't attack.",
+      "title": "Loth-Wolf",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -18529,6 +22431,45 @@
         "vigilance",
         "heroism"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "7377298352",
+      "internalName": "jedi-holocron",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_051",
+      "setCodes": [
+        {
+          "number": 51,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 51,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attach to a Force unit. \nAttached unit gains: “On Attack: You may heal 3 damage from another unit.”",
+      "title": "Jedi Holocron",
+      "traits": [
+        "jedi",
+        "item"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -18567,6 +22508,44 @@
       "upgradePower": 2
     },
     {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9854991700",
+      "internalName": "calm-in-the-storm",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_054",
+      "setCodes": [
+        {
+          "number": 54,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 54,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Exhaust a friendly unit. If you do, give a Shield token and 2 Experience tokens to it.",
+      "title": "Calm in the Storm",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance"
@@ -18597,6 +22576,51 @@
       "traits": [
         "force",
         "night"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4718895864",
+      "internalName": "padawan-starfighter",
+      "keywords": [],
+      "power": 1,
+      "rules": "Padawan Starfighter gets +1/+1 while you control a Force unit or a Force upgrade.\n",
+      "setCode": "LOF_060",
+      "setCodes": [
+        {
+          "number": 58,
+          "set": "TWI"
+        },
+        {
+          "number": 60,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 60,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "While you control a Force unit or a Force upgrade, this unit gets +1/+1.",
+      "title": "Padawan Starfighter",
+      "traits": [
+        "jedi",
+        "republic",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -19068,6 +23092,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "9722568619",
+      "internalName": "captain-enoch#captain-of-the-guard",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "LOF"
+      },
+      "subtitle": "Captain of the Guard",
+      "text": "This unit gets +1/+0 for each Trooper unit in your discard pile.",
+      "title": "Captain Enoch",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -19615,6 +23679,44 @@
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "8834515285",
+      "internalName": "maz-kanata#the-light-guides",
+      "keywords": [],
+      "power": 3,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "LOF_111",
+      "setCodes": [
+        {
+          "number": 111,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 111,
+        "set": "LOF"
+      },
+      "subtitle": "The Light Guides",
+      "text": "When Played: You may attack with a Force unit. It gets +2/+0 for this attack.",
+      "title": "Maz Kanata",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 6,
       "id": "4543549467",
       "internalName": "outer-rim-mystic",
@@ -19885,6 +23987,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 12,
+      "id": "2968188569",
+      "internalName": "the-purrgil-king#leading-the-journey",
+      "keywords": [
+        "restore"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "LOF_121",
+      "setCodes": [
+        {
+          "number": 121,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 121,
+        "set": "LOF"
+      },
+      "subtitle": "Leading The Journey",
+      "text": "Restore 4\nWhen Played: Draw a card for each friendly unit with 7 or more remaining HP.",
+      "title": "The Purrgil King",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -20256,6 +24398,44 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4256802093",
+      "internalName": "battle-fury",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_139",
+      "setCodes": [
+        {
+          "number": 139,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 139,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “On Attack: Discard a card from your hand.”",
+      "title": "Battle Fury",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 3
     },
     {
       "arena": "ground",
@@ -21269,6 +25449,46 @@
         "cunning",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4024881604",
+      "internalName": "adept-of-anger",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust, use the Force (lose your Force token)]: Exhaust a unit.",
+      "title": "Adept of Anger",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -22126,6 +26346,47 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3591040205",
+      "internalName": "pounce",
+      "keywords": [],
+      "power": null,
+      "rules": "If you play Pounce, you must attack with a Creature unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "LOF_224",
+      "setCodes": [
+        {
+          "number": 224,
+          "set": "LOF"
+        },
+        {
+          "number": 239,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 224,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attack with a Creature unit. It gets +4/+0 for this attack.",
+      "title": "Pounce",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "villainy"
@@ -22329,6 +26590,86 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "2285555274",
+      "internalName": "darth-malak#covetous-apprentice",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 4,
+      "rules": "If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\n",
+      "setCode": "LOF_234",
+      "setCodes": [
+        {
+          "number": 234,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 234,
+        "set": "LOF"
+      },
+      "subtitle": "Covetous Apprentice",
+      "text": "Overwhelm\nWhen Played: If you control a Sith leader unit, you may ready this unit.",
+      "title": "Darth Malak",
+      "traits": [
+        "force",
+        "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9160311421",
+      "internalName": "hk87-assassin-droid",
+      "keywords": [],
+      "power": 4,
+      "rules": "All damage dealt by HK-87 Assassin Droid's \"When Defeated\" ability is dealt simultaneously.\n",
+      "setCode": "LOF_235",
+      "setCodes": [
+        {
+          "number": 235,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 235,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Deal 2 damage to each ground unit.",
+      "title": "HK-87 Assassin Droid",
+      "traits": [
+        "imperial",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -22559,6 +26900,84 @@
       "traits": [
         "force",
         "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6800160263",
+      "internalName": "caretaker-matron",
+      "keywords": [],
+      "power": 0,
+      "rules": "Caretaker Matron's ability can still be used as an action even if you haven't played a Force card this phase (but you don't draw a card).\n",
+      "setCode": "LOF_243",
+      "setCodes": [
+        {
+          "number": 243,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 243,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust]: If you played a Force card this phase, draw a card.",
+      "title": "Caretaker Matron",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0035741177",
+      "internalName": "jedi-vector",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_244",
+      "setCodes": [
+        {
+          "number": 244,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 244,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "This unit gets +1/+0 if you control another Jedi unit and +1/+0 if you control a Lightsaber upgrade.",
+      "title": "Jedi Vector",
+      "traits": [
+        "jedi",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -23532,6 +27951,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3052170248",
+      "internalName": "the-chancellors-shuttle#grim-harbinger",
+      "keywords": [
+        "restore"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SEC_027",
+      "setCodes": [
+        {
+          "number": 27,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 27,
+        "set": "SEC"
+      },
+      "subtitle": "Grim Harbinger",
+      "text": "Restore 1\nWhen Defeated: If you control Chancellor Palpatine (as a leader or unit), you may give an Experience token to a unit.",
+      "title": "The Chancellor's Shuttle",
+      "traits": [
+        "republic",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance",
@@ -23748,6 +28210,44 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "1036406563",
+      "internalName": "creditors-claim",
+      "keywords": [],
+      "power": 2,
+      "rules": "Because the attached unit gains the ability, the \"You\" in Creditor's Claim's \"When Defeated\" ability refers to the controller of the attached unit.\n",
+      "setCode": "SEC_039",
+      "setCodes": [
+        {
+          "number": 39,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 39,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “When Defeated: You may defeat a unit with 3 or less remaining HP.”",
+      "title": "Creditor's Claim",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance",
@@ -23953,6 +28453,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "2959504320",
+      "internalName": "bokatan-kryze#alone",
+      "keywords": [],
+      "power": 8,
+      "rules": "Bo-Katan's \"When Played\" ability can trigger her \"When an enemy unit is defeated\" ability if it defeats enemy units.\n",
+      "setCode": "SEC_051",
+      "setCodes": [
+        {
+          "number": 51,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 51,
+        "set": "SEC"
+      },
+      "subtitle": "Alone",
+      "text": "When Played: Give each enemy unit –3/–3 for this phase.\nWhen an enemy unit is defeated: Give an Experience token to a friendly unit.",
+      "title": "Bo-Katan Kryze",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -24199,6 +28738,45 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0217687208",
+      "internalName": "disciples-devotion",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SEC_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "While attached unit is exhausted, it gains Sentinel. (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Disciples' Devotion",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 1
     },
     {
       "aspects": [
@@ -24529,6 +29107,46 @@
         "command",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9857313649",
+      "internalName": "theed-security",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: If an opponent controls an upgrade, give an Experience token to a unit.",
+      "title": "Theed Security",
+      "traits": [
+        "naboo",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -24604,6 +29222,48 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "8467899467",
+      "internalName": "figure-of-unity",
+      "keywords": [
+        "overwhelm",
+        "raid",
+        "restore"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SEC_104",
+      "setCodes": [
+        {
+          "number": 104,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 104,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Attach to a <uq> unit.\nAttached unit gains: “While this unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1.”",
+      "title": "Figure of Unity",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
     },
     {
       "arena": "ground",
@@ -25035,6 +29695,43 @@
       "title": "Reconnaissance",
       "traits": [
         "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8492928317",
+      "internalName": "ferrix-uprising",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Deal damage to a unit equal to twice the number of units you control in its arena.",
+      "title": "Ferrix Uprising",
+      "traits": [
+        "tactic"
       ],
       "types": [
         "event"
@@ -25659,6 +30356,44 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "1475870465",
+      "internalName": "corellian-hounds",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "SEC_170",
+      "setCodes": [
+        {
+          "number": 170,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 170,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "If an opponent controls no ground units, this unit enters play ready.",
+      "title": "Corellian Hounds",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": "",
@@ -25767,6 +30502,46 @@
       "traits": [
         "separatist",
         "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4195599545",
+      "internalName": "darth-traya#lord-of-betrayal",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_188",
+      "setCodes": [
+        {
+          "number": 188,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 188,
+        "set": "SEC"
+      },
+      "subtitle": "Lord of Betrayal",
+      "text": "On Attack: You may ready a non-unit leader.",
+      "title": "Darth Traya",
+      "traits": [
+        "force",
+        "sith"
       ],
       "types": [
         "unit"
@@ -25974,6 +30749,50 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3103445211",
+      "internalName": "anakin-skywalker#secret-husband",
+      "keywords": [
+        "hidden",
+        "raid"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_201",
+      "setCodes": [
+        {
+          "number": 201,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 201,
+        "set": "SEC"
+      },
+      "subtitle": "Secret Husband",
+      "text": "Hidden (This unit can't be attacked if he was played this phase.)\nWhile you control Padmé Amidala (as a leader or unit), this unit gains Raid 2.",
+      "title": "Anakin Skywalker",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -27855,6 +32674,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0518313150",
+      "internalName": "embo#stoic-and-resolute",
+      "keywords": [],
+      "power": 3,
+      "rules": "A unit must survive an attack to trigger its “when this unit completes an attack” abilities.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "SHD_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "SHD"
+      },
+      "subtitle": "Stoic and Resolute",
+      "text": "When this unit completes an attack: If the defender was defeated, heal up to 2 damage from a unit.",
+      "title": "Embo",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -28062,6 +32920,84 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "7687006104",
+      "internalName": "foundling",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SHD_069",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 69,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains the Mandalorian trait.",
+      "title": "Foundling",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9059202647",
+      "internalName": "resilient",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_070",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "SOR"
+        },
+        {
+          "number": 70,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 70,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Resilient",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 0
     },
     {
       "aspects": [
@@ -28301,6 +33237,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "1885628519",
+      "internalName": "crosshair#following-orders",
+      "keywords": [],
+      "power": 2,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "SHD_087",
+      "setCodes": [
+        {
+          "number": 87,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 87,
+        "set": "SHD"
+      },
+      "subtitle": "Following Orders",
+      "text": "Action [2 resources]: This unit gets +1/+0 for this phase.\nAction [Exhaust]: This unit deals damage equal to his power to an enemy ground unit.",
+      "title": "Crosshair",
+      "traits": [
+        "imperial",
+        "clone",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -28796,6 +33773,84 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "3228620062",
+      "internalName": "cripple-authority",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SHD_156",
+      "setCodes": [
+        {
+          "number": 156,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 156,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Draw a card. Each opponent who controls more resources than you discards a card from their hand.",
+      "title": "Cripple Authority",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9637610169",
+      "internalName": "bokatan-kryze#fighting-for-mandalore",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_157",
+      "setCodes": [
+        {
+          "number": 157,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 157,
+        "set": "SHD"
+      },
+      "subtitle": "Fighting For Mandalore",
+      "text": "When Defeated: For each player with 15 or more damage on their base, draw a card.",
+      "title": "Bo-Katan Kryze",
+      "traits": [
+        "mandalorian",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -29042,6 +34097,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "6962053552",
+      "internalName": "desperate-attack",
+      "keywords": [],
+      "power": null,
+      "rules": "You must attack with a damaged unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "SHD_179",
+      "setCodes": [
+        {
+          "number": 179,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 179,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Attack with a damaged unit. It gets +2/+0 for this attack.",
+      "title": "Desperate Attack",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -29081,6 +34173,47 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy",
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "6853970496",
+      "internalName": "slavers-freighter",
+      "keywords": [],
+      "power": 4,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "SHD_189",
+      "setCodes": [
+        {
+          "number": 189,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 189,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "When Played: You may ready another unit with power equal to or less than the number of upgrades on enemy units.",
+      "title": "Slaver's Freighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -29397,6 +34530,47 @@
       "traits": [
         "underworld",
         "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "3809048641",
+      "internalName": "surprise-strike",
+      "keywords": [],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "SHD_231",
+      "setCodes": [
+        {
+          "number": 220,
+          "set": "SOR"
+        },
+        {
+          "number": 231,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 231,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": "Attack with a unit. It gets +3/+0 for this attack.",
+      "title": "Surprise Strike",
+      "traits": [
+        "tactic"
       ],
       "types": [
         "event"
@@ -30307,6 +35481,46 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "1664771721",
+      "internalName": "gideon-hask#ruthless-loyalist",
+      "keywords": [],
+      "power": 5,
+      "rules": "If Gideon Hask is defeated simultaneously with other enemy units, you still get to give Experience.\n",
+      "setCode": "SOR_036",
+      "setCodes": [
+        {
+          "number": 36,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 36,
+        "set": "SOR"
+      },
+      "subtitle": "Ruthless Loyalist",
+      "text": "When an enemy unit is defeated: Give an Experience token to a friendly unit.",
+      "title": "Gideon Hask",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "villainy",
         "vigilance"
       ],
@@ -30387,6 +35601,126 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "6663619377",
+      "internalName": "atat-suppressor",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "SOR_039",
+      "setCodes": [
+        {
+          "number": 39,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 39,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "When Played: Exhaust all ground units.",
+      "title": "AT-AT Suppressor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "8240629990",
+      "internalName": "avenger#hunting-star-destroyer",
+      "keywords": [],
+      "power": 8,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "SOR_040",
+      "setCodes": [
+        {
+          "number": 40,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 40,
+        "set": "SOR"
+      },
+      "subtitle": "Hunting Star Destroyer",
+      "text": "When Played/On Attack: An opponent chooses a non‑leader unit they control. Defeat that unit.",
+      "title": "Avenger",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "0176921487",
+      "internalName": "power-of-the-dark-side",
+      "keywords": [],
+      "power": null,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "SOR_041",
+      "setCodes": [
+        {
+          "number": 41,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 41,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "An opponent chooses a unit they control. Defeat that unit.",
+      "title": "Power of the Dark Side",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -30880,6 +36214,84 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "4599464590",
+      "internalName": "rugged-survivors",
+      "keywords": [
+        "grit"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_067",
+      "setCodes": [
+        {
+          "number": 67,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 67,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Grit (This unit gets +1/+0 for each damage on it.)\n\nOn Attack: If you control a leader unit, you may draw a card.",
+      "title": "Rugged Survivors",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "1323728003",
+      "internalName": "electrostaff",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Attach to a non-VEHICLE unit. \n\nWhile attached unit is defending, the attacker gets –1/–0.",
+      "title": "Electrostaff",
+      "traits": [
+        "item",
+        "weapon"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "aspects": [
         "vigilance"
       ],
@@ -31029,6 +36441,47 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "1780978508",
+      "internalName": "emperors-royal-guard",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_082",
+      "setCodes": [
+        {
+          "number": 82,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 82,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "While you control an OFFICIAL unit, this unit gains Sentinel.\n\nWhile you control Emperor Palpatine (as a leader or unit), this unit gets +0/+1.",
+      "title": "Emperor's Royal Guard",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -31196,6 +36649,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0827076106",
+      "internalName": "admiral-ackbar#brilliant-strategist",
+      "keywords": [
+        "restore"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_097",
+      "setCodes": [
+        {
+          "number": 97,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 97,
+        "set": "SOR"
+      },
+      "subtitle": "Brilliant Strategist",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)\n\nWhen Played: You may deal damage to a unit equal to the number of units you control in its arena. ",
+      "title": "Admiral Ackbar",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -31499,6 +36994,46 @@
       "aspects": [
         "command"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "6432884726",
+      "internalName": "steadfast-battalion",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 5,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SOR_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\n\nOn Attack: If you control a leader unit, give a friendly unit +2/+2 for this phase.",
+      "title": "Steadfast Battalion",
+      "traits": [
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 7,
       "deployBox": null,
       "epicAction": null,
@@ -31534,6 +37069,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "3463676231",
+      "internalName": "academy-training",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_120",
+      "setCodes": [
+        {
+          "number": 120,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 120,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Academy Training",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "ground",
       "aspects": [
         "villainy",
@@ -31562,6 +37134,48 @@
       "subtitle": null,
       "text": null,
       "title": "Death Star Stormtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4619930426",
+      "internalName": "first-legion-snowtrooper",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SOR_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "While attacking a damaged unit, this unit gets +2/+0 and gains Overwhelm. (Deal excess damage to the opponent's base.)",
+      "title": "First Legion Snowtrooper",
       "traits": [
         "imperial",
         "trooper"
@@ -31830,6 +37444,46 @@
         "aggression",
         "heroism"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "9647945674",
+      "internalName": "zeb-orrelios#headstrong-warrior",
+      "keywords": [],
+      "power": 5,
+      "rules": "A unit must survive an attack to trigger its “when this unit completes an attack” abilities.\nWhen Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.\n",
+      "setCode": "SOR_146",
+      "setCodes": [
+        {
+          "number": 146,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 146,
+        "set": "SOR"
+      },
+      "subtitle": "Headstrong Warrior",
+      "text": "When this unit completes an attack: If the defender was defeated, you may deal 4 damage to a ground unit.",
+      "title": "Zeb Orrelios",
+      "traits": [
+        "rebel",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": null,
@@ -31980,6 +37634,46 @@
       "title": "Cantina Braggart",
       "traits": [
         "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "1746195484",
+      "internalName": "jedha-agitator",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_158",
+      "setCodes": [
+        {
+          "number": 158,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 158,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\n\nOn Attack: If you control a leader unit, deal 2 damage to a ground unit or a base.",
+      "title": "Jedha Agitator",
+      "traits": [
+        "rebel"
       ],
       "types": [
         "unit"
@@ -32269,6 +37963,89 @@
     {
       "arena": "ground",
       "aspects": [
+        "villainy",
+        "cunning"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "3684950815",
+      "internalName": "bounty-hunter-crew",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "SOR_183",
+      "setCodes": [
+        {
+          "number": 183,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 183,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Ambush (After you play this unit, it may ready and attack an enemy unit.)\n\nWhen Played: You may return an event from a discard pile to its owner's hand.",
+      "title": "Bounty Hunter Crew",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "4300219753",
+      "internalName": "fetts-firespray#pursuing-the-bounty",
+      "keywords": [],
+      "power": 5,
+      "rules": "(ERRATA) Templating update: “Unique” becomes “<uq>”.\n",
+      "setCode": "SOR_184",
+      "setCodes": [
+        {
+          "number": 184,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 184,
+        "set": "SOR"
+      },
+      "subtitle": "Pursuing the Bounty",
+      "text": "When Played: If you control Boba Fett or Jango Fett (as a leader or unit), ready this unit.\n\nAction [2 resources]: Exhaust a non-unique unit.",
+      "title": "Fett's Firespray",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "cunning",
         "heroism"
       ],
@@ -32505,6 +38282,48 @@
       "title": "Crafty Smuggler",
       "traits": [
         "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "3613174521",
+      "internalName": "outer-rim-headhunter",
+      "keywords": [
+        "raid"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_208",
+      "setCodes": [
+        {
+          "number": 208,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 208,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\n\nOn Attack: If you control a leader unit, you may exhaust a non-leader unit.",
+      "title": "Outer Rim Headhunter",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -32784,6 +38603,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "9996676854",
+      "internalName": "admiral-motti#brazen-and-scornful",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_226",
+      "setCodes": [
+        {
+          "number": 226,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 226,
+        "set": "SOR"
+      },
+      "subtitle": "Brazen and Scornful",
+      "text": "When Defeated: You may ready a [Villainy] unit.",
+      "title": "Admiral Motti",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33107,6 +38965,35 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "5844562972",
+      "internalName": "advantage",
+      "keywords": [],
+      "power": 1,
+      "rules": "When Attack Ends/When Defense Ends abilities trigger at the same time as units deal combat damage.\n",
+      "setCode": "TOKEN_ADVANTAGE",
+      "setId": {
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When attached unit's attack or defense ends: Defeat this upgrade.",
+      "title": "Advantage",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 1
     },
     {
       "arena": "ground",
@@ -33455,6 +39342,50 @@
       "arena": "ground",
       "aspects": [
         "vigilance",
+        "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "9473986821",
+      "internalName": "darth-sidious#under-a-cloak-of-darkness",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 4,
+      "rules": "If Darth Sidious is defeated simultaneously with other units, his “When a non-token unit is defeated” ability trigger for each unit defeated, including himself.\nIf a unit has Hidden and Sentinel at the same time, it can be attacked.\n",
+      "setCode": "TS26_013",
+      "setCodes": [
+        {
+          "number": 13,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 13,
+        "set": "TS26"
+      },
+      "subtitle": "Under a Cloak of Darkness",
+      "text": "Hidden\nEach other friendly Separatist unit gets +1/+0.\nWhen a non-token unit is defeated: Create a Battle Droid token.",
+      "title": "Darth Sidious",
+      "traits": [
+        "force",
+        "separatist",
+        "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
         "command"
       ],
       "cost": 2,
@@ -33714,6 +39645,88 @@
     {
       "arena": "ground",
       "aspects": [
+        "aggression",
+        "cunning"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "0211565206",
+      "internalName": "maul#one-last-lesson",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 5,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "TS26_030",
+      "setCodes": [
+        {
+          "number": 30,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 30,
+        "set": "TS26"
+      },
+      "subtitle": "One Last Lesson",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nWhen Played: You may attack with another unit.",
+      "title": "Maul",
+      "traits": [
+        "force",
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning",
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "8767791219",
+      "internalName": "abandoned-the-order",
+      "keywords": [
+        "restore"
+      ],
+      "power": 1,
+      "rules": "Abilities that return a card to hand must choose a card in play unless otherwise specified.\nLosing the Jedi trait means the attached unit also can't gain the Jedi trait.\n",
+      "setCode": "TS26_037",
+      "setCodes": [
+        {
+          "number": 37,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 37,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Attached unit loses the Jedi trait and gains Restore 1.\nWhen Played: You may return a non-leader unit to its owner's hand.",
+      "title": "Abandoned the Order",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "vigilance",
         "heroism"
       ],
@@ -33792,6 +39805,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9458579327",
+      "internalName": "relief-frigate",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TS26_042",
+      "setCodes": [
+        {
+          "number": 42,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 42,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "When Played: Choose a base. Heal 3 damage from each other base.",
+      "title": "Relief Frigate",
+      "traits": [
+        "republic",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33877,6 +39930,43 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7640352104",
+      "internalName": "champion",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "TS26_045",
+      "setCodes": [
+        {
+          "number": 45,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 45,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Champion",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 4,
+      "upgradePower": 4
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -33951,6 +40041,45 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1377604550",
+      "internalName": "sith-traditions",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TS26_052",
+      "setCodes": [
+        {
+          "number": 52,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 52,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains: “On Attack: Give an Experience token to this unit.” and “When Defeated: Give an Experience token to a friendly unit.”",
+      "title": "Sith Traditions",
+      "traits": [
+        "sith",
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "arena": "ground",
@@ -34073,6 +40202,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3034449380",
+      "internalName": "wartime-pirate",
+      "keywords": [],
+      "power": 4,
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "TS26_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "On Attack: An opponent deals 1 damage to a unit.",
+      "title": "Wartime Pirate",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -34803,6 +40972,48 @@
         "vigilance",
         "villainy"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "1039828081",
+      "internalName": "calculating-magnaguard",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_033",
+      "setCodes": [
+        {
+          "number": 33,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 33,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When Played/When a friendly unit is defeated: This unit gains Sentinel for this phase. (Units in this arena can't attack your non-Sentinel units or your base.)",
+      "title": "Calculating MagnaGuard",
+      "traits": [
+        "separatist",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": null,
@@ -35177,6 +41388,44 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "4036958275",
+      "internalName": "hello-there",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_052",
+      "setCodes": [
+        {
+          "number": 52,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 52,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Choose a unit that entered play this phase. It gets –4/–4 for this phase.",
+      "title": "Hello There",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -35939,6 +42188,86 @@
       "arena": "ground",
       "aspects": [
         "command",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "7979348081",
+      "internalName": "kraken#confederate-tactician",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "TWI_084",
+      "setCodes": [
+        {
+          "number": 84,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 84,
+        "set": "TWI"
+      },
+      "subtitle": "Confederate Tactician",
+      "text": "When Played: Create 2 Battle Droid tokens.\nOn Attack: Give each friendly token unit +1/+1 for this phase.",
+      "title": "Kraken",
+      "traits": [
+        "separatist",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "1039176181",
+      "internalName": "kalani#analytical-general",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "TWI_085",
+      "setCodes": [
+        {
+          "number": 85,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 85,
+        "set": "TWI"
+      },
+      "subtitle": "Analytical General",
+      "text": "On Attack: You may choose another unit. If you have the initiative, you may choose up to 2 other units instead. Give each chosen unit +2/+2 for this phase.",
+      "title": "Kalani",
+      "traits": [
+        "separatist",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
         "heroism"
       ],
       "cost": 2,
@@ -35975,6 +42304,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "2395430106",
+      "internalName": "republic-tactical-officer",
+      "keywords": [],
+      "power": 1,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "TWI_091",
+      "setCodes": [
+        {
+          "number": 91,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 91,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When Played: You may attack with a Republic unit. It gets +2/+0 for this attack.",
+      "title": "Republic Tactical Officer",
+      "traits": [
+        "republic",
+        "clone"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -36255,6 +42624,45 @@
         "separatist",
         "droid",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "3258646001",
+      "internalName": "steadfast-senator",
+      "keywords": [],
+      "power": 0,
+      "rules": "If you use Steadfast Senator's ability, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "TWI_105",
+      "setCodes": [
+        {
+          "number": 105,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 105,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Action [2 resources, Exhaust]: Attack with a unit. It gets +2/+0 for this attack.",
+      "title": "Steadfast Senator",
+      "traits": [
+        "republic",
+        "official"
       ],
       "types": [
         "unit"
@@ -37749,6 +44157,45 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "2007876522",
+      "internalName": "clone-cohort",
+      "keywords": [
+        "raid"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "TWI_169",
+      "setCodes": [
+        {
+          "number": 169,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 169,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains Raid 2 and: “When Defeated: Create a Clone Trooper token.”",
+      "title": "Clone Cohort",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
       "cost": 1,
       "deployBox": null,
       "epicAction": null,
@@ -37778,6 +44225,82 @@
       "title": "Daring Raid",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "6669050232",
+      "internalName": "grim-resolve",
+      "keywords": [
+        "grit"
+      ],
+      "power": null,
+      "rules": "If you play Grim Resolve, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "TWI_172",
+      "setCodes": [
+        {
+          "number": 172,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 172,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Attack with a non-leader unit. It gains Grit for this attack. (It gets +1/+0 for each damage on it.)",
+      "title": "Grim Resolve",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "2103133661",
+      "internalName": "blood-sport",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_173",
+      "setCodes": [
+        {
+          "number": 173,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 173,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Deal 2 damage to each ground unit.",
+      "title": "Blood Sport",
+      "traits": [
+        "fringe"
       ],
       "types": [
         "event"
@@ -38484,6 +45007,43 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "7547538214",
+      "internalName": "droid-cohort",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TWI_218",
+      "setCodes": [
+        {
+          "number": 218,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 218,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains, “When Defeated: Create a Battle Droid token.”",
+      "title": "Droid Cohort",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
       "cost": 0,
       "deployBox": null,
       "epicAction": null,
@@ -38507,6 +45067,45 @@
       "subtitle": "",
       "text": "Exhaust a friendly unit. If you do, exhaust an enemy unit.",
       "title": "In Pursuit",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "4910017138",
+      "internalName": "breaking-in",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": null,
+      "rules": "If you play Breaking In, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "TWI_224",
+      "setCodes": [
+        {
+          "number": 224,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 224,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. It gets +2/+0 and gains Saboteur for this attack. (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)",
+      "title": "Breaking In",
       "traits": [
         "tactic"
       ],

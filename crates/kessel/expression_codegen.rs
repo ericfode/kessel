@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 pub fn expression(e: &Expr) -> Result<String, String> {
     let sub = expression;
     Ok(match e {
+        Expr::HistoryAttackCheck {..} => "Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated)".into(),
         Expr::Const { value } => {
             if let Some(n) = value.as_i64() {
                 format!("Eval::Number({n}i64)")
@@ -18,6 +19,11 @@ pub fn expression(e: &Expr) -> Result<String, String> {
                 "Eval::Null".into()
             }
         }
+        Expr::Collection {name,receiver,args,..} => {
+            let inventory=sub(receiver)?;let argument=sub(&args[0])?;
+            if name=="includes" {format!("{{let inventory={inventory};let needle={argument};evaluate_collection(inventory,{name:?},|_|Eval::Null,Some(needle))}}")}
+            else {format!("{{let inventory={inventory};evaluate_collection(inventory,{name:?},|bound_card|{{let card=bound_card;{argument}}},None)}}")}
+        },
         Expr::Array { items } => format!(
             "Eval::Array(vec![{}])",
             items
@@ -27,6 +33,7 @@ pub fn expression(e: &Expr) -> Result<String, String> {
                 .join(",")
         ),
         Expr::Math { name, args } => {
+            if let Some((numerator,divisor))=e.bounded_floor_division() {return Ok(format!("Eval::Number(({}).number()/{divisor}i64)",sub(numerator)?));}
             if !["min", "max"].contains(&name.as_str()) {
                 return Err("unknown math operation".into());
             }
@@ -80,10 +87,20 @@ pub fn expression(e: &Expr) -> Result<String, String> {
             receiver,
             args,
         } => query(name, receiver, args)?,
+        Expr::NativeTokenPredicate {receiver,token_type,..} => format!(
+            "{{let receiver={};Eval::Bool(if let Eval::Card(id)=receiver {{self.attached_native_token(s,id,{token_type:?})}} else {{false}})}}", sub(receiver)?),
         Expr::Compiled(c) => expression(&c.original)?,
-        Expr::ArenaList { .. } | Expr::ArenaFilter { .. } | Expr::ArenaSome { .. } | Expr::ArenaLength { .. } => {
-            return Err("arena list expression requires interpreter".into())
-        }
+        Expr::ArenaList {receiver,predicate} => {
+            let owner=match receiver.original(){Expr::Ref{path} if path==&["player"]=>"s.card(card).owner==s.card(source).owner",Expr::Ref{path} if path==&["opponent"]=>"s.card(card).owner==s.card(source).owner.other()",Expr::Ref{path} if path==&["game"]=>"true",_=>return Err("unknown arena receiver".into())};
+            format!("Eval::ArenaCards(self.arena_units(s).into_iter().filter(|bound_card|{{let card=*bound_card;self.in_arena(s,card)&&{owner}&&({}).truth()}}).collect())",sub(predicate)?)
+        },
+        Expr::ArenaFilter {receiver,predicate}|Expr::ArenaSome {receiver,predicate} => {
+            let values=sub(receiver)?;let pred=sub(predicate)?;
+            if matches!(e,Expr::ArenaSome{..}){format!("if let Eval::ArenaCards(ids)={values} {{Eval::Bool(ids.into_iter().any(|bound_card|{{let card=bound_card;({pred}).truth()}}))}}else{{Eval::Null}}")}
+            else{format!("if let Eval::ArenaCards(ids)={values} {{Eval::ArenaCards(ids.into_iter().filter(|bound_card|{{let card=*bound_card;({pred}).truth()}}).collect())}}else{{Eval::Null}}")}
+        },
+        Expr::ArenaLength {receiver} =>format!("if let Eval::ArenaCards(ids)={} {{Eval::Number(ids.len() as i64)}}else{{Eval::Null}}",sub(receiver)?),
+        Expr::HistoryQuery(_) | Expr::DataMember {..} => return Err("phase history expression uses shared interpreter".into()),
     })
 }
 fn reference(path: &[String]) -> Result<String, String> {
@@ -91,7 +108,12 @@ fn reference(path: &[String]) -> Result<String, String> {
     let root = p.first().copied().unwrap_or("");
     let field = p.get(1).copied();
     if root == "event" {
-        return Ok("Eval::Number(s.ability_result as i64)".into());
+        return match p.as_slice() {
+            ["event","totalDistributed"]=>Ok("Eval::Number(s.ability_result as i64)".into()),
+            ["event","damageDealt"]=>Ok("Eval::Number(s.event_result.damage_dealt as i64)".into()),
+            ["event","lastKnownInformation","power"]=>Ok("if s.last_known_source==source {Eval::Number(s.last_known_power as i64)}else{Eval::Null}".into()),
+            _=>Err("unsupported event payload".into()),
+        };
     }
     if root == "player" || root == "opponent" {
         let player = if root == "player" {
@@ -105,9 +127,13 @@ fn reference(path: &[String]) -> Result<String, String> {
             Some("base")=>"Eval::Card(s.player(player).base)",
             Some("readyResourceCount")=>"Eval::Number(self.ready_resources(s,player) as i64)",
             Some("exhaustedResourceCount")=>"Eval::Number(s.player(player).resources.len as i64-self.ready_resources(s,player) as i64)",
+            Some("resources") if p.len()==2=>"Eval::Array(s.player(player).resources.as_slice().iter().copied().map(Eval::Card).collect())",
             Some("resources")=>"Eval::Number(s.player(player).resources.len as i64)",
+            Some("hand") if p.len()==2=>"Eval::Array(s.player(player).hand.as_slice().iter().copied().map(Eval::Card).collect())",
             Some("hand")=>"Eval::Number(s.player(player).hand.len as i64)",
+            Some("drawDeck") if p.len()==2=>"Eval::Array(s.player(player).deck.as_slice().iter().copied().map(Eval::Card).collect())",
             Some("drawDeck")=>"Eval::Number(s.player(player).deck.len as i64)",
+            Some("discard") if p.len()==2=>"Eval::Array(s.player(player).discard.as_slice().iter().copied().map(Eval::Card).collect())",
             Some("discard")=>"Eval::Number(s.player(player).discard.len as i64)",
             _=>return Err("unsupported player field".into()),
         };
@@ -139,6 +165,7 @@ fn reference(path: &[String]) -> Result<String, String> {
     };
     let value = match field {
         None => "Eval::Card(id)",
+        Some("upgrades") => "Eval::Array(self.upgrades(s,id).into_iter().map(Eval::Card).collect())",
         Some("controller") => "Eval::Player(s.card(id).owner)",
         Some("damage") => "Eval::Number(s.card(id).damage as i64)",
         Some("power") => "Eval::Number(self.evaluated_power(s,id))",
@@ -159,6 +186,18 @@ fn reference(path: &[String]) -> Result<String, String> {
 }
 fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
     let receiver = expression(receiver)?;
+    if name=="resolvedDefeatedUnitCount" {return Ok(format!("if let Eval::Player(p)={receiver} {{Eval::Number(s.event_result.defeated_units[p.index()] as i64)}}else{{Eval::Null}}"));}
+    if name=="hasControlledInPlayTrait" {let Some(Expr::Const{value})=args.first() else {return Err("trait query needs literal".into())};let text=value.as_str().ok_or("trait query needs text")?;return Ok(format!("if let Eval::Player(p)={receiver} {{Eval::Bool(self.controlled_in_play_trait(s,p,{text:?},source))}}else{{Eval::Null}}"));}
+
+    if ["hasControlledInPlayTitle","hasAttachedTrait","hasAttachedNativeToken"].contains(&name) {
+        let Some(Expr::Const{value})=args.first() else {return Err("query needs literal".into())};
+        let text=value.as_str().ok_or("query needs text literal")?;
+        return Ok(match name {
+            "hasControlledInPlayTitle"=>format!("if let Eval::Player(p)={receiver} {{Eval::Bool(self.controlled_in_play_title(s,p,{text:?}))}} else {{Eval::Null}}"),
+            "hasAttachedTrait"=>format!("if let Eval::Card(id)={receiver} {{if id==0 {{Eval::Null}} else {{Eval::Bool(self.attached_trait(s,id,{text:?}))}}}} else {{Eval::Null}}"),
+            _=>format!("if let Eval::Card(id)={receiver} {{if id==0 {{Eval::Null}} else {{Eval::Bool(self.attached_native_shield(s,id))}}}} else {{Eval::Null}}"),
+        });
+    }
     if name == "arenaUnitCount" || name == "hasSomeArenaUnit" {
         let predicate = expression(args.first().ok_or("arena query needs predicate")?)?;
         let result = if name == "arenaUnitCount" {
@@ -179,7 +218,9 @@ fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
     }
     let body=match name {
         "isUnit"=>"Eval::Bool(d.info.is(\"unit\")||(d.info.is(\"leader\")&&s.card(id).deployed))".into(),
+        "isTokenUpgrade"=>"Eval::Bool(d.info.is(\"token\")&&d.info.is(\"upgrade\"))".into(),
         "isTokenUnit"=>"Eval::Bool(d.info.is(\"token\")&&d.info.is(\"unit\"))".into(),
+        "isShield"=>"Eval::Bool(s.card(id).def==self.shield_def)".into(),
         "isNonLeaderUnit"=>"Eval::Bool(d.info.is(\"unit\")&&!d.info.is(\"leader\"))".into(),
         "isToken"=>"Eval::Bool(d.info.is(\"token\"))".into(),
         "isBase"=>"Eval::Bool(d.info.is(\"base\"))".into(),
@@ -199,7 +240,7 @@ fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
                 let Expr::Const {value}=v else {return Err("dynamic trait/aspect/keyword argument retains interpreter".into())};
                 let Some(t)=value.as_str() else {checks.push("false".into());continue};
                 checks.push(match name {
-                    "hasSomeTrait"=>format!("d.traits.iter().any(|t|t=={t:?})"),
+                    "hasSomeTrait"=>format!("self.card_has_trait(s,id,{t:?})"),
                     "hasSomeAspect"=>format!("d.info.aspects().iter().any(|t|t=={t:?})"),
                     _=>format!("self.has_keyword(s,id,{t:?})"),
                 });

@@ -14,6 +14,13 @@ function fixture(t) {
     fs.mkdirSync(path.join(source, 'game/core'), { recursive: true });
     fs.mkdirSync(path.join(cards, 'Card'), { recursive: true });
     fs.writeFileSync(path.join(source, 'game/core/Constants.ts'), 'export enum WildcardCardType { Unit = "unit" }');
+    // loadEnums reads these three pinned enum dependency files as well as core.
+    for (const file of ['game/gameSystems/SimultaneousOrSequentialSystem.ts',
+        'game/IDamageOrDefeatSource.ts', 'game/gameSystems/DiscloseAspectsSystem.ts']) {
+        const target = path.join(source, file);
+        fs.mkdirSync(path.dirname(target), {recursive:true});
+        fs.copyFileSync(path.resolve(__dirname, '../../forceteki/server', file), target);
+    }
     fs.writeFileSync(
         path.join(source, 'game/cards/ProbeUnit.ts'),
         `export default class ProbeUnit extends NonLeaderUnitCard {

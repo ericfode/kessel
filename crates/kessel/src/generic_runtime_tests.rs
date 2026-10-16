@@ -1,11 +1,14 @@
 use super::*;
 use std::path::Path;
+// Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
+// Combined event/LKI context adds 1456 bytes to the Support checkpoint.
+// State remains inline: prior 28208 + native attack (64) + registration chronology (net 256) = 28528 bytes; Card remains 36 bytes.
 use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
     CATALOG.get_or_init(|| {
-        crate::catalogue_io::load_catalogue_value(&crate::catalogue_io::default_generated_dir())
-            .expect("committed concern-split catalogue")
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .expect("build-assembled concern-split catalogue")
     })
 }
 fn committed_catalogue_bytes() -> &'static [u8] {
@@ -673,7 +676,7 @@ fn internal_selection_commits_event_and_uses_choose_nothing_while_outer_can_canc
             .unwrap()
             .programs
             .push(crate::ability_ir::Program::compile(&ability).unwrap());
-        e.begin_program(&mut s, index, 0).unwrap();
+        e.begin_program(&mut s, index, ProgramContinuation::Finish).unwrap();
         assert_eq!(s.decision, Decision::AbilityTarget);
         let actions = e.legal_actions(&s);
         assert_eq!(actions.iter().any(|a| a.label == "Cancel"), !internal);
@@ -977,7 +980,7 @@ fn live_raid_and_overwhelm_do_not_redirect_replaced_shield_damage() {
 fn begin_group_test(e:&mut Engine,s:&mut State,source:CardId,value:Value) {
     register_keyword_program(e,s,source,value);
     let p=*e.def(s,source).programs.card.last().unwrap(); s.source=source;
-    e.begin_program(s,p,0).unwrap();
+    e.begin_program(s,p,ProgramContinuation::Finish).unwrap();
 }
 #[test]
 fn event_group_defers_damage_deaths_and_checks_both_lethal_bases_together() {
@@ -1210,8 +1213,8 @@ fn nested_sacrifice_restores_parent_if_you_do_result_and_source() {
 fn death_capacity_and_unsettled_group_fail_explicitly_and_hash_covers_context() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");death_program(&mut e,&s,source,draw_death(true));
     s.death_pending.len=MAX_DEATH_TRIGGERS as u8;assert!(e.defeat(&mut s,source).unwrap_err().contains("capacity"));assert!(e.in_arena(&s,source));
-    s.death_pending=DeathWindow::default();e.capture_death(&mut s,source).unwrap();s.event_group.active=true;assert!(e.open_deaths(&mut s,3).unwrap_err().contains("settled"));
-    s.event_group.active=false;s.death_depth=MAX_DEATH_DEPTH as u8;assert!(e.open_deaths(&mut s,3).unwrap_err().contains("nested"));
+    s.death_pending=DeathWindow::default();e.capture_death(&mut s,source).unwrap();s.event_group.active=true;assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap_err().contains("settled"));
+    s.event_group.active=false;s.death_depth=MAX_DEATH_DEPTH as u8;assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap_err().contains("nested"));
     let original=s.zobrist();s.death_frames[0].context.ability_succeeded=true;assert_ne!(s.zobrist(),original);
     let original=s.zobrist();s.death_pending.entries[0].player=Seat::P2;assert_ne!(s.zobrist(),original);
 }
@@ -1230,7 +1233,7 @@ fn nested_explicit_defeat_steps_share_the_initiating_ability_trigger_window() {
 fn sequence_passes_defeat_triggers_to_initiating_window_after_following_draw() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");let victim=unit(&e,&mut s,Seat::P1,"ASH_029");death_program(&mut e,&s,victim,draw_death(true));deck_card(&e,&mut s,Seat::P1);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Defeat then draw","targetResolver":{"owner":"self","type":"unit","zone":"arena"},"effect":{"kind":"sequence","effects":[{"kind":"defeat","target":"chosen"},{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}]}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();s=e.apply(&s,&e.card_action(&s,victim)).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);assert_eq!(s.players[0].hand.len,1);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();s=e.apply(&s,&e.card_action(&s,victim)).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);assert_eq!(s.players[0].hand.len,1);
     s=e.apply(&s,&Action::button("Pass","pass")).unwrap();assert_eq!(s.players[0].hand.len,1);assert_eq!(s.death_depth,0);
 }
 #[test]
@@ -1246,7 +1249,7 @@ fn coordinate_stats_follow_both_friendly_arenas_and_attack_registration_is_captu
     let hp=e.hp(&s,source);death_program(&mut e,&s,source,json!({"trigger":"constant","coordinate":true,"title":"Coordinate HP","effect":{"kind":"modifyStats","duration":"persistent","target":"self","power":{"kind":"const","value":0},"hp":{"kind":"const","value":3}}}));assert_eq!(e.hp(&s,source),hp+3);
     let program=death_program(&mut e,&s,source,json!({"trigger":"onAttack","coordinate":true,"title":"Draw a card","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}));let drawn=deck_card(&e,&mut s,Seat::P1);
     s.source=source;e.queue_programs(&mut s,"onAttack");let captured=s.pending_programs;assert_ne!(captured,0);
-    e.leave_play(&mut s,third).unwrap();assert_eq!(e.hp(&s,source),hp);assert_eq!(s.pending_programs,captured);e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));
+    e.leave_play(&mut s,third).unwrap();assert_eq!(e.hp(&s,source),hp);assert_eq!(s.pending_programs,captured);e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));
     s.source=source;e.queue_programs(&mut s,"onAttack");assert_eq!(s.pending_programs,0);assert!(e.in_arena(&s,second));
 }
 #[test]
@@ -1255,7 +1258,7 @@ fn simultaneous_explicit_defeat_conditions_capture_before_any_source_moves() {
     let mut ability=draw_death(false);ability["condition"]=json!({"kind":"binary","op":">=","left":{"kind":"query","name":"arenaUnitCount","receiver":{"kind":"ref","path":["player"]},"args":[{"kind":"const","value":true}]},"right":{"kind":"const","value":2}});
     death_program(&mut e,&s,first,ability);deck_card(&e,&mut s,Seat::P1);deck_card(&e,&mut s,Seat::P1);
     let source=s.players[0].leader;let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Defeat two units","targetResolver":{"owner":"self","type":"unit","zone":"arena","mode":"upTo","count":{"kind":"const","value":2}},"effect":{"kind":"defeat","target":"chosen"}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();s=e.apply(&s,&e.card_action(&s,first)).unwrap();s=e.apply(&s,&e.card_action(&s,second)).unwrap();
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();s=e.apply(&s,&e.card_action(&s,first)).unwrap();s=e.apply(&s,&e.card_action(&s,second)).unwrap();
     let done=e.legal_actions(&s).into_iter().find(|a|a.label=="Done").unwrap();s=e.apply(&s,&done).unwrap();assert_eq!(s.players[0].ground.len,0);assert_eq!(s.decision,Decision::DeathBatch);
     s=e.apply(&s,&Action::button("Resolve all (2)","all")).unwrap();assert_eq!(s.players[0].hand.len,2);
 }
@@ -1263,7 +1266,7 @@ fn simultaneous_explicit_defeat_conditions_capture_before_any_source_moves() {
 fn created_token_units_keep_owner_readiness_printed_keywords_and_leave_play_zones() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let start=s.next_id;
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Create spies","effect":{"kind":"createTokenUnit","tokenType":"spy","amount":{"kind":"const","value":2},"target":"enemyPlayer","entersReady":true}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.players[1].ground.as_slice(),&[start,start+1]);assert_eq!(s.next_id,start+2);
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.players[1].ground.as_slice(),&[start,start+1]);assert_eq!(s.next_id,start+2);
     for id in [start,start+1] {assert_eq!(s.card(id).owner,Seat::P2);assert!(!s.card(id).exhausted);assert_eq!(e.power(&s,id,false),0);assert_eq!(e.power(&s,id,true),2);}
     let snapshot=e.snapshot(&s);assert_eq!(e.snapshot(&e.load_state(&snapshot).unwrap()),snapshot);
     e.defeat(&mut s,start).unwrap();assert!(!s.players[1].discard.contains(start));assert!(!s.players[1].ground.contains(start));
@@ -1283,17 +1286,17 @@ fn owner_discard_selects_before_simultaneous_draw_and_restores_ability_player() 
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;
     let first=add(&e,&mut s,Seat::P2,"LOF_254");let second=add(&e,&mut s,Seat::P2,"ASH_029");s.players[1].hand.push(first).unwrap();s.players[1].hand.push(second).unwrap();let draw=deck_card(&e,&mut s,Seat::P1);
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard and draw","effect":{"kind":"simultaneous","effects":[{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}},{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}]}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert!(s.players[0].deck.contains(draw));assert_eq!(e.legal_actions(&s),vec![e.card_action(&s,first),e.card_action(&s,second)]);
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert!(s.players[0].deck.contains(draw));assert_eq!(e.legal_actions(&s),vec![e.card_action(&s,first),e.card_action(&s,second)]);
     s=e.apply(&s,&e.card_action(&s,second)).unwrap();assert!(s.players[1].discard.contains(second));assert!(s.players[1].hand.contains(first));assert!(s.players[0].hand.contains(draw));assert_eq!(s.active,Seat::P2);
 }
 #[test]
 fn exact_two_card_discard_toggles_at_cap_and_zero_hand_skips_prompt() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let mut cards=vec![];
     for code in ["LOF_254","LOF_256","ASH_029"] {let id=add(&e,&mut s,Seat::P2,code);s.players[1].hand.push(id).unwrap();cards.push(id);}
-    let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard two","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":2}}}));s.source=source;e.begin_program(&mut s,p,0).unwrap();
+    let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Discard two","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":2}}}));s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     s=e.apply(&s,&e.card_action(&s,cards[0])).unwrap();assert!(!e.legal_actions(&s).iter().any(|a|a.label=="Done"));s=e.apply(&s,&e.card_action(&s,cards[2])).unwrap();assert!(!e.legal_actions(&s).iter().any(|a|a.id()==Some(cards[1])));assert!(e.legal_actions(&s).iter().any(|a|a.id()==Some(cards[0])));
     s=e.apply(&s,&Action::button("Done","done")).unwrap();assert_eq!(s.players[1].discard.as_slice(),&[cards[0],cards[2]]);
-    let mut empty=board(&e);empty.source=empty.players[0].leader;e.begin_program(&mut empty,p,1).unwrap();assert_eq!(empty.decision,Decision::Window);assert_eq!(empty.players[1].discard.len,0);
+    let mut empty=board(&e);empty.source=empty.players[0].leader;e.begin_program(&mut empty,p,ProgramContinuation::Triggers).unwrap();assert_eq!(empty.decision,Decision::Window);assert_eq!(empty.players[1].discard.len,0);
 }
 #[test]
 fn terminal_optional_opponent_prompt_preserves_latched_action_priority() {
@@ -1311,7 +1314,7 @@ fn empty_deck_draw_resolves_fatigue_and_preserves_if_you_do_discard() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;
     let discard=add(&e,&mut s,Seat::P1,"LOF_254");s.players[0].hand.push(discard).unwrap();
     let program=death_program(&mut e,&s,source,json!({"trigger":"whenPlayed","title":"Draw then discard","optional":true,"effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"ifYouDo":{"title":"Discard a card","effect":{"kind":"discardOwnHand","target":"ownPlayer","amount":{"kind":"const","value":1}}}}));
-    s.source=source;e.begin_program(&mut s,program,1).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);
     let declined=e.apply(&s,&Action::button("Pass","pass")).unwrap();assert_eq!(declined.card(declined.players[0].base).damage,0);assert!(declined.players[0].hand.contains(discard));
     s=e.apply(&s,&Action::button("Trigger","trigger")).unwrap();assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.ability_result,0);assert!(!s.ability_succeeded);assert_eq!(s.card(s.players[0].base).damage,3);
     s=e.apply(&s,&e.card_action(&s,discard)).unwrap();assert!(s.players[0].discard.contains(discard));assert_eq!(s.players[0].hand.len,0);assert_eq!(s.card(s.players[0].base).damage,3);
@@ -1355,7 +1358,7 @@ fn empty_discard_group_does_not_inherit_a_preceding_draw_success_for_if_you_do()
         let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let drawn=deck_card(&e,&mut s,Seat::P1);
         let enemy_card=if enemy_has_card {let id=add(&e,&mut s,Seat::P2,"LOF_254");s.players[1].hand.push(id).unwrap();Some(id)}else{None};
         let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Draw then discard","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"then":{"title":"Enemy discards","effect":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}},"ifYouDo":{"title":"Pay damage","effect":{"kind":"damage","target":"ownBase","amount":{"kind":"const","value":1}}}}}));
-        s.source=source;e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));
+        s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));
         if let Some(id)=enemy_card {
             assert_eq!(s.decision,Decision::AbilityDiscard);assert_eq!(s.active,Seat::P2);assert_eq!(s.ability_result,1);assert!(!s.ability_succeeded);
             s=e.apply(&s,&e.card_action(&s,id)).unwrap();assert!(s.players[1].discard.contains(id));
@@ -1368,13 +1371,13 @@ fn empty_discard_group_does_not_inherit_a_preceding_draw_success_for_if_you_do()
 fn omitted_conditional_else_cannot_inherit_a_preceding_draw_success() {
     let mut e=engine();let mut s=board(&e);let source=s.players[0].leader;let drawn=deck_card(&e,&mut s,Seat::P1);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Draw then condition","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}},"then":{"title":"No discard","effect":{"kind":"conditional","condition":{"kind":"const","value":false},"onTrue":{"kind":"discardOwnHand","target":"enemyPlayer","amount":{"kind":"const","value":1}}},"ifYouDo":{"title":"Pay damage","effect":{"kind":"damage","target":"ownBase","amount":{"kind":"const","value":1}}}}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));assert_eq!(s.card(s.players[0].base).damage,0);assert_eq!(s.decision,Decision::Window);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert!(s.players[0].hand.contains(drawn));assert_eq!(s.card(s.players[0].base).damage,0);assert_eq!(s.decision,Decision::Window);
 }
 #[test]
 fn group_generation_preserves_parent_distribution_amount_before_resetting_its_result() {
     let mut e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");s.card_mut(source).damage=2;let hp=e.hp(&s,source);
     let program=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Heal and grow","effect":{"kind":"distributeHealing","amount":{"kind":"const","value":2},"maxTargets":1,"targetResolver":{"owner":"self","type":"unit","zone":"arena"}},"ifYouDo":{"title":"Grow","effect":{"kind":"phaseModifiers","effects":[{"kind":"modifyStats","target":"self","duration":"phase","power":{"kind":"const","value":0},"hp":{"kind":"ref","path":["event","totalDistributed"]}}]}}}));
-    s.source=source;e.begin_program(&mut s,program,0).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);
+    s.source=source;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityDistribute);
     let action=e.legal_actions(&s).into_iter().find(|a|a.arg.as_ref().is_some_and(|v|v[0][1].as_u64()==Some(2))).unwrap();s=e.apply(&s,&action).unwrap();assert_eq!(s.card(source).damage,0);assert_eq!(e.hp(&s,source),hp+2);
 }
 
@@ -1449,7 +1452,7 @@ fn mandalorian_creation_preserves_pinned_metadata_defaults_and_shielded_trigger(
     assert_eq!(token.info.internal_name,"mandalorian");assert_eq!(token.info.power,Some(2));assert_eq!(token.info.hp,Some(2));
     assert_eq!(token.info.arena.as_deref(),Some("ground"));assert_eq!(token.info.aspects(),vec!["vigilance"]);assert_eq!(token.flags&SHIELDED,SHIELDED);
     let p=death_program(&mut e,&s,source,json!({"trigger":"action","title":"Create Mandalorian","effect":{"kind":"createTokenUnit","tokenType":"mandalorian","amount":{"kind":"const","value":1},"target":"ownPlayer"}}));
-    s.source=source;e.begin_program(&mut s,p,0).unwrap();
+    s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     assert_eq!(s.players[0].ground.as_slice(),&[start]);assert_eq!(s.players[1].ground.len,0);
     assert!(s.card(start).exhausted);assert_eq!(s.card(start).owner,Seat::P1);assert_ne!(s.card(start).shield,0);
     assert_eq!(e.power(&s,start,false),2);assert_eq!(e.hp(&s,start),2);
@@ -1648,10 +1651,12 @@ fn arena_order_import_rejects_missing_future_upgrade_and_malformed_memberships()
 #[test]
 fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_and_legacy_flag() {
     let e=engine();let mut s=board(&e);let early=unit(&e,&mut s,Seat::P2,"LOF_256");let late=unit(&e,&mut s,Seat::P1,"LOF_256");
-    let snapshot=e.snapshot(&s);let hash=s.zobrist();let mut reverse=s;reverse.arena_unit_order[0].ids.swap(0,1);assert_ne!(reverse.zobrist(),hash);let reverse_snapshot=e.snapshot(&reverse);assert_eq!(e.load_state(&reverse_snapshot).unwrap().zobrist(),reverse.zobrist());
+    let snapshot=e.snapshot(&s);let hash=s.zobrist();let mut reverse=s;reverse.arena_unit_order[0].ids.swap(0,1);reverse.registration_order.ids.swap(0,1);assert_ne!(reverse.zobrist(),hash);let reverse_snapshot=e.snapshot(&reverse);assert_eq!(e.load_state(&reverse_snapshot).unwrap().zobrist(),reverse.zobrist());
     e.leave_play(&mut s,early).unwrap();s.players[1].discard.remove(early);e.add_arena(&mut s,early).unwrap();assert_eq!(e.arena_units(&s),vec![late,early]);assert_ne!(s.zobrist(),hash);
     let token=unit(&e,&mut s,Seat::P2,"TOKEN_MANDALORIAN");let leader=s.players[0].leader;s.card_mut(leader).deployed=true;s.card_mut(leader).epic_used=true;e.add_arena(&mut s,leader).unwrap();assert_eq!(e.arena_units(&s),vec![late,early,token,leader]);
-    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");let legacy_state=e.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(e.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
+    // Legacy evidence is valid only for a selected pool without future listener registrations.
+    let mut legacy_engine=engine();legacy_engine.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
+    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");legacy.as_object_mut().unwrap().remove("supportStateVersion");legacy.as_object_mut().unwrap().remove("supportGrants");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
 }
 #[test]
 fn repeated_defeat_records_prepare_repeated_cleanup_before_deduplicated_handlers() {
@@ -1729,8 +1734,8 @@ fn guarded_attacker_raw_ir_requires_positive_same_candidate_guard_and_zero_argum
 }
 #[test]
 fn complete_source_admission_preserves_secondary_and_printed_keyword_blockers() {
-    let e=engine();for code in ["ASH_226","JTL_170","ASH_046"] {assert!(!e.by_code.contains_key(code),"partial card {code} admitted");}
-    assert!(e.rejected_cards().unwrap()["ASH_046"].contains("keyword support"));assert!(e.by_code.contains_key("HMW_233"));
+    let e=engine();for code in ["ASH_226","JTL_170","ASH_050"] {assert!(!e.by_code.contains_key(code),"partial card {code} admitted");}
+    assert!(e.by_code.contains_key("ASH_046"),"complete Scion Support lifecycle is covered");assert!(e.rejected_cards().unwrap()["ASH_050"].contains("Support donors"));assert!(e.by_code.contains_key("HMW_233"));
     assert!(e.by_code.contains_key("SEC_011"));assert!(e.by_code.contains_key("TWI_094"));
 }
 #[test]
@@ -2224,7 +2229,7 @@ fn defense_initial_attack_stat_death_joins_one_declaration_owner_window() {
 fn defense_metadata_scope_rejects_unwitnessed_token_leader_upgrade_and_front_sources() {
     let original:Value=committed_catalogue().clone();
     for (types,base) in [(json!(["unit","token"]),"TokenUnitCard"),(json!(["leader"]),"LeaderUnitCard"),(json!(["upgrade"]),"UpgradeCard"),(json!(["base"]),"BaseCard"),(json!(["event"]),"EventCard"),(json!(["unit"]),"UnknownUnitBase")] {
-        let mut value=original.clone();let entry=value["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]=="TWI_049").unwrap();entry["card"]["types"]=types;entry["baseClass"]=json!(base);let engine=Engine::from_catalogue_value(&value).unwrap();assert!(!engine.by_code.contains_key("TWI_049"));assert!(engine.rejected_cards().unwrap()["TWI_049"].contains(if base=="BaseCard"{"base-zone ongoing source requires exact"}else{"ordinary nonleader unit"}));
+        let mut value=original.clone();let entry=value["cards"].as_array_mut().unwrap().iter_mut().find(|x|x["setCode"]=="TWI_049").unwrap();entry["card"]["types"]=types;entry["baseClass"]=json!(base);let engine=Engine::from_catalogue_value(&value).unwrap();assert!(!engine.by_code.contains_key("TWI_049"));assert!(engine.rejected_cards().unwrap()["TWI_049"].contains(if base=="BaseCard"{"base-zone ongoing source requires exact"}else if base=="LeaderUnitCard"{"leader sources require explicit leader/unit side registrations"}else{"ordinary nonleader unit"}));
     }
 }
 #[test]
@@ -2279,10 +2284,17 @@ fn hidden_live_qualification_and_numeric_storage_are_separate() {
 #[test]
 fn legacy_hidden_guard_uses_selected_pool_and_rejects_both_modifier_masks() {
     let mut e=engine();let mut s=board(&e);unit(&e,&mut s,Seat::P1,"LOF_256");
-    let mut v=e.snapshot(&s);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
-    for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array_mut().unwrap() {card.as_object_mut().unwrap().remove("hiddenQualified");}}}
+    let legacy_snapshot=|engine:&Engine| {
+        let mut v=engine.snapshot(&s);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
+        for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array_mut().unwrap() {card.as_object_mut().unwrap().remove("hiddenQualified");}}}
+        v
+    };
+    let v=legacy_snapshot(&e);
     assert!(e.load_state(&v).unwrap_err().contains("requires explicit Hidden"));
     e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
+    // Recreate under the selected pool: unrelated Support versioning from the
+    // full catalogue is not part of this legacy Hidden-free input.
+    let v=legacy_snapshot(&e);
     assert!(!e.needs_hidden_history());let legacy=e.load_state(&v).unwrap();assert!(!legacy.hidden_history_exact);assert_eq!(e.snapshot(&legacy),v);
     for (field,value) in [("phaseKeywords",json!({"hidden":1})),("phaseLostKeywords",json!(["hidden"]))] {let mut bad=v.clone();bad["players"]["p1"]["ground"][0][field]=value;assert!(e.load_state(&bad).is_err());}
     let mut bad=v.clone();bad["players"]["p1"]["ground"][0]["hiddenQualified"]=json!(false);assert!(e.load_state(&bad).is_err());
@@ -2364,8 +2376,15 @@ fn actual_when_played_lists_include_the_entering_unit_and_skip_empty_enemy_trigg
 fn named_two_admission_preserves_other_descriptor_rejections() {
     let e=engine();for code in ["HMW_255","JTL_253"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
     for code in ["HMW_263","LAW_099","TWI_238"] {assert!(e.by_code.contains_key(code),"{code}");}
-    for code in ["LOF_054","TWI_156","TWI_171","TWI_249"] {assert!(!e.by_code.contains_key(code),"{code}");}
-    assert_eq!(std::mem::size_of::<State>(),19192);
+    for code in ["TWI_156","TWI_171","TWI_249"] {assert!(!e.by_code.contains_key(code),"{code}");}
+    // Calm's reviewed scalar normalization no longer uses a named descriptor.
+    assert!(e.by_code.contains_key("LOF_054"));
+    let current:Value=serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    let calm=&current["cards"].as_array().unwrap().iter().find(|x|x["setCode"]=="LOF_054").unwrap()["abilities"]["card"][0];
+    assert!(calm.get("targetResolvers").is_none());
+    assert_eq!(calm["targetResolver"]["owner"],"self");
+    assert_eq!(calm["effect"],serde_json::json!({"kind":"exhaust","target":"chosen"}));
+    assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);
 }
 #[test]
 fn actual_named_event_prepares_both_choices_before_costs_and_effects() {
@@ -2428,11 +2447,10 @@ fn named_descriptor_catalogue_sources_exclude_leaders_tokens_and_upgrades() {
 }
 fn weakness_effect()->crate::ability_ir::Effect {serde_json::from_value(json!({"kind":"giveWeakness","target":"chosen","amount":{"kind":"const","value":1}})).unwrap()}
 #[test]
-fn weakness_admission_is_three_sources_plus_one_reviewed_native_token() {
-    let e=engine();for code in ["HMW_059","HMW_087","HMW_242","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
-    for code in ["HMW_065"] {assert!(!e.by_code.contains_key(code),"{code}");}
-    assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
-    let original:Value=committed_catalogue().clone();
+fn weakness_admission_preserves_reviewed_native_token_and_completed_sources() {
+    let e=engine();for code in ["HMW_059","HMW_087","HMW_242","HMW_003","HMW_065","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
+    assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for (field,value) in [("power",json!(1)),("upgradeHp",json!(0)),("types",json!(["unit","token"])),("traits",json!([])),("aspects",json!(["heroism"])),("text",json!("Draw a card")),("unique",json!(true)),("cost",json!(1))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token["card"][field]=value;let altered=Engine::from_catalogue_value(&catalog).unwrap();assert!(!altered.by_code.contains_key("TOKEN_WEAKNESS"),"{field}");}
     for (field,value) in [("keywordValues",json!({"hidden":1})),("abilities",json!({"leader":[],"unit":[],"card":[{"trigger":"whenPlayed","title":"Injected","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}]}))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token[field]=value;assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key("TOKEN_WEAKNESS"));}
     let mut catalog=original.clone();catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap()["sourceHash"]=json!("changed");assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key("TOKEN_WEAKNESS"));
@@ -2470,7 +2488,8 @@ fn actual_weakness_death_sources_preserve_owner_and_damaged_selector() {
 fn weakness_raw_shapes_reject_arrays_groups_other_registrations_and_nonliteral_amounts() {
     let catalogue:Value=committed_catalogue().clone();let valid=catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_059").unwrap()["abilities"]["card"][0].clone();
     let compile=|v:Value|serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok());assert!(compile(valid.clone()));let mut bad=Vec::new();
-    for trigger in ["event","action","onAttack","onDefense","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
+    let mut attack=valid.clone();attack["trigger"]=json!("onAttack");assert!(compile(attack));
+    for trigger in ["event","action","onDefense","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
     for amount in [json!({"kind":"const","value":0}),json!({"kind":"const","value":2}),json!({"kind":"ref","path":["source","damage"]})] {let mut v=valid.clone();v["effect"]["amount"]=amount;bad.push(v);}
     for target in [json!("self"),json!("ownBase"),json!("bothPlayers"),json!({"kind":"arenaList","receiver":{"kind":"ref","path":["player"]},"predicate":{"kind":"const","value":true}})] {let mut v=valid.clone();v["effect"]["target"]=target;bad.push(v);}
     for kind in ["sequence","simultaneous","phaseModifiers"] {let mut v=valid.clone();v["effect"]=json!({"kind":kind,"effects":[valid["effect"].clone()]});bad.push(v);}
@@ -2493,14 +2512,14 @@ fn weakness_targets_token_units_and_deployed_leaders_and_returns_to_outside() {
 fn weakness_static_native_dependency_rejects_missing_invalid_and_unselected_token() {
     let original:Value=committed_catalogue().clone();
     for remove in [true,false] {let mut v=original.clone();if remove {v["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");}else{v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap()["card"]["title"]=json!("Unreviewed token");}let e=Engine::from_catalogue_value(&v).unwrap();for code in ["HMW_059","HMW_087","HMW_242"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap()[code].contains("Weakness token unavailable"));}}
-    let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),committed_catalogue_bytes()).err().unwrap().contains("GiveWeakness cards must include"));
-    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),committed_catalogue_bytes()).unwrap();
+    let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).err().unwrap().contains("GiveWeakness cards must include"));
+    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231","HMW_003","HMW_065","HMW_015","HMW_040","HMW_197"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
 }
 #[test]
 fn arena_stat_filter_admission_is_exact_two_and_unary_plus_normalizes_only_here() {
     let e=engine();for code in ["HMW_111","LOF_127"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
     let p=e.program(e.definitions[*e.by_code.get("HMW_111").unwrap() as usize].programs.card[0]);assert!(matches!(&p.instructions[0],Instruction::Apply(Effect::ModifyStats{power:Expr::Const{value:p},hp:Expr::Const{value:h},..}) if p==2&&h==2));
-    let plus:Expr=serde_json::from_value(json!({"kind":"unary","op":"+","value":{"kind":"const","value":2}})).unwrap();assert!(plus.validate().is_err());assert_eq!(std::mem::size_of::<State>(),19192);
+    let plus:Expr=serde_json::from_value(json!({"kind":"unary","op":"+","value":{"kind":"const","value":2}})).unwrap();assert!(plus.validate().is_err());assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);
 }
 #[test]
 fn actual_lander_excludes_entering_source_and_keeps_captured_both_arena_recipients() {
@@ -2602,7 +2621,7 @@ fn force_continuation_selects_only_after_spend_and_retains_source_actor() {
 }
 #[test]
 fn force_death_continuation_opponent_chooses_discard_after_source_departure() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_159");let card=add(&e,&mut s,Seat::P2,"LOF_256");s.players[1].hand.push(card).unwrap();let program=e.def(&s,source).programs.card[0];e.leave_play(&mut s,source).unwrap();s.source=source;s.players[0].force_held=true;e.begin_program(&mut s,program,0).unwrap();let selected=named_button(&e,&s,"Trigger");assert!(!selected.players[0].force_held);assert_eq!(selected.active,Seat::P2);assert!(e.legal_actions(&selected).iter().any(|a|a.card==Some(format!("c{}",card-1))));let action=e.legal_actions(&selected).into_iter().find(|a|a.card==Some(format!("c{}",card-1))).unwrap();let done=e.apply(&selected,&action).unwrap();assert!(done.players[1].discard.contains(card));assert!(!done.players[1].hand.contains(card));
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_159");let card=add(&e,&mut s,Seat::P2,"LOF_256");s.players[1].hand.push(card).unwrap();let program=e.def(&s,source).programs.card[0];e.leave_play(&mut s,source).unwrap();s.source=source;s.players[0].force_held=true;e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();let selected=named_button(&e,&s,"Trigger");assert!(!selected.players[0].force_held);assert_eq!(selected.active,Seat::P2);assert!(e.legal_actions(&selected).iter().any(|a|a.card==Some(format!("c{}",card-1))));let action=e.legal_actions(&selected).into_iter().find(|a|a.card==Some(format!("c{}",card-1))).unwrap();let done=e.apply(&selected,&action).unwrap();assert!(done.players[1].discard.contains(card));assert!(!done.players[1].hand.contains(card));
 }
 #[test]
 fn force_presence_live_grit_and_aura_follow_controller_not_active_player() {
@@ -2652,7 +2671,7 @@ fn force_presence_power_aura_covers_both_arenas_tokens_and_deployed_leaders() {
 #[test]
 fn force_triggers_acolyte_attack_and_defeat_gain_keep_identity_and_owner() {
  let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_129");s.card_mut(source).exhausted=false;let enemybase=s.players[1].base;let next=s.next_id;let identity=s.players[0].force_id;s.players[1].force_held=true;let attack=e.apply(&s,&e.card_action(&s,source)).unwrap();let target=e.legal_actions(&attack).into_iter().find(|a|a.card==Some(format!("c{}",enemybase-1))).unwrap();let mut done=e.apply(&attack,&target).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
- done.players[0].force_held=false;let wd=e.def(&done,source).programs.card.iter().copied().find(|p|e.program(*p).trigger=="whenDefeated").unwrap();e.leave_play(&mut done,source).unwrap();done.source=source;done.active=Seat::P2;e.begin_program(&mut done,wd,0).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
+ done.players[0].force_held=false;let wd=e.def(&done,source).programs.card.iter().copied().find(|p|e.program(*p).trigger=="whenDefeated").unwrap();e.leave_play(&mut done,source).unwrap();done.source=source;done.active=Seat::P2;e.begin_program(&mut done,wd,ProgramContinuation::Finish).unwrap();assert!(done.players[0].force_held);assert!(done.players[1].force_held);assert_eq!(done.players[0].force_id,identity);assert_eq!(done.next_id,next);
 }
 #[test]
 fn force_triggers_saber_preserves_attachment_stats_and_uses_upgrade_controller() {
@@ -2688,7 +2707,7 @@ fn resource_self_capacity_is_atomic_and_arena_is_ineffective() {
 }
 #[test]
 fn resource_self_eeth_spends_force_even_when_secondary_is_ineffective() {
- let e=engine();for arena in [true,false] {let mut s=board(&e);let source=if arena {unit(&e,&mut s,Seat::P1,"LOF_097")}else{let id=add(&e,&mut s,Seat::P1,"LOF_097");s.players[0].resources.push(id).unwrap();s.card_mut(id).exhausted=false;id};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);if arena {assert!(e.in_arena(&done,source));}else{assert!(done.players[0].resources.contains(source));assert!(!done.card(source).exhausted);}}
+ let e=engine();for arena in [true,false] {let mut s=board(&e);let source=if arena {unit(&e,&mut s,Seat::P1,"LOF_097")}else{let id=add(&e,&mut s,Seat::P1,"LOF_097");s.players[0].resources.push(id).unwrap();s.card_mut(id).exhausted=false;id};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityOptional);let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);if arena {assert!(e.in_arena(&done,source));}else{assert!(done.players[0].resources.contains(source));assert!(!done.card(source).exhausted);}}
 }
 #[test]
 fn resource_self_raw_shapes_fail_closed_and_exact_three_admit() {
@@ -2700,8 +2719,8 @@ fn resource_self_raw_shapes_fail_closed_and_exact_three_admit() {
 
 #[test]
 fn resource_self_eeth_nonarena_zones_and_mercenary_condition_are_distinct() {
- let e=engine();for zone in ["hand","deck","discard"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LOF_097");match zone {"hand"=>s.players[0].hand.push(source).unwrap(),"deck"=>s.players[0].deck.push(source).unwrap(),_=>s.players[0].discard.push(source).unwrap()};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);assert!(done.players[0].resources.contains(source));assert!(done.card(source).exhausted);}
- let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LAW_159");s.players[0].hand.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_ne!(s.decision,Decision::AbilityOptional);assert!(s.players[0].hand.contains(source));assert!(!s.players[0].resources.contains(source));
+ let e=engine();for zone in ["hand","deck","discard"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LOF_097");match zone {"hand"=>s.players[0].hand.push(source).unwrap(),"deck"=>s.players[0].deck.push(source).unwrap(),_=>s.players[0].discard.push(source).unwrap()};s.source=source;s.players[0].force_held=true;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();let done=named_button(&e,&s,"Trigger");assert!(!done.players[0].force_held);assert!(done.players[0].resources.contains(source));assert!(done.card(source).exhausted);}
+ let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"LAW_159");s.players[0].hand.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_ne!(s.decision,Decision::AbilityOptional);assert!(s.players[0].hand.contains(source));assert!(!s.players[0].resources.contains(source));
  for code in ["TOKEN_SHIELD","SOR_014"] {let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,code);s.source=source;s.players[0].discard.push(source).unwrap();assert!(!e.resource_source_eligible(&s,source));assert_eq!(e.resource_source(&mut s,source).unwrap(),0);}
 }
 #[test]
@@ -2745,8 +2764,8 @@ fn named_damage_ziton_real_ambush_and_self_lethal_preserve_captured_second() {
 }
 #[test]
 fn named_damage_missing_first_still_resolves_second_and_raw_guards_reject() {
- let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"TS26_029");s.players[0].discard.push(source).unwrap();let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert_eq!(done.card(enemy).damage,1);
- let original:Value=committed_catalogue().clone();for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("base")),("promptTitle",json!("Custom"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
+ let e=engine();let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"TS26_029");s.players[0].discard.push(source).unwrap();let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert_eq!(done.card(enemy).damage,1);
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("base")),("promptTitle",json!("Custom"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
  for trigger in ["event","onDefense","action"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="SEC_030").unwrap();card["abilities"]["card"][0]["trigger"]=json!(trigger);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_030"));}
 }
 #[test]
@@ -2863,7 +2882,7 @@ fn named_chooser_event_pays_original_actor_before_opponent_and_restores() {
 #[test]
 fn named_chooser_unit_missing_opponent_and_entering_self_defeat() {
  let e=engine();let mut s=board(&e);let source=hand(&e,&mut s,"LAW_099");let first=e.apply(&s,&e.card_action(&s,source)).unwrap();assert_eq!(first.active,Seat::P1);assert_eq!(first.decision,Decision::AbilityTarget);assert_eq!(e.legal_actions(&first).iter().filter_map(Action::id).collect::<Vec<_>>(),vec![source]);let done=e.apply(&first,&e.card_action(&first,source)).unwrap();assert!(done.players[0].discard.contains(source));assert_eq!(done.active,Seat::P2);
- let mut s=board(&e);let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let source=add(&e,&mut s,Seat::P1,"LAW_099");s.players[0].discard.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.active,Seat::P2);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert!(done.players[1].discard.contains(enemy));assert_ne!(done.decision,Decision::AbilityTarget);
+ let mut s=board(&e);let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let source=add(&e,&mut s,Seat::P1,"LAW_099");s.players[0].discard.push(source).unwrap();s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.active,Seat::P2);let done=e.apply(&s,&e.card_action(&s,enemy)).unwrap();assert!(done.players[1].discard.contains(enemy));assert_ne!(done.decision,Decision::AbilityTarget);
 }
 #[test]
 fn named_chooser_wrecker_shield_priority_and_combined_defeat_owners() {
@@ -2877,7 +2896,7 @@ fn named_chooser_raw_shapes_fail_closed() {
  for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("nonLeaderUnit")),("arena",json!("ground"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for (field,value) in [("pilotText",json!("Pilot")),("keywords",json!(["ambush"])),("types",json!(["leader","unit"])),("unique",json!(null))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["card"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for name in ["target","constructor","prototype","__proto__","0choice"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["name"]=json!(name);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
- assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 
 #[test]
@@ -2941,14 +2960,14 @@ fn arena_uniform_damage_admits_complete_five_and_rejects_raw_scope() {
 fn arena_uniform_damage_over_32_recipients_and_combined_lethal() {
     let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let mut targets=vec![];
     for seat in [Seat::P1,Seat::P2] {for _ in 0..24 {targets.push(unit(&e,&mut s,seat,"LOF_112"));}}
-    s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();
+    s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();
     for target in targets {assert_eq!(s.card(target).damage,1);}
     assert_eq!(s.card(source).damage,0);assert_eq!(s.event_group.uniform_damage,UniformDamageState::default());
-    let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_129");let enemy=unit(&e,&mut s,Seat::P2,"LOF_129");for id in [own,enemy] {s.card_mut(id).damage=e.hp(&s,id)-1;}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert!(s.players[0].discard.contains(own));assert!(s.players[1].discard.contains(enemy));assert_eq!(s.decision,Decision::DeathPlayer);
+    let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_129");let enemy=unit(&e,&mut s,Seat::P2,"LOF_129");for id in [own,enemy] {s.card_mut(id).damage=e.hp(&s,id)-1;}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert!(s.players[0].discard.contains(own));assert!(s.players[1].discard.contains(enemy));assert_eq!(s.decision,Decision::DeathPlayer);
 }
 #[test]
 fn arena_uniform_damage_shield_context_ids_both_owner_orders() {
-    let e=engine();for label in ["You","Opponent"] {let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_112");let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let mut tokens=vec![];for id in [own,enemy] {let oldest=s.next_id;e.create_token(&mut s,id,false).unwrap();let newer=s.next_id;e.create_token(&mut s,id,false).unwrap();tokens.push((oldest,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);let copied=s;assert_eq!(s.zobrist(),copied.zobrist());let done=named_button(&e,&s,label);for (i,id) in [own,enemy].into_iter().enumerate() {let first=(label=="You"&&i==0)||(label=="Opponent"&&i==1);let consumed=if first {tokens[i].0}else {tokens[i].1};let survivor=if first {tokens[i].1}else {tokens[i].0};assert_eq!(done.card(id).damage,0);assert_eq!(done.card(consumed).parent,0);assert_eq!(done.card(id).shield,survivor);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());}
+    let e=engine();for label in ["You","Opponent"] {let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let own=unit(&e,&mut s,Seat::P1,"LOF_112");let enemy=unit(&e,&mut s,Seat::P2,"LOF_112");let mut tokens=vec![];for id in [own,enemy] {let oldest=s.next_id;e.create_token(&mut s,id,false).unwrap();let newer=s.next_id;e.create_token(&mut s,id,false).unwrap();tokens.push((oldest,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);let copied=s;assert_eq!(s.zobrist(),copied.zobrist());let done=named_button(&e,&s,label);for (i,id) in [own,enemy].into_iter().enumerate() {let first=(label=="You"&&i==0)||(label=="Opponent"&&i==1);let consumed=if first {tokens[i].0}else {tokens[i].1};let survivor=if first {tokens[i].1}else {tokens[i].0};assert_eq!(done.card(id).damage,0);assert_eq!(done.card(consumed).parent,0);assert_eq!(done.card(id).shield,survivor);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());}
 }
 #[test]
 fn arena_uniform_damage_storage_hash_and_size_are_explicit() {
@@ -2957,7 +2976,7 @@ fn arena_uniform_damage_storage_hash_and_size_are_explicit() {
 }
 #[test]
 fn arena_uniform_damage_same_owner_shields_rotate_alternates() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let first=unit(&e,&mut s,Seat::P1,"LOF_112");let second=unit(&e,&mut s,Seat::P1,"HMW_116");let mut tokens=vec![];for target in [first,second] {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let newer=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.event_group.shield_count,2);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(first).shield,tokens[0].1);assert_eq!(done.card(second).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"IBH_072");let first=unit(&e,&mut s,Seat::P1,"LOF_112");let second=unit(&e,&mut s,Seat::P1,"HMW_116");let mut tokens=vec![];for target in [first,second] {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let newer=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,newer));}s.source=source;let p=e.def(&s,source).programs.card[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.event_group.shield_count,2);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(first).shield,tokens[0].1);assert_eq!(done.card(second).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
 }
 
 fn arena_keyword4_effect(code:&str)->Effect {
@@ -2990,7 +3009,7 @@ fn arena_keyword4_numeric_preflight_is_atomic_and_overlap_is_synthetic() {
 #[test]
 fn arena_keyword4_restore_source_exclusion_and_sentinel_hp_expiry() {
  let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_045");let own=unit(&e,&mut s,Seat::P1,"JTL_251");let enemy=unit(&e,&mut s,Seat::P2,"JTL_251");s.source=source;e.apply_effect(&mut s,&arena_keyword4_effect("LOF_045")).unwrap();assert_eq!(e.keyword_amount(&s,source,"restore"),1);assert_eq!(s.card(source).phase_keyword_mask(),0);assert_eq!(e.keyword_amount(&s,own,"restore"),1);assert_eq!(e.keyword_amount(&s,enemy,"restore"),0);
- let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"JTL_077");s.source=source;let shuttle=unit(&e,&mut s,Seat::P1,"SEC_032");let target=unit(&e,&mut s,Seat::P1,"LOF_112");let base_hp=e.hp(&s,target);e.apply_effect(&mut s,&arena_keyword4_effect("JTL_077")).unwrap();assert_eq!(e.hp(&s,target),base_hp+2);s.card_mut(target).damage=base_hp;assert!(e.in_arena(&s,target));s.players[0].out=true;s.players[1].out=true;e.advance(&mut s).unwrap();assert!(s.players[0].discard.contains(target));assert!(e.in_arena(&s,shuttle));assert_eq!(std::mem::size_of::<State>(),19192);
+ let mut s=board(&e);let source=add(&e,&mut s,Seat::P1,"JTL_077");s.source=source;let shuttle=unit(&e,&mut s,Seat::P1,"SEC_032");let target=unit(&e,&mut s,Seat::P1,"LOF_112");let base_hp=e.hp(&s,target);e.apply_effect(&mut s,&arena_keyword4_effect("JTL_077")).unwrap();assert_eq!(e.hp(&s,target),base_hp+2);s.card_mut(target).damage=base_hp;assert!(e.in_arena(&s,target));s.players[0].out=true;s.players[1].out=true;e.advance(&mut s).unwrap();assert!(s.players[0].discard.contains(target));assert!(e.in_arena(&s,shuttle));assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);
 }
 
 #[test]
@@ -2998,7 +3017,7 @@ fn weakness4_admission_preserves_whole_sources_and_native_dependencies() {
  let e=engine();for code in ["HMW_100","HMW_199","HMW_202","HMW_231"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}assert_eq!(e.definitions[*e.by_code.get("HMW_202").unwrap() as usize].programs.card.len(),2);
  let original:Value=committed_catalogue().clone();
  for token in ["TOKEN_WEAKNESS","TOKEN_BEAST"] {for malformed in [false,true] {let mut c=original.clone();if malformed {c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==token).unwrap()["card"]["title"]=json!("Wrong native");}else{c["cards"].as_array_mut().unwrap().retain(|e|e["setCode"]!=token);}let e=Engine::from_catalogue_value(&c).unwrap();assert!(!e.by_code.contains_key("HMW_199"));if token=="TOKEN_WEAKNESS" {for code in ["HMW_100","HMW_202","HMW_231"] {assert!(!e.by_code.contains_key(code));}}}}
- assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 #[test]
 fn weakness4_raw_shapes_fail_closed_without_mixed_group_relaxation() {
@@ -3173,7 +3192,7 @@ fn conditional_arena2_luke_counts_after_uniqueness_and_captured_departure() {
 #[test]
 fn conditional_arena2_luke_over32_and_ordered_shield_resume() {
  let e=engine();let mut s=board(&e);for _ in 0..3 {unit(&e,&mut s,Seat::P1,"LOF_254");}let targets=(0..40).map(|i|unit(&e,&mut s,Seat::P2,if i%2==0 {"ASH_061"}else{"JTL_251"})).collect::<Vec<_>>();let source=conditional_wave_hand(&e,&mut s,Seat::P1,"ASH_112");let done=e.apply(&s,&e.card_action(&s,source)).unwrap();for target in targets {assert_eq!(done.card(target).damage,3);}assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
- let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let targets=[unit(&e,&mut s,Seat::P2,"LOF_112"),unit(&e,&mut s,Seat::P2,"HMW_116")];let mut tokens=vec![];for target in targets {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let new=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,new));}s.source=source;let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,0).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.source,source);assert_eq!(s.event_group.uniform_damage.count,2);let copy=s;assert_eq!(copy.zobrist(),s.zobrist());
+ let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let targets=[unit(&e,&mut s,Seat::P2,"LOF_112"),unit(&e,&mut s,Seat::P2,"HMW_116")];let mut tokens=vec![];for target in targets {let old=s.next_id;e.create_token(&mut s,target,false).unwrap();let new=s.next_id;e.create_token(&mut s,target,false).unwrap();tokens.push((old,new));}s.source=source;let program=e.card_programs(&s,source)[0];e.begin_program(&mut s,program,ProgramContinuation::Finish).unwrap();assert_eq!(s.decision,Decision::AbilityGroupShield);assert_eq!(s.source,source);assert_eq!(s.event_group.uniform_damage.count,2);let copy=s;assert_eq!(copy.zobrist(),s.zobrist());
  // Primitive pending-window diagnostic: removing a quiet support after capture must not re-evaluate the already-taken condition.
  e.defeat(&mut s,supports[0]).unwrap();assert_eq!(s.players[0].ground.len,3);let done=named_button(&e,&s,"Resolve next");assert_eq!(done.card(targets[0]).shield,tokens[0].1);assert_eq!(done.card(targets[1]).shield,tokens[1].0);assert_eq!(done.card(tokens[0].0).parent,0);assert_eq!(done.card(tokens[1].1).parent,0);assert_eq!(done.event_group.uniform_damage,UniformDamageState::default());
 }
@@ -3187,13 +3206,13 @@ fn conditional_arena2_saw_restore_order_and_own_base_threshold() {
 }
 #[test]
 fn conditional_arena2_raw_wrapper_scope_and_depth_remain_closed() {
- let original:Value=committed_catalogue().clone();for code in ["ASH_112","TWI_150"] {for mode in ["optional","wrong-condition","wrong-receiver","wrong-amount","false-effect","nested","continuation","side","type","extra-companion","deep-condition"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"wrong-condition"=>a["effect"]["condition"]["right"]["value"]=json!(3),"wrong-receiver"=>a["effect"]["onTrue"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"wrong-amount"=>a["effect"]["onTrue"]["amount"]["value"]=json!(2),"false-effect"=>a["effect"]["onFalse"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}),"nested"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":effect,"onFalse":{"kind":"noAction"}});},"continuation"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}});a["then"]=json!({"title":"nested","effect":effect});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"extra-companion"=>{card["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"constant","coordinate":true,"title":"extra","effect":{"kind":"gainKeyword","target":"self","keyword":"raid","duration":"persistent","amount":{"kind":"const","value":2}}}));},_=>{let p=&mut a["effect"]["condition"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
- let e=engine();for code in ["ASH_151","LOF_141","SEC_183"] {assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for code in ["ASH_112","TWI_150"] {for mode in ["optional","wrong-condition","wrong-receiver","wrong-amount","false-effect","nested","continuation","side","type","extra-companion","deep-condition"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"wrong-condition"=>a["effect"]["condition"]["right"]["value"]=json!(3),"wrong-receiver"=>a["effect"]["onTrue"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"wrong-amount"=>a["effect"]["onTrue"]["amount"]["value"]=json!(2),"false-effect"=>a["effect"]["onFalse"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}),"nested"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":effect,"onFalse":{"kind":"noAction"}});},"continuation"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}});a["then"]=json!({"title":"nested","effect":effect});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"extra-companion"=>{card["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"constant","coordinate":true,"title":"extra","effect":{"kind":"gainKeyword","target":"self","keyword":"raid","duration":"persistent","amount":{"kind":"const","value":2}}}));},_=>{let p=&mut a["effect"]["condition"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let e=engine();for code in ["ASH_151","LOF_141","SEC_183"] {assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 
 #[test]
 fn conditional_arena2_combined_primary_deaths_precede_captured_wd_waves() {
- let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let hevy=unit(&e,&mut s,Seat::P2,"TWI_164");s.card_mut(hevy).damage=1;let acolyte=unit(&e,&mut s,Seat::P2,"LOF_129");let survivor=unit(&e,&mut s,Seat::P2,"JTL_251");s.source=source;let p=e.card_programs(&s,source)[0];e.begin_program(&mut s,p,0).unwrap();assert!(s.players[1].discard.contains(hevy));assert!(s.players[1].discard.contains(acolyte));assert_eq!(s.card(survivor).damage,3);let copied=s;assert_eq!(copied.zobrist(),s.zobrist());
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"ASH_112");let supports=(0..3).map(|_|unit(&e,&mut s,Seat::P1,"LOF_254")).collect::<Vec<_>>();let hevy=unit(&e,&mut s,Seat::P2,"TWI_164");s.card_mut(hevy).damage=1;let acolyte=unit(&e,&mut s,Seat::P2,"LOF_129");let survivor=unit(&e,&mut s,Seat::P2,"JTL_251");s.source=source;let p=e.card_programs(&s,source)[0];e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();assert!(s.players[1].discard.contains(hevy));assert!(s.players[1].discard.contains(acolyte));assert_eq!(s.card(survivor).damage,3);let copied=s;assert_eq!(copied.zobrist(),s.zobrist());
  for _ in 0..8 {if s.decision==Decision::Window {break;}let a=e.legal_actions(&s).into_iter().find(|a|a.id().is_none()).expect("mandatory captured death choice");s=e.apply(&s,&a).unwrap();}
  assert_eq!(s.decision,Decision::Window);assert!(s.players[1].force_held);assert_eq!(s.card(source).damage,1);for id in supports {assert!(s.players[0].discard.contains(id));assert_eq!(s.card(id).damage,0);}assert_eq!(s.players[0].ground.len,1);assert_eq!(s.card(survivor).damage,3);assert_eq!(s.event_group.uniform_damage,UniformDamageState::default());
 }
@@ -3226,7 +3245,7 @@ fn uniform_token4_raw_shapes_and_reviewed_experience_dependency() {
 #[test]
 fn uniform_token4_unique_new_capture_and_selected_pool_dependency() {
  let e=engine();for seat in [Seat::P1,Seat::P2] {for keep_new in [false,true] {let mut s=board(&e);let old=unit(&e,&mut s,seat,"SEC_119");let donor=unit(&e,&mut s,seat,"ASH_061");let new=conditional_wave_hand(&e,&mut s,seat,"SEC_119");let choice=e.apply(&s,&e.card_action(&s,new)).unwrap();assert_eq!(choice.decision,Decision::Unique);let dead=if keep_new{old}else{new};let mut done=e.apply(&choice,&e.card_action(&choice,dead)).unwrap();for _ in 0..10 {if done.decision==Decision::Window{break;}let actions=e.legal_actions(&done);let next=actions.iter().find(|a|a.id().is_none()).unwrap();done=e.apply(&done,next).unwrap();}assert!(done.player(seat).discard.contains(dead));assert_eq!(e.token_count(&done,done.card(donor).experience),2);assert_eq!(e.token_count(&done,done.card(if keep_new{new}else{old}).experience),if keep_new{1}else{2});}}
- let catalogue=committed_catalogue_bytes();let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ let catalogue=include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 #[test]
 fn uniform_token4_shield_native_outer_metadata_fails_closed() {
@@ -3250,8 +3269,8 @@ fn basezone3_pau_printed_hp_survival_and_actual_base_lethal_threshold() {
 }
 #[test]
 fn basezone3_raw_whole_source_side_and_metadata_scope_fail_closed() {
- let original:Value=committed_catalogue().clone();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
- let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),19192);assert_eq!(std::mem::size_of::<Card>(),36);
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
 }
 
 #[test]
@@ -3262,7 +3281,7 @@ fn arena_query3_candidate_binding_and_large_ordered_list() {
 }
 #[test]
 fn arena_query3_sly_false_confirmation_true_cost_and_spy_identity() {
- let e=engine();for seat in [Seat::P1,Seat::P2] {for count in [3,4,5] {let mut s=board(&e);s.active=seat;s.action_player=Some(seat);let source=s.player(seat).leader;s.card_mut(source).def=e.by_code["SEC_014"];upgrade_resources(&e,&mut s,seat);for i in 0..count {let id=unit(&e,&mut s,if i%2==0{seat}else{seat.other()},if i%3==0{"JTL_251"}else{"ASH_131"});s.card_mut(id).exhausted=true;}let before=s;let p=e.def(&s,source).programs.leader[0];s.source=source;e.begin_program(&mut s,p,0).unwrap();if count==3 {assert_eq!(s.decision,Decision::AbilityNoEffect);let canceled=named_button(&e,&s,"Cancel");assert!(!canceled.card(source).exhausted);assert_eq!(canceled.next_id,before.next_id);s=named_button(&e,&s,"Use it anyway");}assert!(s.card(source).exhausted);assert_eq!(s.player(seat).resources.as_slice().iter().filter(|id|s.card(**id).exhausted).count(),1);assert_eq!(s.next_id,before.next_id+u16::from(count>=4));if count>=4 {let id=before.next_id;assert_eq!(e.def(&s,id).code,"TOKEN_SPY");assert_eq!(s.card(id).owner,seat);assert!(s.card(id).exhausted);}}}
+ let e=engine();for seat in [Seat::P1,Seat::P2] {for count in [3,4,5] {let mut s=board(&e);s.active=seat;s.action_player=Some(seat);let source=s.player(seat).leader;s.card_mut(source).def=e.by_code["SEC_014"];upgrade_resources(&e,&mut s,seat);for i in 0..count {let id=unit(&e,&mut s,if i%2==0{seat}else{seat.other()},if i%3==0{"JTL_251"}else{"ASH_131"});s.card_mut(id).exhausted=true;}let before=s;let p=e.def(&s,source).programs.leader[0];s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Finish).unwrap();if count==3 {assert_eq!(s.decision,Decision::AbilityNoEffect);let canceled=named_button(&e,&s,"Cancel");assert!(!canceled.card(source).exhausted);assert_eq!(canceled.next_id,before.next_id);s=named_button(&e,&s,"Use it anyway");}assert!(s.card(source).exhausted);assert_eq!(s.player(seat).resources.as_slice().iter().filter(|id|s.card(**id).exhausted).count(),1);assert_eq!(s.next_id,before.next_id+u16::from(count>=4));if count>=4 {let id=before.next_id;assert_eq!(e.def(&s,id).code,"TOKEN_SPY");assert_eq!(s.card(id).owner,seat);assert!(s.card(id).exhausted);}}}
 }
 #[test]
 fn arena_query3_scope_candidate_unique_and_spy_dependency_rejections() {
@@ -3313,3 +3332,693 @@ fn compiled_expression_roots_keep_runtime_shape_checks() {
     }
     assert!(selections>0&&uniform>0,"{selections} selections, {uniform} uniform damage effects");
 }
+
+
+// Raw IR diagnostics exercise the lexical source bridge separately from pinned
+// source conversion and conformance recordings.
+fn bounded_attached_attached_engine(host:bool)->Engine {
+ let mut c:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="SOR_057").unwrap();
+ entry["keywordValues"]=json!({});entry["card"]["keywords"]=json!([]);
+ entry["abilities"]["card"]=if host {json!([{"trigger":"constant","title":"Delegated aura","attachedContext":"host","condition":{"kind":"unary","op":"!","value":{"kind":"ref","path":["source","exhausted"]}},"targetResolver":{"owner":"self","type":"unit","zone":"arena","predicate":{"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}}},"effect":{"kind":"gainKeyword","target":"chosen","keyword":"restore","amount":{"kind":"const","value":1},"duration":"persistent"}}])}else{json!([{"trigger":"constant","title":"Direct grant","attachedContext":"upgrade","condition":{"kind":"ref","path":["source","parentUnit","exhausted"]},"effect":{"kind":"gainKeyword","target":"parent","keyword":"sentinel","amount":{"kind":"const","value":1},"duration":"persistent"}}])};
+ Engine::from_catalogue_value(&c).unwrap()
+}
+#[test]
+fn bounded_attached_attached_context_uses_enemy_host_for_delegated_source_and_controller() {
+ for seat in [Seat::P1,Seat::P2] {
+ let e=bounded_attached_attached_engine(true);let mut s=board(&e);s.active=seat;upgrade_resources(&e,&mut s,seat);
+ let host=unit(&e,&mut s,seat.other(),"LOF_254");let friend=unit(&e,&mut s,seat.other(),"LOF_254");let caster=unit(&e,&mut s,seat,"LOF_254");
+ let u=add(&e,&mut s,seat,"SOR_057");s.player_mut(seat).hand.push(u).unwrap();s=play_upgrade(&e,&s,u,host);
+ assert_eq!(e.keyword_amount(&s,host,"restore"),0);assert_eq!(e.keyword_amount(&s,friend,"restore"),1);assert_eq!(e.keyword_amount(&s,caster,"restore"),0);assert_eq!(s.card(u).owner,seat);
+ s.card_mut(host).exhausted=true;assert_eq!(e.keyword_amount(&s,friend,"restore"),0);s.card_mut(host).exhausted=false;assert_eq!(e.keyword_amount(&s,friend,"restore"),1);
+ e.defeat(&mut s,u).unwrap();assert_eq!(e.keyword_amount(&s,friend,"restore"),0);
+ }
+}
+#[test]
+fn bounded_attached_direct_context_keeps_upgrade_identity_and_physical_parent() {
+ let e=bounded_attached_attached_engine(false);let mut s=board(&e);upgrade_resources(&e,&mut s,Seat::P1);let host=unit(&e,&mut s,Seat::P2,"LOF_254");let other=unit(&e,&mut s,Seat::P2,"LOF_254");let u=hand(&e,&mut s,"SOR_057");s=play_upgrade(&e,&s,u,host);
+ assert!(!e.has_keyword(&s,host,"sentinel"));s.card_mut(host).exhausted=true;assert!(e.has_keyword(&s,host,"sentinel"));assert!(!e.has_keyword(&s,other,"sentinel"));
+ e.defeat(&mut s,u).unwrap();assert!(!e.has_keyword(&s,host,"sentinel"));
+}
+#[test]
+fn bounded_attached_new_ir_fields_reject_unknown_contexts_and_nonconstant_registrations() {
+ for context in ["garbage","host","upgrade"] {let value=json!({"trigger":"whenPlayed","title":"bad","attachedContext":context,"effect":{"kind":"noAction"}});let a=serde_json::from_value::<crate::ability_ir::Ability>(value).unwrap();assert!(crate::ability_ir::Program::compile(&a).is_err());}
+}
+#[test]
+fn bounded_attached_arena_card_query_keeps_upgrade_controller_and_live_attachment_domain() {
+ let e=engine();let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_254");let host=unit(&e,&mut s,Seat::P2,"LOF_254");upgrade_resources(&e,&mut s,Seat::P1);let u=hand(&e,&mut s,"SOR_057");s=play_upgrade(&e,&s,u,host);
+ let query:Expr=serde_json::from_value(json!({"kind":"query","name":"hasSomeArenaCard","receiver":{"kind":"ref","path":["player"]},"args":[{"kind":"query","name":"isUpgrade","receiver":{"kind":"ref","path":["card"]},"args":[]}]})).unwrap();query.validate().unwrap();assert!(e.eval(&s,source,host,&query).truth());
+ let unit_query=match query.clone(){Expr::Query{receiver,args,..}=>Expr::Query{name:"hasSomeArenaUnit".into(),receiver,args},_=>unreachable!()};assert!(!e.eval(&s,source,host,&unit_query).truth());e.defeat(&mut s,u).unwrap();assert!(!e.eval(&s,source,host,&query).truth());
+}
+#[test]
+fn bounded_attached_candidate_thirteen_have_executable_programs() {
+ let e=engine();for code in ["ASH_066","LAW_147","SHD_157","LOF_060","LOF_234","SOR_067","SOR_116","SOR_158","SOR_208","LAW_128","SEC_071","ASH_114","SEC_104"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
+}
+#[test]
+fn bounded_attached_actual_delegated_aura_tracks_enemy_unique_host_and_upgrade_departure() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {let mut s=board(&e);s.active=seat;upgrade_resources(&e,&mut s,seat);let host=unit(&e,&mut s,seat.other(),"LOF_234");let friend=unit(&e,&mut s,seat.other(),"LOF_254");let caster=unit(&e,&mut s,seat,"LOF_254");let u=add(&e,&mut s,seat,"SEC_104");s.player_mut(seat).hand.push(u).unwrap();s=play_upgrade(&e,&s,u,host);assert_eq!(e.keyword_amount(&s,friend,"restore"),1);assert_eq!(e.keyword_amount(&s,caster,"restore"),0);assert_eq!(e.keyword_amount(&s,host,"restore"),0);assert_eq!(e.keyword_amount(&s,friend,"raid"),1);assert!(e.has_keyword(&s,friend,"overwhelm"));s.card_mut(host).exhausted=true;assert_eq!(e.keyword_amount(&s,friend,"restore"),0);s.card_mut(host).exhausted=false;e.defeat(&mut s,u).unwrap();assert_eq!(e.keyword_amount(&s,friend,"restore"),0);}
+}
+#[test]
+fn bounded_attached_aspect_amount_is_union_of_own_units_including_deployed_leader() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {let mut s=board(&e);let source=unit(&e,&mut s,seat,"LAW_147");unit(&e,&mut s,seat,"LAW_147");unit(&e,&mut s,seat.other(),"LOF_234");let leader=s.player(seat).leader;s.card_mut(leader).deployed=true;e.add_arena(&mut s,leader).unwrap();
+ let p=e.card_programs(&s,source)[0];let amount=e.program(p).instructions.iter().find_map(|i|if let Instruction::Apply(Effect::GiveExperience{amount,..})=i{Some(amount)}else{None}).unwrap();let expected=s.player(seat).ground.as_slice().iter().chain(s.player(seat).space.as_slice()).flat_map(|id|e.def(&s,*id).info.aspects().iter().cloned()).collect::<std::collections::HashSet<_>>().len();assert_eq!(e.eval(&s,source,0,amount).number(),expected as i64);assert!(expected<e.def(&s,source).info.aspects().len()*2+e.def(&s,leader).info.aspects().len());
+ }
+}
+#[test]
+fn bounded_attached_base_threshold_counts_both_players_for_caster_draw() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {let mut s=board(&e);let source=unit(&e,&mut s,seat,"SHD_157");let p=e.card_programs(&s,source)[0];let (target,amount)=e.program(p).instructions.iter().find_map(|i|if let Instruction::Apply(Effect::Draw{target,amount})=i{Some((target,amount))}else{None}).unwrap();assert!(matches!(target,Target::Name(n) if n=="ownPlayer"));for own in [14,15] {for enemy in [14,15] {let b=s.player(seat).base;s.card_mut(b).damage=own;let b=s.player(seat.other()).base;s.card_mut(b).damage=enemy;assert_eq!(e.eval(&s,source,0,amount).number(),i64::from(own>=15)+i64::from(enemy>=15));}}}
+}
+#[test]
+fn bounded_attached_force_card_condition_includes_enemy_host_upgrade_and_live_hp_departure() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {let mut s=board(&e);s.active=seat;upgrade_resources(&e,&mut s,seat);let source=unit(&e,&mut s,seat,"LOF_060");let host=unit(&e,&mut s,seat.other(),"LOF_256");let base_hp=e.hp(&s,source);let u=add(&e,&mut s,seat,"LOF_074");s.player_mut(seat).hand.push(u).unwrap();s=play_upgrade(&e,&s,u,host);assert_eq!(e.hp(&s,source),base_hp+1);s.card_mut(source).damage=base_hp;assert!(e.in_arena(&s,source));e.defeat(&mut s,u).unwrap();e.sweep_stat_defeats(&mut s).unwrap();assert!(!e.in_arena(&s,source));assert!(s.player(seat).discard.contains(source));}
+}
+#[test]
+fn bounded_attached_deployed_leader_existence_requires_own_live_unit_side() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {let mut s=board(&e);let source=unit(&e,&mut s,seat,"SOR_067");let p=e.card_programs(&s,source)[0];let condition=e.program(p).instructions.iter().find_map(|i|if let Instruction::Conditional{condition,..}=i{Some(condition)}else{None}).unwrap();assert!(!e.eval(&s,source,0,condition).truth());let enemy=s.player(seat.other()).leader;s.card_mut(enemy).deployed=true;e.add_arena(&mut s,enemy).unwrap();assert!(!e.eval(&s,source,0,condition).truth());let own=s.player(seat).leader;s.card_mut(own).deployed=true;e.add_arena(&mut s,own).unwrap();assert!(e.eval(&s,source,0,condition).truth());e.defeat(&mut s,own).unwrap();assert!(!e.eval(&s,source,0,condition).truth());}
+}
+#[test]
+fn bounded_attached_context_rejects_wrong_source_types_and_pilot_metadata() {
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for change in ["class","types","pilot","side","intrinsic"] {let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="SEC_104").unwrap();match change {"class"=>entry["baseClass"]=json!("NonLeaderUnitCard"),"types"=>entry["card"]["types"]=json!(["unit","upgrade"]),"pilot"=>entry["piloting"]=json!({}),"side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),_=>entry["keywordValues"]=json!({"restore":1})};assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("SEC_104"),"{change}");}
+}
+
+#[test]
+fn aspect_scaled_any_target_phase_stats_remain_quarantined_for_source_menu() {
+ let e=engine();assert!(!e.by_code.contains_key("LAW_167"));let reason=e.rejected_cards().unwrap().get("LAW_167").unwrap();assert!(reason.contains("unsupported runtime query arenaDistinctAspectCount"),"{reason}");
+}
+#[test]
+fn attached_context_scope_rejects_unreviewed_keywords_amounts_and_aura_domains() {
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ for code in ["LAW_128","ASH_114","SEC_104"] {
+  for mutation in ["hidden","zero","oversized","owner","type","zone","missing-predicate","includes-host","other-controller","optional","count","mode","arena","prompt","host-parent","registration"] {
+   if code!="SEC_104" && !["hidden","zero","oversized","registration"].contains(&mutation) {continue;}
+   let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut entry["abilities"]["card"][0];
+   match mutation {
+    "hidden"=>{let effect=if code=="SEC_104" {&mut a["effect"]["effects"][0]}else{&mut a["effect"]};effect["keyword"]=json!("hidden");},
+    "zero"|"oversized"=>{let effect=if code=="SEC_104" {&mut a["effect"]["effects"][0]}else{&mut a["effect"]};effect["amount"]["value"]=json!(if mutation=="zero"{0}else{65535});},
+    "owner"=>a["targetResolver"]["owner"]=json!("any"),"type"=>a["targetResolver"]["type"]=json!("upgrade"),"zone"=>a["targetResolver"]["zone"]=json!("hand"),
+    "missing-predicate"=>{a["targetResolver"].as_object_mut().unwrap().remove("predicate");},
+    "includes-host"=>a["targetResolver"]["predicate"]["left"]=json!({"kind":"const","value":true}),
+    "other-controller"=>a["targetResolver"]["predicate"]["right"]["right"]=json!({"kind":"ref","path":["opponent"]}),
+    "optional"=>a["targetResolver"]["optional"]=json!(true),"count"=>a["targetResolver"]["count"]=json!(1),"mode"=>a["targetResolver"]["mode"]=json!("upTo"),"arena"=>a["targetResolver"]["arena"]=json!("ground"),"prompt"=>a["targetResolver"]["promptTitle"]=json!("Other selection"),
+    "host-parent"=>a["condition"]=json!({"kind":"ref","path":["source","parentUnit","exhausted"]}),_=>a["trigger"]=json!("onAttack"),
+   }
+   assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+ // The new source bridge's review bounds must not silently change old primitives.
+ for (keyword,amount) in [("hidden",1),("restore",65535),("raid",0)] {let a:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"whenPlayed","title":"Existing phase keyword primitive","effect":{"kind":"gainKeyword","target":"self","duration":"phase","keyword":keyword,"amount":{"kind":"const","value":amount}}})).unwrap();assert!(crate::ability_ir::Program::compile(&a).is_ok());}
+}
+#[test]
+fn attached_parent_title_requires_ordinary_upgrade_metadata_and_complete_single_side() {
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ for mutation in ["unit","mixed","token","class","piloting","pilot-box","pilot-text","intrinsic","missing-unique","extra-side","extra-card","context-title"] {
+  let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]=="ASH_066").unwrap();match mutation {
+   "unit"=>entry["card"]["types"]=json!(["unit"]),"mixed"=>entry["card"]["types"]=json!(["unit","upgrade"]),"token"=>entry["card"]["types"]=json!(["token","upgrade"]),"class"=>entry["baseClass"]=json!("NonLeaderUnitCard"),"piloting"=>entry["piloting"]=json!({}),"pilot-box"=>entry["card"]["pilotBox"]=json!({}),"pilot-text"=>entry["card"]["pilotText"]=json!("Piloting [1]"),"intrinsic"=>entry["keywordValues"]=json!({"hidden":1}),"missing-unique"=>{entry["card"].as_object_mut().unwrap().remove("unique");},"extra-side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),"extra-card"=>{let extra=entry["abilities"]["card"][0].clone();entry["abilities"]["card"].as_array_mut().unwrap().push(extra);},_=>entry["abilities"]["card"][0]["contextTitle"]=json!([{"kind":"ref","path":["source","parentCard","title"]}]),
+  };assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("ASH_066"),"{mutation}");
+ }
+ let e=engine();assert!(e.by_code.contains_key("ASH_066"));assert!(e.by_code.contains_key("SEC_104"));
+}
+
+#[test]
+fn aspect_scaled_any_target_raw_ir_preserves_menu_quarantine() {
+ let ability:crate::ability_ir::Ability=serde_json::from_value(json!({
+  "trigger":"whenPlayed","title":"Aspect-scaled phase modifier diagnostic",
+  "targetResolver":{"owner":"any","type":"any","zone":"anyAttackable"},
+  "effect":{"kind":"modifyStats","target":"chosen","duration":"phase",
+   "power":{"kind":"conditional","condition":{"kind":"query","name":"hasSomeArenaUnit","receiver":{"kind":"ref","path":["player"]},"args":[{"kind":"const","value":true}]},"then":{"kind":"const","value":2},"else":{"kind":"const","value":1}},
+   "hp":{"kind":"const","value":0}}
+ })).unwrap();
+ let reason=crate::ability_ir::Program::compile(&ability).unwrap_err();assert!(reason.contains("Any-target"),"{reason}");
+}
+
+#[test]
+fn recovered_presence_queries_reject_incompatible_source_metadata_and_unused_sides() {
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ for code in ["LOF_060","LOF_234","SOR_067","SOR_116","SOR_158","SOR_208"] {
+  for mutation in ["class","mixed","token","leader","coordinated-token","coordinated-leader","extra-leader","extra-unit"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   match mutation {
+    "class"=>entry["baseClass"]=json!("UpgradeCard"),"mixed"=>entry["card"]["types"]=json!(["unit","upgrade"]),
+    "token"=>entry["card"]["types"]=json!(["token","unit"]),"leader"=>entry["card"]["types"]=json!(["unit","leader"]),
+    "coordinated-token"=>{entry["baseClass"]=json!("TokenUnitCard");entry["card"]["types"]=json!(["token","unit"]);},
+    "coordinated-leader"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);},
+    "extra-leader"=>entry["abilities"]["leader"]=json!([{"trigger":"constant","title":"Unused side","effect":{"kind":"gainKeyword","target":"self","keyword":"grit","amount":{"kind":"const","value":1},"duration":"persistent"}}]),
+    _=>entry["abilities"]["unit"]=json!([{"trigger":"constant","title":"Unused side","effect":{"kind":"gainKeyword","target":"self","keyword":"grit","amount":{"kind":"const","value":1},"duration":"persistent"}}]),
+   }
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+}
+#[test]
+fn known_source_classes_require_compatible_types_and_side_topology() {
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ for code in ["LAW_147","SHD_157","JTL_081","TWI_084"] {
+  for mutation in ["class","mixed","leader-card-side","unused-side"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   match mutation {"class"=>entry["baseClass"]=json!("EventCard"),"mixed"=>entry["card"]["types"]=json!(["unit","leader"]),"leader-card-side"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);},_=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone()}
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+}
+#[test]
+fn arena_leader_predicate_source_metadata_fails_closed() {
+ let mut original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ original["cards"].as_array_mut().unwrap().retain(|e|["ASH_113","ASH_240","TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_THE_FORCE","TOKEN_WEAKNESS"].iter().any(|id|e["setCode"]==*id));
+ for code in ["ASH_113","ASH_240"] {
+  assert!(Engine::from_catalogue_value(&original).unwrap().by_code.contains_key(code));
+  for counted in [false,true] {
+  for mutation in ["token","leader-side","unknown","null","missing","pilotText","pilotBox","pilotingBox","deployBox","deployCost","epicAction","attach","piloting","keyword-values","extra-side","upgradePower","upgradeHp","unique-null","unique-string","unique-missing","attach-only","pilot-only"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   if counted {let condition=&mut entry["abilities"]["card"][0]["condition"];let mut count=condition.clone();count["name"]=json!("arenaUnitCount");*condition=json!({"kind":"binary","op":">","left":count,"right":{"kind":"const","value":0}});}
+   match mutation {
+    "token"=>{entry["baseClass"]=json!("TokenUnitCard");entry["card"]["types"]=json!(["token","unit"]);},
+    "leader-side"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);entry["abilities"]["unit"]=entry["abilities"]["card"].clone();entry["abilities"]["card"]=json!([]);},
+    "unknown"=>entry["baseClass"]=json!("UnknownCard"),"null"=>entry["baseClass"]=Value::Null,"missing"=>{entry.as_object_mut().unwrap().remove("baseClass");},
+    "attach-only"=>{entry["baseClass"]=json!("UpgradeCard");entry["card"]["types"]=json!(["upgrade"]);entry["card"]["upgradePower"]=json!(0);entry["card"]["upgradeHp"]=json!(0);entry["attachCondition"]=entry["abilities"]["card"][0]["condition"].clone();entry["abilities"]=json!({"card":[],"unit":[],"leader":[]});},
+    "pilot-only"=>{entry["piloting"]=entry["abilities"]["card"][0]["condition"].clone();entry["abilities"]=json!({"card":[],"unit":[],"leader":[]});},
+    "attach"=>entry["attachCondition"]=json!({"kind":"const","value":true}),"piloting"=>entry["piloting"]=json!({"cost":1}),
+    "unique-null"=>entry["card"]["unique"]=Value::Null,"unique-string"=>entry["card"]["unique"]=json!("false"),"unique-missing"=>{entry["card"].as_object_mut().unwrap().remove("unique");},
+    "keyword-values"=>entry["keywordValues"]=json!({"raid":1}),"extra-side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),
+    key=>entry["card"][key]=json!("Unconverted mechanics"),
+   }
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+}
+}
+
+#[test]
+fn upgrade_presence_and_recipient_target_sources_reject_unmodeled_metadata() {
+ let mut original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ let codes=["LOF_244","SEC_095","TS26_042","JTL_144","LOF_060"];
+ original["cards"].as_array_mut().unwrap().retain(|e|codes.iter().chain(["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_THE_FORCE","TOKEN_WEAKNESS"].iter()).any(|id|e["setCode"]==*id));
+ for code in codes {
+  assert!(Engine::from_catalogue_value(&original).unwrap().by_code.contains_key(code),"actual source {code}");
+  for mutation in ["unknown","null","missing","token","leader-side","coordinated-other","mixed","pilotText","pilotBox","pilotingBox","deployBox","deployCost","epicAction","upgradePower","upgradeHp","attach","piloting","unique-null","unique-string","unique-missing","extra-side"] {
+   let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
+   match mutation {
+    "unknown"=>entry["baseClass"]=json!("UnknownCard"),"null"=>entry["baseClass"]=Value::Null,"missing"=>{entry.as_object_mut().unwrap().remove("baseClass");},
+    "token"=>{entry["baseClass"]=json!("TokenUnitCard");entry["card"]["types"]=json!(["token","unit"]);},
+    "leader-side"=>{entry["baseClass"]=json!("LeaderUnitCard");entry["card"]["types"]=json!(["leader"]);entry["abilities"]["unit"]=entry["abilities"]["card"].clone();entry["abilities"]["card"]=json!([]);},
+    "coordinated-other"=>{let event=code=="JTL_144";entry["baseClass"]=json!(if event{"NonLeaderUnitCard"}else{"EventCard"});entry["card"]["types"]=json!([if event{"unit"}else{"event"}]);for a in entry["abilities"]["card"].as_array_mut().unwrap(){a["trigger"]=json!(if event{"whenPlayed"}else{"event"});}},
+    "mixed"=>entry["card"]["types"]=json!(["unit","event"]),
+    "attach"=>entry["attachCondition"]=json!({"kind":"const","value":true}),"piloting"=>entry["piloting"]=json!({"cost":1}),
+    "unique-null"=>entry["card"]["unique"]=Value::Null,"unique-string"=>entry["card"]["unique"]=json!("false"),"unique-missing"=>{entry["card"].as_object_mut().unwrap().remove("unique");},
+    "extra-side"=>entry["abilities"]["unit"]=entry["abilities"]["card"].clone(),key=>entry["card"][key]=json!("Unconverted mechanics"),
+   }
+   assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+  }
+ }
+ for code in ["TS26_042","JTL_144"] {for mutation in ["coordinate","confirmation","context-title","cost","condition","optional","duplicate","wrong-target"] {
+  let mut catalog=original.clone();let entry=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut entry["abilities"]["card"][0];
+  match mutation {"coordinate"=>a["coordinate"]=json!(true),"confirmation"=>a["requiresConfirmation"]=json!(true),"context-title"=>a["contextTitle"]=json!([{"kind":"const","value":"Unreviewed menu"}]),"cost"=>a["costs"]=json!([{"kind":"exhaustSelf"}]),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"optional"=>a["optional"]=json!(true),"duplicate"=>{let extra=a.clone();entry["abilities"]["card"].as_array_mut().unwrap().push(extra);},_=>{if code=="JTL_144"{a["effect"]["target"]=json!("self");}else{a["effect"]["target"]["condition"]["op"]=json!("!==");}}}
+  assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key(code),"{code}:{mutation}");
+ }}
+}
+
+// Direct mid-game fixtures: all identities/zones round-trip through the public
+// loader before assertions. No recorded games or engine replay are required.
+#[test]
+fn shin_hati_singleton_sentinel_tracks_live_ground_membership() {
+    let e = engine();
+    let mut s = board(&e);
+    s.round = 6;
+    let shin = unit(&e, &mut s, Seat::P1, "ASH_049");
+    let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let space = unit(&e, &mut s, Seat::P1, "ASH_201");
+    let leader = s.players[0].leader;
+    s.card_mut(leader).deployed = true;
+    s.card_mut(leader).epic_used = true;
+    e.add_arena(&mut s, leader).unwrap();
+    s.active = Seat::P2;
+    s.action_player = Some(Seat::P2);
+    let base = s.players[0].base;
+    s.card_mut(base).damage = 7;
+    let mut s = e.load_state(&e.snapshot(&s)).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"), "friendly space, deployed leader and enemy ground units do not count");
+    assert!(!e.has_keyword(&s, space, "sentinel"));
+    assert_eq!(e.attack_targets(&s, enemy, false), vec![shin]);
+    let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
+    assert!(!e.has_keyword(&s, shin, "sentinel"));
+    assert!(e.attack_targets(&s, enemy, false).contains(&s.players[0].base));
+    e.defeat(&mut s, ally).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"), "removing the other ground unit restores Sentinel immediately");
+    let token = unit(&e, &mut s, Seat::P1, "TOKEN_CLONE_TROOPER");
+    assert!(!e.has_keyword(&s, shin, "sentinel"), "non-leader tokens also count");
+    e.defeat(&mut s, token).unwrap();
+    assert!(e.has_keyword(&s, shin, "sentinel"));
+    let restored = e.load_state(&e.snapshot(&s)).unwrap();
+    assert!(e.has_keyword(&restored, shin, "sentinel"));
+    assert_eq!(restored.card(base).damage, 7);
+}
+
+#[test]
+fn shin_hati_singleton_sentinel_is_controller_relative_in_both_seats() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e);
+        s.round = 5;
+        let shin = unit(&e, &mut s, seat, "ASH_049");
+        let opponent = seat.other();
+        let attacker = unit(&e, &mut s, opponent, "LOF_256");
+        s.active = opponent;
+        s.action_player = Some(opponent);
+        let mut s = e.load_state(&e.snapshot(&s)).unwrap();
+        assert!(e.has_keyword(&s, shin, "sentinel"));
+        assert_eq!(e.attack_targets(&s, attacker, false), vec![shin]);
+        let second = unit(&e, &mut s, seat, "LOF_254");
+        assert!(!e.has_keyword(&s, shin, "sentinel"));
+        assert!(!e.has_keyword(&s, second, "sentinel"));
+        e.defeat(&mut s, second).unwrap();
+        assert!(e.has_keyword(&s, shin, "sentinel"));
+    }
+}
+
+#[test]
+fn shin_hati_midgame_play_pays_cost_and_enters_exhausted_with_live_sentinel() {
+    let e = engine();
+    let mut s = board(&e);
+    s.round = 6;
+    let shin = hand(&e, &mut s, "ASH_049");
+    let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let s = e.load_state(&e.snapshot(&s)).unwrap();
+    let before = e.ready_resources(&s, Seat::P1);
+    let cost = usize::from(e.cost(&s, shin));
+    assert!(cost > 0 && before >= cost);
+    assert!(e.legal_actions(&s).contains(&e.card_action(&s, shin)));
+    let played = e.apply(&s, &e.card_action(&s, shin)).unwrap();
+    assert!(!played.players[0].hand.contains(shin));
+    assert!(played.players[0].ground.contains(shin));
+    assert!(played.card(shin).exhausted);
+    assert_eq!(e.ready_resources(&played, Seat::P1), before - cost);
+    assert!(e.has_keyword(&played, shin, "sentinel"));
+    assert_eq!(e.attack_targets(&played, enemy, false), vec![shin]);
+    e.load_state(&e.snapshot(&played)).unwrap();
+}
+
+#[path = "batch_attack_condition_tests.rs"]
+mod batch_attack_condition_tests;
+#[path = "batch_damage_default_source_tests.rs"]
+mod batch_damage_default_source_tests;
+#[path = "batch_plain_upgrade_tests.rs"]
+mod batch_plain_upgrade_tests;
+
+#[path = "cleanup_integration_tests.rs"]
+mod cleanup_integration_tests;
+
+#[path = "replacement_initiative_tests.rs"]
+mod replacement_initiative_tests;
+
+#[path = "controlled_title_tests.rs"]
+mod controlled_title_tests;
+
+#[path = "physical_attachment_tests.rs"]
+mod physical_attachment_tests;
+
+#[path = "title_consumer_tests.rs"]
+mod title_consumer_tests;
+
+#[path = "bounded_floor_tests.rs"]
+mod bounded_floor_tests;
+
+#[test]
+fn bounded_reduction_midgame_slavers_counts_physical_enemy_host_upgrades_and_any_controller_targets() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {for seat in [Seat::P1,Seat::P2] {
+ let mut e=engine();e.set_rules_backend(backend).unwrap();let mut s=board(&e);s.active=seat;
+ let friend=unit(&e,&mut s,seat,"LOF_254");let enemy=unit(&e,&mut s,seat.other(),"LOF_254");let high=unit(&e,&mut s,seat.other(),"SHD_189");
+ s.card_mut(friend).exhausted=true;s.card_mut(enemy).exhausted=true;
+ for owner in [seat,seat.other()] {let u=add(&e,&mut s,owner,"SOR_057");e.attach(&mut s,u,enemy);}
+ e.create_token(&mut s,enemy,false).unwrap();
+ let u=add(&e,&mut s,seat.other(),"SOR_057");e.attach(&mut s,u,friend);
+ let source=add(&e,&mut s,seat,"SHD_189");s.player_mut(seat).hand.push(source).unwrap();for _ in 0..10{let id=add(&e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(id).unwrap();}
+ let q:crate::ability_ir::Expr=serde_json::from_value(json!({"kind":"query","name":"arenaUpgradeSum","receiver":{"kind":"ref","path":["opponent"]},"args":[]})).unwrap();
+ assert_eq!(e.eval(&s,source,friend,&q).number(),3);
+ let mut started=e.apply(&s,&e.card_action(&s,source)).unwrap();if started.decision==Decision::AbilityOptional {let declined=named_button(&e,&started,"Pass");assert!(declined.card(friend).exhausted);assert!(e.in_arena(&declined,source));started=named_button(&e,&started,"Trigger");}
+ assert_eq!(started.decision,Decision::AbilityTarget);let ids:Vec<_>=e.legal_actions(&started).iter().filter_map(Action::id).collect();
+ // The two modified Porgs remain eligible; the four-power Freighter does not.
+ assert!(ids.contains(&friend));assert!(!ids.contains(&source));assert!(ids.contains(&enemy));assert!(!ids.contains(&high));
+ let done=e.apply(&started,&e.card_action(&started,friend)).unwrap();assert!(!done.card(friend).exhausted);assert!(done.card(enemy).exhausted);let enemy_done=e.apply(&started,&e.card_action(&started,enemy)).unwrap();assert!(!enemy_done.card(enemy).exhausted);assert!(enemy_done.card(friend).exhausted);
+ let mut enough=started;for _ in 0..4 {e.create_token(&mut enough,enemy,false).unwrap();}let enough_ids:Vec<_>=e.legal_actions(&enough).iter().filter_map(Action::id).collect();assert!(!enough_ids.contains(&source));assert!(enough_ids.contains(&high));
+ let mut live=started;let id=e.upgrades(&live,enemy)[0];e.detach(&mut live,id);assert_eq!(e.eval(&live,source,friend,&q).number(),2);
+ }}
+}
+#[test]
+fn bounded_reduction_midgame_reckoning_sums_damage_across_arenas_and_zero_does_not_resolve_damage() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+ let mut e=engine();e.set_rules_backend(backend).unwrap();let mut s=board(&e);let first=unit(&e,&mut s,Seat::P1,"LOF_256");let second=unit(&e,&mut s,Seat::P1,"SHD_189");let enemy=unit(&e,&mut s,Seat::P2,"SHD_189");
+ s.card_mut(first).damage=1;s.card_mut(second).damage=2;s.card_mut(enemy).damage=1;let event=hand(&e,&mut s,"ASH_187");
+ let q:crate::ability_ir::Expr=serde_json::from_value(json!({"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]})).unwrap();assert_eq!(e.eval(&s,event,enemy,&q).number(),3);
+ let targeted=e.apply(&s,&e.card_action(&s,event)).unwrap();assert_eq!(targeted.decision,Decision::AbilityTarget);
+ let done=e.apply(&targeted,&e.card_action(&targeted,enemy)).unwrap();assert_eq!(done.card(enemy).damage,4);assert!(done.players[0].discard.contains(event));
+ let mut live=targeted;live.card_mut(first).damage=0;live.card_mut(second).damage=0;assert_eq!(e.eval(&live,event,enemy,&q).number(),0);assert!(!e.legal_actions(&live).iter().filter_map(Action::id).any(|id|id==enemy));
+ let mut zero=board(&e);let target=unit(&e,&mut zero,Seat::P2,"SHD_189");let event=hand(&e,&mut zero,"ASH_187");let prompt=e.apply(&zero,&e.card_action(&zero,event)).unwrap();assert_eq!(prompt.decision,Decision::AbilityNoEffect);let canceled=named_button(&e,&prompt,"Cancel");assert_eq!(canceled,zero);let done=named_button(&e,&prompt,"Play anyway");assert_eq!(done.card(target).damage,0);assert!(done.players[0].discard.contains(event));
+ }
+}
+#[test]
+fn bounded_reduction_reduced_catalog_diagnostic_savage_ties_zero_live_stats_and_deployed_side() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {for seat in [Seat::P1,Seat::P2] {
+ let mut catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();catalog["cards"].as_array_mut().unwrap().retain(|entry|!crate::bounded_reductions::power_feedback(entry));
+ let mut e=Engine::from_catalogue_value(&catalog).unwrap();e.set_rules_backend(backend).unwrap();let mut s=board(&e);let leader=add(&e,&mut s,seat,"TS26_005");s.player_mut(seat).leader=leader;
+ let a=unit(&e,&mut s,seat,"LOF_254");let b=unit(&e,&mut s,seat,"LOF_254");let enemy=unit(&e,&mut s,seat.other(),"SHD_189");
+ assert!(e.has_keyword(&s,a,"overwhelm"));assert!(e.has_keyword(&s,b,"overwhelm"));assert!(!e.has_keyword(&s,enemy,"overwhelm"));
+ s.card_mut(a).phase_power=1;assert!(e.has_keyword(&s,a,"overwhelm"));assert!(!e.has_keyword(&s,b,"overwhelm"));
+ s.card_mut(a).phase_power=-100;s.card_mut(b).phase_power=-100;assert_eq!(e.power(&s,a,false),0);assert!(e.has_keyword(&s,a,"overwhelm"));assert!(e.has_keyword(&s,b,"overwhelm"));
+ s.card_mut(leader).deployed=true;e.add_arena(&mut s,leader).unwrap();assert!(e.has_keyword(&s,a,"overwhelm"));assert!(e.has_keyword(&s,b,"overwhelm"));assert!(e.has_keyword(&s,leader,"overwhelm"));assert_eq!(e.keyword_amount(&s,leader,"raid"),3);assert_eq!(e.power(&s,leader,true),6);
+ }}
+}
+#[test]
+fn bounded_reduction_raw_arity_receivers_metadata_and_composed_cycles_reject() {
+ for name in ["arenaDamageSum","arenaUpgradeSum","arenaPowerMax"] {for owner in ["player","opponent"] {let q=json!({"kind":"query","name":name,"receiver":{"kind":"ref","path":[owner]},"args":[]});assert!(serde_json::from_value::<crate::ability_ir::Expr>(q.clone()).unwrap().validate_number().is_ok());for (key,value) in [("receiver",json!({"kind":"ref","path":["card"]})),("args",json!([{"kind":"const","value":0}]))] {let mut x=q.clone();x[key]=value;assert!(serde_json::from_value::<crate::ability_ir::Expr>(x).unwrap().validate_number().is_err());}}}
+ let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+ let baseline=Engine::from_catalogue_value(&original).unwrap();assert!(baseline.by_code.contains_key("ASH_100"));assert!(!baseline.by_code.contains_key("TS26_005"));assert!(baseline.rejected_cards().unwrap()["TS26_005"].contains("conflicts"));
+ for code in ["SHD_189","ASH_187","TS26_005"] {for mode in ["printed","type","side","effect","extra"] {let mut c=original.clone();if code=="TS26_005" {c["cards"].as_array_mut().unwrap().retain(|entry|!crate::bounded_reductions::power_feedback(entry));assert!(Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code));}let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]==code).unwrap();match mode {"printed"=>entry["card"]["text"]=json!("Additional unimplemented rule"),"type"=>entry["card"]["types"]=json!(["token","unit"]),"side"=>entry["abilities"]["unit"]=entry["abilities"]["leader"].clone(),"effect"=>{let side=if code=="TS26_005" {"leader"}else{"card"};entry["abilities"][side][0]["optional"]=json!(code!="SHD_189");},_=>entry["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}))};if mode=="side"&&code!="TS26_005"{entry["abilities"]["leader"]=entry["abilities"]["card"].clone();}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
+ let mut c=original.clone();c["cards"].as_array_mut().unwrap().retain(|entry|!crate::bounded_reductions::power_feedback(entry));assert!(Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TS26_005"));let aura=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_254").unwrap();aura["abilities"]["card"]=json!([{"trigger":"constant","title":"Composed stat feedback","targetResolver":{"owner":"self","type":"unit","zone":"arena","predicate":{"kind":"query","name":"hasSomeKeyword","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":"overwhelm"}]}},"effect":{"kind":"modifyStats","target":"chosen","duration":"persistent","power":{"kind":"const","value":1},"hp":{"kind":"const","value":0}}}]);let guarded=Engine::from_catalogue_value(&c).unwrap();assert!(guarded.by_code.contains_key("LOF_254"));assert!(!guarded.by_code.contains_key("TS26_005"));let aura=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_254").unwrap();aura["abilities"]["card"][0]["targetResolver"]["predicate"]["args"]=json!([{"kind":"array","items":[{"kind":"const","value":"overwhelm"}]}]);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("TS26_005"));
+}
+
+#[test]
+fn bounded_reduction_preserves_recorded_admissions_and_admits_completed_reduction_cards() {
+ let e=engine();let baseline:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/runtime-admission.json")).unwrap();
+ let old:std::collections::BTreeSet<String>=baseline["runtimeAdmittedCards"].as_array().unwrap().iter().map(|v|v["setCode"].as_str().unwrap().into()).collect();assert_eq!(old.len(),baseline["runtimeAdmittedCount"].as_u64().unwrap() as usize);
+ for code in &old {assert!(e.by_code.contains_key(code),"lost baseline {code}: {:?}",e.rejected_cards().unwrap().get(code));}
+ let added:std::collections::BTreeSet<_>=e.by_code.keys().filter(|code|!old.contains(*code)).cloned().collect();for code in ["SHD_189","ASH_187"] {assert!(e.by_code.contains_key(code));}eprintln!("recorded admissions={}, current={}, new={added:?}",old.len(),e.by_code.len());
+}
+#[test]
+fn bounded_reduction_sum_capacity_is_checked_without_truncating_or_mutating() {
+ let e=engine();let mut s=board(&e);let a=unit(&e,&mut s,Seat::P1,"LOF_256");let b=unit(&e,&mut s,Seat::P1,"LOF_256");let event=hand(&e,&mut s,"ASH_187");for id in [a,b] {s.card_mut(id).phase_hp=65531;s.card_mut(id).damage=40000;assert_eq!(e.hp(&s,id),65535);}
+ let expr:Expr=serde_json::from_value(json!({"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]})).unwrap();s.source=event;assert_eq!(e.eval(&s,event,a,&expr).number(),80000);let before=s;assert!(e.effect_amount(&s,&expr).unwrap_err().contains("exceeds bounded runtime"));assert_eq!(s,before);
+}
+
+#[path="support_tests.rs"]
+mod support_tests;
+
+// These isolate the two source programs; Support deployment is owned by its
+// separate capability and must be tested on the complete integrated leader.
+// The isolated lane predates its keyword parser; the fixture explicitly supplies
+// the Support:1 metadata expected from that dependency, never removes Support.
+fn live_power_maximum_fixture_entry()->Value {
+ let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();let entry=catalog["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="ASH_009").unwrap().clone();assert_eq!(entry["status"],"supported");assert_eq!(entry["card"]["keywords"],json!(["support"]));assert_eq!(entry["keywordValues"],json!({"support":1}));entry
+}
+fn live_power_maximum_extracted(e:&mut Engine,s:&State,source:CardId,deployed:bool)->u16 {
+ let entry=live_power_maximum_fixture_entry();assert!(crate::live_power_maximum::entry(&entry));
+ let ability:crate::ability_ir::Ability=serde_json::from_value(entry["abilities"][if deployed{"unit"}else{"leader"}][0].clone()).unwrap();let program=crate::ability_ir::Program::compile(&ability).unwrap();let id=e.catalogue.as_ref().unwrap().programs.len() as u16;e.catalogue.as_mut().unwrap().programs.push(program);let def=s.card(source).def as usize;if deployed{e.definitions[def].programs.unit=vec![id];}else{e.definitions[def].programs.leader=vec![id];}id
+}
+#[test]
+fn live_power_maximum_extracted_front_preserves_empty_zero_ties_outer_candidate_and_text() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {for seat in [Seat::P1,Seat::P2] {
+ let mut e=engine();e.set_rules_backend(backend).unwrap();let mut s=board(&e);s.active=seat;s.action_player=Some(seat);let source=s.player(seat).leader;let _=live_power_maximum_extracted(&mut e,&s,source,false);
+ let enemy_zero=unit(&e,&mut s,seat.other(),"LOF_256");s.card_mut(enemy_zero).phase_power=-100;
+ let display:Expr=serde_json::from_value(json!({"kind":"query","name":"arenaPowerMaximumText","receiver":{"kind":"ref","path":["player"]},"args":[]})).unwrap();let predicate:Expr=serde_json::from_value(crate::live_power_maximum::predicate()).unwrap();
+ assert_eq!(e.eval(&s,source,enemy_zero,&display),Eval::Text("-Infinity".into()));assert!(!e.eval(&s,source,enemy_zero,&predicate).truth());
+ let own_zero=unit(&e,&mut s,seat,"LOF_256");s.card_mut(own_zero).phase_power=-100;assert_eq!(e.eval(&s,source,enemy_zero,&display),Eval::Text("0".into()));assert!(!e.eval(&s,source,enemy_zero,&predicate).truth());
+ let own_high=unit(&e,&mut s,seat,"SHD_189");let enemy_high=unit(&e,&mut s,seat.other(),"SHD_189");assert_eq!(e.eval(&s,source,enemy_zero,&display),Eval::Text("4".into()));for id in [own_zero,enemy_zero]{assert!(e.eval(&s,source,id,&predicate).truth());}for id in [own_high,enemy_high]{assert!(!e.eval(&s,source,id,&predicate).truth());}
+ let selected=e.apply(&s,&e.card_action(&s,source)).unwrap();assert_eq!(selected.decision,Decision::AbilityTarget);assert!(!selected.card(source).exhausted);let canceled=named_button(&e,&selected,"Cancel");assert!(!canceled.card(source).exhausted);let targets:Vec<_>=e.legal_actions(&selected).iter().filter_map(Action::id).collect();assert!(targets.contains(&enemy_zero));assert!(targets.contains(&own_zero));assert!(!targets.contains(&enemy_high));assert!(!targets.contains(&own_high));
+ let done=e.apply(&selected,&e.card_action(&selected,enemy_zero)).unwrap();assert!(done.card(source).exhausted);assert_eq!(done.card(enemy_zero).phase_power,-98);assert_eq!(done.card(own_zero).phase_power,-100);
+ let mut live=s;live.card_mut(own_high).phase_power=1;assert_eq!(e.eval(&live,source,enemy_zero,&display),Eval::Text("5".into()));assert!(e.eval(&live,source,enemy_high,&predicate).truth());
+ }}
+}
+#[test]
+fn live_power_maximum_extracted_attack_uses_live_source_and_preserves_both_header_fragments() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
+ let mut e=engine();e.set_rules_backend(backend).unwrap();let mut s=board(&e);let source=s.players[0].leader;let p=live_power_maximum_extracted(&mut e,&s,source,true);s.card_mut(source).deployed=true;e.add_arena(&mut s,source).unwrap();let target=unit(&e,&mut s,Seat::P2,"LOF_256");let high=unit(&e,&mut s,Seat::P2,"SHD_189");let a=crate::live_power_maximum::registration(true);let resolver=a.target_resolver.unwrap();
+ assert_eq!(e.program_menu_title(&s,source,p),format!("Give a unit with less than {} power +2/+0 for this phase",e.power(&s,source,false)));assert!(e.matching_targets(&s,source,&resolver).contains(&target));assert!(!e.matching_targets(&s,source,&resolver).contains(&high));
+ s.card_mut(source).phase_power=3;assert!(e.matching_targets(&s,source,&resolver).contains(&high));s.source=source;e.begin_program(&mut s,p,ProgramContinuation::Triggers).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);let declined=named_button(&e,&s,"Pass");assert_eq!(declined.card(target).phase_power,0);let done=e.apply(&s,&e.card_action(&s,target)).unwrap();assert_eq!(done.card(target).phase_power,2);assert_eq!(done.card(high).phase_power,0);
+ }
+}
+#[test]
+fn live_power_maximum_full_metadata_and_raw_display_boundaries_reject() {
+ let original=live_power_maximum_fixture_entry();assert!(crate::live_power_maximum::entry(&original));for mode in ["printed","support","side","controller","predicate","prompt","cost","continuation"] {let mut e=original.clone();match mode {"printed"=>e["card"]["deployBox"]=json!("Extra ability"),"support"=>e["keywordValues"]=json!({}),"side"=>e["abilities"]["unit"]=json!([]),"controller"=>e["abilities"]["leader"][0]["targetResolver"]["owner"]=json!("self"),"predicate"=>e["abilities"]["leader"][0]["targetResolver"]["predicate"]["right"]["args"][0]["right"]["receiver"]["path"]=json!(["card"]),"prompt"=>e["abilities"]["unit"][0]["targetResolver"]["promptTitleParts"][1]["receiver"]["path"]=json!(["target"]),"cost"=>e["abilities"]["leader"][0]["costs"]=json!([]),_=>e["abilities"]["leader"][0]["then"]=json!({"title":"Extra","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}})};assert!(!crate::live_power_maximum::entry(&e),"{mode}");}
+ let raw=json!({"kind":"query","name":"arenaPowerMaximumText","receiver":{"kind":"ref","path":["player"]},"args":[]});let expr:Expr=serde_json::from_value(raw.clone()).unwrap();assert!(expr.validate().is_ok());assert!(expr.validate_number().is_err());for(owner,args)in[("opponent",json!([])),("source",json!([])),("player",json!([{"kind":"const","value":0}]))]{let mut v=raw.clone();v["receiver"]["path"]=json!([owner]);v["args"]=args;assert!(serde_json::from_value::<Expr>(v).unwrap().validate().is_err());}let damage:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"event","title":"Reject text damage","effect":{"kind":"damage","target":"enemyBase","amount":raw.clone()}})).unwrap();assert!(crate::ability_ir::Program::compile(&damage).is_err());let plus:Expr=serde_json::from_value(json!({"kind":"binary","op":"+","left":raw,"right":{"kind":"const","value":1}})).unwrap();assert!(plus.validate().is_err());
+}
+
+#[path="ahsoka_integrated_tests.rs"]
+mod ahsoka_integrated_tests;
+
+#[path="force_cost_tests.rs"]
+mod force_cost_tests;
+
+#[path="static_ongoing_tests.rs"]
+mod static_ongoing_tests;
+#[path="collection_query_tests.rs"]
+mod collection_query_tests;
+#[path="phase_history_tests.rs"]
+mod phase_history_tests;
+#[path="attack_end_tests.rs"]
+mod attack_end_tests;
+
+#[path="resolved_event_tests.rs"]
+mod resolved_event_tests;
+
+#[path="selector_tests.rs"]
+mod selector_tests;
+
+#[path="attached_registration_tests.rs"]
+mod attached_registration_tests;
+
+#[path="native_attack_tests.rs"]
+mod native_attack_tests;
+
+#[path="attached_constant_tests.rs"]
+mod attached_constant_tests;
+
+#[path="trait_inventory_tests.rs"]
+mod trait_inventory_tests;
+
+#[path = "death_hook_tests.rs"]
+mod death_hook_tests;
+
+#[test]
+fn shared_mutations_generated_draws_match_interpreter_for_partial_and_lethal_fatigue() {
+    for code in ["TWI_175", "TS26_068"] {
+        let mut e = engine();
+        e.set_rules_instrumentation(true);
+        for d in &mut e.definitions {
+            if d.code != code { d.programs = Default::default(); }
+        }
+        for remaining in [0, 1, 3] {
+            for damage in [0, 29] {
+                let mut s = board(&e);
+                let event = hand(&e, &mut s, code);
+                let program = e.def(&s, event).programs.card[0] as usize;
+                unit(&e, &mut s, Seat::P1, "LOF_254");
+                unit(&e, &mut s, Seat::P2, "LOF_256");
+                for seat in [Seat::P1, Seat::P2] {
+                    for _ in 0..remaining { deck_card(&e, &mut s, seat); }
+                    let base = s.player(seat).base;
+                    s.card_mut(base).damage = damage;
+                }
+                e.set_rules_backend(RulesBackend::Aot).unwrap();
+                e.rules_hits.lock().unwrap().clear();
+                let actual = e.apply(&s, &e.card_action(&s, event)).unwrap();
+                let hits = e.rules_hits.lock().unwrap()[&program];
+                assert!(hits[0] > 0); assert_eq!(hits[1], 0);
+                e.set_rules_backend(RulesBackend::Interpreter).unwrap();
+                e.rules_hits.lock().unwrap().clear();
+                let expected = e.apply(&s, &e.card_action(&s, event)).unwrap();
+                let hits = e.rules_hits.lock().unwrap()[&program];
+                assert_eq!(hits[0], 0); assert!(hits[1] > 0);
+                assert_eq!(actual, expected, "{code}, deck={remaining}, damage={damage}");
+                assert_eq!(actual.zobrist(), expected.zobrist());
+                assert_eq!(e.snapshot(&actual), e.snapshot(&expected));
+                assert_eq!(e.legal_actions(&actual), e.legal_actions(&expected));
+                let amount = if code == "TWI_175" { 3 } else { 2 };
+                for seat in [Seat::P1, Seat::P2] {
+                    let draws = if seat == Seat::P1 || code == "TS26_068" { amount } else { 0 };
+                    assert_eq!(actual.player(seat).hand.len, remaining.min(draws));
+                    let fatigue = u16::from(draws.saturating_sub(remaining)) * 3;
+                    assert_eq!(actual.card(actual.player(seat).base).damage, (damage + fatigue).min(30));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn shared_mutations_generated_phase_stats_preserve_stacking_and_capacity_errors() {
+    for code in ["TWI_124", "LOF_217"] {
+        let mut e = engine();
+        e.set_rules_instrumentation(true);
+        for d in &mut e.definitions {
+            if d.code != code { d.programs = Default::default(); }
+        }
+        for case in 0..if code == "TWI_124" { 4 } else { 2 } {
+            let mut s = board(&e);
+            let target = unit(&e, &mut s, Seat::P1, "LOF_254");
+            e.create_token(&mut s, target, true).unwrap();
+            let grit = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| *k == "grit").unwrap();
+            s.card_mut(target).add_phase_keyword(grit);
+            s.card_mut(target).damage = 1;
+            s.card_mut(target).exhausted = true;
+            let (initial_power, initial_hp) = if code == "LOF_217" {
+                (if case == 0 { 0 } else { -65535 }, 0)
+            } else {
+                match case {
+                    0 => (0, 0),
+                    1 => (-8, 0),
+                    2 => (65535 - i32::from(e.power(&s, target, false)), 0),
+                    _ => (0, 65535 - i32::from(e.hp(&s, target))),
+                }
+            };
+            s.card_mut(target).phase_power = initial_power;
+            s.card_mut(target).phase_hp = initial_hp;
+            e.check_stat_capacity(&s).unwrap();
+            let event = hand(&e, &mut s, code);
+            let program = e.def(&s, event).programs.card[0] as usize;
+            e.set_rules_backend(RulesBackend::Aot).unwrap();
+            let prompt = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            let before = e.snapshot(&prompt);
+            e.rules_hits.lock().unwrap().clear();
+            let actual = e.apply(&prompt, &e.card_action(&prompt, target));
+            let hits = e.rules_hits.lock().unwrap()[&program];
+            assert!(hits[0] > 0); assert_eq!(hits[1], 0);
+            assert_eq!(before, e.snapshot(&prompt));
+            e.set_rules_backend(RulesBackend::Interpreter).unwrap();
+            let other = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            assert_eq!(prompt, other);
+            e.rules_hits.lock().unwrap().clear();
+            let expected = e.apply(&other, &e.card_action(&other, target));
+            let hits = e.rules_hits.lock().unwrap()[&program];
+            assert_eq!(hits[0], 0); assert!(hits[1] > 0);
+            match (actual, expected) {
+                (Ok(actual), Ok(expected)) => {
+                    assert_eq!(actual, expected);
+                    assert_eq!(actual.zobrist(), expected.zobrist());
+                    assert_eq!(e.snapshot(&actual), e.snapshot(&expected));
+                    assert_eq!(e.legal_actions(&actual), e.legal_actions(&expected));
+                    assert_eq!(actual.card(target).phase_power, initial_power + if code == "TWI_124" { 2 } else { -8 });
+                    assert_eq!(actual.card(target).phase_hp, initial_hp + if code == "TWI_124" { 2 } else { 0 });
+                }
+                (Err(actual), Err(expected)) => {
+                    assert_eq!(actual, expected);
+                    assert_eq!(actual, if code == "LOF_217" { "phase stat capacity exceeded" } else { "computed phase stats exceed capacity" });
+                }
+                other => panic!("backend mismatch for {code}, case {case}: {other:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn shared_mutations_prepared_draw_keeps_generation_time_fatigue() {
+    let e = engine();
+    let mut s = board(&e);
+    s.source = s.players[0].leader;
+    let first = deck_card(&e, &mut s, Seat::P1);
+    let group = Effect::Simultaneous { effects: vec![Effect::Draw {
+        target: Target::name("ownPlayer"), amount: Expr::number(2),
+    }] };
+    s.event_group.active = true;
+    s.event_group.initiator = s.active;
+    e.generate_group(&mut s, &group).unwrap();
+    assert_eq!(s.event_group.records[0].hp, 3);
+    // Simulate a deck change between preparation and resolution: fatigue stays
+    // captured even though the primary can now draw both cards.
+    let second = deck_card(&e, &mut s, Seat::P1);
+    e.resolve_group(&mut s, &group).unwrap();
+    assert!(s.players[0].hand.contains(first));
+    assert!(s.players[0].hand.contains(second));
+    assert_eq!(s.ability_result, 2);
+    assert!(s.ability_succeeded);
+    assert_eq!(s.card(s.players[0].base).damage, 3);
+}
+
+#[test]
+fn shared_source_context_preserves_closed_fields_and_hook_watcher_exception() {
+    let catalog: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    for code in ["TWI_218", "SOR_036"] {
+        let original = catalog["cards"].as_array().unwrap().iter().find(|entry| entry["setCode"] == code).unwrap();
+        for field in ["stateWatchers", "historyHelpers", "privatePrograms", "classMethods", "privateClassConstants", "inheritedSource", "deploymentOverride", "setupValidationOverrides"] {
+            for value in [Value::Null, json!([]), json!({}), json!([{"kind":"unsupported"}]), json!(false), json!(0), json!("")] {
+                let allowed = value.is_null() || value == json!([])
+                    || (code == "SOR_036" && field == "stateWatchers" && value == json!({}));
+                let mut entry = original.clone();
+                entry[field] = value.clone();
+                let admitted = crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[entry]})).unwrap();
+                assert_eq!(admitted.cards.contains_key(code), allowed, "{code}: {field}={value}");
+            }
+            let mut entry = original.clone();
+            entry.as_object_mut().unwrap().remove(field);
+            let admitted = crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[entry]})).unwrap();
+            assert!(admitted.cards.contains_key(code), "{code}: absent {field}");
+        }
+    }
+}
+
+#[test]
+fn prepared_capture_freezes_stat_values_before_handler_mutations() {
+    let e=engine();let mut s=board(&e);
+    let source=unit(&e,&mut s,Seat::P1,"SHD_056");
+    s.source=source;s.ability_target=source;s.card_mut(source).damage=1;
+    let group=Effect::Simultaneous {effects:vec![Effect::ModifyStats {
+        target:Target::name("self"),duration:"phase".into(),
+        power:Expr::Ref {path:vec!["source".into(),"damage".into()]},hp:Expr::number(1),
+    }]};
+    s.event_group.active=true;s.event_group.initiator=s.active;
+    e.generate_group(&mut s,&group).unwrap();
+    assert_eq!(s.event_group.records[0].power,1);
+    s.card_mut(source).damage=2;
+    e.resolve_group(&mut s,&group).unwrap();
+    assert_eq!(s.card(source).phase_power,1);
+    assert_eq!(s.card(source).phase_hp,1);
+    assert!(e.in_arena(&s,source));
+}
+
+#[test]
+fn typed_continuation_program_entry_keeps_raw_return_and_commit_policy() {
+    let mut e=engine();let mut initial=board(&e);
+    let source=unit(&e,&mut initial,Seat::P1,"LOF_254");
+    deck_card(&e,&mut initial,Seat::P1);initial.source=source;
+    let program=death_program(&mut e,&initial,source,draw_death(true));
+    for continuation in [ProgramContinuation::Finish,ProgramContinuation::Triggers,ProgramContinuation::Deaths] {
+        let mut s=initial;
+        e.begin_program(&mut s,program,continuation).unwrap();
+        assert_eq!(s.decision,Decision::AbilityOptional);
+        assert_eq!(s.ability_program,program+1);
+        assert_eq!(s.ability_return,continuation.raw());
+        assert_eq!(s.ability_committed,continuation!=ProgramContinuation::Finish);
+    }
+}
+
+#[test]
+fn typed_continuation_death_entry_keeps_numeric_frames_and_expiry_initiator() {
+    let mut e=engine();let mut initial=board(&e);
+    let source=unit(&e,&mut initial,Seat::P1,"LOF_254");
+    deck_card(&e,&mut initial,Seat::P1);
+    death_program(&mut e,&initial,source,draw_death(true));
+    initial.initiative=Seat::P2;e.defeat(&mut initial,source).unwrap();
+    for continuation in [DeathContinuation::Program,DeathContinuation::Triggers,DeathContinuation::Finish,
+        DeathContinuation::PhaseExpiry,DeathContinuation::CombatAfterDamage,DeathContinuation::ParentDeaths,
+        DeathContinuation::NativeAttackAfterEarlyEffects] {
+        let mut s=initial;
+        assert!(e.open_deaths(&mut s,continuation).unwrap());
+        assert_eq!(s.decision,Decision::AbilityOptional);
+        assert_eq!(s.death_depth,1);
+        assert_eq!(s.death_frames[0].resume,continuation.raw());
+        assert_eq!(s.death_frames[0].continuation(),Some(continuation));
+        assert_eq!(s.death_window.initiator,if continuation==DeathContinuation::PhaseExpiry {Seat::P2}else{Seat::P1});
+        assert_eq!(s.ability_return,ProgramContinuation::Deaths.raw());
+    }
+    let mut empty=board(&e);let before=empty;
+    assert!(!e.open_deaths(&mut empty,DeathContinuation::Finish).unwrap());
+    assert_eq!(empty,before);
+}
+
+#[test]
+fn typed_continuation_keeps_unknown_persisted_program_fallback_and_death_error() {
+    let e=engine();let initial=board(&e);
+    let mut expected=initial;e.end_program(&mut expected).unwrap();
+    for raw in [3,99,u8::MAX] {
+        let mut s=initial;s.ability_return=raw;
+        e.end_program(&mut s).unwrap();
+        assert_eq!(s,expected,"legacy program return {raw} must still finish");
+    }
+    for raw in [0,8,u8::MAX] {
+        let mut s=initial;s.death_depth=1;
+        s.death_frames[0]=DeathFrame{context:ResolutionContext::capture(&initial),resume:raw,..DeathFrame::default()};
+        assert_eq!(e.process_deaths(&mut s).unwrap_err(),"invalid defeat continuation");
+        assert_eq!(s.death_depth,0);
+        assert_eq!(s.death_frames[0],DeathFrame::default());
+    }
+}
+
+#[path = "activation_runtime_tests.rs"]
+mod activation_contract_tests;

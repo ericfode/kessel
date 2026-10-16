@@ -1,5 +1,15 @@
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
+#[path = "support_runtime.rs"]
+mod support_runtime;
+#[path = "selector_runtime.rs"]
+mod selector_runtime;
+#[path = "registration_runtime.rs"]
+mod registration_runtime;
+#[path = "legacy_leader.rs"]
+mod legacy_leader;
+#[path = "snapshot_evidence.rs"]
+mod snapshot_evidence;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};
@@ -13,11 +23,13 @@ const SABOTEUR: u16 = 4;
 const AMBUSH: u16 = 8;
 const GRIT: u16 = 16;
 const SHIELDED: u16 = 32;
+const SUPPORT: u16 = 1<<9;
 const T_RESTORE: u8 = 1;
 const T_SABOTEUR: u8 = 2;
 const T_LEADER: u8 = 4;
 const T_SHIELD: u8 = 8;
 const T_AMBUSH: u8 = 16;
+const T_SUPPORT: u8 = 32;
 #[derive(Debug, Clone)]
 pub struct Definition {
     pub code: String,
@@ -39,6 +51,8 @@ pub struct Engine {
     shield_def: u16,
     experience_def: Option<u16>,
     weakness_def: Option<u16>,
+    advantage_def: Option<u16>,
+    advantage_program: Option<u16>,
     force_def: Option<u16>,
     catalogue: Option<Catalogue>,
     rules_backend: RulesBackend,
@@ -221,6 +235,8 @@ impl Engine {
             shield_def: shield_def.ok_or("pool must include TOKEN_SHIELD")?,
             experience_def: None,
             weakness_def: None,
+            advantage_def: None,
+            advantage_program: None,
             force_def: None,
             catalogue: None,
             rules_backend: RulesBackend::Auto,
@@ -269,6 +285,10 @@ impl Engine {
             }
             s.arena_order_exact=true;
         }else{
+            if (1..s.next_id).any(|id|s.card(id).present && self.def(s,id).programs.leader.iter().chain(&self.def(s,id).programs.unit).chain(&self.def(s,id).programs.card).any(|index| {
+                fn marker(v:&Value)->bool {match v {Value::Object(o)=>o.contains_key("controllerOrder")||o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false}}
+                self.catalogue.as_ref().is_some_and(|c|marker(&serde_json::to_value(&c.programs[*index as usize]).unwrap()))
+            })) {return Err("ordered ground sources require explicit arenaUnitOrder, including hidden zones".into());}
             if (1..s.next_id).any(|id|s.card(id).present && self.def(s,id).info.is("upgrade") && !self.def(s,id).info.is("token")) {return Err("ordinary upgrade imports require explicit arenaUnitOrder, including future upgrades in hidden zones".into());}
             s.arena_order_exact=false;
             for index in 0..2 {for player in s.players {for &id in if index==0 {player.ground.as_slice()}else{player.space.as_slice()} {s.arena_unit_order[index].push(id)?;}}}
@@ -287,9 +307,11 @@ impl Engine {
         let ids=self.upgrades(s,parent);
         if let Some(&last)=ids.last() {s.card_mut(last).next_upgrade=id;}else{s.card_mut(parent).upgrades=id;}
         s.card_mut(id).parent=parent;s.card_mut(id).next_upgrade=0;
+        if !self.def(s,id).info.is("token") {s.registration_order.remove(id);if s.registration_order.push(id).is_err(){s.registration_order.exact=false;}}
     }
     fn detach(&self,s:&mut State,id:CardId) {
         let parent=s.card(id).parent;if parent==0 {return;}
+        s.registration_order.remove(id);
         for experience in [false,true] {
             let mut token=if experience {s.card(parent).experience}else{s.card(parent).shield};let mut previous=0;
             while token!=0 && token!=id {previous=token;token=s.card(token).next_token;}
@@ -321,7 +343,7 @@ impl Engine {
         Ok(())
     }
     fn upgrade_stats(&self,s:&State,parent:CardId)->(i64,i64) {
-        self.upgrades(s,parent).iter().filter(|id|!self.def(s,**id).info.is("token") || Some(s.card(**id).def)==self.weakness_def).fold((0,0),|a,id| {
+        self.upgrades(s,parent).iter().filter(|id|!self.def(s,**id).info.is("token") || Some(s.card(**id).def)==self.weakness_def || Some(s.card(**id).def)==self.advantage_def).fold((0,0),|a,id| {
             let info=&self.def(s,*id).info;(a.0+info.upgrade_power.unwrap_or(0) as i64,a.1+info.upgrade_hp.unwrap_or(0) as i64)
         })
     }
@@ -354,65 +376,40 @@ impl Engine {
         d.info.cost().max(0) as u16 + penalty
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
-        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0
+        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
     }
     pub fn power(&self,s:&State,id:CardId,attacking:bool)->u16 {u16::try_from(self.raw_power(s,id,attacking).max(0)).expect("power exceeds validated compact capacity")}
     fn leader_available(&self, s: &State) -> (bool, bool) {
-        if self.catalogue.is_some() {
-            let id = s.player(s.active).leader;
-            let c = s.card(id);
-            let deploy = !c.deployed
-                && !c.epic_used
-                && s.player(s.active).resources.len as i32 >= self.def(s, id).info.cost();
-            return (
-                deploy,
-                !c.deployed && !self.available_programs(s, id, "action").is_empty(),
-            );
-        }
-        let p = s.player(s.active);
-        let c = s.card(p.leader);
-        let d = self.def(s, p.leader);
-        let deploy = !c.deployed && !c.epic_used && p.resources.len as i32 >= d.info.cost();
-        let ability = !c.deployed
-            && !c.exhausted
-            && match d.code.as_str() {
-                "IBH_053" => self.ready_resources(s, s.active) > 0,
-                "SEC_005" => true,
-                _ => true,
-            };
-        (deploy, ability)
+        let id=s.player(s.active).leader;
+        let c=s.card(id);
+        let deploy=!c.deployed && !c.epic_used
+            && s.player(s.active).resources.len as i32>=self.def(s,id).info.cost();
+        let ability=if self.catalogue.is_some() {
+            !c.deployed && !self.available_programs(s,id,"action").is_empty()
+        } else {self.legacy_leader_available(s)};
+        (deploy,ability)
     }
-    fn leader_title(&self, s: &State) -> &'static str {
-        match self.def(s, s.player(s.active).leader).code.as_str() {
-            "SOR_014" => "Deal 1 damage to each base",
-            "IBH_053" => "Deal 1 damage to a base",
-            _ => "Heal up to 2 damage from a unit. If you do, deal that much damage to your base",
-        }
-    }
-    fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
+    /// Keep one target-domain implementation for menus, availability and actual
+    /// selection; availability can stop at the first target without allocating.
+    fn attack_target_iter<'a>(&'a self, s: &'a State, source: CardId, ambush: bool) -> impl Iterator<Item = CardId> + 'a {
+        let allowed = !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttack);
         let d = self.def(s, source);
         let opp = s.player(s.card(source).owner.other());
-        let zone = if d.info.arena.as_deref() == Some("space") {
-            &opp.space
-        } else {
-            &opp.ground
-        };
-        let sentinel = self.keyword_amount(s, source, "saboteur") == 0
-            && zone
-                .as_slice()
-                .iter()
-                .any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
-        let mut out: Vec<_> = zone
-            .as_slice()
-            .iter()
-            .copied()
-            .filter(|&c| !sentinel || self.keyword_amount(s, c, "sentinel") > 0)
-            .filter(|&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
-            .collect();
-        if !ambush && !sentinel {
-            out.push(opp.base);
-        }
-        out
+        let zone = if d.info.arena.as_deref() == Some("space") { &opp.space } else { &opp.ground };
+        let sentinel = allowed && self.keyword_amount(s, source, "saboteur") == 0
+            && zone.as_slice().iter().any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
+        let base = allowed && (!ambush || self.ambush_can_attack_base(s,source)) && !sentinel
+            && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase);
+        zone.as_slice().iter().copied()
+            .filter(move |&c| allowed && (!sentinel || self.keyword_amount(s, c, "sentinel") > 0))
+            .filter(move |&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
+            .chain(base.then_some(opp.base))
+    }
+    fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
+        self.attack_target_iter(s, source, ambush).collect()
+    }
+    fn has_attack_target(&self, s: &State, source: CardId, ambush: bool) -> bool {
+        self.attack_target_iter(s, source, ambush).next().is_some()
     }
     pub fn legal_actions(&self, s: &State) -> Vec<Action> {
         if s.is_terminal() {
@@ -430,7 +427,8 @@ impl Engine {
                     out.push(Action::button("Claim Initiative", "claimInitiative"));
                 }
                 for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {
-                    if !s.card(id).exhausted || !self.available_programs(s, id, "action").is_empty()
+                    if (!s.card(id).exhausted && self.has_attack_target(s, id, false))
+                        || !self.available_programs(s, id, "action").is_empty()
                     {
                         out.push(self.card_action(s, id));
                     }
@@ -468,7 +466,7 @@ impl Engine {
                         ));
                     }
                 } else if ability {
-                    let title = self.leader_title(s);
+                    let title = self.legacy_leader_title(s);
                     let title = if self.def(s, p.leader).code == "SEC_005"
                         && s.players.iter().all(|p| p.ground.len + p.space.len == 0)
                     {
@@ -481,15 +479,14 @@ impl Engine {
                 out.push(Action::button("Cancel", out.len()));
             }
             Decision::AttackTarget => {
-                if !s.ambush {
-                    out.push(Action::button("Cancel", "cancel"));
-                }
+                if s.support.pending {out.push(Action::button("Cancel", "cancel"));if !s.support.native_attack || s.support.optional_attack {out.push(Action::button("Pass attack", "passAbility"));}}
+                else if !s.ambush {out.push(Action::button("Cancel", "cancel"));}
                 for id in self.attack_targets(s, s.source, s.ambush) {
                     out.push(self.card_action(s, id));
                 }
             }
             Decision::VaderBase => {
-                if s.trigger_context == 0 {
+                if s.trigger_context_is(TriggerContext::Action) {
                     out.push(Action::button("Cancel", "cancel"));
                 }
                 for p in &s.players {
@@ -551,6 +548,10 @@ impl Engine {
                     for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {if s.card(id).def==s.card(s.source).def {out.push(self.card_action(s,id));}}
                 }
             }
+            Decision::Support => {
+                out.push(Action::button("Pass", "passAbility"));
+                for id in self.support_targets(s) {out.push(self.card_action(s,id));}
+            }
             Decision::Ambush => {
                 out.push(Action::button("Trigger", "trigger"));
                 out.push(Action::button("Pass", "pass"));
@@ -575,7 +576,7 @@ impl Engine {
         out
     }
     fn trigger_bits(&self, s: &State) -> Vec<u8> {
-        let mut bits: Vec<_> = [T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD]
+        let mut bits: Vec<_> = [T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD, T_SUPPORT]
             .into_iter()
             .filter(|bit| s.pending_triggers & bit != 0)
             .collect();
@@ -594,6 +595,7 @@ impl Engine {
                 }
             }
             T_SHIELD => "Shielded".into(),
+            T_SUPPORT => "Support".into(),
             _ => "Ambush".into(),
         }
     }
@@ -602,9 +604,10 @@ impl Engine {
             T_RESTORE => s.card(s.player(s.active).base).damage > 0,
             T_SABOTEUR => s.card(s.target).shield != 0,
             T_AMBUSH => {
-                self.in_arena(s, s.source) && !self.attack_targets(s, s.source, true).is_empty()
+                self.in_arena(s, s.source) && self.has_attack_target(s, s.source, true)
             }
             T_SHIELD => self.in_arena(s, s.source),
+            T_SUPPORT => !self.support_targets(s).is_empty(),
             _ => true,
         }
     }
@@ -631,6 +634,7 @@ impl Engine {
     }
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
         self.check_stat_capacity(s)?;
+        if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
         if !self.legal_actions(s).contains(a) {
             return Err(format!("illegal action {} at {:?}", a.key(), s.decision));
         }
@@ -671,19 +675,21 @@ impl Engine {
                     if self.def(&t,id).info.is("upgrade") {t.source=id;t.decision=Decision::UpgradeTarget;return Ok(t);}
                     if self.catalogue.is_some() && self.def(&t, id).info.is("event") {
                         t.source = id;
-                        t.trigger_context = 0;
+                        t.set_trigger_context(TriggerContext::Action);
                         let programs = self.available_programs(&t, id, "event");
                         let program = *programs.first().ok_or("event has no executable ability")?;
-                        self.begin_program(&mut t, program, 0)?;
+                        self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                         return Ok(t);
                     }
+                    t.phase_history.preflight_play(seat)?;
                     self.spend(&mut t, self.cost(s, id));
                     t.player_mut(seat).hand.remove(id);
-                    t.card_mut(id).exhausted = true;
+                    t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
                     t.card_mut(id).set_hidden_qualified(true);
                     self.add_arena(&mut t, id)?;
+                    t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
                     t.source = id;
-                    t.trigger_context = 1;
+                    t.set_trigger_context(TriggerContext::Enter);
                     if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
                         t.decision = Decision::Unique;
                     } else {
@@ -692,10 +698,10 @@ impl Engine {
                 } else {
                     t.source = id;
                     t.ambush = false;
-                    t.trigger_context = 0;
+                    t.set_trigger_context(TriggerContext::Action);
                     let programs = self.available_programs(&t, id, "action");
                     if t.card(id).exhausted && programs.len() == 1 {
-                        self.begin_program(&mut t, programs[0], 0)?;
+                        self.begin_program(&mut t, programs[0], ProgramContinuation::Finish)?;
                     } else {
                         t.decision = if programs.is_empty() {
                             Decision::AttackTarget
@@ -707,8 +713,8 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
-                    self.attach(&mut t,upgrade,id);t.trigger_context=1;
+                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
+                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
                         if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
@@ -728,6 +734,7 @@ impl Engine {
                     }
                     t.card_mut(leader).set_hidden_qualified(true);
                     self.add_arena(&mut t, leader)?;
+                    t.phase_history.entered(seat,leader);
                     t.source = leader;
                     self.enter_triggers(&mut t)?;
                 } else {
@@ -742,24 +749,26 @@ impl Engine {
                             as usize
                             - usize::from(deploy);
                         let program = self.available_programs(&t, id, "action")[index];
-                        self.begin_program(&mut t, program, 0)?;
+                        self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                     } else {
                         self.use_leader(&mut t)?;
                     }
                 }
             }
             Decision::AttackTarget => {
-                if arg == "cancel" {
+                if t.support.pending && ["cancel","passAbility"].contains(&arg) {
+                    self.resume_support(&mut t)?;
+                } else if arg == "cancel" {
                     self.cancel(&mut t);
                 } else {
                     t.target = id;
                     let source = t.source;
                     t.card_mut(source).exhausted = true;
-                    t.trigger_context = 2;
-                    t.attack_source = source;t.attack_defender=id;
+                    t.set_trigger_context(TriggerContext::Attack);
+                    t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
-                    let declaration_context=if self.has_defense_registration(&t,id) {Some(t)}else{None};
+                    let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t) {Some(t)}else{None};
                     self.sweep_stat_defeats(&mut t)?;
                     t.pending_triggers = 0;
                     let d = self.def(&t, source);
@@ -783,15 +792,15 @@ impl Engine {
                 if arg == "cancel" {
                     self.cancel(&mut t);
                 } else {
-                    if t.trigger_context == 0 {
+                    if t.trigger_context_is(TriggerContext::Action) {
                         self.spend(&mut t, 1);
                         let leader = t.player(seat).leader;
                         t.card_mut(leader).exhausted = true;
                     }
-                    let amount = if t.trigger_context == 0 { 1 } else { 2 };
+                    let amount = if t.trigger_context_is(TriggerContext::Action) { 1 } else { 2 };
                     t.card_mut(id).damage += amount;
                     self.check_win(&mut t);
-                    if t.trigger_context == 0 {
+                    if t.trigger_context_is(TriggerContext::Action) {
                         self.finish(&mut t)?;
                     } else {
                         self.process_triggers(&mut t)?;
@@ -843,8 +852,11 @@ impl Engine {
             Decision::Unique => {
                 self.settle_enter_triggers(&mut t, Some(id))?;
             }
+            Decision::Support => {
+                if arg=="passAbility" {self.process_triggers(&mut t)?;}else{self.begin_support_attack(&mut t,id)?;}
+            }
             Decision::Ambush => {
-                if arg == "trigger" && !self.attack_targets(&t, t.source, true).is_empty() {
+                if arg == "trigger" && self.has_attack_target(&t, t.source, true) {
                     t.after_attack_programs = t.pending_programs;
                     t.pending_programs = 0;
                     t.after_attack_triggers = t.pending_triggers;
@@ -861,7 +873,7 @@ impl Engine {
             }
             Decision::ShieldOrder => {
                 t.attack_shield_opponent_first=a.arg.as_ref().and_then(Value::as_u64)==Some(1);
-                t.trigger_context = 3;
+                t.set_trigger_context(TriggerContext::ShieldOrder);
                 self.combat(&mut t)?;
             }
             Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
@@ -892,62 +904,46 @@ impl Engine {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
         if space {p.space.push(id)?;}else{p.ground.push(id)?;}
-        s.arena_unit_order[usize::from(space)].push(id)
+        s.arena_unit_order[usize::from(space)].push(id)?;
+        s.registration_order.push(id)
     }
     fn use_leader(&self, s: &mut State) -> Result<(), String> {
         if self.catalogue.is_some() {
             let id = s.player(s.active).leader;
             s.source = id;
-            s.trigger_context = 0;
+            s.set_trigger_context(TriggerContext::Action);
             let program = *self
                 .available_programs(s, id, "action")
                 .first()
                 .ok_or("leader has no executable action")?;
-            return self.begin_program(s, program, 0);
+            return self.begin_program(s, program, ProgramContinuation::Finish);
         }
-        let id = s.player(s.active).leader;
-        s.source = id;
-        s.trigger_context = 0;
-        match self.def(s, id).code.as_str() {
-            "SOR_014" => {
-                s.card_mut(id).exhausted = true;
-                for seat in [Seat::P1, Seat::P2] {
-                    let base = s.player(seat).base;
-                    s.card_mut(base).damage += 1;
-                }
-                self.check_win(s);
-                self.finish(s)?;
-            }
-            "IBH_053" => s.decision = Decision::VaderBase,
-            _ => {
-                s.decision = if s.players.iter().all(|p| p.ground.len + p.space.len == 0) {
-                    Decision::NoEffect
-                } else {
-                    Decision::SatineHeal
-                }
-            }
-        }
-        Ok(())
+        self.use_legacy_leader(s)
     }
-    fn cancel(&self, s: &mut State) {
-        s.attack_source=0;s.attack_defender=0;
+    fn clear_action_context(&self, s: &mut State) {
+        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
-        s.trigger_context = 0;
+        s.set_trigger_context(TriggerContext::Action);
         s.pending_triggers = 0;
         s.ambush = false;
         s.ability_program = 0;
         s.ability_pc = 0;
         s.ability_target = 0;
+        s.maximum_capture=MaximumCapture::default();
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
+        s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
         s.ability_result = 0;
         s.ability_succeeded = false;
-        s.ability_return = 0;
+        s.ability_return = ProgramContinuation::Finish.raw();
         s.ability_committed = false;
         s.pending_programs = 0;
         s.after_attack_programs = 0;
+    }
+    fn cancel(&self, s: &mut State) {
+        self.clear_action_context(s);
         s.decision = Decision::Window;
     }
     fn enter_triggers(&self, s: &mut State) -> Result<(), String> {
@@ -973,8 +969,9 @@ impl Engine {
     fn capture_enter_triggers(&self, s: &mut State) {
         let flags = self.effective_flags(s, s.source);
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
-            | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 };
-        s.trigger_context = 1;
+            | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
+            | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
+        s.set_trigger_context(TriggerContext::Enter);
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
         // Ambush/Shielded also watch OnLeaderDeployed.
         if !self.def(s, s.source).info.is("leader") {
@@ -982,17 +979,17 @@ impl Engine {
         }
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
-        if s.trigger_context==4 {return self.process_deaths(s);}
+        if s.trigger_context_is(TriggerContext::DeathKeyword) {return self.process_deaths(s);}
         self.merge_enter_deaths(s)?;
-        if self.open_deaths(s,2)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Triggers)? {return Ok(());}
         if self.catalogue.is_some() {
             return self.process_all_triggers(s);
         }
-        if s.is_terminal() && s.trigger_context != 2 {
+        if s.is_terminal() && !s.trigger_context_is(TriggerContext::Attack) {
             return Ok(());
         }
         if s.pending_triggers.count_ones() > 1
-            && ![T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD]
+            && ![T_RESTORE, T_SABOTEUR, T_LEADER, T_AMBUSH, T_SHIELD, T_SUPPORT]
                 .iter()
                 .any(|&bit| s.pending_triggers & bit != 0 && self.trigger_effect(s, bit))
         {
@@ -1006,7 +1003,7 @@ impl Engine {
             let bit = s.pending_triggers;
             return self.resolve_trigger(s, bit);
         }
-        if s.trigger_context == 2 {
+        if s.trigger_context_is(TriggerContext::Attack) {
             self.combat(s)
         } else {
             self.finish(s)
@@ -1051,6 +1048,7 @@ impl Engine {
                 s.card_mut(s.source).shield = id;
                 self.attach(s,id,s.source);
             }
+            T_SUPPORT => {if self.trigger_effect(s,T_SUPPORT) {s.decision=Decision::Support;return Ok(());}}
             T_AMBUSH => {
                 if self.trigger_effect(s, T_AMBUSH) {
                     s.decision = Decision::Ambush;
@@ -1085,7 +1083,7 @@ impl Engine {
     fn combat(&self, s: &mut State) -> Result<(), String> {
         let source = s.source;
         let target = s.target;
-        if s.trigger_context != 3
+        if !s.trigger_context_is(TriggerContext::ShieldOrder)
             && s.card(source).shield != 0
             && s.card(target).shield != 0
             && self.power(s, source, true) > 0
@@ -1094,6 +1092,7 @@ impl Engine {
             s.decision = Decision::ShieldOrder;
             return Ok(());
         }
+        self.capture_attack_end(s)?;
         let attack = self.power(s, source, true);
         let target_unit = self.in_arena(s, target);
         if target_unit {
@@ -1106,7 +1105,7 @@ impl Engine {
             } else {
                 0
             };
-            if s.trigger_context==3 && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
+            if s.trigger_context_is(TriggerContext::ShieldOrder) && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
                 let (first,second)=if s.attack_shield_opponent_first { (target,source) } else { (source,target) };
                 let (first_token,second_token)=self.combat_shield_contexts(s,first,second);
                 self.remove_group_shield(s,first,first_token); self.remove_group_shield(s,second,second_token);
@@ -1126,18 +1125,26 @@ impl Engine {
                 if s.card(id).damage>before && s.card(id).damage>=self.hp(s,id) {dead.push(id);}
             }
             for id in self.arena_units(s) {if s.card(id).damage>=self.hp(s,id) && !dead.contains(&id) {dead.push(id);}}
+            self.capture_advantage_end(s)?;
             self.defeat_many(s,&dead)?;
         } else {
             s.card_mut(target).damage += attack;
+            self.capture_advantage_end(s)?;
         }
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s,5)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.combat_after_damage(s)
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
         let source=s.source;
-        s.attack_source=0;s.attack_defender=0;
+        self.capture_attack_end(s)?;
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
+        self.clear_support_grants(s);
+        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
+        self.sweep_stat_defeats(s)?;
+        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
+        if s.support.pending {return self.resume_support(s);}
         self.check_win(s);
         if s.is_terminal() {
             self.finish(s)?;
@@ -1154,7 +1161,7 @@ impl Engine {
                 s.after_attack_programs = 0;
                 s.pending_triggers = s.after_attack_triggers;
                 s.after_attack_triggers = 0;
-                s.trigger_context = 1;
+                s.set_trigger_context(TriggerContext::Enter);
                 self.process_triggers(s)?;
             } else {
                 self.finish(s)?;
@@ -1189,11 +1196,13 @@ impl Engine {
     // A returned upgrade moves directly to hand, never through discard. Keep
     // the common detach/state-reset path without consuming a discard slot.
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
+        if self.in_arena(s,id) {self.mark_attack_lifecycle(s,id,false);}
+        self.remove_support_target(s,id);
         self.detach(s,id);
         let owner = s.card(id).owner;
         let leader = id == s.player(owner).leader;
         let token = self.def(s, id).info.is("token");
-        s.arena_unit_order[0].remove(id);s.arena_unit_order[1].remove(id);
+        s.arena_unit_order[0].remove(id);s.arena_unit_order[1].remove(id);s.registration_order.remove(id);
         let p = s.player_mut(owner);
         p.ground.remove(id);
         p.space.remove(id);
@@ -1242,7 +1251,7 @@ impl Engine {
     }
     fn finish(&self, s: &mut State) -> Result<(), String> {
         self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,3)? {return Ok(());}
+        if self.open_deaths(s,DeathContinuation::Finish)? {return Ok(());}
         if s.death_depth>0 {return self.process_deaths(s);}
         if s.is_terminal() {
             s.prev_passed = false;
@@ -1254,30 +1263,14 @@ impl Engine {
             return Ok(());
         }
         s.prev_passed = false;
-        s.attack_source=0;s.attack_defender=0;
         s.after_attack_triggers = 0;
-        s.after_attack_programs = 0;
-        s.pending_programs = 0;
-        s.ability_program = 0;
-        s.ability_pc = 0;
-        s.ability_target = 0;
-        s.attack_shield_opponent_first=false;
-        s.ability_selection = Selection::default();
-        s.event_group = EventGroupState::default();
-        s.ability_result = 0;
-        s.ability_succeeded = false;
-        s.ability_return = 0;
-        s.ability_committed = false;
-        s.source = 0;
-        s.target = 0;
-        s.pending_triggers = 0;
-        s.trigger_context = 0;
-        s.ambush = false;
+        self.clear_action_context(s);
         self.advance(s)
     }
     fn advance(&self, s: &mut State) -> Result<(), String> {
         if s.players.iter().all(|p| p.out) {
             s.action_player=None;
+            s.phase_history.reset();
             for id in 1..s.next_id {
                 s.card_mut(id).set_hidden_qualified(false);
                 s.card_mut(id).phase_power = 0;
@@ -1288,7 +1281,7 @@ impl Engine {
                 s.card_mut(id).clear_hidden_phase_effects();
             }
             self.sweep_stat_defeats(s)?;
-            if self.open_deaths(s,4)? {return Ok(());}
+            if self.open_deaths(s,DeathContinuation::PhaseExpiry)? {return Ok(());}
             return self.advance_after_expiry(s);
         } else {
             if !s.player(s.active.other()).out {s.active=s.active.other();}
@@ -1322,6 +1315,7 @@ impl Engine {
         Ok(())
     }
     fn end_regroup(&self, s: &mut State) -> Result<(), String> {
+        s.phase_history.reset();
         for seat in [Seat::P1, Seat::P2] {
             let id = s.resource_selected[seat.index()];
             if id != 0 {
@@ -1351,6 +1345,7 @@ impl Engine {
         Ok(())
     }
     fn load_card(&self, s: &mut State, v: &Value, owner: Seat) -> Result<CardId, String> {
+        if v["phaseKeywords"].get("support").is_some() {return Err("imported phase Support grants require a reviewed lifecycle".into());}
         let text = v["id"].as_str().ok_or("card missing id")?;
         let id = cid(text)?;
         let code = v["setCode"]
@@ -1420,7 +1415,7 @@ impl Engine {
                     s.card_mut(id).experience = uid;
                     prior
                 } else {
-                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def) {return Err("unsupported attachment type".into());}
+                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
                     0
                 };
                 s.card_mut(uid).next_token = prior;
@@ -1430,6 +1425,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
         } else {
@@ -1439,8 +1435,7 @@ impl Engine {
             return Err("positions must start at an action window in the action phase".into());
         }
         let mut s = State::default();
-        s.hidden_history_exact=v.get("hiddenHistoryVersion").is_some();
-        if !s.hidden_history_exact && self.needs_hidden_history() {return Err("selected pool requires explicit Hidden phase history".into());}
+        self.load_hidden_evidence(&mut s,v)?;
         s.round = n(v, "round");
         if s.round == 0 {
             return Err("invalid round".into());
@@ -1486,6 +1481,7 @@ impl Engine {
         }
         self.load_arena_order(&mut s,v)?;
         self.validate_attachment_links(&s)?;
+        self.load_registration_order(&mut s,v)?;
         if let Some(next) = v["nextCardId"].as_u64() {
             if next >= MAX_CARDS as u64 {
                 return Err("card capacity exceeded".into());
@@ -1497,12 +1493,9 @@ impl Engine {
                     .into(),
             );
         }
-        if let Some(version)=v.get("forceStateVersion") {
-            if version.as_u64()!=Some(1) {return Err("unsupported forceStateVersion".into());}
-            s.force_state_exact=true;
-            for seat in [Seat::P1,Seat::P2] {let token=&v["players"][seat.as_str()]["forceToken"];s.player_mut(seat).force_id=cid(token["id"].as_str().ok_or("Force identity missing")?)?;s.player_mut(seat).force_held=token["held"].as_bool().ok_or("Force held must be boolean")?;}
-            if self.force_def.is_none() && s.players.iter().any(|p|p.force_held) {return Err("held Force requires reviewed native definition".into());}
-        }else if self.needs_force_state() {return Err("selected pool requires explicit Force state version".into());}
+        self.load_force_evidence(&mut s,v)?;
+        self.load_phase_history_evidence(&mut s,v)?;
+        self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
         for seat in [Seat::P1, Seat::P2] {
             let p = &v["players"][seat.as_str()];
@@ -1609,9 +1602,9 @@ impl Engine {
             s.winner().map(Seat::as_str)
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
-        if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
-        if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
-        if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}
+        if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
+        if s.support.pending {value["supportAttackPending"]=json!(true);}
+        self.write_snapshot_evidence(s,&mut value);
         value
     }
 }
@@ -1625,3 +1618,7 @@ pub(crate) fn program_backend(hash:&str,bytes:&[u8])->Result<usize,&'static str>
 pub(crate) fn expression_backend(hash: &str, bytes: &[u8]) -> Option<usize> {
     generic_runtime::generated_expression_backend(hash, bytes)
 }
+
+#[cfg(test)]
+#[path = "compatibility_tests.rs"]
+mod compatibility_tests;

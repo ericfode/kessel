@@ -2,6 +2,65 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const gainedHostAttack = require("./gained-host-attack-probes").planGainedHostAttackProbes(entry, options);
+    if (gainedHostAttack) return gainedHostAttack;
+    const helmetHostAttack = require("./helmet-host-attack-probes").planHelmetHostAttackProbes(entry, options);
+    if (helmetHostAttack) return helmetHostAttack;
+    const parentDefendingAttackerAura = require("./parent-defending-attacker-aura-probes").planParentDefendingAttackerAuraProbes(entry, options);
+    if (parentDefendingAttackerAura) return parentDefendingAttackerAura;
+    const defendingAttackerAura = require("./defending-attacker-aura-probes").planDefendingAttackerAuraProbes(entry, options);
+    if (defendingAttackerAura) return defendingAttackerAura;
+    const simultaneousResource = require("./simultaneous-resource-probes").planSimultaneousResourceProbes(entry, options);
+    if (simultaneousResource) return simultaneousResource;
+    const aspectReadyDeath = require("./aspect-ready-death-probes").planAspectReadyDeathProbes(entry, options);
+    if (aspectReadyDeath) return aspectReadyDeath;
+    const defeatTopResource = require("./defeat-top-resource-probes").planDefeatTopResourceProbes(entry, options);
+    if (defeatTopResource) return defeatTopResource;
+    const conditionalDrawResource = require("./conditional-draw-resource-probes").planConditionalDrawResourceProbes(entry, options);
+    if (conditionalDrawResource) return conditionalDrawResource;
+
+    const topDeckResource = require("./top-deck-resource-probes").planTopDeckResourceProbes(entry, options);
+    if (topDeckResource) return topDeckResource;
+    const conditionalTopResource = require("./conditional-top-resource-probes").planConditionalTopResourceProbes(entry, options);
+    if (conditionalTopResource) return conditionalTopResource;
+    const arenaTopResource = require("./arena-top-resource-probes").planArenaTopResourceProbes(entry, options);
+    if (arenaTopResource) return arenaTopResource;
+
+    const orderedDeath = require("./ordered-ground-death-damage-probes").planOrderedGroundDeathDamageProbes(entry, options);
+    if (orderedDeath) return orderedDeath;
+    const orderedExhaust = require("./ordered-ground-exhaust-probes").planOrderedGroundExhaustProbes(entry, options);
+    if (orderedExhaust) return orderedExhaust;
+    const orderedEvent = require("./ordered-ground-event-damage-probes").planOrderedGroundEventDamageProbes(entry, options);
+    if (orderedEvent) return orderedEvent;
+
+    const remainingHpDraw = require("./remaining-hp-draw-probes").planRemainingHpDrawProbes(entry, options);
+    if (remainingHpDraw) return remainingHpDraw;
+    const singletonNamed = require("./singleton-named-probes").planSingletonNamedProbes(entry, options);
+    if (singletonNamed) return singletonNamed;
+    const exhaustedCountShield = require("./exhausted-count-shield-probes").planExhaustedCountShieldProbes(entry, options);
+    if (exhaustedCountShield) return exhaustedCountShield;
+    const ackbar = require("./admiral-ackbar-probes").planAdmiralAckbarProbes(entry, options);
+    if (ackbar) return ackbar;
+    const spaceComparison = require("./space-comparison-probes").planSpaceComparisonProbes(entry, options);
+    if (spaceComparison) return spaceComparison;
+    const singleHealing = require("./single-target-healing-probes").planSingleTargetHealingProbes(entry, options);
+    if (singleHealing) return singleHealing;
+    const ferrix = require("./ferrix-uprising-probes").planFerrixUprisingProbes(entry, options);
+    if (ferrix) return ferrix;
+    const cripple = require("./cripple-authority-probes").planCrippleAuthorityProbes(entry, options);
+    if (cripple) return cripple;
+    const upgradePresence = require("./upgrade-presence-probes").planUpgradePresenceProbes(entry, options);
+    if (upgradePresence) return upgradePresence;
+    const otherBaseHeal = require("./other-base-heal-probes").planOtherBaseHealProbes(entry, options);
+    if (otherBaseHeal) return otherBaseHeal;
+    const remainingHpDamage = require("./remaining-hp-damage-probes").planRemainingHpDamageProbes(entry, options);
+    if (remainingHpDamage) return remainingHpDamage;
+    const leaderPredicatePlan = require('./leader-predicate-probes').planLeaderPredicateProbes(entry, options);
+    if (leaderPredicatePlan) return leaderPredicatePlan;
+    const arenaPresencePlan = require('./arena-presence-probes').planArenaPresenceProbes(entry, options);
+    if (arenaPresencePlan) return arenaPresencePlan;
+    const attachedConstantPlan = require('./attached-constant-probes').planAttachedConstantProbes(entry, options);
+    if (attachedConstantPlan) return attachedConstantPlan;
     const arenaQueryPlan = require('./arena-query-probes').planArenaQueryProbes(entry, options);
     if (arenaQueryPlan) return arenaQueryPlan;
     const baseZonePlan = require('./base-zone-probes').planBaseZoneProbes(entry, options);

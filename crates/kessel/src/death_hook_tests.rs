@@ -1,0 +1,713 @@
+// Source-derived actual-card witnesses. No source engine execution.
+use super::*;
+use crate::ability_ir::{Ability, Catalogue, Program};
+fn entry(code: &str) -> Value {
+    let c: Value =
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["setCode"] == code)
+        .unwrap()
+        .clone()
+}
+fn admits(e: Value) -> bool {
+    Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[e.clone()]}))
+        .unwrap()
+        .cards
+        .contains_key(e["setCode"].as_str().unwrap())
+}
+fn midgame(e: &Engine, seat: Seat) -> State {
+    let mut s = board(e);
+    s.round = 6;
+    s.active = seat;
+    s.action_player = Some(seat);
+    s
+}
+fn attack(e: &Engine, s: State, source: CardId, target: CardId) -> State {
+    let snapshot = e.snapshot(&s);
+    let loaded = e.load_state(&snapshot).unwrap();
+    assert_eq!(e.snapshot(&loaded), snapshot);
+    let a = e.card_action(&loaded, source);
+    assert!(e.legal_actions(&loaded).contains(&a));
+    let prompt = e.apply(&loaded, &a).unwrap();
+    assert_eq!(prompt.decision, Decision::AttackTarget);
+    let a = e.card_action(&prompt, target);
+    assert!(e.legal_actions(&prompt).contains(&a));
+    e.apply(&prompt, &a).unwrap()
+}
+fn batch(e: &Engine, mut s: State) -> State {
+    for _ in 0..8 {
+        if s.decision != Decision::DeathBatch {
+            return s;
+        }
+        let a = e
+            .legal_actions(&s)
+            .into_iter()
+            .find(|a| a.arg == Some(json!("all")))
+            .unwrap();
+        s = e.apply(&s, &a).unwrap();
+    }
+    panic!("unexpected unbounded trigger batch")
+}
+#[test]
+fn death_hook_complete_admission_and_fail_closed_boundaries() {
+    let e = engine();
+    for code in ["SOR_036", "SEC_051", "ASH_127", "TWI_033", "TS26_013"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
+    for code in ["SOR_115", "SHD_137", "HMW_062", "SEC_088", "SOR_149"] {
+        assert!(
+            !e.by_code.contains_key(code),
+            "unsupported provenance/limit {code}"
+        );
+    }
+    let original = entry("SOR_036");
+    assert!(admits(original.clone()));
+    for key in ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"] {
+        let mut bad=original.clone();bad[key]=json!([{"kind":"unimplementedSourceContext"}]);assert!(!admits(bad),"{key}");
+    }
+    for key in ["limit", "collectiveTrigger", "body", "cannotTargetFirst"] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0][key] = json!(true);
+        assert!(!admits(bad), "{key}");
+    }
+    for trigger in ["onCardPlayed", "onDamageDealt", "onAttackEnd"] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0]["hooks"][0]["event"] = json!(trigger);
+        assert!(!admits(bad));
+    }
+    for key in ["optional", "requiresConfirmation", "coordinate"] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0][key] = json!(true);
+        assert!(!admits(bad));
+    }
+    for kind in ["leader", "upgrade", "token"] {
+        let mut bad = original.clone();
+        bad["card"]["types"] = json!([kind]);
+        assert!(!admits(bad));
+    }
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][0]["predicate"]["op"] = json!("||");
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][0]["predicate"]["left"]["args"][0]["steps"][0]
+        ["optional"] = json!(true);
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][0]["predicate"]["right"]["left"]["argumentBinding"]
+        ["id"] = json!("foreign-callback");
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][0]["predicate"]["right"]["left"]["steps"][0]["key"] =
+        json!("card");
+    assert!(!admits(bad));
+    let hook = original["abilities"]["card"][0].clone();
+    let direct: Ability = serde_json::from_value(hook.clone()).unwrap();
+    assert!(Program::compile(&direct).is_ok());
+    let nested: Ability = serde_json::from_value(
+        json!({"trigger":"whenPlayed","title":"outer","effect":{"kind":"noAction"},"then":hook}),
+    )
+    .unwrap();
+    assert!(Program::compile(&nested).is_err());
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+}
+#[test]
+fn death_hook_gideon_actual_combat_live_friendly_target_both_backends_and_owners() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let source = unit(&e, &mut s, seat, "SOR_036");
+            let ally = unit(&e, &mut s, seat, "LOF_256");
+            let victim = unit(&e, &mut s, seat.other(), "LOF_254");
+            let prompt = attack(&e, s, source, victim);
+            assert_eq!(prompt.decision, Decision::AbilityTarget);
+            assert!(prompt.player(seat.other()).discard.contains(victim));
+            let ids: Vec<_> = e
+                .legal_actions(&prompt)
+                .iter()
+                .filter_map(Action::id)
+                .collect();
+            assert!(ids.contains(&source) && ids.contains(&ally));
+            assert!(!ids.contains(&prompt.player(seat).base));
+            let done = e.apply(&prompt, &e.card_action(&prompt, ally)).unwrap();
+            assert_eq!(e.upgrades(&done, ally).len(), 1);
+            assert_eq!(e.power(&done, ally, false), 2);
+            assert_eq!(done.death_depth, 0);
+        }
+    }
+}
+#[test]
+fn death_hook_twins_actual_friendly_combat_death_heals_base_and_enemy_death_does_not() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat.other());
+            let source = unit(&e, &mut s, seat, "ASH_127");
+            let victim = unit(&e, &mut s, seat, "LOF_254");
+            let attacker = unit(&e, &mut s, seat.other(), "LOF_256");
+            let base = s.player(seat).base;
+            s.card_mut(base).damage = 4;
+            let done = attack(&e, s, attacker, victim);
+            assert_eq!(done.card(base).damage, 3);
+            assert!(done.player(seat).discard.contains(victim));
+            assert!(e.in_arena(&done, source));
+            let mut s = midgame(&e, seat);
+            unit(&e, &mut s, seat, "ASH_127");
+            let source = unit(&e, &mut s, seat, "LOF_256");
+            let victim = unit(&e, &mut s, seat.other(), "LOF_254");
+            let base = s.player(seat).base;
+            s.card_mut(base).damage = 4;
+            let done = attack(&e, s, source, victim);
+            assert_eq!(done.card(base).damage, 4);
+        }
+    }
+}
+#[test]
+fn death_hook_magnaguard_actual_token_death_gains_sentinel_and_when_played_alias() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P2);
+        let source = unit(&e, &mut s, Seat::P1, "TWI_033");
+        let victim = unit(&e, &mut s, Seat::P1, "TOKEN_BATTLE_DROID");
+        let attacker = unit(&e, &mut s, Seat::P2, "LOF_256");
+        assert!(!e.has_keyword(&s, source, "sentinel"));
+        let done = attack(&e, s, attacker, victim);
+        assert!(e.has_keyword(&done, source, "sentinel"));
+        assert!(!e.in_arena(&done, victim));
+        let mut s = midgame(&e, Seat::P1);
+        let source = hand(&e, &mut s, "TWI_033");
+        let done = e.apply(&s, &e.card_action(&s, source)).unwrap();
+        assert!(e.in_arena(&done, source));
+        assert!(e.has_keyword(&done, source, "sentinel"));
+    }
+}
+#[test]
+fn death_hook_bokatan_play_stat_defeat_triggers_experience_after_enemy_departure() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let victim = unit(&e, &mut s, Seat::P2, "LOF_254");
+        let survivor = unit(&e, &mut s, Seat::P2, "LOF_256");
+        let source = hand(&e, &mut s, "SEC_051");
+        for _ in 0..6 {
+            let id = add(&e, &mut s, Seat::P1, "LOF_254");
+            s.players[0].resources.push(id).unwrap();
+        }
+        let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        assert!(prompt.player(Seat::P2).discard.contains(victim));
+        assert!(e.in_arena(&prompt, survivor));
+        assert_eq!(e.hp(&prompt, survivor), 1);
+        let done = e.apply(&prompt, &e.card_action(&prompt, source)).unwrap();
+        assert_eq!(e.upgrades(&done, source).len(), 1);
+        assert_eq!(e.power(&done, source, false), 9);
+    }
+}
+#[test]
+fn death_hook_sidious_actual_simultaneous_self_and_enemy_defeat_creates_two_and_token_death_zero() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let source = unit(&e, &mut s, seat, "TS26_013");
+            let victim = unit(&e, &mut s, seat.other(), "LOF_254");
+            s.card_mut(source).damage = e.hp(&s, source) - 1;
+            let done = batch(&e, attack(&e, s, source, victim));
+            assert!(done.player(seat).discard.contains(source));
+            assert!(done.player(seat.other()).discard.contains(victim));
+            let droids: Vec<_> = done
+                .player(seat)
+                .ground
+                .as_slice()
+                .iter()
+                .copied()
+                .filter(|id| e.def(&done, *id).code == "TOKEN_BATTLE_DROID")
+                .collect();
+            assert_eq!(droids.len(), 2);
+            assert!(droids.iter().all(|id| done.card(*id).exhausted));
+            let mut s = midgame(&e, seat);
+            unit(&e, &mut s, seat, "TS26_013");
+            let attacker = unit(&e, &mut s, seat, "LOF_256");
+            let victim = unit(&e, &mut s, seat.other(), "TOKEN_BATTLE_DROID");
+            let done = attack(&e, s, attacker, victim);
+            assert_eq!(
+                done.player(seat).ground.len,
+                2,
+                "token death must not create a droid"
+            );
+        }
+    }
+}
+
+#[test]
+fn death_hook_gideon_simultaneous_source_death_retains_captured_friendly_selection() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let source = unit(&e, &mut s, Seat::P1, "SOR_036");
+        let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
+        let victim = unit(&e, &mut s, Seat::P2, "LOF_254");
+        s.card_mut(source).damage = e.hp(&s, source) - 1;
+        let prompt = attack(&e, s, source, victim);
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        assert!(prompt.player(Seat::P1).discard.contains(source));
+        assert!(prompt.player(Seat::P2).discard.contains(victim));
+        assert_eq!(
+            e.legal_actions(&prompt)
+                .iter()
+                .filter_map(Action::id)
+                .collect::<Vec<_>>(),
+            vec![ally]
+        );
+        let done = e.apply(&prompt, &e.card_action(&prompt, ally)).unwrap();
+        assert_eq!(e.upgrades(&done, ally).len(), 1);
+    }
+}
+#[test]
+fn death_hook_opposing_captured_sources_share_owner_order_then_advance_action_owner() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P2);
+    let source = unit(&e, &mut s, Seat::P2, "SOR_036");
+    let defender = unit(&e, &mut s, Seat::P1, "SOR_036");
+    let ally1 = unit(&e, &mut s, Seat::P1, "LOF_256");
+    let ally2 = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let prompt = attack(&e, s, source, defender);
+    assert_eq!(prompt.decision, Decision::DeathPlayer);
+    assert_eq!(prompt.active, Seat::P2);
+    assert_eq!(
+        e.legal_actions(&prompt),
+        vec![Action::button("You", 0), Action::button("Opponent", 1)]
+    );
+    let first = named_button(&e, &prompt, "Opponent");
+    assert_eq!(first.active, Seat::P1);
+    assert_eq!(first.decision, Decision::AbilityTarget);
+    let second = e.apply(&first, &e.card_action(&first, ally1)).unwrap();
+    assert_eq!(second.active, Seat::P2);
+    let done = e.apply(&second, &e.card_action(&second, ally2)).unwrap();
+    assert_eq!(e.upgrades(&done, ally1).len(), 1);
+    assert_eq!(e.upgrades(&done, ally2).len(), 1);
+    assert_eq!(done.death_depth, 0);
+    assert_eq!(done.action_player, Some(Seat::P1));
+    assert_eq!(done.active, Seat::P1);
+}
+#[test]
+fn death_hook_twins_self_defeat_is_excluded_and_magnaguard_enemy_death_is_excluded() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P2);
+    let source = unit(&e, &mut s, Seat::P1, "ASH_127");
+    let attacker = unit(&e, &mut s, Seat::P2, "LOF_256");
+    let base = s.player(Seat::P1).base;
+    s.card_mut(base).damage = 4;
+    s.card_mut(source).damage = e.hp(&s, source) - 1;
+    let done = attack(&e, s, attacker, source);
+    assert_eq!(done.card(base).damage, 4);
+    assert!(done.player(Seat::P1).discard.contains(source));
+    let mut s = midgame(&e, Seat::P1);
+    let guard = unit(&e, &mut s, Seat::P1, "TWI_033");
+    let attacker = unit(&e, &mut s, Seat::P1, "LOF_256");
+    let victim = unit(&e, &mut s, Seat::P2, "LOF_254");
+    let done = attack(&e, s, attacker, victim);
+    assert!(!e.has_keyword(&done, guard, "sentinel"));
+}
+#[test]
+fn death_hook_sidious_live_aura_and_hidden_remain_part_of_complete_definition() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P1);
+    let source = unit(&e, &mut s, Seat::P1, "TS26_013");
+    let droid = unit(&e, &mut s, Seat::P1, "TOKEN_BATTLE_DROID");
+    let enemy = unit(&e, &mut s, Seat::P2, "TOKEN_BATTLE_DROID");
+    assert_eq!(e.power(&s, droid, false), 2);
+    assert_eq!(e.power(&s, enemy, false), 1);
+    assert!(e.has_keyword(&s, source, "hidden"));
+    e.defeat(&mut s, source).unwrap();
+    assert_eq!(e.power(&s, droid, false), 1);
+    assert_eq!(
+        s.death_pending.len, 1,
+        "self non-token defeat is independently captured"
+    );
+}
+
+#[test]
+fn death_hook_return_is_not_defeat_and_lki_unit_type_includes_deployed_leaders() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P1);
+    let source = unit(&e, &mut s, Seat::P1, "SOR_036");
+    let victim = unit(&e, &mut s, Seat::P2, "LOF_254");
+    e.leave_play(&mut s, victim).unwrap();
+    assert_eq!(
+        s.death_pending.len, 0,
+        "non-defeat departure must not emit defeat hooks"
+    );
+    let leader = s.players[1].leader;
+    e.add_arena(&mut s, leader).unwrap();
+    e.capture_death(&mut s, leader).unwrap();
+    assert_eq!(s.death_pending.len, 1);
+    assert_eq!(s.death_pending.entries[0].source, source);
+    assert_eq!(s.death_pending.entries[0].player, Seat::P1);
+}
+#[test]
+fn death_hook_unknown_fields_predicate_paths_and_duplicated_aliases_reject() {
+    let original = entry("TWI_033");
+    for field in ["stateWatchers", "piloting", "attachCondition"] {
+        let mut bad = original.clone();
+        bad[field] = json!({"unknown":true});
+        assert!(!admits(bad));
+    }
+    for field in [
+        "deployBox",
+        "deployCost",
+        "upgradePower",
+        "upgradeHp",
+        "pilotText",
+    ] {
+        let mut bad = original.clone();
+        bad["card"][field] = json!(1);
+        assert!(!admits(bad));
+    }
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][0]["enabled"] = json!(false);
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    let alias = bad["abilities"]["card"][0]["hooks"][0].clone();
+    bad["abilities"]["card"][0]["hooks"]
+        .as_array_mut()
+        .unwrap()
+        .push(alias);
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["hooks"][1]["predicate"]["unknown"] = json!(true);
+    assert!(!admits(bad));
+    let mut bad = original.clone();
+    bad["abilities"]["card"][0]["effect"]["target"] = json!({"kind":"dataPath","root":["context"],"steps":[{"key":"event","optional":false},{"key":"card","optional":false}]});
+    assert!(!admits(bad));
+}
+
+#[test]
+fn death_hook_twins_existing_play_and_attack_sentinel_siblings_keep_optional_targeting() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
+        let source = hand(&e, &mut s, "ASH_127");
+        let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        assert!(e.legal_actions(&prompt).iter().any(|a| a.label == "Pass"));
+        assert!(!e
+            .legal_actions(&prompt)
+            .iter()
+            .any(|a| a.id() == Some(source)));
+        let done = e.apply(&prompt, &e.card_action(&prompt, ally)).unwrap();
+        assert!(e.has_keyword(&done, ally, "sentinel"));
+        let mut s = midgame(&e, Seat::P1);
+        let source = unit(&e, &mut s, Seat::P1, "ASH_127");
+        let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
+        let base = s.players[1].base;
+        let prompt = attack(&e, s, source, base);
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        let done = e.apply(&prompt, &e.card_action(&prompt, ally)).unwrap();
+        assert!(e.has_keyword(&done, ally, "sentinel"));
+        assert_eq!(done.card(base).damage, 2);
+    }
+}
+#[test]
+fn death_hook_sidious_actual_play_keeps_hidden_entry_qualification_and_live_aura() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let droid = unit(&e, &mut s, Seat::P1, "TOKEN_BATTLE_DROID");
+        let source = hand(&e, &mut s, "TS26_013");
+        for _ in 0..6 {
+            let id = add(&e, &mut s, Seat::P1, "LOF_254");
+            s.players[0].resources.push(id).unwrap();
+        }
+        let done = e.apply(&s, &e.card_action(&s, source)).unwrap();
+        assert!(e.in_arena(&done, source));
+        assert!(e.has_keyword(&done, source, "hidden"));
+        assert!(done.card(source).hidden_qualified());
+        assert_eq!(e.power(&done, droid, false), 2);
+    }
+}
+
+#[test]
+fn death_hook_registration_cross_arena_source_order_uses_entry_not_stable_ids() {
+    let e = engine();
+    for twins_first in [true, false] {
+        let mut s = midgame(&e, Seat::P1);
+        let twins = add(&e, &mut s, Seat::P1, "ASH_127");
+        let shuttle = add(&e, &mut s, Seat::P1, "JTL_063");
+        if twins_first {
+            e.add_arena(&mut s, twins).unwrap();
+            e.add_arena(&mut s, shuttle).unwrap();
+        } else {
+            e.add_arena(&mut s, shuttle).unwrap();
+            e.add_arena(&mut s, twins).unwrap();
+        }
+        s.card_mut(s.players[0].base).damage = 3;
+        deck_card(&e, &mut s, Seat::P1);
+        let snapshot = e.snapshot(&s);
+        let mut s = e.load_state(&snapshot).unwrap();
+        assert_eq!(e.snapshot(&s), snapshot);
+        e.defeat(&mut s, shuttle).unwrap();
+        let sources = s.death_pending.entries[..s.death_pending.len as usize]
+            .iter()
+            .map(|e| e.source)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            sources,
+            if twins_first {
+                vec![twins, shuttle]
+            } else {
+                vec![shuttle, twins]
+            }
+        );
+        assert!(e.open_deaths(&mut s, DeathContinuation::Finish).unwrap());
+        assert_eq!(s.decision, Decision::DeathOrder);
+        let labels = e
+            .legal_actions(&s)
+            .into_iter()
+            .map(|a| a.label)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            labels,
+            if twins_first {
+                vec![
+                    "When another friendly unit is defeated, heal 1 damage from your base",
+                    "Draw a card",
+                ]
+            } else {
+                vec![
+                    "Draw a card",
+                    "When another friendly unit is defeated, heal 1 damage from your base",
+                ]
+            }
+        );
+    }
+}
+#[test]
+fn death_hook_registration_reentry_and_upgrade_interleaving_preserve_physical_chronology() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P1);
+    let host = unit(&e, &mut s, Seat::P1, "LOF_256");
+    let first = add(&e, &mut s, Seat::P1, "LOF_051");
+    e.attach(&mut s, first, host);
+    let twins = unit(&e, &mut s, Seat::P1, "ASH_127");
+    let second = add(&e, &mut s, Seat::P1, "LOF_051");
+    e.attach(&mut s, second, host);
+    let snapshot = e.snapshot(&s);
+    assert_eq!(e.snapshot(&e.load_state(&snapshot).unwrap()), snapshot);
+    let mut before_host = snapshot.clone();
+    before_host["registrationOrder"]["cards"]
+        .as_array_mut()
+        .unwrap()
+        .swap(0, 1);
+    assert!(e
+        .load_state(&before_host)
+        .unwrap_err()
+        .contains("attachment chronology"));
+    let mut reversed_grants = snapshot.clone();
+    reversed_grants["registrationOrder"]["cards"]
+        .as_array_mut()
+        .unwrap()
+        .swap(1, 3);
+    assert!(e
+        .load_state(&reversed_grants)
+        .unwrap_err()
+        .contains("attachment chronology"));
+    let mut missing_grant = snapshot.clone();
+    missing_grant["registrationOrder"]["cards"]
+        .as_array_mut()
+        .unwrap()
+        .pop();
+    assert!(e.load_state(&missing_grant).is_err());
+    // Synthetic captured entries only: root integrates actual granted-death aliases.
+    s.death_pending.len = 3;
+    s.death_pending.entries[0] = DeathTrigger {
+        source: host,
+        grantor: second,
+        ..DeathTrigger::default()
+    };
+    s.death_pending.entries[1] = DeathTrigger {
+        source: twins,
+        ..DeathTrigger::default()
+    };
+    s.death_pending.entries[2] = DeathTrigger {
+        source: host,
+        grantor: first,
+        ..DeathTrigger::default()
+    };
+    e.sort_captured_registrations(&mut s, 0).unwrap();
+    assert_eq!(
+        s.death_pending.entries[..3]
+            .iter()
+            .map(|e| if e.grantor == 0 { e.source } else { e.grantor })
+            .collect::<Vec<_>>(),
+        vec![first, twins, second]
+    );
+    e.detach(&mut s, first);
+    e.attach(&mut s, first, host);
+    assert!(s.registration_order.position(first) > s.registration_order.position(second));
+    e.leave_play(&mut s, twins).unwrap();
+    assert!(s.registration_order.position(twins).is_none());
+    s.players[0].discard.remove(twins);
+    e.add_arena(&mut s, twins).unwrap();
+    assert!(s.registration_order.position(twins) > s.registration_order.position(first));
+}
+#[test]
+fn death_hook_registration_import_is_versioned_complete_and_hashes_cross_arena_chronology() {
+    let e = engine();
+    let mut s = midgame(&e, Seat::P1);
+    let ground = unit(&e, &mut s, Seat::P1, "ASH_127");
+    let space = unit(&e, &mut s, Seat::P1, "JTL_063");
+    let snapshot = e.snapshot(&s);
+    let copy = e.load_state(&snapshot).unwrap();
+    assert_eq!(copy.zobrist(), s.zobrist());
+    assert_eq!((*s.registration_order.as_slice()).len(), 2);
+    let mut swapped = snapshot.clone();
+    swapped["registrationOrder"]["cards"]
+        .as_array_mut()
+        .unwrap()
+        .reverse();
+    let swapped = e.load_state(&swapped).unwrap();
+    assert_eq!(swapped.arena_unit_order, s.arena_unit_order);
+    assert_ne!(swapped.zobrist(), s.zobrist());
+    assert_eq!(
+        swapped.registration_order.as_slice(),
+        &[space as u8, ground as u8]
+    );
+    let mut variants = vec![];
+    let mut v = snapshot.clone();
+    v.as_object_mut().unwrap().remove("registrationOrder");
+    variants.push(v);
+    let mut v = snapshot.clone();
+    v["registrationOrder"]["version"] = json!(2);
+    variants.push(v);
+    let mut v = snapshot.clone();
+    v["registrationOrder"]["unknown"] = json!(true);
+    variants.push(v);
+    let mut v = snapshot.clone();
+    v["registrationOrder"]["cards"] = json!([]);
+    variants.push(v);
+    let mut v = snapshot.clone();
+    let first = v["registrationOrder"]["cards"][0].clone();
+    v["registrationOrder"]["cards"]
+        .as_array_mut()
+        .unwrap()
+        .push(first);
+    variants.push(v);
+    let mut v = snapshot.clone();
+    v["registrationOrder"]["cards"][0] = json!("c0004");
+    variants.push(v);
+    for v in variants {
+        assert!(
+            e.load_state(&v).is_err(),
+            "invalid registration evidence accepted {v}"
+        );
+    }
+}
+#[test]
+fn death_hook_registration_legacy_compatibility_uses_selected_pool_and_future_card_guard() {
+    let mut e = engine();
+    let mut s = midgame(&e, Seat::P1);
+    unit(&e, &mut s, Seat::P1, "LOF_254");
+    let mut snapshot = e.snapshot(&s);
+    snapshot
+        .as_object_mut()
+        .unwrap()
+        .remove("registrationOrder");
+    let codes = ["ASH_019", "SOR_014", "IBH_053", "LOF_254"];
+    e.catalogue
+        .as_mut()
+        .unwrap()
+        .metadata
+        .retain(|code, _| codes.contains(&code.as_str()));
+    assert!(!e.needs_registration_order());
+    let legacy = e.load_state(&snapshot).unwrap();
+    assert!(!legacy.registration_order.exact);
+    assert!(legacy.registration_order.as_slice().is_empty());
+    assert!(e.snapshot(&legacy).get("registrationOrder").is_none());
+    let future = entry("ASH_127")["card"].clone();
+    e.catalogue
+        .as_mut()
+        .unwrap()
+        .metadata
+        .insert("ASH_127".into(), future);
+    assert!(e.needs_registration_order());
+    assert!(e
+        .load_state(&snapshot)
+        .unwrap_err()
+        .contains("registrationOrder"));
+}
+#[test]
+fn death_hook_registration_capacity_and_copy_hash_are_bounded() {
+    assert_eq!(std::mem::size_of::<RegistrationOrder>(), 260);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+    let mut order = RegistrationOrder::default();
+    for id in 1..MAX_CARDS as u16 {
+        order.push(id).unwrap();
+    }
+    assert_eq!(order.len, 255);
+    assert!(order.push(0).is_err());
+    assert!(order.push(256).is_err());
+    assert!(order.push(7).is_err());
+    order.remove(4);
+    order.push(4).unwrap();
+    assert_eq!(order.as_slice().last(), Some(&4));
+    let mut s = State::default();
+    s.registration_order = order;
+    let copied = s;
+    assert_eq!(s.zobrist(), copied.zobrist());
+    s.registration_order.exact = false;
+    assert_ne!(s.zobrist(), copied.zobrist());
+    eprintln!(
+        "registration State={} compact={} delta=256",
+        std::mem::size_of::<State>(),
+        std::mem::size_of::<RegistrationOrder>()
+    );
+}
+
+#[test]
+fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {for grant_first in [true,false] {
+            let mut s=midgame(&e,seat);
+            // Allocate the observer first, but register it on either side of the
+            // attachment. Stable card IDs cannot establish the listener order.
+            let observer=add(&e,&mut s,seat,"ASH_127");
+            let base=s.players[seat.index()].base; s.card_mut(base).damage=1;
+            let host=unit(&e,&mut s,seat,"LOF_254");
+            let grantor=add(&e,&mut s,seat.other(),"TWI_218");
+            if grant_first {e.attach(&mut s,grantor,host);e.add_arena(&mut s,observer).unwrap();}
+            else {e.add_arena(&mut s,observer).unwrap();e.attach(&mut s,grantor,host);}
+            let snapshot=e.snapshot(&s);s=e.load_state(&snapshot).unwrap();
+            e.defeat(&mut s,host).unwrap();
+            let captured=s.death_pending.entries[..s.death_pending.len as usize].iter().map(|t|(t.source,t.grantor)).collect::<Vec<_>>();
+            let expected=if grant_first {vec![(host,grantor),(observer,0)]}else{vec![(observer,0),(host,grantor)]};
+            assert_eq!(captured,expected,"{backend:?}/{seat:?}/{grant_first}");
+            assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap());
+            for _ in 0..12 {
+                if !e.is_ability_decision(s.decision) {break;}
+                let actions=e.legal_actions(&s);assert!(!actions.is_empty());s=e.apply(&s,&actions[0]).unwrap();
+            }
+            assert!(!e.is_ability_decision(s.decision));
+            assert_eq!(s.card(base).damage,0);
+            let tokens=e.arena_units(&s).into_iter().filter(|&id|e.def(&s,id).code=="TOKEN_BATTLE_DROID").collect::<Vec<_>>();
+            assert_eq!(tokens.len(),1);assert_eq!(s.card(tokens[0]).owner,seat);
+        }}
+    }
+}
