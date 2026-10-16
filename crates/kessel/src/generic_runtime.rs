@@ -2,6 +2,8 @@
 use super::*;
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, Target, TargetResolver};
 
+enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
+
 #[derive(Clone, Copy)]
 enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), #[cfg(test)] All }
 impl ConstantScope<'_> {
@@ -282,47 +284,62 @@ impl Engine {
     fn controlled_in_play_card(&self,s:&State,player:Seat,id:CardId)->bool {
         let c=s.card(id);c.present&&c.owner==player&&(self.in_arena(s,id)||self.attached_in_play(s,id)||id==s.player(player).base||id==s.player(player).leader)
     }
-    fn printed_traits(&self,s:&State,id:CardId)->std::collections::BTreeSet<String> {
-        if self.def(s,id).info.is("leader") && s.card(id).deployed {
-            if let Some(back)=self.catalogue.as_ref().and_then(|c|c.metadata.get(&self.def(s,id).code)).and_then(|m|m["backSideTraits"].as_array()).filter(|a|!a.is_empty()) {
-                return back.iter().filter_map(Value::as_str).map(str::to_owned).collect();
-            }
-        }
-        self.def(s,id).traits.iter().cloned().collect()
+    fn printed_trait_names<'a>(&'a self,s:&State,id:CardId)->impl Iterator<Item=&'a str> {
+        let definition=self.def(s,id);
+        let back=if definition.info.is("leader") && s.card(id).deployed {
+            self.catalogue.as_ref().and_then(|c|c.metadata.get(&definition.code))
+                .and_then(|m|m["backSideTraits"].as_array()).filter(|a|!a.is_empty())
+        } else {None};
+        let front=if back.is_some() {&[][..]}else{definition.traits.as_slice()};
+        back.into_iter().flat_map(|a|a.iter().filter_map(Value::as_str))
+            .chain(front.iter().map(String::as_str))
     }
-    /// One effective inventory for trait queries, attachments and leader unions.
-    /// Restricting a recursive predicate to its requested trait avoids evaluating
-    /// unrelated producers. Admission disallows trait-dependent leaf predicates;
-    /// the native aura's required trait and gained trait must differ.
+    /// One modifier traversal serves full trait inventories and membership.
+    /// Losses apply after every gain, regardless of registration order.
     pub(super) fn card_traits(&self,s:&State,id:CardId)->std::collections::BTreeSet<String> {
-        self.resolve_card_traits(s,id,None)
-    }
-    fn card_has_trait(&self,s:&State,id:CardId,trait_name:&str)->bool {
-        self.resolve_card_traits(s,id,Some(trait_name)).contains(trait_name)
-    }
-    fn resolve_card_traits(&self,s:&State,id:CardId,requested:Option<&str>)->std::collections::BTreeSet<String> {
-        let mut traits=self.printed_traits(s,id);
-        if let Some(t)=requested {traits.retain(|x|x==t);}
+        let mut traits=self.printed_trait_names(s,id).map(str::to_owned).collect::<std::collections::BTreeSet<_>>();
         let mut lost=std::collections::BTreeSet::new();
+        self.visit_trait_changes(s,id,None,|change|match change {
+            TraitChange::Gain(name)=>{traits.insert(name.to_owned());},
+            TraitChange::Lose(name)=>{lost.insert(name.to_owned());},
+        });
+        for name in lost {traits.remove(&name);}
+        traits
+    }
+    pub(super) fn card_has_trait(&self,s:&State,id:CardId,trait_name:&str)->bool {
+        let mut gained=self.printed_trait_names(s,id).any(|name|name==trait_name);
+        let mut lost=false;
+        self.visit_trait_changes(s,id,Some(trait_name),|change|match change {
+            TraitChange::Gain(name) if name==trait_name=>gained=true,
+            TraitChange::Lose(name) if name==trait_name=>lost=true,
+            _=>{},
+        });
+        gained && !lost
+    }
+    fn visit_trait_changes(&self,s:&State,id:CardId,requested:Option<&str>,mut visit:impl FnMut(TraitChange<'_>)) {
         for (source,effect) in self.constant_effects_matching(s,id,ConstantScope::Traits(requested)) {
             match effect {
-                Effect::GainTrait{trait_name,..}=>{traits.insert(trait_name.clone());},
-                Effect::LoseTrait{trait_name,..}=>{lost.insert(trait_name.clone());},
+                Effect::GainTrait{trait_name,..}=>visit(TraitChange::Gain(trait_name)),
+                Effect::LoseTrait{trait_name,..}=>visit(TraitChange::Lose(trait_name)),
                 Effect::ConstantEffectRegistration(r)=>match r.native() {
-                    Ok(crate::static_ongoing::NativeModifier::Traits(crate::static_ongoing::TraitRule::UnitAura{gained,..}))=>{traits.insert(gained.clone());},
+                    Ok(crate::static_ongoing::NativeModifier::Traits(crate::static_ongoing::TraitRule::UnitAura{gained,..}))=>visit(TraitChange::Gain(gained)),
                     Ok(crate::static_ongoing::NativeModifier::Traits(crate::static_ongoing::TraitRule::LeaderUnion{excluded}))=>{
                         let owner=s.card(source).owner;
                         for leader in 1..s.next_id {
                             if self.def(s,leader).info.is("leader") && self.controlled_in_play_card(s,owner,leader) {
-                                traits.extend(self.resolve_card_traits(s,leader,requested).into_iter().filter(|t|t!=excluded));
+                                if let Some(name)=requested {
+                                    if name!=excluded && self.card_has_trait(s,leader,name) {visit(TraitChange::Gain(name));}
+                                } else {
+                                    for name in self.card_traits(s,leader) {
+                                        if &name!=excluded {visit(TraitChange::Gain(&name));}
+                                    }
+                                }
                             }
                         }
                     },_=>{},
                 },_=>{},
             }
         }
-        for t in lost {traits.remove(&t);}
-        traits
     }
     fn controlled_in_play_trait(&self,s:&State,player:Seat,trait_name:&str,excluded:CardId)->bool {
         (1..s.next_id).any(|id|id!=excluded&&self.controlled_in_play_card(s,player,id)&&self.card_has_trait(s,id,trait_name))

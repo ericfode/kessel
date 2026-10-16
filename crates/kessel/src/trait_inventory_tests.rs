@@ -58,6 +58,9 @@ fn trait_inventory_zam_actual_source_unions_friendly_leader_traits_in_all_zones_
                     for enemy in ["mandalorian","rebel","spectre"] {assert!(!traits.contains(enemy));}
                     assert_eq!(traits.len(),4);
                 }
+                for name in ["underworld","bounty hunter","force","mandalorian","rebel","spectre","imperial","sith"] {
+                    assert_eq!(e.card_has_trait(&s,source,name),traits.contains(name),"{seat:?}/{zone}/{name}");
+                }
                 let copy=s;assert_eq!(e.card_traits(&copy,source),traits);
                 let imported=e.load_state(&e.snapshot(&s)).unwrap();
                 assert_eq!(e.card_traits(&imported,source),traits);
