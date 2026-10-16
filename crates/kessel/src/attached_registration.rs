@@ -45,7 +45,7 @@ fn normalize_zone_names(v:&mut Value) {
     match v {Value::Object(o)=>for child in o.values_mut(){normalize_zone_names(child)},Value::Array(a)=>for child in a {normalize_zone_names(child)},_=>{}}
 }
 pub(crate) fn plain_upgrade(e:&Value)->bool {
-    if !crate::static_ongoing::closed_source_context(e) {return false;}
+    if !crate::admission::SourceContextPolicy::Closed.accepts(e) {return false;}
     e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
     && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
     && mention_keywords(e) && e["piloting"].is_null()

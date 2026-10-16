@@ -44,7 +44,7 @@ pub fn validate_amount(amount: &Expr) -> Result<(), String> {
 }
 pub fn source_entry(entry: &Value) -> bool {
     let class = entry["baseClass"].as_str();
-    crate::static_ongoing::closed_source_helpers(entry)
+    crate::admission::closed_source_helpers(entry)
         && crate::attack_history::declarations(entry)
         && matches!(class, Some("NonLeaderUnitCard" | "EventCard"))
         && entry["card"]["types"]

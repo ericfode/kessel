@@ -1,4 +1,5 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod admission;
 mod death_hooks;
 pub mod model;
 pub mod search;
@@ -35,3 +36,6 @@ mod advantage;
 mod attached_constants;
 
 mod deck_search;
+
+#[cfg(test)]
+mod admission_tests;

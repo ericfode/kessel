@@ -168,21 +168,15 @@ impl Predicate {
     }
 }
 pub(crate) fn registration(a: &Ability) -> bool {
+    let shape = crate::admission::RegistrationShape {
+        targeting: crate::admission::Targeting::OptionalSingle,
+        host_context: crate::admission::HostContext::None,
+    };
     if a.trigger != "eventHooks"
         || a.hooks.is_empty()
         || a.hooks.len() > 2
-        || a.optional
-        || a.requires_confirmation
-        || a.coordinate
-        || a.gained_host.is_some()
-        || a.attached_context.is_some()
+        || !shape.accepts(a)
         || a.attacker_must_survive
-        || !a.costs.is_empty()
-        || !a.context_title.is_empty()
-        || !a.target_resolvers.is_empty()
-        || a.condition.is_some()
-        || a.then.is_some()
-        || a.if_you_do.is_some()
     {
         return false;
     }
@@ -253,7 +247,7 @@ pub(crate) fn marker(v: &Value) -> bool {
         }
 }
 pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
-    crate::static_ongoing::closed_source_helpers(e)
+    crate::admission::SourceContextPolicy::LegacyEmptyWatchers.accepts(e)
         && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
         && e["card"]["unique"].is_boolean()
@@ -261,10 +255,6 @@ pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
         && sides.unit.is_empty()
         && !sides.card.is_empty()
         && sides.card.len() <= 8
-        // Preserve this hook contract's legacy empty-object watcher spelling.
-        && (e["stateWatchers"].is_null()
-            || e["stateWatchers"] == serde_json::json!([])
-            || e["stateWatchers"] == serde_json::json!({}))
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()
         && [

@@ -3,6 +3,7 @@
 //! Every supported source form lowers to a closed native leaf. Unknown wrapper
 //! fields, callbacks and dynamic values reject the complete definition.
 use crate::ability_ir::{Ability, Effect, Sides};
+use crate::admission::{HostContext, RegistrationShape, SourceContextPolicy, Targeting};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::OnceLock;
@@ -288,36 +289,19 @@ pub(crate) fn registration(a: &Ability) -> bool {
     let Effect::ConstantEffectRegistration(r) = &a.effect else {
         return false;
     };
+    let shape = RegistrationShape { targeting: Targeting::None, host_context: HostContext::None };
     a.trigger == "constant"
-        && !a.optional
-        && !a.requires_confirmation
-        && !a.coordinate
-        && a.gained_host.is_none()
-        && a.attached_context.is_none()
-        && a.costs.is_empty()
-        && a.context_title.is_empty()
-        && a.target_resolver.is_none()
-        && a.target_resolvers.is_empty()
-        && a.condition.is_none()
-        && a.then.is_none()
-        && a.if_you_do.is_none()
+        && shape.accepts(a)
         && r.validate().is_ok()
 }
 pub(crate) fn has_leader_trait_union(p:&crate::ability_ir::Program)->bool {
     p.instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(NativeModifier::Traits(TraitRule::LeaderUnion{..})))))
 }
-/// Watchers are checked separately by callers with a supported watcher contract.
-pub(crate) fn closed_source_helpers(e:&Value)->bool {
-    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|key|e[*key].is_null() || e[*key].as_array().is_some_and(Vec::is_empty))
-}
-pub(crate) fn closed_source_context(e:&Value)->bool {
-    closed_source_helpers(e) && (e["stateWatchers"].is_null() || e["stateWatchers"].as_array().is_some_and(Vec::is_empty))
-}
 pub(crate) fn entry(e: &Value) -> bool {
     let Ok(sides) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };
-    closed_source_context(e)
+    SourceContextPolicy::Closed.accepts(e)
         && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
         && e["card"]["unique"].is_boolean()

@@ -1,4 +1,6 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
+#[path = "src/admission.rs"]
+mod admission;
 #[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
@@ -154,6 +156,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/admission.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");

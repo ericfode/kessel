@@ -1,5 +1,6 @@
 //! Closed attachment constants, reusing the shared effective-trait inventory.
 use crate::ability_ir::{Ability, Effect, Expr, Target};
+use crate::admission::{HostContext, RegistrationShape, Targeting};
 use serde::Deserialize;
 use serde_json::{json, Value};
 #[derive(Deserialize)]
@@ -68,15 +69,16 @@ pub(crate) fn companion(v:&Value)->Result<Ability,String> {
     }
     serde_json::from_value(v).map_err(|e|format!("companion registration: {e}"))
 }
-fn plain(a:&Ability)->bool {a.trigger=="constant"&&!a.optional&&!a.requires_confirmation&&!a.coordinate&&!a.attached_host&&a.gained_host.is_none()&&a.costs.is_empty()&&a.context_title.is_empty()&&a.condition.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()}
 pub(crate) fn host_trait_aura(a:&Ability)->bool {
-    if !plain(a)||a.attached_context.as_deref()!=Some("host") {return false;}
+    let shape = RegistrationShape { targeting: Targeting::OptionalSingle, host_context: HostContext::AttachedHost };
+    if a.trigger!="constant" || a.attached_host || !shape.accepts(a) {return false;}
     let Some(r)=&a.target_resolver else{return false;};let Some(predicate)=&r.predicate else{return false;};let Ok(p)=serde_json::to_value(predicate) else{return false;};let Some(name)=trait_name(&p["right"]["args"][0]) else{return false;};
     r.owner=="self"&&r.card_type=="unit"&&r.zone.as_deref()==Some("arena")&&r.arena.is_none()&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.native.is_none()&&r.prompt_title.is_none()&&r.prompt_title_parts.is_empty()&&p==portable_predicate(name)
         &&matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),duration,power:Expr::Const{value:p},hp:Expr::Const{value:h}} if n=="chosen"&&duration=="persistent"&&p.as_i64().is_some_and(|n|(-1000..=1000).contains(&n))&&h.as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
 }
 pub(crate) fn parent_title_play(a:&Ability)->bool {
-    if a.trigger!="whenPlayed"||a.optional||a.requires_confirmation||a.coordinate||a.attached_host||a.gained_host.is_some()||a.attached_context.is_some()||!a.costs.is_empty()||!a.context_title.is_empty()||a.condition.is_some()||a.target_resolver.is_some()||!a.target_resolvers.is_empty()||a.then.is_some()||a.if_you_do.is_some() {return false;}
+    let shape = RegistrationShape { targeting: Targeting::None, host_context: HostContext::None };
+    if a.trigger!="whenPlayed" || a.attached_host || !shape.accepts(a) {return false;}
     let Ok(v)=serde_json::to_value(&a.effect) else{return false;};let Some(title)=v["condition"]["right"]["value"].as_str().filter(|s|!s.is_empty()&&s.len()<=128) else{return false;};
     let expected:Effect=serde_json::from_value(json!({"kind":"conditional","condition":{"kind":"binary","op":"===","left":optional_parent_title(),"right":{"kind":"const","value":title}},"onTrue":{"kind":"select","targetResolver":{"owner":"self","type":"any","zone":"anyAttackable"},"effect":{"kind":"giveShield","target":"chosen","amount":{"kind":"const","value":1}}},"onFalse":{"kind":"noAction"}})).expect("portable parent-title template");
     serde_json::to_value(expected).ok()==Some(v)
