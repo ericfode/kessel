@@ -564,10 +564,42 @@ pub enum ControllerOrder { PlayerFirst, OpponentFirst, SeatOrder }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ArenaListKind { #[serde(rename = "arenaList")] ArenaList }
+// Exact emitted ground scope shared by controller-ordered, conditional damage
+// and native-token snapshots. Do not normalize equivalent predicates: the family
+// fence also fixes the source/candidate binding and emitted traversal contract.
+fn emitted_ground_scope(expr: &Expr) -> bool {
+    fn binary<'a>(expr: &'a Expr, operator: &str) -> Option<(&'a Expr, &'a Expr)> {
+        match expr.original() {
+            Expr::Binary { op, left, right } if op == operator => Some((left, right)),
+            _ => None,
+        }
+    }
+    fn text(expr: &Expr, expected: &str) -> bool {
+        matches!(expr.original(), Expr::Const { value } if value.as_str() == Some(expected))
+    }
+    let Some((all, scope)) = binary(expr, "&&") else { return false; };
+    if !matches!(all.original(), Expr::Const { value } if value.as_bool() == Some(true)) { return false; }
+    let Some((absent, alternatives)) = binary(scope, "||") else { return false; };
+    if !matches!(absent.original(), Expr::Unary { op, value } if op == "!" && text(value, "groundArena")) { return false; }
+    let Some((any, candidate)) = binary(alternatives, "||") else { return false; };
+    let Some((arena, any_arena)) = binary(any, "===") else { return false; };
+    let Some((zone, ground)) = binary(candidate, "===") else { return false; };
+    text(arena, "groundArena") && text(any_arena, "anyArena") && text(ground, "groundArena")
+        && matches!(zone.original(), Expr::Ref { path } if path == &["card", "zoneName"])
+}
+fn emitted_unshielded_unit(expr: &Expr) -> bool {
+    let Expr::Binary { op, left, right } = expr.original() else { return false; };
+    op == "&&"
+        && matches!(left.original(), Expr::Query { name, receiver, args } if name == "isUnit" && args.is_empty()
+            && matches!(receiver.original(), Expr::Ref { path } if path == &["card"]))
+        && matches!(right.original(), Expr::Unary { op, value } if op == "!"
+            && matches!(value.original(), Expr::Query { name, receiver, args } if name == "hasAttachedNativeToken"
+                && matches!(receiver.original(), Expr::Ref { path } if path == &["card"])
+                && matches!(args.as_slice(), [token] if matches!(token.original(), Expr::Const { value } if value.as_str() == Some("shield")))))
+}
 impl ArenaListTarget {
     fn validate_ordered_ground(&self)->Result<(),String> {
-        let ground:Value=serde_json::from_str(r##"{"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":"groundArena"}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":"groundArena"},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":"groundArena"}}}}}"##).unwrap();
-        if self.controller_order.is_none() || !matches!(&self.receiver,Expr::Ref{path} if path==&["game"]) || serde_json::to_value(&self.predicate).ok()!=Some(ground) {return Err("ordered lists require global controller partitions and exact ground scope".into());}
+        if self.controller_order.is_none() || !matches!(&self.receiver,Expr::Ref{path} if path==&["game"]) || !emitted_ground_scope(&self.predicate) {return Err("ordered lists require global controller partitions and exact ground scope".into());}
         Ok(())
     }
 
@@ -1080,7 +1112,7 @@ fn parent_defense_registration(a:&Ability)->bool {
     if a.trigger!="constant"||a.optional||a.requires_confirmation||a.coordinate||a.attached_context.is_some()||!a.target_resolvers.is_empty()||!a.context_title.is_empty()||!a.costs.is_empty()||a.then.is_some()||a.if_you_do.is_some()||!a.condition.as_ref().is_some_and(|e|query(e,"isDefending",&["source","parentUnit"])) {return false;}
     if !matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),power:Expr::Const{value:p},hp:Expr::Const{value:h},duration} if n=="chosen"&&duration=="persistent"&&p.as_i64()==Some(-1)&&h.as_i64()==Some(0)) {return false;}
     let Some(r)=&a.target_resolver else{return false;};
-    if r.owner!="opponent"||r.card_type!="unit"||r.zone.as_deref()!=Some("arena")||r.arena.is_some()||r.optional||r.mode.is_some()||r.count.is_some()||r.prompt_title.is_some(){return false;}
+    if !RecipeSelector::one("opponent", "unit", "arena").matches(r){return false;}
     matches!(r.predicate.as_ref().map(Expr::original),Some(Expr::Binary{op,left,right}) if op=="&&"&&query(right,"isAttacking",&["card"])&&matches!(left.original(),Expr::Binary{op,left,right} if op=="&&"&&query(left,"isUnit",&["card"])&&query(right,"isInPlay",&["card"])))
 }
 pub(crate) fn parent_defense_upgrade_entry(entry:&Value)->bool {
@@ -1096,19 +1128,131 @@ fn maximum_registration(a:&Ability)->bool {
     effect&&costs&&!a.optional&&!a.coordinate&&!a.requires_confirmation&&a.context_title.is_empty()&&a.attached_context.is_none()&&a.condition.is_none()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()
 }
 fn resource_self(e:&Effect)->bool {matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="self")}
-#[derive(Clone,Copy,PartialEq,Eq)]
-enum ForceContinuation { Drain, Wave, Shields }
+// These are recipe shapes, not the selector's runtime legality check. Native
+// provenance, predicate scope and prompt fragments remain checked by the caller
+// and TargetResolver::validate at their original capture/commit boundary.
+#[derive(Clone, Copy)]
+struct RecipeSelector<'a> {
+    owner: &'a str,
+    card_type: &'a str,
+    zone: &'a str,
+    cardinality: RecipeCardinality,
+    prompt: RecipePrompt,
+}
+#[derive(Clone, Copy)]
+enum RecipeCardinality { One, OptionalUpTo(u64) }
+#[derive(Clone, Copy)]
+enum RecipePrompt { Absent, Required }
+impl<'a> RecipeSelector<'a> {
+    fn one(owner: &'a str, card_type: &'a str, zone: &'a str) -> Self {
+        Self { owner, card_type, zone, cardinality: RecipeCardinality::One, prompt: RecipePrompt::Absent }
+    }
+    fn matches(self, r: &TargetResolver) -> bool {
+        r.owner == self.owner && r.card_type == self.card_type && r.zone.as_deref() == Some(self.zone)
+            && r.arena.is_none() && self.cardinality.accepts(r) && self.prompt.accepts(r)
+    }
+}
+impl RecipeCardinality {
+    fn accepts(self, r: &TargetResolver) -> bool {
+        match self {
+            Self::One => !r.optional && r.mode.is_none() && r.count.is_none(),
+            Self::OptionalUpTo(count) => r.optional && r.mode.as_deref() == Some("upTo")
+                && matches!(&r.count, Some(Expr::Const { value }) if value.as_u64() == Some(count)),
+        }
+    }
+}
+impl RecipePrompt {
+    fn accepts(self, r: &TargetResolver) -> bool {
+        match self {
+            Self::Absent => r.prompt_title.is_none(),
+            Self::Required => r.prompt_title.as_ref().is_some_and(|title| !title.is_empty()),
+        }
+    }
+}
+
+// Admission follows the same distinction as prepared runtime records: storage
+// capacity is independent from the combinations whose event timing is witnessed.
+#[derive(Clone, Copy, Default)]
+struct GroupRequirements {
+    records: usize,
+    damage: bool,
+    newly_attached: bool,
+    hand_events: bool,
+}
+impl GroupRequirements {
+    fn ordinary(records: usize) -> Self { Self { records, ..Self::default() } }
+    fn damage(records: usize) -> Self { Self { damage: true, ..Self::ordinary(records) } }
+    fn attachments(records: usize) -> Self { Self { newly_attached: true, ..Self::ordinary(records) } }
+    fn hand(records: usize) -> Self { Self { hand_events: true, ..Self::ordinary(records) } }
+    fn combine(self, other: Self, records: usize) -> Self {
+        Self { records, damage: self.damage || other.damage,
+            newly_attached: self.newly_attached || other.newly_attached,
+            hand_events: self.hand_events || other.hand_events }
+    }
+    fn simultaneous(self, other: Self) -> Result<Self, String> {
+        let records = self.records.checked_add(other.records).ok_or("event group capacity overflow")?;
+        Ok(self.combine(other, records))
+    }
+    fn alternatives(self, other: Self) -> Self { self.combine(other, self.records.max(other.records)) }
+    fn validate(self) -> Result<Self, String> {
+        if self.records > MAX_GROUP_RECORDS { return Err("event group record budget exceeds capacity".into()); }
+        if self.damage && self.newly_attached { return Err("mixed damage and newly attached tokens/lasting modifiers require dedicated engine witnesses".into()); }
+        if self.damage && self.hand_events { return Err("mixed damage and hand effects require dedicated engine witnesses".into()); }
+        Ok(self)
+    }
+}
+
+enum ForceRecipe<'a> {
+    Drain { selector: &'a TargetResolver, group: &'a Effect },
+    Spend { payment: &'a Effect, resolution: ForceResolution<'a> },
+}
+enum ForceResolution<'a> {
+    Wave { effect: &'a Effect, predicate: &'a Expr },
+    Shields { effect: &'a Effect, selector: &'a TargetResolver },
+}
 fn plain_success(a:&Ability)->bool {a.trigger.is_empty()&&!a.optional&&!a.requires_confirmation&&!a.coordinate&&a.context_title.is_empty()&&a.costs.is_empty()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()}
-fn force_continuation(a:&Ability)->Option<ForceContinuation> {
-    if a.coordinate||a.requires_confirmation||!a.context_title.is_empty()||!a.costs.is_empty()||a.condition.is_some()||a.target_resolver.is_some()||!a.target_resolvers.is_empty()||a.then.is_some(){return None;}
-    fn own(e:&Effect,gain:bool)->bool {match e {Effect::GainForce{target:Target::Name(n)} if gain=>n=="ownPlayer",Effect::UseForce{target:Target::Name(n)} if !gain=>n=="ownPlayer",_=>false}}
-    fn unit(r:&TargetResolver)->bool {r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&r.arena.is_none()&&r.predicate.is_none()}
-    if a.trigger=="event"&&!a.optional&&a.if_you_do.is_none() {if let Effect::Simultaneous{effects}=&a.effect {if effects.len()==2&&own(&effects[1],true) {if let Effect::Select{target_resolver:r,effect}=&effects[0] {if unit(r)&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.prompt_title.as_ref().is_some_and(|t|!t.is_empty())&&matches!(effect.as_ref(),Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(2)){return Some(ForceContinuation::Drain);}}}}}
-    if a.trigger!="whenPlayed"||!a.optional||!own(&a.effect,false){return None;}
-    let next=a.if_you_do.as_ref()?;if !plain_success(next){return None;}
-    if let Some(r)=&next.target_resolver {if unit(r)&&r.optional&&r.mode.as_deref()==Some("upTo")&&matches!(&r.count,Some(Expr::Const{value}) if value.as_u64()==Some(5))&&r.prompt_title.is_none()&&matches!(&next.effect,Effect::GiveShield{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1)){return Some(ForceContinuation::Shields);}}
-    else if let Effect::Defeat{target:Target::ArenaList(list)}=&next.effect {if matches!(&list.receiver,Expr::Ref{path} if path==&["game".to_string()])&&force_wave_predicate(&list.predicate){return Some(ForceContinuation::Wave);}}
-    None
+fn force_recipe(a: &Ability) -> Option<ForceRecipe<'_>> {
+    if a.coordinate || a.requires_confirmation || !a.context_title.is_empty() || !a.costs.is_empty()
+        || a.condition.is_some() || a.target_resolver.is_some() || !a.target_resolvers.is_empty() || a.then.is_some() {
+        return None;
+    }
+    fn own(effect: &Effect, gain: bool) -> bool {
+        match effect {
+            Effect::GainForce { target: Target::Name(name) } if gain => name == "ownPlayer",
+            Effect::UseForce { target: Target::Name(name) } if !gain => name == "ownPlayer",
+            _ => false,
+        }
+    }
+    if a.trigger == "event" && !a.optional && a.if_you_do.is_none() {
+        if let Effect::Simultaneous { effects } = &a.effect {
+            if let [Effect::Select { target_resolver, effect }, gain] = effects.as_slice() {
+                let selector = RecipeSelector { prompt: RecipePrompt::Required,
+                    ..RecipeSelector::one("any", "unit", "anyAttackable") };
+                if own(gain, true) && selector.matches(target_resolver) && target_resolver.predicate.is_none()
+                    && matches!(effect.as_ref(), Effect::Damage { target: Target::Name(name), amount: Expr::Const { value } }
+                        if name == "chosen" && value.as_u64() == Some(2)) {
+                    return Some(ForceRecipe::Drain { selector: target_resolver, group: &a.effect });
+                }
+            }
+        }
+    }
+    if a.trigger != "whenPlayed" || !a.optional || !own(&a.effect, false) { return None; }
+    let next = a.if_you_do.as_ref()?;
+    if !plain_success(next) { return None; }
+    let resolution = if let Some(target_resolver) = &next.target_resolver {
+        let selector = RecipeSelector { cardinality: RecipeCardinality::OptionalUpTo(5),
+            ..RecipeSelector::one("any", "unit", "anyAttackable") };
+        if !selector.matches(target_resolver) || target_resolver.predicate.is_some()
+            || !matches!(&next.effect, Effect::GiveShield { target: Target::Name(name), amount: Expr::Const { value } }
+                if name == "chosen" && value.as_u64() == Some(1)) { return None; }
+        ForceResolution::Shields { effect: &next.effect, selector: target_resolver }
+    } else {
+        let Effect::Defeat { target: Target::ArenaList(list) } = &next.effect else { return None; };
+        if !matches!(&list.receiver, Expr::Ref { path } if path == &["game"])
+            || !force_wave_predicate(&list.predicate) { return None; }
+        ForceResolution::Wave { effect: &next.effect, predicate: &list.predicate }
+    };
+    Some(ForceRecipe::Spend { payment: &a.effect, resolution })
 }
 fn force_wave_predicate(e:&Expr)->bool {
     fn part(e:&Expr)->Option<u8>{match e {
@@ -1136,7 +1280,7 @@ fn attachment_defeat_marker(e:&Effect)->bool {
 fn attachment_defeat_registration(a:&Ability)->bool {
     if a.requires_confirmation||a.coordinate||a.attached_context.is_some()||!a.costs.is_empty()||!a.context_title.is_empty()||!a.target_resolvers.is_empty()||a.condition.is_some()||a.then.is_some()||a.if_you_do.is_some(){return false;}
     let Some(r)=&a.target_resolver else{return false;};
-    if r.owner!="any"||r.card_type!="unit"||r.zone.as_deref()!=Some("anyAttackable")||r.arena.is_some()||r.optional||r.mode.is_some()||r.count.is_some()||r.predicate.is_some()||r.prompt_title.is_some()||!r.prompt_title_parts.is_empty(){return false;}
+    if !RecipeSelector::one("any", "unit", "anyAttackable").matches(r)||r.predicate.is_some()||!r.prompt_title_parts.is_empty(){return false;}
     let defeat=|e:&Effect,shield:bool|matches!(e,Effect::Defeat{target:Target::Expression(e)} if e.attachment_defeat_filter()==Some(shield));
     (a.trigger=="whenPlayed"&&a.optional&&defeat(&a.effect,false)) ||
     (a.trigger=="event"&&!a.optional&&matches!(&a.effect,Effect::Sequence{effects} if effects.len()==2&&defeat(&effects[0],true)&&matches!(&effects[1],Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(3))))
@@ -1219,7 +1363,7 @@ pub(crate) fn basezone_source_kind(entry:&Value)->Option<bool> {
  let sides: Sides=serde_json::from_value(entry["abilities"].clone()).ok()?;
  if !entry["card"]["unique"].is_boolean()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()){return None;}
  fn header(a:&Ability)->bool {a.trigger=="constant"&&!a.optional&&a.costs.is_empty()&&a.condition.is_none()&&!a.coordinate&&a.then.is_none()&&a.if_you_do.is_none()&&a.context_title.is_empty()&&a.target_resolvers.is_empty()}
- fn resolver(a:&Ability,kind:&str)->bool {a.target_resolver.as_ref().is_some_and(|r|r.owner=="self"&&r.card_type==kind&&r.zone.as_deref()==Some("arena")&&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()&&r.prompt_title.is_none())}
+ fn resolver(a:&Ability,kind:&str)->bool {a.target_resolver.as_ref().is_some_and(|r|RecipeSelector::one("self", kind, "arena").matches(r))}
  fn num(e:&Expr,n:u64)->bool {matches!(e,Expr::Const{value} if value.as_u64()==Some(n))}
  if entry["baseClass"]=="BaseCard"&&entry["card"]["types"]==serde_json::json!(["base"])&&entry["card"]["unique"]==false&&entry["card"]["hp"]==26&&entry["card"]["cost"].is_null()&&entry["card"]["power"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["card"]["keywords"]==serde_json::json!([])&&sides.card.len()==1&&sides.leader.is_empty()&&sides.unit.is_empty() {
   let a=&sides.card[0];let text=match &a.effect {Effect::ModifyStats{power,hp,..} if num(power,0)&&num(hp,1)=>"Each leader unit you control gets +0/+1.",_=>"Each leader unit you control gets +1/+0."};if entry["card"]["text"]!=text||!(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"].as_str()==Some(""))||!entry["card"]["rules"].is_null()||!entry["card"]["deployBox"].is_null()||!entry["card"]["upgradePower"].is_null()||!entry["card"]["upgradeHp"].is_null(){return None;}if header(a)&&resolver(a,"leaderUnit")&&a.target_resolver.as_ref().unwrap().predicate.is_none()&&matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),power,hp,duration} if n=="chosen"&&duration=="persistent"&&((num(power,0)&&num(hp,1))||(num(power,1)&&num(hp,0)))){return Some(false);}return None;
@@ -1232,7 +1376,7 @@ pub(crate) fn basezone_source_kind(entry:&Value)->Option<bool> {
 fn trait_constant_registration(a:&Ability)->bool {
     a.trigger=="constant"&&!a.optional&&!a.requires_confirmation&&!a.coordinate&&a.context_title.is_empty()&&a.attached_context.is_none()&&a.costs.is_empty()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()&&
     matches!(&a.condition,Some(Expr::Query{name,..}) if name=="hasControlledInPlayTrait")&&
-    a.target_resolver.as_ref().is_some_and(|r|r.owner=="self"&&r.card_type=="unit"&&r.zone.as_deref()==Some("arena")&&!r.optional&&r.arena.is_none()&&r.mode.is_none()&&r.count.is_none()&&r.prompt_title.is_none()&&r.prompt_title_parts.is_empty()&&r.predicate.as_ref().is_some_and(|p|serde_json::to_value(p).unwrap()==serde_json::json!({"kind":"binary","op":"===","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}})))&&
+    a.target_resolver.as_ref().is_some_and(|r|RecipeSelector::one("self", "unit", "arena").matches(r)&&r.prompt_title_parts.is_empty()&&r.predicate.as_ref().is_some_and(|p|serde_json::to_value(p).unwrap()==serde_json::json!({"kind":"binary","op":"===","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}})))&&
     matches!(&a.effect,Effect::GainKeyword{target:Target::Name(n),keyword,amount:Expr::Const{value},duration} if n=="chosen"&&keyword=="sentinel"&&value.as_u64()==Some(1)&&duration=="persistent")
 }
 // Reviewed conditional title consumers reuse existing scalar event primitives.
@@ -1256,7 +1400,7 @@ fn title_registration(a:&Ability)->bool {
     if a.condition.is_some() {return false;}
     let Effect::Conditional{condition,on_true,on_false}=&a.effect else{return false;};
     if !test(condition,0)||!on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)){return false;}
-    let unit=|r:&TargetResolver| r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&r.arena.is_none()&&!r.optional&&r.predicate.is_none()&&r.mode.is_none()&&r.count.is_none()&&r.prompt_title.is_none()&&r.prompt_title_parts.is_empty();
+    let unit=|r:&TargetResolver| RecipeSelector::one("any", "unit", "anyAttackable").matches(r)&&r.predicate.is_none()&&r.prompt_title_parts.is_empty();
     match (a.trigger.as_str(),on_true.as_ref()) {
         ("whenPlayed",Effect::Ready{target:Target::Name(n)})=>!a.optional&&a.target_resolver.is_none()&&n=="self",
         ("onAttack",Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}})=>a.optional&&a.target_resolver.as_ref().is_some_and(unit)&&n=="chosen"&&value.as_u64()==Some(1),
@@ -1270,9 +1414,7 @@ fn arena_token_kind(a:&Ability)->Option<u8> {
  let (list,shield)=match &a.effect {Effect::GiveShield{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,true),Effect::GiveExperience{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,false),_=>return None};
  if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["player"])||list.predicate.validate().is_err(){return None;}
  // Exact friendly ground unit snapshot excluding physical native Shields.
- let ground=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":"groundArena"}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":"groundArena"},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":"groundArena"}}}}});
- let unshielded=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"query","name":"isUnit","receiver":{"kind":"ref","path":["card"]},"args":[]},"right":{"kind":"unary","op":"!","value":{"kind":"query","name":"hasAttachedNativeToken","receiver":{"kind":"ref","path":["card"]},"args":[{"kind":"const","value":"shield"}]}}});
- if shield && a.trigger=="whenPlayed" && !a.requires_confirmation && a.attached_context.is_none() && serde_json::to_value(&list.predicate).ok()==Some(serde_json::json!({"kind":"binary","op":"&&","left":ground,"right":unshielded})) {return Some(4);}
+ if shield && a.trigger=="whenPlayed" && !a.requires_confirmation && a.attached_context.is_none() && matches!(list.predicate.original(), Expr::Binary { op, left, right } if op == "&&" && emitted_ground_scope(left) && emitted_unshielded_unit(right)) {return Some(4);}
  let Expr::Binary{op,left,right}=&list.predicate else{return None};if op!="&&"||!matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true)){return None;}
  let reference=|e:&Expr,name:&str|matches!(e,Expr::Ref{path} if path==&[name]);
  if shield {if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Query{name,receiver,args} if name=="hasSomeKeyword"&&reference(receiver,"card")&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("shielded"))){return Some(0);}return None;}
@@ -1302,8 +1444,7 @@ fn conditional_arena_damage_ability(a:&Ability)->bool {
     if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["opponent"]){return false;}
     let Expr::Binary{op,left,right}=condition else{return false;};if op!=">="{return false;}
     if a.trigger=="whenPlayed"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(4))&&value.as_u64()==Some(3)&&matches!(&list.predicate,Expr::Const{value} if value.as_bool()==Some(true))&&matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="arenaUnitCount"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_bool()==Some(true))) {return true;}
-    let ground=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":{"kind":"binary","op":"||","left":{"kind":"unary","op":"!","value":{"kind":"const","value":"groundArena"}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"===","left":{"kind":"const","value":"groundArena"},"right":{"kind":"const","value":"anyArena"}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","zoneName"]},"right":{"kind":"const","value":"groundArena"}}}}});
-    a.trigger=="onAttack"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(15))&&value.as_u64()==Some(1)&&matches!(left.as_ref(),Expr::Ref{path} if path==&["player","base","damage"])&&serde_json::to_value(&list.predicate).ok()==Some(ground)
+    a.trigger=="onAttack"&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(15))&&value.as_u64()==Some(1)&&matches!(left.as_ref(),Expr::Ref{path} if path==&["player","base","damage"])&&emitted_ground_scope(&list.predicate)
 }
 fn arena_damage_ability(a:&Ability)->bool {
     arena_damage_header(a)&&(matches!(&a.effect,Effect::Damage{target:Target::ArenaList(_),amount:Expr::Const{value}} if value.as_u64().is_some_and(|n|(1..=3).contains(&n)))||conditional_arena_damage_ability(a))
@@ -1360,7 +1501,7 @@ fn scalar_weakness_registration(a:&Ability)->bool {
     if a.requires_confirmation || a.coordinate || !a.context_title.is_empty() || a.attached_context.is_some() || a.gained_host.is_some()
         || a.condition.is_some() || a.then.is_some() || a.if_you_do.is_some() || !a.target_resolvers.is_empty() || !selected_weakness(&a.effect) {return false;}
     let Some(r)=&a.target_resolver else{return false;};
-    if r.owner!="any" || !matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) || r.arena.is_some() || r.optional || r.mode.is_some() || r.count.is_some() || r.prompt_title.is_some() {return false;}
+    if r.owner!="any" || !matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) || r.arena.is_some() || !RecipeCardinality::One.accepts(r) || !RecipePrompt::Absent.accepts(r) {return false;}
     match a.trigger.as_str() {
         "onAttack"=>a.optional && a.costs.is_empty() && r.card_type=="unit" && r.predicate.is_none(),
         "action"=>!a.optional && matches!(a.costs.as_slice(),[Cost::Resources{amount:Expr::Const{value}},Cost::ExhaustSelf] if value.as_u64()==Some(1)) && r.card_type=="any"
@@ -1371,7 +1512,7 @@ fn scalar_weakness_registration(a:&Ability)->bool {
     }
 }
 fn selected_weakness(e:&Effect)->bool {matches!(e,Effect::GiveWeakness{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1))}
-fn weakness_selector(r:&TargetResolver,owner:&str)->bool {r.owner==owner&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&r.arena.is_none()&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.predicate.is_none()&&r.prompt_title.is_none()}
+fn weakness_selector(r:&TargetResolver,owner:&str)->bool {RecipeSelector::one(owner, "unit", "anyAttackable").matches(r)&&r.predicate.is_none()}
 fn own_base_trait(e:&Expr)->bool {matches!(e,Expr::Query{name,receiver,args} if name=="hasSomeTrait"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player","base"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str().is_some_and(|n|!n.is_empty())))}
 fn torrent_amount(e:&Expr)->bool {matches!(e,Expr::Conditional{condition,then,r#else} if own_base_trait(condition)&&matches!(then.as_ref(),Expr::Const{value} if value.as_u64()==Some(2))&&matches!(r#else.as_ref(),Expr::Const{value} if value.as_u64()==Some(1)))}
 fn torrent_title(a:&Ability)->bool {
@@ -1382,7 +1523,7 @@ fn leader_heal_weakness_registration(a:&Ability)->bool {
     if a.trigger!="action" || a.optional || a.requires_confirmation || a.coordinate || !a.context_title.is_empty() || a.gained_host.is_some() || a.attached_context.is_some()
         || !matches!(a.costs.as_slice(),[Cost::ExhaustSelf]) || !a.target_resolvers.is_empty() || a.condition.is_some() || a.then.is_some() || a.if_you_do.is_some() {return false;}
     let Some(r)=&a.target_resolver else{return false;};
-    if r.owner!="opponent" || r.card_type!="any" || r.zone.as_deref()!=Some("anyAttackable") || r.arena.is_some() || r.optional || r.mode.is_some() || r.count.is_some() || r.prompt_title.is_some() {return false;}
+    if !RecipeSelector::one("opponent", "any", "anyAttackable").matches(r) {return false;}
     let damaged=r.predicate.as_ref().is_some_and(|p|matches!(p,Expr::Binary{op,left,right} if op=="&&"
         && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"]))
         && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&matches!(left.as_ref(),Expr::Ref{path} if path==&["card","damage"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0)))));
@@ -1394,7 +1535,7 @@ fn token_upgrade_attack_registration(a:&Ability)->bool {
     a.trigger=="onAttack" && a.optional && !a.requires_confirmation && !a.coordinate && a.costs.is_empty() && a.context_title.is_empty() && a.gained_host.is_none() && a.attached_context.is_none()
         && a.target_resolvers.is_empty() && a.condition.is_none() && a.then.is_none() && a.if_you_do.is_none()
         && matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(2))
-        && a.target_resolver.as_ref().is_some_and(|r|r.owner=="any" && r.card_type=="unit" && r.zone.as_deref()==Some("anyAttackable") && r.arena.is_none() && !r.optional && r.mode.is_none() && r.count.is_none() && r.prompt_title.is_none() && r.predicate.as_ref().is_some_and(|p|serde_json::to_value(p).ok().as_ref()==Some(&predicate)))
+        && a.target_resolver.as_ref().is_some_and(|r|RecipeSelector::one("any", "unit", "anyAttackable").matches(r) && r.predicate.as_ref().is_some_and(|p|serde_json::to_value(p).ok().as_ref()==Some(&predicate)))
 }
 fn weakness_extension(a:&Ability)->Option<WeaknessExtension> {
     if leader_heal_weakness_registration(a) {return Some(WeaknessExtension::LeaderHeal);}
@@ -1402,7 +1543,7 @@ fn weakness_extension(a:&Ability)->Option<WeaknessExtension> {
     if !header{return None;}
     if a.trigger=="event"&&!a.optional&&a.then.is_none()&&a.target_resolver.as_ref().is_some_and(|r|weakness_selector(r,"any"))&&matches!(&a.effect,Effect::GiveWeakness{target:Target::Name(n),amount} if n=="chosen"&&torrent_amount(amount))&&torrent_title(a){return Some(WeaknessExtension::Torrent);}
     if !a.context_title.is_empty(){return None;}
-    if a.trigger=="whenPlayed"&&!a.optional&&a.target_resolver.is_none()&&matches!(&a.effect,Effect::CreateTokenUnit{token_type,target:Target::Name(n),amount:Expr::Const{value},enters_ready} if token_type=="beast"&&n=="ownPlayer"&&value.as_u64()==Some(1)&&!*enters_ready)&&a.then.as_ref().is_some_and(|next|next.trigger.is_empty()&&!next.optional&&!next.requires_confirmation&&!next.coordinate&&next.costs.is_empty()&&next.context_title.is_empty()&&next.target_resolvers.is_empty()&&next.condition.is_none()&&next.then.is_none()&&next.if_you_do.is_none()&&next.target_resolver.as_ref().is_some_and(|r|weakness_selector(r,"self"))&&selected_weakness(&next.effect)){return Some(WeaknessExtension::Picador);}
+    if a.trigger=="whenPlayed"&&!a.optional&&a.target_resolver.is_none()&&matches!(&a.effect,Effect::CreateTokenUnit{token_type,target:Target::Name(n),amount:Expr::Const{value},enters_ready} if token_type=="beast"&&n=="ownPlayer"&&value.as_u64()==Some(1)&&!*enters_ready)&&a.then.as_ref().is_some_and(|next|plain_success(next)&&next.target_resolver.as_ref().is_some_and(|r|weakness_selector(r,"self"))&&selected_weakness(&next.effect)){return Some(WeaknessExtension::Picador);}
     if !a.optional||a.then.is_some()||!a.target_resolver.as_ref().is_some_and(|r|weakness_selector(r,"any")){return None;}
     if ["whenPlayed","whenDefeated"].contains(&a.trigger.as_str())&&matches!(&a.effect,Effect::Simultaneous{effects} if effects.len()==2&&matches!(&effects[0],Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1))&&selected_weakness(&effects[1])){return Some(WeaknessExtension::Mixed);}
     if a.trigger=="whenPlayed"&&matches!(&a.effect,Effect::Sequence{effects} if effects.len()==2&&selected_weakness(&effects[0])&&matches!(&effects[1],Effect::Conditional{condition:Expr::Ref{path},on_true,on_false} if path==&["target","unique"]&&matches!(on_true.as_ref(),Effect::Exhaust{target:Target::Name(n)} if n=="chosen")&&on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)))){return Some(WeaknessExtension::Sequence);}
@@ -1458,7 +1599,7 @@ fn parent_upgrade_registration(a:&Ability)->Option<bool> {
 }
 
 fn contains_event_ref(v:&Value)->bool {(v["kind"]=="ref"&&v["path"][0]=="event")||match v {Value::Array(a)=>a.iter().any(contains_event_ref),Value::Object(o)=>o.values().any(contains_event_ref),_=>false}}
-fn plain_result_child(a:&Ability)->bool {a.trigger.is_empty()&&!a.optional&&!a.coordinate&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.condition.is_none()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()}
+fn plain_result_child(a:&Ability)->bool {plain_success(a)&&a.target_resolver.is_none()}
 fn resolved_defeat_continuation(a:&Ability)->bool {
     let Some(next)=a.then.as_deref() else{return false;};
     a.trigger=="event"&&!a.optional&&!a.coordinate&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.condition.is_none()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.if_you_do.is_none()&&plain_result_child(next)&&
@@ -1813,21 +1954,36 @@ impl Program {
         if gained_host_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && (depth!=0||gained_host_kind(ability).is_none()) {return Err("gained host marker cannot appear in nested or other registrations".into());}
         if parent_defense_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&(depth!=0||!parent_defense_registration(ability)){return Err("parent defense requires a sole bounded upgrade constant registration".into());}
         fn oversized(v:&Value)->bool {v["mode"]=="upTo"&&v["count"]["value"].as_u64().is_some_and(|n|n>3) || match v {Value::Object(o)=>o.values().any(oversized),Value::Array(a)=>a.iter().any(oversized),_=>false}}
-        if depth==0&&oversized(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&force_continuation(ability)!=Some(ForceContinuation::Shields){return Err("selectors above three require exact Force Shield continuation".into());}
+        let force = if depth==0 { force_recipe(ability) } else { None };
+        if depth==0&&oversized(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!matches!(force.as_ref(),Some(ForceRecipe::Spend { resolution: ForceResolution::Shields { .. }, .. })){return Err("selectors above three require exact Force Shield continuation".into());}
 
-        if depth==0 {if let Some(form)=force_continuation(ability) {
-            match form {
-              ForceContinuation::Drain=>{if let Effect::Simultaneous{effects}=&ability.effect {if let Effect::Select{target_resolver,..}=&effects[0]{target_resolver.validate_inline()?;}}self.instructions.push(Instruction::Group(ability.effect.clone()));},
-              ForceContinuation::Wave|ForceContinuation::Shields=>{
-                self.instructions.push(Instruction::Apply(ability.effect.clone()));
-                let skip=self.instructions.len();self.instructions.push(Instruction::IfResult{skip:0});self.instructions.push(Instruction::EndStep);
-                let next=ability.if_you_do.as_ref().unwrap();
-                if let Some(r)=&next.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));self.instructions.push(Instruction::Group(next.effect.clone()));}
-                else {if let Effect::Defeat{target:Target::ArenaList(list)}=&next.effect {list.predicate.validate()?;}self.instructions.push(Instruction::Apply(next.effect.clone()));}
-                self.instructions[skip]=Instruction::IfResult{skip:self.instructions.len()};
-              }
-            }return Ok(());
-        }}
+        if let Some(recipe)=force {
+            match recipe {
+                ForceRecipe::Drain { selector, group } => {
+                    selector.validate_inline()?;
+                    self.instructions.push(Instruction::Group(group.clone()));
+                }
+                ForceRecipe::Spend { payment, resolution } => {
+                    self.instructions.push(Instruction::Apply(payment.clone()));
+                    let skip=self.instructions.len();
+                    self.instructions.push(Instruction::IfResult { skip: 0 });
+                    self.instructions.push(Instruction::EndStep);
+                    match resolution {
+                        ForceResolution::Shields { effect, selector } => {
+                            selector.validate()?;
+                            self.instructions.push(Instruction::Select(selector.clone()));
+                            self.instructions.push(Instruction::Group(effect.clone()));
+                        }
+                        ForceResolution::Wave { effect, predicate } => {
+                            predicate.validate()?;
+                            self.instructions.push(Instruction::Apply(effect.clone()));
+                        }
+                    }
+                    self.instructions[skip]=Instruction::IfResult { skip: self.instructions.len() };
+                }
+            }
+            return Ok(());
+        }
         if depth==0 {if let Some(form)=weakness_extension(ability) {
             if let Some(r)=&ability.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));}
             match form {
@@ -1872,7 +2028,7 @@ impl Program {
             let root=depth==0 && ["whenPlayed","whenDefeated","onAttack","event"].contains(&ability.trigger.as_str()) && !ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolver.is_none() && ability.target_resolvers.is_empty() && ability.condition.is_none() && ability.then.is_none();
             let gain=["whenPlayed","onAttack","whenDefeated"].contains(&ability.trigger.as_str()) && matches!(&ability.effect,Effect::GainForce{target:Target::Name(n)} if n=="ownPlayer") && !ability.optional && ability.if_you_do.is_none();
             let use_force=["whenPlayed","whenDefeated","event"].contains(&ability.trigger.as_str()) && matches!(&ability.effect,Effect::UseForce{target:Target::Name(n)} if n=="ownPlayer") && ability.optional==(ability.trigger!="event") && ability.if_you_do.as_ref().is_some_and(|next| {
-                if !next.trigger.is_empty() || next.coordinate || !next.context_title.is_empty() || !next.costs.is_empty() || next.optional || next.requires_confirmation || !next.target_resolvers.is_empty() || next.condition.is_some() || next.then.is_some() || next.if_you_do.is_some() {return false;}
+                if !plain_success(next) {return false;}
                 fn bounded(e:&Expr)->bool {matches!(e,Expr::Const{value} if value.as_i64().is_some_and(|n|(-65535..=65535).contains(&n))) || matches!(e,Expr::Unary{op,value} if op=="-" && matches!(value.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=65535)))}
                 match (&next.target_resolver,&next.effect) {
                     (None,Effect::ResourceCard{target:Target::Name(n)})=>ability.trigger=="whenDefeated" && n=="self",
@@ -1896,10 +2052,9 @@ impl Program {
         }
 
         if contains_weakness(&ability.effect) && !(depth==0 && scalar_weakness_registration(ability)) {
-            fn primitive(e:&Effect)->bool {matches!(e,Effect::GiveWeakness{amount:Expr::Const{value},target:Target::Name(n)} if value.as_u64()==Some(1)&&n=="chosen")}
-            let shape=primitive(&ability.effect) || matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op==">=" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","resources","length"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=1000)) && primitive(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
+            let shape=selected_weakness(&ability.effect) || matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op==">=" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","resources","length"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=1000)) && selected_weakness(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
             fn damaged_predicate(e:&Expr)->bool {matches!(e,Expr::Binary{op,left,right} if op=="&&" && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path.len()==1&&path[0]=="card")) && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["card","damage"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0))))}
-            let selector=ability.target_resolver.as_ref().is_some_and(|r| r.owner=="any" && r.card_type=="unit" && matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) && r.arena.is_none() && !r.optional && r.mode.is_none() && r.count.is_none() && r.prompt_title.is_none() && r.predicate.as_ref().map_or(true,damaged_predicate));
+            let selector=ability.target_resolver.as_ref().is_some_and(|r| r.owner=="any" && r.card_type=="unit" && matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) && r.arena.is_none() && RecipeCardinality::One.accepts(r) && RecipePrompt::Absent.accepts(r) && r.predicate.as_ref().map_or(true,damaged_predicate));
             if depth!=0 || !["whenPlayed","whenDefeated"].contains(&ability.trigger.as_str()) || !ability.optional || ability.requires_confirmation || ability.coordinate || !ability.context_title.is_empty() || !ability.costs.is_empty() || ability.condition.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || !ability.target_resolvers.is_empty() || !shape || !selector {return Err("Weakness requires an optional standalone scalar unit play/death registration with amount one".into());}
         }
 
@@ -2112,21 +2267,21 @@ impl Program {
                 Target::ArenaList(_)=>Err("grouped arena lists require separate event-capacity witnesses".into()),
             }
         }
-        fn walk(p: &Program, effect: &Effect, targets: usize, array: bool, depth: usize) -> Result<(usize, bool, bool), String> {
+        fn walk(p: &Program, effect: &Effect, targets: usize, array: bool, depth: usize) -> Result<GroupRequirements, String> {
             if depth > MAX_ABILITY_NESTING { return Err("event group nesting exceeds capacity".into()); }
-            let (records, damage, newly_attached) = match effect {
+            let requirements = match effect {
                 Effect::Simultaneous {effects} => {
                     if effects.is_empty() || effects.len() > 8 { return Err("simultaneous group requires one to eight children".into()); }
-                    let mut records = 0usize; let mut damage = false; let mut new = false;
-                    for child in effects { let (n,d,a) = walk(p, child, targets, array, depth + 1)?; records = records.checked_add(n).ok_or("event group capacity overflow")?; damage |= d; new |= a; }
-                    (records, damage, new)
+                    let mut requirements = GroupRequirements::default();
+                    for child in effects { requirements = requirements.simultaneous(walk(p, child, targets, array, depth + 1)?)?; }
+                    requirements
                 },
                 Effect::Conditional {condition, on_true, on_false} => {
                     condition.validate()?;
                     if array && target_dependent(condition) { return Err("array-dependent group conditional is unsupported".into()); }
                     let a = walk(p,on_true,targets,array,depth+1)?;
-                    let b = if let Some(other)=on_false { walk(p,other,targets,array,depth+1)? } else { (0,false,false) };
-                    (a.0.max(b.0),a.1||b.1,a.2||b.2)
+                    let b = if let Some(other)=on_false { walk(p,other,targets,array,depth+1)? } else { GroupRequirements::default() };
+                    a.alternatives(b)
                 },
                 Effect::Select {target_resolver, effect} => {
                     if target_resolver.is_upgrade_domain() {return Err("grouped upgrade selection is not modeled".into());}
@@ -2140,14 +2295,14 @@ impl Program {
                     if array && effects.iter().any(|e| match e { Effect::ModifyStats {power,hp,..} => target_dependent(power)||target_dependent(hp), Effect::GainKeyword {amount,..} => target_dependent(amount), _ => false }) { return Err("array-dependent phase modifier values are unsupported".into()); }
                     let mut records=0usize;
                     for e in effects { let target=match e { Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..}=>target,_=>unreachable!() }; records+=multiplicity(target,targets,array)?; }
-                    (records,false,true)
+                    GroupRequirements::attachments(records)
                 },
-                Effect::DiscardOwnHand {amount,target} => (Program::scalar_hand_amount(amount,target)?+1,false,false),
-                Effect::DiscardDeck {amount,target} => (Program::scalar_deck_amount(amount,target)?+1,false,false),
-                Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;(2,false,false)},
-                Effect::CreateTokenUnit {token_type,amount,target,..} => (Program::token_unit_amount(token_type,amount,target)?+1,false,true),
+                Effect::DiscardOwnHand {amount,target} => GroupRequirements::hand(Program::scalar_hand_amount(amount,target)?+1),
+                Effect::DiscardDeck {amount,target} => GroupRequirements::hand(Program::scalar_deck_amount(amount,target)?+1),
+                Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;GroupRequirements::hand(2)},
+                Effect::CreateTokenUnit {token_type,amount,target,..} => GroupRequirements::attachments(Program::token_unit_amount(token_type,amount,target)?+1),
                 Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
-                Effect::NoAction => (0,false,false),
+                Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
                     let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
@@ -2159,19 +2314,15 @@ impl Program {
                         Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} => {
                             let Expr::Const {value} = amount else { return Err("group tokens require literal bounded amounts".into()); };
                             let n=value.as_u64().filter(|n| (1..=2).contains(n)).ok_or("group tokens require one or two per target")? as usize;
-                            (expanded * n * 2,false,true)
+                            GroupRequirements::attachments(expanded * n * 2)
                         },
-                        Effect::Damage { .. } => (expanded,true,false),
-                        Effect::ModifyStats { .. } | Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => (expanded,false,true),
-                        _ => (expanded,false,false),
+                        Effect::Damage { .. } => GroupRequirements::damage(expanded),
+                        Effect::ModifyStats { .. } | Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => GroupRequirements::attachments(expanded),
+                        _ => GroupRequirements::ordinary(expanded),
                     }
                 }
             };
-            if records > MAX_GROUP_RECORDS { return Err("event group record budget exceeds capacity".into()); }
-            if damage && newly_attached { return Err("mixed damage and newly attached tokens/lasting modifiers require dedicated engine witnesses".into()); }
-            fn has_hand_effect(e:&Effect)->bool {match e {Effect::Draw{..}|Effect::DiscardOwnHand{..}|Effect::DiscardDeck{..}=>true,Effect::Simultaneous{effects}|Effect::PhaseModifiers{effects}=>effects.iter().any(has_hand_effect),Effect::Conditional{on_true,on_false,..}=>has_hand_effect(on_true)||on_false.as_deref().is_some_and(has_hand_effect),Effect::Select{effect,..}=>has_hand_effect(effect),_=>false}}
-            if damage && has_hand_effect(effect) {return Err("mixed damage and hand effects require dedicated engine witnesses".into());}
-            Ok((records,damage,newly_attached))
+            requirements.validate()
         }
         fn operation_budget(e: &Effect, depth: usize) -> Result<usize,String> {
             if depth > MAX_ABILITY_NESTING { return Err("event group nesting exceeds capacity".into()); }
@@ -2328,7 +2479,7 @@ impl Program {
             }
             Effect::UseForce {target}|Effect::GainForce{target} => {if !matches!(target,Target::Name(n) if n=="ownPlayer") {return Err("Force requires default own player target".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::GiveAdvantage {amount,target,..} => {crate::advantage::validate_amount(amount)?;if !matches!(target,Target::Name(n) if n=="self"||n=="chosen") {return Err("Advantage supports self or selected unit targets".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
-            Effect::GiveWeakness {amount,target} => {if !matches!(amount,Expr::Const{value} if value.as_u64()==Some(1)) || !matches!(target,Target::Name(n) if n=="chosen") {return Err("Weakness supports one selected unit token".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::GiveWeakness {..} => {if !selected_weakness(effect) {return Err("Weakness supports one selected unit token".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::NoAction => self.instructions.push(Instruction::Apply(effect.clone())),
             Effect::Exhaust {target:Target::ArenaList(list)} => {
                 if depth!=0 || self.trigger!="whenPlayed" {return Err("ordered arena exhaust requires standalone unit entry".into());}
@@ -2717,7 +2868,7 @@ impl Catalogue {
                 let arena_stats=|a:&Ability|matches!(&a.effect,Effect::ModifyStats{target:Target::ArenaList(_),..});
                 if sides.leader.iter().chain(&sides.unit).any(arena_stats) || sides.card.iter().any(|a|arena_stats(a) && !((a.trigger=="event"&&entry["baseClass"]=="EventCard"&&exact_type("event")) || (["whenPlayed","onAttack"].contains(&a.trigger.as_str())&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")))) {return Err("arena phase stats require ordinary unit play/attack or event card-side metadata".into());}
                 if sides.card.iter().any(|a|arena_stats(a)&&a.trigger=="onAttack") && (!sides.leader.is_empty() || !sides.unit.is_empty() || !entry["piloting"].is_null() || !entry["attachCondition"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null())) {return Err("arena phase-stat attacks require only ordinary card-side abilities without piloting or attachment mechanics".into());}
-                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|force_continuation(a).is_some()) {
+                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|force_recipe(a).is_some()) {
                     let ordinary=sides.card.first().is_some_and(|a|if a.trigger=="event" {entry["baseClass"]=="EventCard"&&exact_type("event")}else{entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")});
                     if !ordinary||sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {return Err("Force continuation requires sole ordinary source registration without side mechanics".into());}
                 }
@@ -3283,3 +3434,7 @@ pub(crate) mod gained_host_tests {
  #[test]fn gained_host_exact_templates_and_metadata_reject_misplaced_or_changed_markers(){let c=catalogue();let compiled=Catalogue::load(&c).unwrap();for (i,code)in["LOF_051","LAW_186","LOF_139"].iter().enumerate(){let original=c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==*code).unwrap();assert_eq!(gained_host_upgrade_kind(original),Some(i));assert!(compiled.cards.contains_key(*code));for(path,value)in[("/baseClass",json!("EventCard")),("/card/unique",json!(i!=1)),("/card/types",json!(["unit"])),("/card/power",json!(99)),("/card/hp",Value::Null),("/card/gainedHost",json!(true)),("/piloting",json!({})),("/keywordValues",json!({"raid":1})),("/abilities/card/0/gainedHost",json!(false)),("/abilities/card/0/gainedHost",Value::Null),("/abilities/card/0/attachedContext",json!("host")),("/abilities/card/0/trigger",json!("whenPlayed")),("/abilities/card/0/condition",json!({"kind":"const","value":true}))]{let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut at=&mut bad;for k in &parts[..parts.len()-1]{at=if at.is_array(){&mut at[k.parse::<usize>().unwrap()]}else{&mut at[*k]};}at[parts[parts.len()-1]]=value;assert!(gained_host_upgrade_kind(&bad).is_none(),"{code}/{path}");let loaded=Catalogue::load(&json!({"schema":SCHEMA,"cards":[bad]})).unwrap();assert!(!loaded.cards.contains_key(*code),"admitted {code}/{path}");}}}
  #[test]fn gained_host_direct_program_rejects_nested_or_other_body_and_omits_absent_marker(){for template in gained_host_templates(){let p=Program::compile(&template).unwrap();assert_eq!(p.gained_host,Some(true));let mut invalid=template.clone();invalid.effect=Effect::NoAction;assert!(Program::compile(&invalid).is_err());let outer:Ability=serde_json::from_value(json!({"trigger":"event","title":"outer","effect":{"kind":"noAction"},"then":template})).unwrap();assert!(Program::compile(&outer).is_err());}let a:Ability=serde_json::from_value(json!({"trigger":"event","title":"old","effect":{"kind":"noAction"}})).unwrap();assert!(serde_json::to_value(&a).unwrap().get("gainedHost").is_none());assert!(serde_json::to_value(Program::compile(&a).unwrap()).unwrap().get("gainedHost").is_none());}
 }
+
+#[cfg(test)]
+#[path = "recipe_contract_tests.rs"]
+mod recipe_contract_tests;
