@@ -4006,3 +4006,6 @@ fn typed_continuation_keeps_unknown_persisted_program_fallback_and_death_error()
         assert_eq!(s.death_frames[0],DeathFrame::default());
     }
 }
+
+#[path = "activation_runtime_tests.rs"]
+mod activation_contract_tests;

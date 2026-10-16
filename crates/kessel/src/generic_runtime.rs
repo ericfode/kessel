@@ -1,6 +1,7 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
 use super::*;
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, Target, TargetResolver};
+use crate::ability_ir::activation_contract::{base_zone_contract, Topology};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
 
@@ -454,7 +455,7 @@ impl Engine {
                     }
                 } else if info.is("base") {
                     if !info.hp.is_some_and(|n| (1..=1000).contains(&n))
-                        || ((!info.text.as_deref().unwrap_or("").trim().is_empty()||!programs.card.is_empty())&&crate::ability_ir::basezone_source_kind(entry)!=Some(false))
+                        || ((!info.text.as_deref().unwrap_or("").trim().is_empty()||!programs.card.is_empty())&&!base_zone_contract(entry).is_some_and(|contract|contract.topology()==Topology::CardOnly))
                     {
                         return Err("only plain bases with bounded positive HP execute".into());
                     }
@@ -530,7 +531,7 @@ impl Engine {
                         return Err("card has more than 16 abilities on one side".into());
                     }
                 }
-                if info.is("leader") && programs.leader.iter().any(|p| catalogue.programs[*p as usize].trigger == "constant")&&crate::ability_ir::basezone_source_kind(entry)!=Some(true) {
+                if info.is("leader") && programs.leader.iter().any(|p| catalogue.programs[*p as usize].trigger == "constant")&&!base_zone_contract(entry).is_some_and(|contract|contract.topology()==Topology::LeaderSides) {
                     return Err("leader-front constants require verified base-zone ongoing sources".into());
                 }
                 // A leader's deployment trigger requires a separate registration; never silently drop it.
@@ -816,7 +817,8 @@ impl Engine {
             if programs.peek().is_none() { continue; }
             // Incoming unique copies have not activated their ongoing abilities:
             // the engine resolves uniqueness before resolveGameState.
-            let basezone=s.players.iter().any(|p|p.base==source||(p.leader==source&&!s.card(source).deployed));
+            let activation=Topology::for_source(self.def(s,source).info.is("leader")).activate(s.card(source).deployed);
+            let basezone=activation.in_base_zone(s.players.iter().any(|p|p.base==source),s.players.iter().any(|p|p.leader==source));
             let active_in_play=self.in_arena(s,source)||self.attached_in_play(s,source)||basezone;
             for program in programs {
                 let any_zone=matches!(scope,ConstantScope::Traits(_)) && s.card(source).present && program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::Traits(crate::static_ongoing::TraitRule::LeaderUnion{..})))));
@@ -957,15 +959,8 @@ impl Engine {
     }
     pub(super) fn card_programs<'a>(&'a self, s: &State, id: CardId) -> &'a [u16] {
         let d = self.def(s, id);
-        if d.info.is("leader") {
-            if s.card(id).deployed {
-                &d.programs.unit
-            } else {
-                &d.programs.leader
-            }
-        } else {
-            &d.programs.card
-        }
+        Topology::for_source(d.info.is("leader"))
+            .activate(s.card(id).deployed).programs(&d.programs)
     }
     fn can_pay_force_cost(&self, s: &State, source: CardId) -> bool {
         let player = s.player(s.card(source).owner);
