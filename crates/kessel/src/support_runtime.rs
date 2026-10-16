@@ -2,6 +2,7 @@
 // Optional attack cancellation intentionally retains early UntilEndOfAttack effects:
 // only an actual AttackFlow cleanup (or the target leaving play) removes them.
 use super::*;
+use crate::ability_ir::{Effect, Instruction, Program};
 
 impl Engine {
     pub(super) fn support_programs(&self, s: &State, target: CardId) -> Vec<u16> {
@@ -117,8 +118,48 @@ impl Engine {
         s.support.grants.fill(SupportGrant::default());
         s.support.len = 0;
     }
+    fn definition_needs_support_state(&self, definition: &Definition) -> bool {
+        fn effect_needs_support(effect: &Effect) -> bool {
+            match effect {
+                Effect::GainKeyword { keyword, .. } => keyword == "support",
+                Effect::CopyKeywords { domain, .. } => domain.iter().any(|k| k == "support"),
+                Effect::Sequence { effects } | Effect::Simultaneous { effects }
+                | Effect::PhaseModifiers { effects } => effects.iter().any(effect_needs_support),
+                Effect::Select { effect, .. } => effect_needs_support(effect),
+                Effect::Conditional { on_true, on_false, .. } => effect_needs_support(on_true)
+                    || on_false.as_deref().is_some_and(effect_needs_support),
+                _ => false,
+            }
+        }
+        fn program_needs_support(program: &Program) -> bool {
+            // Continuations and named selector effects have already been compiled
+            // into this same instruction stream. Conditions do not erase potential.
+            program.instructions.iter().any(|instruction| match instruction {
+                Instruction::Apply(effect) => effect_needs_support(effect),
+                other => other.group_effect().is_some_and(effect_needs_support),
+            })
+        }
+        definition.flags & SUPPORT != 0 || self.catalogue.as_ref().is_some_and(|catalogue| {
+            definition.programs.card.iter().chain(&definition.programs.unit)
+                .chain(&definition.programs.leader)
+                .any(|&p| program_needs_support(&catalogue.programs[p as usize]))
+        })
+    }
     pub(super) fn needs_support_state(&self) -> bool {
-        self.definitions.iter().any(|d| d.flags & SUPPORT != 0)
+        // A compiled pool retains all admitted definitions for code lookup, but
+        // catalogue metadata identifies the selected pool and its dependencies.
+        self.catalogue.as_ref().map_or_else(
+            || self.definitions.iter().any(|d| self.definition_needs_support_state(d)),
+            |catalogue| catalogue.metadata.keys().any(|code| self.by_code.get(code)
+                .is_some_and(|&i| self.definition_needs_support_state(&self.definitions[i as usize]))),
+        )
+    }
+    pub(super) fn state_needs_support_state(&self, state: &State) -> bool {
+        // Imported identities may resolve through the retained global by_code map.
+        // Protect those actual cards too, even if absent from selected metadata.
+        (1..state.next_id).any(|id| state.card(id).present && (
+            state.card(id).phase_keyword_mask() & SUPPORT != 0
+                || self.definition_needs_support_state(self.def(state, id))))
     }
     pub(super) fn support_snapshot(&self, s: &State) -> Value {
         let catalogue = self.catalogue.as_ref().expect("Support requires catalogue");
@@ -133,7 +174,8 @@ impl Engine {
             return Err("pending Support attacks cannot be imported as action windows".into());
         }
         let Some(version) = v.get("supportStateVersion") else {
-            if v.get("supportGrants").is_some() || self.needs_support_state() {
+            if v.get("supportGrants").is_some() || self.needs_support_state()
+                || self.state_needs_support_state(s) {
                 return Err(
                     "selected Support pool requires explicit Support lasting-effect state".into(),
                 );

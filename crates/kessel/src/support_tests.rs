@@ -630,3 +630,91 @@ fn support_saved_context_hash_includes_event_lki_and_maximum_payload() {
         assert_eq!(ResolutionContext::capture(&restored),changed.support.context);
     }
 }
+
+#[test]
+fn support_import_requirement_uses_selected_pool_and_actual_dependencies() {
+    let mut e = Engine::from_compiled_pool_bytes(
+        include_bytes!("../data/pool.json"),
+        include_bytes!("../../../compiler/generated/catalog.json"),
+    ).unwrap();
+    assert!(e.definitions.iter().any(|d| d.flags & SUPPORT != 0));
+    assert!(!e.needs_support_state(), "unselected definitions do not impose state");
+    let mut s = start(&e, Seat::P1);
+    let snap = e.snapshot(&s);
+    assert!(snap.get("supportStateVersion").is_none());
+    assert_eq!(e.snapshot(&e.load_state(&snap).unwrap()), snap);
+    let mut bad = snap.clone();
+    bad["supportGrants"] = json!([]);
+    assert!(e.load_state(&bad).unwrap_err().contains("explicit Support"));
+    let mut bad = snap.clone();
+    bad["supportStateVersion"] = json!(2);
+    bad["supportGrants"] = json!([]);
+    assert!(e.load_state(&bad).unwrap_err().contains("unsupported supportStateVersion"));
+
+    // An internally assembled out-of-pool donor must impose the same state
+    // boundary. Full import separately rejects its unselected identity first.
+    unit(&e, &mut s, Seat::P1, "ASH_130");
+    assert!(!e.needs_support_state());
+    assert!(e.state_needs_support_state(&s));
+    let snap = e.snapshot(&s);
+    assert_eq!(snap["supportStateVersion"], 1);
+    let mut missing = snap.clone();
+    missing.as_object_mut().unwrap().remove("supportStateVersion");
+    missing.as_object_mut().unwrap().remove("supportGrants");
+    assert!(e.load_state(&missing).is_err(), "unselected identity remains rejected");
+    let error = e.load_support_state(&mut s, &missing).unwrap_err();
+    assert!(error.contains("explicit Support"), "{error}");
+    e.load_support_state(&mut s, &snap).unwrap();
+
+    // Selecting a Support donor requires versioned state even before any donor
+    // is present. Metadata membership is what from_compiled_pool_bytes filters.
+    e.catalogue.as_mut().unwrap().metadata.insert("ASH_130".into(), json!({}));
+    assert!(e.needs_support_state());
+    assert!(e.load_state(&missing).is_err());
+    let mut empty = State::default();
+    assert!(e.load_support_state(&mut empty, &json!({})).is_err());
+    e.load_support_state(&mut empty, &json!({"supportStateVersion":1,"supportGrants":[]})).unwrap();
+}
+#[test]
+fn support_dependency_detection_includes_nested_grants_and_copy_domains() {
+    let mut e = Engine::from_compiled_pool_bytes(
+        include_bytes!("../data/pool.json"),
+        include_bytes!("../../../compiler/generated/catalog.json"),
+    ).unwrap();
+    // Dependency diagnostics only: admission still rejects these unreviewed
+    // mechanics. Install typed instructions after loading to test the guard
+    // independently of today's bounded source admissions.
+    let code = "SOR_014";
+    let index = e.catalogue.as_ref().unwrap().cards[code].leader[0] as usize;
+    let grant: crate::ability_ir::Effect = serde_json::from_value(json!({
+        "kind":"conditional","condition":{"kind":"const","value":false},
+        "onTrue":{"kind":"sequence","effects":[{"kind":"gainKeyword","target":"self", "keyword":"support", "duration":"phase"}]}
+    })).unwrap();
+    e.catalogue.as_mut().unwrap().programs[index].instructions.push(crate::ability_ir::Instruction::Apply(grant));
+    assert!(e.needs_support_state(), "a false branch still has a lifecycle dependency");
+    e.catalogue.as_mut().unwrap().metadata.remove(code);
+    assert!(!e.needs_support_state(), "unselected grant sources do not impose state");
+    let s = start(&e, Seat::P1);
+    assert!(e.state_needs_support_state(&s), "an actual grant source still imposes state");
+    let mut empty = State::default();
+    assert!(e.load_support_state(&mut empty, &json!({})).is_ok());
+    assert!(e.load_support_state(&mut { s }, &json!({})).is_err());
+    e.catalogue.as_mut().unwrap().programs[index].instructions.pop();
+    let copy: crate::ability_ir::Effect = serde_json::from_value(json!({
+        "kind":"copyKeywords","target":"chosen","duration":"persistent", "domain":["grit", "support"]
+    })).unwrap();
+    e.catalogue.as_mut().unwrap().programs[index].instructions.push(crate::ability_ir::Instruction::Apply(copy));
+    e.catalogue.as_mut().unwrap().metadata.insert(code.into(), json!({}));
+    assert!(e.needs_support_state(), "a Support-capable copy domain also imposes state");
+}
+#[test]
+fn support_free_selected_pool_preserves_committed_vader_trace() {
+    let e = Engine::from_compiled_pool_bytes(
+        include_bytes!("../data/pool.json"),
+        include_bytes!("../../../compiler/generated/catalog.json"),
+    ).unwrap();
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/vader-dual-lethal-2001.jsonl.gz");
+    let result = crate::check::check(&e, &path).unwrap();
+    assert!(result.matched);
+}

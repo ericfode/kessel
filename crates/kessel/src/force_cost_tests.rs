@@ -33,6 +33,8 @@ fn force_cost_actual_leaders_target_cancel_pay_and_preserve_identity() {
             let (mut s, source) = start(&e, seat, code);
             let own = unit(&e, &mut s, seat, "SHD_189");
             let enemy = unit(&e, &mut s, seat.other(), "LOF_256");
+            let p = e.available_programs(&s, source, "action")[0];
+            assert!(e.program(p).executable.is_ok(), "canonical Force-cost action must have generated dispatch");
             let force_id = s.player(seat).force_id;
             let next = s.next_id;
             let selected = begin_action(&e, &s, source);
