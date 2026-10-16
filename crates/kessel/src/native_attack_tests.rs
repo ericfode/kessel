@@ -322,6 +322,12 @@ fn native_attack_raw_contracts_reject_unknowns_late_callbacks_and_partial_source
         let c = Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[entry]})).unwrap();
         assert!(c.rejected.contains_key(&code));
     };
+    assert!(Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[original.clone()]})).unwrap().cards.contains_key("TWI_224"));
+    for key in ["stateWatchers", "historyHelpers", "privatePrograms", "classMethods", "privateClassConstants", "inheritedSource", "deploymentOverride", "setupValidationOverrides"] {
+        let mut bad=original.clone();
+        bad[key]=json!([{"kind":"unimplementedSourceContext"}]);
+        admitted(bad);
+    }
     for field in [
         "targetCondition",
         "allowExhaustedAttacker",

@@ -1638,10 +1638,12 @@ fn arena_order_import_rejects_missing_future_upgrade_and_malformed_memberships()
 #[test]
 fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_and_legacy_flag() {
     let e=engine();let mut s=board(&e);let early=unit(&e,&mut s,Seat::P2,"LOF_256");let late=unit(&e,&mut s,Seat::P1,"LOF_256");
-    let snapshot=e.snapshot(&s);let hash=s.zobrist();let mut reverse=s;reverse.arena_unit_order[0].ids.swap(0,1);assert_ne!(reverse.zobrist(),hash);let reverse_snapshot=e.snapshot(&reverse);assert_eq!(e.load_state(&reverse_snapshot).unwrap().zobrist(),reverse.zobrist());
+    let snapshot=e.snapshot(&s);let hash=s.zobrist();let mut reverse=s;reverse.arena_unit_order[0].ids.swap(0,1);reverse.registration_order.ids.swap(0,1);assert_ne!(reverse.zobrist(),hash);let reverse_snapshot=e.snapshot(&reverse);assert_eq!(e.load_state(&reverse_snapshot).unwrap().zobrist(),reverse.zobrist());
     e.leave_play(&mut s,early).unwrap();s.players[1].discard.remove(early);e.add_arena(&mut s,early).unwrap();assert_eq!(e.arena_units(&s),vec![late,early]);assert_ne!(s.zobrist(),hash);
     let token=unit(&e,&mut s,Seat::P2,"TOKEN_MANDALORIAN");let leader=s.players[0].leader;s.card_mut(leader).deployed=true;s.card_mut(leader).epic_used=true;e.add_arena(&mut s,leader).unwrap();assert_eq!(e.arena_units(&s),vec![late,early,token,leader]);
-    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");let legacy_state=e.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(e.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
+    // Legacy evidence is valid only for a selected pool without future listener registrations.
+    let mut legacy_engine=engine();legacy_engine.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
+    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
 }
 #[test]
 fn repeated_defeat_records_prepare_repeated_cleanup_before_deduplicated_handlers() {

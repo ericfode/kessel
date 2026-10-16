@@ -236,7 +236,8 @@ pub(crate) fn entry(e: &Value) -> bool {
     let Ok(s) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };
-    s.card.len() == 1
+    crate::static_ongoing::closed_source_context(e)
+        && s.card.len() == 1
         && s.leader.is_empty()
         && s.unit.is_empty()
         && ability(&s.card[0])
