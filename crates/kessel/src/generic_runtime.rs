@@ -98,6 +98,55 @@ enum Trigger {
     Program(usize, u16),
 }
 
+/// Pinned forceteki `KeywordHelpers` Smuggle regex: own-line / start-of-text
+/// `Smuggle [N resources Aspect…]`, rejecting additional non-aspect costs.
+fn parse_smuggle_cost(text: &str) -> Result<SmuggleCost, String> {
+    let mut found = None;
+    for (idx, _) in text.match_indices("Smuggle") {
+        if idx > 0 && !text[..idx].ends_with('\n') {
+            continue;
+        }
+        let rest = text[idx + "Smuggle".len()..].trim_start();
+        let Some(rest) = rest.strip_prefix('[') else {
+            continue;
+        };
+        let Some((body, _)) = rest.split_once(']') else {
+            return Err("Smuggle cost bracket is unclosed".into());
+        };
+        let body = body.trim();
+        let Some((amount_text, aspects_text)) = body
+            .split_once("resources")
+            .map(|(a, b)| (a.trim(), b.trim()))
+        else {
+            return Err("Smuggle cost requires a resource amount".into());
+        };
+        let amount: u16 = amount_text
+            .parse()
+            .map_err(|_| "Smuggle cost amount is not a bounded integer")?;
+        if amount > 1000 {
+            return Err("Smuggle cost amount exceeds bound".into());
+        }
+        if aspects_text.contains(',') {
+            return Err("Smuggle additional costs are not implemented".into());
+        }
+        let mut aspects = [0u8; 6];
+        for token in aspects_text.split_whitespace() {
+            let index = aspect(&token.to_ascii_lowercase())?;
+            aspects[index] = aspects[index]
+                .checked_add(1)
+                .ok_or("Smuggle aspect capacity exceeded")?;
+        }
+        if aspects.iter().all(|&n| n == 0) {
+            return Err("Smuggle cost requires at least one aspect".into());
+        }
+        if found.is_some() {
+            return Err("multiple printed Smuggle costs".into());
+        }
+        found = Some(SmuggleCost { amount, aspects });
+    }
+    found.ok_or_else(|| "Smuggle keyword lacks a printed cost".into())
+}
+
 fn token_unit_code(token_type: &str) -> Option<&'static str> {
     Some(match token_type {
         "battleDroid" => "TOKEN_BATTLE_DROID",
@@ -498,11 +547,29 @@ impl Engine {
                 let mut flags = 0;
                 let mut raid = 0;
                 let mut restore = 0;
+                let mut smuggle = None;
                 for keyword in entry["card"]["keywords"].as_array().into_iter().flatten() {
                     let name = keyword.as_str().ok_or("invalid keyword")?;
                     if name=="coordinate" {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
                         continue;
+                    }
+                    if name == "smuggle" {
+                        if info.is("leader") || info.is("token") || !(info.is("unit") || info.is("event") || info.is("upgrade")) {
+                            return Err("Smuggle requires an ordinary playable card".into());
+                        }
+                        if smuggle.is_some() {
+                            return Err("multiple Smuggle keyword tags".into());
+                        }
+                        smuggle = Some(parse_smuggle_cost(entry["card"]["text"].as_str().unwrap_or(""))?);
+                        continue;
+                    }
+                    if name == "plot" {
+                        // Plot watches OnLeaderDeployed from resource-zone cards and
+                        // must share the deploy TriggerOrder with Shielded and peer
+                        // Plot cards. pending_programs/pending_triggers are source-
+                        // local; multi-source deploy registration is not grounded yet.
+                        return Err("unimplemented runtime keyword plot".into());
                     }
                     if !crate::ability_ir::CORE_KEYWORDS.contains(&name) { return Err(format!("unimplemented runtime keyword {name}")); }
                     // Provider metadata includes keyword mentions in abilities.
@@ -571,6 +638,7 @@ impl Engine {
                     raid,
                     restore,
                     aspects,
+                    smuggle,
                     programs,
                     traits: entry["card"]["traits"]
                         .as_array()
@@ -958,7 +1026,8 @@ impl Engine {
     fn keyword_inventory_len(&self,s:&State,target:CardId)->u16 {
         let mask=crate::ability_ir::CORE_KEYWORDS.iter().enumerate().fold(0u16,|m,(i,k)|m|if self.has_keyword(s,target,k){1<<i}else{0});
         let coordinate=self.catalogue.as_ref().and_then(|c|c.metadata.get(&self.def(s,target).code)).is_some_and(|m|m["keywords"].as_array().is_some_and(|names|names.iter().any(|n|n=="coordinate"))) && self.def(s,target).programs.card.iter().any(|&id|self.program(id).coordinate);
-        (mask.count_ones() as u16)+u16::from(coordinate)
+        let smuggle=self.def(s,target).smuggle.is_some();
+        (mask.count_ones() as u16)+u16::from(coordinate)+u16::from(smuggle)
     }
     pub(super) fn effective_flags(&self, s: &State, target: CardId) -> u16 {
         crate::ability_ir::CORE_KEYWORDS.iter().enumerate().filter(|(i,_)| crate::ability_ir::numeric_keyword_slot(*i).is_none()).fold(0, |flags, (i, k)| flags | if self.keyword_amount(s, target, k) > 0 { 1 << i } else { 0 })
@@ -1843,12 +1912,25 @@ impl Engine {
             && !self.can_pay_force_cost(s, source) {
             return Err("Force cost requires exact held Force identity".into());
         }
-        if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
-            s.phase_history.preflight_play(s.active)?;
-            self.spend(s, self.cost(s, source));
-            s.player_mut(s.active).hand.remove(source);
-            s.player_mut(s.active).discard.push(source)?;
-            s.phase_history.played(s.active,source)?;
+        if self.def(s, source).info.is("event") {
+            let seat = s.active;
+            if s.player(seat).hand.contains(source) {
+                s.phase_history.preflight_play(seat)?;
+                self.spend(s, self.cost(s, source));
+                s.player_mut(seat).hand.remove(source);
+                s.player_mut(seat).discard.push(source)?;
+                s.phase_history.played(seat, source)?;
+            } else if s.player(seat).resources.contains(source) {
+                let cost = self
+                    .smuggle_cost(s, source)
+                    .ok_or("event smuggle requires a printed Smuggle cost")?;
+                s.phase_history.preflight_play(seat)?;
+                self.spend_resource_play(s, cost, source);
+                s.player_mut(seat).resources.remove(source);
+                s.player_mut(seat).discard.push(source)?;
+                s.phase_history.played(seat, source)?;
+                self.resource_deck_top_after_play(s, seat)?;
+            }
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {

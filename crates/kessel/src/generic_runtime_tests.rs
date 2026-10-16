@@ -3772,3 +3772,6 @@ mod trait_inventory_tests;
 
 #[path = "death_hook_tests.rs"]
 mod death_hook_tests;
+
+#[path = "smuggle_runtime_tests.rs"]
+mod smuggle_runtime_tests;

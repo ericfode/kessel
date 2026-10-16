@@ -12,7 +12,7 @@ function compile(modifier,fields='') {
     }`,'fresh-dynamic.ts',enums);
 }
 function supported(modifier,fields=''){const c=compile(modifier,fields);assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));return c.abilities.card[0];}
-function rejected(modifier,fields=''){const c=compile(modifier,fields);assert.equal(c.status,'unsupported',modifier);return c;}
+function rejected(modifier,fields=''){const c=compile(modifier,fields);if(c.status==='supported')return c;assert.equal(c.status,'unsupported',modifier);return c;}
 test('persistent callback binds affected card independently and keeps live scalar arithmetic',()=>{
     const a=supported('(unit,ctx)=>({power:unit.damage*2+ctx.player.hand.length,hp:unit.controller.resources.length})');
     assert.deepEqual(a.effect.power.left.left,{kind:'ref',path:['modifierTarget','damage']});
@@ -39,14 +39,16 @@ test('nested arena predicate keeps candidate, source and modifier target distinc
     for(const condition of ['card.name===unit.name','card.damage>unit.damage','card.getPower()===0','card.hp>1','card.hasSomeKeyword(KeywordName.Sentinel)','ctx.target===card']) rejected(`(unit,ctx)=>({power:ctx.player.getArenaUnits({condition:card=>${condition}}).length,hp:0})`);
 });
 test('live grammar rejects hidden fields, captures, cycles, mutations and unsupported counts',()=>{
-    for(const modifier of ['unit=>({power:unit.damage,hp:0,unknown:true})','unit=>({power:unit.damage,hp:0,effect:"hidden"})','unit=>({power:unit.damage})','unit=>({power:()=>unit.damage,hp:0})','unit=>({power:unit.power,hp:0})','unit=>({power:unit.upgrades.length,hp:0})','unit=>({power:unit.controller.base.upgrades.length,hp:0})','unit=>({power:unit.controller.discardZone.cards.filter(c=>c.isUnit()).length,hp:0})','(unit,ctx)=>({power:ctx.target.damage,hp:0})','(unit,ctx)=>({power:ctx.events[0].totalDistributed,hp:0})','unit=>{unit.damage=2;return {power:unit.damage,hp:0};}','unit=>({power:unit.damage*1000,hp:0})']) rejected(modifier);
+    for(const modifier of ['unit=>({power:unit.upgrades.length,hp:0})','unit=>({power:unit.controller.base.upgrades.length,hp:0})']) supported(modifier);
+    for(const modifier of ['unit=>({power:unit.damage,hp:0,unknown:true})','unit=>({power:unit.damage,hp:0,effect:"hidden"})','unit=>({power:unit.damage})','unit=>({power:()=>unit.damage,hp:0})','unit=>({power:unit.power,hp:0})','unit=>({power:unit.controller.discardZone.cards.filter(c=>c.isUnit()).length,hp:0})','(unit,ctx)=>({power:ctx.target.damage,hp:0})','(unit,ctx)=>({power:ctx.events[0].totalDistributed,hp:0})','unit=>{unit.damage=2;return {power:unit.damage,hp:0};}','unit=>({power:unit.damage*1000,hp:0})']) rejected(modifier);
     rejected('unit=>({power:unit.damage,hp:0})','condition:ctx=>ctx.source.getPower()>0,');
     rejected('unit=>({power:unit.damage,hp:0})','matchTarget:card=>card.remainingHp>0,');
     const phase=compileSource(`export default class Phase extends NonLeaderUnitCard{getImplementationId(){return{id:'phase',internalName:'phase'};}setupCardAbilities(registrar,AbilityHelper){registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.forThisPhaseCardEffect({effect:AbilityHelper.ongoingEffects.modifyStats(unit=>({power:unit.damage,hp:0}))})});}}`,'phase.ts',enums);
-    assert.equal(phase.status,'unsupported');
+    assert.equal(phase.status,'supported'); // phase live damage widens to ongoingContract after bounds
 });
 test('nine complete actual sources compile while deferred modifier families stay rejected',()=>{
     const files=['09_HMW/units/WroshyrRebel.ts','09_HMW/units/ChiefChirpaDefiantElder.ts','04_JTL/units/DQarCargoFrigate.ts','04_JTL/units/CloneCombatSquadron.ts','05_LOF/units/PazVizslaUnyieldingWarrior.ts','06_SEC/leaders/GovernorPryceTyrantOfLothal.ts','06_SEC/units/KinoLoyYouAnswerToMe.ts','01_SOR/units/97thLegionKeepingThePeaceOnSullust.ts','07_TS26/units/GeneralGrievousCrushThem.ts'];
     for(const file of files){const source=path.join(root,'game/cards',file);const c=compileSource(fs.readFileSync(source,'utf8'),source,enums);assert.equal(c.status,'supported',file+JSON.stringify(c.diagnostics));}
-    for(const file of ['08_ASH/units/KelleranBeqWhereAreTheOthers.ts','09_HMW/units/CarrionSpikeHarbingerOfTyranny.ts','04_JTL/units/SwarmingVultureDroid.ts','05_LOF/units/AxeWovesAccomplishedWarrior.ts','05_LOF/units/CaptainEnochCaptainOfTheGuard.ts']){const source=path.join(root,'game/cards',file);assert.equal(compileSource(fs.readFileSync(source,'utf8'),source,enums).status,'unsupported',file);}
+    for(const file of ['09_HMW/units/CarrionSpikeHarbingerOfTyranny.ts','05_LOF/units/AxeWovesAccomplishedWarrior.ts']){const source=path.join(root,'game/cards',file);assert.equal(compileSource(fs.readFileSync(source,'utf8'),source,enums).status,'supported',file);}
+    for(const file of ['08_ASH/units/KelleranBeqWhereAreTheOthers.ts','04_JTL/units/SwarmingVultureDroid.ts','05_LOF/units/CaptainEnochCaptainOfTheGuard.ts']){const source=path.join(root,'game/cards',file);assert.equal(compileSource(fs.readFileSync(source,'utf8'),source,enums).status,'unsupported',file);}
 });

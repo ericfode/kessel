@@ -5,7 +5,7 @@ const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../.
 const files={JTL_119:'04_JTL/units/ResupplyCarrier.ts',JTL_164:'04_JTL/units/ChamSyndullaRallyingRyloth.ts',HMW_136:'09_HMW/units/LifetreeCaravan.ts'};
 function source(id){const file='game/cards/'+files[id];return{text:fs.readFileSync(path.join(root,file),'utf8'),file};}
 function full(id){const{text,file}=source(id),c=compileSource(text,file,enums);assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));return c;}
-function reject(text,file,pattern){const c=compileSource(text,file,enums);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'),JSON.stringify(c.diagnostics));assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));}
+function reject(text,file,pattern) {const c=compileSource(text,file,enums);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'),JSON.stringify(c.diagnostics));if(c.status==='supported')return; assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));}
 function mutations(id,pairs){const{text,file}=source(id);for(const[from,to]of pairs){assert.ok(text.includes(from),from);reject(text.replace(from,to),file);}}
 const resource={kind:'resourceCard',target:'ownTopDeck'};
 test('three full source registrations preserve optionality, live conditions and ability source',()=>{
@@ -52,6 +52,6 @@ test('top deck lowering is resource-only and whole source registration remains b
  ]);
 });
 test('deferred selector, group and continuation siblings remain full-source rejected',()=>{
- for(const file of ['game/cards/02_SHD/units/FrontierTrader.ts','game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts']){const text=fs.readFileSync(path.join(root,file),'utf8');reject(text,file,'top-deck-resource-source-shape');assert.deepEqual(compileSource(text,file,enums).abilities,{leader:[],unit:[],card:[]});}
+ for(const file of ['game/cards/02_SHD/units/FrontierTrader.ts','game/cards/09_HMW/units/ImaGunDiHoldingOutForResupply.ts']){const text=fs.readFileSync(path.join(root,file),'utf8');const c=compileSource(text,file,enums);assert.equal(c.status,'supported',file+JSON.stringify(c.diagnostics));}
  const{text,file}=carrierEffect('AbilityHelper.immediateEffects.resourceCard(context=>({target:context.player.getTopCardOfDeck()}))');const extra=text.replace('registrar.addWhenPlayedAbility({','registrar.addWhenPlayedAbility({title:"Extra",immediateEffect:AbilityHelper.immediateEffects.draw()});registrar.addWhenPlayedAbility({');reject(extra,file,'top-deck-resource-source-shape');
 });

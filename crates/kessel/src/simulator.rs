@@ -26,6 +26,14 @@ const T_LEADER: u8 = 4;
 const T_SHIELD: u8 = 8;
 const T_AMBUSH: u8 = 16;
 const T_SUPPORT: u8 = 32;
+/// Printed Smuggle alternate cost: base resource amount plus aspect vector for
+/// aspect-penalty calculation (independent of the card's play aspects).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SmuggleCost {
+    pub amount: u16,
+    pub aspects: [u8; 6],
+}
+
 #[derive(Debug, Clone)]
 pub struct Definition {
     pub code: String,
@@ -34,6 +42,8 @@ pub struct Definition {
     raid: u16,
     restore: u16,
     aspects: [u8; 6],
+    /// Present only for cards whose printed text yields a complete Smuggle cost.
+    pub smuggle: Option<SmuggleCost>,
     programs: CardPrograms,
     traits: Vec<String>,
 }
@@ -214,6 +224,7 @@ impl Engine {
                 raid,
                 restore,
                 aspects,
+                smuggle: None,
                 programs: CardPrograms::default(),
                 traits: vec![],
             });
@@ -360,16 +371,39 @@ impl Engine {
             .count()
     }
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
-        let p = s.player(s.card(id).owner);
         let d = self.def(s, id);
+        d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects)
+    }
+    fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
+        let p = s.player(s.card(id).owner);
         let leader = self.def(s, p.leader);
         let base = self.def(s, p.base);
-        let penalty: u16 = (0..6)
-            .map(|i| {
-                u16::from(d.aspects[i].saturating_sub(leader.aspects[i] + base.aspects[i])) * 2
-            })
-            .sum();
-        d.info.cost().max(0) as u16 + penalty
+        (0..6)
+            .map(|i| u16::from(aspects[i].saturating_sub(leader.aspects[i] + base.aspects[i])) * 2)
+            .sum()
+    }
+    pub fn smuggle_cost(&self, s: &State, id: CardId) -> Option<u16> {
+        let smuggle = self.def(s, id).smuggle?;
+        Some(smuggle.amount + self.aspect_penalty(s, id, &smuggle.aspects))
+    }
+    fn can_smuggle(&self, s: &State, id: CardId) -> bool {
+        let seat = s.card(id).owner;
+        if seat != s.active || !s.player(seat).resources.contains(id) {
+            return false;
+        }
+        let Some(cost) = self.smuggle_cost(s, id) else {
+            return false;
+        };
+        if self.def(s, id).info.is("upgrade") && self.upgrade_targets(s, id).is_empty() {
+            return false;
+        }
+        if self.catalogue.is_some()
+            && self.def(s, id).info.is("event")
+            && self.available_programs(s, id, "event").is_empty()
+        {
+            return false;
+        }
+        cost as usize <= self.ready_resources(s, seat)
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
         self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
@@ -460,6 +494,11 @@ impl Engine {
                         continue;
                     }
                     if self.cost(s, id) as usize <= self.ready_resources(s, s.active) {
+                        out.push(self.card_action(s, id));
+                    }
+                }
+                for &id in p.resources.as_slice() {
+                    if self.can_smuggle(s, id) {
                         out.push(self.card_action(s, id));
                     }
                 }
@@ -713,6 +752,8 @@ impl Engine {
                     } else {
                         self.enter_triggers(&mut t)?;
                     }
+                } else if t.player(seat).resources.contains(id) {
+                    self.begin_smuggle_play(&mut t, id)?;
                 } else {
                     t.source = id;
                     t.ambush = false;
@@ -731,8 +772,19 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
+                    let upgrade=t.source;
+                    let from_resources=t.player(seat).resources.contains(upgrade);
+                    t.phase_history.preflight_play(seat)?;
+                    if from_resources {
+                        let cost=self.smuggle_cost(s,upgrade).ok_or("smuggle cost missing")?;
+                        self.spend_resource_play(&mut t,cost,upgrade);
+                        t.player_mut(seat).resources.remove(upgrade);
+                    } else {
+                        self.spend(&mut t,self.cost(s,upgrade));
+                        t.player_mut(seat).hand.remove(upgrade);
+                    }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
+                    if from_resources {self.resource_deck_top_after_play(&mut t,seat)?;}
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
                         if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
@@ -917,6 +969,79 @@ impl Engine {
             }
         }
         debug_assert_eq!(amount, 0);
+    }
+    /// Pay a play-from-resources cost. The leaving resource is exhausted first when
+    /// ready (pinned Smuggle/Plot ResourceCost priority), then other ready resources
+    /// in zone order. Deterministic; does not shuffle the resource row.
+    fn spend_resource_play(&self, s: &mut State, mut amount: u16, played: CardId) {
+        if amount > 0 && s.player(s.active).resources.contains(played) && !s.card(played).exhausted {
+            s.card_mut(played).exhausted = true;
+            amount -= 1;
+        }
+        let ids = s.player(s.active).resources;
+        for &id in ids.as_slice() {
+            if amount == 0 {
+                break;
+            }
+            if id != played && !s.card(id).exhausted {
+                s.card_mut(id).exhausted = true;
+                amount -= 1;
+            }
+        }
+        debug_assert_eq!(amount, 0);
+    }
+    fn resource_deck_top_after_play(&self, s: &mut State, seat: Seat) -> Result<(), String> {
+        let Some(&top) = s.player(seat).deck.as_slice().first() else {
+            return Ok(());
+        };
+        let info = &self.def(s, top).info;
+        if info.is("leader") || info.is("token") {
+            return Ok(());
+        }
+        if s.player(seat).resources.len as usize >= crate::model::MAX_ZONE {
+            return Err("resource zone capacity exceeded".into());
+        }
+        s.player_mut(seat).deck.remove(top);
+        s.player_mut(seat).resources.push(top)?;
+        s.card_mut(top).exhausted = true;
+        Ok(())
+    }
+    fn begin_smuggle_play(&self, s: &mut State, id: CardId) -> Result<(), String> {
+        let seat = s.active;
+        if !self.can_smuggle(s, id) {
+            return Err("illegal smuggle".into());
+        }
+        if self.def(s, id).info.is("upgrade") {
+            s.source = id;
+            s.decision = Decision::UpgradeTarget;
+            return Ok(());
+        }
+        if self.catalogue.is_some() && self.def(s, id).info.is("event") {
+            s.source = id;
+            s.trigger_context = 0;
+            let programs = self.available_programs(s, id, "event");
+            let program = *programs.first().ok_or("event has no executable ability")?;
+            return self.begin_program(s, program, 0);
+        }
+        let cost = self.smuggle_cost(s, id).ok_or("smuggle cost missing")?;
+        s.phase_history.preflight_play(seat)?;
+        self.spend_resource_play(s, cost, id);
+        s.player_mut(seat).resources.remove(id);
+        s.card_mut(id).exhausted =
+            !self.self_static_ongoing(s, id, crate::static_ongoing::SelfEffect::EntersPlayReady);
+        s.card_mut(id).set_hidden_qualified(true);
+        self.add_arena(s, id)?;
+        s.phase_history.entered(seat, id);
+        s.phase_history.played(seat, id)?;
+        self.resource_deck_top_after_play(s, seat)?;
+        s.source = id;
+        s.trigger_context = 1;
+        if self.def(s, id).info.unique && self.duplicates(s, id) > 1 {
+            s.decision = Decision::Unique;
+            Ok(())
+        } else {
+            self.enter_triggers(s)
+        }
     }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
