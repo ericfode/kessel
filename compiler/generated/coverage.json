@@ -1,16 +1,16 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "bd11e0fed492efebf92f84abdd50dada9ea4d331d4c9c61879985a2c4bd3cef6",
-  "compilerHash": "c9c3271484647895cef87c251c1b2ead3e971472d8335c8b49bddce9f014d1b7",
+  "compilerHash": "0c5a22d0520f2efdc4d897e55cd2c9ba5fcf2ccc359454bd52513fd8fe7aba7d",
   "knownCards": 2605,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2051,
-  "converted": 2470,
-  "sourceAstConverted": 2023,
+  "converted": 2461,
+  "sourceAstConverted": 2014,
   "dataOnlyConverted": 447,
-  "unconverted": 135,
+  "unconverted": 144,
   "runtimeReady": null,
   "runtimeReadyNote": "Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.",
   "convertedCards": [
@@ -499,7 +499,6 @@
     "HMW_245",
     "HMW_246",
     "HMW_247",
-    "HMW_248",
     "HMW_249",
     "HMW_251",
     "HMW_252",
@@ -681,7 +680,6 @@
     "JTL_014",
     "JTL_015",
     "JTL_016",
-    "JTL_017",
     "JTL_018",
     "JTL_019",
     "JTL_020",
@@ -834,7 +832,6 @@
     "JTL_175",
     "JTL_176",
     "JTL_177",
-    "JTL_178",
     "JTL_179",
     "JTL_180",
     "JTL_181",
@@ -1454,7 +1451,6 @@
     "SEC_037",
     "SEC_038",
     "SEC_039",
-    "SEC_040",
     "SEC_041",
     "SEC_042",
     "SEC_043",
@@ -1615,7 +1611,6 @@
     "SEC_207",
     "SEC_208",
     "SEC_209",
-    "SEC_210",
     "SEC_211",
     "SEC_213",
     "SEC_214",
@@ -1657,10 +1652,8 @@
     "SEC_254",
     "SEC_255",
     "SEC_256",
-    "SEC_257",
     "SEC_258",
     "SEC_259",
-    "SEC_260",
     "SEC_261",
     "SEC_262",
     "SEC_263",
@@ -1872,7 +1865,6 @@
     "SHD_217",
     "SHD_218",
     "SHD_219",
-    "SHD_220",
     "SHD_221",
     "SHD_222",
     "SHD_223",
@@ -2453,7 +2445,6 @@
     "TWI_221",
     "TWI_223",
     "TWI_224",
-    "TWI_225",
     "TWI_226",
     "TWI_227",
     "TWI_228",
@@ -2520,23 +2511,44 @@
     },
     {
       "pattern": "unused-source-binding",
-      "occurrences": 30,
+      "occurrences": 39,
       "cards": [
         "ASH_182",
         "ASH_230",
         "HMW_099",
         "HMW_223",
+        "HMW_248",
         "IBH_009",
         "IBH_025",
         "JTL_156",
         "LAW_170",
         "LAW_208",
+        "LOF_005",
         "LOF_188",
         "SEC_218",
         "SHD_002",
         "SOR_016",
         "TWI_047",
         "TWI_199"
+      ]
+    },
+    {
+      "pattern": "non-path-reference",
+      "occurrences": 14,
+      "cards": [
+        "HMW_048",
+        "HMW_248",
+        "JTL_017",
+        "JTL_232",
+        "LAW_010",
+        "LAW_215",
+        "LAW_226",
+        "LOF_005",
+        "SEC_210",
+        "SEC_257",
+        "SEC_260",
+        "SHD_220",
+        "TWI_225"
       ]
     },
     {
@@ -2721,14 +2733,6 @@
       ]
     },
     {
-      "pattern": "bounded-arena-reduction",
-      "occurrences": 2,
-      "cards": [
-        "JTL_249",
-        "LOF_005"
-      ]
-    },
-    {
       "pattern": "callback-statement:ExpressionStatement",
       "occurrences": 3,
       "cards": [
@@ -2745,11 +2749,11 @@
       ]
     },
     {
-      "pattern": "property-of-nonreference-local",
+      "pattern": "unimplemented-context-field:game",
       "occurrences": 2,
       "cards": [
-        "JTL_232",
-        "LAW_170"
+        "JTL_178",
+        "SEC_040"
       ]
     },
     {
@@ -2797,17 +2801,17 @@
       ]
     },
     {
-      "pattern": "arena-query-snapshot-capture",
-      "occurrences": 1,
-      "cards": [
-        "LAW_226"
-      ]
-    },
-    {
       "pattern": "attack-query-receiver",
       "occurrences": 1,
       "cards": [
         "ASH_054"
+      ]
+    },
+    {
+      "pattern": "bounded-arena-reduction",
+      "occurrences": 1,
+      "cards": [
+        "JTL_249"
       ]
     },
     {
@@ -2930,17 +2934,17 @@
       ]
     },
     {
-      "pattern": "non-path-reference",
-      "occurrences": 1,
-      "cards": [
-        "LAW_010"
-      ]
-    },
-    {
       "pattern": "ordered-arena-ground-query",
       "occurrences": 1,
       "cards": [
         "SHD_002"
+      ]
+    },
+    {
+      "pattern": "property-of-nonreference-local",
+      "occurrences": 1,
+      "cards": [
+        "LAW_170"
       ]
     },
     {
@@ -2962,13 +2966,6 @@
       "occurrences": 1,
       "cards": [
         "LOF_128"
-      ]
-    },
-    {
-      "pattern": "unimplemented-context-field:costs",
-      "occurrences": 1,
-      "cards": [
-        "HMW_048"
       ]
     },
     {
@@ -3279,11 +3276,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:costs",
-          "message": "unimplemented-context-field:costs",
+          "pattern": "non-path-reference",
+          "message": "Helpers.asArray(context.costs[chosenUnitsCostName] ?? [])",
           "file": "game/cards/09_HMW/units/VernestraRwohWeShouldHandleThisOurselves.ts",
           "line": 36,
-          "column": 57
+          "column": 41
         }
       ]
     },
@@ -3471,6 +3468,29 @@
       ]
     },
     {
+      "setCode": "HMW_248",
+      "internalName": "defoliator-tank",
+      "sourcePath": "game/cards/09_HMW/units/DefoliatorTank.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "eligibleDefenders(context)",
+          "file": "game/cards/09_HMW/units/DefoliatorTank.ts",
+          "line": 30,
+          "column": 41
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/09_HMW/units/DefoliatorTank.ts",
+          "line": 19,
+          "column": 35,
+          "message": "Unused binding eligibleDefenders may contain unconverted behavior"
+        }
+      ]
+    },
+    {
       "setCode": "HMW_250",
       "internalName": "imperial-cavalry",
       "sourcePath": "game/cards/09_HMW/units/ImperialCavalry.ts",
@@ -3573,6 +3593,21 @@
           "file": "game/cards/01_SOR/units/C-3POProtocolDroid.ts",
           "line": 34,
           "column": 33
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_017",
+      "internalName": "han-solo#never-tell-me-the-odds",
+      "sourcePath": "game/cards/04_JTL/leaders/HanSoloNeverTellMeTheOdds.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getInPlayCards({\n                    type: [WildcardCardType.Unit, WildcardCardType.Upgrade],\n                    condition: (card) => card.hasCost() && this.isOdd(card.cost)\n                })",
+          "file": "game/cards/04_JTL/leaders/HanSoloNeverTellMeTheOdds.ts",
+          "line": 54,
+          "column": 25
         }
       ]
     },
@@ -3721,6 +3756,21 @@
       ]
     },
     {
+      "setCode": "JTL_178",
+      "internalName": "face-off",
+      "sourcePath": "game/cards/04_JTL/events/FaceOff.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unimplemented-context-field:game",
+          "message": "unimplemented-context-field:game",
+          "file": "game/cards/04_JTL/events/FaceOff.ts",
+          "line": 20,
+          "column": 42
+        }
+      ]
+    },
+    {
       "setCode": "JTL_191",
       "internalName": "invincible#naval-adversary",
       "sourcePath": "game/cards/04_JTL/units/InvincibleNavalAdversary.ts",
@@ -3772,11 +3822,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "property-of-nonreference-local",
-          "message": "property-of-nonreference-local",
+          "pattern": "non-path-reference",
+          "message": "Helpers.asArray(ifYouDoContext.targets.friendlySpaceUnit)",
           "file": "game/cards/04_JTL/events/JumpToLightspeed.ts",
-          "line": 47,
-          "column": 36
+          "line": 46,
+          "column": 50
         }
       ]
     },
@@ -4007,6 +4057,14 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "this.getRevealedCard(outerContext)",
+          "file": "game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts",
+          "line": 42,
+          "column": 88
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
           "pattern": "event-history-method:createCopy",
           "message": "event-history-method:createCopy",
           "file": "game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts",
@@ -4022,8 +4080,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "arena-query-snapshot-capture",
-          "message": "arena-query-snapshot-capture",
+          "pattern": "non-path-reference",
+          "message": "new Set(ifYouDoContext.target?.aspects)",
           "file": "game/cards/07_LAW/events/SecretBattleOfPretend.ts",
           "line": 23,
           "column": 46
@@ -4037,11 +4095,83 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "bounded-arena-reduction",
-          "message": "bounded-arena-reduction",
+          "pattern": "non-path-reference",
+          "message": "Helpers.setIntersection(cardKeywords, targetKeywords)",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 47,
+          "column": 32
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "Helpers.setIntersection(cardKeywords, inPlayKeywords)",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 73,
+          "column": 32
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 66,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
           "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
           "line": 67,
-          "column": 48
+          "column": 48,
+          "message": "Unused binding inPlayKeywords may contain unconverted behavior"
         }
       ]
     },
@@ -4249,6 +4379,21 @@
       ]
     },
     {
+      "setCode": "SEC_040",
+      "internalName": "emergency-powers",
+      "sourcePath": "game/cards/06_SEC/events/EmergencyPowers.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unimplemented-context-field:game",
+          "message": "unimplemented-context-field:game",
+          "file": "game/cards/06_SEC/events/EmergencyPowers.ts",
+          "line": 23,
+          "column": 62
+        }
+      ]
+    },
+    {
       "setCode": "SEC_070",
       "internalName": "armor-of-fortune",
       "sourcePath": null,
@@ -4384,6 +4529,21 @@
       ]
     },
     {
+      "setCode": "SEC_210",
+      "internalName": "stolen-starpath-unit",
+      "sourcePath": "game/cards/06_SEC/upgrades/StolenStarpathUnit.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.opponent.hand.filter((x) => x.title === thenContext.select)",
+          "file": "game/cards/06_SEC/upgrades/StolenStarpathUnit.ts",
+          "line": 31,
+          "column": 33
+        }
+      ]
+    },
+    {
       "setCode": "SEC_212",
       "internalName": "libertine#under-new-ownership",
       "sourcePath": "game/cards/06_SEC/units/LibertineUnderNewOwnership.ts",
@@ -4463,6 +4623,36 @@
           "line": 1,
           "column": 1,
           "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_257",
+      "internalName": "restore-freedom",
+      "sourcePath": "game/cards/06_SEC/events/RestoreFreedom.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getArenaUnits({})\n                        .map((x) => x.aspects)\n                        .flat()\n                        .filter((x) => x === Aspect.Heroism)",
+          "file": "game/cards/06_SEC/events/RestoreFreedom.ts",
+          "line": 25,
+          "column": 48
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_260",
+      "internalName": "inspectors-shuttle",
+      "sourcePath": "game/cards/06_SEC/units/InspectorsShuttle.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.opponent.hand.filter((x) => x.title === thenContext.select)",
+          "file": "game/cards/06_SEC/units/InspectorsShuttle.ts",
+          "line": 34,
+          "column": 33
         }
       ]
     },
@@ -4659,6 +4849,21 @@
           "file": "game/cards/02_SHD/units/DjBlatantThief.ts",
           "line": 29,
           "column": 42
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_220",
+      "internalName": "fennec-shand#loyal-sharpshooter",
+      "sourcePath": "game/cards/02_SHD/units/FennecShandLoyalSharpshooter.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "new Set(context.player.discard.map((card) => card.cost))",
+          "file": "game/cards/02_SHD/units/FennecShandLoyalSharpshooter.ts",
+          "line": 16,
+          "column": 48
         }
       ]
     },
@@ -5352,6 +5557,21 @@
           "file": "game/cards/03_TWI/events/PoliticalPressure.ts",
           "line": 22,
           "column": 25
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_225",
+      "internalName": "now-there-are-two-of-them",
+      "sourcePath": "game/cards/03_TWI/events/NowThereAreTwoOfThem.ts",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getArenaUnits()",
+          "file": "game/cards/03_TWI/events/NowThereAreTwoOfThem.ts",
+          "line": 26,
+          "column": 36
         }
       ]
     },

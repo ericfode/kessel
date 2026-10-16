@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "bd11e0fed492efebf92f84abdd50dada9ea4d331d4c9c61879985a2c4bd3cef6",
-  "compilerHash": "c9c3271484647895cef87c251c1b2ead3e971472d8335c8b49bddce9f014d1b7",
+  "compilerHash": "0c5a22d0520f2efdc4d897e55cd2c9ba5fcf2ccc359454bd52513fd8fe7aba7d",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -73034,11 +73034,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "unimplemented-context-field:costs",
-          "message": "unimplemented-context-field:costs",
+          "pattern": "non-path-reference",
+          "message": "Helpers.asArray(context.costs[chosenUnitsCostName] ?? [])",
           "file": "game/cards/09_HMW/units/VernestraRwohWeShouldHandleThisOurselves.ts",
           "line": 36,
-          "column": 57
+          "column": 41
         }
       ],
       "className": "VernestraRwohWeShouldHandleThisOurselves",
@@ -102118,396 +102118,31 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "onAttack",
-            "title": "Pay 2 resources to give 2 Weakness tokens to defending non-Droid non-Vehicle units",
-            "costs": [],
-            "optional": true,
-            "effect": {
-              "kind": "conditional",
-              "condition": {
-                "kind": "binary",
-                "op": ">",
-                "left": {
-                  "kind": "readonlyFunctionResultMember",
-                  "receiver": {
-                    "kind": "readonlyFunctionCall",
-                    "binding": "readonlyFunction:1021",
-                    "creation": "sourceReadonlyDeclaration",
-                    "callback": {
-                      "kind": "pureCallback",
-                      "parameters": [
-                        {
-                          "slot": "data:callback:1021:0",
-                          "argument": "argument0",
-                          "bindingPattern": {
-                            "name": "context"
-                          }
-                        }
-                      ],
-                      "body": {
-                        "kind": "pureReturn",
-                        "value": {
-                          "kind": "pureCollectionCall",
-                          "method": "filter",
-                          "receiver": {
-                            "kind": "dataCall",
-                            "method": "getAllTargets",
-                            "receiver": {
-                              "kind": "dataPath",
-                              "root": [
-                                "data:callback:1021:0"
-                              ],
-                              "steps": [
-                                {
-                                  "key": "event",
-                                  "optional": false
-                                },
-                                {
-                                  "key": "attack",
-                                  "optional": false
-                                }
-                              ]
-                            },
-                            "args": [],
-                            "optionalCall": false,
-                            "optionalReceiver": false
-                          },
-                          "args": [
-                            {
-                              "kind": "pureCallback",
-                              "parameters": [
-                                {
-                                  "slot": "data:callback:1115:0",
-                                  "argument": "item",
-                                  "bindingPattern": {
-                                    "name": "target"
-                                  }
-                                }
-                              ],
-                              "body": {
-                                "kind": "pureReturn",
-                                "value": {
-                                  "kind": "binary",
-                                  "op": "&&",
-                                  "left": {
-                                    "kind": "binary",
-                                    "op": "&&",
-                                    "left": {
-                                      "kind": "dataCall",
-                                      "method": "isUnit",
-                                      "receiver": {
-                                        "kind": "dataPath",
-                                        "root": [
-                                          "data:callback:1115:0"
-                                        ],
-                                        "steps": []
-                                      },
-                                      "args": [],
-                                      "optionalCall": false,
-                                      "optionalReceiver": false
-                                    },
-                                    "right": {
-                                      "kind": "unary",
-                                      "op": "!",
-                                      "value": {
-                                        "kind": "dataCall",
-                                        "method": "hasSomeTrait",
-                                        "receiver": {
-                                          "kind": "dataPath",
-                                          "root": [
-                                            "data:callback:1115:0"
-                                          ],
-                                          "steps": []
-                                        },
-                                        "args": [
-                                          {
-                                            "kind": "const",
-                                            "value": "droid"
-                                          }
-                                        ],
-                                        "optionalCall": false,
-                                        "optionalReceiver": false
-                                      }
-                                    }
-                                  },
-                                  "right": {
-                                    "kind": "unary",
-                                    "op": "!",
-                                    "value": {
-                                      "kind": "dataCall",
-                                      "method": "hasSomeTrait",
-                                      "receiver": {
-                                        "kind": "dataPath",
-                                        "root": [
-                                          "data:callback:1115:0"
-                                        ],
-                                        "steps": []
-                                      },
-                                      "args": [
-                                        {
-                                          "kind": "const",
-                                          "value": "vehicle"
-                                        }
-                                      ],
-                                      "optionalCall": false,
-                                      "optionalReceiver": false
-                                    }
-                                  }
-                                }
-                              },
-                              "capture": "lexicalReferences",
-                              "invokeAt": "nativeCallbackInvocation"
-                            }
-                          ],
-                          "optionalReceiver": false,
-                          "optionalCall": false
-                        }
-                      },
-                      "capture": "lexicalReferences",
-                      "invokeAt": "nativeCallbackInvocation"
-                    },
-                    "args": [
-                      {
-                        "kind": "abilityContextValue",
-                        "binding": {
-                          "id": "callback:1777:0",
-                          "role": "condition",
-                          "bindAt": "callbackInvocation",
-                          "readAt": "expressionEvaluation",
-                          "reference": "lexicalContextObject"
-                        }
-                      }
-                    ],
-                    "argumentEvaluation": "leftToRightBeforeInvocation",
-                    "invokeAt": "sourceCallExpression"
-                  },
-                  "member": "length",
-                  "optional": false,
-                  "continuesOptionalChain": false,
-                  "evaluation": "getPropertyAfterCall"
-                },
-                "right": {
-                  "kind": "const",
-                  "value": 0
-                }
-              },
-              "onTrue": {
-                "kind": "payAdjustedResources",
-                "target": "ownPlayer",
-                "amount": {
-                  "kind": "const",
-                  "value": 2
-                },
-                "paymentType": "cardEffectPayment",
-                "isCost": false,
-                "canCancelDuringPayment": false,
-                "allowCostAdjustments": true
-              },
-              "onFalse": {
-                "kind": "noAction"
-              }
-            },
-            "ifYouDo": {
-              "title": "Give 2 Weakness tokens to each eligible defending unit",
-              "costs": [],
-              "effect": {
-                "kind": "systemPropertiesFactory",
-                "parameters": [
-                  {
-                    "root": "attackBinding1_0",
-                    "role": "systemPropertiesContext"
-                  }
-                ],
-                "captures": [
-                  {
-                    "name": "systemCapture2204_0",
-                    "role": "staticProperty",
-                    "value": {
-                      "kind": "readonlyFunctionCall",
-                      "binding": "readonlyFunction:1021",
-                      "creation": "sourceReadonlyDeclaration",
-                      "callback": {
-                        "kind": "pureCallback",
-                        "parameters": [
-                          {
-                            "slot": "data:callback:1021:0",
-                            "argument": "argument0",
-                            "bindingPattern": {
-                              "name": "context"
-                            }
-                          }
-                        ],
-                        "body": {
-                          "kind": "pureReturn",
-                          "value": {
-                            "kind": "pureCollectionCall",
-                            "method": "filter",
-                            "receiver": {
-                              "kind": "dataCall",
-                              "method": "getAllTargets",
-                              "receiver": {
-                                "kind": "dataPath",
-                                "root": [
-                                  "data:callback:1021:0"
-                                ],
-                                "steps": [
-                                  {
-                                    "key": "event",
-                                    "optional": false
-                                  },
-                                  {
-                                    "key": "attack",
-                                    "optional": false
-                                  }
-                                ]
-                              },
-                              "args": [],
-                              "optionalCall": false,
-                              "optionalReceiver": false
-                            },
-                            "args": [
-                              {
-                                "kind": "pureCallback",
-                                "parameters": [
-                                  {
-                                    "slot": "data:callback:1115:0",
-                                    "argument": "item",
-                                    "bindingPattern": {
-                                      "name": "target"
-                                    }
-                                  }
-                                ],
-                                "body": {
-                                  "kind": "pureReturn",
-                                  "value": {
-                                    "kind": "binary",
-                                    "op": "&&",
-                                    "left": {
-                                      "kind": "binary",
-                                      "op": "&&",
-                                      "left": {
-                                        "kind": "dataCall",
-                                        "method": "isUnit",
-                                        "receiver": {
-                                          "kind": "dataPath",
-                                          "root": [
-                                            "data:callback:1115:0"
-                                          ],
-                                          "steps": []
-                                        },
-                                        "args": [],
-                                        "optionalCall": false,
-                                        "optionalReceiver": false
-                                      },
-                                      "right": {
-                                        "kind": "unary",
-                                        "op": "!",
-                                        "value": {
-                                          "kind": "dataCall",
-                                          "method": "hasSomeTrait",
-                                          "receiver": {
-                                            "kind": "dataPath",
-                                            "root": [
-                                              "data:callback:1115:0"
-                                            ],
-                                            "steps": []
-                                          },
-                                          "args": [
-                                            {
-                                              "kind": "const",
-                                              "value": "droid"
-                                            }
-                                          ],
-                                          "optionalCall": false,
-                                          "optionalReceiver": false
-                                        }
-                                      }
-                                    },
-                                    "right": {
-                                      "kind": "unary",
-                                      "op": "!",
-                                      "value": {
-                                        "kind": "dataCall",
-                                        "method": "hasSomeTrait",
-                                        "receiver": {
-                                          "kind": "dataPath",
-                                          "root": [
-                                            "data:callback:1115:0"
-                                          ],
-                                          "steps": []
-                                        },
-                                        "args": [
-                                          {
-                                            "kind": "const",
-                                            "value": "vehicle"
-                                          }
-                                        ],
-                                        "optionalCall": false,
-                                        "optionalReceiver": false
-                                      }
-                                    }
-                                  }
-                                },
-                                "capture": "lexicalReferences",
-                                "invokeAt": "nativeCallbackInvocation"
-                              }
-                            ],
-                            "optionalReceiver": false,
-                            "optionalCall": false
-                          }
-                        },
-                        "capture": "lexicalReferences",
-                        "invokeAt": "nativeCallbackInvocation"
-                      },
-                      "args": [
-                        {
-                          "kind": "abilityContextValue",
-                          "value": {
-                            "kind": "ref",
-                            "path": [
-                              "attackBinding1_0"
-                            ]
-                          },
-                          "reference": "lexicalTypedContextObject"
-                        }
-                      ],
-                      "argumentEvaluation": "leftToRightBeforeInvocation",
-                      "invokeAt": "sourceCallExpression"
-                    },
-                    "evaluateAt": "propertyFactoryInvocation",
-                    "order": 0
-                  }
-                ],
-                "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-                "captureIdentity": "valueOrPhysicalObjectReference",
-                "invocationPolicy": "eachNativePropertyGeneration",
-                "effect": {
-                  "kind": "giveWeakness",
-                  "target": {
-                    "kind": "ref",
-                    "path": [
-                      "systemFactoryCaptures",
-                      "systemCapture2204_0"
-                    ]
-                  },
-                  "amount": {
-                    "kind": "const",
-                    "value": 2
-                  }
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "eligibleDefenders(context)",
+          "file": "game/cards/09_HMW/units/DefoliatorTank.ts",
+          "line": 30,
+          "column": 41
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/09_HMW/units/DefoliatorTank.ts",
+          "line": 19,
+          "column": 35,
+          "message": "Unused binding eligibleDefenders may contain unconverted behavior"
+        }
+      ],
       "className": "DefoliatorTank",
       "baseClass": "NonLeaderUnitCard",
       "id": "0506599569",
       "internalName": "defoliator-tank",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Defoliator Tank",
         "subtitle": "",
@@ -102554,32 +102189,8 @@
         "overwhelm": 1
       },
       "requiredCapabilities": [
-        "ability:ifYouDo",
-        "binary:&&",
-        "binary:>",
         "cardType:unit",
-        "ir:abilityContextValue",
-        "ir:binary",
-        "ir:conditional",
-        "ir:const",
-        "ir:dataCall",
-        "ir:dataPath",
-        "ir:giveWeakness",
-        "ir:noAction",
-        "ir:payAdjustedResources",
-        "ir:pureCallback",
-        "ir:pureCollectionCall",
-        "ir:pureReturn",
-        "ir:readonlyFunctionCall",
-        "ir:readonlyFunctionResultMember",
-        "ir:ref",
-        "ir:systemPropertiesFactory",
-        "ir:unary",
-        "keyword:overwhelm",
-        "ref:attackBinding1_0",
-        "ref:systemFactoryCaptures.systemCapture2204_0",
-        "trigger:onAttack",
-        "unary:!"
+        "keyword:overwhelm"
       ]
     },
     {
@@ -125816,219 +125427,19 @@
             }
           }
         ],
-        "unit": [
-          {
-            "trigger": "constant",
-            "title": "For each friendly unit or upgrade that has an odd cost, ready a resource.",
-            "costs": [],
-            "effect": {
-              "kind": "pilotingRegistration",
-              "registrationMode": "piloting",
-              "target": "self",
-              "targetController": "any",
-              "sourceBinding": "grantor",
-              "controllerBinding": "grantorController",
-              "requiresGrantorInPlay": true,
-              "requiresAttachable": true,
-              "sourceMode": "unitUpgrade",
-              "targetZone": "anyArena",
-              "targetTypes": [
-                "unit"
-              ],
-              "registration": {
-                "type": "triggered",
-                "program": {
-                  "trigger": "eventHooks",
-                  "title": "For each friendly unit or upgrade that has an odd cost, ready a resource.",
-                  "costs": [],
-                  "effect": {
-                    "kind": "systemPropertiesFactory",
-                    "parameters": [
-                      {
-                        "root": "attackBinding1_0",
-                        "role": "systemPropertiesContext"
-                      }
-                    ],
-                    "captures": [
-                      {
-                        "name": "systemCapture2721_0",
-                        "role": "staticProperty",
-                        "value": {
-                          "kind": "constructionMember",
-                          "receiver": {
-                            "kind": "controlledInPlayListQuery",
-                            "player": {
-                              "kind": "ref",
-                              "path": [
-                                "attackBinding1_0",
-                                "player"
-                              ]
-                            },
-                            "filter": {
-                              "type": {
-                                "kind": "array",
-                                "items": [
-                                  {
-                                    "kind": "const",
-                                    "value": "unit"
-                                  },
-                                  {
-                                    "kind": "const",
-                                    "value": "upgrade"
-                                  }
-                                ]
-                              },
-                              "condition": {
-                                "kind": "queryCallback",
-                                "parameters": [
-                                  {
-                                    "root": "attackBinding2_0",
-                                    "role": "candidate"
-                                  }
-                                ],
-                                "body": {
-                                  "kind": "binary",
-                                  "op": "&&",
-                                  "left": {
-                                    "kind": "registrationQuery",
-                                    "name": "hasCost",
-                                    "receiver": {
-                                      "kind": "ref",
-                                      "path": [
-                                        "attackBinding2_0"
-                                      ]
-                                    },
-                                    "args": [],
-                                    "optionalReceiver": false,
-                                    "optionalCall": false
-                                  },
-                                  "right": {
-                                    "kind": "privateProgramCall",
-                                    "name": "isOdd",
-                                    "args": [
-                                      {
-                                        "kind": "ref",
-                                        "path": [
-                                          "attackBinding2_0",
-                                          "cost"
-                                        ]
-                                      }
-                                    ],
-                                    "source": "physicalAbilitySource",
-                                    "invokeAt": "expressionEvaluation"
-                                  }
-                                }
-                              }
-                            },
-                            "arenaController": "queriedPlayerOverridesFilter",
-                            "baseZoneController": "zoneOwnerNoAdditionalControllerFilter",
-                            "order": [
-                              "controlledGroundArenaCards",
-                              "controlledSpaceArenaCards",
-                              "baseZoneCards"
-                            ],
-                            "baseZoneOrder": [
-                              "base",
-                              "forceToken",
-                              "leaders",
-                              "credits",
-                              "baseUpgrades"
-                            ],
-                            "evaluation": "expressionEvaluation"
-                          },
-                          "property": "length",
-                          "optional": false,
-                          "continuesOptionalChain": false
-                        },
-                        "evaluateAt": "propertyFactoryInvocation",
-                        "order": 0
-                      }
-                    ],
-                    "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-                    "captureIdentity": "valueOrPhysicalObjectReference",
-                    "invocationPolicy": "eachNativePropertyGeneration",
-                    "effect": {
-                      "kind": "readyResources",
-                      "target": "ownPlayer",
-                      "amount": {
-                        "kind": "ref",
-                        "path": [
-                          "systemFactoryCaptures",
-                          "systemCapture2721_0"
-                        ]
-                      }
-                    }
-                  },
-                  "hooks": [
-                    {
-                      "event": "onLeaderDeployed",
-                      "predicate": {
-                        "kind": "binary",
-                        "op": "&&",
-                        "left": {
-                          "kind": "binary",
-                          "op": "===",
-                          "left": {
-                            "kind": "dataPath",
-                            "root": [
-                              "event"
-                            ],
-                            "argumentBinding": {
-                              "id": "callback:2487:0",
-                              "bindAt": "callbackInvocation",
-                              "readAt": "expressionEvaluation"
-                            },
-                            "steps": [
-                              {
-                                "key": "card",
-                                "optional": false
-                              }
-                            ]
-                          },
-                          "right": {
-                            "kind": "ref",
-                            "path": [
-                              "source"
-                            ]
-                          }
-                        },
-                        "right": {
-                          "kind": "binary",
-                          "op": "===",
-                          "left": {
-                            "kind": "dataPath",
-                            "root": [
-                              "event"
-                            ],
-                            "argumentBinding": {
-                              "id": "callback:2487:0",
-                              "bindAt": "callbackInvocation",
-                              "readAt": "expressionEvaluation"
-                            },
-                            "steps": [
-                              {
-                                "key": "type",
-                                "optional": false
-                              }
-                            ]
-                          },
-                          "right": {
-                            "kind": "const",
-                            "value": "leaderUpgrade"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                },
-                "zoneFilter": "anyArena"
-              }
-            }
-          }
-        ],
+        "unit": [],
         "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getInPlayCards({\n                    type: [WildcardCardType.Unit, WildcardCardType.Upgrade],\n                    condition: (card) => card.hasCost() && this.isOdd(card.cost)\n                })",
+          "file": "game/cards/04_JTL/leaders/HanSoloNeverTellMeTheOdds.ts",
+          "line": 54,
+          "column": 25
+        }
+      ],
       "className": "HanSoloNeverTellMeTheOdds",
       "baseClass": "LeaderUnitCard",
       "id": "0616724418",
@@ -126077,7 +125488,7 @@
           "source": "physicalAbilitySource"
         }
       ],
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Han Solo",
         "subtitle": "Never Tell Me the Odds",
@@ -126127,50 +125538,35 @@
         "binary:>=",
         "cardType:leader",
         "ir:abilityFactory",
-        "ir:array",
         "ir:attackCallbackProgram",
         "ir:attackLastingEntry",
         "ir:attackProperties",
         "ir:binary",
         "ir:const",
-        "ir:constructionMember",
-        "ir:controlledInPlayListQuery",
         "ir:dataPath",
         "ir:deckQuery",
         "ir:exhaustSelf",
         "ir:initiateAttack",
         "ir:modifyStats",
         "ir:pilotDeploy",
-        "ir:pilotingRegistration",
         "ir:privateProgramCall",
         "ir:pureBindings",
         "ir:pureBlock",
         "ir:pureCallback",
         "ir:pureIf",
         "ir:pureReturn",
-        "ir:queryCallback",
-        "ir:readyResources",
         "ir:ref",
-        "ir:registrationQuery",
         "ir:reveal",
         "ir:sharedLeaderDeployEpicAction",
-        "ir:systemPropertiesFactory",
-        "ref:attackBinding1_0.player",
-        "ref:attackBinding2_0",
-        "ref:attackBinding2_0.cost",
         "ref:attackParticipant",
         "ref:player",
         "ref:player.resources.length",
-        "ref:source",
         "ref:source.cost",
         "ref:source.title",
-        "ref:systemFactoryCaptures.systemCapture2721_0",
         "targetType:any",
         "targetType:unit",
         "targetZone:anyAttackable",
-        "trigger:action",
-        "trigger:constant",
-        "trigger:eventHooks"
+        "trigger:action"
       ]
     },
     {
@@ -151796,253 +151192,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "event",
-            "title": "If no player has taken the initiative this phase, you may ready an enemy unit. If you do, ready a friendly unit in the same arena",
-            "costs": [],
-            "optional": true,
-            "targetResolver": {
-              "kind": "cardSelection",
-              "mode": "single",
-              "chooser": "self",
-              "resultBinding": "target",
-              "defaults": "pinnedTargetResolver",
-              "contextBinding": "target",
-              "choosingPlayerOverride": "contextOverrideFirst",
-              "delayOpponentBeforeCosts": true,
-              "cardTypes": {
-                "kind": "const",
-                "value": "any"
-              },
-              "zones": {
-                "kind": "const",
-                "value": "anyAttackable"
-              },
-              "controller": {
-                "kind": "const",
-                "value": "opponent"
-              },
-              "condition": {
-                "kind": "unary",
-                "op": "!",
-                "value": {
-                  "kind": "gamePropertyQuery",
-                  "game": {
-                    "kind": "ref",
-                    "path": [
-                      "game"
-                    ]
-                  },
-                  "property": "isInitiativeClaimed",
-                  "evaluation": "expressionEvaluation"
-                }
-              },
-              "promptTitleParts": [
-                {
-                  "kind": "const",
-                  "value": "Choose an enemy unit to ready"
-                }
-              ]
-            },
-            "effect": {
-              "kind": "readyFromNativeObjectProperties",
-              "parameters": [
-                {
-                  "root": "attackBinding1_0",
-                  "role": "nativeSystemContext"
-                }
-              ],
-              "invocationPolicy": "eachNativePropertyGeneration",
-              "properties": {
-                "kind": "nativeCardValuePropertyMerge",
-                "initialTarget": {
-                  "kind": "inheritedSystemTarget",
-                  "binding": "chosen",
-                  "fallback": "sourceCard"
-                },
-                "defaults": {
-                  "isRegroupPhaseReadyStep": false
-                },
-                "additionalProperties": "currentNativeCallAdditionalProperties",
-                "returnedObject": {
-                  "kind": "ref",
-                  "path": [
-                    "attackBinding1_0",
-                    "target"
-                  ]
-                },
-                "returnedValueDomain": "selectedPhysicalCardOrCardListOrNullish",
-                "mergeOrder": [
-                  "initialTarget",
-                  "readySystemDefaults",
-                  "additionalProperties",
-                  "returnedObjectOwnEnumerableProperties"
-                ],
-                "copySemantics": {
-                  "operation": "ECMAScriptObjectAssign",
-                  "destination": "freshOrdinaryObject",
-                  "nullishSource": "skip",
-                  "keys": "ownPropertyKeysInNativeOrderIncludingSymbols",
-                  "enumerability": "ownDescriptorEnumerableAtCopyTime",
-                  "read": "GetReturnedObjectKeyForEachEnumerableOwnKey",
-                  "write": "SetDestinationKeyWithThrowTrue",
-                  "identity": "copyPropertyValuesAndPhysicalReferences",
-                  "prototypeProperties": "notEnumerated",
-                  "accessorAndExceptionEffects": "preserveNativeGetSetOrderAndCallerExceptionBoundary"
-                },
-                "targetNormalization": {
-                  "scalar": "wrapInArray",
-                  "array": "keepArray",
-                  "filter": "Boolean"
-                }
-              },
-              "consumedProperties": [
-                "target",
-                "isCost",
-                "optional",
-                "cannotBeCancelled",
-                "contingentSourceEvent"
-              ],
-              "event": "onCardReadied",
-              "targetTypes": [
-                "unit",
-                "event",
-                "upgrade",
-                "leader"
-              ],
-              "eligibility": {
-                "zone": "arenaOrResourceOrLeaderInBase",
-                "eventOrUpgrade": "resourceOnly",
-                "requires": "canBeExhaustedAndNotPendingDefeatUnitAndNoReadyRestriction",
-                "stateChange": "isCostOrMustChangeStateRequiresExhausted"
-              },
-              "handler": "eventCardReady",
-              "eventTarget": "eachProcessedMergedTarget",
-              "sourceProvenance": "pinnedReadySystemAndGameSystemPropertyComposition"
-            },
-            "ifYouDo": {
-              "kind": "abilityFactory",
-              "parameters": [
-                {
-                  "root": "abilityBinding1",
-                  "role": "continuationContext"
-                }
-              ],
-              "body": {
-                "title": "Ready a friendly unit in the same arena",
-                "costs": [],
-                "targetResolver": {
-                  "owner": "self",
-                  "type": "any",
-                  "zone": "anyAttackable",
-                  "predicate": {
-                    "kind": "binary",
-                    "op": "===",
-                    "left": {
-                      "kind": "ref",
-                      "path": [
-                        "card",
-                        "zoneName"
-                      ]
-                    },
-                    "right": {
-                      "kind": "ref",
-                      "path": [
-                        "abilityBinding1",
-                        "target",
-                        "zoneName"
-                      ]
-                    }
-                  }
-                },
-                "effect": {
-                  "kind": "readyFromNativeObjectProperties",
-                  "parameters": [
-                    {
-                      "root": "attackBinding1_0",
-                      "role": "nativeSystemContext"
-                    }
-                  ],
-                  "invocationPolicy": "eachNativePropertyGeneration",
-                  "properties": {
-                    "kind": "nativeCardValuePropertyMerge",
-                    "initialTarget": {
-                      "kind": "inheritedSystemTarget",
-                      "binding": "chosen",
-                      "fallback": "sourceCard"
-                    },
-                    "defaults": {
-                      "isRegroupPhaseReadyStep": false
-                    },
-                    "additionalProperties": "currentNativeCallAdditionalProperties",
-                    "returnedObject": {
-                      "kind": "ref",
-                      "path": [
-                        "attackBinding1_0",
-                        "target"
-                      ]
-                    },
-                    "returnedValueDomain": "selectedPhysicalCardOrCardListOrNullish",
-                    "mergeOrder": [
-                      "initialTarget",
-                      "readySystemDefaults",
-                      "additionalProperties",
-                      "returnedObjectOwnEnumerableProperties"
-                    ],
-                    "copySemantics": {
-                      "operation": "ECMAScriptObjectAssign",
-                      "destination": "freshOrdinaryObject",
-                      "nullishSource": "skip",
-                      "keys": "ownPropertyKeysInNativeOrderIncludingSymbols",
-                      "enumerability": "ownDescriptorEnumerableAtCopyTime",
-                      "read": "GetReturnedObjectKeyForEachEnumerableOwnKey",
-                      "write": "SetDestinationKeyWithThrowTrue",
-                      "identity": "copyPropertyValuesAndPhysicalReferences",
-                      "prototypeProperties": "notEnumerated",
-                      "accessorAndExceptionEffects": "preserveNativeGetSetOrderAndCallerExceptionBoundary"
-                    },
-                    "targetNormalization": {
-                      "scalar": "wrapInArray",
-                      "array": "keepArray",
-                      "filter": "Boolean"
-                    }
-                  },
-                  "consumedProperties": [
-                    "target",
-                    "isCost",
-                    "optional",
-                    "cannotBeCancelled",
-                    "contingentSourceEvent"
-                  ],
-                  "event": "onCardReadied",
-                  "targetTypes": [
-                    "unit",
-                    "event",
-                    "upgrade",
-                    "leader"
-                  ],
-                  "eligibility": {
-                    "zone": "arenaOrResourceOrLeaderInBase",
-                    "eventOrUpgrade": "resourceOnly",
-                    "requires": "canBeExhaustedAndNotPendingDefeatUnitAndNoReadyRestriction",
-                    "stateChange": "isCostOrMustChangeStateRequiresExhausted"
-                  },
-                  "handler": "eventCardReady",
-                  "eventTarget": "eachProcessedMergedTarget",
-                  "sourceProvenance": "pinnedReadySystemAndGameSystemPropertyComposition"
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unimplemented-context-field:game",
+          "message": "unimplemented-context-field:game",
+          "file": "game/cards/04_JTL/events/FaceOff.ts",
+          "line": 20,
+          "column": 42
+        }
+      ],
       "className": "FaceOff",
       "baseClass": "EventCard",
       "id": "4942377291",
       "internalName": "face-off",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Face Off",
         "subtitle": "",
@@ -152082,28 +151248,7 @@
       "dataHash": "323662ddd394d00ae61e6f55ae7c804c92d7b0a84971e12e62fdc172516495a8",
       "keywordValues": {},
       "requiredCapabilities": [
-        "ability:ifYouDo",
-        "binary:===",
-        "cardType:event",
-        "ir:abilityFactory",
-        "ir:binary",
-        "ir:cardSelection",
-        "ir:const",
-        "ir:gamePropertyQuery",
-        "ir:inheritedSystemTarget",
-        "ir:nativeCardValuePropertyMerge",
-        "ir:readyFromNativeObjectProperties",
-        "ir:ref",
-        "ir:unary",
-        "ref:abilityBinding1.target.zoneName",
-        "ref:attackBinding1_0.target",
-        "ref:card.zoneName",
-        "ref:game",
-        "targetMode:single",
-        "targetType:any",
-        "targetZone:anyAttackable",
-        "trigger:event",
-        "unary:!"
+        "cardType:event"
       ]
     },
     {
@@ -160988,11 +160133,11 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "property-of-nonreference-local",
-          "message": "property-of-nonreference-local",
+          "pattern": "non-path-reference",
+          "message": "Helpers.asArray(ifYouDoContext.targets.friendlySpaceUnit)",
           "file": "game/cards/04_JTL/events/JumpToLightspeed.ts",
-          "line": 47,
-          "column": 36
+          "line": 46,
+          "column": 50
         }
       ],
       "className": "JumpToLightspeed",
@@ -200412,433 +199557,17 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "whenAttackEnds",
-            "title": "Reveal the top card of a deck",
-            "costs": [],
-            "attackerMustSurvive": true,
-            "targetResolver": {
-              "kind": "choiceSelection",
-              "mode": "select",
-              "resultBinding": "select",
-              "namedResultBinding": "selects.target.choice",
-              "defaults": "pinnedTargetResolver",
-              "chooser": {
-                "kind": "const",
-                "value": "self"
-              },
-              "showUnresolvable": true,
-              "promptTitleParts": [
-                {
-                  "kind": "const",
-                  "value": "Reveal the top card of a deck"
-                }
-              ],
-              "choices": {
-                "entries": [
-                  {
-                    "labelParts": [
-                      {
-                        "kind": "const",
-                        "value": "Your deck"
-                      }
-                    ],
-                    "effect": {
-                      "kind": "reveal",
-                      "target": {
-                        "kind": "deckQuery",
-                        "operation": "topCard",
-                        "receiver": {
-                          "kind": "ref",
-                          "path": [
-                            "player"
-                          ]
-                        },
-                        "args": [],
-                        "order": "topFirst",
-                        "empty": "null"
-                      },
-                      "useDisplayPrompt": true
-                    }
-                  },
-                  {
-                    "labelParts": [
-                      {
-                        "kind": "const",
-                        "value": "Opponent's deck"
-                      }
-                    ],
-                    "effect": {
-                      "kind": "reveal",
-                      "target": {
-                        "kind": "deckQuery",
-                        "operation": "topCard",
-                        "receiver": {
-                          "kind": "ref",
-                          "path": [
-                            "opponent"
-                          ]
-                        },
-                        "args": [],
-                        "order": "topFirst",
-                        "empty": "null"
-                      },
-                      "useDisplayPrompt": true
-                    }
-                  }
-                ],
-                "contextBinding": "resolverContextByReference",
-                "keyOrder": "javascriptPropertyOrder",
-                "duplicatePolicy": "lastAssignmentWins",
-                "factory": true
-              }
-            },
-            "effect": {
-              "kind": "resolveChoice",
-              "resultBinding": "select"
-            },
-            "ifYouDo": {
-              "kind": "abilityFactory",
-              "parameters": [
-                {
-                  "root": "abilityBinding1",
-                  "role": "continuationContext"
-                }
-              ],
-              "body": {
-                "title": "Choose a player",
-                "costs": [],
-                "targetResolver": {
-                  "kind": "playerSelection",
-                  "mode": "player",
-                  "chooser": "self",
-                  "resultBinding": "selectedPlayer",
-                  "defaults": "pinnedTargetResolver",
-                  "contextBinding": "target",
-                  "choosingPlayerOverride": "contextOverrideFirst",
-                  "delayOpponentBeforeCosts": true,
-                  "promptTitleParts": [
-                    {
-                      "kind": "const",
-                      "value": "Choose a player. That player may play "
-                    },
-                    {
-                      "kind": "queryMember",
-                      "receiver": {
-                        "kind": "privateProgramCall",
-                        "name": "getRevealedCard",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "abilityBinding1"
-                            ]
-                          }
-                        ],
-                        "source": "physicalAbilitySource",
-                        "invokeAt": "expressionEvaluation"
-                      },
-                      "property": "title",
-                      "optionalReceiver": false,
-                      "continuesOptionalChain": false,
-                      "evaluation": "expressionEvaluation"
-                    },
-                    {
-                      "kind": "const",
-                      "value": " for free. If they do, the other player creates "
-                    },
-                    {
-                      "kind": "queryMember",
-                      "receiver": {
-                        "kind": "privateProgramCall",
-                        "name": "getRevealedCard",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "abilityBinding1"
-                            ]
-                          }
-                        ],
-                        "source": "physicalAbilitySource",
-                        "invokeAt": "expressionEvaluation"
-                      },
-                      "property": "cost",
-                      "optionalReceiver": false,
-                      "continuesOptionalChain": false,
-                      "evaluation": "expressionEvaluation"
-                    },
-                    {
-                      "kind": "const",
-                      "value": " Credit tokens."
-                    }
-                  ]
-                },
-                "effect": {
-                  "kind": "resolveTargetSelection",
-                  "resultBinding": "selectedPlayer"
-                },
-                "then": {
-                  "kind": "abilityFactory",
-                  "parameters": [
-                    {
-                      "root": "abilityBinding2",
-                      "role": "continuationContext"
-                    }
-                  ],
-                  "body": {
-                    "title": "Play [value] for free. If you do, your opponent creates [value] Credit tokens.",
-                    "costs": [],
-                    "canBeTriggeredBy": {
-                      "kind": "selectionPlayerConversion",
-                      "operation": "asRelativePlayer",
-                      "args": [
-                        {
-                          "kind": "ref",
-                          "path": [
-                            "abilityBinding2",
-                            "target"
-                          ]
-                        },
-                        {
-                          "kind": "ref",
-                          "path": [
-                            "abilityBinding1",
-                            "player"
-                          ]
-                        }
-                      ]
-                    },
-                    "titleParts": [
-                      {
-                        "kind": "const",
-                        "value": "Play "
-                      },
-                      {
-                        "kind": "queryMember",
-                        "receiver": {
-                          "kind": "privateProgramCall",
-                          "name": "getRevealedCard",
-                          "args": [
-                            {
-                              "kind": "ref",
-                              "path": [
-                                "abilityBinding1"
-                              ]
-                            }
-                          ],
-                          "source": "physicalAbilitySource",
-                          "invokeAt": "expressionEvaluation"
-                        },
-                        "property": "title",
-                        "optionalReceiver": false,
-                        "continuesOptionalChain": false,
-                        "evaluation": "expressionEvaluation"
-                      },
-                      {
-                        "kind": "const",
-                        "value": " for free. If you do, your opponent creates "
-                      },
-                      {
-                        "kind": "queryMember",
-                        "receiver": {
-                          "kind": "privateProgramCall",
-                          "name": "getRevealedCard",
-                          "args": [
-                            {
-                              "kind": "ref",
-                              "path": [
-                                "abilityBinding1"
-                              ]
-                            }
-                          ],
-                          "source": "physicalAbilitySource",
-                          "invokeAt": "expressionEvaluation"
-                        },
-                        "property": "cost",
-                        "optionalReceiver": false,
-                        "continuesOptionalChain": false,
-                        "evaluation": "expressionEvaluation"
-                      },
-                      {
-                        "kind": "const",
-                        "value": " Credit tokens."
-                      }
-                    ],
-                    "optional": true,
-                    "effect": {
-                      "kind": "playCardSystem",
-                      "helper": "playCardFromOutOfPlay",
-                      "target": {
-                        "kind": "privateProgramCall",
-                        "name": "getRevealedCard",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "abilityBinding1"
-                            ]
-                          }
-                        ],
-                        "source": "physicalAbilitySource",
-                        "invokeAt": "expressionEvaluation"
-                      },
-                      "ignoredRequirements": [
-                        "phase"
-                      ],
-                      "optional": false,
-                      "entersReady": false,
-                      "playType": "playFromOutOfPlay",
-                      "playAsType": "any",
-                      "nested": false,
-                      "canPlayFromAnyZone": true,
-                      "adjustCost": {
-                        "kind": "costAdjuster",
-                        "adjustment": "free",
-                        "stage": "standard_0",
-                        "cardTypeFilter": "any",
-                        "matchAbilityCosts": false,
-                        "matchCardEffectResourcePayments": false
-                      }
-                    },
-                    "ifYouDo": {
-                      "title": "Create [value] Credit tokens",
-                      "costs": [],
-                      "canBeTriggeredBy": {
-                        "kind": "selectionPlayerConversion",
-                        "operation": "asRelativePlayer",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "abilityBinding2",
-                              "target",
-                              "opponent"
-                            ]
-                          },
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "abilityBinding1",
-                              "player"
-                            ]
-                          }
-                        ]
-                      },
-                      "titleParts": [
-                        {
-                          "kind": "const",
-                          "value": "Create "
-                        },
-                        {
-                          "kind": "queryMember",
-                          "receiver": {
-                            "kind": "privateProgramCall",
-                            "name": "getRevealedCard",
-                            "args": [
-                              {
-                                "kind": "ref",
-                                "path": [
-                                  "abilityBinding1"
-                                ]
-                              }
-                            ],
-                            "source": "physicalAbilitySource",
-                            "invokeAt": "expressionEvaluation"
-                          },
-                          "property": "cost",
-                          "optionalReceiver": false,
-                          "continuesOptionalChain": false,
-                          "evaluation": "expressionEvaluation"
-                        },
-                        {
-                          "kind": "const",
-                          "value": " Credit tokens"
-                        }
-                      ],
-                      "effect": {
-                        "kind": "createCreditToken",
-                        "target": {
-                          "kind": "ref",
-                          "path": [
-                            "abilityBinding2",
-                            "target",
-                            "opponent"
-                          ]
-                        },
-                        "amount": {
-                          "kind": "queryMember",
-                          "receiver": {
-                            "kind": "privateProgramCall",
-                            "name": "getRevealedCard",
-                            "args": [
-                              {
-                                "kind": "ref",
-                                "path": [
-                                  "abilityBinding1"
-                                ]
-                              }
-                            ],
-                            "source": "physicalAbilitySource",
-                            "invokeAt": "expressionEvaluation"
-                          },
-                          "property": "cost",
-                          "optionalReceiver": false,
-                          "continuesOptionalChain": false,
-                          "evaluation": "expressionEvaluation"
-                        },
-                        "destination": "base",
-                        "creationTiming": "eventUpdate"
-                      }
-                    }
-                  }
-                },
-                "ifYouDoCondition": {
-                  "kind": "privateConstructionCall",
-                  "name": "cardCanBePlayedBySomePlayer",
-                  "defaultTarget": "self",
-                  "defaultTargetLookup": "nativePropertyGenerationAfterDefaultTargetFnOverrides",
-                  "args": [
-                    {
-                      "kind": "privateProgramCall",
-                      "name": "getRevealedCard",
-                      "args": [
-                        {
-                          "kind": "ref",
-                          "path": [
-                            "abilityBinding1"
-                          ]
-                        }
-                      ],
-                      "source": "physicalAbilitySource",
-                      "invokeAt": "expressionEvaluation"
-                    },
-                    {
-                      "kind": "abilityContextValue",
-                      "binding": {
-                        "id": "callback:2005:0",
-                        "role": "ifYouDoCondition",
-                        "bindAt": "callbackInvocation",
-                        "readAt": "expressionEvaluation",
-                        "reference": "lexicalContextObject"
-                      }
-                    },
-                    {
-                      "kind": "lexicalCapability",
-                      "capability": "AbilityHelper",
-                      "name": "AbilityHelper"
-                    }
-                  ],
-                  "source": "physicalAbilitySource",
-                  "invokeAt": "expressionEvaluation"
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
       "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "this.getRevealedCard(outerContext)",
+          "file": "game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts",
+          "line": 42,
+          "column": 88
+        },
         {
           "code": "UNSUPPORTED_SOURCE",
           "pattern": "event-history-method:createCopy",
@@ -200896,37 +199625,7 @@
       "dataHash": "c7c6b6f886878c1f073f1ce46e1b8bb793e9442d20ef68dfbbdd93469773f0c6",
       "keywordValues": {},
       "requiredCapabilities": [
-        "ability:ifYouDo",
-        "ability:ifYouDoCondition",
-        "ability:then",
-        "cardType:unit",
-        "ir:abilityContextValue",
-        "ir:abilityFactory",
-        "ir:choiceSelection",
-        "ir:const",
-        "ir:costAdjuster",
-        "ir:createCreditToken",
-        "ir:deckQuery",
-        "ir:lexicalCapability",
-        "ir:playCardSystem",
-        "ir:playerSelection",
-        "ir:privateConstructionCall",
-        "ir:privateProgramCall",
-        "ir:queryMember",
-        "ir:ref",
-        "ir:resolveChoice",
-        "ir:resolveTargetSelection",
-        "ir:reveal",
-        "ir:selectionPlayerConversion",
-        "ref:abilityBinding1",
-        "ref:abilityBinding1.player",
-        "ref:abilityBinding2.target",
-        "ref:abilityBinding2.target.opponent",
-        "ref:opponent",
-        "ref:player",
-        "targetMode:player",
-        "targetMode:select",
-        "trigger:whenAttackEnds"
+        "cardType:unit"
       ]
     },
     {
@@ -202394,8 +201093,8 @@
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "arena-query-snapshot-capture",
-          "message": "arena-query-snapshot-capture",
+          "pattern": "non-path-reference",
+          "message": "new Set(ifYouDoContext.target?.aspects)",
           "file": "game/cards/07_LAW/events/SecretBattleOfPretend.ts",
           "line": 23,
           "column": 46
@@ -207757,245 +206456,90 @@
       "sourcePath": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
       "sourceHash": "751fd05ba4155a58f8290f2323f84ca15262cfed1f204d1014281eb7a30ca2a3",
       "abilities": {
-        "leader": [
-          {
-            "trigger": "action",
-            "title": "Choose a friendly unit that attacked this phase",
-            "costs": [
-              {
-                "kind": "exhaustSelf"
-              }
-            ],
-            "namedTargetTiming": {
-              "contract": "PlayerOrCardAbility.namedTargetResolversWithCosts",
-              "selfPreTarget": true,
-              "opponentAfterPayment": true,
-              "sharedLimitIdentity": true
-            },
-            "targetResolvers": [
-              {
-                "name": "friendlyUnit",
-                "targetResolver": {
-                  "kind": "cardSelection",
-                  "mode": "single",
-                  "chooser": "self",
-                  "resultBinding": "friendlyUnit",
-                  "defaults": "pinnedTargetResolver",
-                  "contextBinding": "target",
-                  "choosingPlayerOverride": "contextOverrideFirst",
-                  "delayOpponentBeforeCosts": true,
-                  "cardTypes": {
-                    "kind": "const",
-                    "value": "unit"
-                  },
-                  "zones": {
-                    "kind": "const",
-                    "value": "anyAttackable"
-                  },
-                  "controller": {
-                    "kind": "const",
-                    "value": "self"
-                  },
-                  "predicate": {
-                    "kind": "historyQuery",
-                    "watcher": "attacksThisPhase",
-                    "binding": "attacksThisPhaseWatcher",
-                    "operation": "cardDidAttack",
-                    "args": [
-                      {
-                        "kind": "ref",
-                        "path": [
-                          "selectionCandidate"
-                        ]
-                      }
-                    ],
-                    "readAt": "expressionEvaluation"
-                  },
-                  "promptTitleParts": [
-                    {
-                      "kind": "const",
-                      "value": "Choose a friendly unit that attacked this phase"
-                    }
-                  ],
-                  "resolverName": "friendlyUnit"
-                },
-                "chooser": "self"
-              },
-              {
-                "name": "playFromHand",
-                "targetResolver": {
-                  "kind": "cardSelection",
-                  "mode": "single",
-                  "chooser": "self",
-                  "resultBinding": "playFromHand",
-                  "defaults": "pinnedTargetResolver",
-                  "contextBinding": "target",
-                  "choosingPlayerOverride": "contextOverrideFirst",
-                  "delayOpponentBeforeCosts": true,
-                  "cardTypes": {
-                    "kind": "const",
-                    "value": "basicUnit"
-                  },
-                  "zones": {
-                    "kind": "const",
-                    "value": "hand"
-                  },
-                  "controller": {
-                    "kind": "const",
-                    "value": "self"
-                  },
-                  "predicate": {
-                    "kind": "binary",
-                    "op": ">",
-                    "left": {
-                      "kind": "queryMember",
-                      "receiver": {
-                        "kind": "setAlgebraQuery",
-                        "operation": "setIntersection",
-                        "args": [
-                          {
-                            "kind": "querySetConstruction",
-                            "values": {
-                              "kind": "collection",
-                              "name": "map",
-                              "receiver": {
-                                "kind": "ref",
-                                "path": [
-                                  "selectionCandidate",
-                                  "keywords"
-                                ]
-                              },
-                              "args": [
-                                {
-                                  "kind": "ref",
-                                  "path": [
-                                    "card",
-                                    "name"
-                                  ]
-                                }
-                              ],
-                              "limit": 256
-                            },
-                            "nullishInput": "empty",
-                            "iteration": "nativeIterableOrder",
-                            "equality": "sameValueZero",
-                            "identity": "freshPerExpressionEvaluation"
-                          },
-                          {
-                            "kind": "querySetConstruction",
-                            "values": {
-                              "kind": "collection",
-                              "name": "map",
-                              "receiver": {
-                                "kind": "namedSelectionRead",
-                                "contextBinding": {
-                                  "id": "callback:2539:1",
-                                  "role": "cardCondition",
-                                  "bindAt": "callbackInvocation",
-                                  "readAt": "expressionEvaluation",
-                                  "reference": "lexicalContextObject"
-                                },
-                                "slot": "friendlyUnit",
-                                "path": [
-                                  "keywords"
-                                ],
-                                "optionalAccess": [],
-                                "identity": "physicalValueOrSelectedList"
-                              },
-                              "args": [
-                                {
-                                  "kind": "ref",
-                                  "path": [
-                                    "card",
-                                    "name"
-                                  ]
-                                }
-                              ],
-                              "limit": 256
-                            },
-                            "nullishInput": "empty",
-                            "iteration": "nativeIterableOrder",
-                            "equality": "sameValueZero",
-                            "identity": "freshPerExpressionEvaluation"
-                          }
-                        ],
-                        "equality": "sameValueZero",
-                        "order": "firstSetOrderFilteredBySecondMembership",
-                        "identity": "freshSet",
-                        "evaluationOrder": "argumentsLeftToRightThenSetIteration"
-                      },
-                      "property": "size",
-                      "optionalReceiver": false,
-                      "continuesOptionalChain": false,
-                      "evaluation": "expressionEvaluation"
-                    },
-                    "right": {
-                      "kind": "const",
-                      "value": 0
-                    }
-                  },
-                  "promptTitleParts": [
-                    {
-                      "kind": "const",
-                      "value": "Play a unit from you hand that shares a "
-                    },
-                    {
-                      "kind": "const",
-                      "value": "Keyword"
-                    },
-                    {
-                      "kind": "const",
-                      "value": " with the chosen unit"
-                    }
-                  ],
-                  "resolverName": "playFromHand"
-                },
-                "chooser": "self",
-                "dependsOn": "friendlyUnit",
-                "effect": {
-                  "kind": "playCardSystem",
-                  "helper": "playCardFromHand",
-                  "target": "chosen",
-                  "ignoredRequirements": [
-                    "phase"
-                  ],
-                  "optional": false,
-                  "entersReady": false,
-                  "playType": "playFromHand",
-                  "playAsType": "unit",
-                  "nested": false,
-                  "canPlayFromAnyZone": false,
-                  "adjustCost": {
-                    "kind": "costAdjuster",
-                    "adjustment": "decrease",
-                    "stage": "standard_0",
-                    "cardTypeFilter": "any",
-                    "matchAbilityCosts": false,
-                    "matchCardEffectResourcePayments": false,
-                    "amount": {
-                      "kind": "const",
-                      "value": 1
-                    }
-                  }
-                }
-              }
-            ],
-            "effect": {
-              "kind": "noAction"
-            }
-          }
-        ],
+        "leader": [],
         "unit": [],
         "card": []
       },
       "diagnostics": [
         {
           "code": "UNSUPPORTED_SOURCE",
-          "pattern": "bounded-arena-reduction",
-          "message": "bounded-arena-reduction",
+          "pattern": "non-path-reference",
+          "message": "Helpers.setIntersection(cardKeywords, targetKeywords)",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 47,
+          "column": 32
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "Helpers.setIntersection(cardKeywords, inPlayKeywords)",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 73,
+          "column": 32
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 44,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 45,
+          "column": 48,
+          "message": "Unused binding targetKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
+          "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
+          "line": 66,
+          "column": 46,
+          "message": "Unused binding cardKeywords may contain unconverted behavior"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unused-source-binding",
           "file": "game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts",
           "line": 67,
-          "column": 48
+          "column": 48,
+          "message": "Unused binding inPlayKeywords may contain unconverted behavior"
         }
       ],
       "className": "MorganElsbethFollowingTheCall",
@@ -208058,28 +206602,7 @@
       "dataHash": "d18924f6029594f6c2e63a0aeb2b72e50e87b65c27de180eb1a67ea91ca48918",
       "keywordValues": {},
       "requiredCapabilities": [
-        "binary:>",
-        "cardType:leader",
-        "collection:map",
-        "ir:binary",
-        "ir:cardSelection",
-        "ir:collection",
-        "ir:const",
-        "ir:costAdjuster",
-        "ir:exhaustSelf",
-        "ir:historyQuery",
-        "ir:namedSelectionRead",
-        "ir:noAction",
-        "ir:playCardSystem",
-        "ir:queryMember",
-        "ir:querySetConstruction",
-        "ir:ref",
-        "ir:setAlgebraQuery",
-        "ref:card.name",
-        "ref:selectionCandidate",
-        "ref:selectionCandidate.keywords",
-        "targetMode:single",
-        "trigger:action"
+        "cardType:leader"
       ]
     },
     {
@@ -254051,172 +252574,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "event",
-            "title": "Choose a unit and pay any number of resources. Give an Experience token to that unit for each resource paid.",
-            "costs": [],
-            "targetResolver": {
-              "owner": "any",
-              "type": "nonLeaderUnit",
-              "zone": "anyAttackable"
-            },
-            "effect": {
-              "kind": "selectionOnlyAbilityStep",
-              "systems": "selectedResolverSystems",
-              "directSystem": "absent",
-              "resetEventsAtExecution": true,
-              "emptyEventWindow": "resolveThenImmediately",
-              "resolutionContext": "preserveSelectedPhysicalTargets",
-              "stateCheck": "queuedAfterAbilityHandler"
-            },
-            "then": {
-              "kind": "abilityFactory",
-              "parameters": [
-                {
-                  "root": "abilityBinding1",
-                  "role": "continuationContext"
-                }
-              ],
-              "body": {
-                "title": "Pay any number of resources. Give an Experience token to that unit for each resource paid.",
-                "costs": [],
-                "targetResolver": {
-                  "kind": "numberSelection",
-                  "mode": "chooseNumber",
-                  "min": {
-                    "kind": "const",
-                    "value": 0
-                  },
-                  "max": {
-                    "kind": "ref",
-                    "path": [
-                      "player",
-                      "readyResourceCount"
-                    ]
-                  },
-                  "chooser": {
-                    "kind": "const",
-                    "value": "self"
-                  },
-                  "resultBinding": "select",
-                  "resolverName": "target",
-                  "namedResultStorage": "selects[name].choice",
-                  "contextSelectAssignment": "onlyWhenNameIsTarget",
-                  "resultRepresentation": "decimalString",
-                  "rangeAssertions": [
-                    "integerMinimum",
-                    "integerMaximum",
-                    "maximumAtLeastMinimum"
-                  ],
-                  "sameEndpoints": "automaticStringSelection",
-                  "logSelection": true,
-                  "defaults": "NumberTargetResolver"
-                },
-                "effect": {
-                  "kind": "simultaneous",
-                  "effects": [
-                    {
-                      "kind": "payUnadjustedResources",
-                      "target": "ownPlayer",
-                      "amount": {
-                        "kind": "selectionNumberCoercion",
-                        "operation": "parseInt",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "select"
-                            ]
-                          }
-                        ],
-                        "semantics": "javascriptParseInt",
-                        "invalidResult": "NaN"
-                      },
-                      "paymentType": "exhaustResources",
-                      "isCost": true,
-                      "allowCostAdjustments": false
-                    },
-                    {
-                      "kind": "giveExperience",
-                      "target": {
-                        "kind": "ref",
-                        "path": [
-                          "abilityBinding1",
-                          "target"
-                        ]
-                      },
-                      "amount": {
-                        "kind": "selectionNumberCoercion",
-                        "operation": "parseInt",
-                        "args": [
-                          {
-                            "kind": "ref",
-                            "path": [
-                              "select"
-                            ]
-                          }
-                        ],
-                        "semantics": "javascriptParseInt",
-                        "invalidResult": "NaN"
-                      }
-                    }
-                  ]
-                },
-                "thenCondition": {
-                  "kind": "binary",
-                  "op": "&&",
-                  "left": {
-                    "kind": "binary",
-                    "op": ">",
-                    "left": {
-                      "kind": "ref",
-                      "path": [
-                        "player",
-                        "readyResourceCount"
-                      ]
-                    },
-                    "right": {
-                      "kind": "const",
-                      "value": 0
-                    }
-                  },
-                  "right": {
-                    "kind": "scopedArenaSomeQuery",
-                    "receiver": {
-                      "kind": "ref",
-                      "path": [
-                        "game"
-                      ]
-                    },
-                    "filter": {},
-                    "type": "unit",
-                    "controller": "any",
-                    "order": "groundThenSpacePhysicalOrder",
-                    "fieldCombination": "and",
-                    "attributeArrayCombination": "or",
-                    "predicateOrder": [
-                      "aspect",
-                      "keyword",
-                      "trait",
-                      "type",
-                      "otherThan",
-                      "condition"
-                    ],
-                    "evaluation": "expressionEvaluation"
-                  }
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "unimplemented-context-field:game",
+          "message": "unimplemented-context-field:game",
+          "file": "game/cards/06_SEC/events/EmergencyPowers.ts",
+          "line": 23,
+          "column": 62
+        }
+      ],
       "className": "EmergencyPowers",
       "baseClass": "EventCard",
       "id": "6782724617",
       "internalName": "emergency-powers",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Emergency Powers",
         "subtitle": "",
@@ -254257,30 +252631,7 @@
       "dataHash": "29ea980674f40f39a059c52f2620e83a6c92b85008a6b45f4c26ab83b861d105",
       "keywordValues": {},
       "requiredCapabilities": [
-        "ability:then",
-        "ability:thenCondition",
-        "binary:&&",
-        "binary:>",
-        "cardType:event",
-        "ir:abilityFactory",
-        "ir:binary",
-        "ir:const",
-        "ir:giveExperience",
-        "ir:numberSelection",
-        "ir:payUnadjustedResources",
-        "ir:ref",
-        "ir:scopedArenaSomeQuery",
-        "ir:selectionNumberCoercion",
-        "ir:selectionOnlyAbilityStep",
-        "ir:simultaneous",
-        "ref:abilityBinding1.target",
-        "ref:game",
-        "ref:player.readyResourceCount",
-        "ref:select",
-        "targetMode:chooseNumber",
-        "targetType:nonLeaderUnit",
-        "targetZone:anyAttackable",
-        "trigger:event"
+        "cardType:event"
       ]
     },
     {
@@ -279537,220 +277888,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "constant",
-            "title": "Name a card, reveal opponent's hand, and create a Spy token for each card with that name",
-            "costs": [],
-            "effect": {
-              "kind": "attachedAbilityRegistration",
-              "registrationMode": "upgrade",
-              "target": "parent",
-              "targetController": "any",
-              "sourceBinding": "attachedHost",
-              "controllerBinding": "hostController",
-              "requiresGrantorInPlay": true,
-              "requiresAttachable": false,
-              "sourceMode": "upgrade",
-              "targetZone": "anyAttackable",
-              "targetTypes": [
-                "unit",
-                "base"
-              ],
-              "registration": {
-                "type": "triggered",
-                "program": {
-                  "trigger": "onAttack",
-                  "title": "Name a card, reveal opponent's hand, and create a Spy token for each card with that name",
-                  "costs": [],
-                  "targetResolver": {
-                    "kind": "choiceSelection",
-                    "mode": "dropdownList",
-                    "resultBinding": "select",
-                    "namedResultBinding": "selects.target.choice",
-                    "defaults": "pinnedTargetResolver",
-                    "chooser": {
-                      "kind": "const",
-                      "value": "self"
-                    },
-                    "condition": {
-                      "kind": "binary",
-                      "op": ">",
-                      "left": {
-                        "kind": "ref",
-                        "path": [
-                          "opponent",
-                          "hand",
-                          "length"
-                        ]
-                      },
-                      "right": {
-                        "kind": "const",
-                        "value": 0
-                      }
-                    },
-                    "options": {
-                      "kind": "choiceRegistry",
-                      "registry": "playableCardTitles",
-                      "order": "engineRegistry",
-                      "capture": "setupRegistryReference"
-                    },
-                    "logSelection": true
-                  },
-                  "effect": {
-                    "kind": "resolveTargetSelection",
-                    "resultBinding": "select"
-                  },
-                  "then": {
-                    "kind": "abilityFactory",
-                    "parameters": [
-                      {
-                        "root": "abilityBinding1",
-                        "role": "continuationContext"
-                      }
-                    ],
-                    "body": {
-                      "title": "An opponent reveals their hand. Create a Spy token for each card in their hand with that name",
-                      "costs": [],
-                      "effect": {
-                        "kind": "sequence",
-                        "effects": [
-                          {
-                            "kind": "reveal",
-                            "target": {
-                              "kind": "ref",
-                              "path": [
-                                "opponent",
-                                "hand"
-                              ]
-                            },
-                            "useDisplayPrompt": true
-                          },
-                          {
-                            "kind": "systemPropertiesFactory",
-                            "parameters": [
-                              {
-                                "root": "attackBinding1_0",
-                                "role": "systemPropertiesContext"
-                              }
-                            ],
-                            "captures": [
-                              {
-                                "name": "systemCapture1702_0",
-                                "role": "staticProperty",
-                                "value": {
-                                  "kind": "constructionMember",
-                                  "receiver": {
-                                    "kind": "constructionCollectionCall",
-                                    "method": "filter",
-                                    "receiver": {
-                                      "kind": "ref",
-                                      "path": [
-                                        "attackBinding1_0",
-                                        "player",
-                                        "opponent",
-                                        "hand"
-                                      ]
-                                    },
-                                    "args": [
-                                      {
-                                        "kind": "constructionPredicate",
-                                        "parameters": [
-                                          {
-                                            "root": "attackBinding2_0",
-                                            "role": "collectionElement"
-                                          }
-                                        ],
-                                        "body": {
-                                          "kind": "binary",
-                                          "op": "===",
-                                          "left": {
-                                            "kind": "ref",
-                                            "path": [
-                                              "attackBinding2_0",
-                                              "title"
-                                            ]
-                                          },
-                                          "right": {
-                                            "kind": "ref",
-                                            "path": [
-                                              "abilityBinding1",
-                                              "select"
-                                            ]
-                                          }
-                                        }
-                                      }
-                                    ],
-                                    "optionalCall": false,
-                                    "optionalReceiver": false,
-                                    "continuesOptionalChain": false,
-                                    "evaluation": "expressionEvaluation"
-                                  },
-                                  "property": "length",
-                                  "optional": false,
-                                  "continuesOptionalChain": false
-                                },
-                                "evaluateAt": "propertyFactoryInvocation",
-                                "order": 0
-                              }
-                            ],
-                            "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-                            "captureIdentity": "valueOrPhysicalObjectReference",
-                            "invocationPolicy": "eachNativePropertyGeneration",
-                            "effect": {
-                              "kind": "createTokenUnitSystem",
-                              "tokenType": "spy",
-                              "amount": {
-                                "kind": "ref",
-                                "path": [
-                                  "systemFactoryCaptures",
-                                  "systemCapture1702_0"
-                                ]
-                              },
-                              "controllers": "ownPlayer",
-                              "entersReady": false,
-                              "creationTiming": "eventUpdate",
-                              "entryTiming": "contingentEvents"
-                            }
-                          }
-                        ]
-                      },
-                      "thenCondition": {
-                        "kind": "binary",
-                        "op": ">",
-                        "left": {
-                          "kind": "ref",
-                          "path": [
-                            "opponent",
-                            "hand",
-                            "length"
-                          ]
-                        },
-                        "right": {
-                          "kind": "const",
-                          "value": 0
-                        }
-                      }
-                    }
-                  },
-                  "hooks": [
-                    {
-                      "alias": "onAttack",
-                      "enabled": true
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.opponent.hand.filter((x) => x.title === thenContext.select)",
+          "file": "game/cards/06_SEC/upgrades/StolenStarpathUnit.ts",
+          "line": 31,
+          "column": 33
+        }
+      ],
       "className": "StolenStarpathUnit",
       "baseClass": "UpgradeCard",
       "id": "4966696528",
       "internalName": "stolen-starpath-unit",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Stolen Starpath Unit",
         "subtitle": "",
@@ -279792,35 +277946,7 @@
       "dataHash": "ab0df76e875f662cadf46c6fdb92e9fde99d5d89bc0df5e6e2d84f8f76dbb960",
       "keywordValues": {},
       "requiredCapabilities": [
-        "ability:then",
-        "ability:thenCondition",
-        "binary:===",
-        "binary:>",
-        "cardType:upgrade",
-        "ir:abilityFactory",
-        "ir:attachedAbilityRegistration",
-        "ir:binary",
-        "ir:choiceRegistry",
-        "ir:choiceSelection",
-        "ir:const",
-        "ir:constructionCollectionCall",
-        "ir:constructionMember",
-        "ir:constructionPredicate",
-        "ir:createTokenUnitSystem",
-        "ir:ref",
-        "ir:resolveTargetSelection",
-        "ir:reveal",
-        "ir:sequence",
-        "ir:systemPropertiesFactory",
-        "ref:abilityBinding1.select",
-        "ref:attackBinding1_0.player.opponent.hand",
-        "ref:attackBinding2_0.title",
-        "ref:opponent.hand",
-        "ref:opponent.hand.length",
-        "ref:systemFactoryCaptures.systemCapture1702_0",
-        "targetMode:dropdownList",
-        "trigger:constant",
-        "trigger:onAttack"
+        "cardType:upgrade"
       ]
     },
     {
@@ -286061,169 +284187,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "event",
-            "title": "Play a unit from your hand. It costs 1 resource less for each Heroism aspect icon among friendly units.",
-            "costs": [],
-            "targetResolver": {
-              "owner": "self",
-              "type": "unit",
-              "zone": "hand"
-            },
-            "effect": {
-              "kind": "systemPropertiesFactory",
-              "parameters": [
-                {
-                  "root": "attackBinding1_0",
-                  "role": "systemPropertiesContext"
-                }
-              ],
-              "captures": [
-                {
-                  "name": "systemCapture1290_0",
-                  "role": "readonlyDeclaration",
-                  "value": {
-                    "kind": "constructionMember",
-                    "receiver": {
-                      "kind": "constructionCollectionCall",
-                      "method": "filter",
-                      "receiver": {
-                        "kind": "arrayFlatQuery",
-                        "receiver": {
-                          "kind": "collection",
-                          "name": "map",
-                          "receiver": {
-                            "kind": "attackArenaList",
-                            "receiver": {
-                              "kind": "ref",
-                              "path": [
-                                "attackBinding1_0",
-                                "player"
-                              ]
-                            },
-                            "filter": {}
-                          },
-                          "args": [
-                            {
-                              "kind": "ref",
-                              "path": [
-                                "card",
-                                "aspects"
-                              ]
-                            }
-                          ],
-                          "limit": 256
-                        },
-                        "depth": 1,
-                        "order": "nativeArrayIndexOrder",
-                        "holes": "removedAtFlattenedLevels",
-                        "identity": "freshArray",
-                        "evaluation": "expressionEvaluation"
-                      },
-                      "args": [
-                        {
-                          "kind": "constructionPredicate",
-                          "parameters": [
-                            {
-                              "root": "attackBinding2_0",
-                              "role": "collectionElement"
-                            }
-                          ],
-                          "body": {
-                            "kind": "binary",
-                            "op": "===",
-                            "left": {
-                              "kind": "ref",
-                              "path": [
-                                "attackBinding2_0"
-                              ]
-                            },
-                            "right": {
-                              "kind": "const",
-                              "value": "heroism"
-                            }
-                          }
-                        }
-                      ],
-                      "optionalCall": false,
-                      "optionalReceiver": false,
-                      "continuesOptionalChain": false,
-                      "evaluation": "expressionEvaluation"
-                    },
-                    "property": "length",
-                    "optional": false,
-                    "continuesOptionalChain": false
-                  },
-                  "evaluateAt": "propertyFactoryInvocation",
-                  "order": 0
-                },
-                {
-                  "name": "systemCapture1290_1",
-                  "role": "staticProperty",
-                  "value": {
-                    "kind": "math",
-                    "name": "max",
-                    "args": [
-                      {
-                        "kind": "const",
-                        "value": 0
-                      },
-                      {
-                        "kind": "ref",
-                        "path": [
-                          "systemFactoryCaptures",
-                          "systemCapture1290_0"
-                        ]
-                      }
-                    ]
-                  },
-                  "evaluateAt": "propertyFactoryInvocation",
-                  "order": 1
-                }
-              ],
-              "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-              "captureIdentity": "valueOrPhysicalObjectReference",
-              "invocationPolicy": "eachNativePropertyGeneration",
-              "effect": {
-                "kind": "playCardSystem",
-                "helper": "playCardFromHand",
-                "target": "chosen",
-                "ignoredRequirements": [
-                  "phase"
-                ],
-                "optional": false,
-                "entersReady": false,
-                "playType": "playFromHand",
-                "playAsType": "unit",
-                "nested": false,
-                "canPlayFromAnyZone": false,
-                "adjustCost": {
-                  "kind": "costAdjuster",
-                  "adjustment": "decrease",
-                  "stage": "standard_0",
-                  "cardTypeFilter": "any",
-                  "matchAbilityCosts": false,
-                  "matchCardEffectResourcePayments": false,
-                  "amount": {
-                    "kind": "ref",
-                    "path": [
-                      "systemFactoryCaptures",
-                      "systemCapture1290_1"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getArenaUnits({})\n                        .map((x) => x.aspects)\n                        .flat()\n                        .filter((x) => x === Aspect.Heroism)",
+          "file": "game/cards/06_SEC/events/RestoreFreedom.ts",
+          "line": 25,
+          "column": 48
+        }
+      ],
       "className": "RestoreFreedom",
       "baseClass": "EventCard",
       "id": "0192246543",
       "internalName": "restore-freedom",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Restore Freedom",
         "subtitle": "",
@@ -286263,30 +284243,7 @@
       "dataHash": "b571a6df8041fb75f4310749924fb1c14dcd3584e766e01833d37af511ce6d32",
       "keywordValues": {},
       "requiredCapabilities": [
-        "binary:===",
-        "cardType:event",
-        "collection:map",
-        "ir:arrayFlatQuery",
-        "ir:attackArenaList",
-        "ir:binary",
-        "ir:collection",
-        "ir:const",
-        "ir:constructionCollectionCall",
-        "ir:constructionMember",
-        "ir:constructionPredicate",
-        "ir:costAdjuster",
-        "ir:math",
-        "ir:playCardSystem",
-        "ir:ref",
-        "ir:systemPropertiesFactory",
-        "ref:attackBinding1_0.player",
-        "ref:attackBinding2_0",
-        "ref:card.aspects",
-        "ref:systemFactoryCaptures.systemCapture1290_0",
-        "ref:systemFactoryCaptures.systemCapture1290_1",
-        "targetType:unit",
-        "targetZone:hand",
-        "trigger:event"
+        "cardType:event"
       ]
     },
     {
@@ -286459,205 +284416,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "whenPlayed",
-            "title": "Name a card, then an opponent reveals their hand. For each copy of the named card in their hand, give an Experience token to this unit",
-            "costs": [],
-            "targetResolver": {
-              "kind": "choiceSelection",
-              "mode": "dropdownList",
-              "resultBinding": "select",
-              "namedResultBinding": "selects.target.choice",
-              "defaults": "pinnedTargetResolver",
-              "chooser": {
-                "kind": "const",
-                "value": "self"
-              },
-              "condition": {
-                "kind": "binary",
-                "op": ">",
-                "left": {
-                  "kind": "ref",
-                  "path": [
-                    "opponent",
-                    "hand",
-                    "length"
-                  ]
-                },
-                "right": {
-                  "kind": "const",
-                  "value": 0
-                }
-              },
-              "options": {
-                "kind": "choiceRegistry",
-                "registry": "playableCardTitles",
-                "order": "engineRegistry",
-                "capture": "setupRegistryReference"
-              },
-              "logSelection": true
-            },
-            "effect": {
-              "kind": "resolveTargetSelection",
-              "resultBinding": "select"
-            },
-            "then": {
-              "kind": "abilityFactory",
-              "parameters": [
-                {
-                  "root": "abilityBinding1",
-                  "role": "continuationContext"
-                }
-              ],
-              "body": {
-                "title": "An opponent reveals their hand, for each copy of the named card in their hand, give an Experience token to this unit",
-                "costs": [],
-                "effect": {
-                  "kind": "simultaneous",
-                  "effects": [
-                    {
-                      "kind": "reveal",
-                      "target": {
-                        "kind": "ref",
-                        "path": [
-                          "opponent",
-                          "hand"
-                        ]
-                      },
-                      "useDisplayPrompt": true
-                    },
-                    {
-                      "kind": "systemPropertiesFactory",
-                      "parameters": [
-                        {
-                          "root": "attackBinding1_0",
-                          "role": "systemPropertiesContext"
-                        }
-                      ],
-                      "captures": [
-                        {
-                          "name": "systemCapture1811_0",
-                          "role": "staticProperty",
-                          "value": {
-                            "kind": "ref",
-                            "path": [
-                              "attackBinding1_0",
-                              "source"
-                            ]
-                          },
-                          "evaluateAt": "propertyFactoryInvocation",
-                          "order": 0
-                        },
-                        {
-                          "name": "systemCapture1811_1",
-                          "role": "staticProperty",
-                          "value": {
-                            "kind": "constructionMember",
-                            "receiver": {
-                              "kind": "constructionCollectionCall",
-                              "method": "filter",
-                              "receiver": {
-                                "kind": "ref",
-                                "path": [
-                                  "attackBinding1_0",
-                                  "player",
-                                  "opponent",
-                                  "hand"
-                                ]
-                              },
-                              "args": [
-                                {
-                                  "kind": "constructionPredicate",
-                                  "parameters": [
-                                    {
-                                      "root": "attackBinding2_0",
-                                      "role": "collectionElement"
-                                    }
-                                  ],
-                                  "body": {
-                                    "kind": "binary",
-                                    "op": "===",
-                                    "left": {
-                                      "kind": "ref",
-                                      "path": [
-                                        "attackBinding2_0",
-                                        "title"
-                                      ]
-                                    },
-                                    "right": {
-                                      "kind": "ref",
-                                      "path": [
-                                        "abilityBinding1",
-                                        "select"
-                                      ]
-                                    }
-                                  }
-                                }
-                              ],
-                              "optionalCall": false,
-                              "optionalReceiver": false,
-                              "continuesOptionalChain": false,
-                              "evaluation": "expressionEvaluation"
-                            },
-                            "property": "length",
-                            "optional": false,
-                            "continuesOptionalChain": false
-                          },
-                          "evaluateAt": "propertyFactoryInvocation",
-                          "order": 1
-                        }
-                      ],
-                      "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-                      "captureIdentity": "valueOrPhysicalObjectReference",
-                      "invocationPolicy": "eachNativePropertyGeneration",
-                      "effect": {
-                        "kind": "giveExperience",
-                        "target": {
-                          "kind": "ref",
-                          "path": [
-                            "systemFactoryCaptures",
-                            "systemCapture1811_0"
-                          ]
-                        },
-                        "amount": {
-                          "kind": "ref",
-                          "path": [
-                            "systemFactoryCaptures",
-                            "systemCapture1811_1"
-                          ]
-                        }
-                      }
-                    }
-                  ]
-                },
-                "thenCondition": {
-                  "kind": "binary",
-                  "op": ">",
-                  "left": {
-                    "kind": "ref",
-                    "path": [
-                      "opponent",
-                      "hand",
-                      "length"
-                    ]
-                  },
-                  "right": {
-                    "kind": "const",
-                    "value": 0
-                  }
-                }
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.opponent.hand.filter((x) => x.title === thenContext.select)",
+          "file": "game/cards/06_SEC/units/InspectorsShuttle.ts",
+          "line": 34,
+          "column": 33
+        }
+      ],
       "className": "InspectorsShuttle",
       "baseClass": "NonLeaderUnitCard",
       "id": "3789032775",
       "internalName": "inspectors-shuttle",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Inspector's Shuttle",
         "subtitle": "",
@@ -286698,35 +284473,7 @@
       "dataHash": "acbbe3b63c202616b7d6abba39de3a74a13829c8643667639bb75d12b3f0f7a8",
       "keywordValues": {},
       "requiredCapabilities": [
-        "ability:then",
-        "ability:thenCondition",
-        "binary:===",
-        "binary:>",
-        "cardType:unit",
-        "ir:abilityFactory",
-        "ir:binary",
-        "ir:choiceRegistry",
-        "ir:choiceSelection",
-        "ir:const",
-        "ir:constructionCollectionCall",
-        "ir:constructionMember",
-        "ir:constructionPredicate",
-        "ir:giveExperience",
-        "ir:ref",
-        "ir:resolveTargetSelection",
-        "ir:reveal",
-        "ir:simultaneous",
-        "ir:systemPropertiesFactory",
-        "ref:abilityBinding1.select",
-        "ref:attackBinding1_0.player.opponent.hand",
-        "ref:attackBinding1_0.source",
-        "ref:attackBinding2_0.title",
-        "ref:opponent.hand",
-        "ref:opponent.hand.length",
-        "ref:systemFactoryCaptures.systemCapture1811_0",
-        "ref:systemFactoryCaptures.systemCapture1811_1",
-        "targetMode:dropdownList",
-        "trigger:whenPlayed"
+        "cardType:unit"
       ]
     },
     {
@@ -290664,87 +288411,159 @@
             "title": "While there are 5 or more different costs among cards in your discard pile, this unit gets +3/+0",
             "costs": [],
             "effect": {
-              "kind": "modifyStats",
-              "target": "self",
-              "duration": "persistent",
-              "power": {
-                "kind": "const",
-                "value": 3
-              },
-              "hp": {
-                "kind": "const",
-                "value": 0
-              }
-            },
-            "condition": {
-              "kind": "binary",
-              "op": ">=",
-              "left": {
-                "kind": "queryMember",
-                "receiver": {
-                  "kind": "querySetConstruction",
-                  "values": {
-                    "kind": "collection",
-                    "name": "map",
-                    "receiver": {
-                      "kind": "collection",
-                      "name": "filter",
+              "kind": "constantEffectRegistration",
+              "properties": {
+                "condition": {
+                  "kind": "attackCallback",
+                  "parameters": [
+                    {
+                      "root": "attackBinding1_0",
+                      "role": "ongoingContext"
+                    }
+                  ],
+                  "body": {
+                    "kind": "binary",
+                    "op": ">=",
+                    "left": {
+                      "kind": "ongoingMember",
                       "receiver": {
-                        "kind": "query",
-                        "name": "getCardsInZone",
-                        "receiver": {
-                          "kind": "ref",
-                          "path": [
-                            "player"
-                          ]
-                        },
-                        "args": [
-                          {
-                            "kind": "const",
-                            "value": "discard"
-                          }
-                        ]
-                      },
-                      "args": [
-                        {
-                          "kind": "query",
-                          "name": "hasCost",
+                        "kind": "querySetConstruction",
+                        "values": {
+                          "kind": "ongoingCollection",
+                          "name": "map",
                           "receiver": {
-                            "kind": "ref",
-                            "path": [
-                              "card"
-                            ]
+                            "kind": "ongoingCollection",
+                            "name": "filter",
+                            "receiver": {
+                              "kind": "query",
+                              "name": "getCardsInZone",
+                              "receiver": {
+                                "kind": "ref",
+                                "path": [
+                                  "attackBinding1_0",
+                                  "player"
+                                ]
+                              },
+                              "args": [
+                                {
+                                  "kind": "const",
+                                  "value": "discard"
+                                }
+                              ]
+                            },
+                            "args": [
+                              {
+                                "kind": "pureCallback",
+                                "parameters": [
+                                  {
+                                    "slot": "data:callback:1552:0",
+                                    "argument": "candidate",
+                                    "bindingPattern": {
+                                      "name": "card"
+                                    }
+                                  }
+                                ],
+                                "body": {
+                                  "kind": "pureReturn",
+                                  "value": {
+                                    "kind": "dataCall",
+                                    "method": "hasCost",
+                                    "receiver": {
+                                      "kind": "dataPath",
+                                      "root": [
+                                        "data:callback:1552:0"
+                                      ],
+                                      "steps": []
+                                    },
+                                    "args": [],
+                                    "optionalCall": false,
+                                    "optionalReceiver": false
+                                  }
+                                },
+                                "capture": "lexicalReferences",
+                                "invokeAt": "nativeCallbackInvocation"
+                              }
+                            ],
+                            "optionalReceiver": false,
+                            "optionalCall": false,
+                            "continuesOptionalChain": false
                           },
-                          "args": []
-                        }
-                      ],
-                      "limit": 256
+                          "args": [
+                            {
+                              "kind": "pureCallback",
+                              "parameters": [
+                                {
+                                  "slot": "data:callback:1603:0",
+                                  "argument": "candidate",
+                                  "bindingPattern": {
+                                    "name": "card"
+                                  }
+                                }
+                              ],
+                              "body": {
+                                "kind": "pureReturn",
+                                "value": {
+                                  "kind": "dataPath",
+                                  "root": [
+                                    "data:callback:1603:0"
+                                  ],
+                                  "steps": [
+                                    {
+                                      "key": "cost",
+                                      "optional": false
+                                    }
+                                  ]
+                                }
+                              },
+                              "capture": "lexicalReferences",
+                              "invokeAt": "nativeCallbackInvocation"
+                            }
+                          ],
+                          "optionalReceiver": false,
+                          "optionalCall": false,
+                          "continuesOptionalChain": false
+                        },
+                        "nullishInput": "empty",
+                        "iteration": "nativeIterableOrder",
+                        "equality": "sameValueZero",
+                        "identity": "freshPerExpressionEvaluation"
+                      },
+                      "member": "size",
+                      "optionalReceiver": false,
+                      "continuesOptionalChain": false
                     },
-                    "args": [
-                      {
-                        "kind": "ref",
-                        "path": [
-                          "card",
-                          "cost"
-                        ]
-                      }
-                    ],
-                    "limit": 256
-                  },
-                  "nullishInput": "empty",
-                  "iteration": "nativeIterableOrder",
-                  "equality": "sameValueZero",
-                  "identity": "freshPerExpressionEvaluation"
-                },
-                "property": "size",
-                "optionalReceiver": false,
-                "continuesOptionalChain": false,
-                "evaluation": "expressionEvaluation"
+                    "right": {
+                      "kind": "const",
+                      "value": 5
+                    }
+                  }
+                }
               },
-              "right": {
-                "kind": "const",
-                "value": 5
-              }
+              "modifier": {
+                "kind": "ongoingContract",
+                "scope": "card",
+                "effectType": "modifyStats",
+                "target": "constantMatch",
+                "duration": "persistent",
+                "valueMode": "static",
+                "value": {
+                  "kind": "record",
+                  "properties": {
+                    "power": {
+                      "kind": "const",
+                      "value": 3
+                    },
+                    "hp": {
+                      "kind": "const",
+                      "value": 0
+                    }
+                  }
+                }
+              },
+              "duration": "persistent",
+              "context": "refreshFromSourceController",
+              "scopeDefaults": "pinnedOngoingCardOrPlayerEffect",
+              "dependencyPolicy": "liveFixedPointRequired"
             }
           },
           {
@@ -290916,28 +288735,30 @@
         "binary:>=",
         "cardType:leader",
         "collection:every",
-        "collection:filter",
-        "collection:map",
+        "ir:attackCallback",
         "ir:binary",
         "ir:cardSelection",
         "ir:collection",
         "ir:const",
+        "ir:constantEffectRegistration",
+        "ir:dataCall",
         "ir:dataPath",
         "ir:discardDeck",
         "ir:inheritedSystemTarget",
-        "ir:modifyStats",
+        "ir:ongoingCollection",
+        "ir:ongoingContract",
+        "ir:ongoingMember",
+        "ir:pureCallback",
+        "ir:pureReturn",
         "ir:query",
-        "ir:queryMember",
         "ir:querySetConstruction",
         "ir:randomSelection",
+        "ir:record",
         "ir:ref",
         "ir:returnToHand",
         "query:getCardsInZone",
-        "query:hasCost",
-        "ref:card",
-        "ref:card.cost",
+        "ref:attackBinding1_0.player",
         "ref:card.title",
-        "ref:player",
         "ref:selectedCards",
         "ref:selectionCandidate.title",
         "ref:source",
@@ -320881,178 +318702,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "onAttack",
-            "title": "Deal 1 damage to the defender (if it's a unit) for each different cost among cards in your discard pile",
-            "costs": [],
-            "contextTitle": [
-              {
-                "kind": "const",
-                "value": "Deal "
-              },
-              {
-                "kind": "queryMember",
-                "receiver": {
-                  "kind": "querySetConstruction",
-                  "values": {
-                    "kind": "collection",
-                    "name": "map",
-                    "receiver": {
-                      "kind": "ref",
-                      "path": [
-                        "player",
-                        "discard"
-                      ]
-                    },
-                    "args": [
-                      {
-                        "kind": "ref",
-                        "path": [
-                          "card",
-                          "cost"
-                        ]
-                      }
-                    ],
-                    "limit": 256
-                  },
-                  "nullishInput": "empty",
-                  "iteration": "nativeIterableOrder",
-                  "equality": "sameValueZero",
-                  "identity": "freshPerExpressionEvaluation"
-                },
-                "property": "size",
-                "optionalReceiver": false,
-                "continuesOptionalChain": false,
-                "evaluation": "expressionEvaluation"
-              },
-              {
-                "kind": "const",
-                "value": " damage to the defender (if it's a unit)"
-              }
-            ],
-            "effect": {
-              "kind": "conditional",
-              "condition": {
-                "kind": "attackValueQuery",
-                "name": "targetIsUnit",
-                "receiver": {
-                  "kind": "ref",
-                  "path": [
-                    "event",
-                    "attack"
-                  ]
-                },
-                "args": [],
-                "optionalReceiver": false,
-                "optionalCall": false,
-                "continuesOptionalChain": false
-              },
-              "onTrue": {
-                "kind": "systemPropertiesFactory",
-                "parameters": [
-                  {
-                    "root": "attackBinding1_0",
-                    "role": "systemPropertiesContext"
-                  }
-                ],
-                "captures": [
-                  {
-                    "name": "systemCapture1137_0",
-                    "role": "staticProperty",
-                    "value": {
-                      "kind": "constructionMember",
-                      "receiver": {
-                        "kind": "querySetConstruction",
-                        "values": {
-                          "kind": "collection",
-                          "name": "map",
-                          "receiver": {
-                            "kind": "ref",
-                            "path": [
-                              "attackBinding1_0",
-                              "player",
-                              "discard"
-                            ]
-                          },
-                          "args": [
-                            {
-                              "kind": "ref",
-                              "path": [
-                                "card",
-                                "cost"
-                              ]
-                            }
-                          ],
-                          "limit": 256
-                        },
-                        "nullishInput": "empty",
-                        "iteration": "nativeIterableOrder",
-                        "equality": "sameValueZero",
-                        "identity": "freshPerExpressionEvaluation"
-                      },
-                      "property": "size",
-                      "optional": false,
-                      "continuesOptionalChain": false
-                    },
-                    "evaluateAt": "propertyFactoryInvocation",
-                    "order": 0
-                  },
-                  {
-                    "name": "systemCapture1137_1",
-                    "role": "staticProperty",
-                    "value": {
-                      "kind": "attackQueryContract",
-                      "operation": "getAllTargets",
-                      "attack": {
-                        "kind": "ref",
-                        "path": [
-                          "attackBinding1_0",
-                          "event",
-                          "attack"
-                        ]
-                      },
-                      "returnIdentity": "nativeTargetsArray",
-                      "evaluation": "expressionEvaluation"
-                    },
-                    "evaluateAt": "propertyFactoryInvocation",
-                    "order": 1
-                  }
-                ],
-                "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
-                "captureIdentity": "valueOrPhysicalObjectReference",
-                "invocationPolicy": "eachNativePropertyGeneration",
-                "effect": {
-                  "kind": "damage",
-                  "target": {
-                    "kind": "ref",
-                    "path": [
-                      "systemFactoryCaptures",
-                      "systemCapture1137_1"
-                    ]
-                  },
-                  "amount": {
-                    "kind": "ref",
-                    "path": [
-                      "systemFactoryCaptures",
-                      "systemCapture1137_0"
-                    ]
-                  }
-                }
-              },
-              "onFalse": {
-                "kind": "noAction"
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "new Set(context.player.discard.map((card) => card.cost))",
+          "file": "game/cards/02_SHD/units/FennecShandLoyalSharpshooter.ts",
+          "line": 16,
+          "column": 48
+        }
+      ],
       "className": "FennecShandLoyalSharpshooter",
       "baseClass": "NonLeaderUnitCard",
       "id": "7982524453",
       "internalName": "fennec-shand#loyal-sharpshooter",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Fennec Shand",
         "subtitle": "Loyal Sharpshooter",
@@ -321098,28 +318764,7 @@
       },
       "requiredCapabilities": [
         "cardType:unit",
-        "collection:map",
-        "ir:attackQueryContract",
-        "ir:attackValueQuery",
-        "ir:collection",
-        "ir:conditional",
-        "ir:const",
-        "ir:constructionMember",
-        "ir:damage",
-        "ir:noAction",
-        "ir:queryMember",
-        "ir:querySetConstruction",
-        "ir:ref",
-        "ir:systemPropertiesFactory",
-        "keyword:ambush",
-        "ref:attackBinding1_0.event.attack",
-        "ref:attackBinding1_0.player.discard",
-        "ref:card.cost",
-        "ref:event.attack",
-        "ref:player.discard",
-        "ref:systemFactoryCaptures.systemCapture1137_0",
-        "ref:systemFactoryCaptures.systemCapture1137_1",
-        "trigger:onAttack"
+        "keyword:ambush"
       ]
     },
     {
@@ -413886,184 +411531,23 @@
       "abilities": {
         "leader": [],
         "unit": [],
-        "card": [
-          {
-            "trigger": "event",
-            "title": "If you control exactly one unit, play a non-Vehicle unit from your hand that shares a Trait with the unit you control. It costs 5 resources less.",
-            "costs": [],
-            "effect": {
-              "kind": "conditional",
-              "condition": {
-                "kind": "binary",
-                "op": "===",
-                "left": {
-                  "kind": "query",
-                  "name": "arenaUnitCount",
-                  "receiver": {
-                    "kind": "ref",
-                    "path": [
-                      "player"
-                    ]
-                  },
-                  "args": [
-                    {
-                      "kind": "const",
-                      "value": true
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "const",
-                  "value": 1
-                }
-              },
-              "onTrue": {
-                "kind": "select",
-                "targetResolver": {
-                  "owner": "any",
-                  "type": "any",
-                  "zone": "hand",
-                  "predicate": {
-                    "kind": "binary",
-                    "op": "&&",
-                    "left": {
-                      "kind": "unary",
-                      "op": "!",
-                      "value": {
-                        "kind": "query",
-                        "name": "hasSomeTrait",
-                        "receiver": {
-                          "kind": "ref",
-                          "path": [
-                            "card"
-                          ]
-                        },
-                        "args": [
-                          {
-                            "kind": "const",
-                            "value": "vehicle"
-                          }
-                        ]
-                      }
-                    },
-                    "right": {
-                      "kind": "queryCollectionCall",
-                      "operation": "some",
-                      "receiver": {
-                        "kind": "arrayFromQuery",
-                        "value": {
-                          "kind": "queryMember",
-                          "receiver": {
-                            "kind": "queryMember",
-                            "receiver": {
-                              "kind": "arenaList",
-                              "receiver": {
-                                "kind": "ref",
-                                "path": [
-                                  "player"
-                                ]
-                              },
-                              "predicate": {
-                                "kind": "const",
-                                "value": true
-                              }
-                            },
-                            "index": {
-                              "kind": "const",
-                              "value": 0
-                            },
-                            "optionalReceiver": false,
-                            "continuesOptionalChain": false,
-                            "evaluation": "expressionEvaluation"
-                          },
-                          "property": "traits",
-                          "optionalReceiver": false,
-                          "continuesOptionalChain": false,
-                          "evaluation": "expressionEvaluation"
-                        },
-                        "input": "iterableOrArrayLike",
-                        "order": "nativeIteratorOrIndexOrder",
-                        "identity": "freshArray",
-                        "nullishInput": "throwTypeError",
-                        "evaluation": "expressionEvaluation"
-                      },
-                      "args": [
-                        {
-                          "kind": "queryCallback",
-                          "parameters": [
-                            {
-                              "root": "attackBinding1_0",
-                              "role": "element"
-                            }
-                          ],
-                          "body": {
-                            "kind": "query",
-                            "name": "hasSomeTrait",
-                            "receiver": {
-                              "kind": "ref",
-                              "path": [
-                                "card"
-                              ]
-                            },
-                            "args": [
-                              {
-                                "kind": "ref",
-                                "path": [
-                                  "attackBinding1_0"
-                                ]
-                              }
-                            ]
-                          }
-                        }
-                      ],
-                      "optionalCall": false,
-                      "optionalReceiver": false,
-                      "order": "nativeArrayOrderAndHoles",
-                      "evaluation": "expressionEvaluation"
-                    }
-                  },
-                  "promptTitle": "Play a non-Vehicle unit from your hand that shared a Trait with the unit you control. It costs 5 resources less."
-                },
-                "effect": {
-                  "kind": "playCardSystem",
-                  "helper": "playCardFromHand",
-                  "target": "chosen",
-                  "ignoredRequirements": [
-                    "phase"
-                  ],
-                  "optional": false,
-                  "entersReady": false,
-                  "playType": "playFromHand",
-                  "playAsType": "unit",
-                  "nested": false,
-                  "canPlayFromAnyZone": false,
-                  "adjustCost": {
-                    "kind": "costAdjuster",
-                    "adjustment": "decrease",
-                    "stage": "standard_0",
-                    "cardTypeFilter": "any",
-                    "matchAbilityCosts": false,
-                    "matchCardEffectResourcePayments": false,
-                    "amount": {
-                      "kind": "const",
-                      "value": 5
-                    }
-                  }
-                }
-              },
-              "onFalse": {
-                "kind": "noAction"
-              }
-            }
-          }
-        ]
+        "card": []
       },
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "non-path-reference",
+          "message": "context.player.getArenaUnits()",
+          "file": "game/cards/03_TWI/events/NowThereAreTwoOfThem.ts",
+          "line": 26,
+          "column": 36
+        }
+      ],
       "className": "NowThereAreTwoOfThem",
       "baseClass": "EventCard",
       "id": "6849037019",
       "internalName": "now-there-are-two-of-them",
-      "status": "supported",
+      "status": "unsupported",
       "card": {
         "title": "Now There Are Two of Them",
         "subtitle": "",
@@ -414103,33 +411587,7 @@
       "dataHash": "cbbd5aeade132c34c3ab71167c1291b9128f0bf0353f367fce9016af32faf79a",
       "keywordValues": {},
       "requiredCapabilities": [
-        "binary:&&",
-        "binary:===",
-        "cardType:event",
-        "ir:arenaList",
-        "ir:arrayFromQuery",
-        "ir:binary",
-        "ir:conditional",
-        "ir:const",
-        "ir:costAdjuster",
-        "ir:noAction",
-        "ir:playCardSystem",
-        "ir:query",
-        "ir:queryCallback",
-        "ir:queryCollectionCall",
-        "ir:queryMember",
-        "ir:ref",
-        "ir:select",
-        "ir:unary",
-        "query:arenaUnitCount",
-        "query:hasSomeTrait",
-        "ref:attackBinding1_0",
-        "ref:card",
-        "ref:player",
-        "targetType:any",
-        "targetZone:hand",
-        "trigger:event",
-        "unary:!"
+        "cardType:event"
       ]
     },
     {

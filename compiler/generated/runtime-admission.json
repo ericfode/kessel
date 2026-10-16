@@ -1,8 +1,8 @@
 {
-  "catalogueHash": "d4756c0ff573f97f60a9f753507a6ea7337c82f31ccc9b46ade11c9f55f25ad4",
+  "catalogueHash": "fc2bc469be015ff28572e4194e26a1f784d7dec9e8eaf7b6941b415bba042f18",
   "dataOnlyConvertedCount": 447,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 2470,
+  "irConvertedCount": 2461,
   "knownCards": 2605,
   "runtimeAdmittedBreakdown": {
     "dataOnly": 447,
@@ -7110,7 +7110,7 @@
     },
     {
       "internalName": "vernestra-rwoh#we-should-handle-this-ourselves",
-      "reason": "vernestra-rwoh#we-should-handle-this-ourselves: compiler rejected \"vernestra-rwoh#we-should-handle-this-ourselves\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":57,\"file\":\"game/cards/09_HMW/units/VernestraRwohWeShouldHandleThisOurselves.ts\",\"line\":36,\"message\":\"unimplemented-context-field:costs\",\"pattern\":\"unimplemented-context-field:costs\"}]",
+      "reason": "vernestra-rwoh#we-should-handle-this-ourselves: compiler rejected \"vernestra-rwoh#we-should-handle-this-ourselves\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/units/VernestraRwohWeShouldHandleThisOurselves.ts\",\"line\":36,\"message\":\"Helpers.asArray(context.costs[chosenUnitsCostName] ?? [])\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "HMW_048"
     },
     {
@@ -7560,7 +7560,7 @@
     },
     {
       "internalName": "defoliator-tank",
-      "reason": "defoliator-tank: invalid ability IR: unknown variant `readonlyFunctionResultMember`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "defoliator-tank: compiler rejected \"defoliator-tank\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":41,\"file\":\"game/cards/09_HMW/units/DefoliatorTank.ts\",\"line\":30,\"message\":\"eligibleDefenders(context)\",\"pattern\":\"non-path-reference\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":35,\"file\":\"game/cards/09_HMW/units/DefoliatorTank.ts\",\"line\":19,\"message\":\"Unused binding eligibleDefenders may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "HMW_248"
     },
     {
@@ -7770,7 +7770,7 @@
     },
     {
       "internalName": "han-solo#never-tell-me-the-odds",
-      "reason": "han-solo#never-tell-me-the-odds: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "han-solo#never-tell-me-the-odds: compiler rejected \"han-solo#never-tell-me-the-odds\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/04_JTL/leaders/HanSoloNeverTellMeTheOdds.ts\",\"line\":54,\"message\":\"context.player.getInPlayCards({\\n                    type: [WildcardCardType.Unit, WildcardCardType.Upgrade],\\n                    condition: (card) => card.hasCost() && this.isOdd(card.cost)\\n                })\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "JTL_017"
     },
     {
@@ -8225,7 +8225,7 @@
     },
     {
       "internalName": "face-off",
-      "reason": "face-off: invalid ability IR: unknown variant `readyFromNativeObjectProperties`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "face-off: compiler rejected \"face-off\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":42,\"file\":\"game/cards/04_JTL/events/FaceOff.ts\",\"line\":20,\"message\":\"unimplemented-context-field:game\",\"pattern\":\"unimplemented-context-field:game\"}]",
       "setCode": "JTL_178"
     },
     {
@@ -8425,7 +8425,7 @@
     },
     {
       "internalName": "jump-to-lightspeed",
-      "reason": "jump-to-lightspeed: compiler rejected \"jump-to-lightspeed\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":36,\"file\":\"game/cards/04_JTL/events/JumpToLightspeed.ts\",\"line\":47,\"message\":\"property-of-nonreference-local\",\"pattern\":\"property-of-nonreference-local\"}]",
+      "reason": "jump-to-lightspeed: compiler rejected \"jump-to-lightspeed\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":50,\"file\":\"game/cards/04_JTL/events/JumpToLightspeed.ts\",\"line\":46,\"message\":\"Helpers.asArray(ifYouDoContext.targets.friendlySpaceUnit)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "JTL_232"
     },
     {
@@ -9135,7 +9135,7 @@
     },
     {
       "internalName": "vermillion#qiras-auction-house",
-      "reason": "vermillion#qiras-auction-house: compiler rejected \"vermillion#qiras-auction-house\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":81,\"message\":\"event-history-method:createCopy\",\"pattern\":\"event-history-method:createCopy\"}]",
+      "reason": "vermillion#qiras-auction-house: compiler rejected \"vermillion#qiras-auction-house\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":88,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":42,\"message\":\"this.getRevealedCard(outerContext)\",\"pattern\":\"non-path-reference\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/07_LAW/units/VermillionQirasAuctionHouse.ts\",\"line\":81,\"message\":\"event-history-method:createCopy\",\"pattern\":\"event-history-method:createCopy\"}]",
       "setCode": "LAW_215"
     },
     {
@@ -9170,7 +9170,7 @@
     },
     {
       "internalName": "secret-battle-of-pretend",
-      "reason": "secret-battle-of-pretend: compiler rejected \"secret-battle-of-pretend\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/07_LAW/events/SecretBattleOfPretend.ts\",\"line\":23,\"message\":\"arena-query-snapshot-capture\",\"pattern\":\"arena-query-snapshot-capture\"}]",
+      "reason": "secret-battle-of-pretend: compiler rejected \"secret-battle-of-pretend\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/07_LAW/events/SecretBattleOfPretend.ts\",\"line\":23,\"message\":\"new Set(ifYouDoContext.target?.aspects)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "LAW_226"
     },
     {
@@ -9290,7 +9290,7 @@
     },
     {
       "internalName": "morgan-elsbeth#following-the-call",
-      "reason": "morgan-elsbeth#following-the-call: compiler rejected \"morgan-elsbeth#following-the-call\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":67,\"message\":\"bounded-arena-reduction\",\"pattern\":\"bounded-arena-reduction\"}]",
+      "reason": "morgan-elsbeth#following-the-call: compiler rejected \"morgan-elsbeth#following-the-call\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":47,\"message\":\"Helpers.setIntersection(cardKeywords, targetKeywords)\",\"pattern\":\"non-path-reference\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":32,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":73,\"message\":\"Helpers.setIntersection(cardKeywords, inPlayKeywords)\",\"pattern\":\"non-path-reference\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":44,\"message\":\"Unused binding cardKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":45,\"message\":\"Unused binding targetKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":44,\"message\":\"Unused binding cardKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":45,\"message\":\"Unused binding targetKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":44,\"message\":\"Unused binding cardKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":45,\"message\":\"Unused binding targetKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":46,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":66,\"message\":\"Unused binding cardKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/05_LOF/leaders/MorganElsbethFollowingTheCall.ts\",\"line\":67,\"message\":\"Unused binding inPlayKeywords may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "LOF_005"
     },
     {
@@ -9980,7 +9980,7 @@
     },
     {
       "internalName": "emergency-powers",
-      "reason": "emergency-powers: invalid ability IR: unknown variant `selectionOnlyAbilityStep`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "emergency-powers: compiler rejected \"emergency-powers\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":62,\"file\":\"game/cards/06_SEC/events/EmergencyPowers.ts\",\"line\":23,\"message\":\"unimplemented-context-field:game\",\"pattern\":\"unimplemented-context-field:game\"}]",
       "setCode": "SEC_040"
     },
     {
@@ -10500,7 +10500,7 @@
     },
     {
       "internalName": "stolen-starpath-unit",
-      "reason": "stolen-starpath-unit: attached program: unknown variant `resolveTargetSelection`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "stolen-starpath-unit: compiler rejected \"stolen-starpath-unit\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/06_SEC/upgrades/StolenStarpathUnit.ts\",\"line\":31,\"message\":\"context.player.opponent.hand.filter((x) => x.title === thenContext.select)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "SEC_210"
     },
     {
@@ -10650,12 +10650,12 @@
     },
     {
       "internalName": "restore-freedom",
-      "reason": "restore-freedom: invalid ability IR: unknown variant `systemPropertiesFactory`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "restore-freedom: compiler rejected \"restore-freedom\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/06_SEC/events/RestoreFreedom.ts\",\"line\":25,\"message\":\"context.player.getArenaUnits({})\\n                        .map((x) => x.aspects)\\n                        .flat()\\n                        .filter((x) => x === Aspect.Heroism)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "SEC_257"
     },
     {
       "internalName": "inspectors-shuttle",
-      "reason": "inspectors-shuttle: invalid ability IR: unknown variant `resolveTargetSelection`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "reason": "inspectors-shuttle: compiler rejected \"inspectors-shuttle\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/06_SEC/units/InspectorsShuttle.ts\",\"line\":34,\"message\":\"context.player.opponent.hand.filter((x) => x.title === thenContext.select)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "SEC_260"
     },
     {
@@ -10735,7 +10735,7 @@
     },
     {
       "internalName": "doctor-aphra#rapacious-archaeologist",
-      "reason": "doctor-aphra#rapacious-archaeologist: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "doctor-aphra#rapacious-archaeologist: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "SHD_015"
     },
     {
@@ -11365,7 +11365,7 @@
     },
     {
       "internalName": "fennec-shand#loyal-sharpshooter",
-      "reason": "fennec-shand#loyal-sharpshooter: invalid ability IR: unknown variant `queryMember`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "fennec-shand#loyal-sharpshooter: compiler rejected \"fennec-shand#loyal-sharpshooter\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":48,\"file\":\"game/cards/02_SHD/units/FennecShandLoyalSharpshooter.ts\",\"line\":16,\"message\":\"new Set(context.player.discard.map((card) => card.cost))\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "SHD_220"
     },
     {
@@ -12965,7 +12965,7 @@
     },
     {
       "internalName": "now-there-are-two-of-them",
-      "reason": "now-there-are-two-of-them: arena scalar query requires exact reviewed complete source shape",
+      "reason": "now-there-are-two-of-them: compiler rejected \"now-there-are-two-of-them\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":36,\"file\":\"game/cards/03_TWI/events/NowThereAreTwoOfThem.ts\",\"line\":26,\"message\":\"context.player.getArenaUnits()\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "TWI_225"
     },
     {
@@ -13041,5 +13041,5 @@
   ],
   "runtimeRejectedCount": 1335,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 2023
+  "sourceAstConvertedCount": 2014
 }
