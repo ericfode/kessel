@@ -51,10 +51,24 @@ fn reprint_set_codes_share_canonical_programmes_without_expanding_compiled_pool(
     let e = Engine::from_catalogue_bytes(catalogue).unwrap();
     assert!(e.by_code.contains_key("IBH_014"));
     assert!(e.by_code.contains_key("IC27_080"));
-    assert_eq!(e.by_code["IBH_014"], e.by_code["IC27_080"]);
+    assert_eq!(e.definitions[e.by_code["IBH_014"] as usize].code, "IBH_014");
+    assert_eq!(e.definitions[e.by_code["IC27_080"] as usize].code, "IC27_080");
+    assert_eq!(
+        e.definitions[e.by_code["IBH_014"] as usize].programs.card,
+        e.definitions[e.by_code["IC27_080"] as usize].programs.card
+    );
+    assert!(e.by_code.contains_key("LOF_239"), "LOF_239 missing: {:?}", e.rejected_cards().unwrap().get("LOF_239"));
     assert!(!e.compiled_pool().unwrap()["cards"].as_array().unwrap().iter().any(|c| c["setCode"] == "IBH_014"));
     assert!(e.compiled_pool().unwrap()["cards"].as_array().unwrap().iter().any(|c| c["setCode"] == "IC27_080"));
     Engine::from_compiled_pool_bytes(include_bytes!("../data/pool.json"), catalogue).unwrap();
+    let expanded = Engine::from_compiled_pool_bytes(
+        include_bytes!("../tests/compiled-fixtures/pool.json"),
+        catalogue,
+    ).unwrap();
+    assert!(expanded.by_code.contains_key("LOF_239"));
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/compiled-fixtures/effect-interactions-4001.jsonl.gz");
+    let result = crate::check::check(&expanded, &path).unwrap_or_else(|err| panic!("{err}"));
+    assert!(result.matched, "{result:?}");
 }
 fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = s.next_id;

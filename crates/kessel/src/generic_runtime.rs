@@ -691,9 +691,9 @@ impl Engine {
             catalogue.metadata.remove(&code);
             catalogue.rejected.insert(code, format!("creates {token}, which is not admitted"));
         }
-        // Reprint printings share one admitted programme. Index alternate setCodes
-        // from card metadata after token gating so pools and tests that still
-        // name an older printing resolve without expanding compiled_pool export.
+        // Reprint printings share one admitted programme. Clone a Definition per
+        // alternate setCode so snapshots keep the printing named in pools/traces,
+        // without expanding compiled_pool metadata export.
         for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
             let code = entry["setCode"].as_str().unwrap_or("");
             let Some(&id) = by_code.get(code) else { continue };
@@ -704,9 +704,20 @@ impl Engine {
                 if alias == code || by_code.contains_key(&alias) {
                     continue;
                 }
+                if definitions.len() > u16::MAX as usize {
+                    return Err("reprint alias definition capacity exceeded".into());
+                }
                 catalogue.cards.insert(alias.clone(), programs.clone());
+                // Metadata membership is what state validation consults; keep the
+                // printing visible without exporting it from compiled_pool.
+                catalogue.metadata.insert(alias.clone(), entry["card"].clone());
                 catalogue.rejected.remove(&alias);
-                by_code.insert(alias, id);
+                catalogue.reprint_of.insert(alias.clone(), code.to_owned());
+                let mut def = definitions[id as usize].clone();
+                def.code = alias.clone();
+                let alias_id = definitions.len() as u16;
+                definitions.push(def);
+                by_code.insert(alias, alias_id);
             }
         }
         // Native registration is not a compiler conversion. The exact reviewed
@@ -746,7 +757,11 @@ impl Engine {
             .catalogue
             .as_ref()
             .ok_or("engine has no compiled catalogue")?;
-        let mut codes: Vec<_> = catalogue.metadata.keys().collect();
+        let mut codes: Vec<_> = catalogue
+            .metadata
+            .keys()
+            .filter(|code| !catalogue.reprint_of.contains_key(code.as_str()))
+            .collect();
         codes.sort();
         let cards: Vec<_> = codes
             .into_iter()
@@ -782,8 +797,8 @@ impl Engine {
                 let catalogue = engine.catalogue.as_ref().unwrap();
                 if catalogue.metadata.contains_key(code) {
                     code.to_owned()
-                } else if let Some(&id) = engine.by_code.get(code) {
-                    engine.definitions[id as usize].code.clone()
+                } else if let Some(canonical) = catalogue.reprint_of.get(code) {
+                    canonical.clone()
                 } else {
                     return Err(format!(
                         "unsupported pool card {code}: {}",
