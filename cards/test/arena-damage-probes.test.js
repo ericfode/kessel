@@ -3,7 +3,7 @@ const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path');
 const { classifyArenaDamage, planArenaDamageProbes, quietUnit, defeatEvent, nativeShield } = require('../pipeline/arena-damage-probes');
 const catalogue = JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE ?? path.resolve(__dirname, '../../compiler/generated/catalog.json')));
-const selected = ['IBH_072', 'LOF_170', 'SEC_263', 'SHD_158', 'TWI_164'].map(id => catalogue.cards.find(e => e.setCode === id));
+const selected = ['IC27_028', 'LOF_170', 'SEC_263', 'SHD_158', 'TWI_164'].map(id => catalogue.cards.find(e => e.setCode === id));
 const clone = structuredClone;
 test('complete five source shapes classify with actual full keyword and registration scopes', () => {
     const shapes = selected.map(classifyArenaDamage);
