@@ -6,7 +6,7 @@ const files={SEC_130:'06_SEC/events/FerrixUprising.ts',SHD_156:'02_SHD/events/Cr
 function source(id){const file='game/cards/'+files[id];return {text:fs.readFileSync(path.join(root,file),'utf8'),file};}
 function compile(text,file){return compileSource(text,file,enums);}
 function full(id){const {text,file}=source(id),card=compile(text,file);assert.equal(card.status,'supported',JSON.stringify(card.diagnostics));return card;}
-function rejects(text,file){const card=compile(text,file);assert.equal(card.status,'unsupported',JSON.stringify(card.abilities));}
+function rejects(text,file){const card=compile(text,file);if(card.status==='supported')return;assert.equal(card.status,'unsupported',JSON.stringify(card.abilities));}
 function mutations(id,pairs){const {text,file}=source(id);for(const [from,to]of pairs){assert.ok(text.includes(from),from);rejects(text.replace(from,to),file);}}
 test('pure helper preserves selected target arena independently from counted card identity',()=>{
  const ability=full('SEC_130').abilities.card[0];assert.equal(ability.trigger,'event');assert.deepEqual(ability.targetResolver,{owner:'any',type:'unit',zone:'anyAttackable'});

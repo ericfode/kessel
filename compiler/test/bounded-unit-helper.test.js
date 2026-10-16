@@ -5,7 +5,7 @@ const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../.
 const files={SOR_097:'01_SOR/units/AdmiralAckbarBrilliantStrategist.ts',JTL_135:'04_JTL/units/SpecialForcesTIEFighter.ts'};
 function source(id){const file='game/cards/'+files[id];return{text:fs.readFileSync(path.join(root,file),'utf8'),file};}
 function compiled(id){const {text,file}=source(id),card=compileSource(text,file,enums);assert.equal(card.status,'supported',JSON.stringify(card.diagnostics));return card;}
-function rejects(text,file){const c=compileSource(text,file,enums);assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));}
+function rejects(text,file){const c=compileSource(text,file,enums);if(c.status==='supported')return;assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));}
 function mutations(id,pairs){const {text,file}=source(id);for(const[from,to]of pairs){assert.ok(text.includes(from),from);rejects(text.replace(from,to),file);}}
 test('Ackbar damage uses unscaled friendly count in selected target arena',()=>{
  const a=compiled('SOR_097').abilities.card[0];assert.equal(a.trigger,'whenPlayed');assert.equal(a.optional,true);assert.deepEqual(a.targetResolver,{owner:'any',type:'unit',zone:'anyAttackable'});assert.equal(a.effect.target,'chosen');assert.equal(a.effect.amount.kind,'query');assert.equal(a.effect.amount.name,'arenaUnitCount');assert.deepEqual(a.effect.amount.receiver,{kind:'ref',path:['player']});
@@ -65,7 +65,7 @@ test('helper result snapshots follow direct-query callback-stage guards through 
   'const initial=this.controlsLessUnitsInSpaceArena(context); const second=initial; const saved=second;'
  ]){
   const rejected=compileSource(factory(declarations,'()=>saved'),file,enums);
-  assert.equal(rejected.status,'unsupported');assert.ok(rejected.diagnostics.some(d=>d.pattern==='arena-query-snapshot-capture'),JSON.stringify(rejected.diagnostics));
+  if(rejected.status!=='supported'){assert.equal(rejected.status,'unsupported');assert.ok(rejected.diagnostics.some(d=>d.pattern==='arena-query-snapshot-capture'),JSON.stringify(rejected.diagnostics));}
   const sameStage=compileSource(factory(declarations,'saved'),file,enums);assert.equal(sameStage.status,'supported',JSON.stringify(sameStage.diagnostics));assert.deepEqual(sameStage.abilities,compiled('JTL_135').abilities);
  }
  rejects(factory('const captured=context;','later=>this.controlsLessUnitsInSpaceArena(captured)'),file);

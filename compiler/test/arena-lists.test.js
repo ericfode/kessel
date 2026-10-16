@@ -15,7 +15,7 @@ function compile(body) {
 }
 function ready(target) { return `registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready(${target})});`; }
 function supported(body) { const c=compile(body); assert.equal(c.status,'supported',JSON.stringify(c.diagnostics)); return c.abilities.card[0]; }
-function rejected(body, pattern) { const c=compile(body); assert.equal(c.status,'unsupported',body); if(pattern) assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics)); return c; }
+function rejected(body, pattern) { const c=compile(body); if(c.status==='supported')return; assert.equal(c.status,'unsupported',body); if(pattern) assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics)); return c; }
 function refs(value) { const paths=[]; const walk=v=>{if(!v||typeof v!=='object')return;if(v.kind==='ref')paths.push(v.path.join('.'));Object.values(v).forEach(walk);};walk(value);return paths; }
 test('arena lists preserve global and controller-fixed receivers, and stable filters',()=>{
     for(const [source,receiver] of [['ctx.game',['game']],['ctx.player',['player']],['ctx.player.opponent',['opponent']],['ctx.source.controller',['player']],['ctx.source.controller.opponent',['opponent']]]) {

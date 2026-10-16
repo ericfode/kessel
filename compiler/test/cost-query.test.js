@@ -36,25 +36,24 @@ test('pinned engine hasCost follows WithCost ancestry, including leaders and tok
         }
     }
 });
-test('full pinned sources convert six cards and retain four remaining mechanic rejections',()=>{
+test('full pinned sources convert the hasCost cohort including former mechanic blockers',()=>{
     const entries=[
-        ['09_HMW/units/DookusSolarSailerDroidArmyPortent.ts',null],
-        ['09_HMW/units/SandcrawlerSalesTeam.ts',null],
-        ['09_HMW/units/FrenziedTriFighters.ts',null],
-        ['06_IBH/events/WatchThis.ts',null],
-        ['06_SEC/units/InnerRimCoalition.ts',null],
-        ['07_TS26/upgrades/Underestimated.ts',null],
-        ['08_ASH/units/TraskWalker.ts','immediateEffect:chooseModalEffects'],
-        ['02_SHD/events/EvidenceOfTheCrime.ts','named-target-card-domain'],
-        ['03_TWI/units/OsiSobeckWardenOfTheCitadel.ts','immediateEffect:capture'],
-        ['04_JTL/leaders/AdmiralTrenchChkchkchkchk.ts','method:deployActionAbilityProps'],
+        '09_HMW/units/DookusSolarSailerDroidArmyPortent.ts',
+        '09_HMW/units/SandcrawlerSalesTeam.ts',
+        '09_HMW/units/FrenziedTriFighters.ts',
+        '06_IBH/events/WatchThis.ts',
+        '06_SEC/units/InnerRimCoalition.ts',
+        '07_TS26/upgrades/Underestimated.ts',
+        '08_ASH/units/TraskWalker.ts',
+        '02_SHD/events/EvidenceOfTheCrime.ts',
+        '03_TWI/units/OsiSobeckWardenOfTheCitadel.ts',
+        '04_JTL/leaders/AdmiralTrenchChkchkchkchk.ts',
     ];
-    for(const [file,remaining] of entries){
+    for(const file of entries){
         const relative='game/cards/'+file;
         const card=compileSource(fs.readFileSync(path.join(engine,'server',relative),'utf8'),relative,enums);
-        assert.equal(card.status,remaining?'unsupported':'supported',file+':'+JSON.stringify(card.diagnostics));
+        assert.equal(card.status,'supported',file+':'+JSON.stringify(card.diagnostics));
         assert.ok(!card.diagnostics.some(d=>d.pattern==='unsupported-query:hasCost'));
-        if(remaining)assert.ok(card.diagnostics.some(d=>d.pattern===remaining),JSON.stringify(card.diagnostics));
     }
 });
 

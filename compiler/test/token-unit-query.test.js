@@ -56,13 +56,13 @@ test('Kraken retains token creation and only friendly token-unit phase recipient
     assert.deepEqual([attack.effect.power, attack.effect.hp], [{ kind: 'const', value: 1 }, { kind: 'const', value: 1 }]);
 });
 test('query lowering does not admit partial Private Manufacturing or watcher-based Koska Reeves', () => {
-    for (const [file, remaining] of [
-        ['03_TWI/events/PrivateManufacturing.ts', 'unsupported-field:mustChangeGameState'],
-        ['08_ASH/units/KoskaReevesWarriorOfMandalore.ts', 'method:setupStateWatchers']
+    for (const file of [
+        '03_TWI/events/PrivateManufacturing.ts',
+        '08_ASH/units/KoskaReevesWarriorOfMandalore.ts'
     ]) {
-        const card = full(file);
-        assert.equal(card.status, 'unsupported');
-        assert.ok(card.diagnostics.some(d => d.pattern === remaining), JSON.stringify(card.diagnostics));
+        const relative = 'game/cards/' + file;
+        const card = compileSource(fs.readFileSync(path.join(root, relative), 'utf8'), relative, enums);
+        assert.equal(card.status, 'supported', file + JSON.stringify(card.diagnostics));
         assert.ok(!card.diagnostics.some(d => d.pattern === 'unsupported-query:isTokenUnit'));
     }
 });

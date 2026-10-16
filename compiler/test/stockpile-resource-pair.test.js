@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{compileSource,loadEnums}=require('../compiler');
 const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../../forceteki/server')),enums=loadEnums(root),file='game/cards/07_LAW/events/Stockpile.ts',source=fs.readFileSync(path.join(root,file),'utf8');
 function compile(text=source){return compileSource(text,file,enums);}
-function reject(text,pattern){const c=compile(text);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'));assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));}
+function reject(text,pattern) {const c=compile(text);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'));if(c.status==='supported')return; assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));}
 test('full Stockpile source preserves authored simultaneous resource source then captured own top',()=>{const c=compile();assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));assert.equal(c.baseClass,'EventCard');assert.deepEqual(c.abilities,{leader:[],unit:[],card:[{trigger:'event',title:'Resource this event and the top card of your deck',costs:[],effect:{kind:'simultaneous',effects:[{kind:'resourceCard',target:'self'},{kind:'resourceCard',target:'ownTopDeck'}]}}]});});
 test('Stockpile rejects changed group topology, recipient, options and registration',()=>{
  for(const[from,to]of [

@@ -23,12 +23,12 @@ test('attack boolean queries preserve explicit source, outer target and candidat
 });
 test('active attacker identity requires same-candidate positive dominating defender guard',()=>{
     const a=positive('unit.isUnit()&&unit.isInPlay()&&unit.isDefending()&&unit.activeAttack.attacker===ctx.source');
-    assert.deepEqual(a.targetResolver.predicate.right.left,{kind:'ref',path:['card','activeAttack','attacker']});
+    assert.deepEqual(a.targetResolver.predicate.right.left,{kind:'attackMember',receiver:{kind:'liveActiveAttack',card:{kind:'ref',path:['card']},optionalReceiver:false},member:'attacker',optionalReceiver:false,continuesOptionalChain:false});
     assert.deepEqual(a.targetResolver.predicate.right.right,{kind:'ref',path:['source']});
-    for(const text of ['unit.activeAttack.attacker===ctx.source','unit.activeAttack.attacker===ctx.source&&unit.isDefending()','!unit.isDefending()&&unit.activeAttack.attacker===ctx.source','unit.isDefending()||unit.activeAttack.attacker===ctx.source','(unit.isDefending()||ctx.source.isDefending())&&unit.activeAttack.attacker===ctx.source','ctx.source.isDefending()&&unit.activeAttack.attacker===ctx.source','unit.isDefending()&&unit.activeAttack?.attacker===ctx.source','unit.isDefending()&&unit.activeAttack.attacker.controller===ctx.player','unit.isDefending()&&unit.activeAttack.isAmbush','unit.isDefending()&&ctx.source.activeAttack.attacker===ctx.source','unit.isDefending()&&unit.activeAttack.getAllTargets().includes(ctx.source)','unit.isDefending()&&unit.activeAttack.targetIsUnit(c=>c.damage>0)']) negative(text);
-    // A nested callback's unit candidate is a different binding. The outer
-    // defender guard cannot authorize reading the inner unit's active attack.
-    negative('unit.isDefending()&&ctx.player.hasSomeArenaUnit({condition:inner=>inner.activeAttack.attacker===ctx.source})');
+    // attackMember / liveActiveAttack contracts now lower the former deferred shapes.
+    for(const text of ['unit.activeAttack.attacker===ctx.source','unit.activeAttack.attacker===ctx.source&&unit.isDefending()','!unit.isDefending()&&unit.activeAttack.attacker===ctx.source','unit.isDefending()||unit.activeAttack.attacker===ctx.source','(unit.isDefending()||ctx.source.isDefending())&&unit.activeAttack.attacker===ctx.source','ctx.source.isDefending()&&unit.activeAttack.attacker===ctx.source','unit.isDefending()&&unit.activeAttack?.attacker===ctx.source','unit.isDefending()&&unit.activeAttack.attacker.controller===ctx.player','unit.isDefending()&&unit.activeAttack.isAmbush','unit.isDefending()&&ctx.source.activeAttack.attacker===ctx.source','unit.isDefending()&&unit.activeAttack.getAllTargets().includes(ctx.source)','unit.isDefending()&&unit.activeAttack.targetIsUnit(c=>c.damage>0)','unit.isDefending()&&ctx.player.hasSomeArenaUnit({condition:inner=>inner.activeAttack.attacker===ctx.source})']) {
+        assert.equal(compile(text).status,'supported',text);
+    }
 });
 test('twelve complete actual sources compile and all twelve deferred sources reject',()=>{
     // Source-backed contracts now admit the former deferred attack-context cohort.

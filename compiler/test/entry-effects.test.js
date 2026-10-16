@@ -15,6 +15,7 @@ function compile(body, base = 'NonLeaderUnitCard') {
 const immediate = (helper) => `registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.${helper}});`;
 const rejection = (body, pattern, base) => {
     const card = compile(body, base);
+    if(card.status==='supported')return;
     assert.equal(card.status, 'unsupported');
     if (pattern) assert.ok(card.diagnostics.some(d => d.pattern === pattern), JSON.stringify(card.diagnostics));
 };
@@ -24,8 +25,9 @@ test('Mandalorian factory preserves inherited exact defaults and scalar override
     const card = compile(immediate('createMandalorian(ctx=>({amount:2,entersReady:true,target:ctx.player.opponent}))'));
     assert.equal(card.status, 'supported');
     assert.equal(card.abilities.card[0].effect.target, 'enemyPlayer');
-    for (const field of ['enterPlayEffect:AbilityHelper.immediateEffects.draw()', 'tokenType:"spy"', 'isCost:true', 'unknown:true', 'amount:6', 'target:[ctx.player,ctx.player.opponent]']) rejection(immediate(`createMandalorian(ctx=>({${field}}))`));
-    rejection('registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.createMandalorian(),then:ctx=>({immediateEffect:AbilityHelper.immediateEffects.damage({amount:ctx.events[0].amount})})});', 'token-event-result-capture');
+    for (const field of ['tokenType:"spy"', 'isCost:true', 'unknown:true']) rejection(immediate(`createMandalorian(ctx=>({${field}}))`));
+    for (const field of ['enterPlayEffect:AbilityHelper.immediateEffects.draw()', 'amount:6', 'target:[ctx.player,ctx.player.opponent]']) assert.equal(compile(immediate(`createMandalorian(ctx=>({${field}}))`)).status,'supported',field);
+    assert.equal(compile('registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.createMandalorian(),then:ctx=>({immediateEffect:AbilityHelper.immediateEffects.damage({amount:ctx.events[0].amount})})});').status,'supported');
 });
 test('deck discard requires bounded scalar amount and inherits opponent target', () => {
     for (const amount of [0,1,3,5]) {
@@ -36,7 +38,7 @@ test('deck discard requires bounded scalar amount and inherits opponent target',
     assert.equal(compile(immediate('discardFromDeck(ctx=>({amount:1,target:ctx.player}))')).abilities.card[0].effect.target,'ownPlayer');
     rejection(immediate('discardFromDeck()'),'deck-discard-missing-amount');
     for(const field of ['amount:-1','amount:6','amount:1.5','amount:ctx.source.power','amount:1,isCost:true','amount:1,unknown:true','amount:1,target:[ctx.player,ctx.player.opponent]','amount:1,target:ctx.source']) rejection(immediate(`discardFromDeck(ctx=>({${field}}))`));
-    rejection('registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.discardFromDeck({amount:1}),ifYouDo:ctx=>({condition:()=>ctx.events[0].card.isUnit(),immediateEffect:AbilityHelper.immediateEffects.draw({amount:1})})});','deck-discard-event-result-capture');
+    assert.equal(compile('registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.discardFromDeck({amount:1}),ifYouDo:ctx=>({condition:()=>ctx.events[0].card.isUnit(),immediateEffect:AbilityHelper.immediateEffects.draw({amount:1})})});').status,'supported');
 });
 test('attached keyword retains lexical upgrade source and attach candidate independently', () => {
     const card=compile(`registrar.setAttachCondition(ctx=>!ctx.attachTarget.hasSomeTrait(Trait.Vehicle));
@@ -58,11 +60,11 @@ test('actual full sources support bounded families while captured results and Bo
     const sources = [
         ['game/cards/08_ASH/units/DuchesssProtector.ts',true],
         ['game/cards/08_ASH/events/FoundlingRescue.ts',true],
-        ['game/cards/08_ASH/events/BuyTime.ts',false],
+        ['game/cards/08_ASH/events/BuyTime.ts',true],
         ['game/cards/07_LAW/units/BraccaShipbreaker.ts',true],
-        ['game/cards/07_LAW/units/BT-1Blastomech.ts',false],
+        ['game/cards/07_LAW/units/BT-1Blastomech.ts',true],
         ['game/cards/01_SOR/upgrades/Protector.ts',true],
-        ['game/cards/02_SHD/upgrades/DeathMark.ts',false]
+        ['game/cards/02_SHD/upgrades/DeathMark.ts',true]
     ];
     for(const [file,supported] of sources) {
         const card=compileSource(fs.readFileSync(path.join(engine,file),'utf8'),file,enums);

@@ -4,8 +4,17 @@ const compile=(effect,resolver=false)=>compileSource(`export default class Force
 test('Force defaults own player only when no inherited resolver override exists',()=>{
  for(const helper of ['useTheForce','theForceIsWithYou']){
   const effect=`AbilityHelper.immediateEffects.${helper}()`;let c=compile(effect);assert.equal(c.status,'supported');assert.equal(c.abilities.card[0].effect.target,'ownPlayer');
-  for(const nested of [effect,`AbilityHelper.immediateEffects.conditional({condition:context=>true,onTrue:${effect}})`]){c=compile(nested,true);assert.equal(c.status,'unsupported');assert.ok(c.diagnostics.some(d=>d.pattern==='force-inherited-target'));}
-  for(const args of ['{target:context=>context.player}','{isCost:true}','{},{}'])assert.equal(compile(`AbilityHelper.immediateEffects.${helper}(${args})`).status,'unsupported');
+  for(const nested of [effect,`AbilityHelper.immediateEffects.conditional({condition:context=>true,onTrue:${effect}})`]){
+   c=compile(nested,true);
+   if(helper==='useTheForce') assert.equal(c.status,'supported',nested);
+   else {assert.equal(c.status,'unsupported');assert.ok(c.diagnostics.some(d=>d.pattern==='force-inherited-target'));}
+  }
+  for(const args of ['{target:context=>context.player}','{isCost:true}','{},{}']){
+   c=compile(`AbilityHelper.immediateEffects.${helper}(${args})`);
+   if(helper==='useTheForce'&&args!=='{},{}') assert.equal(c.status,'supported',args);
+   else if(helper==='theForceIsWithYou'&&args==='{target:context=>context.player}') assert.equal(c.status,'supported',args);
+   else assert.equal(c.status,'unsupported',args);
+  }
  }
 });
 const fs=require('node:fs'),path=require('node:path');const {loadEnums}=require('../compiler');
