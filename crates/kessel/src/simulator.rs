@@ -6,6 +6,10 @@ mod support_runtime;
 mod selector_runtime;
 #[path = "registration_runtime.rs"]
 mod registration_runtime;
+#[path = "legacy_leader.rs"]
+mod legacy_leader;
+#[path = "snapshot_evidence.rs"]
+mod snapshot_evidence;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};
@@ -376,36 +380,14 @@ impl Engine {
     }
     pub fn power(&self,s:&State,id:CardId,attacking:bool)->u16 {u16::try_from(self.raw_power(s,id,attacking).max(0)).expect("power exceeds validated compact capacity")}
     fn leader_available(&self, s: &State) -> (bool, bool) {
-        if self.catalogue.is_some() {
-            let id = s.player(s.active).leader;
-            let c = s.card(id);
-            let deploy = !c.deployed
-                && !c.epic_used
-                && s.player(s.active).resources.len as i32 >= self.def(s, id).info.cost();
-            return (
-                deploy,
-                !c.deployed && !self.available_programs(s, id, "action").is_empty(),
-            );
-        }
-        let p = s.player(s.active);
-        let c = s.card(p.leader);
-        let d = self.def(s, p.leader);
-        let deploy = !c.deployed && !c.epic_used && p.resources.len as i32 >= d.info.cost();
-        let ability = !c.deployed
-            && !c.exhausted
-            && match d.code.as_str() {
-                "IBH_053" => self.ready_resources(s, s.active) > 0,
-                "SEC_005" => true,
-                _ => true,
-            };
-        (deploy, ability)
-    }
-    fn leader_title(&self, s: &State) -> &'static str {
-        match self.def(s, s.player(s.active).leader).code.as_str() {
-            "SOR_014" => "Deal 1 damage to each base",
-            "IBH_053" => "Deal 1 damage to a base",
-            _ => "Heal up to 2 damage from a unit. If you do, deal that much damage to your base",
-        }
+        let id=s.player(s.active).leader;
+        let c=s.card(id);
+        let deploy=!c.deployed && !c.epic_used
+            && s.player(s.active).resources.len as i32>=self.def(s,id).info.cost();
+        let ability=if self.catalogue.is_some() {
+            !c.deployed && !self.available_programs(s,id,"action").is_empty()
+        } else {self.legacy_leader_available(s)};
+        (deploy,ability)
     }
     /// Keep one target-domain implementation for menus, availability and actual
     /// selection; availability can stop at the first target without allocating.
@@ -484,7 +466,7 @@ impl Engine {
                         ));
                     }
                 } else if ability {
-                    let title = self.leader_title(s);
+                    let title = self.legacy_leader_title(s);
                     let title = if self.def(s, p.leader).code == "SEC_005"
                         && s.players.iter().all(|p| p.ground.len + p.space.len == 0)
                     {
@@ -936,29 +918,7 @@ impl Engine {
                 .ok_or("leader has no executable action")?;
             return self.begin_program(s, program, 0);
         }
-        let id = s.player(s.active).leader;
-        s.source = id;
-        s.set_trigger_context(TriggerContext::Action);
-        match self.def(s, id).code.as_str() {
-            "SOR_014" => {
-                s.card_mut(id).exhausted = true;
-                for seat in [Seat::P1, Seat::P2] {
-                    let base = s.player(seat).base;
-                    s.card_mut(base).damage += 1;
-                }
-                self.check_win(s);
-                self.finish(s)?;
-            }
-            "IBH_053" => s.decision = Decision::VaderBase,
-            _ => {
-                s.decision = if s.players.iter().all(|p| p.ground.len + p.space.len == 0) {
-                    Decision::NoEffect
-                } else {
-                    Decision::SatineHeal
-                }
-            }
-        }
-        Ok(())
+        self.use_legacy_leader(s)
     }
     fn clear_action_context(&self, s: &mut State) {
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
@@ -1475,8 +1435,7 @@ impl Engine {
             return Err("positions must start at an action window in the action phase".into());
         }
         let mut s = State::default();
-        s.hidden_history_exact=v.get("hiddenHistoryVersion").is_some();
-        if !s.hidden_history_exact && self.needs_hidden_history() {return Err("selected pool requires explicit Hidden phase history".into());}
+        self.load_hidden_evidence(&mut s,v)?;
         s.round = n(v, "round");
         if s.round == 0 {
             return Err("invalid round".into());
@@ -1534,19 +1493,8 @@ impl Engine {
                     .into(),
             );
         }
-        if let Some(version)=v.get("forceStateVersion") {
-            if version.as_u64()!=Some(1) {return Err("unsupported forceStateVersion".into());}
-            s.force_state_exact=true;
-            for seat in [Seat::P1,Seat::P2] {let token=&v["players"][seat.as_str()]["forceToken"];s.player_mut(seat).force_id=cid(token["id"].as_str().ok_or("Force identity missing")?)?;s.player_mut(seat).force_held=token["held"].as_bool().ok_or("Force held must be boolean")?;}
-            if self.force_def.is_none() && s.players.iter().any(|p|p.force_held) {return Err("held Force requires reviewed native definition".into());}
-        }else if self.needs_force_state() {return Err("selected pool requires explicit Force state version".into());}
-        if let Some(history)=v.get("phaseHistory") {
-            s.phase_history=crate::model::PhaseHistory::parse(history,s.next_id)?;
-            for seat in [Seat::P1,Seat::P2] {for id in 1..s.next_id {
-                if crate::model::PhaseHistory::contains(&s.phase_history.played,seat,id) && (!s.card(id).present || self.def(&s,id).info.is("base") || self.def(&s,id).info.is("leader") || self.def(&s,id).info.is("token")) {return Err("played phase history requires retained playable physical card metadata".into());}
-                if crate::model::PhaseHistory::contains(&s.phase_history.entered,seat,id) && (s.players.iter().any(|p|p.base==id||p.force_id==id) || (s.card(id).present&&!self.def(&s,id).info.is("unit")&&!self.def(&s,id).info.is("leader"))) {return Err("entry phase history requires a physical unit identity".into());}
-            }}
-        }else {s.phase_history.exact=false;if self.needs_phase_history(){return Err("selected pool requires explicit phaseHistory version".into());}}
+        self.load_force_evidence(&mut s,v)?;
+        self.load_phase_history_evidence(&mut s,v)?;
         self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
         for seat in [Seat::P1, Seat::P2] {
@@ -1656,11 +1604,7 @@ impl Engine {
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
-        if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
-        if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
-        if s.phase_history.exact {value["phaseHistory"]=s.phase_history.snapshot();}
-        if s.registration_order.exact {value["registrationOrder"]=json!({"version":1,"cards":s.registration_order.as_slice().iter().map(|id|format!("c{}",*id as u16-1)).collect::<Vec<_>>()});}
-        if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}
+        self.write_snapshot_evidence(s,&mut value);
         value
     }
 }
@@ -1674,3 +1618,7 @@ pub(crate) fn program_backend(hash:&str,bytes:&[u8])->Result<usize,&'static str>
 pub(crate) fn expression_backend(hash: &str, bytes: &[u8]) -> Option<usize> {
     generic_runtime::generated_expression_backend(hash, bytes)
 }
+
+#[cfg(test)]
+#[path = "compatibility_tests.rs"]
+mod compatibility_tests;
