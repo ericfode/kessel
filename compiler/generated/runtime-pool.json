@@ -9963,6 +9963,48 @@
         "cunning",
         "heroism"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3854292375",
+      "internalName": "luke-skywalker#dreaming-farmboy",
+      "keywords": [
+        "raid"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "HMW_208",
+      "setCodes": [
+        {
+          "number": 208,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 208,
+        "set": "HMW"
+      },
+      "subtitle": "Dreaming Farmboy",
+      "text": "Raid 1\nWhile it's the first round of the game, this unit enters play ready.",
+      "title": "Luke Skywalker",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -21202,6 +21244,45 @@
     {
       "arena": "space",
       "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "2177194044",
+      "internalName": "swarming-vulture-droid",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "JTL_256",
+      "setCodes": [
+        {
+          "number": 256,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 256,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "A deck can have up to 15 copies of this card.\nThis unit gets +1/+0 for each other friendly Swarming Vulture Droid.",
+      "title": "Swarming Vulture Droid",
+      "traits": [
+        "separatist",
+        "droid",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -22991,6 +23072,45 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "5334583399",
+      "internalName": "leias-disguise",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_111",
+      "setCodes": [
+        {
+          "number": 111,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 111,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains the Underworld trait.\nWhen Played: If attached unit is Leia Organa, give a Shield token to a friendly unit.",
+      "title": "Leia's Disguise",
+      "traits": [
+        "item",
+        "armor"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -23667,6 +23787,44 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "4894267161",
+      "internalName": "fulcrum",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_150",
+      "setCodes": [
+        {
+          "number": 150,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 150,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains the Rebel trait and “Each other friendly Rebel unit gets +2/+2.”",
+      "title": "Fulcrum",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
     },
     {
       "arena": "ground",
@@ -27188,6 +27346,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "9722568619",
+      "internalName": "captain-enoch#captain-of-the-guard",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "LOF"
+      },
+      "subtitle": "Captain of the Guard",
+      "text": "This unit gets +1/+0 for each Trooper unit in your discard pile.",
+      "title": "Captain Enoch",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -37187,6 +37385,43 @@
       "cost": 1,
       "deployBox": null,
       "epicAction": null,
+      "hp": 1,
+      "id": "7687006104",
+      "internalName": "foundling",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SHD_069",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 69,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains the Mandalorian trait.",
+      "title": "Foundling",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
       "hp": 3,
       "id": "9059202647",
       "internalName": "resilient",
@@ -45513,6 +45748,46 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "cunning",
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "8767791219",
+      "internalName": "abandoned-the-order",
+      "keywords": [
+        "restore"
+      ],
+      "power": 1,
+      "rules": "Abilities that return a card to hand must choose a card in play unless otherwise specified.\nLosing the Jedi trait means the attached unit also can't gain the Jedi trait.\n",
+      "setCode": "TS26_037",
+      "setCodes": [
+        {
+          "number": 37,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 37,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Attached unit loses the Jedi trait and gains Restore 1.\nWhen Played: You may return a non-leader unit to its owner's hand.",
+      "title": "Abandoned the Order",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
       "arena": "ground",
       "aspects": [
         "vigilance",
@@ -45829,6 +46104,45 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "1377604550",
+      "internalName": "sith-traditions",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TS26_052",
+      "setCodes": [
+        {
+          "number": 52,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 52,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains: “On Attack: Give an Experience token to this unit.” and “When Defeated: Give an Experience token to a friendly unit.”",
+      "title": "Sith Traditions",
+      "traits": [
+        "sith",
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "arena": "ground",

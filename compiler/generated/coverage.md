@@ -1,16 +1,13 @@
 # Card source conversion coverage
 
-Known card definitions: **2605**. IR-converted definitions: **2425** (1978 from source AST; 447 metadata-only plain cards). Explicitly blocked definitions: **180**. Excluded test mocks: 21.
+Known card definitions: **2605**. IR-converted definitions: **2470** (2023 from source AST; 447 metadata-only plain cards). Explicitly blocked definitions: **135**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 
 | Unsupported source pattern | Affected cards | Occurrences |
 |---|---:|---:|
 | no-source-for-rules-text | 26 | 26 |
-| unused-source-binding | 18 | 40 |
-| registrar:addGainOnAttackAbilityTargetingAttached | 17 | 17 |
-| non-path-reference | 16 | 17 |
-| attached-constant-installed-keyword-only | 13 | 15 |
+| unused-source-binding | 15 | 30 |
 | callback-statement:IfStatement | 7 | 7 |
 | nonconstant-value | 7 | 7 |
 | constant-target-zone | 5 | 5 |
@@ -18,7 +15,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | hand-discard-player-target | 5 | 5 |
 | quarantined-source | 5 | 5 |
 | unsupported-live-stat-expression | 5 | 6 |
-| unimplemented-context-field:game | 4 | 4 |
 | unsupported-attached-constant-field:gainCondition | 4 | 4 |
 | arena-predicate-expression | 3 | 3 |
 | arena-query-card-capture | 3 | 3 |
@@ -30,16 +26,18 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | private-program-assertion | 3 | 3 |
 | unimplemented-context-field:undefined | 3 | 3 |
 | unsupported-hand-discard-field:random | 3 | 3 |
+| bounded-arena-reduction | 2 | 2 |
 | callback-statement:ExpressionStatement | 2 | 3 |
 | custom-inheritance:TokenCard | 2 | 2 |
+| property-of-nonreference-local | 2 | 2 |
 | unsupported-hand-discard-field:cardCondition | 2 | 2 |
 | view-deck-saved-binding-requires-construction-frame | 2 | 2 |
 | arena-card-query-filter:arena | 1 | 1 |
 | arena-leader-query-scope | 1 | 1 |
 | arena-list-scalar | 1 | 1 |
 | arena-predicate-reference | 1 | 1 |
+| arena-query-snapshot-capture | 1 | 1 |
 | attack-query-receiver | 1 | 1 |
-| bounded-arena-reduction | 1 | 1 |
 | class-member:Constructor | 1 | 1 |
 | class-state:highPriorityRemoval | 1 | 1 |
 | controlled-trait-arity | 1 | 1 |
@@ -49,7 +47,6 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | event-history-method:getOtherPlayer | 1 | 1 |
 | event-history-method:isResource | 1 | 1 |
 | expected-one-card-class | 1 | 1 |
-| live-stat-arena-capture | 1 | 1 |
 | live-stat-resource-pairs-shape | 1 | 1 |
 | method:isCreditToken | 1 | 1 |
 | method:isExperience | 1 | 1 |
@@ -58,11 +55,12 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 | method:isWeakness | 1 | 1 |
 | method:takeControl | 1 | 1 |
 | mutable-callback-local | 1 | 1 |
+| non-path-reference | 1 | 1 |
 | ordered-arena-ground-query | 1 | 1 |
-| property-of-nonreference-local | 1 | 1 |
 | registrar:addDamageModificationAbility | 1 | 1 |
 | token-unit-query-receiver | 1 | 1 |
 | unbound-reference:TextHelper | 1 | 1 |
+| unimplemented-context-field:costs | 1 | 1 |
 | unimplemented-context-field:exhausted | 1 | 1 |
 | unsupported-arena-collection:map | 1 | 2 |
 | unsupported-attached-constant-field:matchTarget | 1 | 1 |
