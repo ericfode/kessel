@@ -82,9 +82,10 @@ fn static_ongoing_cannot_attack_still_defends_and_keeps_sentinel() {
             let blocked = unit(&e, &mut s, Seat::P1, code);
             assert!(e.attack_targets(&s, blocked, false).is_empty());
             assert!(e.attack_targets(&s, blocked, true).is_empty());
-            let prompt = e.apply(&s, &e.card_action(&s, blocked)).unwrap();
-            assert_eq!(e.legal_actions(&prompt).len(), 1);
-            assert_eq!(e.legal_actions(&prompt)[0].arg, Some(json!("cancel")));
+            // InitiateAttackAction::meetsRequirements requires a legal target;
+            // a blocked attacker has no action to click, even while ready.
+            assert!(!e.legal_actions(&s).contains(&e.card_action(&s, blocked)));
+            assert!(e.apply(&s, &e.card_action(&s, blocked)).is_err());
             // A new enemy in the same arena can attack this unit. Its own
             // restriction is not a blanket immunity or a removed Sentinel.
             let attacker = unit(

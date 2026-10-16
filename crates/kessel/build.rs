@@ -59,6 +59,7 @@ fn targets(t: &Target) -> Result<String, String> {
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
+    if matches!(e,Effect::Defeat{target:Target::Expression(expression)} if expression.attachment_defeat_filter().is_some()) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated attachment defeat identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e,Effect::Damage{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated damage identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());

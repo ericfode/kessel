@@ -439,7 +439,8 @@ impl Engine {
                     out.push(Action::button("Claim Initiative", "claimInitiative"));
                 }
                 for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {
-                    if !s.card(id).exhausted || !self.available_programs(s, id, "action").is_empty()
+                    if (!s.card(id).exhausted && !self.attack_targets(s, id, false).is_empty())
+                        || !self.available_programs(s, id, "action").is_empty()
                     {
                         out.push(self.card_action(s, id));
                     }

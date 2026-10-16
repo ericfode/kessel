@@ -3743,3 +3743,5 @@ mod force_cost_tests;
 
 #[path="static_ongoing_tests.rs"]
 mod static_ongoing_tests;
+#[path="collection_query_tests.rs"]
+mod collection_query_tests;

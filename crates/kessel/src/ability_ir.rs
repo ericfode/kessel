@@ -39,6 +39,7 @@ pub enum Expr {
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaLength { receiver: Box<Expr> },
+    Collection { name: String, receiver: Box<Expr>, args: Vec<Expr>, limit: usize },
     Array {
         items: Vec<Expr>,
     },
@@ -100,6 +101,7 @@ enum PortableExpr {
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaLength { receiver: Box<Expr> },
+    Collection { name: String, receiver: Box<Expr>, args: Vec<Expr>, limit: usize },
     Array { items: Vec<Expr> },
     Math { name: String, args: Vec<Expr> },
     Const { value: Value },
@@ -127,6 +129,25 @@ pub struct CompiledExpr {
     pub(crate) index: usize,
 }
 impl Expr {
+    fn physical_inventory_value(&self)->bool {
+        match self.original() {
+            Self::Collection{name,..}=>name=="filter"||name=="map",
+            Self::Ref{path}=>matches!(path.last().map(String::as_str),Some("upgrades"|"hand"|"discard"|"drawDeck"|"resources")),
+            Self::Conditional{then,r#else,..}=>then.physical_inventory_value()||r#else.physical_inventory_value(),
+            Self::Binary{op,left,right} if op=="&&"||op=="||"=>left.physical_inventory_value()||right.physical_inventory_value(),
+            Self::Array{items}=>items.iter().any(Self::physical_inventory_value),
+            _=>false,
+        }
+    }
+    /// Only the two source-proven physical attachment filters are effect lists.
+    /// Scalar collections remain separate from event batching admission.
+    pub(crate) fn attachment_defeat_filter(&self) -> Option<bool> {
+        let Self::Collection {name,receiver,args,limit}=self.original() else {return None;};
+        if name!="filter" || *limit!=256 || !matches!(receiver.original(),Self::Ref{path} if path==&["target","upgrades"]) || args.len()!=1 {return None;}
+        if matches!(args[0].original(),Self::Query{name,receiver,args} if name=="isShield"&&args.is_empty()&&matches!(receiver.original(),Self::Ref{path} if path==&["card"])) {return Some(true);}
+        if matches!(args[0].original(),Self::Unary{op,value} if op=="!"&&matches!(value.original(),Self::Ref{path} if path==&["card","unique"])) {return Some(false);}
+        None
+    }
     /// Inspect the portable expression, independent of its executable attachment.
     pub fn original(&self) -> &Self {
         match self {
@@ -150,7 +171,7 @@ impl Expr {
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.references_title() || predicate.references_title(), Self::ArenaLength {receiver} => receiver.references_title(),
             Self::Query{name,..} if name==crate::live_power_maximum::DISPLAY_QUERY=>true,
             Self::Ref {path}=>path.last().is_some_and(|p|p=="title"),
-            Self::Array {items}=>items.iter().any(Self::references_title),Self::Math {args,..}=>args.iter().any(Self::references_title),Self::Unary {value,..}=>value.references_title(),Self::Binary {left,right,..}=>left.references_title()||right.references_title(),Self::Conditional {condition,then,r#else}=>condition.references_title()||then.references_title()||r#else.references_title(),Self::Query {receiver,args,..}=>receiver.references_title()||args.iter().any(Self::references_title),_=>false,
+            Self::Array {items}=>items.iter().any(Self::references_title),Self::Math {args,..}=>args.iter().any(Self::references_title),Self::Unary {value,..}=>value.references_title(),Self::Binary {left,right,..}=>left.references_title()||right.references_title(),Self::Conditional {condition,then,r#else}=>condition.references_title()||then.references_title()||r#else.references_title(),Self::Collection {receiver,args,..} | Self::Query {receiver,args,..}=>receiver.references_title()||args.iter().any(Self::references_title),_=>false,
         }
     }
     fn depends_on_stats(&self) -> bool {
@@ -158,6 +179,7 @@ impl Expr {
             Self::Compiled(compiled) => compiled.original.depends_on_stats(),
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_stats() || predicate.depends_on_stats(), Self::ArenaLength {receiver} => receiver.depends_on_stats(),
             Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_stats(),
+            Self::Collection {receiver,args,..} => receiver.depends_on_stats() || args.iter().any(Self::depends_on_stats),
             Self::Const { .. } => false,
             Self::Ref { path } => path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_stats),
@@ -187,6 +209,7 @@ impl Expr {
             Self::Compiled(compiled) => compiled.original.depends_on_keywords(),
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_keywords() || predicate.depends_on_keywords(), Self::ArenaLength {receiver} => receiver.depends_on_keywords(),
             Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_keywords(),
+            Self::Collection {receiver,args,..} => receiver.depends_on_keywords() || args.iter().any(Self::depends_on_keywords),
             Self::Const { .. } => false,
             Self::Ref { path } => path.iter().map(String::as_str).collect::<Vec<_>>()==["card","keywords","length"] || path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_keywords),
@@ -214,7 +237,7 @@ impl Expr {
     fn live_only(&self)->bool {
         match self {
             Self::Compiled(compiled)=>compiled.original.live_only(),
-            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.live_only() || predicate.live_only(), Self::ArenaLength {receiver} => receiver.live_only(),Self::Ref {path}=>path.first().is_some_and(|p|p=="modifierTarget"),Self::Query {name,receiver,args}=>name=="resourcePairs"||receiver.live_only()||args.iter().any(Self::live_only),Self::Binary {left,right,..}=>left.live_only()||right.live_only(),Self::Unary {value,..}=>value.live_only(),Self::Conditional {condition,then,r#else}=>condition.live_only()||then.live_only()||r#else.live_only(),Self::Array {items}|Self::Math {args:items,..}=>items.iter().any(Self::live_only),_=>false}
+            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.live_only() || predicate.live_only(), Self::ArenaLength {receiver} => receiver.live_only(),Self::Collection {receiver,args,..}=>receiver.live_only()||args.iter().any(Self::live_only),Self::Ref {path}=>path.first().is_some_and(|p|p=="modifierTarget"),Self::Query {name,receiver,args}=>name=="resourcePairs"||receiver.live_only()||args.iter().any(Self::live_only),Self::Binary {left,right,..}=>left.live_only()||right.live_only(),Self::Unary {value,..}=>value.live_only(),Self::Conditional {condition,then,r#else}=>condition.live_only()||then.live_only()||r#else.live_only(),Self::Array {items}|Self::Math {args:items,..}=>items.iter().any(Self::live_only),_=>false}
     }
     fn live_stat_bounds(&self)->Result<(i64,i64),String> {
         fn root(e:&Expr,paths:&[&[&str]])->bool {matches!(e.original(),Expr::Ref {path} if paths.iter().any(|p|path.iter().map(String::as_str).collect::<Vec<_>>()==*p))}
@@ -265,7 +288,7 @@ impl Expr {
                 Expr::Compiled(compiled)=>guard(&compiled.original,defending),
                 Expr::Ref {path} if path.iter().any(|p|p=="activeAttack") => {if defending && path==&["card","activeAttack","attacker"] {Ok(())}else{Err("active attacker reference requires a dominating card.isDefending guard".into())}},
                 Expr::Binary {op,left,right}=>{guard(left,defending)?;guard(right,defending||(op=="&&"&&positive(left)))},
-                Expr::Query {receiver,args,..}=>{guard(receiver,defending)?;for arg in args {guard(arg,false)?;}Ok(())},
+                Expr::Collection {receiver,args,..}|Expr::Query {receiver,args,..}=>{guard(receiver,defending)?;for arg in args {guard(arg,false)?;}Ok(())},
                 Expr::Array {items}|Expr::Math {args:items,..}=>{for item in items {guard(item,defending)?;}Ok(())},
                 Expr::Unary {value,..}=>guard(value,defending),Expr::Conditional {condition,then,r#else}=>{guard(condition,defending)?;guard(then,defending)?;guard(r#else,defending)},_=>Ok(())
             }
@@ -293,7 +316,7 @@ impl Expr {
         let numeric = match self {
             Self::Compiled(compiled) => compiled.original.validate_number().is_ok(),
             Self::ArenaLength {..} => true, Self::ArenaList {..}|Self::ArenaFilter {..}|Self::ArenaSome {..} => false,
-            Self::Array { .. } | Self::NativeTokenPredicate {..} => false,
+            Self::Array { .. } | Self::NativeTokenPredicate {..} | Self::Collection { .. } => false,
             Self::Math { name, args } => {
                 self.bounded_floor_division().is_some() || ["min", "max"].contains(&name.as_str())
                     && !args.is_empty()
@@ -347,6 +370,15 @@ impl Expr {
                     return Err("native token predicate requires exact physical attachment operation and scalar card receiver".into());
                 }
                 sub(receiver)
+            }
+            Self::Collection {name,receiver,args,limit} => {
+                if *limit != 256 || args.len()!=1 || !["some","every","filter","map","includes"].contains(&name.as_str()) {return Err("collection requires reviewed method, one argument and limit 256".into());}
+                fn card_list(e:&Expr)->bool {match e.original(){Expr::Ref{path}=>matches!(path.iter().map(String::as_str).collect::<Vec<_>>().as_slice(),["source"|"card"|"target","upgrades"]|["player"|"opponent","hand"|"discard"|"drawDeck"|"resources"]),Expr::ArenaList{..}|Expr::ArenaFilter{..}=>true,Expr::Collection{name,receiver,..} if name=="filter"=>card_list(receiver),_=>false}}
+                let mapped=matches!(receiver.original(),Expr::Collection{name,..} if name=="map");
+                if !card_list(receiver) && !(name=="includes"&&mapped) {return Err("collection receiver must be a physical card inventory".into());}
+                fn scalar(e:&Expr)->bool {match e.original(){Expr::Const{..}=>true,Expr::Ref{..}=>!e.physical_inventory_value(),Expr::Query{name,..}=>name!="leaderTraits",Expr::Binary{left,right,..}=>scalar(left)&&scalar(right),Expr::Unary{value,..}=>scalar(value),Expr::Conditional{condition,then,r#else}=>scalar(condition)&&scalar(then)&&scalar(r#else),Expr::Math{args,..}=>args.iter().all(scalar),Expr::Collection{name,..}=>["some","every","includes"].contains(&name.as_str()),_=>false}}
+                if !scalar(&args[0]) {return Err("collection callback/value must return a supported scalar".into());}
+                sub(receiver)?;sub(&args[0])
             },
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
@@ -384,7 +416,8 @@ impl Expr {
                     .as_slice()
                 {
                     ["source" | "target" | "card" | "player" | "opponent"] => true,
-                    ["source" | "target" | "card", "title"] => true,
+                    ["source" | "target" | "card", "title" | "upgrades"] => true,
+                    ["player" | "opponent", "hand" | "discard" | "drawDeck" | "resources"] => true,
                     ["player", "hasTheForce"] => true,
                     ["card","activeAttack","attacker"] => true,
                     ["card","keywords","length"] => true,
@@ -412,6 +445,7 @@ impl Expr {
                 }
             }
             Self::Binary { op, left, right } => {
+                if !["&&","||"].contains(&op.as_str())&&(left.physical_inventory_value()||right.physical_inventory_value()){return Err("physical card inventories require collection operations".into());}
                 if (left.references_title() || right.references_title()) && !["===","!==","&&","||"].contains(&op.as_str()) { return Err("printed titles support strict equality and logical operators only".into()); }
                 if ![
                     "+", "-", "*", "%", "===", "!==", "<", "<=", ">", ">=", "&&", "||",
@@ -424,6 +458,7 @@ impl Expr {
                 sub(right)
             }
             Self::Unary { op, value } => {
+                if op!="!"&&value.physical_inventory_value(){return Err("physical card inventories do not support numeric coercion".into());}
                 if value.references_title() && op!="!" { return Err("printed titles do not support numeric unary coercion".into()); }
                 if !["!", "-"].contains(&op.as_str()) {
                     return Err(format!("unsupported unary operator {op}"));
@@ -444,12 +479,13 @@ impl Expr {
                 receiver,
                 args,
             } => {
+                if receiver.physical_inventory_value()||args.iter().any(Self::physical_inventory_value){return Err("physical card inventories require typed collection operations".into());}
                 if receiver.references_title() || args.iter().any(Self::references_title) { return Err("printed title query coercion is unsupported".into()); }
                 let arity = match name.as_str() {
                     "hasControlledInPlayTrait"=>2,
                     "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isBase" | "isLeader" | "getPower" | "getHp"
-                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
+                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
                     "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
                     | "arenaUnitCount" | "hasControlledInPlayTitle" | "hasAttachedTrait" | "hasAttachedNativeToken" => 1,
                     _ => return Err(format!("unsupported runtime query {name}")),
@@ -481,7 +517,7 @@ impl Expr {
                 if name=="isDeployed" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isDeployed requires an explicit scalar card receiver".into());}
                 if name=="isUpgrade" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isUpgrade requires an explicit card receiver".into());}
                 if name=="hasCost" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("hasCost requires an explicit card receiver".into());}
-                if name=="isTokenUnit" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isTokenUnit requires an explicit card receiver".into());}
+                if ["isTokenUnit","isTokenUpgrade","isShield"].contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("token identity query requires an explicit card receiver".into());}
                 if ["isAttacking","isDefending"].contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref {path} if (path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) || (name=="isDefending" && path==&["source","parentUnit"])) {return Err("attack query requires a scalar source/card/target or reviewed defending parent receiver".into());}
                 sub(receiver)?;
                 for arg in args {
@@ -1065,6 +1101,22 @@ fn contains_force(effect:&Effect)->bool {
 fn contains_weakness(effect:&Effect)->bool {
     match effect {Effect::GiveWeakness{..}=>true,Effect::Conditional{on_true,on_false,..}=>contains_weakness(on_true)||on_false.as_deref().is_some_and(contains_weakness),Effect::Select{effect,..}=>contains_weakness(effect),Effect::Simultaneous{effects}|Effect::Sequence{effects}|Effect::PhaseModifiers{effects}=>effects.iter().any(contains_weakness),_=>false}
 }
+fn attachment_defeat_marker(e:&Effect)->bool {
+    match e {
+        Effect::Defeat{target:Target::Expression(e)}=>matches!(e.original(),Expr::Collection{..}),
+        Effect::Simultaneous{effects}|Effect::Sequence{effects}|Effect::PhaseModifiers{effects}=>effects.iter().any(attachment_defeat_marker),
+        Effect::Conditional{on_true,on_false,..}=>attachment_defeat_marker(on_true)||on_false.as_deref().is_some_and(attachment_defeat_marker),
+        Effect::Select{effect,..}=>attachment_defeat_marker(effect),_=>false,
+    }
+}
+fn attachment_defeat_registration(a:&Ability)->bool {
+    if a.requires_confirmation||a.coordinate||a.attached_context.is_some()||!a.costs.is_empty()||!a.context_title.is_empty()||!a.target_resolvers.is_empty()||a.condition.is_some()||a.then.is_some()||a.if_you_do.is_some(){return false;}
+    let Some(r)=&a.target_resolver else{return false;};
+    if r.owner!="any"||r.card_type!="unit"||r.zone.as_deref()!=Some("anyAttackable")||r.arena.is_some()||r.optional||r.mode.is_some()||r.count.is_some()||r.predicate.is_some()||r.prompt_title.is_some()||!r.prompt_title_parts.is_empty(){return false;}
+    let defeat=|e:&Effect,shield:bool|matches!(e,Effect::Defeat{target:Target::Expression(e)} if e.attachment_defeat_filter()==Some(shield));
+    (a.trigger=="whenPlayed"&&a.optional&&defeat(&a.effect,false)) ||
+    (a.trigger=="event"&&!a.optional&&matches!(&a.effect,Effect::Sequence{effects} if effects.len()==2&&defeat(&effects[0],true)&&matches!(&effects[1],Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(3))))
+}
 
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum NamedChooser { Own, Opponent }
@@ -1404,7 +1456,7 @@ impl Program {
                 Effect::Simultaneous{effects}=>!effects.is_empty()&&effects.len()<=8&&effects.iter().all(|e|keywords(e,selected,context)),_=>false}}
             if !keywords(&ability.effect,ability.target_resolver.is_some(),context) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
             if context=="host" {
-                fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
+                fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Collection{receiver,args,..}|Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
                 if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
                 if let Some(r)=&ability.target_resolver {
                     let expected=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}});
@@ -1413,6 +1465,7 @@ impl Program {
             }
         }
         if contains_arena_scalar(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !arena_query_ability(ability) {return Err("arena scalar queries require exact reviewed registration".into());}
+        if attachment_defeat_marker(&ability.effect)&&!attachment_defeat_registration(ability){return Err("attachment list defeat requires complete reviewed scalar-unit selector and event window".into());}
         if parent_upgrade_registration(ability)==Some(false) {
             let mut normalized=ability.clone();
             if let Effect::Conditional{condition:Expr::Binary{left,..},..}=&mut normalized.effect {
@@ -1492,7 +1545,7 @@ impl Program {
                 Expr::Unary {value, ..} => title_literal_bytes(value),
                 Expr::Binary {left, right, ..} => title_literal_bytes(left) + title_literal_bytes(right),
                 Expr::Conditional {condition, then, r#else} => title_literal_bytes(condition) + title_literal_bytes(then) + title_literal_bytes(r#else),
-                Expr::Query {receiver, args, ..} => title_literal_bytes(receiver) + args.iter().map(title_literal_bytes).sum::<usize>(),
+                Expr::Collection {receiver,args,..}|Expr::Query {receiver, args, ..} => title_literal_bytes(receiver) + args.iter().map(title_literal_bytes).sum::<usize>(),
             }
         }
         let mut literal_bytes = 0;
@@ -1909,7 +1962,7 @@ impl Program {
             match e {
                 Expr::Compiled(compiled) => dependent_in_scope(&compiled.original,card_bound),
                 Expr::NativeTokenPredicate{receiver,..}=>dependent_in_scope(receiver,card_bound),
- Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>dependent_in_scope(receiver,card_bound)||dependent_in_scope(predicate,true),Expr::ArenaLength{receiver}=>dependent_in_scope(receiver,card_bound),
+ Expr::Collection{name,receiver,args,..}=>dependent_in_scope(receiver,card_bound)||args.iter().any(|arg|dependent_in_scope(arg,name!="includes"||card_bound)),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>dependent_in_scope(receiver,card_bound)||dependent_in_scope(predicate,true),Expr::ArenaLength{receiver}=>dependent_in_scope(receiver,card_bound),
                 Expr::Ref {path} => matches!(path.first().map(String::as_str), Some("target" | "targets")) || (!card_bound && path.first().is_some_and(|p|p=="card")),
                 Expr::Array {items} => items.iter().any(|e|dependent_in_scope(e,card_bound)),
                 Expr::Math {args, ..} => args.iter().any(|e|dependent_in_scope(e,card_bound)),
@@ -2154,6 +2207,9 @@ impl Program {
                 if depth!=0 || self.trigger!="whenPlayed" {return Err("ordered arena exhaust requires standalone unit entry".into());}
                 list.validate_ordered_ground()?;self.instructions.push(Instruction::Apply(effect.clone()));
             }
+            Effect::Defeat {target:Target::Expression(e)} if e.attachment_defeat_filter().is_some() => {
+                e.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::Defeat {target:Target::ArenaList(list)} => {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
                 list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
@@ -2315,6 +2371,9 @@ impl Catalogue {
                     ["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|key|entry["card"][*key].is_null()) &&
                     (entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="")
                 }
+                if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|attachment_defeat_marker(&a.effect)) &&
+                    (sides.card.len()!=1||!sides.leader.is_empty()||!sides.unit.is_empty()||!attachment_defeat_registration(&sides.card[0])||!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||
+                    !((entry["baseClass"]=="EventCard"&&exact_type("event")&&sides.card[0].trigger=="event")||(entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")&&sides.card[0].trigger=="whenPlayed"))) {return Err("attachment list defeat requires sole ordinary event/unit source without unimplemented intrinsic mechanics".into());}
                 fn has_maximum(value:&Value)->bool {value["kind"]=="maximumPowerExperience"||match value {Value::Array(a)=>a.iter().any(has_maximum),Value::Object(o)=>o.values().any(has_maximum),_=>false}}
                 if has_maximum(&entry["abilities"]) && (source_class!=Some("LeaderUnitCard")||!exact_type("leader")||!sides.card.is_empty()||sides.leader.len()!=1||sides.unit.len()!=1||sides.leader[0].trigger!="action"||sides.unit[0].trigger!="onAttack"||!maximum_registration(&sides.leader[0])||!maximum_registration(&sides.unit[0])||serde_json::to_value(&sides.leader[0].effect).ok()!=serde_json::to_value(&sides.unit[0].effect).ok()||!entry["attachCondition"].is_null()||!entry["piloting"].is_null()||entry["card"]["unique"]!=true||entry["keywordValues"]!=serde_json::json!({})||["pilotText","pilotBox","pilotingBox","upgradePower","upgradeHp"].iter().any(|k|!entry["card"][*k].is_null())) {return Err("maximum capture requires complete matching leader action and unit attack registrations".into());}
                 fn has_copy(value:&Value)->bool {value["kind"]=="copyKeywords"||match value{Value::Array(a)=>a.iter().any(has_copy),Value::Object(o)=>o.values().any(has_copy),_=>false}}

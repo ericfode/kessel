@@ -42,6 +42,22 @@ impl Eval {
         }
     }
 }
+// The receiver is materialized once before callback card binding. This keeps
+// nested iterators separate from the source, chosen target and live modifier.
+fn evaluate_collection(mut receiver:Eval,name:&str,mut callback:impl FnMut(CardId)->Eval,needle:Option<Eval>)->Eval {
+    if let Eval::ArenaCards(ids)=receiver {receiver=Eval::Array(ids.into_iter().map(Eval::Card).collect());}
+    let Eval::Array(items)=receiver else{return Eval::Null;};
+    assert!(items.len()<=256,"validated physical inventory exceeds collection capacity");
+    if name=="includes" {return Eval::Bool(items.iter().any(|item|Some(item)==needle.as_ref()));}
+    let evaluate=|item:&Eval,callback:&mut dyn FnMut(CardId)->Eval|match item {Eval::Card(id)=>callback(*id),_=>unreachable!("validated callback inventory contains cards")};
+    match name {
+        "some"=>Eval::Bool(items.iter().any(|item|evaluate(item,&mut callback).truth())),
+        "every"=>Eval::Bool(items.iter().all(|item|evaluate(item,&mut callback).truth())),
+        "filter"=>Eval::Array(items.into_iter().filter(|item|evaluate(item,&mut callback).truth()).collect()),
+        "map"=>Eval::Array(items.iter().map(|item|evaluate(item,&mut callback)).collect()),
+        _=>unreachable!("validated collection operation"),
+    }
+}
 enum GroupOp<'a> {
     Leaf(&'a Effect),
     Select(&'a TargetResolver, &'a Effect, usize),
@@ -934,6 +950,11 @@ impl Engine {
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
             Expr::ArenaLength {receiver} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Number(ids.len() as i64)},
             Expr::NativeTokenPredicate {receiver,token_type,..} => Eval::Bool(match sub(receiver) {Eval::Card(id)=>self.attached_native_token(s,id,token_type),_=>false}),
+            Expr::Collection {name,receiver,args,..} => {
+                let inventory=sub(receiver);
+                let needle=(name=="includes").then(||sub(&args[0]));
+                evaluate_collection(inventory,name,|id|self.eval_with_binding(s,source,target,id,modifier_target,&args[0]),needle)
+            },
             Expr::Array { items } => Eval::Array(items.iter().map(sub).collect()),
             Expr::Math { name, args } => {
                 if let Some((numerator,divisor))=e.bounded_floor_division() {return Eval::Number(sub(numerator).number()/divisor);}
@@ -987,9 +1008,13 @@ impl Engine {
                         Some("exhaustedResourceCount") => Eval::Number(
                             s.player(p).resources.len as i64 - self.ready_resources(s, p) as i64,
                         ),
+                        Some("resources") if path.len()==2 => Eval::Array(s.player(p).resources.as_slice().iter().copied().map(Eval::Card).collect()),
                         Some("resources") => Eval::Number(s.player(p).resources.len as i64),
+                        Some("hand") if path.len()==2 => Eval::Array(s.player(p).hand.as_slice().iter().copied().map(Eval::Card).collect()),
                         Some("hand") => Eval::Number(s.player(p).hand.len as i64),
+                        Some("drawDeck") if path.len()==2 => Eval::Array(s.player(p).deck.as_slice().iter().copied().map(Eval::Card).collect()),
                         Some("drawDeck") => Eval::Number(s.player(p).deck.len as i64),
+                        Some("discard") if path.len()==2 => Eval::Array(s.player(p).discard.as_slice().iter().copied().map(Eval::Card).collect()),
                         Some("discard") => Eval::Number(s.player(p).discard.len as i64),
                         _ => Eval::Null,
                     };
@@ -1021,6 +1046,7 @@ impl Engine {
                 }
                 match field {
                     None => Eval::Card(id),
+                    Some("upgrades") => Eval::Array(self.upgrades(s,id).into_iter().map(Eval::Card).collect()),
                     Some("controller") => Eval::Player(s.card(id).owner),
                     Some("damage") => Eval::Number(s.card(id).damage as i64),
                     Some("power") => {
@@ -1181,7 +1207,9 @@ impl Engine {
                     "isDefending"=>Eval::Bool(self.is_defending(s,id)),
                     "hasCost"=>Eval::Bool(["unit","leader","upgrade","event","token"].iter().any(|kind|d.info.is(kind))),
                     "isUpgrade"=>Eval::Bool(d.info.is("upgrade")),
+                    "isTokenUpgrade"=>Eval::Bool(d.info.is("token")&&d.info.is("upgrade")),
                     "isTokenUnit"=>Eval::Bool(d.info.is("token")&&d.info.is("unit")),
+                    "isShield"=>Eval::Bool(s.card(id).def==self.shield_def),
                     "isNonLeaderUnit" => Eval::Bool(d.info.is("unit") && !d.info.is("leader")),
                     "isInPlay" => Eval::Bool(self.in_arena(s, id) || self.attached_in_play(s,id) || d.info.is("base")),
                     "canBeExhausted" => Eval::Bool(
@@ -1535,7 +1563,7 @@ impl Engine {
                         out.len(),
                     ));
                 }
-                if !s.card(source).exhausted {
+                if !s.card(source).exhausted && !self.attack_targets(s, source, false).is_empty() {
                     out.push(Action::button("Attack", out.len()));
                 }
                 out.push(Action::button("Cancel", out.len()));
@@ -2484,6 +2512,21 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if let Effect::Defeat{target:Target::Expression(expression)}=e {
+            if expression.attachment_defeat_filter().is_some() {
+                // One native target list is generated before any handler runs.
+                // Attachment primary handlers keep physical list order; only
+                // after the entire window settles may lost HP defeat a parent.
+                let targets=self.effect_targets(s,&Target::Expression(expression.clone())).into_iter().filter_map(|v|match v {Eval::Card(id) if self.attached_in_play(s,id)&&s.card(id).parent==s.ability_target=>Some(id),_=>None}).collect::<Vec<_>>();
+                let mut work=*s;
+                let events=StepEventResult::for_state(&work);
+                self.defeat_many(&mut work,&targets)?;
+                self.sweep_stat_defeats(&mut work)?;self.check_win(&mut work);
+                work.event_result=events;
+                *s=work;
+                return Ok((targets.len() as u16,!targets.is_empty()));
+            }
+        }
         if matches!(e,Effect::Exhaust{target:Target::ArenaList(l)} if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground exhaust requires recorded arena order".into());}
         if matches!(e,Effect::GiveShield{target:Target::ArenaList(_),..}|Effect::GiveExperience{target:Target::ArenaList(_),..}) {return self.apply_arena_tokens(s,e);}
         if matches!(e,Effect::PhaseModifiers{effects}|Effect::Simultaneous{effects} if effects.len()==2&&effects.iter().all(|e|matches!(e,Effect::GainKeyword{target:Target::ArenaList(_),..}|Effect::LoseKeyword{target:Target::ArenaList(_),..}))) {return self.apply_arena_keyword_batch(s,e);}
