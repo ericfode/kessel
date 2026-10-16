@@ -823,6 +823,10 @@ impl Engine {
             &d.programs.card
         }
     }
+    fn can_pay_force_cost(&self, s: &State, source: CardId) -> bool {
+        let player = s.player(s.card(source).owner);
+        s.force_state_exact && self.force_def.is_some() && player.force_id != 0 && player.force_held
+    }
     pub(super) fn available_programs(&self, s: &State, id: CardId, trigger: &str) -> Vec<u16> {
         if self.catalogue.is_none() {
             return vec![];
@@ -839,8 +843,7 @@ impl Engine {
                     && p.costs.iter().all(|c| match c {
                         Cost::ExhaustSelf => !s.card(id).exhausted,
                         Cost::Resources { .. } => true,
-                        Cost::UseForceCost { .. } => s.force_state_exact && self.force_def.is_some()
-                            && s.player(s.card(id).owner).force_id != 0 && s.player(s.card(id).owner).force_held,
+                        Cost::UseForceCost { .. } => self.can_pay_force_cost(s, id),
                     })
                     && p.costs
                         .iter()
@@ -1634,8 +1637,7 @@ impl Engine {
         // Mandatory Force payment must still be possible after targeting. Check
         // before mutating any other cost, so a failed payment stays atomic.
         if self.program(s.ability_program - 1).costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. }))
-            && (!s.force_state_exact || s.player(s.card(source).owner).force_id == 0
-                || self.force_def.is_none() || !s.player(s.card(source).owner).force_held) {
+            && !self.can_pay_force_cost(s, source) {
             return Err("Force cost requires exact held Force identity".into());
         }
         if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
