@@ -818,7 +818,7 @@ impl Engine {
             // Incoming unique copies have not activated their ongoing abilities:
             // the engine resolves uniqueness before resolveGameState.
             let activation=Topology::for_source(self.def(s,source).info.is("leader")).activate(s.card(source).deployed);
-            let basezone=activation.in_base_zone(s.players.iter().any(|p|p.base==source),s.players.iter().any(|p|p.leader==source));
+            let basezone=s.players.iter().any(|p|activation.in_base_zone(p.base==source,p.leader==source));
             let active_in_play=self.in_arena(s,source)||self.attached_in_play(s,source)||basezone;
             for program in programs {
                 let any_zone=matches!(scope,ConstantScope::Traits(_)) && s.card(source).present && program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::Traits(crate::static_ongoing::TraitRule::LeaderUnion{..})))));
