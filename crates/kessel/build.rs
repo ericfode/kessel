@@ -17,6 +17,9 @@ mod phase_history;
 #[allow(dead_code)]
 #[path = "src/attack_history.rs"]
 mod attack_history;
+#[allow(dead_code)]
+#[path = "src/attached_registration.rs"]
+mod attached_registration;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -135,6 +138,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
     println!("cargo:rerun-if-changed=src/phase_history.rs");

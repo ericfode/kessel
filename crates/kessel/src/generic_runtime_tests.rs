@@ -3755,3 +3755,6 @@ mod resolved_event_tests;
 
 #[path="selector_tests.rs"]
 mod selector_tests;
+
+#[path="attached_registration_tests.rs"]
+mod attached_registration_tests;

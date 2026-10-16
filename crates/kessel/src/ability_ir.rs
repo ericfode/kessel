@@ -969,6 +969,9 @@ fn one() -> Expr {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Ability {
+    /// Set only by the strict attached-registration loader, never accepted from raw IR.
+    #[serde(skip)]
+    pub attached_host: bool,
     #[serde(default, skip_serializing_if="Option::is_none")]
     pub gained_host: Option<bool>,
     #[serde(default, skip_serializing_if="Option::is_none")]
@@ -1159,6 +1162,8 @@ impl Instruction {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Program {
+    #[serde(default, skip_serializing_if="std::ops::Not::not")]
+    pub attached_host: bool,
     #[serde(default, skip_serializing_if="Option::is_none")]
     pub gained_host: Option<bool>,
     #[serde(default, skip_serializing_if="Option::is_none")]
@@ -1682,6 +1687,7 @@ impl Program {
             return Err("triggered or event additional costs are not implemented".into());
         }
         let mut p = Self {
+            attached_host: ability.attached_host,
             gained_host: ability.gained_host,
             attached_context: ability.attached_context.clone(),
             title: ability.title.clone(),
@@ -2418,8 +2424,7 @@ impl Catalogue {
                 let basezone_relevant=entry["abilities"]["card"].as_array().is_some_and(|a|(entry["baseClass"]=="BaseCard"||entry["card"]["types"].as_array().is_some_and(|t|t.iter().any(|v|v=="base")))&&!a.is_empty()) || entry["abilities"]["leader"].as_array().is_some_and(|a|a.iter().any(|a|a["trigger"]=="constant"));
                 if basezone_relevant&&basezone_source_kind(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
-                let sides: Sides = serde_json::from_value(entry["abilities"].clone())
-                    .map_err(|e| format!("invalid ability IR: {e}"))?;
+                let sides: Sides = crate::attached_registration::sides(entry)?;
                 if selector_contract::expanded_selector_marker(&entry["abilities"]) && !selector_contract::native_source_entry(entry,&sides) {return Err("expanded selectors require complete ordinary unit/event card-side source metadata without unimplemented registration contexts".into());}
                 if ["abilities","attachCondition","piloting"].iter().any(|k|parent_defense_marker(&entry[*k]))&&!parent_defense_upgrade_entry(entry){return Err("parent defense requires complete nonunique non-Vehicle-attached upgrade metadata".into());}
 

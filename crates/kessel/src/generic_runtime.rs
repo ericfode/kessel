@@ -372,7 +372,7 @@ impl Engine {
                         return Err(reason.into());
                     }
                 }
-                if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense") && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
+                if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense"&&!catalogue.programs[*p as usize].attached_host) && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
                 if native_token {
                     if code=="TOKEN_THE_FORCE" {
                         if !reviewed_force_entry(entry) {return Err("native Force source/metadata differs from reviewed adapter".into());}
@@ -421,7 +421,7 @@ impl Engine {
                     if entry["baseClass"]!="UpgradeCard" || entry["card"]["pilotText"].as_str().is_some_and(|v|!v.trim().is_empty()) {return Err("pilot/base upgrade execution is not implemented".into());}
                     for &p in &programs.card {
                         let program=&catalogue.programs[p as usize];
-                        if !["constant","whenPlayed"].contains(&program.trigger.as_str()) && !(program.gained_host==Some(true)&&crate::ability_ir::gained_host_upgrade_kind(entry).is_some()) {return Err("upgrade trigger requires dedicated framework event support".into());}
+                        if !["constant","whenPlayed"].contains(&program.trigger.as_str()) && !((program.gained_host==Some(true)&&crate::ability_ir::gained_host_upgrade_kind(entry).is_some())||program.attached_host) {return Err("upgrade trigger requires dedicated framework event support".into());}
                         if program.trigger=="constant" && program.attached_context.as_deref()!=Some("host") && !crate::ability_ir::parent_defense_upgrade_entry(entry) && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..})=>n!="parent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
                     }
                     for field in ["upgradePower","upgradeHp"] {if !entry["card"][field].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)) {return Err("upgrade printed stats must be bounded integers".into());}}
@@ -2949,12 +2949,15 @@ impl Engine {
         self.mark_attack_lifecycle(s,id,true);
         if self.catalogue.is_none() {return Ok(());}
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
-        for &program in self.card_programs(s,id) {
-            let p=self.program(program);
-            if p.trigger!="whenDefeated" || p.condition.as_ref().is_some_and(|e|!self.eval(&context,id,0,e).truth()) {continue;}
+        let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
+            let p=self.program(program);p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
+        }).map(|program|(program,0)).collect::<Vec<_>>();
+        registrations.extend(self.attached_host_grants(&context,id,"whenDefeated").into_iter().map(|e|(e.program,e.grantor)));
+        if s.death_pending.len as usize+registrations.len()>MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
+        for (program,grantor) in registrations {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor:0,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
             s.death_pending.len+=1;
         }
         Ok(())
@@ -3025,12 +3028,26 @@ impl Engine {
     /// Capture one declaration window before either player's effects resolve.
     /// Existing source-only attack protocol stays intact without defender triggers.
     pub(super) fn has_defense_registration(&self,s:&State,id:CardId)->bool {
-        self.catalogue.is_some() && self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onDefense")
+        self.catalogue.is_some() && (self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onDefense")||!self.attached_host_grants(s,id,"onDefense").is_empty())
+    }
+    /// Enumerate the physical attachment list while the host is in play. A
+    /// captured grant no longer depends on grantor presence at resolution.
+    fn attached_host_grants(&self,s:&State,host:CardId,trigger:&str)->Vec<DeathTrigger> {
+        if self.catalogue.is_none()||!self.in_arena(s,host) {return vec![];}
+        let mut context=*s;context.source=host;context.active=s.card(host).owner;
+        let mut grants=vec![];
+        for grantor in self.upgrades(s,host) {for &program in &self.def(s,grantor).programs.card {
+            let p=self.program(program);
+            if (p.attached_host||(trigger=="onAttack"&&p.gained_host==Some(true)))&&p.trigger==trigger
+                &&p.condition.as_ref().is_none_or(|e|self.eval(&context,host,0,e).truth()) {
+                grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,grantor,..DeathTrigger::default()});
+            }
+        }}
+        grants
     }
     pub(super) fn gained_attack_grants(&self,s:&State,host:CardId)->Vec<DeathTrigger> {
         if self.catalogue.is_none()||!self.in_arena(s,host) {return vec![];}
-        let mut grants=vec![];
-        for grantor in self.upgrades(s,host) {for &program in &self.def(s,grantor).programs.card {if self.program(program).gained_host==Some(true) {grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,grantor,..DeathTrigger::default()});}}}
+        let mut grants=self.attached_host_grants(s,host,"onAttack");
         for program in self.support_programs(s,host) {if self.program(program).trigger=="onAttack" && self.program(program).condition.as_ref().is_none_or(|e|self.eval(s,host,0,e).truth()) {grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,..DeathTrigger::default()});}}
         grants
     }
@@ -3043,7 +3060,8 @@ impl Engine {
         let defender=declaration.attack_defender;
         let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
         let grants=self.gained_attack_grants(declaration,declaration.source);
-        if programs.is_empty()&&grants.is_empty() {return Ok(false);}
+        let defense_grants=self.attached_host_grants(declaration,defender,"onDefense");
+        if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty() {return Ok(false);}
         let mut registration=*declaration;
         registration.pending_triggers=0;registration.attack_restore=self.keyword_amount(&registration,registration.source,"restore");
         if self.has_keyword(&registration,registration.source,"restore") {registration.pending_triggers|=T_RESTORE;}
@@ -3053,6 +3071,7 @@ impl Engine {
         for (i,&program) in self.card_programs(&registration,registration.source).iter().enumerate() {if registration.pending_programs&(1<<i)!=0 {entries.push(DeathTrigger {source:registration.source,program,player:registration.card(registration.source).owner,..DeathTrigger::default()});}}
         for keyword in self.trigger_bits(&registration) {entries.push(DeathTrigger {source:registration.source,keyword,player:registration.card(registration.source).owner,..DeathTrigger::default()});}
         entries.extend(grants);
+        entries.extend(defense_grants);
         for program in programs {entries.push(DeathTrigger {source:defender,program,player:declaration.card(defender).owner,..DeathTrigger::default()});}
         // Stat deaths newly queued by setCurrentAttack belong to declaration:
         // engine framework child windows pass their triggers to that parent.

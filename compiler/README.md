@@ -699,3 +699,22 @@ Existing admitted factory forms keep their old lowering. Nested system property
 factories, dynamic system dispatch and returned system objects stay rejected by
 this bounded form; they need a richer construction graph rather than a live-read
 substitution. This compiler-only node adds no runtime execution.
+
+### Ordinary upgrade-granted trigger aliases
+
+The Rust loader executes bounded `attachedAbilityRegistration` wrappers for
+`onAttack`, `onDefense`, and `whenDefeated`. Closed wrapper fields must agree on
+ordinary upgrade mode, physical parent binding, host controller, grantor presence,
+and one enabled standard trigger alias. The complete upgrade metadata and printed
+stats must agree. Supported bodies use the existing typed executor; unsupported
+children reject the whole card. Keyword mentions in upgrade metadata do not
+become intrinsic keywords.
+
+Each physical attachment contributes its own host registration in attachment
+order. Declaration and defeat windows capture the host source/controller before
+handlers remove attachments. Captured triggers survive grantor departure;
+departure before capture removes the grant, and host reentry does not restore a
+previous attachment. Attack and defense grants share the existing owner-order
+prompt. Arbitrary event hooks, action grants, gain conditions, activation limits,
+pilot modes, parent/grantor reads inside the host body, and unimplemented leaves
+remain rejected. No persistent State storage is added.
