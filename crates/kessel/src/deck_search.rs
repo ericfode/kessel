@@ -215,8 +215,33 @@ enum Search {
         active_prompt_title_parts: Option<Vec<Constant<String>>>,
     },
 }
+
+/// A recognized source contract is still not executable. Keep randomness and
+/// prompt continuation requirements distinct so a bounded top-one optimization
+/// cannot accidentally authorize whole-deck or take-nothing completion paths.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum MissingExecution {
+    WholeDeckShuffle,
+    FinalShuffle,
+    RandomBottom,
+    DisplaySelectionCompletion,
+}
+impl MissingExecution {
+    fn reason(self) -> &'static str {
+        match self {
+            Self::WholeDeckShuffle => "whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented",
+            Self::FinalShuffle => "deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented",
+            Self::RandomBottom => "deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
+            Self::DisplaySelectionCompletion => "deck-search display/selection/completion continuations are unimplemented",
+        }
+    }
+}
 impl Search {
     fn blocker(&self) -> Result<&'static str, String> {
+        self.execution_boundary().map(MissingExecution::reason)
+    }
+
+    fn execution_boundary(&self) -> Result<MissingExecution, String> {
         let Self::DeckSearch {
             target,
             target_mode,
@@ -308,7 +333,7 @@ impl Search {
             if search_count.is_some() {
                 return Err("whole-deck search must omit searchCount".into());
             }
-            return Ok("whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented");
+            return Ok(MissingExecution::WholeDeckShuffle);
         }
         let count = search_count
             .as_ref()
@@ -318,12 +343,12 @@ impl Search {
             return Err("deck-search count must fit bounded deck inventory".into());
         }
         if shuffle_when_done.value() {
-            return Ok("deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented");
+            return Ok(MissingExecution::FinalShuffle);
         }
         if count > 1 {
-            return Ok("deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented");
+            return Ok(MissingExecution::RandomBottom);
         }
-        Ok("deck-search display/selection/completion continuations are unimplemented")
+        Ok(MissingExecution::DisplaySelectionCompletion)
     }
 }
 

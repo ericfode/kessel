@@ -184,3 +184,25 @@ fn deck_search_entire_card_stays_rejected_including_nested_and_raw_metadata_muta
     )
     .is_ok());
 }
+
+#[test]
+fn deck_search_execution_boundaries_keep_completion_precedence_and_reject_every_scope() {
+    let mut raw = recruit();
+    for (count, final_shuffle, boundary) in [
+        (1, false, MissingExecution::DisplaySelectionCompletion),
+        (2, false, MissingExecution::RandomBottom),
+        (1, true, MissingExecution::FinalShuffle),
+        (2, true, MissingExecution::FinalShuffle),
+    ] {
+        raw["searchCount"]["value"] = json!(count);
+        raw["shuffleWhenDone"]["value"] = json!(final_shuffle);
+        let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
+        assert_eq!(parsed.execution_boundary().unwrap(), boundary);
+        assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", boundary.reason()));
+    }
+    raw["searchWholeDeck"]["value"] = json!(true);
+    raw.as_object_mut().unwrap().remove("searchCount");
+    let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
+    assert_eq!(parsed.execution_boundary().unwrap(), MissingExecution::WholeDeckShuffle);
+    assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", MissingExecution::WholeDeckShuffle.reason()));
+}

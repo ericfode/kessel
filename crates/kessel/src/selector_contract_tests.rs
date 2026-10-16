@@ -1,0 +1,184 @@
+use super::*;
+use crate::ability_ir::{Ability, Sides};
+use serde_json::json;
+
+fn without_titles(value: Value) -> Value {
+    match value {
+        Value::Object(object) => Value::Object(
+            object
+                .into_iter()
+                .filter(|(k, _)| k != "title")
+                .map(|(k, v)| (k, without_titles(v)))
+                .collect(),
+        ),
+        Value::Array(array) => Value::Array(array.into_iter().map(without_titles).collect()),
+        other => other,
+    }
+}
+fn mutations(value: &Value) -> Vec<Value> {
+    let mut out = Vec::new();
+    match value {
+        Value::Object(object) => {
+            for (key, child) in object {
+                let mut removed = object.clone();
+                removed.remove(key);
+                out.push(Value::Object(removed));
+                for changed in mutations(child) {
+                    let mut copy = object.clone();
+                    copy.insert(key.clone(), changed);
+                    out.push(Value::Object(copy));
+                }
+            }
+        }
+        Value::Array(array) => {
+            out.push(json!([]));
+            if array.len() > 1 {
+                let mut reversed = array.clone();
+                reversed.reverse();
+                out.push(Value::Array(reversed));
+            }
+            for (index, child) in array.iter().enumerate() {
+                for changed in mutations(child) {
+                    let mut copy = array.clone();
+                    copy[index] = changed;
+                    out.push(Value::Array(copy));
+                }
+            }
+        }
+        Value::Bool(value) => out.push(json!(!value)),
+        Value::Number(value) => out.push(json!(value.as_i64().unwrap_or(0) + 1)),
+        Value::String(_) => out.push(json!("changed")),
+        Value::Null => out.push(json!(false)),
+    }
+    out
+}
+
+#[test]
+fn reviewed_arena_queries_preserve_normalized_ability_fingerprints_and_bindings() {
+    let catalog: Value =
+        serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut originals = Vec::new();
+    for entry in catalog["cards"].as_array().unwrap() {
+        let Some(kind) = crate::ability_ir::arena_query_source_kind(entry) else {
+            continue;
+        };
+        let sides: Sides = serde_json::from_value(entry["abilities"].clone()).unwrap();
+        let ability = if kind == 2 {
+            &sides.leader[0]
+        } else {
+            &sides.card[0]
+        };
+        assert!(reviewed_arena_query_ability(ability), "kind {kind}");
+        originals.push(serde_json::to_value(ability).unwrap());
+    }
+    assert_eq!(originals.len(), 3);
+    let expected = originals
+        .iter()
+        .cloned()
+        .map(without_titles)
+        .collect::<Vec<_>>();
+    let mut checked = 0;
+    for original in &originals {
+        for changed in mutations(original) {
+            if let Ok(ability) = serde_json::from_value::<Ability>(changed) {
+                let legacy =
+                    expected.contains(&without_titles(serde_json::to_value(&ability).unwrap()));
+                assert_eq!(
+                    reviewed_arena_query_ability(&ability),
+                    legacy,
+                    "{}",
+                    serde_json::to_string(&ability).unwrap()
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked > 100, "checked {checked} normalized mutations");
+    eprintln!("checked {checked} normalized arena registration mutations");
+}
+
+#[test]
+fn selector_source_context_keeps_ordinary_sides_and_legacy_empty_fields() {
+    let baseline =
+        json!({"baseClass":"NonLeaderUnitCard","card":{"types":["unit"],"unique":false}});
+    let sides = Sides::default();
+    assert!(native_source_entry(&baseline, &sides));
+    for (base, kinds, accepted) in [
+        ("NonLeaderUnitCard", json!(["unit"]), true),
+        ("EventCard", json!(["event"]), true),
+        ("LeaderUnitCard", json!(["leader"]), false),
+        ("TokenUnitCard", json!(["unit"]), false),
+        ("UpgradeCard", json!(["upgrade"]), false),
+        ("NonLeaderUnitCard", json!(["unit", "leader"]), false),
+        ("NonLeaderUnitCard", json!("unit"), false),
+        ("EventCard", json!(["unit"]), false),
+    ] {
+        let mut entry = baseline.clone();
+        entry["baseClass"] = json!(base);
+        entry["card"]["types"] = kinds;
+        assert_eq!(native_source_entry(&entry, &sides), accepted, "{base}");
+    }
+    for field in [
+        "stateWatchers",
+        "historyHelpers",
+        "privatePrograms",
+        "classMethods",
+        "inheritedSource",
+        "privateClassConstants",
+        "deploymentOverride",
+        "setupValidationOverrides",
+    ] {
+        for (value, accepted) in [
+            (Value::Null, true),
+            (json!([]), true),
+            (json!({}), false),
+            (json!([false]), false),
+        ] {
+            let mut entry = baseline.clone();
+            entry[field] = value;
+            assert_eq!(native_source_entry(&entry, &sides), accepted, "{field}");
+        }
+    }
+    let ability = json!({"title":"scope","trigger":"whenPlayed","effect":{"kind":"noAction"}});
+    for side in ["leader", "unit", "card"] {
+        let mut raw = json!({"leader":[],"unit":[],"card":[]});
+        raw[side] = json!([ability.clone()]);
+        let sides: Sides = serde_json::from_value(raw).unwrap();
+        assert_eq!(
+            native_source_entry(&baseline, &sides),
+            side == "card",
+            "{side}"
+        );
+    }
+}
+
+#[test]
+fn named_selector_contracts_preserve_scalar_modes_bindings_and_domain_boundaries() {
+    for (name, chooser, accepted) in [
+        ("first", "self", true),
+        ("1_first", "self", true),
+        ("target", "self", false),
+        ("first", "opponent", false),
+        ("", "self", false),
+        ("first.dot", "self", false),
+    ] {
+        assert_eq!(own_named_binding(name, chooser), accepted);
+    }
+    let baseline = json!({"type":"unit","zone":"arena"});
+    for (field, value, accepted) in [
+        ("zone", json!("anyAttackable"), true),
+        ("zone", json!("discard"), false),
+        ("arena", json!("ground"), true),
+        ("arena", json!("space"), true),
+        ("arena", json!("mystery"), false),
+        ("type", json!("leaderUnit"), false),
+        ("mode", json!("single"), false),
+        ("mode", json!("upTo"), false),
+        ("count", json!({"kind":"const","value":1}), false),
+    ] {
+        let mut value_with_field = baseline.clone();
+        value_with_field[field] = value;
+        let resolver: TargetResolver = serde_json::from_value(value_with_field).unwrap();
+        assert_eq!(scalar_arena_unit(&resolver), accepted, "{field}");
+    }
+}
