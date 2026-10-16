@@ -134,8 +134,11 @@ pub(crate) fn validate_context(ability:&Ability)->Result<(),String> {
         let binding=binding.expect("checked attachment context");
         if !binding.keyword_leaves(&ability.effect,ability.target_resolver.is_some()) && !crate::attached_constants::host_trait_aura(ability) || (binding==AttachmentContext::Upgrade && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
         if binding==AttachmentContext::Host {
-            fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Collection{receiver,args,..}|Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
-            if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
+            if ability.condition.as_ref().is_some_and(|e|e.any(|e|match e {
+                Expr::NativeTokenPredicate{..}|Expr::Compiled(_)=>Some(false),
+                Expr::Ref{path}=>Some(path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit")),
+                _=>None,
+            })) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
             if let Some(r)=&ability.target_resolver {
                 let expected=portable_scope();
                 if !crate::attached_constants::host_trait_aura(ability) && (!aura_resolver(r,AuraResolverPolicy::LegacyKeyword) || r.predicate.as_ref().and_then(|p|serde_json::to_value(p).ok())!=Some(expected)) {return Err("delegated host aura requires other friendly arena units by host identity and controller".into());}

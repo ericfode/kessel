@@ -179,79 +179,52 @@ impl Expr {
             *self = Self::Compiled(CompiledExpr { original, index });
         }
     }
-    fn references_title(&self) -> bool {
+    /// A node decision stops the search: true finds a match, false prunes that
+    /// subtree. None searches children in evaluation order, including Compiled's
+    /// portable expression unless the caller explicitly prunes that boundary.
+    pub(crate) fn any(&self, test:impl Fn(&Expr)->Option<bool> + Copy)->bool {
+        if let Some(found)=test(self) {return found;}
         match self {
-            Self::Compiled(compiled) => compiled.original.references_title(),
-            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.references_title() || predicate.references_title(), Self::ArenaLength {receiver} => receiver.references_title(),
-            Self::Query{name,..} if name==crate::live_power_maximum::DISPLAY_QUERY=>true,
-            Self::Ref {path}=>path.last().is_some_and(|p|p=="title"),
-            Self::Array {items}=>items.iter().any(Self::references_title),Self::Math {args,..}=>args.iter().any(Self::references_title),Self::Unary {value,..}=>value.references_title(),Self::Binary {left,right,..}=>left.references_title()||right.references_title(),Self::Conditional {condition,then,r#else}=>condition.references_title()||then.references_title()||r#else.references_title(),Self::Collection {receiver,args,..} | Self::Query {receiver,args,..}=>receiver.references_title()||args.iter().any(Self::references_title),_=>false,
+            Self::Compiled(e)=>e.original.any(test),
+            Self::NativeTokenPredicate{receiver,..}|Self::ArenaLength{receiver}=>receiver.any(test),
+            Self::ArenaList{receiver,predicate}|Self::ArenaFilter{receiver,predicate}|Self::ArenaSome{receiver,predicate}=>receiver.any(test)||predicate.any(test),
+            Self::Collection{receiver,args,..}|Self::Query{receiver,args,..}=>receiver.any(test)||args.iter().any(|e|e.any(test)),
+            Self::Array{items}|Self::Math{args:items,..}=>items.iter().any(|e|e.any(test)),
+            Self::Binary{left,right,..}=>left.any(test)||right.any(test),
+            Self::Unary{value,..}=>value.any(test),
+            Self::Conditional{condition,then,r#else}=>condition.any(test)||then.any(test)||r#else.any(test),
+            Self::Const{..}|Self::Ref{..}|Self::HistoryQuery(_)|Self::DataMember{..}|Self::HistoryAttackCheck{..}=>false,
         }
+    }
+    fn references_title(&self) -> bool {
+        self.any(|e|match e {
+            Self::NativeTokenPredicate{..}=>Some(false),
+            Self::Ref{path}=>Some(path.last().is_some_and(|p|p=="title")),
+            Self::Query{name,..} if name==crate::live_power_maximum::DISPLAY_QUERY=>Some(true),
+            _=>None,
+        })
     }
     fn depends_on_stats(&self) -> bool {
-        match self {
-            Self::Compiled(compiled) => compiled.original.depends_on_stats(),
-            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_stats() || predicate.depends_on_stats(), Self::ArenaLength {receiver} => receiver.depends_on_stats(),
-            Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_stats(),
-            Self::Collection {receiver,args,..} => receiver.depends_on_stats() || args.iter().any(Self::depends_on_stats),
-            Self::HistoryQuery(_) | Self::DataMember {..} | Self::HistoryAttackCheck {..} | Self::Const { .. } => false,
-            Self::Ref { path } => path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
-            Self::Array { items } => items.iter().any(Self::depends_on_stats),
-            Self::Math { args, .. } => args.iter().any(Self::depends_on_stats),
-            Self::Binary { left, right, .. } => left.depends_on_stats() || right.depends_on_stats(),
-            Self::Unary { value, .. } => value.depends_on_stats(),
-            Self::Conditional {
-                condition,
-                then,
-                r#else,
-            } => {
-                condition.depends_on_stats() || then.depends_on_stats() || r#else.depends_on_stats()
-            }
-            Self::Query {
-                name,
-                receiver,
-                args,
-            } => {
-                ["getPower", "getHp", "arenaPowerMax", "arenaPowerMaximumText"].contains(&name.as_str())
-                    || receiver.depends_on_stats()
-                    || args.iter().any(Self::depends_on_stats)
-            }
-        }
+        self.any(|e|match e {
+            Self::Ref{path}=>Some(path.iter().any(|p|["power","hp","remainingHp"].contains(&p.as_str()))),
+            Self::Query{name,..} if ["getPower","getHp","arenaPowerMax","arenaPowerMaximumText"].contains(&name.as_str())=>Some(true),
+            _=>None,
+        })
     }
     fn depends_on_keywords(&self) -> bool {
-        match self {
-            Self::Compiled(compiled) => compiled.original.depends_on_keywords(),
-            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_keywords() || predicate.depends_on_keywords(), Self::ArenaLength {receiver} => receiver.depends_on_keywords(),
-            Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_keywords(),
-            Self::Collection {receiver,args,..} => receiver.depends_on_keywords() || args.iter().any(Self::depends_on_keywords),
-            Self::HistoryQuery(_) | Self::DataMember {..} | Self::HistoryAttackCheck {..} | Self::Const { .. } => false,
-            Self::Ref { path } => path.iter().map(String::as_str).collect::<Vec<_>>()==["card","keywords","length"] || path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
-            Self::Array { items } => items.iter().any(Self::depends_on_keywords),
-            Self::Math { args, .. } => args.iter().any(Self::depends_on_keywords),
-            Self::Binary { left, right, .. } => left.depends_on_keywords() || right.depends_on_keywords(),
-            Self::Unary { value, .. } => value.depends_on_keywords(),
-            Self::Conditional {
-                condition,
-                then,
-                r#else,
-            } => {
-                condition.depends_on_keywords() || then.depends_on_keywords() || r#else.depends_on_keywords()
-            }
-            Self::Query {
-                name,
-                receiver,
-                args,
-            } => {
-                ["getPower", "getHp", "arenaPowerMaximumText", "hasSomeKeyword"].contains(&name.as_str())
-                    || receiver.depends_on_keywords()
-                    || args.iter().any(Self::depends_on_keywords)
-            }
-        }
+        self.any(|e|match e {
+            Self::Ref{path}=>Some(path.iter().map(String::as_str).collect::<Vec<_>>()==["card","keywords","length"] || path.iter().any(|p|["power","hp","remainingHp"].contains(&p.as_str()))),
+            Self::Query{name,..} if ["getPower","getHp","arenaPowerMaximumText","hasSomeKeyword"].contains(&name.as_str())=>Some(true),
+            _=>None,
+        })
     }
     fn live_only(&self)->bool {
-        match self {
-            Self::Compiled(compiled)=>compiled.original.live_only(),
-            Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.live_only() || predicate.live_only(), Self::ArenaLength {receiver} => receiver.live_only(),Self::Collection {receiver,args,..}=>receiver.live_only()||args.iter().any(Self::live_only),Self::Ref {path}=>path.first().is_some_and(|p|p=="modifierTarget"),Self::Query {name,receiver,args}=>name=="resourcePairs"||receiver.live_only()||args.iter().any(Self::live_only),Self::Binary {left,right,..}=>left.live_only()||right.live_only(),Self::Unary {value,..}=>value.live_only(),Self::Conditional {condition,then,r#else}=>condition.live_only()||then.live_only()||r#else.live_only(),Self::Array {items}|Self::Math {args:items,..}=>items.iter().any(Self::live_only),_=>false}
+        self.any(|e|match e {
+            Self::NativeTokenPredicate{..}=>Some(false),
+            Self::Ref{path}=>Some(path.first().is_some_and(|p|p=="modifierTarget")),
+            Self::Query{name,..} if name=="resourcePairs"=>Some(true),
+            _=>None,
+        })
     }
     fn live_stat_bounds(&self)->Result<(i64,i64),String> {
         fn root(e:&Expr,paths:&[&[&str]])->bool {matches!(e.original(),Expr::Ref {path} if paths.iter().any(|p|path.iter().map(String::as_str).collect::<Vec<_>>()==*p))}
@@ -759,14 +732,11 @@ impl TargetResolver {
         selector_contract::CardTypeFilter::parse(&self.card_type).is_ok_and(|filter|filter.upgrade_only()) || (self.card_type=="any" && self.predicate.as_ref().is_some_and(implies))
     }
     fn mentions_upgrade_query(&self)->bool {
-        fn mentions(e:&Expr)->bool {match e.original() {
-            Expr::Query {name,receiver,args}=>name=="isUpgrade"||mentions(receiver)||args.iter().any(mentions),
-            Expr::Array {items}=>items.iter().any(mentions), Expr::Math {args,..}=>args.iter().any(mentions),
-            Expr::Binary {left,right,..}=>mentions(left)||mentions(right), Expr::Unary {value,..}=>mentions(value),
-            Expr::Conditional {condition,then,r#else}=>mentions(condition)||mentions(then)||mentions(r#else),
-            _=>false,
-        }}
-        self.predicate.as_ref().is_some_and(mentions)
+        self.predicate.as_ref().is_some_and(|e|e.any(|e|match e {
+            Expr::ArenaList{..}|Expr::ArenaFilter{..}|Expr::ArenaSome{..}|Expr::ArenaLength{..}|Expr::Collection{..}|Expr::NativeTokenPredicate{..}=>Some(false),
+            Expr::Query{name,..} if name=="isUpgrade"=>Some(true),
+            _=>None,
+        }))
     }
     pub fn max_targets(&self) -> Result<usize, String> {
         match self.mode.as_deref() {
@@ -3346,3 +3316,7 @@ mod recipe_contract_tests;
 #[cfg(test)]
 #[path = "json_scan_tests.rs"]
 mod json_scan_tests;
+
+#[cfg(test)]
+#[path = "expr_search_tests.rs"]
+mod expr_search_tests;

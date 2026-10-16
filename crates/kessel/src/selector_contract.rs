@@ -579,46 +579,11 @@ impl NativeCardSelection {
     }
 }
 fn captures_outer_candidate(e: &Expr) -> bool {
-    match e {
-        Expr::Ref { path } => path.first().is_some_and(|s| {
-            ["selectionCandidate", "target", "targets", "namedTargets"].contains(&s.as_str())
-        }),
-        Expr::Binary { left, right, .. } => {
-            captures_outer_candidate(left) || captures_outer_candidate(right)
-        }
-        Expr::Unary { value, .. } => captures_outer_candidate(value),
-        Expr::Query { receiver, args, .. } => {
-            captures_outer_candidate(receiver) || args.iter().any(captures_outer_candidate)
-        }
-        Expr::Array { items } | Expr::Math { args: items, .. } => {
-            items.iter().any(captures_outer_candidate)
-        }
-        Expr::Conditional {
-            condition,
-            then,
-            r#else,
-        } => {
-            captures_outer_candidate(condition)
-                || captures_outer_candidate(then)
-                || captures_outer_candidate(r#else)
-        }
-        Expr::ArenaList {
-            receiver,
-            predicate,
-        }
-        | Expr::ArenaFilter {
-            receiver,
-            predicate,
-        }
-        | Expr::ArenaSome {
-            receiver,
-            predicate,
-        } => captures_outer_candidate(receiver) || captures_outer_candidate(predicate),
-        Expr::NativeTokenPredicate { receiver, .. } | Expr::ArenaLength { receiver } => {
-            captures_outer_candidate(receiver)
-        }
-        _ => false,
-    }
+    e.any(|e|match e {
+        Expr::Collection{..}|Expr::Compiled(_)=>Some(false),
+        Expr::Ref{path}=>Some(path.first().is_some_and(|s|["selectionCandidate","target","targets","namedTargets"].contains(&s.as_str()))),
+        _=>None,
+    })
 }
 fn bind_candidate(expr: &mut Expr, root_binding: bool) -> Result<(), String> {
     match expr {

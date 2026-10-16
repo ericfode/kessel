@@ -237,3 +237,14 @@ fn emitted_arena_scope_keeps_exact_ground_and_space_operands() {
     assert!(checked > 0);
     eprintln!("checked {checked} exact emitted arena-scope mutations across ground and space");
 }
+
+#[test]
+fn expr_search_outer_candidate_preserves_collection_and_compiled_pruning() {
+    let target=Expr::Ref{path:vec!["target".into()]};
+    let compiled=Expr::Compiled(crate::ability_ir::CompiledExpr{original:Box::new(target.clone()),index:0});
+    let collection=Expr::Collection{name:"some".into(),receiver:Box::new(target.clone()),args:vec![],limit:256};
+    assert!(!captures_outer_candidate(&compiled));assert!(!captures_outer_candidate(&collection));
+    let native=Expr::NativeTokenPredicate{operation:"hasWeakness".into(),receiver:Box::new(target.clone()),domain:"physicalAttachments".into(),token_type:"weakness".into(),optional_receiver:false,optional_call:false};
+    assert!(captures_outer_candidate(&native));
+    assert!(captures_outer_candidate(&Expr::ArenaList{receiver:Box::new(Expr::number(0)),predicate:Box::new(target)}));
+}
