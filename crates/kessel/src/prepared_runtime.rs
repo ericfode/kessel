@@ -1,6 +1,6 @@
 //! Prepared event windows: capture, replacement, primary handlers, contingents,
 //! and post-event visibility. Inline State records remain the compatibility
-//! representation; execution reuses the Effect enum with captured literals.
+//! representation; execution passes captured values to the shared Effect handlers.
 use super::*;
 
 #[derive(Clone, Copy)]
@@ -12,40 +12,6 @@ impl CapturedDraw {
     }
     fn from_record(record: PreparedEvent) -> Self {
         Self { base: record.target, requested: record.amount, fatigue: record.hp as u16 }
-    }
-}
-
-#[derive(Default, Clone, Copy)]
-struct CapturedStatDelta { power: i32, hp: i32 }
-impl CapturedStatDelta {
-    fn capture(engine: &Engine, s: &State, power: &Expr, hp: &Expr) -> Result<Self, String> {
-        let power = i32::try_from(engine.eval(s, s.source, s.ability_target, power).number())
-            .map_err(|_| "phase power delta exceeds capacity")?;
-        let hp = i32::try_from(engine.eval(s, s.source, s.ability_target, hp).number())
-            .map_err(|_| "phase HP delta exceeds capacity")?;
-        if !(-65535..=65535).contains(&power) || !(-65535..=65535).contains(&hp) {
-            return Err("phase stat delta exceeds capacity".into());
-        }
-        Ok(Self { power, hp })
-    }
-}
-
-// The existing Effect is the execution payload. Substitute captured literals
-// once instead of translating through a second enum that duplicates its cases.
-fn captured_effect(effect: &Effect, record: PreparedEvent) -> Effect {
-    let target=Target::name("chosen");
-    let amount=Expr::number(i64::from(record.amount));
-    match effect {
-        Effect::Damage {..}=>Effect::Damage {target,amount},
-        Effect::Heal {..}=>Effect::Heal {target,amount},
-        Effect::Ready {..}=>Effect::Ready {target},
-        Effect::Exhaust {..}=>Effect::Exhaust {target},
-        Effect::Defeat {..}=>Effect::Defeat {target},
-        Effect::ModifyStats {duration,..}=>Effect::ModifyStats {target,duration:duration.clone(),
-            power:Expr::number(i64::from(record.power)),hp:Expr::number(i64::from(record.hp))},
-        Effect::GainKeyword {keyword,duration,..}=>Effect::GainKeyword {target,keyword:keyword.clone(),amount,duration:duration.clone()},
-        Effect::LoseKeyword {keyword,duration,..}=>Effect::LoseKeyword {target,keyword:keyword.clone(),duration:duration.clone()},
-        _=>unreachable!(),
     }
 }
 
@@ -180,14 +146,17 @@ impl Engine {
             }
             return Ok(());
         }
-        let (target,amount)=match e {
-            Effect::Damage{target,amount}|Effect::Heal{target,amount}|Effect::GiveShield{target,amount}|Effect::GiveExperience{target,amount}|Effect::GiveWeakness{target,amount}|Effect::GiveAdvantage{target,amount,..}|Effect::GainKeyword{target,amount,..}=>(target,self.effect_amount(s,amount)?),
-            Effect::Ready{target}|Effect::Exhaust{target}|Effect::Defeat{target}|Effect::ModifyStats{target,..}|Effect::LoseKeyword{target,..}=>(target,1),
-            _=>return Err("unsupported group primitive".into()),
-        };
-        let delta=if let Effect::ModifyStats{power,hp,..}=e {
-            CapturedStatDelta::capture(self,s,power,hp)?
-        } else { CapturedStatDelta::default() };
+        if !matches!(e,Effect::Damage {..}|Effect::Heal {..}|Effect::GiveShield {..}|Effect::GiveExperience {..}
+            |Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::GainKeyword {..}|Effect::Ready {..}
+            |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}) {return Err("unsupported group primitive".into());}
+        let (target,amount)=e.scalar_args().expect("group primitive has scalar fields");
+        let amount=amount.map(|amount|self.effect_amount(s,amount)).transpose()?.unwrap_or(1);
+        let (power,hp)=if let Effect::ModifyStats{power,hp,..}=e {
+            let power=i32::try_from(self.eval(s,s.source,s.ability_target,power).number()).map_err(|_|"phase power delta exceeds capacity")?;
+            let hp=i32::try_from(self.eval(s,s.source,s.ability_target,hp).number()).map_err(|_|"phase HP delta exceeds capacity")?;
+            if !(-65535..=65535).contains(&power)||!(-65535..=65535).contains(&hp) {return Err("phase stat delta exceeds capacity".into());}
+            (power,hp)
+        } else {(0,0)};
         for target in self.effect_targets(s,target) {
             let Eval::Card(target)=target else { continue; };
             if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")) { continue; }
@@ -195,7 +164,7 @@ impl Engine {
             if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}) { continue; }
             let tokens=matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}|Effect::GiveAdvantage{..});
             for _ in 0..if tokens { amount } else { 1 } {
-                let mut record=PreparedEvent{op:op as u16,target,amount,power:delta.power,hp:delta.hp,token:0};
+                let mut record=PreparedEvent{op:op as u16,target,amount,power,hp,token:0};
                 if tokens && !self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() {
                     if s.next_id as usize>=MAX_CARDS { return Err("card capacity exceeded generating token".into()); }
                     record.token=s.next_id; s.next_id+=1;
@@ -432,7 +401,7 @@ impl Engine {
             if s.event_group.uniform_damage.is_prevented(i) {self.remove_group_shield(s,target,record.shield());continue;}
             s.event_group.context=Selection::one(target);s.ability_target=target;
             let remaining=self.hp(s,target).saturating_sub(s.card(target).damage);
-            let (applied,resolved)=self.apply_effect(s,&Effect::Damage {target:Target::Name("chosen".into()),amount:Expr::number(amount.min(remaining) as i64)})?;
+            let (applied,resolved)=self.apply_scalar_effect(s,e,vec![Eval::Card(target)],amount.min(remaining),None)?;
             events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
             observations.observe(self,s,target,applied);
             s.ability_result=s.ability_result.saturating_add(applied);s.ability_succeeded|=resolved;
@@ -536,7 +505,7 @@ impl Engine {
                     Effect::Draw {target,..}=> {
                         let draw=CapturedDraw::from_record(r);
                         if contingent {self.apply_draw_fatigue(s,draw.base,draw.fatigue);continue;}
-                        let (amount,resolved)=self.apply_effect(s,&Effect::Draw {target:target.clone(),amount:Expr::number(i64::from(draw.requested))})?;
+                        let (amount,resolved)=self.apply_scalar_effect(s,effect,self.effect_targets(s,target),draw.requested,None)?;
                         s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
                     }
                     Effect::CreateTokenUnit {..}=> {
@@ -567,7 +536,15 @@ impl Engine {
                     let hp=if self.def(s,r.target).info.is("base") {self.def(s,r.target).info.hp.unwrap_or(30).max(0) as u16}else{self.hp(s,r.target)};
                     r.amount=r.amount.min(hp.saturating_sub(s.card(r.target).damage));
                 }
-                let (amount,resolved)=self.apply_effect(s,&captured_effect(effect,r))?;
+                // These records already resolved their scalar fields and physical
+                // recipient. No Effect reconstruction or expression reevaluation.
+                let modifier=match effect {
+                    Effect::ModifyStats {..}=>Some(PhaseStatDelta {power:i64::from(r.power),hp:i64::from(r.hp)}),
+                    Effect::Damage {..}|Effect::Heal {..}|Effect::Ready {..}|Effect::Exhaust {..}|Effect::Defeat {..}
+                    |Effect::GainKeyword {..}|Effect::LoseKeyword {..}=>None,
+                    _=>return Err("unsupported captured primitive".into()),
+                };
+                let (amount,resolved)=self.apply_scalar_effect(s,effect,vec![Eval::Card(r.target)],r.amount,modifier)?;
                 events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
                 for p in 0..2 {events.defeated_units[p]=events.defeated_units[p].checked_add(s.event_result.defeated_units[p]).ok_or("defeat result exceeds capacity")?;}
                 if damage {observations.observe(self,s,r.target,amount);}
@@ -629,23 +606,50 @@ mod tests {
     }
 
     #[test]
-    fn prepared_effect_uses_captured_scalar_literals() {
-        let dynamic=Expr::Ref {path:vec!["source".into(),"damage".into()]};
-        let record=PreparedEvent {target:7,amount:3,power:-4,hp:2,..PreparedEvent::default()};
-        for effect in [Effect::Damage {target:Target::name("self"),amount:dynamic.clone()},
-            Effect::Heal {target:Target::name("self"),amount:dynamic.clone()},
-            Effect::ModifyStats {target:Target::name("self"),power:dynamic.clone(),hp:dynamic,duration:"phase".into()}] {
-            match captured_effect(&effect,record) {
-                Effect::Damage {target,amount}|Effect::Heal {target,amount}=>{
-                    assert!(matches!(target,Target::Name(n) if n=="chosen"));assert!(matches!(amount,Expr::Const {value} if value==3));
-                }
-                Effect::ModifyStats {power,hp,..}=>{
-                    assert!(matches!(power,Expr::Const {value} if value== -4));assert!(matches!(hp,Expr::Const {value} if value==2));
-                }
-                _=>panic!("literal mutation"),
+    fn prepared_values_survive_source_changes_before_execution() {
+        let e=engine();
+        for kind in ["damage","heal","stats"] {
+            let mut s=position(&e);
+            let source=add(&e,&mut s,Seat::P1,"SHD_056");e.add_arena(&mut s,source).unwrap();
+            let target=if kind=="stats" {let id=add(&e,&mut s,Seat::P2,"SHD_056");e.add_arena(&mut s,id).unwrap();id}else{s.players[1].base};
+            s.source=source;s.ability_target=target;s.card_mut(source).damage=1;
+            s.card_mut(target).damage=if kind=="stats" {0}else{5};
+            s.event_group.active=true;s.event_group.context=Selection::one(target);
+            let dynamic=Expr::Ref {path:vec!["source".into(),"damage".into()]};
+            let effect=match kind {
+                "damage"=>Effect::Damage {target:Target::name("chosen"),amount:dynamic},
+                "heal"=>Effect::Heal {target:Target::name("chosen"),amount:dynamic},
+                _=>Effect::ModifyStats {target:Target::name("chosen"),power:dynamic.clone(),hp:dynamic,duration:"phase".into()},
+            };
+            e.capture_group_leaf(&mut s,0,&effect).unwrap();assert_eq!(s.event_group.count,1);
+            let records=s.event_group.records;
+            s.card_mut(source).damage=2;
+            let group=Effect::Simultaneous {effects:vec![effect]};
+            assert!(e.resolve_group(&mut s,&group).unwrap());
+            assert_eq!(records,s.event_group.records,"capture records remain the stored representation");
+            match kind {
+                "damage"=>assert_eq!(s.card(target).damage,6),
+                "heal"=>assert_eq!(s.card(target).damage,4),
+                _=>{assert_eq!(s.card(target).phase_power,1);assert_eq!(s.card(target).phase_hp,1);},
             }
+            assert_eq!(s.ability_result,1);assert!(s.ability_succeeded);
         }
+    }
 
+    #[test]
+    fn scalar_and_group_domains_stay_distinct_with_shared_fields() {
+        let e=engine();let s=position(&e);
+        for effect in [Effect::ReadyResources {target:Target::name("ownPlayer"),amount:Expr::number(1)},
+            Effect::ReturnToHand {target:Target::name("self")},Effect::UseForce {target:Target::name("ownPlayer")}] {
+            assert!(effect.scalar_args().is_some());let mut work=s;
+            assert_eq!(e.capture_group_leaf(&mut work,0,&effect).unwrap_err(),"unsupported group primitive");
+        }
+        for effect in [Effect::DiscardDeck {target:Target::name("ownPlayer"),amount:Expr::number(1)},
+            Effect::DiscardOwnHand {target:Target::name("ownPlayer"),amount:Expr::number(1)},
+            Effect::CreateTokenUnit {token_type:"battleDroid".into(),amount:Expr::number(1),target:Target::name("ownPlayer"),enters_ready:false}] {
+            assert!(effect.scalar_args().is_some());let mut work=s;
+            assert_eq!(e.apply_effect(&mut work,&effect).unwrap_err(),"nonprimitive instruction reached executor");
+        }
     }
 
     #[test]

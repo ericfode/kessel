@@ -5,6 +5,37 @@ use crate::ability_ir::activation_contract::{base_zone_source, Source};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
 
+// Scalar field structure is independent of legality, checked amount conversion
+// and capture timing. Callers retain those distinct semantic boundaries.
+impl Effect {
+    fn scalar_args(&self) -> Option<(&Target, Option<&Expr>)> {
+        Some(match self {
+            Self::DiscardDeck { target, amount }
+            | Self::DiscardOwnHand { target, amount }
+            | Self::CreateTokenUnit { target, amount, .. }
+            | Self::ReadyResources { target, amount }
+            | Self::Damage { target, amount }
+            | Self::Heal { target, amount }
+            | Self::Draw { target, amount }
+            | Self::GiveShield { target, amount }
+            | Self::GiveExperience { target, amount }
+            | Self::GiveWeakness { target, amount }
+            | Self::GiveAdvantage { target, amount, .. }
+            | Self::GainKeyword { target, amount, .. } => (target, Some(amount)),
+            Self::ResourceCard { target }
+            | Self::UseForce { target }
+            | Self::GainForce { target }
+            | Self::ReturnToHand { target }
+            | Self::ModifyStats { target, .. }
+            | Self::LoseKeyword { target, .. }
+            | Self::Ready { target }
+            | Self::Exhaust { target }
+            | Self::Defeat { target } => (target, None),
+            _ => return None,
+        })
+    }
+}
+
 // Callers capture values before target iteration; shared mutations preserve
 // the distinct scalar and prepared-event capture boundaries.
 #[derive(Clone, Copy)]
@@ -1455,26 +1486,10 @@ impl Engine {
         context.source = source;
         context.ability_target = target;
         if context.event_group.active { context.event_group.context=Selection::one(target); }
-        let (dest, amount) = match e {
-            Effect::DiscardDeck {target,amount} | Effect::DiscardOwnHand {target,amount} | Effect::CreateTokenUnit {target,amount,..} | Effect::ReadyResources { target, amount }
-            | Effect::Damage { target, amount }
-            | Effect::Heal { target, amount }
-            | Effect::Draw { target, amount }
-            | Effect::GiveShield { target, amount }
-            | Effect::GiveExperience { target, amount }
-            | Effect::GiveWeakness {target,amount}
-            | Effect::GiveAdvantage {target,amount,..}
-            | Effect::GainKeyword { target, amount, .. } => (
-                target,
-                self.eval(&context, source, context.ability_target, amount)
-                    .number(),
-            ),
-            Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
-            Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => {
-                (target, 1)
-            }
-            _ => return false,
-        };
+        let Some((dest, amount)) = e.scalar_args() else { return false; };
+        let amount = amount.map_or(1, |amount| {
+            self.eval(&context, source, context.ability_target, amount).number()
+        });
         self.effect_targets(&context, dest)
             .into_iter()
             .any(|dest| match dest {
@@ -2106,7 +2121,13 @@ impl Engine {
         let mut prospective=*s;let work=&mut prospective;
         let previous_group=work.event_group;let previous_target=work.ability_target;work.event_group.active=true;work.event_group.resolving=true;
         let mut result=0u16;let mut succeeded=false;
-        for (index,id) in events {let mut effect=effects[index].clone();match &mut effect {Effect::GainKeyword{target,..}|Effect::LoseKeyword{target,..}=>*target=Target::Name("chosen".into()),_=>unreachable!()};work.event_group.context=Selection::one(id);work.ability_target=id;let (amount,resolved)=self.apply_effect(work,&effect)?;result=result.saturating_add(amount);succeeded|=resolved;}
+        for (index,id) in events {
+            work.event_group.context=Selection::one(id);work.ability_target=id;
+            let effect=&effects[index];let (_,amount)=effect.scalar_args().expect("keyword scalar fields");
+            let amount=amount.map(|amount|self.effect_amount(work,amount)).transpose()?.unwrap_or(1);
+            let (amount,resolved)=self.apply_scalar_effect(work,effect,vec![Eval::Card(id)],amount,None)?;
+            result=result.saturating_add(amount);succeeded|=resolved;
+        }
         work.event_group=previous_group;work.ability_target=previous_target;
         self.check_stat_capacity(work)?;self.check_win(work);self.sweep_stat_defeats(work)?;
         *s=prospective;
@@ -2193,8 +2214,7 @@ impl Engine {
 
     fn apply_effect(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         let result=self.apply_effect_inner(s,e)?;
-        // Neutral leaves clear prior event counters without inventing an event
-        // identity for no-op calls or stable-window snapshots.
+        // Covers both scalar leaves and the dedicated batch paths below.
         if !matches!(e,Effect::Damage{..}|Effect::Defeat{..}) {s.event_result=StepEventResult::default();}
         Ok(result)
     }
@@ -2256,31 +2276,24 @@ impl Engine {
             s.event_result=StepEventResult::for_state(s);
             return Ok((0, false));
         }
-        let (target, amount) = match e {
-            Effect::ReadyResources { target, amount }
-            | Effect::Damage { target, amount }
-            | Effect::Heal { target, amount }
-            | Effect::Draw { target, amount }
-            | Effect::GiveShield { target, amount }
-            | Effect::GiveExperience { target, amount }
-            | Effect::GiveWeakness {target,amount}
-            | Effect::GiveAdvantage {target,amount,..}
-            | Effect::GainKeyword { target, amount, .. } => (target, self.effect_amount(s, amount)?),
-            Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
-            Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => {
-                (target, 1)
-            }
-            _ => return Err("nonprimitive instruction reached executor".into()),
-        };
-        let modifier = if let Effect::ModifyStats { power, hp, .. } = e {
+        // These primitives execute only through their dedicated group handlers.
+        if matches!(e,Effect::DiscardDeck {..}|Effect::DiscardOwnHand {..}|Effect::CreateTokenUnit {..}) {return Err("nonprimitive instruction reached executor".into());}
+        let (target,amount)=e.scalar_args().ok_or("nonprimitive instruction reached executor")?;
+        let amount=amount.map(|amount|self.effect_amount(s,amount)).transpose()?.unwrap_or(1);
+        let modifier=if let Effect::ModifyStats {power,hp,..}=e {
             Some(PhaseStatDelta {
-                power: self.eval(s, s.source, s.ability_target, power).number(),
-                hp: self.eval(s, s.source, s.ability_target, hp).number(),
+                power:self.eval(s,s.source,s.ability_target,power).number(),
+                hp:self.eval(s,s.source,s.ability_target,hp).number(),
             })
-        } else {
-            None
-        };
-        let targets = self.effect_targets(s, target);
+        } else {None};
+        self.apply_scalar_effect(s,e,self.effect_targets(s,target),amount,modifier)
+    }
+    // Mutation consumes resolved inputs. Target selection/capture and the
+    // prepared record's storage layout belong to callers, not these handlers.
+    fn apply_scalar_effect(
+        &self, s:&mut State, e:&Effect, targets:Vec<Eval>, amount:u16,
+        modifier:Option<PhaseStatDelta>,
+    ) -> Result<(u16,bool),String> {
         let mut events=StepEventResult::for_state(s);
         let mut result = 0u16;
         let mut replacement_resolved = false;
@@ -2406,7 +2419,7 @@ impl Engine {
             }
         }
         self.finish_scalar_effect(s)?;
-        s.event_result=events;
+        s.event_result=if matches!(e,Effect::Damage {..}|Effect::Defeat {..}) {events}else{StepEventResult::default()};
         Ok((
             result,
             if matches!(e, Effect::ReadyResources { .. }) {
