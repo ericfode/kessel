@@ -93,11 +93,23 @@ fn shared_heal_and_exhaustion_primitives_match_generated_steps_at_boundaries() {
                 Effect::Exhaust { .. } => 2,
                 _ => continue,
             };
+            let encoded = serde_json::to_string(effect).unwrap();
+            let needs_parent = encoded.contains("parentCard") || encoded.contains("parentUnit");
             for damage in [0, 1, 3] {
                 for exhausted in [false, true] {
                     for target_zone in ["arena", "base", "discard"] {
                         let mut s = board(&e);
-                        let source = unit(&e, &mut s, Seat::P1, "LOF_256");
+                        let host = unit(&e, &mut s, Seat::P1, "LOF_256");
+                        let source = if needs_parent {
+                            // Parent-target steps now share generated dispatch. Supply
+                            // their required live attachment rather than a bare unit.
+                            let code = e.definitions.iter().find(|d| d.info.is("upgrade") && !d.info.is("token")).unwrap().code.clone();
+                            let id = add(&e, &mut s, Seat::P1, &code);
+                            e.attach(&mut s, id, host);
+                            s.card_mut(host).damage = damage;
+                            s.card_mut(host).exhausted = exhausted;
+                            id
+                        } else { host };
                         let target = if target_zone == "base" {
                             s.players[1].base
                         } else {
