@@ -18,3 +18,24 @@ Codex work too.
   `npm run cards:reference -- import`. Kessel depends on neither Holocron nor swu_bot.
 - `.agents/skills/swu-card-conversion/SKILL.md` is the card conversion workflow.
 - Basic development needs no service credentials. Keep tokens and `.env` files out of Git.
+
+## Dependency and event boundaries
+
+- Run `cargo test --locked -p kessel --test architecture_boundaries` when changing
+  source contracts or scalar execution. CI's workspace test runs it too; no daemon,
+  model, credential or network service is involved.
+- `admission.rs`, `activation_contract.rs` and `selector_contract.rs` describe
+  source/registration envelopes. They must not import runtime `Engine`/`State`,
+  simulator, search or validation code. Family restrictions and provenance proofs
+  remain admission responsibilities; standalone guards must validate their inputs.
+- Scalar execution resolves target/amount expressions before `apply_scalar_effect`.
+  Prepared windows pass captured values to that same mutation owner. That handler
+  must not reselect targets, evaluate original expressions or decode `PreparedEvent`.
+  Keep capture, replacement, primaries, contingents and recomputation order explicit.
+- When changing a stateful flow, explain its phases and ownership top down next to
+  the real functions, including why timing boundaries differ. A new type/helper is
+  useful only if it reduces interacting responsibilities or repeated semantics.
+- The architecture tests guard selected direct source edges and evaluator calls;
+  they do not resolve arbitrary aliases, macro expansions or transitive behavior.
+  Review those boundaries when moving code. Do not treat a passing check as a
+  coupling score or replace necessary raw-header/provenance checks with defaults.
