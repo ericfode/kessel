@@ -2432,9 +2432,8 @@ fn named_descriptor_catalogue_sources_exclude_leaders_tokens_and_upgrades() {
 }
 fn weakness_effect()->crate::ability_ir::Effect {serde_json::from_value(json!({"kind":"giveWeakness","target":"chosen","amount":{"kind":"const","value":1}})).unwrap()}
 #[test]
-fn weakness_admission_is_three_sources_plus_one_reviewed_native_token() {
-    let e=engine();for code in ["HMW_059","HMW_087","HMW_242","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
-    for code in ["HMW_065"] {assert!(!e.by_code.contains_key(code),"{code}");}
+fn weakness_admission_preserves_reviewed_native_token_and_completed_sources() {
+    let e=engine();for code in ["HMW_059","HMW_087","HMW_242","HMW_003","HMW_065","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
     assert_eq!(std::mem::size_of::<State>(),28032);assert_eq!(std::mem::size_of::<Card>(),36);
     let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
     for (field,value) in [("power",json!(1)),("upgradeHp",json!(0)),("types",json!(["unit","token"])),("traits",json!([])),("aspects",json!(["heroism"])),("text",json!("Draw a card")),("unique",json!(true)),("cost",json!(1))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token["card"][field]=value;let altered=Engine::from_catalogue_value(&catalog).unwrap();assert!(!altered.by_code.contains_key("TOKEN_WEAKNESS"),"{field}");}
@@ -2474,7 +2473,8 @@ fn actual_weakness_death_sources_preserve_owner_and_damaged_selector() {
 fn weakness_raw_shapes_reject_arrays_groups_other_registrations_and_nonliteral_amounts() {
     let catalogue:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let valid=catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"]=="HMW_059").unwrap()["abilities"]["card"][0].clone();
     let compile=|v:Value|serde_json::from_value::<crate::ability_ir::Ability>(v).ok().is_some_and(|a|crate::ability_ir::Program::compile(&a).is_ok());assert!(compile(valid.clone()));let mut bad=Vec::new();
-    for trigger in ["event","action","onAttack","onDefense","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
+    let mut attack=valid.clone();attack["trigger"]=json!("onAttack");assert!(compile(attack));
+    for trigger in ["event","action","onDefense","constant"] {let mut v=valid.clone();v["trigger"]=json!(trigger);bad.push(v);}
     for amount in [json!({"kind":"const","value":0}),json!({"kind":"const","value":2}),json!({"kind":"ref","path":["source","damage"]})] {let mut v=valid.clone();v["effect"]["amount"]=amount;bad.push(v);}
     for target in [json!("self"),json!("ownBase"),json!("bothPlayers"),json!({"kind":"arenaList","receiver":{"kind":"ref","path":["player"]},"predicate":{"kind":"const","value":true}})] {let mut v=valid.clone();v["effect"]["target"]=target;bad.push(v);}
     for kind in ["sequence","simultaneous","phaseModifiers"] {let mut v=valid.clone();v["effect"]=json!({"kind":kind,"effects":[valid["effect"].clone()]});bad.push(v);}
@@ -2498,7 +2498,7 @@ fn weakness_static_native_dependency_rejects_missing_invalid_and_unselected_toke
     let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
     for remove in [true,false] {let mut v=original.clone();if remove {v["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");}else{v["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap()["card"]["title"]=json!("Unreviewed token");}let e=Engine::from_catalogue_value(&v).unwrap();for code in ["HMW_059","HMW_087","HMW_242"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap()[code].contains("Weakness token unavailable"));}}
     let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_WEAKNESS");assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!("../../../compiler/generated/catalog.json")).err().unwrap().contains("GiveWeakness cards must include"));
-    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    pool["cards"].as_array_mut().unwrap().retain(|c|!["HMW_059","HMW_087","HMW_242","HMW_097","HMW_100","HMW_199","HMW_202","HMW_231","HMW_003","HMW_065"].contains(&c["setCode"].as_str().unwrap()));Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
 }
 #[test]
 fn arena_stat_filter_admission_is_exact_two_and_unary_plus_normalizes_only_here() {

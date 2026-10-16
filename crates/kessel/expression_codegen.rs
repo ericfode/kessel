@@ -81,6 +81,8 @@ pub fn expression(e: &Expr) -> Result<String, String> {
             receiver,
             args,
         } => query(name, receiver, args)?,
+        Expr::NativeTokenPredicate {receiver,token_type,..} => format!(
+            "{{let receiver={};Eval::Bool(if let Eval::Card(id)=receiver {{self.attached_native_token(s,id,{token_type:?})}} else {{false}})}}", sub(receiver)?),
         Expr::Compiled(c) => expression(&c.original)?,
         Expr::ArenaList { .. } | Expr::ArenaFilter { .. } | Expr::ArenaSome { .. } | Expr::ArenaLength { .. } => {
             return Err("arena list expression requires interpreter".into())

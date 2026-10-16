@@ -100,8 +100,19 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             // A compiler defect is a build failure, never an "unsupported" card.
             throw new Error(`Compiler failed on ${sourcePath}: ${error.stack || error}`);
         }
+        const lifecycle=require('./source-exclusions').sourceExclusion(sourcePath)?null:compileNativeTokenLifecycle(text,sourcePath,source,enums)||compileNativeTokenGraph(text,sourcePath,source,enums,compileTokenInheritance);
+        if(lifecycle) {
+            unmatchedSources.push(lifecycle);
+            // A complete staged lifecycle can recover identity for a native file
+            // with multiple classes. It does not replace the active rejection or
+            // promote that card to executable/support status.
+            if(!converted.id && lifecycle.role==='staged-native-token-lifecycle' && lifecycle.status==='lifecycle-complete'
+                && lifecycle.sourcePath===converted.sourcePath && lifecycle.sourceHash===converted.sourceHash
+                && typeof lifecycle.identity?.id==='string' && typeof lifecycle.identity?.internalName==='string') {
+                converted={...converted,id:lifecycle.identity.id,internalName:lifecycle.identity.internalName};
+            }
+        }
         sources.push(converted);
-        const lifecycle=require('./source-exclusions').sourceExclusion(sourcePath)?null:compileNativeTokenLifecycle(text,sourcePath,source,enums)||compileNativeTokenGraph(text,sourcePath,source,enums,compileTokenInheritance);if(lifecycle)unmatchedSources.push(lifecycle);
         if (converted.id) {
             if (byId.has(converted.id)) throw new Error(`Duplicate source identity ${converted.id}: ${sourcePath}`);
             byId.set(converted.id, converted);

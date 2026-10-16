@@ -1,12 +1,12 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "8ffe6806dbd363a6a31018073e5f12eaf9f0035f48148e27526ad0666e3824d7",
+  "compilerHash": "b94637bc3437355dbc3caa473e3f9351e7f9406b581c4b26a9bd427212e6dbb2",
   "knownCards": 2458,
   "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
-  "definitionsWithSource": 2050,
+  "definitionsWithSource": 2051,
   "converted": 2422,
   "sourceAstConverted": 2040,
   "dataOnlyConverted": 382,
@@ -2440,7 +2440,7 @@
   "blockers": [
     {
       "pattern": "no-source-for-rules-text",
-      "occurrences": 26,
+      "occurrences": 25,
       "cards": [
         "JTL_108",
         "JTL_159",
@@ -2460,7 +2460,6 @@
         "SHD_111",
         "SHD_119",
         "SHD_149",
-        "TOKEN_ADVANTAGE",
         "TWI_037",
         "TWI_087",
         "TWI_117",
@@ -2510,6 +2509,13 @@
       "occurrences": 1,
       "cards": [
         "TOKEN_SHIELD"
+      ]
+    },
+    {
+      "pattern": "expected-one-card-class",
+      "occurrences": 1,
+      "cards": [
+        "TOKEN_ADVANTAGE"
       ]
     },
     {
@@ -2911,15 +2917,15 @@
     {
       "setCode": "TOKEN_ADVANTAGE",
       "internalName": "advantage",
-      "sourcePath": null,
+      "sourcePath": "game/cards/08_ASH/tokens/Advantage.ts",
       "diagnostics": [
         {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/advantage.json",
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "expected-one-card-class",
+          "file": "game/cards/08_ASH/tokens/Advantage.ts",
           "line": 1,
           "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+          "message": "Found 2 classes"
         }
       ]
     },

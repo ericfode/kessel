@@ -24,6 +24,17 @@ pub const MAX_ABILITY_NESTING: usize = 8;
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Expr {
+    NativeTokenPredicate {
+        operation: String,
+        receiver: Box<Expr>,
+        domain: String,
+        #[serde(rename = "tokenType")]
+        token_type: String,
+        #[serde(rename = "optionalReceiver")]
+        optional_receiver: bool,
+        #[serde(rename = "optionalCall")]
+        optional_call: bool,
+    },
     ArenaList { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
@@ -74,6 +85,17 @@ pub enum Expr {
 #[allow(dead_code)]
 #[serde(remote = "Expr", tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum PortableExpr {
+    NativeTokenPredicate {
+        operation: String,
+        receiver: Box<Expr>,
+        domain: String,
+        #[serde(rename = "tokenType")]
+        token_type: String,
+        #[serde(rename = "optionalReceiver")]
+        optional_receiver: bool,
+        #[serde(rename = "optionalCall")]
+        optional_call: bool,
+    },
     ArenaList { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaFilter { receiver: Box<Expr>, predicate: Box<Expr> },
     ArenaSome { receiver: Box<Expr>, predicate: Box<Expr> },
@@ -135,6 +157,7 @@ impl Expr {
         match self {
             Self::Compiled(compiled) => compiled.original.depends_on_stats(),
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_stats() || predicate.depends_on_stats(), Self::ArenaLength {receiver} => receiver.depends_on_stats(),
+            Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_stats(),
             Self::Const { .. } => false,
             Self::Ref { path } => path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_stats),
@@ -163,6 +186,7 @@ impl Expr {
         match self {
             Self::Compiled(compiled) => compiled.original.depends_on_keywords(),
             Self::ArenaList {receiver,predicate} | Self::ArenaFilter {receiver,predicate} | Self::ArenaSome {receiver,predicate} => receiver.depends_on_keywords() || predicate.depends_on_keywords(), Self::ArenaLength {receiver} => receiver.depends_on_keywords(),
+            Self::NativeTokenPredicate {receiver,..} => receiver.depends_on_keywords(),
             Self::Const { .. } => false,
             Self::Ref { path } => path.iter().map(String::as_str).collect::<Vec<_>>()==["card","keywords","length"] || path.iter().any(|p| ["power", "hp", "remainingHp"].contains(&p.as_str())),
             Self::Array { items } => items.iter().any(Self::depends_on_keywords),
@@ -250,7 +274,7 @@ impl Expr {
     }
     fn contains_typed_query(&self)->bool {
         fn walk(v:&Value)->bool {
-            (v["kind"]=="query" && v["name"].as_str().is_some_and(|n|["hasControlledInPlayTitle","hasControlledInPlayTrait","hasAttachedTrait","hasAttachedNativeToken","leaderTraits"].contains(&n))) || match v {Value::Object(o)=>o.values().any(walk),Value::Array(a)=>a.iter().any(walk),_=>false}
+            (v["kind"]=="nativeTokenPredicate") || (v["kind"]=="query" && v["name"].as_str().is_some_and(|n|["hasControlledInPlayTitle","hasControlledInPlayTrait","hasAttachedTrait","hasAttachedNativeToken","leaderTraits"].contains(&n))) || match v {Value::Object(o)=>o.values().any(walk),Value::Array(a)=>a.iter().any(walk),_=>false}
         }
         walk(&serde_json::to_value(self).expect("typed expression serializes"))
     }
@@ -269,7 +293,7 @@ impl Expr {
         let numeric = match self {
             Self::Compiled(compiled) => compiled.original.validate_number().is_ok(),
             Self::ArenaLength {..} => true, Self::ArenaList {..}|Self::ArenaFilter {..}|Self::ArenaSome {..} => false,
-            Self::Array { .. } => false,
+            Self::Array { .. } | Self::NativeTokenPredicate {..} => false,
             Self::Math { name, args } => {
                 self.bounded_floor_division().is_some() || ["min", "max"].contains(&name.as_str())
                     && !args.is_empty()
@@ -316,6 +340,14 @@ impl Expr {
         let sub = |e: &Expr| e.validate_depth(depth + 1);
         match self {
             Self::Compiled(compiled) => compiled.original.validate_depth(depth),
+            Self::NativeTokenPredicate {operation,receiver,domain,token_type,optional_receiver,optional_call} => {
+                if *optional_receiver || *optional_call || domain!="physicalAttachments"
+                    || !matches!((operation.as_str(),token_type.as_str()),("hasExperience","experience")|("hasShield","shield")|("hasWeakness","weakness"))
+                    || !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["source","card","target","modifierTarget"].contains(&path[0].as_str())) {
+                    return Err("native token predicate requires exact physical attachment operation and scalar card receiver".into());
+                }
+                sub(receiver)
+            },
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
@@ -1239,6 +1271,22 @@ fn arena_keyword_registration(a:&Ability)->bool {
 }
 #[derive(Clone,Copy,PartialEq,Eq)]
 enum WeaknessExtension { Torrent, Picador, Mixed, Sequence }
+// A scalar action and optional attack trigger reuse the existing Weakness
+// lifecycle. Leader side topology is checked against the complete card below.
+fn scalar_weakness_registration(a:&Ability)->bool {
+    if a.requires_confirmation || a.coordinate || !a.context_title.is_empty() || a.attached_context.is_some() || a.gained_host.is_some()
+        || a.condition.is_some() || a.then.is_some() || a.if_you_do.is_some() || !a.target_resolvers.is_empty() || !selected_weakness(&a.effect) {return false;}
+    let Some(r)=&a.target_resolver else{return false;};
+    if r.owner!="any" || !matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) || r.arena.is_some() || r.optional || r.mode.is_some() || r.count.is_some() || r.prompt_title.is_some() {return false;}
+    match a.trigger.as_str() {
+        "onAttack"=>a.optional && a.costs.is_empty() && r.card_type=="unit" && r.predicate.is_none(),
+        "action"=>!a.optional && matches!(a.costs.as_slice(),[Cost::Resources{amount:Expr::Const{value}},Cost::ExhaustSelf] if value.as_u64()==Some(1)) && r.card_type=="any"
+            && r.predicate.as_ref().is_some_and(|p|matches!(p,Expr::Binary{op,left,right} if op=="&&"
+                && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit" && args.is_empty() && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"]))
+                && matches!(right.as_ref(),Expr::Unary{op,value} if op=="!" && matches!(value.as_ref(),Expr::NativeTokenPredicate{operation,receiver,domain,token_type,optional_receiver:false,optional_call:false} if operation=="hasWeakness" && domain=="physicalAttachments" && token_type=="weakness" && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"]))))),
+        _=>false,
+    }
+}
 fn selected_weakness(e:&Effect)->bool {matches!(e,Effect::GiveWeakness{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1))}
 fn weakness_selector(r:&TargetResolver,owner:&str)->bool {r.owner==owner&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&r.arena.is_none()&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.predicate.is_none()&&r.prompt_title.is_none()}
 fn own_base_trait(e:&Expr)->bool {matches!(e,Expr::Query{name,receiver,args} if name=="hasSomeTrait"&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player","base"])&&args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str().is_some_and(|n|!n.is_empty())))}
@@ -1435,6 +1483,7 @@ impl Program {
         fn title_literal_bytes(e: &Expr) -> usize {
             match e {
                 Expr::Compiled(compiled) => title_literal_bytes(&compiled.original),
+                Expr::NativeTokenPredicate{receiver,..}=>title_literal_bytes(receiver),
  Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>title_literal_bytes(receiver)+title_literal_bytes(predicate),Expr::ArenaLength{receiver}=>title_literal_bytes(receiver),
                 Expr::Const {value} => value.as_str().map_or(0, str::len),
                 Expr::Array {items} => items.iter().map(title_literal_bytes).sum(),
@@ -1678,7 +1727,7 @@ impl Program {
             if !root || !(gain||use_force) {return Err("Force requires standalone ordinary play/death/event use and one bounded independent success continuation".into());}
         }
 
-        if contains_weakness(&ability.effect) {
+        if contains_weakness(&ability.effect) && !(depth==0 && scalar_weakness_registration(ability)) {
             fn primitive(e:&Effect)->bool {matches!(e,Effect::GiveWeakness{amount:Expr::Const{value},target:Target::Name(n)} if value.as_u64()==Some(1)&&n=="chosen")}
             let shape=primitive(&ability.effect) || matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op==">=" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","resources","length"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=1000)) && primitive(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
             fn damaged_predicate(e:&Expr)->bool {matches!(e,Expr::Binary{op,left,right} if op=="&&" && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path.len()==1&&path[0]=="card")) && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["card","damage"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0))))}
@@ -1859,6 +1908,7 @@ impl Program {
         fn dependent_in_scope(e: &Expr, card_bound: bool) -> bool {
             match e {
                 Expr::Compiled(compiled) => dependent_in_scope(&compiled.original,card_bound),
+                Expr::NativeTokenPredicate{receiver,..}=>dependent_in_scope(receiver,card_bound),
  Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>dependent_in_scope(receiver,card_bound)||dependent_in_scope(predicate,true),Expr::ArenaLength{receiver}=>dependent_in_scope(receiver,card_bound),
                 Expr::Ref {path} => matches!(path.first().map(String::as_str), Some("target" | "targets")) || (!card_bound && path.first().is_some_and(|p|p=="card")),
                 Expr::Array {items} => items.iter().any(|e|dependent_in_scope(e,card_bound)),
@@ -2416,7 +2466,13 @@ impl Catalogue {
                     }else {sides.card.len()==1&&((weakness_extension(&sides.card[0])==Some(WeaknessExtension::Torrent)&&entry["baseClass"]=="EventCard"&&exact_type("event"))||(matches!(weakness_extension(&sides.card[0]),Some(WeaknessExtension::Picador|WeaknessExtension::Sequence))&&entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")))};
                     if !source||!sides.leader.is_empty()||!sides.unit.is_empty()||!entry["piloting"].is_null()||!entry["attachCondition"].is_null()||!entry["card"]["unique"].is_boolean()||!entry["keywordValues"].as_object().is_some_and(|v|v.is_empty())||["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null())) {return Err("extended Weakness requires complete ordinary event/unit metadata and bounded registration topology".into());}
                 }
-                if !extension && (sides.leader.iter().chain(&sides.unit).any(|a|contains_weakness(&a.effect)) || sides.card.iter().any(|a|contains_weakness(&a.effect) && !(entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") || upgrade_weakness)) ) {return Err("Weakness source requires ordinary unit or bounded ordinary upgrade play metadata".into());}
+                let leader_weakness=sides.leader.iter().chain(&sides.unit).any(scalar_weakness_registration);
+                if leader_weakness && (source_class!=Some("LeaderUnitCard") || !exact_type("leader") || !sides.card.is_empty() || sides.leader.len()!=1 || sides.unit.len()!=1
+                    || sides.leader[0].trigger!="action" || sides.unit[0].trigger!="onAttack" || !sides.leader.iter().chain(&sides.unit).all(scalar_weakness_registration)
+                    || !entry["piloting"].is_null() || !entry["attachCondition"].is_null() || !entry["card"]["unique"].is_boolean()
+                    || entry["keywordValues"]!=serde_json::json!({}) || entry["card"]["keywords"]!=serde_json::json!([])
+                    || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|entry["card"].get(*k).is_some_and(|v|!v.is_null()))) {return Err("leader Weakness requires complete bounded action and optional attack sides".into());}
+                if !extension && !leader_weakness && (sides.leader.iter().chain(&sides.unit).any(|a|contains_weakness(&a.effect)) || sides.card.iter().any(|a|contains_weakness(&a.effect) && !(entry["baseClass"]=="NonLeaderUnitCard" && exact_type("unit") || upgrade_weakness)) ) {return Err("Weakness source requires ordinary unit or bounded ordinary upgrade play metadata".into());}
                 if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(contains_arena_tokens) {
                     let kinds=sides.card.iter().map(arena_token_kind).collect::<Option<Vec<_>>>().ok_or("unsupported arena token registration")?;
                     if kinds.contains(&4) && (!complete_plain_source_metadata(entry)||entry["keywordValues"]!=serde_json::json!({})||entry["card"]["keywords"]!=serde_json::json!([])||entry["card"]["unique"]!=false) {return Err("unshielded ground snapshot requires complete ordinary nonunique unit metadata".into());}

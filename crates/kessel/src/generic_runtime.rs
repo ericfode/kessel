@@ -95,6 +95,7 @@ struct TokenRequirements {
     created: Vec<String>,
     force: bool,
     weakness: bool,
+    predicates: Vec<String>,
 }
 impl TokenRequirements {
     fn for_program(program: &Program) -> Self {
@@ -128,9 +129,25 @@ impl TokenRequirements {
                 other => other.group_effect(),
             } { walk(effect, &mut out); }
         }
+        // Inspect every typed expression position, including target predicates,
+        // continuations and costs; presence alone needs an exact token identity.
+        fn presence(value:&Value, out:&mut Vec<String>) {
+            match value {
+                Value::Object(o)=> {
+                    if o.get("kind").is_some_and(|v|v=="nativeTokenPredicate") {
+                        if let Some(code)=match o.get("tokenType").and_then(Value::as_str) {
+                            Some("shield")=>Some("TOKEN_SHIELD"),Some("experience")=>Some("TOKEN_EXPERIENCE"),Some("weakness")=>Some("TOKEN_WEAKNESS"),_=>None
+                        } {if !out.iter().any(|v|v==code) {out.push(code.into());}}
+                    }
+                    for value in o.values() {presence(value,out);}
+                },Value::Array(a)=>for value in a {presence(value,out);},_=>{}
+            }
+        }
+        presence(&serde_json::to_value(program).expect("typed program serializes"),&mut out.predicates);
         out
     }
     fn needs(&self, token: &str) -> bool {
+        if self.predicates.iter().any(|code|code==token) {return true;}
         match token {
             "TOKEN_THE_FORCE" => self.force,
             "TOKEN_WEAKNESS" => self.weakness,
@@ -263,8 +280,10 @@ impl Engine {
     fn attached_trait(&self,s:&State,host:CardId,trait_name:&str)->bool {
         host!=0 && self.in_arena(s,host) && self.upgrades(s,host).into_iter().any(|id|self.def(s,id).traits.iter().any(|t|t==trait_name))
     }
-    fn attached_native_shield(&self,s:&State,host:CardId)->bool {
-        host!=0 && self.in_arena(s,host) && self.upgrades(s,host).into_iter().any(|id|s.card(id).def==self.shield_def)
+    fn attached_native_shield(&self,s:&State,host:CardId)->bool { self.attached_native_token(s,host,"shield") }
+    fn attached_native_token(&self,s:&State,host:CardId,token_type:&str)->bool {
+        let definition=match token_type {"shield"=>Some(self.shield_def),"experience"=>self.experience_def,"weakness"=>self.weakness_def,_=>None};
+        host!=0 && self.in_arena(s,host) && definition.is_some_and(|definition|self.upgrades(s,host).into_iter().any(|id|s.card(id).def==definition))
     }
 
     pub(super) fn needs_force_state(&self)->bool {
@@ -282,6 +301,7 @@ impl Engine {
     pub fn from_catalogue_value(value: &Value) -> Result<Self, String> {
         let mut catalogue = Catalogue::load(value)?;
         let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
+        let shield_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_shield_entry);
         let experience_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_experience_entry);
         let force_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_force_entry);
         let weakness_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_weakness_entry);
@@ -323,6 +343,7 @@ impl Engine {
                 }
 
                 for (available, token, reason) in [
+                    (shield_available, "TOKEN_SHIELD", "reviewed Shield token unavailable"),
                     (experience_available, "TOKEN_EXPERIENCE", "reviewed Experience token unavailable"),
                     (force_available, "TOKEN_THE_FORCE", "reviewed Force token unavailable; dependent source cannot execute"),
                     (weakness_available, "TOKEN_WEAKNESS", "Weakness token unavailable; dependent source cannot execute"),
@@ -912,6 +933,7 @@ impl Engine {
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
             Expr::ArenaLength {receiver} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Number(ids.len() as i64)},
+            Expr::NativeTokenPredicate {receiver,token_type,..} => Eval::Bool(match sub(receiver) {Eval::Card(id)=>self.attached_native_token(s,id,token_type),_=>false}),
             Expr::Array { items } => Eval::Array(items.iter().map(sub).collect()),
             Expr::Math { name, args } => {
                 if let Some((numerator,divisor))=e.bounded_floor_division() {return Eval::Number(sub(numerator).number()/divisor);}
@@ -3234,3 +3256,7 @@ impl Engine {
 #[cfg(test)]
 #[path="maximum_snapshot_tests.rs"]
 mod maximum_snapshot_tests;
+
+#[cfg(test)]
+#[path="native_predicate_tests.rs"]
+mod native_predicate_tests;

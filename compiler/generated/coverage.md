@@ -6,12 +6,13 @@ These counts measure bounded IR conversion, not runtime acceptance. Metadata-onl
 
 | Unsupported source pattern | Affected cards | Occurrences |
 |---|---:|---:|
-| no-source-for-rules-text | 26 | 26 |
+| no-source-for-rules-text | 25 | 25 |
 | quarantined-source | 5 | 5 |
 | class-member:GetAccessor | 3 | 3 |
 | custom-inheritance:TokenCard | 2 | 2 |
 | class-member:Constructor | 1 | 1 |
 | class-state:highPriorityRemoval | 1 | 1 |
+| expected-one-card-class | 1 | 1 |
 | method:isCreditToken | 1 | 1 |
 | method:isExperience | 1 | 1 |
 | method:isForceToken | 1 | 1 |

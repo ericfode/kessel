@@ -3,7 +3,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "8ffe6806dbd363a6a31018073e5f12eaf9f0035f48148e27526ad0666e3824d7",
+  "compilerHash": "b94637bc3437355dbc3caa473e3f9351e7f9406b581c4b26a9bd427212e6dbb2",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -21440,22 +21440,6 @@
           "code": "UNSUPPORTED_SOURCE",
           "pattern": "expected-one-card-class",
           "file": "game/cards/02_SHD/units/FirstLightHeadquartersOfTheCrimsonDawn.ts",
-          "line": 1,
-          "column": 1,
-          "message": "Found 2 classes"
-        }
-      ]
-    },
-    {
-      "sourcePath": "game/cards/08_ASH/tokens/Advantage.ts",
-      "sourceHash": "1280861b9a94572ecce2c1d62fb5fd93c11b08609495c3d9f60e656d153e3119",
-      "role": "source-without-card-data",
-      "status": "unsupported",
-      "diagnostics": [
-        {
-          "code": "UNSUPPORTED_SOURCE",
-          "pattern": "expected-one-card-class",
-          "file": "game/cards/08_ASH/tokens/Advantage.ts",
           "line": 1,
           "column": 1,
           "message": "Found 2 classes"
@@ -372481,11 +372465,8 @@
     },
     {
       "setCode": "TOKEN_ADVANTAGE",
-      "id": "5844562972",
-      "internalName": "advantage",
-      "sourcePath": null,
-      "sourceHash": null,
-      "status": "unsupported",
+      "sourcePath": "game/cards/08_ASH/tokens/Advantage.ts",
+      "sourceHash": "1280861b9a94572ecce2c1d62fb5fd93c11b08609495c3d9f60e656d153e3119",
       "abilities": {
         "leader": [],
         "unit": [],
@@ -372493,14 +372474,17 @@
       },
       "diagnostics": [
         {
-          "code": "MISSING_IMPLEMENTATION",
-          "pattern": "no-source-for-rules-text",
-          "file": "data/Card/advantage.json",
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "expected-one-card-class",
+          "file": "game/cards/08_ASH/tokens/Advantage.ts",
           "line": 1,
           "column": 1,
-          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+          "message": "Found 2 classes"
         }
       ],
+      "status": "unsupported",
+      "id": "5844562972",
+      "internalName": "advantage",
       "card": {
         "title": "Advantage",
         "subtitle": "",
@@ -426820,6 +426804,6 @@
     "mockCardsExcluded": 21,
     "sourceFiles": 2074,
     "sourceDefinitions": 2071,
-    "definitionsWithSource": 2050
+    "definitionsWithSource": 2051
   }
 }
