@@ -131,7 +131,7 @@ fn parse_smuggle_cost(text: &str) -> Result<SmuggleCost, String> {
         }
         let mut aspects = [0u8; 6];
         for token in aspects_text.split_whitespace() {
-            let index = aspect(token)?;
+            let index = aspect(&token.to_ascii_lowercase())?;
             aspects[index] = aspects[index]
                 .checked_add(1)
                 .ok_or("Smuggle aspect capacity exceeded")?;
