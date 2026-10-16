@@ -1137,37 +1137,23 @@ struct RecipeSelector<'a> {
     owner: &'a str,
     card_type: &'a str,
     zone: &'a str,
-    cardinality: RecipeCardinality,
-    prompt: RecipePrompt,
+    count: Option<u64>,
+    prompt: bool,
 }
-#[derive(Clone, Copy)]
-enum RecipeCardinality { One, OptionalUpTo(u64) }
-#[derive(Clone, Copy)]
-enum RecipePrompt { Absent, Required }
 impl<'a> RecipeSelector<'a> {
     fn one(owner: &'a str, card_type: &'a str, zone: &'a str) -> Self {
-        Self { owner, card_type, zone, cardinality: RecipeCardinality::One, prompt: RecipePrompt::Absent }
+        Self { owner, card_type, zone, count: None, prompt: false }
     }
     fn matches(self, r: &TargetResolver) -> bool {
         r.owner == self.owner && r.card_type == self.card_type && r.zone.as_deref() == Some(self.zone)
-            && r.arena.is_none() && self.cardinality.accepts(r) && self.prompt.accepts(r)
-    }
-}
-impl RecipeCardinality {
-    fn accepts(self, r: &TargetResolver) -> bool {
-        match self {
-            Self::One => !r.optional && r.mode.is_none() && r.count.is_none(),
-            Self::OptionalUpTo(count) => r.optional && r.mode.as_deref() == Some("upTo")
-                && matches!(&r.count, Some(Expr::Const { value }) if value.as_u64() == Some(count)),
-        }
-    }
-}
-impl RecipePrompt {
-    fn accepts(self, r: &TargetResolver) -> bool {
-        match self {
-            Self::Absent => r.prompt_title.is_none(),
-            Self::Required => r.prompt_title.as_ref().is_some_and(|title| !title.is_empty()),
-        }
+            && r.arena.is_none()
+            && match self.count {
+                None => !r.optional && r.mode.is_none() && r.count.is_none(),
+                Some(count) => r.optional && r.mode.as_deref() == Some("upTo")
+                    && matches!(&r.count,Some(Expr::Const {value}) if value.as_u64()==Some(count)),
+            }
+            && if self.prompt {r.prompt_title.as_ref().is_some_and(|title|!title.is_empty())}
+                else {r.prompt_title.is_none()}
     }
 }
 
@@ -1227,7 +1213,7 @@ fn force_recipe(a: &Ability) -> Option<ForceRecipe<'_>> {
     if a.trigger == "event" && !a.optional && a.if_you_do.is_none() {
         if let Effect::Simultaneous { effects } = &a.effect {
             if let [Effect::Select { target_resolver, effect }, gain] = effects.as_slice() {
-                let selector = RecipeSelector { prompt: RecipePrompt::Required,
+                let selector = RecipeSelector { prompt: true,
                     ..RecipeSelector::one("any", "unit", "anyAttackable") };
                 if own(gain, true) && selector.matches(target_resolver) && target_resolver.predicate.is_none()
                     && matches!(effect.as_ref(), Effect::Damage { target: Target::Name(name), amount: Expr::Const { value } }
@@ -1241,7 +1227,7 @@ fn force_recipe(a: &Ability) -> Option<ForceRecipe<'_>> {
     let next = a.if_you_do.as_ref()?;
     if !plain_success(next) { return None; }
     let resolution = if let Some(target_resolver) = &next.target_resolver {
-        let selector = RecipeSelector { cardinality: RecipeCardinality::OptionalUpTo(5),
+        let selector = RecipeSelector { count: Some(5),
             ..RecipeSelector::one("any", "unit", "anyAttackable") };
         if !selector.matches(target_resolver) || target_resolver.predicate.is_some()
             || !matches!(&next.effect, Effect::GiveShield { target: Target::Name(name), amount: Expr::Const { value } }
@@ -1487,7 +1473,7 @@ fn scalar_weakness_registration(a:&Ability)->bool {
     if a.requires_confirmation || a.coordinate || !a.context_title.is_empty() || a.attached_context.is_some() || a.gained_host.is_some()
         || a.condition.is_some() || a.then.is_some() || a.if_you_do.is_some() || !a.target_resolvers.is_empty() || !selected_weakness(&a.effect) {return false;}
     let Some(r)=&a.target_resolver else{return false;};
-    if r.owner!="any" || !matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) || r.arena.is_some() || !RecipeCardinality::One.accepts(r) || !RecipePrompt::Absent.accepts(r) {return false;}
+    if r.owner!="any" || !matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) || r.arena.is_some() || r.optional || r.mode.is_some() || r.count.is_some() || r.prompt_title.is_some() {return false;}
     match a.trigger.as_str() {
         "onAttack"=>a.optional && a.costs.is_empty() && r.card_type=="unit" && r.predicate.is_none(),
         "action"=>!a.optional && matches!(a.costs.as_slice(),[Cost::Resources{amount:Expr::Const{value}},Cost::ExhaustSelf] if value.as_u64()==Some(1)) && r.card_type=="any"
@@ -2023,7 +2009,7 @@ impl Program {
         if contains_weakness(&ability.effect) && !(depth==0 && scalar_weakness_registration(ability)) {
             let shape=selected_weakness(&ability.effect) || matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op==">=" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","resources","length"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_u64().is_some_and(|n|n<=1000)) && selected_weakness(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
             fn damaged_predicate(e:&Expr)->bool {matches!(e,Expr::Binary{op,left,right} if op=="&&" && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isUnit"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path.len()==1&&path[0]=="card")) && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["card","damage"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0))))}
-            let selector=ability.target_resolver.as_ref().is_some_and(|r| r.owner=="any" && r.card_type=="unit" && matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) && r.arena.is_none() && RecipeCardinality::One.accepts(r) && RecipePrompt::Absent.accepts(r) && r.predicate.as_ref().map_or(true,damaged_predicate));
+            let selector=ability.target_resolver.as_ref().is_some_and(|r| r.owner=="any" && r.card_type=="unit" && matches!(r.zone.as_deref(),Some("arena"|"anyAttackable")) && r.arena.is_none() && !r.optional && r.mode.is_none() && r.count.is_none() && r.prompt_title.is_none() && r.predicate.as_ref().map_or(true,damaged_predicate));
             if depth!=0 || !["whenPlayed","whenDefeated"].contains(&ability.trigger.as_str()) || !ability.optional || ability.requires_confirmation || ability.coordinate || !ability.context_title.is_empty() || !ability.costs.is_empty() || ability.condition.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || !ability.target_resolvers.is_empty() || !shape || !selector {return Err("Weakness requires an optional standalone scalar unit play/death registration with amount one".into());}
         }
 

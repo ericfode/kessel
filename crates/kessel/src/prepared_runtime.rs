@@ -1,25 +1,7 @@
 //! Prepared event windows: capture, replacement, primary handlers, contingents,
 //! and post-event visibility. Inline State records remain the compatibility
-//! representation; transient typed views make their overloaded fields explicit.
+//! representation; execution reuses the Effect enum with captured literals.
 use super::*;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum HandlerPhase { Primary, Contingent }
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct HandlerStep { index: usize, phase: HandlerPhase }
-
-fn handler_steps(records: &[PreparedEvent], ops: &[GroupOp<'_>]) -> Vec<HandlerStep> {
-    let attachment = |r: &PreparedEvent| matches!(ops[r.op as usize], GroupOp::Leaf(
-        Effect::GiveShield{..} | Effect::GiveExperience{..} | Effect::GiveWeakness{..}
-        | Effect::GiveAdvantage{..} | Effect::CreateTokenUnit{..}));
-    let draw = |r: &PreparedEvent| matches!(ops[r.op as usize], GroupOp::Leaf(Effect::Draw{..}));
-    records.iter().enumerate().filter(|(_, r)| !attachment(r))
-        .map(|(index, _)| HandlerStep { index, phase: HandlerPhase::Primary })
-        .chain(records.iter().enumerate().filter(|(_, r)| attachment(r) || draw(r))
-            .map(|(index, _)| HandlerStep { index, phase: HandlerPhase::Contingent }))
-        .collect()
-}
 
 #[derive(Clone, Copy)]
 struct CapturedDraw { base: CardId, requested: u16, fatigue: u16 }
@@ -48,111 +30,55 @@ impl CapturedStatDelta {
     }
 }
 
-// Only this projection interprets compact record fields for primary handlers.
-// It does not alter storage or capture values again at resolution time.
-#[derive(Clone, Copy)]
-enum AttachmentRole { Shield, Experience, Ordinary }
-#[derive(Clone, Copy)]
-enum CapturedMutation<'a> {
-    Damage(u16), Heal(u16), Ready, Exhaust, Defeat,
-    Stats { delta: CapturedStatDelta, duration: &'a str },
-    GainKeyword { keyword: &'a str, amount: u16, duration: &'a str },
-    LoseKeyword { keyword: &'a str, duration: &'a str },
-}
-impl CapturedMutation<'_> {
-    fn is_damage(self) -> bool { matches!(self, Self::Damage(_)) }
-    fn effect(self) -> Effect {
-        let target=Target::name("chosen");
-        match self {
-            Self::Damage(amount)=>Effect::Damage {target,amount:Expr::number(i64::from(amount))},
-            Self::Heal(amount)=>Effect::Heal {target,amount:Expr::number(i64::from(amount))},
-            Self::Ready=>Effect::Ready {target}, Self::Exhaust=>Effect::Exhaust {target},
-            Self::Defeat=>Effect::Defeat {target},
-            Self::Stats {delta,duration}=>Effect::ModifyStats {target,duration:duration.into(),
-                power:Expr::number(i64::from(delta.power)),hp:Expr::number(i64::from(delta.hp))},
-            Self::GainKeyword {keyword,amount,duration}=>Effect::GainKeyword {target,keyword:keyword.into(),amount:Expr::number(i64::from(amount)),duration:duration.into()},
-            Self::LoseKeyword {keyword,duration}=>Effect::LoseKeyword {target,keyword:keyword.into(),duration:duration.into()},
-        }
-    }
-}
-#[derive(Clone, Copy)]
-enum PreparedPayload<'a> {
-    DeckDiscard { card: CardId }, HandDiscard { card: CardId },
-    Draw { target: &'a Target, captured: CapturedDraw },
-    UnitEntry { token: CardId }, ForceGain { base: CardId },
-    ShieldReplacement { target: CardId, shield: CardId },
-    Attachment { target: CardId, token: CardId, role: AttachmentRole },
-    Card { target: CardId, mutation: CapturedMutation<'a> },
-    Unsupported { target: CardId },
-}
-impl<'a> PreparedPayload<'a> {
-    fn from_record(effect: &'a Effect, record: PreparedEvent) -> Self {
-        let target=record.target;
-        match effect {
-            Effect::DiscardDeck {..}=>Self::DeckDiscard {card:target},
-            Effect::DiscardOwnHand {..}=>Self::HandDiscard {card:target},
-            Effect::Draw {target,..}=>Self::Draw {target,captured:CapturedDraw::from_record(record)},
-            Effect::CreateTokenUnit {..}=>Self::UnitEntry {token:record.token},
-            Effect::GainForce {..}=>Self::ForceGain {base:target},
-            Effect::Damage {..} if record.token!=0=>Self::ShieldReplacement {target,shield:record.token},
-            _ if record.token!=0=>Self::Attachment {target,token:record.token,role:match effect {
-                Effect::GiveExperience {..}=>AttachmentRole::Experience,
-                Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}=>AttachmentRole::Ordinary,
-                _=>AttachmentRole::Shield,
-            }},
-            _=>Self::Card {target,mutation:match effect {
-                Effect::Damage {..}=>CapturedMutation::Damage(record.amount),
-                Effect::Heal {..}=>CapturedMutation::Heal(record.amount),
-                Effect::Ready {..}=>CapturedMutation::Ready,
-                Effect::Exhaust {..}=>CapturedMutation::Exhaust,
-                Effect::Defeat {..}=>CapturedMutation::Defeat,
-                Effect::ModifyStats {duration,..}=>CapturedMutation::Stats {
-                    delta:CapturedStatDelta {power:record.power,hp:record.hp},duration},
-                Effect::GainKeyword {keyword,duration,..}=>CapturedMutation::GainKeyword {keyword,amount:record.amount,duration},
-                Effect::LoseKeyword {keyword,duration,..}=>CapturedMutation::LoseKeyword {keyword,duration},
-                _=>return Self::Unsupported {target},
-            }},
-        }
+// The existing Effect is the execution payload. Substitute captured literals
+// once instead of translating through a second enum that duplicates its cases.
+fn captured_effect(effect: &Effect, record: PreparedEvent) -> Effect {
+    let target=Target::name("chosen");
+    let amount=Expr::number(i64::from(record.amount));
+    match effect {
+        Effect::Damage {..}=>Effect::Damage {target,amount},
+        Effect::Heal {..}=>Effect::Heal {target,amount},
+        Effect::Ready {..}=>Effect::Ready {target},
+        Effect::Exhaust {..}=>Effect::Exhaust {target},
+        Effect::Defeat {..}=>Effect::Defeat {target},
+        Effect::ModifyStats {duration,..}=>Effect::ModifyStats {target,duration:duration.clone(),
+            power:Expr::number(i64::from(record.power)),hp:Expr::number(i64::from(record.hp))},
+        Effect::GainKeyword {keyword,duration,..}=>Effect::GainKeyword {target,keyword:keyword.clone(),amount,duration:duration.clone()},
+        Effect::LoseKeyword {keyword,duration,..}=>Effect::LoseKeyword {target,keyword:keyword.clone(),duration:duration.clone()},
+        _=>unreachable!(),
     }
 }
 
 // Force presence can alter ongoing HP. This exact existing group shape retains
 // damage-handler lethal snapshots until post-event recomputation. It is a
 // visibility contract, not admission of arbitrary damage/Force compositions.
-#[derive(Clone, Copy)]
-enum DamageVisibility { PostEvent, CaptureBeforeForceChange }
-impl DamageVisibility {
-    fn for_group(effect: &Effect) -> Self {
-        if matches!(effect, Effect::Simultaneous{effects} if effects.len()==2
-            && matches!(&effects[0],Effect::Select{effect,..} if matches!(effect.as_ref(),Effect::Damage{..}))
-            && matches!(&effects[1],Effect::GainForce{..})) {
-            Self::CaptureBeforeForceChange
-        } else { Self::PostEvent }
-    }
-    fn captures_lethals(self) -> bool { matches!(self, Self::CaptureBeforeForceChange) }
+fn damage_before_force(effect: &Effect) -> bool {
+    matches!(effect,Effect::Simultaneous {effects} if effects.len()==2
+        && matches!(&effects[0],Effect::Select {effect,..} if matches!(effect.as_ref(),Effect::Damage {..}))
+        && matches!(&effects[1],Effect::GainForce {..}))
 }
 
 // Damage callbacks share one observation/flush algorithm in uniform and
 // heterogeneous windows. The policy specifies when lethality is observed;
 // mutation ordering is not itself a policy for cache visibility.
 struct DamageObservations {
-    visibility: DamageVisibility,
+    capture_lethals: bool,
     callbacks: Vec<CardId>,
     handler_lethals: Vec<CardId>,
 }
 impl DamageObservations {
-    fn new(visibility: DamageVisibility) -> Self {
-        Self {visibility,callbacks:vec![],handler_lethals:vec![]}
+    fn new(capture_lethals: bool) -> Self {
+        Self {capture_lethals,callbacks:vec![],handler_lethals:vec![]}
     }
     fn observe(&mut self, engine: &Engine, s: &State, target: CardId, amount: u16) {
         if amount==0 || !engine.in_arena(s,target) {return;}
         self.callbacks.push(target);
-        if self.visibility.captures_lethals() && s.card(target).damage>=engine.hp(s,target) {
+        if self.capture_lethals && s.card(target).damage>=engine.hp(s,target) {
             self.handler_lethals.push(target);
         }
     }
     fn finish(self, engine: &Engine, s: &mut State) -> Result<(),String> {
-        if self.visibility.captures_lethals() {engine.defeat_many(s,&self.handler_lethals)?;}
+        if self.capture_lethals {engine.defeat_many(s,&self.handler_lethals)?;}
         engine.finish_group_damage(s,self.callbacks)
     }
 }
@@ -499,7 +425,7 @@ impl Engine {
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
         s.ability_result=0;s.ability_succeeded=false;s.event_group.resolving=true;
         let mut events=StepEventResult::for_state(s);
-        let mut observations=DamageObservations::new(DamageVisibility::PostEvent);
+        let mut observations=DamageObservations::new(false);
         for i in 0..s.event_group.uniform_damage.count as usize {
             let record=s.event_group.uniform_damage.records[i];let target=record.target();
             if !self.in_arena(s,target) {continue;}
@@ -542,7 +468,7 @@ impl Engine {
     }
     pub(super) fn resolve_group(&self,s:&mut State,e:&Effect)->Result<bool,String> {
         if crate::ability_ir::resource_pair_effect(e) {return self.resolve_resource_pair(s);}
-        let mut observations=DamageObservations::new(DamageVisibility::for_group(e));
+        let mut observations=DamageObservations::new(damage_before_force(e));
 
         if s.event_group.uniform_damage.active {return self.resolve_uniform_damage(s,e);}
         let ops=group_ops(e);
@@ -588,69 +514,65 @@ impl Engine {
         s.event_group.resolving=true;
         // Attachment, unit-entry and draw-fatigue contingents retain record order
         // after every primary handler has finished.
-        let steps=handler_steps(&s.event_group.records[..s.event_group.count as usize],&ops);
-        for HandlerStep {index,phase} in steps {
-            let r=s.event_group.records[index];
-            let GroupOp::Leaf(effect)=&ops[r.op as usize] else { unreachable!() };
-            let payload=PreparedPayload::from_record(effect,r);
-            let (target,mut mutation)=match payload {
-                PreparedPayload::DeckDiscard {card}=> {
-                    if self.def(s,card).info.is("base") {s.ability_succeeded=true;}
-                    else {let owner=s.card(card).owner;if s.player_mut(owner).deck.remove(card) {s.player_mut(owner).discard.push(card)?;s.ability_result=s.ability_result.saturating_add(1);}}
-                    continue;
-                }
-                PreparedPayload::HandDiscard {card}=> {
-                    let owner=s.card(card).owner;
-                    if s.player_mut(owner).hand.remove(card) {s.player_mut(owner).discard.push(card)?;s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;}
-                    continue;
-                }
-                PreparedPayload::Draw {target,captured}=> {
-                    if phase==HandlerPhase::Contingent {self.apply_draw_fatigue(s,captured.base,captured.fatigue);continue;}
-                    let (amount,resolved)=self.apply_effect(s,&Effect::Draw {target:target.clone(),amount:Expr::number(i64::from(captured.requested))})?;
-                    s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
-                }
-                PreparedPayload::UnitEntry {token}=> {
-                    s.card_mut(token).set_hidden_qualified(true);self.add_arena(s,token)?;s.phase_history.entered(s.card(token).owner,token);
-                    s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;continue;
-                }
-                PreparedPayload::ForceGain {base}=> {
-                    let player=[Seat::P1,Seat::P2].into_iter().find(|player|s.player(*player).base==base).ok_or("captured Force player identity missing")?;
-                    if !s.force_state_exact||s.player(player).force_id==0||self.force_def.is_none(){return Err("Force requires exact reviewed identity".into());}
-                    if !s.player(player).force_held{s.player_mut(player).force_held=true;s.ability_result=s.ability_result.saturating_add(1);}s.ability_succeeded=true;continue;
-                }
-                PreparedPayload::ShieldReplacement {target,shield}=> {
-                    if self.in_arena(s,target)||self.def(s,target).info.is("base") {self.remove_group_shield(s,target,shield);}
-                    continue;
-                }
-                PreparedPayload::Attachment {target,token,role}=> {
-                    if !self.in_arena(s,target)&&!self.def(s,target).info.is("base") {continue;}
-                    match role {
-                        AttachmentRole::Ordinary=>{},
-                        AttachmentRole::Experience=>{s.card_mut(token).next_token=s.card(target).experience;s.card_mut(target).experience=token;},
-                        AttachmentRole::Shield=>{s.card_mut(token).next_token=s.card(target).shield;s.card_mut(target).shield=token;},
+        let count=s.event_group.count as usize;
+        for contingent in [false,true] {
+            for index in 0..count {
+                let mut r=s.event_group.records[index];
+                let GroupOp::Leaf(effect)=&ops[r.op as usize] else { unreachable!() };
+                let attachment=matches!(effect,Effect::GiveShield {..}|Effect::GiveExperience {..}|Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::CreateTokenUnit {..});
+                let applies=if contingent {attachment || matches!(effect,Effect::Draw {..})} else {!attachment};
+                if !applies {continue;}
+                match effect {
+                    Effect::DiscardDeck {..}=> {
+                        if self.def(s,r.target).info.is("base") {s.ability_succeeded=true;}
+                        else {let owner=s.card(r.target).owner;if s.player_mut(owner).deck.remove(r.target) {s.player_mut(owner).discard.push(r.target)?;s.ability_result=s.ability_result.saturating_add(1);}}
+                        continue;
                     }
-                    self.attach(s,token,target);continue;
+                    Effect::DiscardOwnHand {..}=> {
+                        let owner=s.card(r.target).owner;
+                        if s.player_mut(owner).hand.remove(r.target) {s.player_mut(owner).discard.push(r.target)?;s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;}
+                        continue;
+                    }
+                    Effect::Draw {target,..}=> {
+                        let draw=CapturedDraw::from_record(r);
+                        if contingent {self.apply_draw_fatigue(s,draw.base,draw.fatigue);continue;}
+                        let (amount,resolved)=self.apply_effect(s,&Effect::Draw {target:target.clone(),amount:Expr::number(i64::from(draw.requested))})?;
+                        s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
+                    }
+                    Effect::CreateTokenUnit {..}=> {
+                        s.card_mut(r.token).set_hidden_qualified(true);self.add_arena(s,r.token)?;s.phase_history.entered(s.card(r.token).owner,r.token);
+                        s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;continue;
+                    }
+                    Effect::GainForce {..}=> {
+                        let player=[Seat::P1,Seat::P2].into_iter().find(|player|s.player(*player).base==r.target).ok_or("captured Force player identity missing")?;
+                        if !s.force_state_exact||s.player(player).force_id==0||self.force_def.is_none(){return Err("Force requires exact reviewed identity".into());}
+                        if !s.player(player).force_held{s.player_mut(player).force_held=true;s.ability_result=s.ability_result.saturating_add(1);}s.ability_succeeded=true;continue;
+                    }
+                    _=>{},
                 }
-                PreparedPayload::Unsupported {target}=> {
-                    if !self.in_arena(s,target)&&!self.def(s,target).info.is("base") {continue;}
-                    unreachable!()
+                if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base") {continue;}
+                let damage=matches!(effect,Effect::Damage {..});
+                if r.token!=0 {
+                    if damage {self.remove_group_shield(s,r.target,r.token);continue;}
+                    if !matches!(effect,Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}) {
+                        let card=s.card_mut(r.target);
+                        let head=if matches!(effect,Effect::GiveExperience {..}) {&mut card.experience}else{&mut card.shield};
+                        let previous=std::mem::replace(head,r.token);
+                        s.card_mut(r.token).next_token=previous;
+                    }
+                    self.attach(s,r.token,r.target);continue;
                 }
-                PreparedPayload::Card {target,mutation}=>(target,mutation),
-            };
-            if !self.in_arena(s,target)&&!self.def(s,target).info.is("base") {continue;}
-            s.event_group.context=Selection::one(target);s.ability_target=target;
-            if let CapturedMutation::Damage(amount)=mutation {
-                let hp=if self.def(s,target).info.is("base") {self.def(s,target).info.hp.unwrap_or(30).max(0) as u16}else{self.hp(s,target)};
-                mutation=CapturedMutation::Damage(amount.min(hp.saturating_sub(s.card(target).damage)));
+                s.event_group.context=Selection::one(r.target);s.ability_target=r.target;
+                if damage {
+                    let hp=if self.def(s,r.target).info.is("base") {self.def(s,r.target).info.hp.unwrap_or(30).max(0) as u16}else{self.hp(s,r.target)};
+                    r.amount=r.amount.min(hp.saturating_sub(s.card(r.target).damage));
+                }
+                let (amount,resolved)=self.apply_effect(s,&captured_effect(effect,r))?;
+                events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
+                for p in 0..2 {events.defeated_units[p]=events.defeated_units[p].checked_add(s.event_result.defeated_units[p]).ok_or("defeat result exceeds capacity")?;}
+                if damage {observations.observe(self,s,r.target,amount);}
+                s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;
             }
-            let damage=mutation.is_damage();
-            let effect=mutation.effect();
-            let (amount,resolved)=self.apply_effect(s,&effect)?;
-            events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
-            for p in 0..2 {events.defeated_units[p]=events.defeated_units[p].checked_add(s.event_result.defeated_units[p]).ok_or("defeat result exceeds capacity")?;}
-            if damage {observations.observe(self,s,target,amount);}
-
-            s.ability_result=s.ability_result.saturating_add(amount); s.ability_succeeded|=resolved;
         }
         let created=s.event_group.records[..s.event_group.count as usize].iter().filter(|r|matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::CreateTokenUnit{..}))).map(|r|r.token).collect::<Vec<_>>();
         for source in created {
@@ -707,15 +629,13 @@ mod tests {
     }
 
     #[test]
-    fn prepared_payload_uses_captured_scalars_and_distinguishes_physical_roles() {
+    fn prepared_effect_uses_captured_scalar_literals() {
         let dynamic=Expr::Ref {path:vec!["source".into(),"damage".into()]};
         let record=PreparedEvent {target:7,amount:3,power:-4,hp:2,..PreparedEvent::default()};
         for effect in [Effect::Damage {target:Target::name("self"),amount:dynamic.clone()},
             Effect::Heal {target:Target::name("self"),amount:dynamic.clone()},
             Effect::ModifyStats {target:Target::name("self"),power:dynamic.clone(),hp:dynamic,duration:"phase".into()}] {
-            let PreparedPayload::Card {target,mutation}=PreparedPayload::from_record(&effect,record) else {panic!("card payload")};
-            assert_eq!(target,7);
-            match mutation.effect() {
+            match captured_effect(&effect,record) {
                 Effect::Damage {target,amount}|Effect::Heal {target,amount}=>{
                     assert!(matches!(target,Target::Name(n) if n=="chosen"));assert!(matches!(amount,Expr::Const {value} if value==3));
                 }
@@ -725,34 +645,28 @@ mod tests {
                 _=>panic!("literal mutation"),
             }
         }
-        let record=PreparedEvent {token:19,..record};
-        let damage=Effect::Damage {target:Target::name("self"),amount:Expr::number(99)};
-        assert!(matches!(PreparedPayload::from_record(&damage,record),PreparedPayload::ShieldReplacement {target:7,shield:19}));
-        let experience=Effect::GiveExperience {target:Target::name("self"),amount:Expr::number(1)};
-        assert!(matches!(PreparedPayload::from_record(&experience,record),PreparedPayload::Attachment {target:7,token:19,role:AttachmentRole::Experience}));
-        let force=Effect::GainForce {target:Target::name("ownPlayer")};
-        assert!(matches!(PreparedPayload::from_record(&force,record),PreparedPayload::ForceGain {base:7}));
+
     }
 
     #[test]
     fn visibility_policies_cannot_be_collapsed_across_healing_and_force_hp_changes() {
         let e=engine();
-        for visibility in [DamageVisibility::PostEvent,DamageVisibility::CaptureBeforeForceChange] {
+        for capture_lethals in [false,true] {
             let mut s=position(&e);let unit=add(&e,&mut s,Seat::P1,"SHD_056");e.add_arena(&mut s,unit).unwrap();
             s.card_mut(unit).damage=e.hp(&s,unit);
-            let mut observations=DamageObservations::new(visibility);observations.observe(&e,&s,unit,1);
+            let mut observations=DamageObservations::new(capture_lethals);observations.observe(&e,&s,unit,1);
             // A later healing primary rescues the unit in an ordinary window.
             s.card_mut(unit).damage=0;observations.finish(&e,&mut s).unwrap();
-            assert_eq!(e.in_arena(&s,unit),!visibility.captures_lethals());
+            assert_eq!(e.in_arena(&s,unit),!capture_lethals);
 
             let mut s=position(&e);let aura=add(&e,&mut s,Seat::P1,"SEC_032");e.add_arena(&mut s,aura).unwrap();
             let unit=add(&e,&mut s,Seat::P1,"LOF_196");e.add_arena(&mut s,unit).unwrap();assert_eq!(e.hp(&s,unit),4);
             s.card_mut(unit).damage=4;
-            let mut observations=DamageObservations::new(visibility);observations.observe(&e,&s,unit,1);
+            let mut observations=DamageObservations::new(capture_lethals);observations.observe(&e,&s,unit,1);
             s.players[0].force_held=true;assert_eq!(e.hp(&s,unit),6);
             observations.finish(&e,&mut s).unwrap();
             // Force's cached damage-handler lethal must survive the HP gain.
-            assert_eq!(e.in_arena(&s,unit),!visibility.captures_lethals());
+            assert_eq!(e.in_arena(&s,unit),!capture_lethals);
         }
     }
 
@@ -765,26 +679,10 @@ mod tests {
                 let legacy=matches!(effect,Effect::Simultaneous {effects} if effects.len()==2
                     &&matches!(&effects[0],Effect::Select {effect,..} if matches!(effect.as_ref(),Effect::Damage {..}))
                     &&matches!(&effects[1],Effect::GainForce {..}));
-                assert_eq!(DamageVisibility::for_group(effect).captures_lethals(),legacy);
+                assert_eq!(damage_before_force(effect),legacy);
             }
         }
         assert!(groups>10);
     }
 
-    #[test]
-    fn handler_plan_preserves_primary_then_contingent_record_order() {
-        let group=Effect::Simultaneous {effects:vec![
-            Effect::Draw {target:Target::name("ownPlayer"),amount:Expr::number(2)},
-            Effect::GiveExperience {target:Target::name("chosen"),amount:Expr::number(1)},
-            Effect::Damage {target:Target::name("chosen"),amount:Expr::number(1)},
-            Effect::GiveShield {target:Target::name("chosen"),amount:Expr::number(1)},
-            Effect::GainForce {target:Target::name("ownPlayer")},
-        ]};
-        let records=(0..5).map(|op|PreparedEvent {op,..PreparedEvent::default()}).collect::<Vec<_>>();
-        let steps=handler_steps(&records,&group_ops(&group));
-        assert_eq!(steps.iter().map(|step|(step.index,step.phase)).collect::<Vec<_>>(),vec![
-            (0,HandlerPhase::Primary),(2,HandlerPhase::Primary),(4,HandlerPhase::Primary),
-            (0,HandlerPhase::Contingent),(1,HandlerPhase::Contingent),(3,HandlerPhase::Contingent),
-        ]);
-    }
 }

@@ -168,14 +168,11 @@ impl Predicate {
     }
 }
 pub(crate) fn registration(a: &Ability) -> bool {
-    let shape = crate::admission::RegistrationShape {
-        targeting: crate::admission::Targeting::OptionalSingle,
-        host_context: crate::admission::HostContext::None,
-    };
     if a.trigger != "eventHooks"
         || a.hooks.is_empty()
         || a.hooks.len() > 2
-        || !shape.accepts(a)
+        || !crate::admission::plain_registration(a)
+        || a.attached_context.is_some()
         || a.attacker_must_survive
     {
         return false;

@@ -60,46 +60,10 @@ pub(crate) fn closed_source_helpers(entry: &Value) -> bool {
     .all(|key| entry[*key].is_null() || entry[*key].as_array().is_some_and(Vec::is_empty))
 }
 
-#[derive(Clone, Copy)]
-pub(crate) enum Targeting {
-    None,
-    /// Resolver semantics remain with the effect-specific validator.
-    OptionalSingle,
-}
-
-#[derive(Clone, Copy)]
-pub(crate) enum HostContext {
-    None,
-    AttachedHost,
-}
-
-pub(crate) struct RegistrationShape {
-    pub targeting: Targeting,
-    pub host_context: HostContext,
-}
-
-impl RegistrationShape {
-    /// Mandatory, unconditional, cost-free leaves with no named targeting or
-    /// continuations. Internal attached_host and attacker_must_survive flags
-    /// deliberately remain with callers: the existing families differ on them.
-    pub(crate) fn accepts(&self, ability: &Ability) -> bool {
-        !ability.optional
-            && !ability.requires_confirmation
-            && !ability.coordinate
-            && ability.gained_host.is_none()
-            && ability.costs.is_empty()
-            && ability.context_title.is_empty()
-            && ability.condition.is_none()
-            && ability.target_resolvers.is_empty()
-            && ability.then.is_none()
-            && ability.if_you_do.is_none()
-            && match self.targeting {
-                Targeting::None => ability.target_resolver.is_none(),
-                Targeting::OptionalSingle => true,
-            }
-            && match self.host_context {
-                HostContext::None => ability.attached_context.is_none(),
-                HostContext::AttachedHost => ability.attached_context.as_deref() == Some("host"),
-            }
-    }
+/// Shared mandatory leaf fields; trigger, targeting and host binding stay with
+/// each consumer instead of being encoded in a separate policy object.
+pub(crate) fn plain_registration(a: &Ability) -> bool {
+    !a.optional && !a.requires_confirmation && !a.coordinate && a.gained_host.is_none()
+        && a.costs.is_empty() && a.context_title.is_empty() && a.condition.is_none()
+        && a.target_resolvers.is_empty() && a.then.is_none() && a.if_you_do.is_none()
 }

@@ -1,6 +1,6 @@
 //! Closed attachment constants, reusing the shared effective-trait inventory.
 use crate::ability_ir::{Ability, Effect, Expr, Target};
-use crate::admission::{HostContext, RegistrationShape, Targeting};
+use crate::admission::plain_registration;
 use serde::Deserialize;
 use serde_json::{json, Value};
 #[derive(Deserialize)]
@@ -117,8 +117,7 @@ fn aura_resolver(r:&crate::ability_ir::TargetResolver,policy:AuraResolverPolicy)
         }
 }
 pub(crate) fn host_trait_aura(a:&Ability)->bool {
-    let shape = RegistrationShape { targeting: Targeting::OptionalSingle, host_context: HostContext::AttachedHost };
-    if a.trigger!="constant" || a.attached_host || !shape.accepts(a) {return false;}
+    if a.trigger!="constant" || a.attached_host || !plain_registration(a) || a.attached_context.as_deref()!=Some("host") {return false;}
     let Some(r)=&a.target_resolver else{return false;};let Some(predicate)=&r.predicate else{return false;};let Ok(p)=serde_json::to_value(predicate) else{return false;};let Some(name)=trait_name(&p["right"]["args"][0]) else{return false;};
     aura_resolver(r,AuraResolverPolicy::Trait)&&p==portable_predicate(name)
         &&matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),duration,power:Expr::Const{value:p},hp:Expr::Const{value:h}} if n=="chosen"&&duration=="persistent"&&p.as_i64().is_some_and(|n|(-1000..=1000).contains(&n))&&h.as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
@@ -146,8 +145,7 @@ pub(crate) fn validate_context(ability:&Ability)->Result<(),String> {
     Ok(())
 }
 pub(crate) fn parent_title_play(a:&Ability)->bool {
-    let shape = RegistrationShape { targeting: Targeting::None, host_context: HostContext::None };
-    if a.trigger!="whenPlayed" || a.attached_host || !shape.accepts(a) {return false;}
+    if a.trigger!="whenPlayed" || a.attached_host || !plain_registration(a) || a.target_resolver.is_some() || a.attached_context.is_some() {return false;}
     let Ok(v)=serde_json::to_value(&a.effect) else{return false;};let Some(title)=v["condition"]["right"]["value"].as_str().filter(|s|!s.is_empty()&&s.len()<=128) else{return false;};
     let expected:Effect=serde_json::from_value(json!({"kind":"conditional","condition":{"kind":"binary","op":"===","left":optional_parent_title(),"right":{"kind":"const","value":title}},"onTrue":{"kind":"select","targetResolver":{"owner":"self","type":"any","zone":"anyAttackable"},"effect":{"kind":"giveShield","target":"chosen","amount":{"kind":"const","value":1}}},"onFalse":{"kind":"noAction"}})).expect("portable parent-title template");
     serde_json::to_value(expected).ok()==Some(v)

@@ -3,7 +3,7 @@
 //! Every supported source form lowers to a closed native leaf. Unknown wrapper
 //! fields, callbacks and dynamic values reject the complete definition.
 use crate::ability_ir::{Ability, Effect, Sides};
-use crate::admission::{HostContext, RegistrationShape, SourceContextPolicy, Targeting};
+use crate::admission::{plain_registration, SourceContextPolicy};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::OnceLock;
@@ -318,9 +318,8 @@ pub(crate) fn registration(a: &Ability) -> bool {
     let Effect::ConstantEffectRegistration(r) = &a.effect else {
         return false;
     };
-    let shape = RegistrationShape { targeting: Targeting::None, host_context: HostContext::None };
     a.trigger == "constant"
-        && shape.accepts(a)
+        && plain_registration(a) && a.target_resolver.is_none() && a.attached_context.is_none()
         && r.validate().is_ok()
 }
 pub(crate) fn has_leader_trait_union(p:&crate::ability_ir::Program)->bool {

@@ -189,20 +189,20 @@ fn deck_search_entire_card_stays_rejected_including_nested_and_raw_metadata_muta
 fn deck_search_execution_boundaries_keep_completion_precedence_and_reject_every_scope() {
     let mut raw = recruit();
     for (count, final_shuffle, boundary) in [
-        (1, false, MissingExecution::DisplaySelectionCompletion),
-        (2, false, MissingExecution::RandomBottom),
-        (1, true, MissingExecution::FinalShuffle),
-        (2, true, MissingExecution::FinalShuffle),
+        (1, false, "deck-search display/selection/completion continuations are unimplemented"),
+        (2, false, "deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented"),
+        (1, true, "deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented"),
+        (2, true, "deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented"),
     ] {
         raw["searchCount"]["value"] = json!(count);
         raw["shuffleWhenDone"]["value"] = json!(final_shuffle);
         let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
-        assert_eq!(parsed.execution_boundary().unwrap(), boundary);
-        assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", boundary.reason()));
+        assert_eq!(parsed.blocker().unwrap(), boundary);
+        assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", boundary));
     }
     raw["searchWholeDeck"]["value"] = json!(true);
     raw.as_object_mut().unwrap().remove("searchCount");
     let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
-    assert_eq!(parsed.execution_boundary().unwrap(), MissingExecution::WholeDeckShuffle);
-    assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", MissingExecution::WholeDeckShuffle.reason()));
+    assert_eq!(parsed.blocker().unwrap(), "whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented");
+    assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", "whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented"));
 }
