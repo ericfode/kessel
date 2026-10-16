@@ -5,6 +5,28 @@
 use crate::ability_ir::Ability;
 use serde_json::Value;
 
+/// Exact ordinary source identity shared by selector and bounded-family gates.
+/// This class/type pair does not grant a side, watcher, recipient or timing
+/// capability; those contracts remain with each consuming family.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum OrdinarySource {
+    Unit,
+    Event,
+}
+
+impl OrdinarySource {
+    pub(crate) fn from_entry(entry: &Value) -> Option<Self> {
+        match (
+            entry["baseClass"].as_str(),
+            entry["card"]["types"].as_array()?.as_slice(),
+        ) {
+            (Some("NonLeaderUnitCard"), [kind]) if kind == "unit" => Some(Self::Unit),
+            (Some("EventCard"), [kind]) if kind == "event" => Some(Self::Event),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub(crate) enum SourceContextPolicy {
     Closed,

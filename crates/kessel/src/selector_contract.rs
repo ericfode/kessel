@@ -151,30 +151,13 @@ impl SelectorZone {
 
 /// Native selectors currently execute only in ordinary card-side contexts.
 /// This does not grant attached, leader, gained, or history candidate scopes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum NativeSourceContext {
-    Unit,
-    Event,
-}
-impl NativeSourceContext {
-    fn from_entry(entry: &Value) -> Option<Self> {
-        match (
-            entry["baseClass"].as_str(),
-            entry["card"]["types"].as_array()?.as_slice(),
-        ) {
-            (Some("NonLeaderUnitCard"), [kind]) if kind == "unit" => Some(Self::Unit),
-            (Some("EventCard"), [kind]) if kind == "event" => Some(Self::Event),
-            _ => None,
-        }
-    }
-    fn allows_sides(self, sides: &super::Sides) -> bool {
-        sides.unit.is_empty()
-            && sides.leader.is_empty()
-            && sides.card.iter().all(|a| {
-                ["event", "action", "whenPlayed", "onAttack", "whenDefeated"]
-                    .contains(&a.trigger.as_str())
-            })
-    }
+fn ordinary_source_sides(sides: &super::Sides) -> bool {
+    sides.unit.is_empty()
+        && sides.leader.is_empty()
+        && sides.card.iter().all(|a| {
+            ["event", "action", "whenPlayed", "onAttack", "whenDefeated"]
+                .contains(&a.trigger.as_str())
+        })
 }
 
 /// Shared shape only: callers retain their own owner, optionality, predicate,
@@ -875,7 +858,8 @@ pub fn expanded_selector_marker(value: &Value) -> bool {
         }
 }
 pub fn native_source_entry(entry: &Value, sides: &super::Sides) -> bool {
-    NativeSourceContext::from_entry(entry).is_some_and(|context| context.allows_sides(sides))
+    crate::admission::OrdinarySource::from_entry(entry).is_some()
+        && ordinary_source_sides(sides)
         && entry["card"]["unique"].is_boolean()
         && entry["attachCondition"].is_null()
         && entry["piloting"].is_null()

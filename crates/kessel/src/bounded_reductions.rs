@@ -111,12 +111,12 @@ pub(crate) fn entry(e: &Value) -> bool {
     let ready = json!({"trigger":"whenPlayed","costs":[],"optional":true,"targetResolver":{"owner":"any","type":"any","zone":"arena","predicate":b("&&",b("&&",unit(),b("!==",r(&["card"]),r(&["source"]))),b("<=",q("getPower","card"),q("arenaUpgradeSum","opponent")))},"effect":{"kind":"ready","target":"chosen"}});
     let damage = json!({"trigger":"event","costs":[],"targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable","promptTitleParts":[{"kind":"const","value":"Choose a unit to deal "},q("arenaDamageSum","player"),{"kind":"const","value":" damage to"}]},"effect":{"kind":"conditional","condition":b(">",q("arenaDamageSum","player"),c(0)),"onTrue":{"kind":"damage","target":"chosen","amount":q("arenaDamageSum","player")},"onFalse":{"kind":"noAction"}}});
     (ready_metadata(e)
-        && e["baseClass"] == "NonLeaderUnitCard"
-        && e["card"]["types"] == json!(["unit"])
+        && crate::admission::OrdinarySource::from_entry(e)
+            == Some(crate::admission::OrdinarySource::Unit)
         && same(a, ready))
         || (damage_metadata(e)
-            && e["baseClass"] == "EventCard"
-            && e["card"]["types"] == json!(["event"])
+            && crate::admission::OrdinarySource::from_entry(e)
+                == Some(crate::admission::OrdinarySource::Event)
             && same(a, damage))
 }
 
@@ -188,3 +188,7 @@ fn leader_metadata(e: &Value) -> bool {
         .iter()
         .all(|(k, v)| e["card"][k] == *v)
 }
+
+#[cfg(test)]
+#[path = "bounded_family_tests.rs"]
+mod tests;

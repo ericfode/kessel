@@ -43,16 +43,9 @@ pub fn validate_amount(amount: &Expr) -> Result<(), String> {
     )
 }
 pub fn source_entry(entry: &Value) -> bool {
-    let class = entry["baseClass"].as_str();
     crate::admission::closed_source_helpers(entry)
         && crate::attack_history::declarations(entry)
-        && matches!(class, Some("NonLeaderUnitCard" | "EventCard"))
-        && entry["card"]["types"]
-            == serde_json::json!([if class == Some("EventCard") {
-                "event"
-            } else {
-                "unit"
-            }])
+        && crate::admission::OrdinarySource::from_entry(entry).is_some()
         && entry["card"]["unique"].is_boolean()
         && entry["abilities"]["leader"] == serde_json::json!([])
         && entry["abilities"]["unit"] == serde_json::json!([])
