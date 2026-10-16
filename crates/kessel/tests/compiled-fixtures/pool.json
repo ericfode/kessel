@@ -644,7 +644,7 @@
         "grit"
       ],
       "power": 5,
-      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s cost always refer to its printed cost, regardless of modifiers.\n",
       "setCode": "ASH_082",
       "setCodes": [
         {
@@ -731,7 +731,7 @@
         "restore"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "ASH_106",
       "setCodes": [
         {
@@ -812,7 +812,7 @@
       "internalName": "lang#arrogant-mercenary",
       "keywords": [],
       "power": 2,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "ASH_123",
       "setCodes": [
         {
@@ -895,7 +895,7 @@
         "overwhelm"
       ],
       "power": 5,
-      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nAmbush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nAmbush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "ASH_129",
       "setCodes": [
         {
@@ -1262,7 +1262,7 @@
         "saboteur"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "ASH_192",
       "setCodes": [
         {
@@ -1346,7 +1346,7 @@
         "ambush"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "ASH_194",
       "setCodes": [
         {
@@ -2272,7 +2272,7 @@
         "grit"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "HMW_055",
       "setCodes": [
         {
@@ -2312,7 +2312,7 @@
       "internalName": "imperial-commandos",
       "keywords": [],
       "power": 4,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "HMW_068",
       "setCodes": [
         {
@@ -2757,7 +2757,7 @@
       "internalName": "dragons-might",
       "keywords": [],
       "power": null,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "HMW_102",
       "setCodes": [
         {
@@ -3122,7 +3122,7 @@
         "ambush"
       ],
       "power": 6,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "HMW_143",
       "setCodes": [
         {
@@ -3165,7 +3165,7 @@
         "overwhelm"
       ],
       "power": 6,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
       "setCode": "HMW_146",
       "setCodes": [
         {
@@ -3368,7 +3368,7 @@
       "internalName": "commandeered-tour-shuttle",
       "keywords": [],
       "power": 2,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "HMW_165",
       "setCodes": [
         {
@@ -3732,7 +3732,7 @@
         "saboteur"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "HMW_198",
       "setCodes": [
         {
@@ -3774,7 +3774,7 @@
         "raid"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "HMW_201",
       "setCodes": [
         {
@@ -3934,7 +3934,7 @@
         "ambush"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "HMW_220",
       "setCodes": [
         {
@@ -4218,7 +4218,7 @@
       "internalName": "ben-kenobi#dont-be-afraid",
       "keywords": [],
       "power": 5,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "HMW_261",
       "setCodes": [
         {
@@ -4662,20 +4662,24 @@
       ],
       "power": 4,
       "rules": null,
-      "setCode": "IBH_014",
+      "setCode": "IC27_080",
       "setCodes": [
         {
-          "number": 14,
-          "set": "IBH"
+          "set": "IBH",
+          "number": 14
         },
         {
-          "number": 26,
-          "set": "IBH"
+          "set": "IC27",
+          "number": 80
+        },
+        {
+          "set": "IBH",
+          "number": 26
         }
       ],
       "setId": {
-        "number": 14,
-        "set": "IBH"
+        "set": "IC27",
+        "number": 80
       },
       "subtitle": "Narrow Escape",
       "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)",
@@ -4690,7 +4694,10 @@
       ],
       "unique": true,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "sentinel": 1
+      }
     },
     {
       "arena": "ground",
@@ -4792,16 +4799,20 @@
       ],
       "power": 6,
       "rules": null,
-      "setCode": "IBH_020",
+      "setCode": "IC27_082",
       "setCodes": [
         {
-          "number": 20,
-          "set": "IBH"
+          "set": "IBH",
+          "number": 20
+        },
+        {
+          "set": "IC27",
+          "number": 82
         }
       ],
       "setId": {
-        "number": 20,
-        "set": "IBH"
+        "set": "IC27",
+        "number": 82
       },
       "subtitle": "Do You Read Me?",
       "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\nWhen Played: You may deal 3 damage to a ground unit.",
@@ -4815,7 +4826,10 @@
       ],
       "unique": true,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "restore": 2
+      }
     },
     {
       "arena": "space",
@@ -5693,16 +5707,20 @@
       "keywords": [],
       "power": 5,
       "rules": null,
-      "setCode": "IBH_099",
+      "setCode": "IC27_025",
       "setCodes": [
         {
-          "number": 99,
-          "set": "IBH"
+          "set": "IBH",
+          "number": 99
+        },
+        {
+          "set": "IC27",
+          "number": 25
         }
       ],
       "setId": {
-        "number": 99,
-        "set": "IBH"
+        "set": "IC27",
+        "number": 25
       },
       "subtitle": "Veers at the Helm",
       "text": "When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.",
@@ -5717,7 +5735,8 @@
       ],
       "unique": true,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "aspects": [
@@ -5732,16 +5751,20 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "JTL_019",
+      "setCode": "IC27_009",
       "setCodes": [
         {
-          "number": 19,
-          "set": "JTL"
+          "set": "JTL",
+          "number": 19
+        },
+        {
+          "set": "IC27",
+          "number": 9
         }
       ],
       "setId": {
-        "number": 19,
-        "set": "JTL"
+        "set": "IC27",
+        "number": 9
       },
       "subtitle": "",
       "text": "",
@@ -5754,7 +5777,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "aspects": [
@@ -6369,16 +6393,20 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "JTL_095",
+      "setCode": "IC27_073",
       "setCodes": [
         {
-          "number": 95,
-          "set": "JTL"
+          "set": "JTL",
+          "number": 95
+        },
+        {
+          "set": "IC27",
+          "number": 73
         }
       ],
       "setId": {
-        "number": 95,
-        "set": "JTL"
+        "set": "IC27",
+        "number": 73
       },
       "subtitle": "",
       "text": "",
@@ -6393,7 +6421,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "space",
@@ -6452,7 +6481,7 @@
         "ambush"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "JTL_112",
       "setCodes": [
         {
@@ -6874,7 +6903,7 @@
         "ambush"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "JTL_214",
       "setCodes": [
         {
@@ -6959,7 +6988,7 @@
         "raid"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "JTL_225",
       "setCodes": [
         {
@@ -7043,16 +7072,20 @@
       ],
       "power": 4,
       "rules": null,
-      "setCode": "JTL_241",
+      "setCode": "IC27_181",
       "setCodes": [
         {
-          "number": 241,
-          "set": "JTL"
+          "set": "JTL",
+          "number": 241
+        },
+        {
+          "set": "IC27",
+          "number": 181
         }
       ],
       "setId": {
-        "number": 241,
-        "set": "JTL"
+        "set": "IC27",
+        "number": 181
       },
       "subtitle": "",
       "text": "Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)",
@@ -7067,7 +7100,10 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "sentinel": 1
+      }
     },
     {
       "arena": "ground",
@@ -7083,16 +7119,20 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "JTL_248",
+      "setCode": "IC27_190",
       "setCodes": [
         {
-          "number": 248,
-          "set": "JTL"
+          "set": "JTL",
+          "number": 248
+        },
+        {
+          "set": "IC27",
+          "number": 190
         }
       ],
       "setId": {
-        "number": 248,
-        "set": "JTL"
+        "set": "IC27",
+        "number": 190
       },
       "subtitle": "",
       "text": "When Played: Deal 3 damage to this unit.",
@@ -7107,7 +7147,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "space",
@@ -7622,7 +7663,7 @@
         "ambush"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "LAW_079",
       "setCodes": [
         {
@@ -7665,7 +7706,7 @@
         "overwhelm"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
       "setCode": "LAW_081",
       "setCodes": [
         {
@@ -8153,7 +8194,7 @@
         "ambush"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "LAW_135",
       "setCodes": [
         {
@@ -9019,7 +9060,7 @@
         "ambush"
       ],
       "power": 5,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "LAW_239",
       "setCodes": [
         {
@@ -9263,7 +9304,7 @@
         "ambush"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "LAW_255",
       "setCodes": [
         {
@@ -9624,7 +9665,7 @@
       "internalName": "crushing-blow",
       "keywords": [],
       "power": null,
-      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s cost always refer to its printed cost, regardless of modifiers.\n",
       "setCode": "LOF_077",
       "setCodes": [
         {
@@ -10402,7 +10443,7 @@
       "internalName": "ataru-onslaught",
       "keywords": [],
       "power": null,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "LOF_174",
       "setCodes": [
         {
@@ -10770,16 +10811,20 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "LOF_239",
+      "setCode": "IC27_184",
       "setCodes": [
         {
-          "number": 239,
-          "set": "LOF"
+          "set": "LOF",
+          "number": 239
+        },
+        {
+          "set": "IC27",
+          "number": 184
         }
       ],
       "setId": {
-        "number": 239,
-        "set": "LOF"
+        "set": "IC27",
+        "number": 184
       },
       "subtitle": "",
       "text": "Give 2 Experience tokens to a unit, then deal 2 damage to it.",
@@ -10792,7 +10837,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "ground",
@@ -10891,16 +10937,20 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "LOF_250",
+      "setCode": "IC27_191",
       "setCodes": [
         {
-          "number": 250,
-          "set": "LOF"
+          "set": "LOF",
+          "number": 250
+        },
+        {
+          "set": "IC27",
+          "number": 191
         }
       ],
       "setId": {
-        "number": 250,
-        "set": "LOF"
+        "set": "IC27",
+        "number": 191
       },
       "subtitle": "",
       "text": "On Attack: You may heal 2 damage from another unit.",
@@ -10915,7 +10965,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "space",
@@ -12073,7 +12124,7 @@
         "ambush"
       ],
       "power": 6,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SEC_121",
       "setCodes": [
         {
@@ -12363,7 +12414,7 @@
         "ambush"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SEC_204",
       "setCodes": [
         {
@@ -12406,16 +12457,20 @@
       ],
       "power": 1,
       "rules": null,
-      "setCode": "SEC_213",
+      "setCode": "IC27_169",
       "setCodes": [
         {
-          "number": 213,
-          "set": "SEC"
+          "set": "SEC",
+          "number": 213
+        },
+        {
+          "set": "IC27",
+          "number": 169
         }
       ],
       "setId": {
-        "number": 213,
-        "set": "SEC"
+        "set": "IC27",
+        "number": 169
       },
       "subtitle": "",
       "text": "Raid 1 (This unit gets +1/+0 while attacking.)",
@@ -12429,7 +12484,10 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "raid": 1
+      }
     },
     {
       "arena": "ground",
@@ -12487,7 +12545,7 @@
         "raid"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SEC_222",
       "setCodes": [
         {
@@ -12759,8 +12817,8 @@
         "vigilance"
       ],
       "cost": 6,
-      "deployBox": "Restore 3 (When this unit attacks, heal 3 damage from your base.)\nOn Attack: You may give an Experience token to a unit with 2 or less power.",
-      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "deployBox": "Restore 3 (When this unit attacks, heal 3\u00a0damage from your base.)\nOn Attack: You may give an Experience token to a unit with 2 or less power.",
+      "epicAction": "Epic Action: If you control 6\u00a0or more resources, deploy this leader.",
       "hp": 6,
       "id": "4352150438",
       "internalName": "rey#more-than-a-scavenger",
@@ -12768,7 +12826,7 @@
         "restore"
       ],
       "power": 2,
-      "rules": "Abilities that refer to a card’s power include all modifiers, including upgrades and temporary effects.\n",
+      "rules": "Abilities that refer to a card\u2019s power include all modifiers, including upgrades and temporary effects.\n",
       "setCode": "SHD_004",
       "setCodes": [
         {
@@ -13282,7 +13340,7 @@
         "set": "SHD"
       },
       "subtitle": "",
-      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)",
+      "text": "Restore 2 (When this unit attacks, heal 2\u00a0damage from your base.)",
       "title": "Moisture Farmer",
       "traits": [
         "fringe"
@@ -13525,7 +13583,7 @@
         "set": "SHD"
       },
       "subtitle": "",
-      "text": "Raid 2 (This unit gets +2/+0 while attacking.)\nRestore 2 (When this unit attacks, heal 2 damage from your base.)",
+      "text": "Raid 2 (This unit gets +2/+0 while attacking.)\nRestore 2 (When this unit attacks, heal 2\u00a0damage from your base.)",
       "title": "Sundari Peacekeeper",
       "traits": [
         "mandalorian",
@@ -13555,7 +13613,7 @@
         "raid"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SHD_100",
       "setCodes": [
         {
@@ -13672,7 +13730,7 @@
         "overwhelm"
       ],
       "power": 5,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
       "setCode": "SHD_121",
       "setCodes": [
         {
@@ -13883,16 +13941,20 @@
       "keywords": [],
       "power": 0,
       "rules": null,
-      "setCode": "SHD_196",
+      "setCode": "IC27_154",
       "setCodes": [
         {
-          "number": 196,
-          "set": "SHD"
+          "set": "SHD",
+          "number": 196
+        },
+        {
+          "set": "IC27",
+          "number": 154
         }
       ],
       "setId": {
-        "number": 196,
-        "set": "SHD"
+        "set": "IC27",
+        "number": 154
       },
       "subtitle": "Irresistible",
       "text": "Action [exhaust]: Exhaust an enemy unit.",
@@ -13905,7 +13967,8 @@
       ],
       "unique": true,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "ground",
@@ -13964,7 +14027,7 @@
         "ambush"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SHD_210",
       "setCodes": [
         {
@@ -14044,7 +14107,7 @@
         "overwhelm"
       ],
       "power": 3,
-      "rules": "If Ruthless Assassin is the only friendly unit in play, it must be chosen by its “When Played” ability.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "rules": "If Ruthless Assassin is the only friendly unit in play, it must be chosen by its \u201cWhen Played\u201d ability.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
       "setCode": "SHD_235",
       "setCodes": [
         {
@@ -14299,7 +14362,7 @@
         "set": "SHD"
       },
       "subtitle": "",
-      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)",
+      "text": "Restore 2 (When this unit attacks, heal 2\u00a0damage from your base.)",
       "title": "Twin Pod Cloud Car",
       "traits": [
         "fringe",
@@ -14367,7 +14430,7 @@
       "internalName": "grand-inquisitor#hunting-the-jedi",
       "keywords": [],
       "power": 3,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\nThe unit chosen by Grand Inquisitor’s ability can exceed 3 power after the damage is dealt (for example, if the unit has Grit).\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\nThe unit chosen by Grand Inquisitor\u2019s ability can exceed 3 power after the damage is dealt (for example, if the unit has Grit).\n",
       "setCode": "SOR_011",
       "setCodes": [
         {
@@ -14559,16 +14622,20 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "SOR_024",
+      "setCode": "IC27_010",
       "setCodes": [
         {
-          "number": 24,
-          "set": "SOR"
+          "set": "SOR",
+          "number": 24
+        },
+        {
+          "set": "IC27",
+          "number": 10
         }
       ],
       "setId": {
-        "number": 24,
-        "set": "SOR"
+        "set": "IC27",
+        "number": 10
       },
       "subtitle": null,
       "text": null,
@@ -14581,7 +14648,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "aspects": [
@@ -15236,16 +15304,20 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "SOR_128",
+      "setCode": "IC27_097",
       "setCodes": [
         {
-          "number": 128,
-          "set": "SOR"
+          "set": "SOR",
+          "number": 128
+        },
+        {
+          "set": "IC27",
+          "number": 97
         }
       ],
       "setId": {
-        "number": 128,
-        "set": "SOR"
+        "set": "IC27",
+        "number": 97
       },
       "subtitle": null,
       "text": null,
@@ -15259,7 +15331,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "space",
@@ -15397,7 +15470,7 @@
       "internalName": "keep-fighting",
       "keywords": [],
       "power": null,
-      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "rules": "Abilities that refer to a card\u2019s power include temporary modifiers.\n",
       "setCode": "SOR_169",
       "setCodes": [
         {
@@ -15524,7 +15597,7 @@
         "ambush"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SOR_195",
       "setCodes": [
         {
@@ -15684,7 +15757,7 @@
         "ambush"
       ],
       "power": 5,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SOR_213",
       "setCodes": [
         {
@@ -15723,16 +15796,20 @@
       "keywords": [],
       "power": 2,
       "rules": null,
-      "setCode": "SOR_225",
+      "setCode": "IC27_178",
       "setCodes": [
         {
-          "number": 225,
-          "set": "SOR"
+          "set": "SOR",
+          "number": 225
+        },
+        {
+          "set": "IC27",
+          "number": 178
         }
       ],
       "setId": {
-        "number": 225,
-        "set": "SOR"
+        "set": "IC27",
+        "number": 178
       },
       "subtitle": null,
       "text": null,
@@ -15747,7 +15824,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "space",
@@ -15926,7 +16004,7 @@
         "ambush"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "SOR_244",
       "setCodes": [
         {
@@ -16258,7 +16336,7 @@
         "restore"
       ],
       "power": 2,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "setCode": "TS26_017",
       "setCodes": [
         {
@@ -16297,7 +16375,7 @@
       "internalName": "wartime-refugee",
       "keywords": [],
       "power": 2,
-      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be \u201can opponent.\u201d\n",
       "setCode": "TS26_043",
       "setCodes": [
         {
@@ -16416,7 +16494,7 @@
       "internalName": "arms-deal",
       "keywords": [],
       "power": null,
-      "rules": "If there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "rules": "If there are multiple opponents, the controlling player chooses which one will be \u201can opponent.\u201d\n",
       "setCode": "TS26_068",
       "setCodes": [
         {
@@ -16602,16 +16680,20 @@
       "keywords": [],
       "power": null,
       "rules": null,
-      "setCode": "TWI_026",
+      "setCode": "IC27_011",
       "setCodes": [
         {
-          "number": 26,
-          "set": "TWI"
+          "set": "TWI",
+          "number": 26
+        },
+        {
+          "set": "IC27",
+          "number": 11
         }
       ],
       "setId": {
-        "number": 26,
-        "set": "TWI"
+        "set": "IC27",
+        "number": 11
       },
       "subtitle": "",
       "text": "",
@@ -16624,7 +16706,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "aspects": [
@@ -16969,7 +17052,7 @@
       },
       "subtitle": "",
       "text": "When Played: Deal 2 damage to this unit.",
-      "title": "Royal Guard Attaché",
+      "title": "Royal Guard Attach\u00e9",
       "traits": [
         "naboo",
         "trooper"
@@ -17773,17 +17856,21 @@
         "ambush"
       ],
       "power": 4,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
-      "setCode": "TWI_214",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "IC27_173",
       "setCodes": [
         {
-          "number": 214,
-          "set": "TWI"
+          "set": "TWI",
+          "number": 214
+        },
+        {
+          "set": "IC27",
+          "number": 173
         }
       ],
       "setId": {
-        "number": 214,
-        "set": "TWI"
+        "set": "IC27",
+        "number": 173
       },
       "subtitle": "",
       "text": "Ambush (When you play this unit, it may ready and attack an enemy unit.)",
@@ -17798,7 +17885,10 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "ambush": 1
+      }
     },
     {
       "aspects": [
@@ -17894,16 +17984,20 @@
       "keywords": [],
       "power": 4,
       "rules": null,
-      "setCode": "TWI_230",
+      "setCode": "IC27_180",
       "setCodes": [
         {
-          "number": 230,
-          "set": "TWI"
+          "set": "TWI",
+          "number": 230
+        },
+        {
+          "set": "IC27",
+          "number": 180
         }
       ],
       "setId": {
-        "number": 230,
-        "set": "TWI"
+        "set": "IC27",
+        "number": 180
       },
       "subtitle": "",
       "text": "",
@@ -17918,7 +18012,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "ground",
@@ -18017,16 +18112,20 @@
       "keywords": [],
       "power": 3,
       "rules": null,
-      "setCode": "TWI_241",
+      "setCode": "IC27_189",
       "setCodes": [
         {
-          "number": 241,
-          "set": "TWI"
+          "set": "TWI",
+          "number": 241
+        },
+        {
+          "set": "IC27",
+          "number": 189
         }
       ],
       "setId": {
-        "number": 241,
-        "set": "TWI"
+        "set": "IC27",
+        "number": 189
       },
       "subtitle": "",
       "text": "",
@@ -18041,7 +18140,8 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {}
     },
     {
       "arena": "ground",
@@ -18058,7 +18158,7 @@
         "ambush"
       ],
       "power": 3,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
       "setCode": "TWI_242",
       "setCodes": [
         {
@@ -18101,16 +18201,20 @@
       ],
       "power": 3,
       "rules": null,
-      "setCode": "TWI_244",
+      "setCode": "IC27_192",
       "setCodes": [
         {
-          "number": 244,
-          "set": "TWI"
+          "set": "TWI",
+          "number": 244
+        },
+        {
+          "set": "IC27",
+          "number": 192
         }
       ],
       "setId": {
-        "number": 244,
-        "set": "TWI"
+        "set": "IC27",
+        "number": 192
       },
       "subtitle": "",
       "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)",
@@ -18125,7 +18229,10 @@
       ],
       "unique": false,
       "upgradeHp": null,
-      "upgradePower": null
+      "upgradePower": null,
+      "keywordValues": {
+        "restore": 2
+      }
     },
     {
       "arena": "ground",

@@ -115,7 +115,7 @@ const actualSources = [
         null
     ],
     [
-        "IBH_072",
+        "IC27_028",
         "game/cards/06_IBH/units/AvengerHuntingTheRebels.ts",
         "8f3c6fdf1fd6187af59986d4c3a7f55080679ff974692952dc0fc7d0d3b5e7fe",
         null

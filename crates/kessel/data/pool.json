@@ -965,7 +965,7 @@
       "cost": 3,
       "hp": 2,
       "power": 2,
-      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)",
+      "text": "Restore 2 (When this unit attacks, heal 2\u00a0damage from your base.)",
       "deployBox": null,
       "epicAction": null,
       "unique": false,
@@ -1291,7 +1291,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "6032443673",
@@ -1610,7 +1610,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nAmbush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nAmbush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "7572957828",
@@ -1917,7 +1917,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": true,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "1127236116",
@@ -2232,7 +2232,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": true,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "3192928418",
@@ -2855,7 +2855,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "4373011733",
@@ -2901,7 +2901,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "1931559358",
@@ -3341,7 +3341,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "8767838857",
@@ -3388,7 +3388,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "5756928198",
@@ -3524,7 +3524,7 @@
       "deployBox": null,
       "epicAction": "",
       "unique": false,
-      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "rules": "Ambush is an ability that triggers at the same time as \u201cWhen Played\u201d abilities. The unit does not have to be ready in order to attack.\n",
       "upgradePower": null,
       "upgradeHp": null,
       "id": "3154092454",
@@ -4113,8 +4113,8 @@
         "unit"
       ],
       "setId": {
-        "set": "IBH",
-        "number": 14
+        "set": "IC27",
+        "number": 80
       },
       "setCodes": [
         {
@@ -4122,12 +4122,16 @@
           "number": 14
         },
         {
+          "set": "IC27",
+          "number": 80
+        },
+        {
           "set": "IBH",
           "number": 26
         }
       ],
       "internalName": "bright-hope#narrow-escape",
-      "setCode": "IBH_014",
+      "setCode": "IC27_080",
       "keywordValues": {
         "sentinel": 1
       },
