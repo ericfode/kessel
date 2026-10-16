@@ -5,6 +5,13 @@
 // when the source saved an earlier list or scalar.
 function normalizeInventoryExpression(input,ctx,{ts,unwrap,expr,fail}) {
  const n=unwrap(input);
+ // Keep native token identity and physical attachment aliases distinct from
+ // printed keywords. New aliases are pending executor operations.
+ if(ts.isCallExpression(n)&&ts.isPropertyAccessExpression(n.expression)&&['hasExperience','hasWeakness','hasShield','isCreditToken'].includes(n.expression.name.text)){
+  const name=n.expression.name.text;if(n.arguments.length)fail(ctx,n,'native-token-predicate-arity');if(!ctx.callbackStage)fail(ctx,n,'native-token-predicate-stage');
+  return {kind:'nativeTokenPredicate',operation:name,receiver:expr(n.expression.expression,ctx),domain:name==='isCreditToken'?'cardIdentity':'physicalAttachments',tokenType:{hasExperience:'experience',hasWeakness:'weakness',hasShield:'shield',isCreditToken:'credit'}[name],optionalReceiver:!!n.expression.questionDotToken,optionalCall:!!n.questionDotToken};
+ }
+
  const checked=(node)=>{if(!ctx.callbackStage)fail(ctx,n,'inventory-evaluation-stage');ctx.inventoryUsage?.add(node.kind);return node;};
  const path=(v,names)=>names.length===1?ts.isIdentifier(v)&&v.text===names[0]:ts.isPropertyAccessExpression(v)&&!v.questionDotToken&&v.name.text===names.at(-1)&&path(v.expression,names.slice(0,-1));
  const call=(v,name,arity)=>ts.isCallExpression(v)&&!v.questionDotToken&&ts.isPropertyAccessExpression(v.expression)&&!v.expression.questionDotToken&&v.expression.name.text===name&&v.arguments.length===arity;

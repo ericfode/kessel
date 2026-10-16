@@ -304,6 +304,41 @@ creation capacity, and Plot remain explicit engine backlog. No gameplay support
 is implied by the compiler's supported status; the current Rust loader rejects
 these new nodes and continuation fields.
 
+## Compiler-only event hooks and phase history
+
+`eventHooks` retains a single registration with alternative named event predicates
+or standard aliases. Optionality, collective triggering, source-zone filters and
+limits belong to that registration; alternative hooks share its limit. Event
+paths retain callback argument identity and optional-access segments, including
+outer contexts captured by nested continuations. Damage/defeat source enums use
+the pinned `IDamageOrDefeatSource` definitions.
+
+`stateWatchers` declares named `StateWatcherLibrary` factories, shared at game
+scope and reset on `onPhaseEnded`. `historyQuery` retains the exact pinned
+watcher API operation and arguments. Its meaning includes the implementation's
+saved physical IDs, in-play IDs, controllers, LKI and default filters; it is never
+a live arena query. `historyAttackCheck` likewise retains the pinned
+`AttackHelpers` survival or defeat test. `capturedHistory` binds a readonly
+value at its declaration in the identified setup/callback invocation.
+
+Typed `historyHelper`, `dataLambda` and `callbackProgram` nodes retain pure
+helper/predicate arguments, block scopes, readonly locals, branches, switch
+cases, templates, optional member accesses and finite named query calls.
+They contain data operations, with no executable source strings. Unsupported
+statements and unknown query operations still reject the complete card.
+These additions require an executor for the new nodes, callback capture frames,
+phase histories, registration limits and event scheduling. Conversion is not a
+claim of runtime admission or gameplay verification.
+
+Damage-modification grants use the same pinned registration contract with the
+recipient as ability source and the grantor retained separately. Explicit ordinary
+activation limits use the shared strict limit parser. `unresolvedContinuation`
+retains `ifYouDoNot` and its own `resolvesTriggers` window; the pinned condition
+checks event resolution/replacement status, rather than a numerical result.
+`unlessSelection` retains both systems, button labels, chooser, highlights and
+unresolvable display flag. Its default branch is automatic when the unless system
+cannot fully or partially resolve. These remain pending executor operations.
+
 ## Runtime admission and conformance
 
 ```sh
@@ -499,3 +534,69 @@ recipient. `capture` retains its captor expression, non-leader target type and
 out-of-play flag. These representations do not implement bounty collection,
 capture zones, rescue, or leaves-play timing in Rust. Unsupported runtime schemas
 and capabilities remain rejection boundaries until the separate engine phase.
+
+Cost, resource and token systems also have compiler-only representations. Self
+play-cost registrations retain all-zone activation, physical-source and printed
+card-type matching, and cost-adjustment stage. Player cost modifiers retain their
+filter, match/attachment predicates, optional cloned limit, resource-cost category
+flags and callable values. `boundCallback` distinguishes the adjusted card,
+adjuster's source player, source card, attachment target, remaining cost and actual
+payment context; these roles do not share the ordinary selector candidate slot.
+Cost selection records a separate `costSelection`, helper prompt, full-payment
+requirement and ability-cost timing. Earlier captured arena and upgrade lists
+remain rejected across callback stages.
+
+Adjusted card-effect resource payments retain their payer, Credit/cost-adjuster
+support and noncancelable payment stage. Unadjusted payments retain resource
+exhaustion as a cost. Credit creation defaults to the acting player and enters the
+base zone; a direct setup-time controller reference retains a registration
+snapshot. Selected-player resolver bindings override helper target defaults only
+when no explicit target was supplied. Advantage grants preserve creator identity,
+recipient-controller ownership and one batched creation event. Advantage
+distribution instead retains a separate creation event per recipient and its
+aggregate result. Phase player-cost effects preserve one lasting-effect
+application with expiry at phase end. These IR forms require later runtime
+implementation, native token definitions and engine verification; catalog
+conversion does not admit them for play.
+
+Extended resource/token systems retain explicit resource-controller and readiness
+properties, top-deck card/list queries, ordered token-controller arrays, and token
+entry systems. Entry effects are forcibly retargeted to each entering token after
+entry and before the state check. Resource readiness remains a contingent event
+and uses the original complete system target list. Broader complete top-deck
+programs use `resourceCardSystem`, keeping existing runtime-facing programs
+unchanged. Self aspect-penalty registrations reuse the typed cost-adjuster schema.
+Callable ability costs remain `costFactory` programs evaluated on each engine
+`getCosts` call. All of these extensions remain compiler-only.
+
+
+## Further compiler-only contracts
+
+Deck search retains search scope/count, selected and remaining card bindings,
+selection predicates, ordering, bottom-deck randomization and whole-deck shuffle.
+Play systems retain play type, type restrictions, ignored requirements, cost
+adjusters and entry effects. Repeated hand/discard plays reselect after each full
+play and its triggers; deck multi-play uses the selected order and free nested
+plays. Object-shaped simultaneous/sequential systems retain their resolution mode.
+View/selection, reveal and deck movement remain distinct pending operations.
+
+Disclose preserves aspect multiplicity, target-player selection context, disclosed
+card event data and the triggered no-match masking protocol. Delayed systems
+retain application context, named event predicates, matched targets, duration and
+application limits. Optional and random aggregate systems retain child target
+binding and native-default fallback; random selection keeps its cached result and
+rollback-confirmation requirement. None of these nodes supplies a Rust executor.
+
+The two supported shared BaseCard definitions are compiled from their pinned
+source, with inherited registration and source provenance retained. Subclass
+setup overrides and unsupported abstract definitions remain rejection boundaries.
+The stopped cohort is excluded before AST parsing by source-exclusions.js; its
+historical definitions are preserved in Git but are not active conversions.
+
+General system-array/property factories remain a representation decision. A
+static child-system property may capture a value before preceding effects
+resolve, while a child property factory evaluates later. A future construction
+contract must distinguish these stages and preserve saved physical identities.
+Dynamic system dispatch and native token constructor/lifecycle behavior also stay
+unconverted. Runtime admission, Support hash coverage, State/search-copy cost and
+engine verification remain separate follow-up work.

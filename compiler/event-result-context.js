@@ -133,4 +133,4 @@ function normalizeResultHelperCall(node,ctx,api) {
 function isEventResultAccess(node,ctx,api) {
     const p=chain(node,api);return !!p&&ctx.scope.get(p.root.text)?.path?.join('.')==='context'&&['events','resolvedEvents'].includes(p.segments[0]?.key);
 }
-module.exports={normalizeEventResultExpression,inspectResultHelpers,normalizeResultHelperCall,isEventResultAccess};
+module.exports={contextBinding,normalizeEventResultExpression,inspectResultHelpers,normalizeResultHelperCall,isEventResultAccess};

@@ -22,8 +22,8 @@ function requiredCapabilities(abilities, card, attachCondition) {
         if (value.kind === 'binary' || value.kind === 'unary') capabilities.add(`${value.kind}:${value.op}`);
         if (value.kind === 'ref') capabilities.add(`ref:${value.path.join('.')}`);
         if (value.targetResolver) {
-            capabilities.add(`targetType:${value.targetResolver.type}`);
-            capabilities.add(`targetZone:${value.targetResolver.zone}`);
+            if(value.targetResolver.type)capabilities.add(`targetType:${value.targetResolver.type}`);
+            if(value.targetResolver.zone)capabilities.add(`targetZone:${value.targetResolver.zone}`);
             if (value.targetResolver.mode) capabilities.add(`targetMode:${value.targetResolver.mode}`);
         }
         for (const [k, v] of Object.entries(value)) {
@@ -66,6 +66,13 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     if (!fs.existsSync(sourceDir)) throw new Error(`Missing engine card source: ${sourceDir}; initialize the pinned submodule or pass --source`);
     if (!fs.existsSync(cardDir)) throw new Error(`Missing downloaded card data: ${cardDir}; run npm --prefix forceteki run get-cards`);
     const enums = loadEnums(source);
+    const sharedBases=new Map();
+    for(const relative of ['05_LOF/common/LofCommonForceBase.ts','07_LAW/common/LAWCommonBase.ts']) {
+        const sharedPath=path.join(sourceDir,relative),sourcePath=path.posix.join('game/cards',relative);
+        if(!fs.existsSync(sharedPath))continue;
+        const definition=compileSource(fs.readFileSync(sharedPath,'utf8'),sourcePath,enums,{abstractDefinition:true});
+        sharedBases.set(definition.className,definition);
+    }
     const sources = [];
     const byId = new Map();
     const unmatchedSources = [];
@@ -82,7 +89,7 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
             continue;
         }
         let converted;
-        try { converted = compileSource(text, sourcePath, enums); }
+        try { converted = compileSource(text, sourcePath, enums, {sharedBases}); }
         catch (error) {
             // A compiler defect is a build failure, never an "unsupported" card.
             throw new Error(`Compiler failed on ${sourcePath}: ${error.stack || error}`);
