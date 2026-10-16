@@ -54,13 +54,13 @@ fn native_predicate_uses_live_physical_identity_and_removal_not_stat_bonuses() {
 }
 
 #[test]
-fn native_predicate_staged_identity_reconciliation_does_not_admit_new_native_adapters() {
+fn native_predicate_staged_identity_reconciliation_distinguishes_native_adapters_from_conversions() {
     let c=catalogue();let staged=c["sourceSupport"].as_array().unwrap().iter().filter(|s|s["role"]=="staged-native-token-lifecycle").collect::<Vec<_>>();assert_eq!(staged.len(),6);
     let cards=c["cards"].as_array().unwrap();
     for stage in staged {let card=cards.iter().find(|c|c["id"]==stage["identity"]["id"]).unwrap();assert_eq!(card["internalName"],stage["identity"]["internalName"]);assert_eq!(card["sourcePath"],stage["sourcePath"]);assert_eq!(card["sourceHash"],stage["sourceHash"]);assert_eq!(card["status"],"unsupported");}
     assert!(!c["sourceSupport"].as_array().unwrap().iter().any(|s|s["role"]=="source-without-card-data" && s["sourcePath"]=="game/cards/08_ASH/tokens/Advantage.ts"));
-    let e=engine();for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_WEAKNESS","TOKEN_THE_FORCE"] {assert!(e.by_code.contains_key(code));}
-    for code in ["TOKEN_CREDIT","TOKEN_ADVANTAGE"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap().contains_key(code));}
+    let e=engine();for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_WEAKNESS","TOKEN_THE_FORCE","TOKEN_ADVANTAGE"] {assert!(e.by_code.contains_key(code));}
+    for code in ["TOKEN_CREDIT"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap().contains_key(code));}
     let baseline:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/runtime-admission.json")).unwrap();
     let known=baseline["runtimeAdmittedCards"].as_array().unwrap().iter().map(|c|c["setCode"].as_str().unwrap()).collect::<std::collections::BTreeSet<_>>();
     let new=e.by_code.keys().filter(|code|!known.contains(code.as_str())).collect::<std::collections::BTreeSet<_>>();

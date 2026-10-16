@@ -162,7 +162,7 @@ pub fn validate_state_with_catalogue(
             "actor",
             "winner",
             "players",
-            "arenaUnitOrder",
+            "arenaUnitOrder", "registrationOrder",
             "hiddenHistoryVersion", "phaseHistory",
             "supportStateVersion", "supportGrants", "supportAttackPending",
             "forceStateVersion",
@@ -383,10 +383,10 @@ pub fn validate_state_with_catalogue(
                         if !has_type(info,"upgrade") {return Err(format!("{at}: attachment must be an upgrade"));}
                         let token=boolean(u,"token","upgrade")?;
                         if token {
-                            if !matches!(u["setCode"].as_str(),Some("TOKEN_SHIELD"|"TOKEN_EXPERIENCE"|"TOKEN_WEAKNESS")) || !has_type(info,"token") {return Err(format!("{at}: only Shield, Experience and Weakness tokens are supported"));}
-                            if u["setCode"]=="TOKEN_WEAKNESS" {upgrade_stats.0+=info["upgradePower"].as_i64().ok_or("Weakness missing signed power")?;upgrade_stats.1+=info["upgradeHp"].as_i64().ok_or("Weakness missing signed HP")?;}
+                            if !matches!(u["setCode"].as_str(),Some("TOKEN_SHIELD"|"TOKEN_EXPERIENCE"|"TOKEN_WEAKNESS"|"TOKEN_ADVANTAGE")) || !has_type(info,"token") {return Err(format!("{at}: only Shield, Experience, Weakness and Advantage tokens are supported"));}
+                            if u["setCode"]=="TOKEN_WEAKNESS" || u["setCode"]=="TOKEN_ADVANTAGE" {upgrade_stats.0+=info["upgradePower"].as_i64().ok_or("Weakness missing signed power")?;upgrade_stats.1+=info["upgradeHp"].as_i64().ok_or("Weakness missing signed HP")?;}
                         }else{
-                            if has_type(info,"token") {return Err(format!("{at}: only Shield, Experience and Weakness tokens are supported"));}
+                            if has_type(info,"token") {return Err(format!("{at}: only Shield, Experience, Weakness and Advantage tokens are supported"));}
                             let controller=u["controller"].as_str().ok_or("ordinary upgrade needs controller")?;
                             let owner=u["owner"].as_str().ok_or("ordinary upgrade needs owner")?;
                             if owner!=controller {return Err("foreign-controlled upgrade imports are unsupported".into());}
@@ -470,6 +470,16 @@ pub fn validate_state_with_catalogue(
         return Err("winner disagrees with base damage".into());
     }
     if let Some(history)=v.get("phaseHistory") {crate::model::PhaseHistory::parse(history,(next+1) as u16)?;}
+    if let Some(order)=v.get("registrationOrder") {
+        let parsed=crate::model::RegistrationOrder::parse(order,(next+1) as u16)?;
+        let mut expected=HashSet::new();
+        for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array().unwrap() {
+            expected.insert(card["id"].as_str().unwrap().to_owned());
+            for upgrade in card["upgrades"].as_array().unwrap() {if upgrade["token"]==false {expected.insert(upgrade["id"].as_str().unwrap().to_owned());}}
+        }}}
+        let actual=parsed.as_slice().iter().map(|id|format!("c{}",*id as u16-1)).collect::<HashSet<_>>();
+        if actual!=expected{return Err("registrationOrder must contain every live unit and ordinary attachment exactly once".into());}
+    }
     validate_arena_unit_order(v,catalogue)?;
     Ok(())
 }
@@ -624,7 +634,7 @@ mod tests {
         upgrades[2]["token"] = json!(false);
         assert!(validate_state_with_catalogue(&state, &cards)
             .unwrap_err()
-            .contains("only Shield, Experience and Weakness tokens"));
+            .contains("only Shield, Experience, Weakness and Advantage tokens"));
     }
 
     #[test]

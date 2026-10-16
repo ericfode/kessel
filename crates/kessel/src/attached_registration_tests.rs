@@ -151,3 +151,14 @@ fn attached_alias_physical_duplicate_grants_and_capacity_are_bounded() {
     e.detach(&mut s,grantors[64]);e.capture_death(&mut s,host).unwrap();assert_eq!(s.death_pending.len,64);
     assert_eq!(s.death_pending.entries[..64].iter().map(|e|e.grantor).collect::<Vec<_>>(),grantors[..64]);assert!(s.death_pending.entries[..64].iter().all(|e|e.source==host&&e.player==Seat::P1));
 }
+
+#[test]
+fn attached_alias_source_context_extras_are_not_silently_discarded() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="TWI_218").unwrap();
+    for field in ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"] {
+        for extra in [json!([{"unsupported":"source context"}]),json!({"unknown":true}),json!(true)] {
+            let mut bad=original.clone();bad[field]=extra;let c=crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[bad]})).unwrap();assert!(!c.cards.contains_key("TWI_218"),"{field}");
+        }
+    }
+}

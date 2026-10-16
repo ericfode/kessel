@@ -3,9 +3,9 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
-// Exact test budget: prior 28,032 + phase history 136 + attack context 40 + modified attack grants 64.
+// Exact budget: 28,208 + native attack grants 64 + registration chronology 256.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_272;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_528;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -268,6 +268,34 @@ impl ArenaOrder {
     }
 }
 
+/// Physical entry/attachment chronology for currently registered printed unit
+/// abilities and bounded ordinary-upgrade grants. Card IDs are 1..255.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RegistrationOrder {pub ids:[u8;MAX_CARDS],pub len:u16,pub exact:bool}
+impl Default for RegistrationOrder {fn default()->Self {Self {ids:[0;MAX_CARDS],len:0,exact:true}}}
+impl RegistrationOrder {
+ pub fn parse(raw:&Value,next:CardId)->Result<Self,String> {
+  let object=raw.as_object().ok_or("registrationOrder must be an object")?;
+  if object.len()!=2||raw["version"]!=1||!object.contains_key("cards"){return Err("registrationOrder requires version 1 and cards only".into());}
+  let mut actual=Self::default();
+  for value in raw["cards"].as_array().ok_or("registrationOrder.cards must be an array")? {
+   let text=value.as_str().ok_or("registrationOrder needs stable card IDs")?;
+   let index=text.strip_prefix('c').and_then(|id|id.parse::<u16>().ok()).ok_or("registrationOrder needs stable card IDs")?;
+   if text!=format!("c{index}")||index as usize>=MAX_CARDS-1||index+1>=next{return Err("registrationOrder card ID outside physical identity range".into());}
+   actual.push(index+1)?;
+  }Ok(actual)
+ }
+ pub fn as_slice(&self)->&[u8] {&self.ids[..self.len as usize]}
+ pub fn push(&mut self,id:CardId)->Result<(),String> {
+  let id=u8::try_from(id).map_err(|_|"registration card ID exceeds bounded domain")?;
+  if id==0||self.as_slice().contains(&id){return Err("duplicate/invalid registration order entry".into());}
+  if self.len as usize==MAX_CARDS{return Err("registration order capacity exceeded".into());}
+  self.ids[self.len as usize]=id;self.len+=1;Ok(())
+ }
+ pub fn remove(&mut self,id:CardId) {if let Some(i)=self.as_slice().iter().position(|v|*v as CardId==id){self.ids.copy_within(i+1..self.len as usize,i);self.len-=1;self.ids[self.len as usize]=0;}}
+ pub fn position(&self,id:CardId)->Option<usize> {self.as_slice().iter().position(|v|*v as CardId==id)}
+}
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Card {
     pub def: u16,
@@ -480,6 +508,7 @@ pub struct State {
     pub next_id: CardId,
     pub players: [Player; 2],
     pub arena_unit_order:[ArenaOrder;2],
+    pub registration_order:RegistrationOrder,
     /// False only for immutable legacy imports without ordinary upgrades.
     pub arena_order_exact:bool,
     pub hidden_history_exact:bool,
@@ -542,7 +571,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,phase_history:PhaseHistory::default(),
+            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,
@@ -650,6 +679,7 @@ impl State {
         put(self.next_id as u64);
         put(self.arena_order_exact as u64);
         for arena in self.arena_unit_order {put(arena.len as u64);for id in arena.ids {put(id as u64);}}
+        if self.registration_order.exact {put(0x5245474953544552);put(self.registration_order.len as u64);for &id in self.registration_order.as_slice(){put(id as u64);}}
         put(self.round as u64);
         if self.hidden_history_exact {put(1); }
         self.phase_history.hash_values(&mut put);

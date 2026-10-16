@@ -813,6 +813,8 @@ pub enum Cost {
 pub enum Effect {
     InitiateAttack {properties:crate::native_attack::Properties, #[serde(default,rename="initiationProperty",skip_serializing_if="std::ops::Not::not")] initiation_property:bool},
     ConstantEffectRegistration(crate::static_ongoing::Registration),
+    GainTrait { target:Target, #[serde(rename="trait")] trait_name:String, duration:String },
+    LoseTrait { target:Target, #[serde(rename="trait")] trait_name:String, duration:String },
     DiscardOwnHand {amount:Expr,target:Target},
     DiscardDeck {amount:Expr,target:Target},
     CreateTokenUnit { #[serde(rename="tokenType")] token_type:String, amount:Expr, target:Target, #[serde(default,rename="entersReady")] enters_ready:bool },
@@ -869,6 +871,7 @@ pub enum Effect {
     UseForce {target:Target},
     GainForce {target:Target},
     GiveWeakness { amount:Expr, target:Target },
+    GiveAdvantage { amount:Expr, target:Target, #[serde(rename="createdBy")] created_by:crate::advantage::Creator, batch:crate::advantage::Batch, #[serde(rename="tokenOwner")] token_owner:crate::advantage::Owner },
     GiveExperience {
         #[serde(default = "one")]
         amount: Expr,
@@ -923,7 +926,7 @@ impl Effect {
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
-            Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
+            Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
             | Self::Ready { target } | Self::Exhaust { target } | Self::Defeat { target } => {
                 target.visit_expression_roots_mut(visit);
             }
@@ -947,7 +950,7 @@ impl Effect {
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
             Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
-            | Self::GiveWeakness { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
+            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
         }
     }
 }
@@ -973,6 +976,9 @@ pub struct Ability {
     /// Set only by the strict attached-registration loader, never accepted from raw IR.
     #[serde(skip)]
     pub attached_host: bool,
+
+    #[serde(default, skip_serializing_if="Vec::is_empty")]
+    pub hooks: Vec<crate::death_hooks::Hook>,
     #[serde(default, skip_serializing_if="Option::is_none")]
     pub gained_host: Option<bool>,
     #[serde(default, skip_serializing_if="Option::is_none")]
@@ -1165,6 +1171,9 @@ impl Instruction {
 pub struct Program {
     #[serde(default, skip_serializing_if="std::ops::Not::not")]
     pub attached_host: bool,
+
+    #[serde(default, skip_serializing_if="Vec::is_empty")]
+    pub hooks: Vec<crate::death_hooks::Hook>,
     #[serde(default, skip_serializing_if="Option::is_none")]
     pub gained_host: Option<bool>,
     #[serde(default, skip_serializing_if="Option::is_none")]
@@ -1500,6 +1509,17 @@ impl Program {
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
+
+        if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
+        if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
+            if !crate::death_hooks::registration(ability) {return Err("defeat hooks require one bounded typed root registration".into());}
+            let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
+            let mut program=Self::compile(&normalized)?;
+            program.hooks=ability.hooks.clone();
+            if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(_))) {program.trigger="eventHooks".into();}
+            program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);
+            return Ok(program);
+        }
         if crate::phase_history::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::phase_history::ability(ability){return Err("phase history requires a bounded ordinary root registration".into());}
         fn native_opponent(v:&Value)->bool {(v["kind"]=="cardSelection"&&v["chooser"]=="opponent")||match v {Value::Object(o)=>o.values().any(native_opponent),Value::Array(a)=>a.iter().any(native_opponent),_=>false}}
         if native_opponent(&serde_json::to_value(&ability.effect).map_err(|e|e.to_string())?) {return Err("opponent selection inside an effect requires its own chooser/context protocol".into());}
@@ -1516,15 +1536,16 @@ impl Program {
                 return Err("attached contexts require bounded constant keyword registrations".into());
             }
             fn keywords(e:&Effect,selected:bool,context:&str)->bool {match e {
+                Effect::GainTrait{target:Target::Name(n),trait_name,duration}|Effect::LoseTrait{target:Target::Name(n),trait_name,duration}=>duration=="persistent" && context=="upgrade" && !selected && n=="parent" && !trait_name.is_empty() && trait_name.len()<=64,
                 Effect::GainKeyword {target:Target::Name(n),keyword,amount:Expr::Const{value},duration}=>duration=="persistent" && n==if selected {"chosen"}else if context=="upgrade" {"parent"}else{"self"} && ["grit","sentinel","restore","raid","overwhelm"].contains(&keyword.as_str()) && value.as_u64().is_some_and(|n|(1..=2).contains(&n)),
                 Effect::Simultaneous{effects}=>!effects.is_empty()&&effects.len()<=8&&effects.iter().all(|e|keywords(e,selected,context)),_=>false}}
-            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
+            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) && !crate::attached_constants::host_trait_aura(ability) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
             if context=="host" {
                 fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Collection{receiver,args,..}|Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
                 if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
                 if let Some(r)=&ability.target_resolver {
                     let expected=serde_json::json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},"right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}});
-                    if r.owner!="self" || r.card_type!="unit" || r.zone.as_deref()!=Some("arena") || r.optional || r.count.is_some() || r.mode.is_some() || r.arena.is_some() || r.prompt_title.is_some() || r.predicate.as_ref().and_then(|p|serde_json::to_value(p).ok())!=Some(expected) {return Err("delegated host aura requires other friendly arena units by host identity and controller".into());}
+                    if !crate::attached_constants::host_trait_aura(ability) && (r.owner!="self" || r.card_type!="unit" || r.zone.as_deref()!=Some("arena") || r.optional || r.count.is_some() || r.mode.is_some() || r.arena.is_some() || r.prompt_title.is_some() || r.predicate.as_ref().and_then(|p|serde_json::to_value(p).ok())!=Some(expected)) {return Err("delegated host aura requires other friendly arena units by host identity and controller".into());}
                 }
             }
         }
@@ -1543,7 +1564,7 @@ impl Program {
         }
         let encoded=serde_json::to_value(ability).map_err(|e|e.to_string())?;
         if contains(&encoded,|v|v["kind"]=="ref"&&v["path"][0]=="snapshot") {return Err("capture references are reserved for verified maximum instructions".into());}
-        if contains(&encoded,|v|v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"])) {
+        if contains(&encoded,|v|v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"])) && !crate::attached_constants::parent_title_play(ability) {
             let condition=matches!(&ability.condition,Some(Expr::Binary{op,left,right}) if op=="==="&&matches!(left.as_ref(),Expr::Ref{path} if path==&["source","parentCard","title"])&&matches!(right.as_ref(),Expr::Const{value} if value.as_str().is_some_and(|title|!title.is_empty()&&title.len()<=128)));
             if !condition || ability.trigger!="constant" || ability.coordinate || ability.optional || ability.requires_confirmation || !ability.costs.is_empty() || !ability.context_title.is_empty() || ability.target_resolver.is_some() || !ability.target_resolvers.is_empty() || ability.then.is_some() || ability.if_you_do.is_some() || !matches!(&ability.effect,Effect::GainKeyword{target:Target::Name(n),amount:Expr::Const{value},duration,..} if n=="parent"&&duration=="persistent"&&value.as_u64()==Some(1)) {return Err("parent printed title requires a standalone live attached keyword equality condition".into());}
         }
@@ -1629,6 +1650,10 @@ impl Program {
         if ability.trigger=="whenAttackEnds" && ability.condition.is_some() {return Err("conditional attack-end registration capture is not implemented".into());}
         if crate::attack_history::contains(&encoded) && (ability.trigger!="whenAttackEnds" || !matches!(&ability.effect,Effect::Conditional{condition:Expr::HistoryAttackCheck{..},..}) || ability.condition.is_some() || ability.then.is_some() || ability.if_you_do.is_some() || ability.target_resolver.as_ref().is_some_and(|r|crate::attack_history::contains(&serde_json::to_value(r).unwrap()))) {return Err("attack history requires a standalone attack-end conditional effect".into());}
         if ability.attacker_must_survive && ability.trigger!="whenAttackEnds" {return Err("attacker survival gate requires attack-end registration".into());}
+        fn trait_leaf(e:&Effect)->bool {match e {Effect::GainTrait{..}|Effect::LoseTrait{..}=>true,Effect::Simultaneous{effects}=>effects.iter().any(trait_leaf),_=>false}}
+        if trait_leaf(&ability.effect) && (ability.trigger!="constant" || ability.condition.is_some() || ability.target_resolver.is_some() || !ability.target_resolvers.is_empty() || ability.coordinate || ability.gained_host.is_some()) {
+            return Err("trait leaves require unconditional source/parent constant registrations without dependency cycles".into());
+        }
         if ability.trigger == "constant" {
             if ability.optional
                 || !ability.costs.is_empty()
@@ -1644,6 +1669,8 @@ impl Program {
                 let valid_target = |target: &Target, duration: &str| duration == "persistent" && matches!(target, Target::Name(n) if n == expected || (!selected && n == "parent"));
                 match effect {
                     Effect::ConstantEffectRegistration(r) if !selected => r.validate(),
+                    Effect::GainTrait{target,trait_name,duration}|Effect::LoseTrait{target,trait_name,duration}
+                        if valid_target(target,duration) && !trait_name.is_empty() && trait_name.len()<=64 => Ok(()),
                     Effect::ModifyStats {power,hp,duration,target} if valid_target(target,duration)=>{power.live_stat_bounds()?;hp.live_stat_bounds()?;Ok(())},
                     Effect::CopyKeywords {target,duration,domain} if valid_target(target,duration) && domain.iter().map(String::as_str).collect::<Vec<_>>()==COPY_KEYWORDS=>Ok(()),
                     Effect::GainKeyword { target, amount, duration, .. } if valid_target(target, duration) && !amount.depends_on_keywords() => Ok(()),
@@ -1690,6 +1717,8 @@ impl Program {
         }
         let mut p = Self {
             attached_host: ability.attached_host,
+
+            hooks: ability.hooks.clone(),
             gained_host: ability.gained_host,
             attached_context: ability.attached_context.clone(),
             title: ability.title.clone(),
@@ -1753,6 +1782,7 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {return Err("event hooks cannot appear inside effect continuations".into());}
         // One captured target, then one simultaneous two-attachment window. This
         // preserves both token identities before the resulting stat-death sweep.
         if depth==0 && crate::phase_history::ability(ability) && contains_weakness(&ability.effect) {
@@ -2120,13 +2150,13 @@ impl Program {
                 Effect::NoAction => (0,false,false),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
-                    let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
+                    let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
                     if array && amount.is_some_and(target_dependent) { return Err("array-dependent group amount is unsupported".into()); }
                     if array && matches!(primitive, Effect::ModifyStats {power,hp,..} if target_dependent(power)||target_dependent(hp)) { return Err("array-dependent phase modifier values are unsupported".into()); }
-                    let destination=match primitive { Effect::Damage {target,..}|Effect::Heal {target,..}|Effect::GiveShield {target,..}|Effect::GiveExperience {target,..}|Effect::GiveWeakness {target,..}|Effect::Ready {target}|Effect::Exhaust {target}|Effect::Defeat {target}|Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..} => target, _ => unreachable!() };
+                    let destination=match primitive { Effect::Damage {target,..}|Effect::Heal {target,..}|Effect::GiveShield {target,..}|Effect::GiveExperience {target,..}|Effect::GiveWeakness {target,..}|Effect::GiveAdvantage {target,..}|Effect::Ready {target}|Effect::Exhaust {target}|Effect::Defeat {target}|Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..} => target, _ => unreachable!() };
                     let expanded=multiplicity(destination,targets,array)?;
                     match primitive {
-                        Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} => {
+                        Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} => {
                             let Expr::Const {value} = amount else { return Err("group tokens require literal bounded amounts".into()); };
                             let n=value.as_u64().filter(|n| (1..=2).contains(n)).ok_or("group tokens require one or two per target")? as usize;
                             (expanded * n * 2,false,true)
@@ -2251,6 +2281,13 @@ impl Program {
         }
         match effect {
             Effect::InitiateAttack{properties,..} => {if depth!=0 || !["event","whenPlayed","action"].contains(&self.trigger.as_str()) {return Err("native attack requires a standalone ordinary registration".into());}properties.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
+
+            Effect::GainTrait{target,trait_name,duration}|Effect::LoseTrait{target,trait_name,duration} => {
+                if self.trigger!="constant" || duration!="persistent" || !matches!(target,Target::Name(n) if ["self","parent"].contains(&n.as_str())) || trait_name.is_empty() || trait_name.len()>64 {
+                    return Err("trait leaves require bounded persistent self/parent constant registrations".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::ConstantEffectRegistration(r) => {if depth!=0 || self.trigger!="constant" {return Err("static self ongoing contract must be a root constant".into());}r.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::DiscardDeck {amount,target} => {Self::scalar_deck_amount(amount,target)?;self.instructions.push(Instruction::Group(effect.clone()));}
             Effect::DiscardOwnHand {amount,target} => {Self::scalar_hand_amount(amount,target)?;self.instructions.push(Instruction::Group(effect.clone()));}
@@ -2290,6 +2327,7 @@ impl Program {
                 self.select_ends.push((at, self.instructions.len()));
             }
             Effect::UseForce {target}|Effect::GainForce{target} => {if !matches!(target,Target::Name(n) if n=="ownPlayer") {return Err("Force requires default own player target".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::GiveAdvantage {amount,target,..} => {crate::advantage::validate_amount(amount)?;if !matches!(target,Target::Name(n) if n=="self"||n=="chosen") {return Err("Advantage supports self or selected unit targets".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::GiveWeakness {amount,target} => {if !matches!(amount,Expr::Const{value} if value.as_u64()==Some(1)) || !matches!(target,Target::Name(n) if n=="chosen") {return Err("Weakness supports one selected unit token".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::NoAction => self.instructions.push(Instruction::Apply(effect.clone())),
             Effect::Exhaust {target:Target::ArenaList(list)} => {
@@ -2399,6 +2437,12 @@ impl Catalogue {
             .as_array()
             .ok_or("IR catalogue needs cards")?;
         let power_feedback=entries.iter().any(crate::bounded_reductions::power_feedback);
+        let trait_edges=entries.iter().flat_map(crate::static_ongoing::trait_dependencies).collect::<Vec<_>>();
+        fn trait_path(edges:&[(String,String)],from:&str,to:&str,seen:&mut std::collections::BTreeSet<String>)->bool {
+            if from==to {return true;}if !seen.insert(from.into()){return false;}
+            edges.iter().filter(|(a,_)|a==from).any(|(_,b)|trait_path(edges,b,to,seen))
+        }
+        let cyclic_traits=trait_edges.iter().filter(|(a,b)|trait_path(&trait_edges,b,a,&mut Default::default())).cloned().collect::<std::collections::BTreeSet<_>>();
         let mut catalogue = Self::default();
         for entry in entries {
             let code = entry["setCode"]
@@ -2415,12 +2459,14 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                for key in ["abilities", "attachCondition", "piloting"] { crate::deck_search::reject(&entry[key])?; }
                 fn parent_reference(value:&Value)->bool {
                     (value["kind"]=="ref" && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit")) || (value["target"]=="parent") || match value {Value::Array(a)=>a.iter().any(parent_reference),Value::Object(o)=>o.values().any(parent_reference),_=>false}
                 }
                 if crate::native_attack::marker(&entry["abilities"])&&!crate::native_attack::entry(entry){return Err("native attacks require a complete sole ordinary unit/event registration".into());}
                 if crate::phase_history::marker(entry)&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
-                if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
+                if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
+                if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
                 if crate::live_power_maximum::marker(entry)&&!crate::live_power_maximum::entry(entry){return Err("live maximum requires complete two-sided leader metadata and registrations".into());}
                 if power_feedback&&crate::bounded_reductions::leader_entry(entry){return Err("power maximum keyword grant conflicts with keyword-dependent stat source".into());}
@@ -2429,9 +2475,15 @@ impl Catalogue {
                 if basezone_relevant&&basezone_source_kind(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = crate::attached_registration::sides(entry)?;
+
+                if crate::advantage::marker(&entry["abilities"]) && !crate::advantage::source_entry(entry) {return Err("Advantage requires complete ordinary unit/event sources and bounded native token contracts".into());}
+
+                if sides.card.iter().any(crate::attached_constants::host_trait_aura)&&!crate::attached_constants::entry(entry) {return Err("host trait auras require the complete attached constant wrapper source contract".into());}
+                if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|!a.hooks.is_empty()||a.trigger=="eventHooks") && !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
                 if selector_contract::expanded_selector_marker(&entry["abilities"]) && !selector_contract::native_source_entry(entry,&sides) {return Err("expanded selectors require complete ordinary unit/event card-side source metadata without unimplemented registration contexts".into());}
                 if ["abilities","attachCondition","piloting"].iter().any(|k|parent_defense_marker(&entry[*k]))&&!parent_defense_upgrade_entry(entry){return Err("parent defense requires complete nonunique non-Vehicle-attached upgrade metadata".into());}
 
+                if sides.card.iter().any(crate::attached_constants::parent_title_play)&&!crate::attached_registration::plain_upgrade(entry) {return Err("parent-title play requires complete ordinary upgrade source metadata".into());}
                 let exact_type=|expected:&str|entry["card"]["types"].as_array().is_some_and(|types|types.len()==1&&types[0]==expected);
                 let source_class=entry["baseClass"].as_str();
                 if gained_host_marker(entry) && gained_host_upgrade_kind(entry).is_none() {return Err("gained host attack templates require complete reviewed upgrade metadata".into());}
@@ -2446,6 +2498,15 @@ impl Catalogue {
                     if source_class==Some("LeaderUnitCard") {
                         if !sides.card.is_empty() {return Err("leader sources require explicit leader/unit side registrations".into());}
                     } else if !sides.leader.is_empty()||!sides.unit.is_empty() {return Err("ordinary sources require card-side registrations".into());}
+                }
+                fn trait_leaf_marker(v:&Value)->bool {matches!(v["kind"].as_str(),Some("gainTrait"|"loseTrait"))||match v {Value::Object(o)=>o.values().any(trait_leaf_marker),Value::Array(a)=>a.iter().any(trait_leaf_marker),_=>false}}
+                if trait_leaf_marker(&entry["abilities"]) {
+                    let unit=source_class==Some("NonLeaderUnitCard")&&exact_type("unit");
+                    let upgrade=source_class==Some("UpgradeCard")&&exact_type("upgrade");
+                    fn valid_leaf_target(e:&Effect,expected:&str)->bool {match e {Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..}=>n==expected,Effect::Simultaneous{effects}=>effects.iter().all(|e|valid_leaf_target(e,expected)),_=>true}}
+                    if !crate::static_ongoing::closed_source_context(entry) || !(unit||upgrade) || !sides.unit.is_empty() || !sides.leader.is_empty() || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || ["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().any(|k|!entry["card"][*k].is_null()) || !(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"]=="") || (unit && (!entry["attachCondition"].is_null() || !entry["card"]["upgradePower"].is_null() || !entry["card"]["upgradeHp"].is_null())) || !sides.card.iter().all(|a|valid_leaf_target(&a.effect,if unit {"self"}else{"parent"})) {
+                        return Err("trait leaves require complete ordinary unit or attached upgrade source metadata".into());
+                    }
                 }
                 fn contains_presence_query(value:&Value)->bool {
                     (value["kind"]=="query" && matches!(value["name"].as_str(),Some("hasSomeArenaCard"|"isDeployed"))) || match value {Value::Array(items)=>items.iter().any(contains_presence_query),Value::Object(object)=>object.values().any(contains_presence_query),_=>false}
@@ -2556,7 +2617,7 @@ impl Catalogue {
                     (value["effect"]["kind"]=="exhaust"&&value["ifYouDo"]["effect"]["kind"]=="simultaneous"&&value["ifYouDo"]["effect"]["effects"].as_array().is_some_and(|effects|effects.iter().any(|e|matches!(e["kind"].as_str(),Some("giveExperience"|"giveShield"))))) || match value {Value::Array(items)=>items.iter().any(exhaust_token_continuation),Value::Object(object)=>object.values().any(exhaust_token_continuation),_=>false}
                 }
                 let hp_draw=["abilities","attachCondition","piloting"].iter().any(|key|remaining_hp_draw(&entry[*key]));
-                let count_shield=["abilities","attachCondition","piloting"].iter().any(|key|conditional_shield_selection(&entry[*key]));
+                let count_shield=["abilities","attachCondition","piloting"].iter().any(|key|conditional_shield_selection(&entry[*key])) && !(crate::attached_constants::entry(entry)&&sides.card.iter().any(crate::attached_constants::parent_title_play));
                 let exhaust_tokens=["abilities","attachCondition","piloting"].iter().any(|key|exhaust_token_continuation(&entry[*key]));
                 if hp_draw || count_shield || exhaust_tokens {
                     let a=&entry["abilities"]["card"][0];let effect=&a["effect"];
@@ -2575,7 +2636,7 @@ impl Catalogue {
                 fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
                 let parent_title=parent_printed_title(&entry["abilities"]);
-                if attached_context || parent_title {
+                if (attached_context || parent_title) && !crate::attached_constants::entry(entry) {
                     if entry["baseClass"]!="UpgradeCard" || !exact_type("upgrade") || sides.card.len()!=1 || !sides.unit.is_empty() || !sides.leader.is_empty() || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) || entry["keywordValues"]!=serde_json::json!({}) || !entry["card"]["keywords"].as_array().is_some_and(|keywords|keywords.iter().all(|k|k.as_str().is_some_and(|k|CORE_KEYWORDS.contains(&k)))) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
                 }
                 if contains_keyword_inventory(&entry["abilities"]) {

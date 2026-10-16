@@ -31,7 +31,7 @@ fn internal(v:&Value)->bool {match v {
 }}
 fn mention_keywords(e:&Value)->bool {
     let Some(names)=e["card"]["keywords"].as_array() else{return false;};
-    names.iter().all(|name|name=="raid"&&e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|
+    names.iter().all(|name|name.as_str().is_some_and(|n|["raid","restore","grit"].contains(&n))&&e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|
         a["trigger"]=="constant"&&a["effect"]["kind"]=="gainKeyword"&&a["effect"]["target"]=="parent"
         &&a["effect"]["keyword"]==*name&&a["effect"]["duration"]=="persistent"
         &&a["effect"]["amount"]["value"].as_u64().is_some_and(|n|(1..=1000).contains(&n)))))
@@ -44,7 +44,8 @@ fn normalize_zone_names(v:&mut Value) {
     }
     match v {Value::Object(o)=>for child in o.values_mut(){normalize_zone_names(child)},Value::Array(a)=>for child in a {normalize_zone_names(child)},_=>{}}
 }
-fn plain_upgrade(e:&Value)->bool {
+pub(crate) fn plain_upgrade(e:&Value)->bool {
+    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().any(|k|!e[*k].is_null()&&e[*k]!=json!([])) {return false;}
     e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
     && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
     && mention_keywords(e) && e["piloting"].is_null()
@@ -88,13 +89,13 @@ fn program(v:&Value)->Result<Ability,String> {
 pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let raw=&entry["abilities"];
     if internal(raw) {return Err("attachedHost is an internal program marker".into());}
-    if !marker(raw) {return serde_json::from_value(raw.clone()).map_err(|e|format!("invalid ability IR: {e}"));}
+    if !marker(raw)&&!crate::attached_constants::marker(raw) {return serde_json::from_value(raw.clone()).map_err(|e|format!("invalid ability IR: {e}"));}
     if !raw.as_object().is_some_and(|o|o.len()==3&&["leader","unit","card"].iter().all(|k|o.contains_key(*k)))||!plain_upgrade(entry) {return Err("attached aliases require complete ordinary upgrade metadata and matching printed stats".into());}
     let card=raw["card"].as_array().ok_or("attached aliases need card-side registrations")?;
     if card.is_empty()||card.len()>8 {return Err("attached registration count exceeds bound".into());}
     let mut out=Sides::default();
     for a in card {
-        out.card.push(if marker(a) {program(a)?}else{serde_json::from_value(a.clone()).map_err(|e|format!("companion registration: {e}"))?});
+        out.card.push(if marker(a) {program(a)?}else if crate::attached_constants::marker(a) {crate::attached_constants::ability(a)?}else{crate::attached_constants::companion(a)?});
     }
     Ok(out)
 }

@@ -2,7 +2,7 @@ use super::*;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
-// State remains inline: prior 28032 + phase history 136 + attack context 40 = 28208 bytes; Card remains 36 bytes.
+// State remains inline: prior 28208 + native attack (64) + registration chronology (net 256) = 28528 bytes; Card remains 36 bytes.
 fn engine() -> Engine {
     Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json"))
         .unwrap()
@@ -3761,3 +3761,12 @@ mod attached_registration_tests;
 
 #[path="native_attack_tests.rs"]
 mod native_attack_tests;
+
+#[path="attached_constant_tests.rs"]
+mod attached_constant_tests;
+
+#[path="trait_inventory_tests.rs"]
+mod trait_inventory_tests;
+
+#[path = "death_hook_tests.rs"]
+mod death_hook_tests;

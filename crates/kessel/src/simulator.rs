@@ -4,6 +4,8 @@ mod generic_runtime;
 mod support_runtime;
 #[path = "selector_runtime.rs"]
 mod selector_runtime;
+#[path = "registration_runtime.rs"]
+mod registration_runtime;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};
@@ -45,6 +47,8 @@ pub struct Engine {
     shield_def: u16,
     experience_def: Option<u16>,
     weakness_def: Option<u16>,
+    advantage_def: Option<u16>,
+    advantage_program: Option<u16>,
     force_def: Option<u16>,
     catalogue: Option<Catalogue>,
     rules_backend: RulesBackend,
@@ -227,6 +231,8 @@ impl Engine {
             shield_def: shield_def.ok_or("pool must include TOKEN_SHIELD")?,
             experience_def: None,
             weakness_def: None,
+            advantage_def: None,
+            advantage_program: None,
             force_def: None,
             catalogue: None,
             rules_backend: RulesBackend::Auto,
@@ -297,9 +303,11 @@ impl Engine {
         let ids=self.upgrades(s,parent);
         if let Some(&last)=ids.last() {s.card_mut(last).next_upgrade=id;}else{s.card_mut(parent).upgrades=id;}
         s.card_mut(id).parent=parent;s.card_mut(id).next_upgrade=0;
+        if !self.def(s,id).info.is("token") {s.registration_order.remove(id);if s.registration_order.push(id).is_err(){s.registration_order.exact=false;}}
     }
     fn detach(&self,s:&mut State,id:CardId) {
         let parent=s.card(id).parent;if parent==0 {return;}
+        s.registration_order.remove(id);
         for experience in [false,true] {
             let mut token=if experience {s.card(parent).experience}else{s.card(parent).shield};let mut previous=0;
             while token!=0 && token!=id {previous=token;token=s.card(token).next_token;}
@@ -331,7 +339,7 @@ impl Engine {
         Ok(())
     }
     fn upgrade_stats(&self,s:&State,parent:CardId)->(i64,i64) {
-        self.upgrades(s,parent).iter().filter(|id|!self.def(s,**id).info.is("token") || Some(s.card(**id).def)==self.weakness_def).fold((0,0),|a,id| {
+        self.upgrades(s,parent).iter().filter(|id|!self.def(s,**id).info.is("token") || Some(s.card(**id).def)==self.weakness_def || Some(s.card(**id).def)==self.advantage_def).fold((0,0),|a,id| {
             let info=&self.def(s,*id).info;(a.0+info.upgrade_power.unwrap_or(0) as i64,a.1+info.upgrade_hp.unwrap_or(0) as i64)
         })
     }
@@ -914,7 +922,8 @@ impl Engine {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
         if space {p.space.push(id)?;}else{p.ground.push(id)?;}
-        s.arena_unit_order[usize::from(space)].push(id)
+        s.arena_unit_order[usize::from(space)].push(id)?;
+        s.registration_order.push(id)
     }
     fn use_leader(&self, s: &mut State) -> Result<(), String> {
         if self.catalogue.is_some() {
@@ -1156,9 +1165,11 @@ impl Engine {
                 if s.card(id).damage>before && s.card(id).damage>=self.hp(s,id) {dead.push(id);}
             }
             for id in self.arena_units(s) {if s.card(id).damage>=self.hp(s,id) && !dead.contains(&id) {dead.push(id);}}
+            self.capture_advantage_end(s)?;
             self.defeat_many(s,&dead)?;
         } else {
             s.card_mut(target).damage += attack;
+            self.capture_advantage_end(s)?;
         }
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
@@ -1231,7 +1242,7 @@ impl Engine {
         let owner = s.card(id).owner;
         let leader = id == s.player(owner).leader;
         let token = self.def(s, id).info.is("token");
-        s.arena_unit_order[0].remove(id);s.arena_unit_order[1].remove(id);
+        s.arena_unit_order[0].remove(id);s.arena_unit_order[1].remove(id);s.registration_order.remove(id);
         let p = s.player_mut(owner);
         p.ground.remove(id);
         p.space.remove(id);
@@ -1444,7 +1455,7 @@ impl Engine {
                     s.card_mut(id).experience = uid;
                     prior
                 } else {
-                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def) {return Err("unsupported attachment type".into());}
+                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
                     0
                 };
                 s.card_mut(uid).next_token = prior;
@@ -1511,6 +1522,7 @@ impl Engine {
         }
         self.load_arena_order(&mut s,v)?;
         self.validate_attachment_links(&s)?;
+        self.load_registration_order(&mut s,v)?;
         if let Some(next) = v["nextCardId"].as_u64() {
             if next >= MAX_CARDS as u64 {
                 return Err("card capacity exceeded".into());
@@ -1647,6 +1659,7 @@ impl Engine {
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
         if s.phase_history.exact {value["phaseHistory"]=s.phase_history.snapshot();}
+        if s.registration_order.exact {value["registrationOrder"]=json!({"version":1,"cards":s.registration_order.as_slice().iter().map(|id|format!("c{}",*id as u16-1)).collect::<Vec<_>>()});}
         if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}
         value
     }

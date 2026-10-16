@@ -288,7 +288,10 @@ impl Engine {
                     return Err("Support copied program is outside the selected pool".into());
                 }
                 let program = &catalogue.programs[index];
-                if !matches!(program.trigger.as_str(), "constant" | "onAttack")
+                if crate::static_ongoing::has_leader_trait_union(program) {
+                    return Err("Support copied leader-trait union requires an unsupported cyclic context".into());
+                }
+                if !matches!(program.trigger.as_str(), "constant" | "onAttack" | "whenAttackEnds")
                     || program.coordinate
                     || program.attached_context.is_some()
                 {

@@ -2,6 +2,9 @@
 #[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
+
+#[path = "src/death_hooks.rs"]
+mod death_hooks;
 #[allow(dead_code)]
 #[path = "src/ability_ir.rs"]
 mod ability_ir;
@@ -23,6 +26,16 @@ mod attack_history;
 #[allow(dead_code)]
 #[path = "src/attached_registration.rs"]
 mod attached_registration;
+
+#[path="src/advantage.rs"]
+mod advantage;
+
+#[allow(dead_code)]
+#[path = "src/attached_constants.rs"]
+mod attached_constants;
+
+#[path = "src/deck_search.rs"]
+mod deck_search;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -142,6 +155,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
+    println!("cargo:rerun-if-changed=src/attached_constants.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
     println!("cargo:rerun-if-changed=src/phase_history.rs");

@@ -169,6 +169,19 @@ The attachment-defeat families snapshot the full list, finish its primary
 removals, and then perform one stat-defeat sweep. This does not implement arbitrary
 list-target systems or grouped movement.
 
+A shared live trait inventory combines printed traits and every active gain,
+then removes every active loss. Interpreter and generated predicates, attached
+trait checks, controlled-in-play trait queries, and leader-trait unions use that
+inventory. Literal persistent self/parent gain/loss leaves require unconditional
+constant registrations. Native ongoing forms cover a friendly Creature-like unit
+aura across in-play controller and nonplay owner domains, and a live friendly
+leader-trait union with a literal exclusion. All-zone sources retain their traits
+in hand, deck, resource and discard zones. Trait producer cycles and unimplemented
+source contexts reject before execution. Foreign-control imports remain rejected;
+these contracts do not synthesize separate ownership history. Leader-trait union
+programs cannot be Support donors or imported copied Support programs because a
+leader recipient can create an unsupported feedback cycle.
+
 Standard self-defeat registrations retain their source and controller through
 zone movement and nested trigger windows. Standard multi-trigger aliases use
 the same programs. Printed Coordinate enables supported constant and on-attack
@@ -242,8 +255,27 @@ Physical `hasExperience`, `hasShield`, and `hasWeakness` predicates require thei
 reviewed native definitions in the selected pool, even when no token is created.
 Bounded scalar leader actions and optional unit-side attacks can give Weakness;
 the complete two-sided source, costs, target filters, and continuations remain
-admission boundaries. Staged Credit and Advantage lifecycle programs remain
-distinct from executable native adapters.
+admission boundaries. Credit remains a staged lifecycle contract. Advantage remains compiler-unsupported
+because its pinned source contains two classes, while an exact native adapter
+executes its complete reviewed lifecycle; native admission is counted separately
+from source conversion.
+
+Advantage is a physical +1/+0 token upgrade owned by the recipient's controller.
+Bounded scalar creation supports literal amounts up to five and the live opposing
+unit count; bounded multi-selections retain their creation batch and click order.
+All token identities are allocated before attachment. Unknown creator, owner,
+batching and amount contracts remain rejected. The selected pool must contain the
+exact reviewed native definition, even when a particular branch creates no token.
+
+At attack end, Advantage registers on upgrades of both involved units after
+combat damage handlers and before pending defeat subwindows physically move the
+units. Tokens on lethal hosts can therefore leave an ineffective captured owner
+bucket when another trigger can resolve. Mandatory token self-defeat shares the
+ordinary attack-end/death ordering window and runs once; Advantage granted while
+that window resolves remains for the next attack. Support may copy the bounded
+ordinary attack-end registrations, including their watcher queries and source
+identity rebound to the supported attacker. Copied registrations survive donor
+departure and use the existing versioned Support snapshot/import contract.
 
 A bounded self-resource operation moves an existing event or defeated ordinary
 unit into its owner's resources, exhausted, without allocating a new card.
@@ -682,6 +714,17 @@ Callable ability costs remain `costFactory` programs evaluated on each engine
 
 Deck search retains search scope/count, selected and remaining card bindings,
 selection predicates, ordering, bottom-deck randomization and whole-deck shuffle.
+Rust admission diagnoses a closed literal-count/filter/selected-card subset using
+strict typed contracts, but still rejects the complete containing card. The native
+default bottoms unchosen cards **in random order**, even when the player takes
+nothing; a whole-deck search always shuffles regardless of `shuffleWhenDone`.
+Neither stable deck order nor a human-selected permutation implements that rule.
+Execution needs an explicit randomness contract (including imported RNG evidence
+or chance outcomes and search treatment), plus search/display continuations.
+Empty or one-card fixture decks do not justify whole-card admission. Dynamic
+counts, captured private callbacks, custom handlers and changed defaults remain
+separate explicit rejections. This diagnostic foundation adds no State fields,
+playable programs, card admissions or behavioral parity claims.
 Play systems retain play type, type restrictions, ignored requirements, cost
 adjusters and entry effects. Repeated hand/discard plays reselect after each full
 play and its triggers; deck multi-play uses the selected order and free nested
@@ -739,3 +782,32 @@ previous attachment. Attack and defense grants share the existing owner-order
 prompt. Arbitrary event hooks, action grants, gain conditions, activation limits,
 pilot modes, parent/grantor reads inside the host body, and unimplemented leaves
 remain rejected. No persistent State storage is added.
+
+Attached constant contracts additionally support unconditional literal parent
+trait gains/losses through the shared live trait inventory. A bounded host-granted
+constant can give other friendly units of one literal trait constant stats; its
+source/controller come from the host and its lifetime comes from the physical
+upgrade. The complete wrapper is required, so this does not widen older bare
+`attachedContext` forms. Optional parent-title checks have a bounded play-time
+conditional Shield selector; a departed parent makes the comparison false.
+Leader conversion, cost-aspect grants, blanking, dynamic modifiers, and unknown
+wrapper fields remain rejected as complete-card blockers.
+
+Bounded defeat-event hooks preserve one typed `onCardDefeated` predicate and an
+optional standard When Played alias. Their closed predicates read pre-handler
+LKI unit/non-token type, LKI controller relative to the source controller, and
+whether the defeated physical card differs from the source. These are capture
+predicates, not a general event-expression executor. Registrations support scalar
+Experience grants, self Sentinel for the phase, own-base healing, or Battle Droid
+creation. Every source registration and sibling ability must validate; only ordinary
+nonleader unit metadata is accepted. Limits, collective triggers, event-derived
+effect targets, dynamic continuations, nested grants, and all other hooks reject.
+Capture reuses the simultaneous defeat window before any sibling leaves play, so
+captured effects survive source defeat and retain their controller. A compact inline physical registration sequence preserves cross-arena unit and
+ordinary-upgrade listener chronology, including leave/reentry and reattachment.
+Versioned `registrationOrder` snapshots must supply exact membership, arena
+projections and host/attachment order when the selected pool can reach defeat
+hooks or granted death registrations; legacy imports never infer that evidence.
+The inline State grows by 256 bytes (the 260-byte sequence absorbs existing
+padding). Rust source-derived fixtures cover these boundaries; parity
+for these additions has not been checked by executing the source engine.

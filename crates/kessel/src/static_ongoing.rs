@@ -34,6 +34,7 @@ pub enum SelfEffect {
     EntersPlayReady,
     CanAttackBaseWhileUsingAmbush,
     ModifyStats,
+    GainTrait,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +46,10 @@ pub struct Undefined {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Properties {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub match_target: Option<Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_zone_filter: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub condition: Option<Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -97,7 +102,7 @@ impl Registration {
     fn lower(&self) -> Result<NativeModifier, String> {
         let Modifier::OngoingContract { builder, value_mode, value, .. } = &self.modifier;
         let props = &self.properties;
-        let own = props.target_controller.is_none() && props.target_card_type_filter.is_none();
+        let own = props.target_controller.is_none() && props.target_card_type_filter.is_none() && props.target_zone_filter.is_none() && props.match_target.is_none();
         let condition = props.condition.as_ref().map(condition).transpose()?;
         let undefined = *value == json!({"kind":"undefined"});
         match self.effect_type() {
@@ -109,8 +114,22 @@ impl Registration {
                     Ok(NativeModifier::SelfBoolean { kind:self.effect_type(), condition }),
             SelfEffect::CanAttackBaseWhileUsingAmbush if props.target_controller.as_deref() == Some("self")
                 && props.target_card_type_filter.as_deref() == Some("unit") && props.source_zone_filter.is_none()
-                && condition.is_none() && builder.is_none() && *value_mode == ValueMode::Static && undefined =>
+                && condition.is_none() && props.target_zone_filter.is_none() && props.match_target.is_none() && builder.is_none() && *value_mode == ValueMode::Static && undefined =>
                     Ok(NativeModifier::FriendlyAmbushBase),
+            SelfEffect::GainTrait if condition.is_none() && builder.is_none() => {
+                if own && props.source_zone_filter==Some(AnyZone::Any) && *value_mode==ValueMode::Dynamic {
+                    return leader_trait_union(value).map(|excluded|NativeModifier::Traits(TraitRule::LeaderUnion{excluded}));
+                }
+                if props.source_zone_filter.is_none() && props.target_controller.as_deref()==Some("self") && props.target_card_type_filter.as_deref()==Some("unit") && props.target_zone_filter.as_deref()==Some("any") && *value_mode==ValueMode::Static {
+                    if let (Some(predicate),Some(gained))=(&props.match_target,value["value"].as_str().filter(|t|!t.is_empty()&&t.len()<=64)) {
+                        if *value==json!({"kind":"const","value":gained}) {
+                            let required=unit_trait_aura(predicate)?;
+                            if required!=gained {return Ok(NativeModifier::Traits(TraitRule::UnitAura{required,gained:gained.into()}));}
+                        }
+                    }
+                }
+                Err("unsupported trait gain scope, literal or dependency".into())
+            },
             SelfEffect::ModifyStats if own && props.source_zone_filter.is_none() && condition.is_none()
                 && builder.is_none() && *value_mode == ValueMode::Dynamic => stat_count(value).map(NativeModifier::StatCount),
             _ => Err("ongoing contract requires its reviewed scope, value and source-zone defaults".into()),
@@ -123,6 +142,7 @@ pub(crate) enum NativeModifier {
     SelfBoolean { kind:SelfEffect, condition:Option<Condition> },
     FriendlyAmbushBase,
     StatCount(Count),
+    Traits(TraitRule),
 }
 #[derive(Debug, Clone)]
 pub(crate) enum Condition {
@@ -133,6 +153,14 @@ pub(crate) enum Condition {
 }
 #[derive(Debug, Clone)]
 pub(crate) enum Count { OtherFriendlySameTitle, DiscardUnitsWithTrait(String) }
+#[derive(Debug,Clone)]
+pub(crate) enum TraitRule { UnitAura{required:String,gained:String}, LeaderUnion{excluded:String} }
+impl TraitRule {
+    pub(crate) fn may_produce(&self,requested:Option<&str>)->bool {match self {
+        Self::UnitAura{gained,..}=>requested.is_none_or(|t|t==gained),
+        Self::LeaderUnion{excluded}=>requested.is_none_or(|t|t!=excluded),
+    }}
+}
 
 fn name(v:&Value)->Result<&str,String> {
     v.as_str().filter(|s|!s.is_empty() && s.len()<=128).ok_or_else(||"invalid ongoing lexical binding".into())
@@ -205,6 +233,49 @@ fn stat_count(v:&Value)->Result<Count,String> {
     Err("unsupported live ongoing value or lexical capture".into())
 }
 
+fn unit_trait_aura(v:&Value)->Result<String,String> {
+    let candidate=name(&v["parameters"][0]["root"])?;
+    let context=name(&v["parameters"][1]["root"])?;
+    if candidate==context {return Err("trait aura bindings must be distinct".into());}
+    let required=name(&v["body"]["left"]["right"]["args"][0]["value"])?;
+    if required.len()>64 {return Err("trait literal exceeds capacity".into());}
+    let in_play=json!({"kind":"query","name":"isInPlay","receiver":reference(&[candidate]),"args":[]});
+    let expected=json!({"kind":"attackCallback","parameters":[{"root":candidate,"role":"candidate"},{"root":context,"role":"ongoingContext"}],"body":{"kind":"binary","op":"&&","left":{"kind":"binary","op":"&&","left":query("canBeInPlay",reference(&[candidate]),vec![]),"right":{"kind":"query","name":"hasSomeTrait","receiver":reference(&[candidate]),"args":[{"kind":"const","value":required}]}},"right":{"kind":"binary","op":"||","left":{"kind":"binary","op":"&&","left":in_play,"right":{"kind":"binary","op":"===","left":reference(&[candidate,"controller"]),"right":reference(&[context,"player"])}},"right":{"kind":"binary","op":"&&","left":{"kind":"unary","op":"!","value":in_play},"right":{"kind":"binary","op":"===","left":reference(&[candidate,"owner"]),"right":reference(&[context,"player"])}}}}});
+    if *v==expected {Ok(required.into())}else{Err("trait aura requires complete live in-play controller and nonplay owner predicate".into())}
+}
+fn leader_trait_union(v:&Value)->Result<String,String> {
+    let c=&v["callback"];
+    let target=name(&c["parameters"][0]["slot"])?;
+    let target_name=name(&c["parameters"][0]["bindingPattern"]["name"])?;
+    let context=name(&c["parameters"][1]["slot"])?;
+    let context_name=name(&c["parameters"][1]["bindingPattern"]["name"])?;
+    let statements=&c["body"]["statements"];
+    let declaration=&statements[0]["bindings"][0];
+    let local=name(&declaration["slot"])?;
+    let local_name=name(&declaration["bindingPattern"]["name"])?;
+    let leader_loop=&statements[1];
+    let leader=name(&leader_loop["slot"])?;
+    let leader_name=name(&leader_loop["bindingPattern"]["name"])?;
+    let trait_loop=&leader_loop["body"]["statements"][0];
+    let item=name(&trait_loop["slot"])?;
+    let item_name=name(&trait_loop["bindingPattern"]["name"])?;
+    let excluded=name(&trait_loop["body"]["statements"][0]["condition"]["right"]["value"])?;
+    if excluded.len()>64 || [target,context,local,leader,item].into_iter().collect::<std::collections::BTreeSet<_>>().len()!=5 {return Err("trait union bindings or exclusion invalid".into());}
+    let trait_body=json!({"kind":"pureBlock","statements":[{"kind":"pureIf","condition":{"kind":"binary","op":"!==","left":data_path(item,&[]),"right":{"kind":"const","value":excluded}},"then":{"kind":"pureBlock","statements":[{"kind":"pureEvaluate","value":{"kind":"pureSetMutation","method":"add","receiver":data_path(local,&[]),"value":data_path(item,&[])}}]}}]});
+    let outer=json!({"kind":"pureForOf","slot":leader,"bindingPattern":{"name":leader_name},"iterable":query("getLeaderCards",data_path(context,&["player"]),vec![]),"iterationScope":"perIteration","body":{"kind":"pureBlock","statements":[{"kind":"pureForOf","slot":item,"bindingPattern":{"name":item_name},"iterable":data_path(leader,&["traits"]),"iterationScope":"perIteration","body":trait_body}]}});
+    let body=json!({"kind":"pureBlock","statements":[{"kind":"pureBindings","bindings":[{"slot":local,"mutable":false,"value":{"kind":"pureSet","implementation":"Set","values":{"kind":"array","items":[]}},"bindingPattern":{"name":local_name},"evaluateAt":"declaration"}]},outer,{"kind":"pureReturn","value":{"kind":"arrayFrom","value":data_path(local,&[])}}]});
+    let mut expected=pure_callback(target,"targetCard",target_name,body);
+    expected["parameters"].as_array_mut().unwrap().push(json!({"slot":context,"argument":"ongoingContext","bindingPattern":{"name":context_name}}));
+    if *v==json!({"kind":"ongoingValueFactory","callback":expected}) {Ok(excluded.into())}else{Err("trait union requires live friendly leaders, bounded set insertion and literal exclusion".into())}
+}
+pub(crate) fn trait_dependencies(e:&Value)->Vec<(String,String)> {
+    if e["status"]!="supported" || !e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|a["effect"]["kind"]=="constantEffectRegistration" && a["effect"]["modifier"]["effectType"]=="gainTrait")) || !entry(e) {return vec![];}
+    let Ok(sides)=serde_json::from_value::<Sides>(e["abilities"].clone()) else{return vec![];};
+    sides.card.iter().filter_map(|a|match &a.effect {
+        Effect::ConstantEffectRegistration(r)=>match r.native(){Ok(NativeModifier::Traits(TraitRule::UnitAura{required,gained}))=>Some((required.clone(),gained.clone())),_=>None},_=>None,
+    }).collect()
+}
+
 pub(crate) fn marker(v: &Value) -> bool {
     v["kind"] == "constantEffectRegistration"
         || match v {
@@ -232,11 +303,18 @@ pub(crate) fn registration(a: &Ability) -> bool {
         && a.if_you_do.is_none()
         && r.validate().is_ok()
 }
+pub(crate) fn has_leader_trait_union(p:&crate::ability_ir::Program)->bool {
+    p.instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(NativeModifier::Traits(TraitRule::LeaderUnion{..})))))
+}
+pub(crate) fn closed_source_context(e:&Value)->bool {
+    ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|key|e[*key].is_null() || e[*key].as_array().is_some_and(Vec::is_empty))
+}
 pub(crate) fn entry(e: &Value) -> bool {
     let Ok(sides) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };
-    e["baseClass"] == "NonLeaderUnitCard"
+    closed_source_context(e)
+        && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
         && e["card"]["unique"].is_boolean()
         && ["cost", "hp", "power"]
@@ -249,6 +327,7 @@ pub(crate) fn entry(e: &Value) -> bool {
         && sides.unit.is_empty()
         && sides.leader.is_empty()
         && sides.card.iter().all(registration)
+        && !(e["keywordValues"].get("support").is_some() && sides.card.iter().any(|a|matches!(&a.effect,Effect::ConstantEffectRegistration(r) if matches!(r.native(),Ok(NativeModifier::Traits(TraitRule::LeaderUnion{..}))))))
         && { let mut seen=std::collections::BTreeSet::new(); sides.card.iter().all(|a|seen.insert(serde_json::to_string(&a.effect).expect("typed ongoing serializes"))) }
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()

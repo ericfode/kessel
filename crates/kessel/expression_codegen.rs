@@ -240,7 +240,7 @@ fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
                 let Expr::Const {value}=v else {return Err("dynamic trait/aspect/keyword argument retains interpreter".into())};
                 let Some(t)=value.as_str() else {checks.push("false".into());continue};
                 checks.push(match name {
-                    "hasSomeTrait"=>format!("d.traits.iter().any(|t|t=={t:?})"),
+                    "hasSomeTrait"=>format!("self.card_has_trait(s,id,{t:?})"),
                     "hasSomeAspect"=>format!("d.info.aspects().iter().any(|t|t=={t:?})"),
                     _=>format!("self.has_keyword(s,id,{t:?})"),
                 });
