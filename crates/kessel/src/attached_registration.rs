@@ -45,14 +45,13 @@ fn normalize_zone_names(v:&mut Value) {
     match v {Value::Object(o)=>for child in o.values_mut(){normalize_zone_names(child)},Value::Array(a)=>for child in a {normalize_zone_names(child)},_=>{}}
 }
 pub(crate) fn plain_upgrade(e:&Value)->bool {
-    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().any(|k|!e[*k].is_null()&&e[*k]!=json!([])) {return false;}
+    if !crate::static_ongoing::closed_source_context(e) {return false;}
     e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
     && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
     && mention_keywords(e) && e["piloting"].is_null()
     && ["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().all(|k|e["card"][*k].is_null())
     && (e["card"]["epicAction"].is_null()||e["card"]["epicAction"]=="")
     && [("power","upgradePower"),("hp","upgradeHp")].iter().all(|(a,b)|e["card"][*a]==e["card"][*b]&&e["card"][*a].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
-    && ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
     && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
 }
 fn invalid_host_scope(v:&Value)->bool {

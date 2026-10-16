@@ -91,8 +91,12 @@ traits; unknown helpers and unsupported dynamic expressions are rejected.
 Phase stat modifiers capture bounded signed power/HP values when applied and
 expire together at phase end. Constant stat modifiers support static self and
 aura bonuses with bounded conditions and target filters. Arena count/existence
-queries preserve their outer target separately from each queried card. Live
-stat calculations and stat-dependent constant conditions remain rejected.
+queries preserve their outer target separately from each queried card. Bounded
+live constant stat expressions can read the affected card's damage, supported
+resource/hand counts and filtered arena unit counts, with checked arithmetic.
+The closed native stat-count callbacks described below are also admitted.
+Effective-stat dependencies and stat-dependent constant conditions remain rejected;
+source lowering alone does not establish runtime admission.
 
 Bounded arena lists, filtering, existence and length queries also support three
 complete source shapes: conditional Ambush from another friendly nonunique unit,

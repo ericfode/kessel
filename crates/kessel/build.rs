@@ -102,7 +102,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
         let hp = number(hp)?;
         let targets = targets(target)?;
         return Ok(format!(
-            r#"let power={power};let hp={hp};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{let next_power=s.card(id).phase_power as i64+power;let next_hp=s.card(id).phase_hp as i64+hp;if !(-65535..=65535).contains(&next_power)||!(-65535..=65535).contains(&next_hp) {{return Err("phase stat capacity exceeded".into());}}let composed_power=self.def(s,id).info.power.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+if self.keyword_amount(s,id,"grit")>0 {{s.card(id).damage as i64}} else {{0}}+next_power;let composed_hp=self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+next_hp;if composed_power>65535||composed_hp>65535 {{return Err("computed phase stats exceed capacity".into());}}s.card_mut(id).phase_power=next_power as i32;s.card_mut(id).phase_hp=next_hp as i32;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
+            r#"let delta=PhaseStatDelta{{power:{power},hp:{hp}}};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{self.modify_phase_stats(s,id,delta)?;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
         ));
     }
     let (kind, target, amount) = match e {
@@ -114,7 +114,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
         _ => return Err("effect operation requires interpreter".into()),
     };
     let operation=match kind {
-        "draw"=>r#"if let Eval::Player(seat)=target { resolved |= amount>0; for _ in 0..amount { if let Some(id)=s.player_mut(seat).deck.pop_front() { s.player_mut(seat).hand.push(id)?; result=result.saturating_add(1); } else if !s.event_group.resolving {let base=s.player(seat).base;let hp=self.def(s,base).info.hp.unwrap_or(30) as u16;s.card_mut(base).damage=s.card(base).damage.saturating_add(3).min(hp);} }}"#,
+        "draw"=>r#"if let Eval::Player(seat)=target {let draw=self.draw_cards(s,seat,amount)?;result=result.saturating_add(draw.drawn);resolved|=draw.resolved;}"#,
         "damage"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {resolved |= amount>0 && s.card(id).shield!=0;let before=s.card(id).damage;self.damage(s,id,amount);result=result.saturating_add(s.card(id).damage.saturating_sub(before));}}"#,
         "heal"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#,
         "ready"=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,false);}}",

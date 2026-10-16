@@ -2,6 +2,19 @@
 use super::*;
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, Target, TargetResolver};
 
+// Callers capture values before target iteration; shared mutations preserve
+// the distinct scalar and prepared-event capture boundaries.
+#[derive(Clone, Copy)]
+struct PhaseStatDelta {
+    power: i64,
+    hp: i64,
+}
+
+struct DrawResult {
+    drawn: u16,
+    resolved: bool,
+}
+
 enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
 
 #[derive(Clone, Copy)]
@@ -2399,8 +2412,7 @@ impl Engine {
             }
             if let Effect::Draw {target,..}=effect {
                 if contingent {
-                    let hp=self.def(s,r.target).info.hp.unwrap_or(30) as u16;
-                    s.card_mut(r.target).damage=s.card(r.target).damage.saturating_add(r.hp as u16).min(hp);
+                    self.apply_draw_fatigue(s, r.target, r.hp as u16);
                     continue;
                 }
                 let (amount,resolved)=self.apply_effect(s,&Effect::Draw {target:target.clone(),amount:Expr::number(r.amount as i64)})?;
@@ -2662,6 +2674,47 @@ impl Engine {
         s.card_mut(id).exhausted = exhausted;
         u16::from(changed)
     }
+    // Groups apply captured fatigue after all primaries; scalar draws apply
+    // it immediately. Winner checks remain at the caller's existing boundary.
+    fn apply_draw_fatigue(&self, s: &mut State, base: CardId, amount: u16) {
+        let hp = self.def(s, base).info.hp.unwrap_or(30) as u16;
+        s.card_mut(base).damage = s.card(base).damage.saturating_add(amount).min(hp);
+    }
+
+    fn draw_cards(&self, s: &mut State, seat: Seat, amount: u16) -> Result<DrawResult, String> {
+        let mut drawn = 0u16;
+        for _ in 0..amount {
+            if let Some(id) = s.player_mut(seat).deck.pop_front() {
+                s.player_mut(seat).hand.push(id)?;
+                drawn = drawn.saturating_add(1);
+            } else if !s.event_group.resolving {
+                self.apply_draw_fatigue(s, s.player(seat).base, 3);
+            }
+        }
+        // Empty-deck draws resolve even when no cards moved (ifYouDo).
+        Ok(DrawResult { drawn, resolved: amount > 0 })
+    }
+
+    fn modify_phase_stats(&self, s: &mut State, id: CardId, delta: PhaseStatDelta) -> Result<(), String> {
+        let next_power = s.card(id).phase_power as i64 + delta.power;
+        let next_hp = s.card(id).phase_hp as i64 + delta.hp;
+        if !(-65535..=65535).contains(&next_power) || !(-65535..=65535).contains(&next_hp) {
+            return Err("phase stat capacity exceeded".into());
+        }
+        let composed_power = self.def(s, id).info.power.unwrap_or(0) as i64
+            + self.token_count(s, s.card(id).experience) as i64
+            + if self.keyword_amount(s, id, "grit") > 0 { s.card(id).damage as i64 } else { 0 }
+            + next_power;
+        let composed_hp = self.def(s, id).info.hp.unwrap_or(0) as i64
+            + self.token_count(s, s.card(id).experience) as i64 + next_hp;
+        if composed_power > 65535 || composed_hp > 65535 {
+            return Err("computed phase stats exceed capacity".into());
+        }
+        s.card_mut(id).phase_power = next_power as i32;
+        s.card_mut(id).phase_hp = next_hp as i32;
+        Ok(())
+    }
+
     fn apply_effect(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         let result=self.apply_effect_inner(s,e)?;
         // Neutral leaves clear prior event counters without inventing an event
@@ -2744,10 +2797,10 @@ impl Engine {
             _ => return Err("nonprimitive instruction reached executor".into()),
         };
         let modifier = if let Effect::ModifyStats { power, hp, .. } = e {
-            Some((
-                self.eval(s, s.source, s.ability_target, power).number(),
-                self.eval(s, s.source, s.ability_target, hp).number(),
-            ))
+            Some(PhaseStatDelta {
+                power: self.eval(s, s.source, s.ability_target, power).number(),
+                hp: self.eval(s, s.source, s.ability_target, hp).number(),
+            })
         } else {
             None
         };
@@ -2781,20 +2834,9 @@ impl Engine {
                     resources_fully_resolved &= readied == amount;
                 }
                 Eval::Player(seat) if matches!(e, Effect::Draw { .. }) => {
-                    // Fatigue is a contingent of a resolved draw, even with no cards drawn.
-                    draw_resolved |= amount > 0;
-                    for _ in 0..amount {
-                        if let Some(id) = s.player_mut(seat).deck.pop_front() {
-                            s.player_mut(seat).hand.push(id)?;
-                            result = result.saturating_add(1);
-                        } else {
-                            if !s.event_group.resolving {
-                                let base = s.player(seat).base;
-                                let hp=self.def(s,base).info.hp.unwrap_or(30) as u16;
-                                s.card_mut(base).damage = s.card(base).damage.saturating_add(3).min(hp);
-                            }
-                        }
-                    }
+                    let draw = self.draw_cards(s, seat, amount)?;
+                    result = result.saturating_add(draw.drawn);
+                    draw_resolved |= draw.resolved;
                 }
                 Eval::Card(id)
                     if id != 0
@@ -2853,31 +2895,8 @@ impl Engine {
                             result += 1;
                         }
                         Effect::ModifyStats { .. } if in_arena => {
-                            let (power, hp) =
-                                modifier.expect("stat modifier captured before event batch");
-                            let next_power = s.card(id).phase_power as i64 + power;
-                            let next_hp = s.card(id).phase_hp as i64 + hp;
-                            if !(-65535..=65535).contains(&next_power)
-                                || !(-65535..=65535).contains(&next_hp)
-                            {
-                                return Err("phase stat capacity exceeded".into());
-                            }
-                            let composed_power = self.def(s, id).info.power.unwrap_or(0) as i64
-                                + self.token_count(s, s.card(id).experience) as i64
-                                + if self.keyword_amount(s, id, "grit") > 0 {
-                                    s.card(id).damage as i64
-                                } else {
-                                    0
-                                }
-                                + next_power;
-                            let composed_hp = self.def(s, id).info.hp.unwrap_or(0) as i64
-                                + self.token_count(s, s.card(id).experience) as i64
-                                + next_hp;
-                            if composed_power > 65535 || composed_hp > 65535 {
-                                return Err("computed phase stats exceed capacity".into());
-                            }
-                            s.card_mut(id).phase_power = next_power as i32;
-                            s.card_mut(id).phase_hp = next_hp as i32;
+                            self.modify_phase_stats(s, id,
+                                modifier.expect("stat modifier captured before event batch"))?;
                             result += 1;
                         }
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {

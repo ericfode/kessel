@@ -3772,3 +3772,160 @@ mod trait_inventory_tests;
 
 #[path = "death_hook_tests.rs"]
 mod death_hook_tests;
+
+#[test]
+fn shared_mutations_generated_draws_match_interpreter_for_partial_and_lethal_fatigue() {
+    for code in ["TWI_175", "TS26_068"] {
+        let mut e = engine();
+        e.set_rules_instrumentation(true);
+        for d in &mut e.definitions {
+            if d.code != code { d.programs = Default::default(); }
+        }
+        for remaining in [0, 1, 3] {
+            for damage in [0, 29] {
+                let mut s = board(&e);
+                let event = hand(&e, &mut s, code);
+                let program = e.def(&s, event).programs.card[0] as usize;
+                unit(&e, &mut s, Seat::P1, "LOF_254");
+                unit(&e, &mut s, Seat::P2, "LOF_256");
+                for seat in [Seat::P1, Seat::P2] {
+                    for _ in 0..remaining { deck_card(&e, &mut s, seat); }
+                    let base = s.player(seat).base;
+                    s.card_mut(base).damage = damage;
+                }
+                e.set_rules_backend(RulesBackend::Aot).unwrap();
+                e.rules_hits.lock().unwrap().clear();
+                let actual = e.apply(&s, &e.card_action(&s, event)).unwrap();
+                let hits = e.rules_hits.lock().unwrap()[&program];
+                assert!(hits[0] > 0); assert_eq!(hits[1], 0);
+                e.set_rules_backend(RulesBackend::Interpreter).unwrap();
+                e.rules_hits.lock().unwrap().clear();
+                let expected = e.apply(&s, &e.card_action(&s, event)).unwrap();
+                let hits = e.rules_hits.lock().unwrap()[&program];
+                assert_eq!(hits[0], 0); assert!(hits[1] > 0);
+                assert_eq!(actual, expected, "{code}, deck={remaining}, damage={damage}");
+                assert_eq!(actual.zobrist(), expected.zobrist());
+                assert_eq!(e.snapshot(&actual), e.snapshot(&expected));
+                assert_eq!(e.legal_actions(&actual), e.legal_actions(&expected));
+                let amount = if code == "TWI_175" { 3 } else { 2 };
+                for seat in [Seat::P1, Seat::P2] {
+                    let draws = if seat == Seat::P1 || code == "TS26_068" { amount } else { 0 };
+                    assert_eq!(actual.player(seat).hand.len, remaining.min(draws));
+                    let fatigue = u16::from(draws.saturating_sub(remaining)) * 3;
+                    assert_eq!(actual.card(actual.player(seat).base).damage, (damage + fatigue).min(30));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn shared_mutations_generated_phase_stats_preserve_stacking_and_capacity_errors() {
+    for code in ["TWI_124", "LOF_217"] {
+        let mut e = engine();
+        e.set_rules_instrumentation(true);
+        for d in &mut e.definitions {
+            if d.code != code { d.programs = Default::default(); }
+        }
+        for case in 0..if code == "TWI_124" { 4 } else { 2 } {
+            let mut s = board(&e);
+            let target = unit(&e, &mut s, Seat::P1, "LOF_254");
+            e.create_token(&mut s, target, true).unwrap();
+            let grit = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| *k == "grit").unwrap();
+            s.card_mut(target).add_phase_keyword(grit);
+            s.card_mut(target).damage = 1;
+            s.card_mut(target).exhausted = true;
+            let (initial_power, initial_hp) = if code == "LOF_217" {
+                (if case == 0 { 0 } else { -65535 }, 0)
+            } else {
+                match case {
+                    0 => (0, 0),
+                    1 => (-8, 0),
+                    2 => (65535 - i32::from(e.power(&s, target, false)), 0),
+                    _ => (0, 65535 - i32::from(e.hp(&s, target))),
+                }
+            };
+            s.card_mut(target).phase_power = initial_power;
+            s.card_mut(target).phase_hp = initial_hp;
+            e.check_stat_capacity(&s).unwrap();
+            let event = hand(&e, &mut s, code);
+            let program = e.def(&s, event).programs.card[0] as usize;
+            e.set_rules_backend(RulesBackend::Aot).unwrap();
+            let prompt = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            let before = e.snapshot(&prompt);
+            e.rules_hits.lock().unwrap().clear();
+            let actual = e.apply(&prompt, &e.card_action(&prompt, target));
+            let hits = e.rules_hits.lock().unwrap()[&program];
+            assert!(hits[0] > 0); assert_eq!(hits[1], 0);
+            assert_eq!(before, e.snapshot(&prompt));
+            e.set_rules_backend(RulesBackend::Interpreter).unwrap();
+            let other = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            assert_eq!(prompt, other);
+            e.rules_hits.lock().unwrap().clear();
+            let expected = e.apply(&other, &e.card_action(&other, target));
+            let hits = e.rules_hits.lock().unwrap()[&program];
+            assert_eq!(hits[0], 0); assert!(hits[1] > 0);
+            match (actual, expected) {
+                (Ok(actual), Ok(expected)) => {
+                    assert_eq!(actual, expected);
+                    assert_eq!(actual.zobrist(), expected.zobrist());
+                    assert_eq!(e.snapshot(&actual), e.snapshot(&expected));
+                    assert_eq!(e.legal_actions(&actual), e.legal_actions(&expected));
+                    assert_eq!(actual.card(target).phase_power, initial_power + if code == "TWI_124" { 2 } else { -8 });
+                    assert_eq!(actual.card(target).phase_hp, initial_hp + if code == "TWI_124" { 2 } else { 0 });
+                }
+                (Err(actual), Err(expected)) => {
+                    assert_eq!(actual, expected);
+                    assert_eq!(actual, if code == "LOF_217" { "phase stat capacity exceeded" } else { "computed phase stats exceed capacity" });
+                }
+                other => panic!("backend mismatch for {code}, case {case}: {other:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn shared_mutations_prepared_draw_keeps_generation_time_fatigue() {
+    let e = engine();
+    let mut s = board(&e);
+    s.source = s.players[0].leader;
+    let first = deck_card(&e, &mut s, Seat::P1);
+    let group = Effect::Simultaneous { effects: vec![Effect::Draw {
+        target: Target::name("ownPlayer"), amount: Expr::number(2),
+    }] };
+    s.event_group.active = true;
+    s.event_group.initiator = s.active;
+    e.generate_group(&mut s, &group).unwrap();
+    assert_eq!(s.event_group.records[0].hp, 3);
+    // Simulate a deck change between preparation and resolution: fatigue stays
+    // captured even though the primary can now draw both cards.
+    let second = deck_card(&e, &mut s, Seat::P1);
+    e.resolve_group(&mut s, &group).unwrap();
+    assert!(s.players[0].hand.contains(first));
+    assert!(s.players[0].hand.contains(second));
+    assert_eq!(s.ability_result, 2);
+    assert!(s.ability_succeeded);
+    assert_eq!(s.card(s.players[0].base).damage, 3);
+}
+
+#[test]
+fn shared_source_context_preserves_closed_fields_and_hook_watcher_exception() {
+    let catalog: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    for code in ["TWI_218", "SOR_036"] {
+        let original = catalog["cards"].as_array().unwrap().iter().find(|entry| entry["setCode"] == code).unwrap();
+        for field in ["stateWatchers", "historyHelpers", "privatePrograms", "classMethods", "privateClassConstants", "inheritedSource", "deploymentOverride", "setupValidationOverrides"] {
+            for value in [Value::Null, json!([]), json!({}), json!([{"kind":"unsupported"}]), json!(false), json!(0), json!("")] {
+                let allowed = value.is_null() || value == json!([])
+                    || (code == "SOR_036" && field == "stateWatchers" && value == json!({}));
+                let mut entry = original.clone();
+                entry[field] = value.clone();
+                let admitted = crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[entry]})).unwrap();
+                assert_eq!(admitted.cards.contains_key(code), allowed, "{code}: {field}={value}");
+            }
+            let mut entry = original.clone();
+            entry.as_object_mut().unwrap().remove(field);
+            let admitted = crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[entry]})).unwrap();
+            assert!(admitted.cards.contains_key(code), "{code}: absent {field}");
+        }
+    }
+}

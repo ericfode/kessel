@@ -253,7 +253,7 @@ pub(crate) fn marker(v: &Value) -> bool {
         }
 }
 pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
-    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
+    crate::static_ongoing::closed_source_helpers(e)
         && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
         && e["card"]["unique"].is_boolean()
@@ -261,6 +261,7 @@ pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
         && sides.unit.is_empty()
         && !sides.card.is_empty()
         && sides.card.len() <= 8
+        // Preserve this hook contract's legacy empty-object watcher spelling.
         && (e["stateWatchers"].is_null()
             || e["stateWatchers"] == serde_json::json!([])
             || e["stateWatchers"] == serde_json::json!({}))
