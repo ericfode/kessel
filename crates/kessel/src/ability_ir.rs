@@ -269,18 +269,48 @@ impl Expr {
         }
     }
     pub fn validate(&self) -> Result<(), String> {
-        fn positive(e:&Expr)->bool {match e.original() {Expr::Query {name,receiver,args}=>name=="isDefending" && args.is_empty() && matches!(receiver.as_ref(),Expr::Ref {path} if path==&["card"]),Expr::Binary {op,left,right} if op=="&&"=>positive(left)||positive(right),_=>false}}
-        fn guard(e:&Expr,defending:bool)->Result<(),String> {
-            match e {
-                Expr::Compiled(compiled)=>guard(&compiled.original,defending),
-                Expr::Ref {path} if path.iter().any(|p|p=="activeAttack") => {if defending && path==&["card","activeAttack","attacker"] {Ok(())}else{Err("active attacker reference requires a dominating card.isDefending guard".into())}},
-                Expr::Binary {op,left,right}=>{guard(left,defending)?;guard(right,defending||(op=="&&"&&positive(left)))},
-                Expr::Collection {receiver,args,..}|Expr::Query {receiver,args,..}=>{guard(receiver,defending)?;for arg in args {guard(arg,false)?;}Ok(())},
-                Expr::Array {items}|Expr::Math {args:items,..}=>{for item in items {guard(item,defending)?;}Ok(())},
-                Expr::Unary {value,..}=>guard(value,defending),Expr::Conditional {condition,then,r#else}=>{guard(condition,defending)?;guard(then,defending)?;guard(r#else,defending)},_=>Ok(())
-            }
+        fn positive(e: &Expr) -> bool {
+            e.any(|e| match e {
+                Expr::Compiled(_) => None,
+                Expr::Binary { op, .. } if op == "&&" => None,
+                Expr::Query {
+                    name,
+                    receiver,
+                    args,
+                } => Some(
+                    name == "isDefending"
+                        && args.is_empty()
+                        && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"]),
+                ),
+                _ => Some(false),
+            })
         }
-        guard(self,false)?;self.validate_depth(0)
+        // Binary dominance and query argument scopes stay local; ordinary
+        // expression children use the shared search without changing diagnostics.
+        fn unguarded(e: &Expr, defending: bool) -> bool {
+            e.any(|e| match e {
+                Expr::Ref { path } if path.iter().any(|p| p == "activeAttack") => {
+                    Some(!defending || path != &["card", "activeAttack", "attacker"])
+                }
+                Expr::Binary { op, left, right } => Some(
+                    unguarded(left, defending)
+                        || unguarded(right, defending || (op == "&&" && positive(left))),
+                ),
+                Expr::Collection { receiver, args, .. } | Expr::Query { receiver, args, .. } => {
+                    Some(unguarded(receiver, defending) || args.iter().any(|e| unguarded(e, false)))
+                }
+                Expr::NativeTokenPredicate { .. }
+                | Expr::ArenaList { .. }
+                | Expr::ArenaFilter { .. }
+                | Expr::ArenaSome { .. }
+                | Expr::ArenaLength { .. } => Some(false),
+                _ => None,
+            })
+        }
+        if unguarded(self, false) {
+            return Err("active attacker reference requires a dominating card.isDefending guard".into());
+        }
+        self.validate_depth(0)
     }
     fn contains_typed_query(&self)->bool {
         contains(&serde_json::to_value(self).expect("typed expression serializes"),|v|

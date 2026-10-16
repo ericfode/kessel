@@ -64,3 +64,94 @@ fn expr_search_can_prune_without_matching_and_checks_later_children() {
     ];
     for e in wrappers {assert!(e.any(test));assert!(!e.any(|_|Some(false)));}
 }
+
+#[test]
+fn contextual_guard_preserves_dominance_scope_resets_and_first_error() {
+    let active = reference(&["card", "activeAttack", "attacker"]);
+    let defense = || Expr::Query {
+        name: "isDefending".into(),
+        receiver: boxed(reference(&["card"])),
+        args: vec![],
+    };
+    let guarded = |value| Expr::Binary {
+        op: "&&".into(),
+        left: boxed(defense()),
+        right: boxed(value),
+    };
+    let expected = "active attacker reference requires a dominating card.isDefending guard";
+    for proof in [
+        compiled(defense()),
+        Expr::Binary { op: "&&".into(), left: boxed(Expr::number(0)), right: boxed(defense()) },
+    ] {
+        assert!(Expr::Binary { op: "&&".into(), left: boxed(proof), right: boxed(active.clone()) }.validate().is_ok());
+    }
+    for proof in [
+        Expr::Binary { op: "||".into(), left: boxed(defense()), right: boxed(Expr::number(0)) },
+        Expr::Array { items: vec![defense()] },
+        Expr::Unary { op: "!".into(), value: boxed(defense()) },
+        Expr::Conditional { condition: boxed(defense()), then: boxed(Expr::number(0)), r#else: boxed(Expr::number(0)) },
+    ] {
+        assert_eq!(Expr::Binary { op: "&&".into(), left: boxed(proof), right: boxed(active.clone()) }.validate().unwrap_err(), expected);
+    }
+    for value in [
+        active.clone(),
+        Expr::Array {
+            items: vec![active.clone()],
+        },
+        Expr::Conditional {
+            condition: boxed(Expr::number(0)),
+            then: boxed(active.clone()),
+            r#else: boxed(Expr::number(0)),
+        },
+        Expr::Query {
+            name: "isUnit".into(),
+            receiver: boxed(active.clone()),
+            args: vec![],
+        },
+    ] {
+        assert!(guarded(value.clone()).validate().is_ok(), "{value:?}");
+        assert!(compiled(guarded(value)).validate().is_ok());
+    }
+    for value in [
+        Expr::Binary {
+            op: "&&".into(),
+            left: boxed(active.clone()),
+            right: boxed(defense()),
+        },
+        Expr::Binary {
+            op: "||".into(),
+            left: boxed(defense()),
+            right: boxed(active.clone()),
+        },
+        guarded(Expr::Query {
+            name: "hasSomeTrait".into(),
+            receiver: boxed(reference(&["card"])),
+            args: vec![active.clone()],
+        }),
+        guarded(Expr::Collection {
+            name: "map".into(),
+            receiver: boxed(reference(&["source", "upgrades"])),
+            args: vec![active.clone()],
+            limit: 256,
+        }),
+        Expr::Binary {
+            op: "unimplemented".into(),
+            left: boxed(active),
+            right: boxed(Expr::number(0)),
+        },
+    ] {
+        assert_eq!(value.validate().unwrap_err(), expected, "{value:?}");
+    }
+}
+
+#[test]
+fn contextual_guard_keeps_existing_native_and_arena_inspection_boundaries() {
+    let active = reference(&["card", "activeAttack", "attacker"]);
+    let arena = Expr::ArenaList {
+        receiver: boxed(reference(&["player"])),
+        predicate: boxed(active.clone()),
+    };
+    assert!(arena.validate().is_ok());
+    assert!(compiled(arena).validate().is_ok());
+    assert_eq!(native(active).validate().unwrap_err(),"native token predicate requires exact physical attachment operation and scalar card receiver");
+}

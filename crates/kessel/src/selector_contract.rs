@@ -479,51 +479,25 @@ impl NativeCardSelection {
         // has printed stats. Typed control-flow refinement is a separate contract.
         if let Some(predicate) = &self.predicate {
             fn unit_read(e: &Expr) -> bool {
-                match e {
-                    Expr::Ref { path } => {
-                        path.first()
-                            .is_some_and(|s| ["selectionCandidate", "target"].contains(&s.as_str()))
-                            && path.iter().skip(1).any(|s| {
-                                ["power", "hp", "remainingHp", "damage", "exhausted"]
-                                    .contains(&s.as_str())
-                            })
+                e.any(|e| match e {
+                    Expr::Compiled(_) | Expr::Collection { .. } => Some(false),
+                    Expr::Ref { path } => Some(
+                        path.first().is_some_and(|s| {
+                            ["selectionCandidate", "target"].contains(&s.as_str())
+                        }) && path.iter().skip(1).any(|s| {
+                            ["power", "hp", "remainingHp", "damage", "exhausted"]
+                                .contains(&s.as_str())
+                        }),
+                    ),
+                    Expr::Query { name, receiver, .. }
+                        if ["getPower", "getHp"].contains(&name.as_str())
+                            && matches!(receiver.as_ref(), Expr::Ref { path }
+                                if path.first().is_some_and(|s| ["selectionCandidate", "target"].contains(&s.as_str()))) =>
+                    {
+                        Some(true)
                     }
-                    Expr::Query {
-                        name,
-                        receiver,
-                        args,
-                    } => {
-                        (["getPower", "getHp"].contains(&name.as_str())
-                            && matches!(receiver.as_ref(),Expr::Ref{path} if path.first().is_some_and(|s|["selectionCandidate","target"].contains(&s.as_str()))))
-                            || unit_read(receiver)
-                            || args.iter().any(unit_read)
-                    }
-                    Expr::Binary { left, right, .. } => unit_read(left) || unit_read(right),
-                    Expr::Unary { value, .. } => unit_read(value),
-                    Expr::Array { items } | Expr::Math { args: items, .. } => {
-                        items.iter().any(unit_read)
-                    }
-                    Expr::Conditional {
-                        condition,
-                        then,
-                        r#else,
-                    } => unit_read(condition) || unit_read(then) || unit_read(r#else),
-                    Expr::NativeTokenPredicate { receiver, .. }
-                    | Expr::ArenaLength { receiver } => unit_read(receiver),
-                    Expr::ArenaList {
-                        receiver,
-                        predicate,
-                    }
-                    | Expr::ArenaFilter {
-                        receiver,
-                        predicate,
-                    }
-                    | Expr::ArenaSome {
-                        receiver,
-                        predicate,
-                    } => unit_read(receiver) || unit_read(predicate),
-                    _ => false,
-                }
+                    _ => None,
+                })
             }
             let non_unit = [
                 CardTypeFilter::Base,

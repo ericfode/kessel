@@ -248,3 +248,52 @@ fn expr_search_outer_candidate_preserves_collection_and_compiled_pruning() {
     assert!(captures_outer_candidate(&native));
     assert!(captures_outer_candidate(&Expr::ArenaList{receiver:Box::new(Expr::number(0)),predicate:Box::new(target)}));
 }
+
+#[test]
+fn contextual_stat_read_keeps_selector_scope_and_first_error() {
+    let descriptor = |predicate| {
+        let mut selection:NativeCardSelection=serde_json::from_value(json!({"kind":"cardSelection","mode":"single","chooser":"self","resultBinding":"target","defaults":"pinnedTargetResolver","contextBinding":"target","choosingPlayerOverride":"contextOverrideFirst","delayOpponentBeforeCosts":true,"cardTypes":{"kind":"const","value":"base"},"zones":{"kind":"const","value":"base"},"controller":{"kind":"const","value":"any"}})).unwrap();
+        selection.predicate = Some(predicate);
+        selection
+    };
+    let power = Expr::Ref {
+        path: vec!["selectionCandidate".into(), "power".into()],
+    };
+    let expected = "native selector unit-stat predicate requires an exclusively unit type domain";
+    for expr in [
+        power.clone(),
+        Expr::NativeTokenPredicate {
+            operation: "hasWeakness".into(),
+            receiver: Box::new(power.clone()),
+            domain: "physicalAttachments".into(),
+            token_type: "weakness".into(),
+            optional_receiver: false,
+            optional_call: false,
+        },
+        Expr::Conditional {
+            condition: Box::new(Expr::number(0)),
+            then: Box::new(Expr::number(0)),
+            r#else: Box::new(power.clone()),
+        },
+    ] {
+        assert_eq!(descriptor(expr).lift().unwrap_err(), expected);
+    }
+    let compiled = Expr::Compiled(crate::ability_ir::CompiledExpr {
+        original: Box::new(power.clone()),
+        index: 0,
+    });
+    assert_eq!(
+        descriptor(compiled).lift().unwrap_err(),
+        "native selector input cannot contain an executable binding"
+    );
+    let collection = Expr::Collection {
+        name: "some".into(),
+        receiver: Box::new(power),
+        args: vec![],
+        limit: 256,
+    };
+    assert_eq!(
+        descriptor(collection).lift().unwrap_err(),
+        "native selector requires a separately reviewed collection/history candidate scope"
+    );
+}

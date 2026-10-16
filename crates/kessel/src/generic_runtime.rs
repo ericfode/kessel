@@ -2419,6 +2419,8 @@ impl Engine {
             }
         }
         self.finish_scalar_effect(s)?;
+        // Prepared and arena callers enter here directly, so neutral leaves
+        // must clear the previous event just as the ordinary dispatch does.
         s.event_result=if matches!(e,Effect::Damage {..}|Effect::Defeat {..}) {events}else{StepEventResult::default()};
         Ok((
             result,
