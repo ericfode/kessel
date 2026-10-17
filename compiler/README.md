@@ -91,8 +91,9 @@ traits; unknown helpers and unsupported dynamic expressions are rejected.
 Phase stat modifiers capture bounded signed power/HP values when applied and
 expire together at phase end. Constant stat modifiers support static self and
 aura bonuses with bounded conditions and target filters. Arena count/existence
-queries preserve their outer target separately from each queried card. Live
-stat calculations and stat-dependent constant conditions remain rejected.
+queries preserve their outer target separately from each queried card. General
+live-stat calculations and stat-dependent constant conditions remain rejected;
+the two pure stat-count callbacks described below have bounded native leaves.
 
 Bounded arena lists, filtering, existence and length queries also support three
 complete source shapes: conditional Ambush from another friendly nonunique unit,
@@ -492,6 +493,18 @@ node bots/omni/rs/make-compiled-fixtures.js --pool ../kessel/compiler/generated/
 reasons. `check`, `prove`, and `bench` accept `--catalogue` and an optional matching
 pool. Omitting the catalog retains the original strict pool behavior.
 
+Closed whole-source contracts also admit bounded card restrictions, adjusted
+resource payments, Disclose continuations, self-play cost reductions, modal
+choices, first-strike combat and selected hand/discard resource or bottom-deck
+moves. These validators check the complete source registration and metadata;
+the presence of an IR node alone does not admit its containing card. Credit-token
+payments, unsupported companions and unreviewed source contexts remain rejected.
+Self-play reductions read live damaged-unit counts when calculating the total
+play cost, including aspect penalties, and floor the result at zero. First-strike
+combat settles the attacker's damage and death triggers before calculating a
+surviving defender's return power. Modal choices preserve the chooser and resume
+the selected branch through the ordinary program interpreter.
+
 The fixture generator records real engine games across four bot pairings plus
 explicit effect/continuation decks, and preserves the exact pool beside them.
 Its observed-card/effect report describes what ran in JavaScript; only a passing
@@ -708,7 +721,9 @@ and uses the original complete system target list. Broader complete top-deck
 programs use `resourceCardSystem`, keeping existing runtime-facing programs
 unchanged. Self aspect-penalty registrations reuse the typed cost-adjuster schema.
 Callable ability costs remain `costFactory` programs evaluated on each engine
-`getCosts` call. All of these extensions remain compiler-only.
+`getCosts` call. These lowerings do not by themselves establish runtime admission;
+closed ordinary resource-entry forms have the bounded runtime support described
+above.
 
 
 ## Further compiler-only contracts
@@ -733,11 +748,14 @@ plays. Object-shaped simultaneous/sequential systems retain their resolution mod
 View/selection, reveal and deck movement remain distinct pending operations.
 
 Disclose preserves aspect multiplicity, target-player selection context, disclosed
-card event data and the triggered no-match masking protocol. Delayed systems
+card event data and the triggered no-match masking protocol. Rust admits closed
+ordinary-unit/event Disclose forms with supported `ifYouDo` continuations.
+Delayed systems
 retain application context, named event predicates, matched targets, duration and
 application limits. Optional and random aggregate systems retain child target
 binding and native-default fallback; random selection keeps its cached result and
-rollback-confirmation requirement. None of these nodes supplies a Rust executor.
+rollback-confirmation requirement. Delayed and random aggregate nodes do not
+supply a Rust executor.
 
 The two supported shared BaseCard definitions are compiled from their pinned
 source, with inherited registration and source provenance retained. Subclass
