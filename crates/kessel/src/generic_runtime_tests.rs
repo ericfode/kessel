@@ -3768,6 +3768,9 @@ mod attack_end_tests;
 #[path="attack_stats_tests.rs"]
 mod attack_stats_tests;
 
+#[path="resource_zone_tests.rs"]
+mod resource_zone_tests;
+
 #[path="resolved_event_tests.rs"]
 mod resolved_event_tests;
 
