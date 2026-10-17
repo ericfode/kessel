@@ -165,7 +165,8 @@ fn attached_alias_raw_metadata_hooks_fields_and_context_are_fail_closed() {
 #[test]
 fn attached_alias_selected_pool_requires_each_created_token_definition() {
     let e=engine();let bytes=include_bytes!("../../../compiler/generated/catalog.json");
-    for (code,token) in [("ASH_134","TOKEN_MANDALORIAN"),("TWI_169","TOKEN_CLONE_TROOPER"),("TWI_218","TOKEN_BATTLE_DROID"),("TS26_052","TOKEN_EXPERIENCE"),("SHD_104","TOKEN_EXPERIENCE"),("IC27_085","TOKEN_EXPERIENCE")] {
+    // SHD_104 is a reprint alias of IC27_085 and is excluded from compiled_pool.
+    for (code,token) in [("ASH_134","TOKEN_MANDALORIAN"),("TWI_169","TOKEN_CLONE_TROOPER"),("TWI_218","TOKEN_BATTLE_DROID"),("TS26_052","TOKEN_EXPERIENCE"),("IC27_085","TOKEN_EXPERIENCE")] {
         let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|a|a["setCode"]==code||a["setCode"]==token||a["setCode"]=="TOKEN_SHIELD");
         let valid=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),bytes);assert!(valid.is_ok(),"{code}: {:?}",valid.err());
         pool["cards"].as_array_mut().unwrap().retain(|a|a["setCode"]!=token);
