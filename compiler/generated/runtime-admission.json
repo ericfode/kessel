@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 822
+    "sourceIr": 825
   },
   "runtimeAdmittedCards": [
     {
@@ -2287,6 +2287,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "boshek#charismatic-smuggler",
+      "setCode": "JTL_215"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "death-space-skirmisher",
       "setCode": "JTL_217"
     },
@@ -3862,6 +3867,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "director-krennic#i-lose-nothing-but-time",
+      "setCode": "SEC_090"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "i-am-the-senate",
       "setCode": "SEC_092"
     },
@@ -4289,6 +4299,11 @@
       "implementation": "sourceIr",
       "internalName": "clan-wren-rescuer",
       "setCode": "SHD_040"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "kuiil#i-have-spoken",
+      "setCode": "SHD_041"
     },
     {
       "implementation": "sourceIr",
@@ -6066,7 +6081,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1211,
+  "runtimeAdmittedCount": 1214,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8279,11 +8294,6 @@
       "setCode": "JTL_213"
     },
     {
-      "internalName": "boshek#charismatic-smuggler",
-      "reason": "boshek#charismatic-smuggler: piloting program: data did not match any variant of untagged enum Target",
-      "setCode": "JTL_215"
-    },
-    {
       "internalName": "contracted-hunter",
       "reason": "contracted-hunter: unimplemented event hook onPhaseStarted",
       "setCode": "JTL_216"
@@ -10029,11 +10039,6 @@
       "setCode": "SEC_088"
     },
     {
-      "internalName": "director-krennic#i-lose-nothing-but-time",
-      "reason": "director-krennic#i-lose-nothing-but-time: invalid ability IR: data did not match any variant of untagged enum Target",
-      "setCode": "SEC_090"
-    },
-    {
       "internalName": "corporate-warmongering",
       "reason": "corporate-warmongering: nested arena-list modifiers require explicit continuation witnesses",
       "setCode": "SEC_091"
@@ -10672,11 +10677,6 @@
       "internalName": "calculated-lethality",
       "reason": "calculated-lethality: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
       "setCode": "SHD_039"
-    },
-    {
-      "internalName": "kuiil#i-have-spoken",
-      "reason": "kuiil#i-have-spoken: invalid ability IR: data did not match any variant of untagged enum Target",
-      "setCode": "SHD_041"
     },
     {
       "internalName": "rose-tico#dedicated-to-the-cause",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1394,
+  "runtimeRejectedCount": 1391,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

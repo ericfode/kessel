@@ -18630,6 +18630,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "5673100759",
+      "internalName": "boshek#charismatic-smuggler",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Cunning] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: Discard 2 cards from your deck. Return each of those cards with an odd cost to your hand.",
+      "power": 3,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\nAbilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\nAlways discard from the top of a deck, unless an ability specifies otherwise.\nZero is an even number.\n",
+      "setCode": "JTL_215",
+      "setCodes": [
+        {
+          "number": 215,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 215,
+        "set": "JTL"
+      },
+      "subtitle": "Charismatic Smuggler",
+      "text": "",
+      "title": "BoShek",
+      "traits": [
+        "fringe",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 1
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning"
@@ -31382,6 +31424,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 10,
+      "id": "8625547336",
+      "internalName": "director-krennic#i-lose-nothing-but-time",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 8,
+      "rules": "Always discard from the top of a deck, unless an ability specifies otherwise.\n“When this unit is attacked” triggers at the same time as “On Attack” abilities.\nOn Defense abilities trigger when this unit is chosen as the defender for an attack, in the same window as the attacker's On Attack abilities.\n",
+      "setCode": "SEC_090",
+      "setCodes": [
+        {
+          "number": 90,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 90,
+        "set": "SEC"
+      },
+      "subtitle": "I Lose Nothing But Time",
+      "text": "Sentinel\nWhen this unit is attacked: Discard a card from your deck. If it's a unit, you may return it to your hand.",
+      "title": "Director Krennic",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "command",
         "villainy"
@@ -34823,6 +34907,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "5511838014",
+      "internalName": "kuiil#i-have-spoken",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": "Always discard from the top of a deck, unless an ability specifies otherwise.\n",
+      "setCode": "SHD_041",
+      "setCodes": [
+        {
+          "number": 41,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 41,
+        "set": "SHD"
+      },
+      "subtitle": "I Have Spoken",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)\nOn Attack: Discard a card from your deck. If it shares an aspect with your base, return it to your hand.",
+      "title": "Kuiil",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
