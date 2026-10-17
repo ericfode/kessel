@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 879
+    "sourceIr": 883
   },
   "runtimeAdmittedCards": [
     {
@@ -1189,6 +1189,11 @@
       "implementation": "sourceIr",
       "internalName": "han-solo#my-teams-ready",
       "setCode": "HMW_170"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "rebel-operation",
+      "setCode": "HMW_173"
     },
     {
       "implementation": "dataOnly",
@@ -2831,6 +2836,11 @@
       "setCode": "LAW_177"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "persecutor#fire-over-scarif",
+      "setCode": "LAW_178"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "inspired-recruit",
       "setCode": "LAW_180"
@@ -4296,6 +4306,11 @@
       "setCode": "SEC_206"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "lightmaker#i-have-an-idea",
+      "setCode": "SEC_207"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "skyhopper-canyon-runner",
       "setCode": "SEC_214"
@@ -5627,6 +5642,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "take-charge",
+      "setCode": "TS26_060"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "r2d2#getting-his-chance",
       "setCode": "TS26_062"
     },
@@ -6351,7 +6371,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1268,
+  "runtimeAdmittedCount": 1272,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6610,7 +6630,7 @@
     },
     {
       "internalName": "dathomiri-magicks",
-      "reason": "dathomiri-magicks: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "dathomiri-magicks: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "ASH_104"
     },
     {
@@ -6945,12 +6965,12 @@
     },
     {
       "internalName": "faith-in-the-empire",
-      "reason": "faith-in-the-empire: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "faith-in-the-empire: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "ASH_262"
     },
     {
       "internalName": "the-way-of-the-mandalor",
-      "reason": "the-way-of-the-mandalor: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "the-way-of-the-mandalor: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "ASH_263"
     },
     {
@@ -7070,7 +7090,7 @@
     },
     {
       "internalName": "greater-sarlacc",
-      "reason": "greater-sarlacc: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "greater-sarlacc: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "HMW_049"
     },
     {
@@ -7250,7 +7270,7 @@
     },
     {
       "internalName": "the-marauder#a-new-home",
-      "reason": "the-marauder#a-new-home: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "the-marauder#a-new-home: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "HMW_125"
     },
     {
@@ -7354,11 +7374,6 @@
       "setCode": "HMW_172"
     },
     {
-      "internalName": "rebel-operation",
-      "reason": "rebel-operation: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
-      "setCode": "HMW_173"
-    },
-    {
       "internalName": "stormchaser",
       "reason": "stormchaser: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "HMW_180"
@@ -7370,7 +7385,7 @@
     },
     {
       "internalName": "aggrocrab",
-      "reason": "aggrocrab: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "aggrocrab: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "HMW_184"
     },
     {
@@ -7525,7 +7540,7 @@
     },
     {
       "internalName": "queen-amidala#retaking-theed",
-      "reason": "queen-amidala#retaking-theed: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "queen-amidala#retaking-theed: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "HMW_260"
     },
     {
@@ -8175,7 +8190,7 @@
     },
     {
       "internalName": "red-leader#form-up",
-      "reason": "red-leader#form-up: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "red-leader#form-up: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "JTL_101"
     },
     {
@@ -8485,7 +8500,7 @@
     },
     {
       "internalName": "home-one#on-my-mark",
-      "reason": "home-one#on-my-mark: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "home-one#on-my-mark: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "JTL_204"
     },
     {
@@ -9030,7 +9045,7 @@
     },
     {
       "internalName": "mastery",
-      "reason": "mastery: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "mastery: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "LAW_129"
     },
     {
@@ -9142,11 +9157,6 @@
       "internalName": "sebulbas-podracer#taking-the-lead",
       "reason": "sebulbas-podracer#taking-the-lead: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
       "setCode": "LAW_176"
-    },
-    {
-      "internalName": "persecutor#fire-over-scarif",
-      "reason": "persecutor#fire-over-scarif: modal choices require a complete sole ordinary unit/event registration",
-      "setCode": "LAW_178"
     },
     {
       "internalName": "fear-and-dead-men",
@@ -9520,7 +9530,7 @@
     },
     {
       "internalName": "size-matters-not",
-      "reason": "size-matters-not: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "size-matters-not: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "LOF_056"
     },
     {
@@ -10235,7 +10245,7 @@
     },
     {
       "internalName": "vuutun-palaa#droid-control-ship",
-      "reason": "vuutun-palaa#droid-control-ship: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "vuutun-palaa#droid-control-ship: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SEC_122"
     },
     {
@@ -10462,11 +10472,6 @@
       "internalName": "obiwan-kenobi#finding-what-doesnt-exist",
       "reason": "obiwan-kenobi#finding-what-doesnt-exist: compiler rejected \"obiwan-kenobi#finding-what-doesnt-exist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/units/ObiWanKenobiFindingWhatDoesntExist.ts\",\"line\":25,\"message\":\"deck-discard-player-target\",\"pattern\":\"deck-discard-player-target\"}]",
       "setCode": "SEC_205"
-    },
-    {
-      "internalName": "lightmaker#i-have-an-idea",
-      "reason": "lightmaker#i-have-an-idea: modal branch exceeds the reviewed scalar/select/token vocabulary",
-      "setCode": "SEC_207"
     },
     {
       "internalName": "hunter#extraordinary-tracker",
@@ -10755,7 +10760,7 @@
     },
     {
       "internalName": "rey#keeping-the-past",
-      "reason": "rey#keeping-the-past: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "rey#keeping-the-past: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SHD_046"
     },
     {
@@ -10855,7 +10860,7 @@
     },
     {
       "internalName": "jabbas-rancor#pateesa",
-      "reason": "jabbas-rancor#pateesa: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "jabbas-rancor#pateesa: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SHD_091"
     },
     {
@@ -10940,7 +10945,7 @@
     },
     {
       "internalName": "reputable-hunter",
-      "reason": "reputable-hunter: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "reputable-hunter: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SHD_117"
     },
     {
@@ -11045,7 +11050,7 @@
     },
     {
       "internalName": "kylo-ren#killing-the-past",
-      "reason": "kylo-ren#killing-the-past: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "kylo-ren#killing-the-past: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SHD_141"
     },
     {
@@ -11830,7 +11835,7 @@
     },
     {
       "internalName": "force-choke",
-      "reason": "force-choke: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "force-choke: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SOR_139"
     },
     {
@@ -12130,7 +12135,7 @@
     },
     {
       "internalName": "volunteer-soldier",
-      "reason": "volunteer-soldier: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "volunteer-soldier: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "SOR_248"
     },
     {
@@ -12215,7 +12220,7 @@
     },
     {
       "internalName": "yoda#begun-the-clone-war-has",
-      "reason": "yoda#begun-the-clone-war-has: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "yoda#begun-the-clone-war-has: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TS26_014"
     },
     {
@@ -12310,7 +12315,7 @@
     },
     {
       "internalName": "take-cover",
-      "reason": "take-cover: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "take-cover: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TS26_047"
     },
     {
@@ -12354,13 +12359,8 @@
       "setCode": "TS26_059"
     },
     {
-      "internalName": "take-charge",
-      "reason": "take-charge: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
-      "setCode": "TS26_060"
-    },
-    {
       "internalName": "encircle",
-      "reason": "encircle: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "encircle: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TS26_061"
     },
     {
@@ -12380,7 +12380,7 @@
     },
     {
       "internalName": "take-action",
-      "reason": "take-action: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "take-action: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TS26_071"
     },
     {
@@ -12555,7 +12555,7 @@
     },
     {
       "internalName": "for-the-republic",
-      "reason": "for-the-republic: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "for-the-republic: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_051"
     },
     {
@@ -12645,7 +12645,7 @@
     },
     {
       "internalName": "republic-defense-carrier",
-      "reason": "republic-defense-carrier: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "republic-defense-carrier: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_098"
     },
     {
@@ -12760,7 +12760,7 @@
     },
     {
       "internalName": "resolute#under-anakins-command",
-      "reason": "resolute#under-anakins-command: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "resolute#under-anakins-command: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_151"
     },
     {
@@ -12870,7 +12870,7 @@
     },
     {
       "internalName": "republic-attack-pod",
-      "reason": "republic-attack-pod: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "republic-attack-pod: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_197"
     },
     {
@@ -12980,7 +12980,7 @@
     },
     {
       "internalName": "grievouss-wheel-bike",
-      "reason": "grievouss-wheel-bike: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "grievouss-wheel-bike: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_236"
     },
     {
@@ -13020,7 +13020,7 @@
     },
     {
       "internalName": "volunteer-soldier",
-      "reason": "volunteer-soldier: self-play cost requires a complete ordinary unit and reviewed live damaged-unit count",
+      "reason": "volunteer-soldier: self-play cost requires a complete reviewed ordinary unit/event contract",
       "setCode": "TWI_254"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1337,
+  "runtimeRejectedCount": 1333,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

@@ -9474,6 +9474,45 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "5533325371",
+      "internalName": "rebel-operation",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "HMW_173",
+      "setCodes": [
+        {
+          "number": 173,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 173,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "This card costs 1 resource less to play for each friendly Rebel unit and leader.\nDraw 2 cards.",
+      "title": "Rebel Operation",
+      "traits": [
+        "rebel",
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -23062,6 +23101,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "5725363168",
+      "internalName": "persecutor#fire-over-scarif",
+      "keywords": [],
+      "power": 9,
+      "rules": null,
+      "setCode": "LAW_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "LAW"
+      },
+      "subtitle": "Fire Over Scarif",
+      "text": "When Played/On Attack: Choose an arena. You may deal 3 damage to each unit in that arena.",
+      "title": "Persecutor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -34878,6 +34958,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2808340732",
+      "internalName": "lightmaker#i-have-an-idea",
+      "keywords": [
+        "raid"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_207",
+      "setCodes": [
+        {
+          "number": 207,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 207,
+        "set": "SEC"
+      },
+      "subtitle": "I Have An Idea",
+      "text": "Raid 4\nWhen Defeated: Choose an arena. Exhaust each enemy unit in that arena.",
+      "title": "Lightmaker",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning"
@@ -45478,6 +45601,43 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4540524041",
+      "internalName": "take-charge",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TS26_060",
+      "setCodes": [
+        {
+          "number": 60,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 60,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "This event costs 1 resource less to play for each friendly leader unit.\nGive an Experience token to each of up to 3 units.",
+      "title": "Take Charge",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
