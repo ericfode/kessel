@@ -474,8 +474,13 @@ fn each_selected_payment_payload_waits_until_after_payment() {
         let e = engine();
         let mut s = board(&e);
         let source = unit(&e, &mut s, Seat::P1, code);
-        let target = unit(&e, &mut s, Seat::P2, "LAW_148");
+        // Dogged Pursuers is a ground unit with 5 HP, so every table effect
+        // can target it and the largest (3) damage payload remains nonlethal.
+        let target = unit(&e, &mut s, Seat::P2, "LAW_198");
         let space = unit(&e, &mut s, Seat::P2, "SOR_206");
+        assert!(s.player(Seat::P2).ground.contains(target));
+        assert!(s.player(Seat::P2).space.contains(space));
+        assert!(s.player(Seat::P1).ground.contains(source));
         resources(&e, &mut s, Seat::P1, &[false, false, false]);
         let paid = trigger_payment(&e, &mut s, source, trigger);
         assert_eq!(paid.decision, Decision::AbilityTarget, "{code}/{trigger}");
