@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","JTL_210","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_148","JTL_189","JTL_210","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -612,6 +612,69 @@ fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
     let mut bad_kw=original.clone();
     bad_kw["card"]["keywords"]=json!(["piloting","ambush"]);
     assert!(!catalogue_admitted(bad_kw),"extra keyword");
+}
+
+#[test]
+fn piloting_self_frisk_defeats_cheap_upgrade_when_attached() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_148"),"{:?}",e.rejected_cards().unwrap().get("JTL_148"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let ally=unit(&e,&mut s,seat,"LOF_256");
+        let cheap=attach(&e,&mut s,seat,"ASH_210",ally);
+        let expensive=attach(&e,&mut s,seat.other(),"ASH_134",ally);
+        assert_eq!(e.def(&s,cheap).info.cost(),1);
+        assert_eq!(e.def(&s,expensive).info.cost(),3);
+        let pilot=attach(&e,&mut s,seat,"JTL_148",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        // Optional + Select opens the target window (same as Astromech / Backstabber).
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?}");
+        assert_eq!(s.source,pilot);
+        let actions=e.legal_actions(&s);
+        assert!(actions.iter().any(|a|a.id()==Some(cheap)),"{seat:?} cheap upgrade");
+        assert!(!actions.iter().any(|a|a.id()==Some(expensive)),"{seat:?} cost>2 excluded");
+        let done=e.apply(&s,&e.card_action(&s,cheap)).unwrap();
+        assert!(done.player(seat).discard.contains(cheap),"{seat:?}");
+        assert_eq!(done.card(expensive).parent,ally,"{seat:?} expensive remains");
+    }
+    // Played as a unit: WhenPlayed must not fire.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let ally=unit(&e,&mut s,Seat::P1,"LOF_256");
+    let cheap=attach(&e,&mut s,Seat::P1,"ASH_210",ally);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_148");
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::Window);
+    assert_eq!(s.card(cheap).parent,ally);
+}
+
+#[test]
+fn piloting_self_frisk_rejects_cost_and_registration_query_drift() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_148").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_148");
+    assert!(admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_self_entry(&original));
+    // Cost ceiling is part of the reviewed Frisk contract.
+    let mut high=original.clone();
+    high["abilities"]["card"][0]["effect"]["registration"]["program"]["targetResolver"]["predicate"]["right"]["right"]["value"]=json!(3);
+    assert!(!admitted(high),"cost <= 3");
+    // Optional is required; mandatory defeat would change the prompt protocol.
+    let mut mandatory=original.clone();
+    mandatory["abilities"]["card"][0]["effect"]["registration"]["program"]["optional"]=json!(false);
+    assert!(!admitted(mandatory),"mandatory");
+    // Unit domain is not the Frisk shape.
+    let mut unit_type=original.clone();
+    unit_type["abilities"]["card"][0]["effect"]["registration"]["program"]["targetResolver"]["type"]=json!("unit");
+    assert!(!admitted(unit_type),"unit type");
+    // Drop hasCost: bare cost comparison is not the reviewed guard.
+    let mut no_has_cost=original.clone();
+    no_has_cost["abilities"]["card"][0]["effect"]["registration"]["program"]["targetResolver"]["predicate"]=json!({
+        "kind":"binary","op":"<=",
+        "left":{"kind":"ref","path":["card","cost"]},
+        "right":{"kind":"const","value":2}
+    });
+    assert!(!admitted(no_has_cost),"missing hasCost");
 }
 
 #[test]

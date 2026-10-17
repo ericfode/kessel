@@ -7,7 +7,7 @@
 //! the physical host while the pilot is attached.
 //!
 //! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber /
-//! Boba Fett / Mandalorian / Iden) keeps the program on the pilot and fires only while
+//! Boba Fett / Mandalorian / Iden / Frisk) keeps the program on the pilot and fires only while
 //! attached. Reviewed shapes are WhenPlayed, or self-attach `onUpgradeAttached`
 //! (`event.upgradeCard === source`) normalized to the same whenPlayed-while-attached path
 //! (Iden parent Shield). Reviewed Pilots may also carry one unit-side WhenPlayed companion
@@ -224,6 +224,30 @@ fn parent_card_ref(e:&Expr)->bool {
 }
 /// WhenPlayed / self-attach body on the pilot while attached; may read `source.parentCard`
 /// for host filters or (Iden) give Shield directly to the host.
+/// Piloting-registration lowering wraps zero-arg card guards as `registrationQuery`.
+/// Reviewed `hasCost` on a card candidate is the same portable `query` the runtime evaluates.
+fn normalize_registration_has_cost(v:&mut Value) {
+    if v["kind"]=="registrationQuery"
+        && v["name"]=="hasCost"
+        && v["args"]==json!([])
+        && v["optionalReceiver"]==false
+        && v["optionalCall"]==false
+        && v["receiver"]==json!({"kind":"ref","path":["card"]})
+    {
+        *v=json!({
+            "kind":"query",
+            "name":"hasCost",
+            "receiver":{"kind":"ref","path":["card"]},
+            "args":[]
+        });
+        return;
+    }
+    match v {
+        Value::Object(o)=>for child in o.values_mut(){normalize_registration_has_cost(child)},
+        Value::Array(a)=>for child in a {normalize_registration_has_cost(child)},
+        _=>{}
+    }
+}
 fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     if p["title"]!=title {return Err("piloting registration requires matching ability title".into());}
     // Named "parent" grants belong on attachedAbilityRegistration. Expression
@@ -238,6 +262,7 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
         obj.remove("titleParts");
     }
     normalize_zone_names(&mut p);
+    normalize_registration_has_cost(&mut p);
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("piloting program: {e}"))?;
     if a.trigger!="whenPlayed"||a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate
         ||!a.costs.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
@@ -247,7 +272,7 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield/defeat shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -275,6 +300,16 @@ fn host_arena_zone_predicate(e:&Expr)->bool {
     matches!(e,Expr::Binary{op,left,right} if op=="==="
         && matches!(left.as_ref(),Expr::Ref{path} if path==&["card","zoneName"])
         && matches!(right.as_ref(),Expr::Ref{path} if path==&["source","parentCard","zoneName"]))
+}
+/// Frisk: upgrade candidate has a cost and printed cost ≤ 2.
+fn cheap_upgrade_predicate(e:&Expr)->bool {
+    matches!(e,Expr::Binary{op,left,right} if op=="&&"
+        && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="hasCost"
+            && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"])
+            && args.is_empty())
+        && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="<="
+            && matches!(left.as_ref(),Expr::Ref{path} if path==&["card","cost"])
+            && matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(2))))
 }
 /// Unit-side WhenPlayed companion: optional exhaust up to 2 ground units.
 pub(crate) fn unit_ground_exhaust_companion(v:&Value)->bool {
@@ -353,6 +388,15 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
             && !a.optional
             && a.target_resolver.is_none()
             && a.context_title.is_empty() => true,
+        // Frisk: optional WhenPlayed defeat an upgrade with printed cost ≤ 2.
+        Effect::Defeat{target:Target::Name(n)} if n=="chosen"
+            && a.optional
+            && a.target_resolver.as_ref().is_some_and(|r|{
+                r.owner=="any"&&r.card_type=="upgrade"&&r.zone.as_deref()==Some("anyAttackable")
+                    &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
+                    &&r.prompt_title.is_none()&&piloting_prompt_ok(&r.prompt_title_parts)
+                    && r.predicate.as_ref().is_some_and(cheap_upgrade_predicate)
+            }) => true,
         _ => false,
     }
 }
@@ -591,8 +635,8 @@ pub(crate) fn piloting_host_entry(entry:&Value)->bool {
         && sides(entry).is_ok()
 }
 /// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract
-/// (including Iden self-attach Shield). May include one reviewed unit-side WhenPlayed
-/// exhaust companion (Mandalorian).
+/// (including Iden self-attach Shield and Frisk cheap-upgrade defeat). May include one
+/// reviewed unit-side WhenPlayed exhaust companion (Mandalorian).
 pub(crate) fn piloting_self_entry(entry:&Value)->bool {
     plain_pilot(entry)
         && entry["abilities"]["card"].as_array().is_some_and(|card|{
