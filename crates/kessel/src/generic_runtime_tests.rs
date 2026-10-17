@@ -3808,3 +3808,6 @@ mod view_cards_tests;
 
 #[path = "base_zone_tests.rs"]
 mod base_zone_tests;
+
+#[path = "parent_host_selector_tests.rs"]
+mod parent_host_selector_tests;

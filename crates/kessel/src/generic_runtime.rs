@@ -1321,9 +1321,8 @@ impl Engine {
                 if path.iter().map(String::as_str).collect::<Vec<_>>()==["card","activeAttack","attacker"] {return Eval::Card(self.active_attack_pair(s,card).0);}
                 if root=="source" && matches!(field,Some("parentCard"|"parentUnit")) {
                     let parent=s.card(source).parent;
-                    // Compiler permits parent access only on ordinary attached upgrades.
-                    // Source registrations are evaluated while attachment is valid.
-                    assert!(parent!=0 && self.in_arena(s,parent),"parentCard/parentUnit requires a live attached source");
+                    // Upgrade source registrations evaluate while attachment is valid.
+                    assert!(parent!=0 && (self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent)),"parentCard/parentUnit requires a live attached source");
                     if let Some(property)=path.get(2) {return self.eval_with_card(s,source,target,parent,&Expr::Ref {path:vec!["card".into(),property.clone()]});}
                     return Eval::Card(parent);
                 }
@@ -1336,6 +1335,17 @@ impl Engine {
                 };
                 if id == 0 {
                     return Eval::Null;
+                }
+                // Selector hosts: an upgrade candidate's parentCard/parentUnit.
+                if matches!(field,Some("parentCard"|"parentUnit")) {
+                    let parent=s.card(id).parent;
+                    if parent==0 || !(self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent)) {
+                        return Eval::Null;
+                    }
+                    if let Some(property)=path.get(2) {
+                        return self.eval_with_card(s,source,target,parent,&Expr::Ref {path:vec!["card".into(),property.clone()]});
+                    }
+                    return Eval::Card(parent);
                 }
                 match field {
                     None => Eval::Card(id),
@@ -1355,7 +1365,11 @@ impl Engine {
                     Some("cost" | "printedCost") => Eval::Number(self.def(s, id).info.cost() as i64),
                     Some("exhausted") => Eval::Bool(s.card(id).exhausted),
                     Some("zoneName") => {
-                        if self.attached_in_play(s,id) {return Eval::Text(if self.def(s,s.card(id).parent).info.arena.as_deref()==Some("space") {"spaceArena"}else{"groundArena"}.into());}
+                        if self.attached_in_play(s,id) {
+                            let parent=s.card(id).parent;
+                            if self.def(s,parent).info.is("base") {return Eval::Text("base".into());}
+                            return Eval::Text(if self.def(s,parent).info.arena.as_deref()==Some("space") {"spaceArena"}else{"groundArena"}.into());
+                        }
                         let p = s.player(s.card(id).owner);
                         let zone = if p.ground.contains(id) {
                             "groundArena"

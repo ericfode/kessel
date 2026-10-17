@@ -303,7 +303,8 @@ impl Engine {
         Ok(())
     }
     fn attached_in_play(&self,s:&State,id:CardId)->bool {
-        s.card(id).parent!=0 && self.in_arena(s,s.card(id).parent)
+        let parent=s.card(id).parent;
+        parent!=0 && (self.in_arena(s,parent) || s.players.iter().any(|p|p.base==parent))
     }
     fn upgrades(&self,s:&State,parent:CardId)->Vec<CardId> {
         let mut ids=vec![];let mut id=s.card(parent).upgrades;
@@ -334,7 +335,8 @@ impl Engine {
             let mut id=s.card(parent).upgrades;let mut chain=std::collections::HashSet::new();
             while id!=0 {
                 if id>=s.next_id || !s.card(id).present || !chain.insert(id) || !seen.insert(id) {return Err("invalid or cyclic attachment chain".into());}
-                if s.card(id).parent!=parent || !self.in_arena(s,parent) || !self.def(s,id).info.is("upgrade") || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
+                let parent_live=self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent);
+                if s.card(id).parent!=parent || !parent_live || !self.def(s,id).info.is("upgrade") || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
                 id=s.card(id).next_upgrade;
             }
             for (head,def) in [(s.card(parent).shield,Some(self.shield_def)),(s.card(parent).experience,self.experience_def)] {

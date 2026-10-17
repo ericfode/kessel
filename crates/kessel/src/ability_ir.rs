@@ -438,9 +438,11 @@ impl Expr {
                     ["card","activeAttack","attacker"] => true,
                     ["card","keywords","length"] => true,
                     ["modifierTarget"] | ["modifierTarget","damage"|"controller"] | ["modifierTarget","controller","resources","length"] => true,
-                    ["source", "parentCard" | "parentUnit"] => true,
-                    ["source", "parentCard" | "parentUnit", "damage" | "power" | "hp" | "remainingHp" | "controller" | "exhausted" | "unique"] => true,
-                    ["source", "parentCard", "title"] => true,
+                    // Upgrade abilities read the live host via source.parent*.
+                    // Ordinary units/events may filter selected upgrades via card/target.parent*.
+                    ["source" | "target" | "card", "parentCard" | "parentUnit"] => true,
+                    ["source" | "target" | "card", "parentCard" | "parentUnit", "damage" | "power" | "hp" | "remainingHp" | "controller" | "exhausted" | "unique" | "zoneName"] => true,
+                    ["source" | "target" | "card", "parentCard", "title"] => true,
                     ["source" | "target" | "card", "damage" | "power" | "hp" | "cost" | "printedCost" | "remainingHp" | "exhausted"
                     | "controller" | "unique" | "zoneName"] => true,
                     ["player" | "opponent", "readyResourceCount" | "exhaustedResourceCount" | "base"] => {
@@ -2711,8 +2713,19 @@ impl Catalogue {
                     ));
                 }
                 for key in ["abilities", "attachCondition", "piloting"] { crate::deck_search::reject(&entry[key])?; }
+                // Upgrade grant/host refs use source.parent* or target "parent".
+                // Selector predicates on an upgrade candidate use card.parent* and must not
+                // force the watching unit/event into the UpgradeCard source class.
                 fn parent_reference(value:&Value)->bool {
-                    (value["kind"]=="ref" && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit")) || (value["target"]=="parent") || match value {Value::Array(a)=>a.iter().any(parent_reference),Value::Object(o)=>o.values().any(parent_reference),_=>false}
+                    (value["kind"]=="ref"
+                        && value["path"][0]=="source"
+                        && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit"))
+                        || (value["target"]=="parent")
+                        || match value {
+                            Value::Array(a)=>a.iter().any(parent_reference),
+                            Value::Object(o)=>o.values().any(parent_reference),
+                            _=>false,
+                        }
                 }
                 if crate::native_attack::marker(&entry["abilities"])&&!crate::native_attack::entry(entry){return Err("native attacks require a complete sole ordinary unit/event registration".into());}
                 // historyHelpers/privatePrograms may embed historyQuery AST that is not part of
