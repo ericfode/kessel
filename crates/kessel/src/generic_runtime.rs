@@ -1674,6 +1674,7 @@ impl Engine {
         if context.event_group.active { context.event_group.context=Selection::one(target); }
         let (dest, amount) = match e {
             Effect::DiscardDeck {target,amount} | Effect::DiscardOwnHand {target,amount} | Effect::CreateTokenUnit {target,amount,..} | Effect::ReadyResources { target, amount }
+            | Effect::PayResources { target, amount }
             | Effect::Damage { target, amount }
             | Effect::Heal { target, amount }
             | Effect::Draw { target, amount }
@@ -1707,6 +1708,9 @@ impl Engine {
                                 .as_slice()
                                 .iter()
                                 .any(|&id| s.card(id).exhausted)
+                    } else if matches!(e, Effect::PayResources { .. }) {
+                        amount > 0
+                            && self.ready_resources(s, player) as i64 >= amount
                     } else {
                         matches!(e, Effect::Draw { .. } | Effect::CreateTokenUnit {..}) && (!require_change || amount > 0)
                     }
@@ -3074,6 +3078,7 @@ impl Engine {
         }
         let (target, amount) = match e {
             Effect::ReadyResources { target, amount }
+            | Effect::PayResources { target, amount }
             | Effect::Damage { target, amount }
             | Effect::Heal { target, amount }
             | Effect::Draw { target, amount }
@@ -3124,6 +3129,21 @@ impl Engine {
                         }
                     }
                     resources_fully_resolved &= readied == amount;
+                }
+                Eval::Player(seat) if matches!(e, Effect::PayResources { .. }) => {
+                    let resources = s.player(seat).resources;
+                    let mut paid = 0u16;
+                    for &id in resources.as_slice() {
+                        if paid >= amount {
+                            break;
+                        }
+                        if !s.card(id).exhausted {
+                            s.card_mut(id).exhausted = true;
+                            paid = paid.saturating_add(1);
+                            result = result.saturating_add(1);
+                        }
+                    }
+                    resources_fully_resolved &= paid == amount;
                 }
                 Eval::Player(seat) if matches!(e, Effect::Draw { .. }) => {
                     // Fatigue is a contingent of a resolved draw, even with no cards drawn.
@@ -3259,7 +3279,7 @@ impl Engine {
         s.event_result=events;
         Ok((
             result,
-            if matches!(e, Effect::ReadyResources { .. }) {
+            if matches!(e, Effect::ReadyResources { .. } | Effect::PayResources { .. }) {
                 resources_fully_resolved
             } else {
                 result > 0 || replacement_resolved || draw_resolved

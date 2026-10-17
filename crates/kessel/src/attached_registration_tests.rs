@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_148","JTL_189","JTL_210","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_145","JTL_148","JTL_189","JTL_210","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -675,6 +675,73 @@ fn piloting_self_frisk_rejects_cost_and_registration_query_drift() {
         "right":{"kind":"const","value":2}
     });
     assert!(!admitted(no_has_cost),"missing hasCost");
+}
+
+fn stock_ready_resources(e:&Engine,s:&mut State,seat:Seat,n:usize) {
+    for _ in 0..n {
+        let id=add(e,s,seat,"LOF_254");
+        s.player_mut(seat).resources.push(id).unwrap();
+        s.card_mut(id).exhausted=false;
+    }
+}
+
+#[test]
+fn piloting_self_bb8_pays_then_readies_resistance_when_attached() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_145"),"{:?}",e.rejected_cards().unwrap().get("JTL_145"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        stock_ready_resources(&e,&mut s,seat,3);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let resistance=unit(&e,&mut s,seat,"JTL_060");
+        let other=unit(&e,&mut s,seat,"LOF_256");
+        s.card_mut(resistance).exhausted=true;
+        s.card_mut(other).exhausted=true;
+        let pilot=attach(&e,&mut s,seat,"JTL_145",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityOptional,"{seat:?}");
+        assert_eq!(s.source,pilot);
+        let ready_before=e.ready_resources(&s,seat);
+        let prompt=e.apply(&s,&Action::button("Trigger","trigger")).unwrap();
+        assert_eq!(e.ready_resources(&prompt,seat),ready_before.saturating_sub(2),"{seat:?} paid 2");
+        assert_eq!(prompt.decision,Decision::AbilityTarget,"{seat:?}");
+        let actions=e.legal_actions(&prompt);
+        assert!(actions.iter().any(|a|a.id()==Some(resistance)),"{seat:?} resistance");
+        assert!(!actions.iter().any(|a|a.id()==Some(other)||a.id()==Some(host)),"{seat:?} non-resistance excluded");
+        let done=e.apply(&prompt,&e.card_action(&prompt,resistance)).unwrap();
+        assert!(!done.card(resistance).exhausted,"{seat:?} readied");
+        assert!(done.card(other).exhausted,"{seat:?} other stays exhausted");
+    }
+    // Played as a unit: WhenPlayed must not fire.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    stock_ready_resources(&e,&mut s,Seat::P1,3);
+    let resistance=unit(&e,&mut s,Seat::P1,"JTL_060");
+    s.card_mut(resistance).exhausted=true;
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_145");
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::Window);
+    assert!(s.card(resistance).exhausted);
+}
+
+#[test]
+fn piloting_self_bb8_rejects_pay_ready_drift() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_145").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_145");
+    assert!(admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_self_entry(&original));
+    // Amount is part of the reviewed BB-8 contract.
+    let mut amount=original.clone();
+    amount["abilities"]["card"][0]["effect"]["registration"]["program"]["effect"]["properties"]["amount"]["value"]=json!(3);
+    assert!(!admitted(amount),"pay 3");
+    // Trait gate is Resistance only.
+    let mut trait_name=original.clone();
+    trait_name["abilities"]["card"][0]["effect"]["registration"]["program"]["ifYouDo"]["targetResolver"]["predicate"]["args"][0]["value"]=json!("imperial");
+    assert!(!admitted(trait_name),"non-resistance trait");
+    // Mandatory payment would change the optional protocol.
+    let mut mandatory=original.clone();
+    mandatory["abilities"]["card"][0]["effect"]["registration"]["program"]["optional"]=json!(false);
+    assert!(!admitted(mandatory),"mandatory");
 }
 
 #[test]

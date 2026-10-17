@@ -7,11 +7,13 @@
 //! the physical host while the pilot is attached.
 //!
 //! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber /
-//! Boba Fett / Mandalorian / Iden / Frisk) keeps the program on the pilot and fires only while
-//! attached. Reviewed shapes are WhenPlayed, or self-attach `onUpgradeAttached`
+//! Boba Fett / Mandalorian / Iden / Frisk / BB-8) keeps the program on the pilot and fires only
+//! while attached. Reviewed shapes are WhenPlayed, or self-attach `onUpgradeAttached`
 //! (`event.upgradeCard === source`) normalized to the same whenPlayed-while-attached path
-//! (Iden parent Shield). Reviewed Pilots may also carry one unit-side WhenPlayed companion
-//! that fires only while unattached (Mandalorian exhaust up to 2 ground).
+//! (Iden parent Shield). Optional payResources→ifYouDo ready (BB-8) lowers the compiler
+//! `registrationSystem` into `PayResources` then a trait-gated Ready. Reviewed Pilots may also
+//! carry one unit-side WhenPlayed companion that fires only while unattached (Mandalorian
+//! exhaust up to 2 ground).
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -248,6 +250,41 @@ fn normalize_registration_has_cost(v:&mut Value) {
         _=>{}
     }
 }
+/// Strip compiler-only display fields from a program or nested continuation.
+fn strip_display_fields(v:&mut Value) {
+    if let Some(obj)=v.as_object_mut() {
+        obj.remove("titleParts");
+        if let Some(child)=obj.get_mut("ifYouDo") {strip_display_fields(child);}
+        if let Some(child)=obj.get_mut("then") {strip_display_fields(child);}
+    }
+}
+/// Lower reviewed `registrationSystem: payResources` into portable `PayResources`.
+fn lower_pay_resources_system(v:&mut Value)->Result<(),String> {
+    if v["kind"]=="registrationSystem" && v["system"]=="payResources" {
+        let amount_ok=v["properties"]["amount"]["kind"]=="const"
+            && v["properties"]["amount"]["value"].as_u64().is_some_and(|n|(1..=3).contains(&n));
+        let shape_ok=v["defaults"]=="pinnedSystem"
+            && v["contextTarget"]=="self"
+            && v["properties"]["target"]==json!({"kind":"ref","path":["player"]})
+            && v["properties"].as_object().is_some_and(|p|p.len()==2);
+        if !amount_ok||!shape_ok {
+            return Err("piloting payResources requires pinned self/player amount 1..=3".into());
+        }
+        let amount=v["properties"]["amount"].clone();
+        *v=json!({
+            "kind":"payResources",
+            "amount":amount,
+            "target":"ownPlayer"
+        });
+        return Ok(());
+    }
+    match v {
+        Value::Object(o)=>for child in o.values_mut(){lower_pay_resources_system(child)?;},
+        Value::Array(a)=>for child in a {lower_pay_resources_system(child)?;},
+        _=>{}
+    }
+    Ok(())
+}
 fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     if p["title"]!=title {return Err("piloting registration requires matching ability title".into());}
     // Named "parent" grants belong on attachedAbilityRegistration. Expression
@@ -258,21 +295,23 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     {
         let obj=p.as_object_mut().ok_or("piloting program must be an object")?;
         obj.remove("hooks");
-        // Compiler displayParts are not part of the executable Ability contract.
-        obj.remove("titleParts");
     }
+    strip_display_fields(&mut p);
     normalize_zone_names(&mut p);
     normalize_registration_has_cost(&mut p);
+    lower_pay_resources_system(&mut p)?;
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("piloting program: {e}"))?;
+    let pay_ready=piloting_pay_ready(&a);
     if a.trigger!="whenPlayed"||a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate
         ||!a.costs.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
-        ||a.then.is_some()||a.if_you_do.is_some()||a.condition.is_some()
+        ||a.then.is_some()||a.condition.is_some()
+        ||(!pay_ready&&a.if_you_do.is_some())
         ||!piloting_self_titles_ok(&a)
     {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield/defeat shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield/defeat/pay-ready shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -336,6 +375,34 @@ fn compile_unit_ground_exhaust(v:&Value)->Result<Ability,String> {
     a.pilot_unit_ability=true;
     Ok(a)
 }
+/// Resistance trait gate used by BB-8's pay-then-ready continuation.
+fn resistance_trait_predicate(e:&Expr)->bool {
+    matches!(e,Expr::Query{name,receiver,args} if name=="hasSomeTrait"
+        && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"])
+        && args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("resistance")))
+}
+/// BB-8: optional pay 2 resources; if you do, ready a Resistance unit.
+fn piloting_pay_ready(a:&Ability)->bool {
+    let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
+    a.optional
+        && a.target_resolver.is_none()
+        && a.context_title.is_empty()
+        && matches!(&a.effect,Effect::PayResources{target:Target::Name(n),amount}
+            if n=="ownPlayer"&&amount_two(amount))
+        && a.if_you_do.as_ref().is_some_and(|next|{
+            next.trigger.is_empty()&&!next.optional&&!next.requires_confirmation&&!next.coordinate
+                && next.costs.is_empty()&&next.context_title.is_empty()
+                && next.target_resolvers.is_empty()&&next.condition.is_none()
+                && next.then.is_none()&&next.if_you_do.is_none()
+                && matches!(&next.effect,Effect::Ready{target:Target::Name(n)} if n=="chosen")
+                && next.target_resolver.as_ref().is_some_and(|r|{
+                    r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")
+                        &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
+                        &&r.prompt_title.is_none()&&piloting_prompt_ok(&r.prompt_title_parts)
+                        && r.predicate.as_ref().is_some_and(resistance_trait_predicate)
+                })
+        })
+}
 fn piloting_self_effect_ok(a:&Ability)->bool {
     let amount_one=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(1));
     let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
@@ -352,6 +419,7 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
             &&r.prompt_title.is_none()&&piloting_prompt_ok(&r.prompt_title_parts)
             && r.predicate.as_ref().is_some_and(host_arena_zone_predicate)
     };
+    if piloting_pay_ready(a) {return true;}
     match &a.effect {
         Effect::Heal{target:Target::Name(n),amount} if n=="chosen"&&amount_two(amount)
             && a.optional

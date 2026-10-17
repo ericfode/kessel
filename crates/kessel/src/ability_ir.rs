@@ -876,6 +876,11 @@ pub enum Effect {
         target: Target,
         amount: Expr,
     },
+    /// Exhaust ready resources as an effect (BB-8 pay-then-ready). Distinct from costs.
+    PayResources {
+        target: Target,
+        amount: Expr,
+    },
     NoAction,
     ResourceCard { target: Target },
     ReturnToHand {
@@ -1015,7 +1020,8 @@ impl Effect {
             Self::DiscardOwnHand { amount, target } | Self::DiscardDeck { amount, target }
             | Self::CreateTokenUnit { amount, target, .. } | Self::Damage { amount, target }
             | Self::Heal { amount, target } | Self::Draw { amount, target }
-            | Self::ReadyResources { amount, target } | Self::GiveShield { amount, target }
+            | Self::ReadyResources { amount, target } | Self::PayResources { amount, target }
+            | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
@@ -2541,6 +2547,19 @@ impl Program {
                     )
                 {
                     return Err("chosen-player resource ready amount must be literal 1..2".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::PayResources {amount,target} => {
+                amount.validate_number()?;
+                if !matches!(target,Target::Name(n) if n=="ownPlayer") {
+                    return Err("payResources requires ownPlayer target".into());
+                }
+                if !matches!(
+                    amount.original(),
+                    Expr::Const { value } if value.as_u64().is_some_and(|n| (1..=3).contains(&n))
+                ) {
+                    return Err("payResources amount must be literal 1..3".into());
                 }
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
