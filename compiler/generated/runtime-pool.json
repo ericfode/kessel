@@ -36757,6 +36757,48 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\n\nEach friendly damaged unit gets +1/+0.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader. ",
+      "hp": 7,
+      "id": "8560666697",
+      "internalName": "director-krennic#aspiring-to-authority",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_001",
+      "setCodes": [
+        {
+          "number": 1,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 1,
+        "set": "SOR"
+      },
+      "subtitle": "Aspiring to Authority",
+      "text": "Each friendly damaged unit gets +1/+0. ",
+      "title": "Director Krennic",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "villainy",
         "command"
       ],
@@ -36883,6 +36925,43 @@
       "cost": null,
       "deployBox": null,
       "epicAction": null,
+      "hp": 25,
+      "id": "2429341052",
+      "internalName": "security-complex",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_019",
+      "setCodes": [
+        {
+          "number": 19,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 19,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Epic Action: Give a Shield token to a non-leader unit.",
+      "title": "Security Complex",
+      "traits": [
+        "scarif"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
       "hp": 30,
       "id": "6366665313",
       "internalName": "capital-city",
@@ -36994,6 +37073,43 @@
       "cost": null,
       "deployBox": null,
       "epicAction": null,
+      "hp": 25,
+      "id": "1393827469",
+      "internalName": "tarkintown",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_025",
+      "setCodes": [
+        {
+          "number": 25,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 25,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Epic Action: Deal 3 damage to a damaged non-leader unit.",
+      "title": "Tarkintown",
+      "traits": [
+        "lothal"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
       "hp": 30,
       "id": "8659924257",
       "internalName": "catacombs-of-cadera",
@@ -37053,6 +37169,43 @@
       "title": "Kestro City",
       "traits": [
         "vardos"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 25,
+      "id": "2569134232",
+      "internalName": "jedha-city",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_028",
+      "setCodes": [
+        {
+          "number": 28,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 28,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Epic Action: Give a non-leader unit -4/-0 for this phase.",
+      "title": "Jedha City",
+      "traits": [
+        "jedha"
       ],
       "types": [
         "base"

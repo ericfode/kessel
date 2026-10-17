@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 778
+    "sourceIr": 782
   },
   "runtimeAdmittedCards": [
     {
@@ -4537,6 +4537,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "director-krennic#aspiring-to-authority",
+      "setCode": "SOR_001"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "grand-moff-tarkin#oversector-governor",
       "setCode": "SOR_007"
     },
@@ -4549,6 +4554,11 @@
       "implementation": "sourceIr",
       "internalName": "sabine-wren#galvanized-revolutionary",
       "setCode": "SOR_014"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "security-complex",
+      "setCode": "SOR_019"
     },
     {
       "implementation": "dataOnly",
@@ -4566,6 +4576,11 @@
       "setCode": "SOR_023"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "tarkintown",
+      "setCode": "SOR_025"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "catacombs-of-cadera",
       "setCode": "SOR_026"
@@ -4574,6 +4589,11 @@
       "implementation": "dataOnly",
       "internalName": "kestro-city",
       "setCode": "SOR_027"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "jedha-city",
+      "setCode": "SOR_028"
     },
     {
       "implementation": "dataOnly",
@@ -5846,7 +5866,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1167,
+  "runtimeAdmittedCount": 1171,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -11319,11 +11339,6 @@
       "setCode": "SHD_261"
     },
     {
-      "internalName": "director-krennic#aspiring-to-authority",
-      "reason": "director-krennic#aspiring-to-authority: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "SOR_001"
-    },
-    {
       "internalName": "iden-versio#inferno-squad-commander",
       "reason": "iden-versio#inferno-squad-commander: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "SOR_002"
@@ -11394,11 +11409,6 @@
       "setCode": "SOR_018"
     },
     {
-      "internalName": "security-complex",
-      "reason": "security-complex: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "SOR_019"
-    },
-    {
       "internalName": "energy-conversion-lab",
       "reason": "energy-conversion-lab: base-zone ongoing source requires exact reviewed base or two-side leader shape",
       "setCode": "SOR_022"
@@ -11407,16 +11417,6 @@
       "internalName": "echo-base",
       "reason": "reprint alias of IC27_010",
       "setCode": "SOR_024"
-    },
-    {
-      "internalName": "tarkintown",
-      "reason": "tarkintown: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "SOR_025"
-    },
-    {
-      "internalName": "jedha-city",
-      "reason": "jedha-city: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "SOR_028"
     },
     {
       "internalName": "chopper-base",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1438,
+  "runtimeRejectedCount": 1434,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
