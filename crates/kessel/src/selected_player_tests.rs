@@ -24,7 +24,8 @@ fn mission_briefing_chooses_player_and_draws_two() {
     let event = hand(&e, &mut s, "SOR_171");
     let choice = e.apply(&s, &e.card_action(&s, event)).unwrap();
     assert_eq!(choice.decision, Decision::AbilityTarget);
-    let labels: Vec<_> = e.legal_actions(&choice).iter().map(|a| a.label.as_str()).collect();
+    let actions = e.legal_actions(&choice);
+    let labels: Vec<_> = actions.iter().map(|a| a.label.as_str()).collect();
     assert!(labels.contains(&"You"));
     assert!(labels.contains(&"Opponent"));
     let done = e.apply(&choice, &Action::button("Opponent", 1)).unwrap();

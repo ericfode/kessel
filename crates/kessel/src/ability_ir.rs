@@ -2364,11 +2364,13 @@ impl Program {
             Effect::ReadyResources {amount,target} => {
                 amount.validate_number()?;target.validate()?;
                 if matches!(target,Target::Name(name) if name=="bothPlayers") {return Err("multi-player resource ready requires verified event batching".into());}
-                if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer","chosenPlayer"].contains(&name.as_str())) {
-                    return Err("resource ready requires a scalar player target".into());
-                }
-                if !matches!(amount.original(),Expr::Const{value} if value.as_u64().is_some_and(|n|(1..=2).contains(&n))) {
-                    return Err("resource ready amount must be literal 1..2".into());
+                if matches!(target, Target::Name(name) if name == "chosenPlayer")
+                    && !matches!(
+                        amount.original(),
+                        Expr::Const { value } if value.as_u64().is_some_and(|n| (1..=2).contains(&n))
+                    )
+                {
+                    return Err("chosen-player resource ready amount must be literal 1..2".into());
                 }
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }

@@ -3911,6 +3911,48 @@
         "cunning",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "6725068449",
+      "internalName": "emperors-messenger",
+      "keywords": [
+        "support"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "ASH_189",
+      "setCodes": [
+        {
+          "number": 189,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 189,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nOn Attack: Ready a resource.",
+      "title": "Emperor's Messenger",
+      "traits": [
+        "imperial",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -9865,6 +9907,47 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "6727635998",
+      "internalName": "corona-squadron-xwing",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_209",
+      "setCodes": [
+        {
+          "number": 209,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 209,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "On Attack: You may ready a resource.",
+      "title": "Corona Squadron X-Wing",
+      "traits": [
+        "new republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -17484,6 +17567,44 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3278986026",
+      "internalName": "rafa-martez#shrewd-sister",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_219",
+      "setCodes": [
+        {
+          "number": 219,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 219,
+        "set": "JTL"
+      },
+      "subtitle": "Shrewd Sister",
+      "text": "When Played/On Attack: Deal 1 damage to a friendly unit and ready a resource.",
+      "title": "Rafa Martez",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -35235,6 +35356,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "4772866341",
+      "internalName": "pillage",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SHD_181",
+      "setCodes": [
+        {
+          "number": 181,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 181,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Choose a player. They discard 2 cards from their hand.",
+      "title": "Pillage",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -35357,6 +35515,46 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "9115773123",
+      "internalName": "coruscant-dissident",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_199",
+      "setCodes": [
+        {
+          "number": 199,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 199,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "On Attack: You may ready a resource.",
+      "title": "Coruscant Dissident",
+      "traits": [
+        "underworld",
+        "twi'lek"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -38897,6 +39095,43 @@
       "title": "Keep Fighting",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "7262314209",
+      "internalName": "mission-briefing",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_171",
+      "setCodes": [
+        {
+          "number": 171,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 171,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Choose a player. They draw 2 cards.",
+      "title": "Mission Briefing",
+      "traits": [
+        "plan"
       ],
       "types": [
         "event"
