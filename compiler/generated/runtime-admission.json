@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 806
+    "sourceIr": 808
   },
   "runtimeAdmittedCards": [
     {
@@ -1857,6 +1857,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "tam-ryvora#searching-for-purpose",
+      "setCode": "JTL_035"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "banshee#crippling-command",
       "setCode": "JTL_037"
     },
@@ -1879,6 +1884,11 @@
       "implementation": "sourceIr",
       "internalName": "hera-syndulla#weve-lost-enough",
       "setCode": "JTL_045"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "paige-tico#dropping-the-hammer",
+      "setCode": "JTL_046"
     },
     {
       "implementation": "sourceIr",
@@ -5986,7 +5996,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1195,
+  "runtimeAdmittedCount": 1197,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7729,11 +7739,6 @@
       "setCode": "JTL_033"
     },
     {
-      "internalName": "tam-ryvora#searching-for-purpose",
-      "reason": "tam-ryvora#searching-for-purpose: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_035"
-    },
-    {
       "internalName": "iden-versio#adapt-or-die",
       "reason": "iden-versio#adapt-or-die: parent references require an ordinary attached upgrade",
       "setCode": "JTL_036"
@@ -7757,11 +7762,6 @@
       "internalName": "no-glory-only-results",
       "reason": "no-glory-only-results: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_043"
-    },
-    {
-      "internalName": "paige-tico#dropping-the-hammer",
-      "reason": "paige-tico#dropping-the-hammer: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_046"
     },
     {
       "internalName": "admiral-yularen#fleet-coordinator",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1410,
+  "runtimeRejectedCount": 1408,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
