@@ -17517,6 +17517,49 @@
         "aggression",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "0514089787",
+      "internalName": "frisk#vanguard-loudmouth",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Aggression Heroism] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: You may defeat an upgrade that costs 2 or less.",
+      "power": 3,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\nAbilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "JTL_148",
+      "setCodes": [
+        {
+          "number": 148,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 148,
+        "set": "JTL"
+      },
+      "subtitle": "Vanguard Loudmouth",
+      "text": "",
+      "title": "Frisk",
+      "traits": [
+        "new republic",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 2
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": null,

@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 816
+    "sourceIr": 817
   },
   "runtimeAdmittedCards": [
     {
@@ -2149,6 +2149,11 @@
       "implementation": "sourceIr",
       "internalName": "black-one#straight-at-them",
       "setCode": "JTL_147"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "frisk#vanguard-loudmouth",
+      "setCode": "JTL_148"
     },
     {
       "implementation": "sourceIr",
@@ -6036,7 +6041,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1205,
+  "runtimeAdmittedCount": 1206,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8047,11 +8052,6 @@
       "internalName": "bb8#happy-beeps",
       "reason": "bb8#happy-beeps: piloting program: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_145"
-    },
-    {
-      "internalName": "frisk#vanguard-loudmouth",
-      "reason": "frisk#vanguard-loudmouth: piloting program: unknown variant `registrationQuery`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
-      "setCode": "JTL_148"
     },
     {
       "internalName": "red-squadron-ywing",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1400,
+  "runtimeRejectedCount": 1399,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
