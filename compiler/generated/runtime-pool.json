@@ -4159,6 +4159,47 @@
         "cunning",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7521690984",
+      "internalName": "carson-teva#theres-something-going-on",
+      "keywords": [
+        "support"
+      ],
+      "power": 1,
+      "rules": "If an attacking unit deals combat damage first, and the defending unit is defeated by that damage, it does not deal combat damage back. If it survives and has Grit, it deals bonus damage from Grit when dealing combat damage back.\n",
+      "setCode": "ASH_202",
+      "setCodes": [
+        {
+          "number": 202,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 202,
+        "set": "ASH"
+      },
+      "subtitle": "There's Something Going On",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nWhile attacking, this unit deals combat damage before the defender.",
+      "title": "Carson Teva",
+      "traits": [
+        "new republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -6302,6 +6343,48 @@
         "night",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "6561074658",
+      "internalName": "imagun-di#holding-out-for-resupply",
+      "keywords": [],
+      "power": 5,
+      "rules": "Resources enter play exhausted.\n",
+      "setCode": "HMW_044",
+      "setCodes": [
+        {
+          "number": 44,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 44,
+        "set": "HMW"
+      },
+      "subtitle": "Holding Out For Resupply",
+      "text": "When Defeated: If you control fewer resources than an opponent, you may resource a card from your hand. If you do, resource the top card of your deck.",
+      "title": "Ima-Gun Di",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
       ],
       "types": [
         "unit"
@@ -8742,6 +8825,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "3294806366",
+      "internalName": "general-grievous#scourge-of-dathomir",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "HMW_159",
+      "setCodes": [
+        {
+          "number": 159,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 159,
+        "set": "HMW"
+      },
+      "subtitle": "Scourge of Dathomir",
+      "text": "Bases can't be healed.\nWhen Played: Deal 4 damage to a base.",
+      "title": "General Grievous",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -16146,6 +16269,47 @@
         "cunning",
         "villainy"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9720757803",
+      "internalName": "rampart#enjoy-the-exit",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_182",
+      "setCodes": [
+        {
+          "number": 182,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 182,
+        "set": "JTL"
+      },
+      "subtitle": "Enjoy the Exit",
+      "text": "This unit doesn't ready during the regroup phase unless its power is 4 or more.",
+      "title": "Rampart",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -16262,6 +16426,44 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8323555870",
+      "internalName": "commence-patrol",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_205",
+      "setCodes": [
+        {
+          "number": 205,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 205,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Put another card in a discard pile on the bottom of its owner's deck. If you do, create an X-Wing token.",
+      "title": "Commence Patrol",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -18857,6 +19059,44 @@
       "upgradePower": 2
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0340520874",
+      "internalName": "shield-drive-outfitter",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_113",
+      "setCodes": [
+        {
+          "number": 113,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 113,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may pay 1 resource. If you do, give a Shield token to a unit.",
+      "title": "Shield Drive Outfitter",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -19177,6 +19417,43 @@
       "unique": false,
       "upgradeHp": 0,
       "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "7069221067",
+      "internalName": "betrayed-trust",
+      "keywords": [],
+      "power": null,
+      "rules": "“Combat damage” is only the damage dealt during the “deal combat damage” step of an attack.\n",
+      "setCode": "LAW_130",
+      "setCodes": [
+        {
+          "number": 130,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 130,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Choose an enemy unit. For this phase, that unit can't deal combat damage.",
+      "title": "Betrayed Trust",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "aspects": [
@@ -19524,6 +19801,49 @@
       "text": "When Played: Give an Experience token to this unit for each different aspect among units you control.",
       "title": "Jaunty Light Freighter",
       "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2352370791",
+      "internalName": "smugglers-yt2400",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "LAW_148",
+      "setCodes": [
+        {
+          "number": 148,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 148,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhen Played: You may pay 1 resource. If you do, this unit gets +1/+1 for this phase.",
+      "title": "Smuggler's YT-2400",
+      "traits": [
+        "underworld",
         "vehicle",
         "transport"
       ],
@@ -20012,6 +20332,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7641310547",
+      "internalName": "000#translation-and-torture",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_174",
+      "setCodes": [
+        {
+          "number": 174,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 174,
+        "set": "LAW"
+      },
+      "subtitle": "Translation and Torture",
+      "text": "On Attack: You may put a Aggression card from your discard pile on the bottom of your deck. If you do, deal 1 damage to each enemy base.",
+      "title": "0-0-0",
+      "traits": [
+        "underworld",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",
@@ -20305,6 +20665,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "7735455657",
+      "internalName": "ben-solo#facing-the-light",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 8,
+      "rules": "If a unit has Hidden and Sentinel at the same time, it can be attacked.\nIf the unit chosen by Ben Solo has or gains Sentinel, it can be attacked.\n",
+      "setCode": "LAW_185",
+      "setCodes": [
+        {
+          "number": 185,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 185,
+        "set": "LAW"
+      },
+      "subtitle": "Facing the Light",
+      "text": "Hidden\nWhen Played/When Defeated: Ready another friendly unit. It can't be attacked this phase.",
+      "title": "Ben Solo",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "aggression",
         "heroism"
@@ -20586,6 +20987,84 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "9994217631",
+      "internalName": "shifty-suspects",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_197",
+      "setCodes": [
+        {
+          "number": 197,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 197,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "On Attack: Bases can't be healed for this phase.",
+      "title": "Shifty Suspects",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8976669004",
+      "internalName": "dogged-pursuers",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "LAW_198",
+      "setCodes": [
+        {
+          "number": 198,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 198,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may pay 1 resource. If you do, deal 2 damage to a ground unit.",
+      "title": "Dogged Pursuers",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
       "cost": 7,
       "deployBox": null,
       "epicAction": "",
@@ -20831,6 +21310,46 @@
       "arena": "ground",
       "aspects": [
         "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2562671677",
+      "internalName": "boba-fett#for-a-price",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "LAW_214",
+      "setCodes": [
+        {
+          "number": 214,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 214,
+        "set": "LAW"
+      },
+      "subtitle": "For a Price",
+      "text": "When Played/On Attack: You may pay 1 resource. If you do, deal 3 damage to a ground unit.",
+      "title": "Boba Fett",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
         "heroism"
       ],
       "cost": 2,
@@ -20990,6 +21509,45 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "5626708588",
+      "internalName": "rookie-rocketjumper",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_227",
+      "setCodes": [
+        {
+          "number": 227,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 227,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may pay 1 resource. If you do, give a Shield token to this unit.",
+      "title": "Rookie Rocket-jumper",
+      "traits": [
+        "underworld",
+        "twi'lek"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -21471,6 +22029,42 @@
       "traits": [
         "vehicle",
         "speeder"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "1514592160",
+      "internalName": "hidden-hand-supplier",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_257",
+      "setCodes": [
+        {
+          "number": 257,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 257,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may pay 1 resource. If you do, give an Experience token to another unit.",
+      "title": "Hidden Hand Supplier",
+      "traits": [
+        "underworld"
       ],
       "types": [
         "unit"
@@ -26156,6 +26750,47 @@
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "3052907071",
+      "internalName": "dooku#it-is-too-late",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 5,
+      "rules": "Dooku's \"When Played\" ability affects each friendly unit with Hidden, even if it entered play in a previous round.\nIf a unit has Hidden and Sentinel at the same time, it can be attacked.\n",
+      "setCode": "LOF_211",
+      "setCodes": [
+        {
+          "number": 211,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 211,
+        "set": "LOF"
+      },
+      "subtitle": "It Is Too Late",
+      "text": "Hidden (This unit can't be attacked if it was played this phase.)\nWhen Played: Each friendly unit with Hidden can't be attacked for this phase.",
+      "title": "Dooku",
+      "traits": [
+        "force",
+        "jedi"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 5,
       "id": "5522824465",
       "internalName": "life-wind-sage",
@@ -27455,6 +28090,41 @@
       "unique": false,
       "upgradeHp": 3,
       "upgradePower": 2
+    },
+    {
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "5787840677",
+      "internalName": "go-into-hiding",
+      "keywords": [],
+      "power": null,
+      "rules": "If a unit that can't be attacked gains Sentinel, it can be attacked.\n",
+      "setCode": "LOF_262",
+      "setCodes": [
+        {
+          "number": 262,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 262,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Choose a unit. It can't be attacked this phase (unless it has Sentinel).",
+      "title": "Go Into Hiding",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "aspects": [],
@@ -30057,6 +30727,46 @@
         "underworld",
         "droid",
         "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3833614149",
+      "internalName": "muckraker-crab-droid",
+      "keywords": [],
+      "power": 4,
+      "rules": "If a unit that can't be attacked gains Sentinel, it can be attacked.\n",
+      "setCode": "SEC_135",
+      "setCodes": [
+        {
+          "number": 135,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 135,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "While this unit is ready, it can't be attacked.",
+      "title": "Muckraker Crab Droid",
+      "traits": [
+        "separatist",
+        "droid"
       ],
       "types": [
         "unit"
@@ -33765,6 +34475,49 @@
     {
       "arena": "ground",
       "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "8954587682",
+      "internalName": "superlaser-technician",
+      "keywords": [],
+      "power": 2,
+      "rules": "(ERRATA) Templating update: “Put into play as a resource” becomes “resource”.\n",
+      "setCode": "SHD_085",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "SOR"
+        },
+        {
+          "number": 85,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 85,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": "When Defeated: You may put this unit into play as a resource and ready it.",
+      "title": "Superlaser Technician",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "villainy",
         "command"
       ],
@@ -34782,6 +35535,44 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "villainy",
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "7718080954",
+      "internalName": "frozen-in-carbonite",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_193",
+      "setCodes": [
+        {
+          "number": 193,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 193,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-leader unit.\nAttached unit can't ready.\nWhen Played: Exhaust attached unit.",
+      "title": "Frozen in Carbonite",
+      "traits": [
+        "condition"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -35096,6 +35887,45 @@
       ],
       "types": [
         "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "4328408486",
+      "internalName": "incinerator-trooper",
+      "keywords": [],
+      "power": 2,
+      "rules": "Combat damage” is only the damage dealt during the “deal combat damage” step of an attack.\n(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+      "setCode": "SHD_234",
+      "setCodes": [
+        {
+          "number": 234,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 234,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "While attacking, this unit deals combat damage before the defender. (If the defender is defeated, it deals no combat damage.)",
+      "title": "Incinerator Trooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -38250,6 +39080,47 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "7533529264",
+      "internalName": "wolffe#suspicious-veteran",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": "Bases can’t be healed for the phase even if Wolffe is defeated after triggering his ability.\n",
+      "setCode": "SOR_160",
+      "setCodes": [
+        {
+          "number": 160,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 160,
+        "set": "SOR"
+      },
+      "subtitle": "Suspicious Veteran",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\n\nWhen Played/On Attack: Bases can't be healed for this phase.",
+      "title": "Wolffe",
+      "traits": [
+        "fringe",
+        "clone"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": null,
@@ -38696,6 +39567,47 @@
       "arena": "ground",
       "aspects": [
         "cunning",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "9500514827",
+      "internalName": "han-solo#reluctant-hero",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 6,
+      "rules": "“Combat damage” is only the damage dealt during the “deal combat damage” step of an attack.\nAmbush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\nIf the defender is defeated by Han Solo’s combat damage, it does not deal combat damage back. If it survives and has Grit, it deals bonus damage from Grit when dealing combat damage back.\n(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+      "setCode": "SOR_198",
+      "setCodes": [
+        {
+          "number": 198,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 198,
+        "set": "SOR"
+      },
+      "subtitle": "Reluctant Hero",
+      "text": "Ambush (After you play this unit, he may ready and attack an enemy unit.)\n\nWhile attacking, this unit deals combat damage before the defender.",
+      "title": "Han Solo",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
         "cunning"
       ],
       "cost": 5,
@@ -38764,6 +39676,46 @@
       "traits": [
         "fringe",
         "jawa"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "4299027717",
+      "internalName": "mining-guild-tie-fighter",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SOR_206",
+      "setCodes": [
+        {
+          "number": 206,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 206,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "On Attack: You may pay [2 resources]. If you do, draw a card.",
+      "title": "Mining Guild TIE Fighter",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -39043,6 +39995,43 @@
       "title": "Disarm",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "8297630396",
+      "internalName": "shoot-first",
+      "keywords": [],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\n“Combat damage” is only the damage dealt during the “deal combat damage” step of an attack.\nIf the defender is defeated by the attacked, it does not deal combat damage back. If it survives and has Grit, it deals bonus damage from Grit when dealing combat damage back.\n(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+      "setCode": "SOR_217",
+      "setCodes": [
+        {
+          "number": 217,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 217,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Attack with a unit. It gets +1/+0 for this attack and deals its combat damage before the defender. (If the defender is defeated, it deals no combat damage.)",
+      "title": "Shoot First",
+      "traits": [
+        "trick"
       ],
       "types": [
         "event"
@@ -40959,6 +41948,47 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0797474670",
+      "internalName": "deployed-droideka",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "TS26_077",
+      "setCodes": [
+        {
+          "number": 77,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 77,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhen Played: You may pay 2 resources. If you do, give an Experience token and a Shield token to this unit.",
+      "title": "Deployed Droideka",
+      "traits": [
+        "separatist",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -43770,6 +44800,48 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "villainy",
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "6277739341",
+      "internalName": "confederate-trifighter",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_132",
+      "setCodes": [
+        {
+          "number": 132,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 132,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Bases can't be healed.",
+      "title": "Confederate Tri-Fighter",
+      "traits": [
+        "separatist",
+        "droid",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -45488,6 +46560,44 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "8839068683",
+      "internalName": "freelance-assassin",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "TWI_212",
+      "setCodes": [
+        {
+          "number": 212,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 212,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When Played: You may pay 2 resources. If you do, deal 2 damage to a unit.",
+      "title": "Freelance Assassin",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": null,
@@ -45561,6 +46671,43 @@
       "unique": false,
       "upgradeHp": 1,
       "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "2012334456",
+      "internalName": "on-top-of-things",
+      "keywords": [],
+      "power": 2,
+      "rules": "If a unit that can't be attacked gains Sentinel, it can be attacked.\n",
+      "setCode": "TWI_219",
+      "setCodes": [
+        {
+          "number": 219,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 219,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When Played: Attached unit can't be attacked this phase (unless it has Sentinel).",
+      "title": "On Top of Things",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 2
     },
     {
       "aspects": [
