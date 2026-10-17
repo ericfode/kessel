@@ -1491,6 +1491,7 @@ impl Engine {
                     "isUnit" => Eval::Bool(
                         d.info.is("unit") || (d.info.is("leader") && s.card(id).deployed),
                     ),
+                    "isEvent" => Eval::Bool(d.info.is("event")),
                     "isAttacking"=>Eval::Bool(self.is_attacking(s,id)),
                     "isDefending"=>Eval::Bool(self.is_defending(s,id)),
                     "hasCost"=>Eval::Bool(["unit","leader","upgrade","event","token"].iter().any(|kind|d.info.is(kind))),
@@ -1613,6 +1614,15 @@ impl Engine {
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
             Effect::LookAt { target: view_target, .. } => {
                 let _ = require_change;
+                return matches!(
+                    self.eval(s, source, target, view_target),
+                    Eval::Array(cards) if !cards.is_empty()
+                );
+            }
+            Effect::LookAtAndSelectCard { target: view_target, .. } => {
+                let _ = require_change;
+                // Empty hands make the event illegal (Play anyway). A nonempty hand
+                // can always be looked at, even when the discard filter matches nothing.
                 return matches!(
                     self.eval(s, source, target, view_target),
                     Eval::Array(cards) if !cards.is_empty()
@@ -1831,6 +1841,38 @@ impl Engine {
                 | Decision::AbilityDisplay
         )
     }
+    /// When the current instruction is reviewed lookAtAndSelectCard, returns the
+    /// live filtered opponent-hand candidates (possibly empty). Otherwise None.
+    fn look_at_select_candidates(&self, s: &State) -> Option<Vec<CardId>> {
+        if s.ability_program == 0 {
+            return None;
+        }
+        let Instruction::Apply(effect) =
+            self.program(s.ability_program - 1)
+                .instructions
+                .get(s.ability_pc as usize)?
+        else {
+            return None;
+        };
+        let Effect::LookAtAndSelectCard { target, .. } = effect else {
+            return None;
+        };
+        let predicate = crate::view_cards::selection_predicate(effect)?;
+        let cards = match self.eval(s, s.source, s.ability_target, target) {
+            Eval::Array(cards) => cards,
+            _ => return Some(Vec::new()),
+        };
+        let mut out = Vec::new();
+        for item in cards {
+            let Eval::Card(id) = item else {
+                continue;
+            };
+            if self.eval(s, s.source, id, &predicate).truth() {
+                out.push(id);
+            }
+        }
+        Some(out)
+    }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
         let mut out = Vec::new();
         let source = s.source;
@@ -1841,7 +1883,17 @@ impl Engine {
                 for &id in s.player(g.discard_owner).hand.as_slice() {if g.picks.len<g.discard_count || g.picks.ids[..g.picks.len as usize].contains(&id) {out.push(self.card_action(s,id));}}
             }
             Decision::AbilityDisplay => {
-                out.push(Action::button("Done", "done"));
+                if let Some(selectable) = self.look_at_select_candidates(s) {
+                    if selectable.is_empty() {
+                        out.push(Action::button("Done", "done"));
+                    } else {
+                        for id in selectable {
+                            out.push(self.card_action(s, id));
+                        }
+                    }
+                } else {
+                    out.push(Action::button("Done", "done"));
+                }
             }
             Decision::DeathPlayer => {out.push(Action::button("You",0));out.push(Action::button("Opponent",1));}
             Decision::DeathOrder => {
@@ -2145,6 +2197,29 @@ impl Engine {
                         s.decision = Decision::AbilityDisplay;
                         s.ability_result = u16::try_from(cards.len())
                             .map_err(|_| "lookAt display exceeds card count capacity")?;
+                        return Ok(());
+                    }
+                }
+                Instruction::Apply(Effect::LookAtAndSelectCard { target, player, .. }) => {
+                    // Shape was fenced at Program::compile; expressions may already be Compiled.
+                    self.commit_program(s)?;
+                    let viewer = match self.eval(s, s.source, s.ability_target, player) {
+                        Eval::Player(seat) => seat,
+                        _ => return Err("lookAtAndSelectCard viewer must be a player".into()),
+                    };
+                    let cards = match self.eval(s, s.source, s.ability_target, target) {
+                        Eval::Array(cards) => cards,
+                        _ => return Err("lookAtAndSelectCard target must be a card list".into()),
+                    };
+                    if cards.is_empty() {
+                        s.ability_result = 0;
+                        s.ability_succeeded = false;
+                        s.ability_pc += 1;
+                    } else {
+                        s.active = viewer;
+                        s.decision = Decision::AbilityDisplay;
+                        s.ability_result = u16::try_from(cards.len())
+                            .map_err(|_| "lookAtAndSelectCard display exceeds card count capacity")?;
                         return Ok(());
                     }
                 }
@@ -3191,13 +3266,40 @@ impl Engine {
                 }
             }
             Decision::AbilityDisplay => {
-                if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
-                    return Err("lookAt display requires Done".into());
+                if let Some(selectable) = self.look_at_select_candidates(s) {
+                    if selectable.is_empty() {
+                        if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
+                            return Err("lookAtAndSelectCard with no match requires Done".into());
+                        }
+                        t.active = t.card(t.source).owner;
+                        t.ability_succeeded = t.ability_result > 0;
+                        t.ability_pc += 1;
+                        self.run_program(&mut t)?;
+                    } else {
+                        let id = a.id().ok_or("lookAtAndSelectCard requires a selected card")?;
+                        if !selectable.contains(&id) {
+                            return Err("selected card is not a legal lookAtAndSelectCard discard".into());
+                        }
+                        let owner = t.card(id).owner;
+                        if !t.player_mut(owner).hand.remove(id) {
+                            return Err("lookAtAndSelectCard discard requires the card in hand".into());
+                        }
+                        t.player_mut(owner).discard.push(id)?;
+                        t.active = t.card(t.source).owner;
+                        t.ability_succeeded = true;
+                        t.ability_result = 1;
+                        t.ability_pc += 1;
+                        self.run_program(&mut t)?;
+                    }
+                } else {
+                    if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
+                        return Err("lookAt display requires Done".into());
+                    }
+                    t.active = t.card(t.source).owner;
+                    t.ability_succeeded = t.ability_result > 0;
+                    t.ability_pc += 1;
+                    self.run_program(&mut t)?;
                 }
-                t.active = t.card(t.source).owner;
-                t.ability_succeeded = t.ability_result > 0;
-                t.ability_pc += 1;
-                self.run_program(&mut t)?;
             }
             Decision::AbilityTarget => {
                 let p=self.program(s.ability_program-1);
