@@ -17305,6 +17305,51 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "1463418669",
+      "internalName": "ig88#murderous-phlutdroid",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Aggression Villainy] \nAttached unit gains: “While an enemy unit is damaged, this unit gets +3/+0.”",
+      "power": 4,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_141",
+      "setCodes": [
+        {
+          "number": 141,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 141,
+        "set": "JTL"
+      },
+      "subtitle": "Murderous Phlutdroid",
+      "text": "While an enemy unit is damaged, this unit gets +3/+0.",
+      "title": "IG-88",
+      "traits": [
+        "underworld",
+        "droid",
+        "bounty hunter",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 0
+    },
+    {
       "aspects": [
         "aggression",
         "villainy"

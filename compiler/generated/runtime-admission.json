@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 813
+    "sourceIr": 814
   },
   "runtimeAdmittedCards": [
     {
@@ -2124,6 +2124,11 @@
       "implementation": "sourceIr",
       "internalName": "ig2000#assassins-aggressor",
       "setCode": "JTL_140"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "ig88#murderous-phlutdroid",
+      "setCode": "JTL_141"
     },
     {
       "implementation": "sourceIr",
@@ -6021,7 +6026,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1202,
+  "runtimeAdmittedCount": 1203,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8022,11 +8027,6 @@
       "internalName": "dengar#crude-and-slovenly",
       "reason": "dengar#crude-and-slovenly: parent references require an ordinary attached upgrade",
       "setCode": "JTL_139"
-    },
-    {
-      "internalName": "ig88#murderous-phlutdroid",
-      "reason": "ig88#murderous-phlutdroid: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_141"
     },
     {
       "internalName": "darth-vader#scourge-of-squadrons",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1403,
+  "runtimeRejectedCount": 1402,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
