@@ -398,8 +398,8 @@ impl Expr {
                 if !scalar(&args[0]) {return Err("collection callback/value must return a supported scalar".into());}
                 sub(receiver)?;sub(&args[0])
             },
-            Self::HistoryQuery(q) => {if q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Err("history list requires exact length consumption".into())}else{Ok(())}},
-            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
+            Self::HistoryQuery(q) => {if q.kind()?.count() {Err("history list requires exact length consumption".into())}else{Ok(())}},
+            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?.count() {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
