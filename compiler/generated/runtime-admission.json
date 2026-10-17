@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 805
+    "sourceIr": 806
   },
   "runtimeAdmittedCards": [
     {
@@ -2114,6 +2114,11 @@
       "implementation": "sourceIr",
       "internalName": "black-one#straight-at-them",
       "setCode": "JTL_147"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "biggs-darklighter#theyll-never-stop-us",
+      "setCode": "JTL_150"
     },
     {
       "implementation": "sourceIr",
@@ -5981,7 +5986,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1194,
+  "runtimeAdmittedCount": 1195,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8037,11 +8042,6 @@
       "internalName": "red-squadron-ywing",
       "reason": "red-squadron-ywing: invalid ability IR: unknown variant `indirectDamagePlayerSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_149"
-    },
-    {
-      "internalName": "biggs-darklighter#theyll-never-stop-us",
-      "reason": "biggs-darklighter#theyll-never-stop-us: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_150"
     },
     {
       "internalName": "tactical-heavy-bomber",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1411,
+  "runtimeRejectedCount": 1410,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

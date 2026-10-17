@@ -17209,6 +17209,51 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "2633842896",
+      "internalName": "biggs-darklighter#theyll-never-stop-us",
+      "keywords": [
+        "piloting",
+        "overwhelm",
+        "grit"
+      ],
+      "pilotText": "Piloting [1 resource Aggression Heroism] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nIf attached unit is a Fighter, it gains Overwhelm.\nIf attached unit is a Transport, it gets +0/+1.\nIf attached unit is a Speeder, it gains Grit.",
+      "power": 3,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "JTL_150",
+      "setCodes": [
+        {
+          "number": 150,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 150,
+        "set": "JTL"
+      },
+      "subtitle": "They'll Never Stop Us",
+      "text": "",
+      "title": "Biggs Darklighter",
+      "traits": [
+        "rebel",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 1,
+      "upgradePower": 2
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",
