@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","SHD_175","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -267,5 +267,104 @@ fn piloting_host_rejects_leaders_and_extra_keywords() {
         let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut target=&mut bad;
         for k in &parts[..parts.len()-1] {target=if target.is_array(){&mut target[k.parse::<usize>().unwrap()]}else{&mut target[*k]};}
         target[parts[parts.len()-1]]=value;assert!(!admitted(bad),"{path}");
+    }
+}
+
+fn fire_attached_when_played(e:&Engine,s:&mut State,pilot:CardId) {
+    s.source=pilot;s.trigger_context=1;s.decision=Decision::Window;
+    e.queue_programs(s,&["whenPlayed"]);
+    e.process_all_triggers(s).unwrap();
+}
+
+#[test]
+fn piloting_self_astromech_heals_when_attached_not_as_unit() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_057"),"{:?}",e.rejected_cards().unwrap().get("JTL_057"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let damaged=unit(&e,&mut s,seat,"LOF_256");s.card_mut(damaged).damage=3;
+        let pilot=attach(&e,&mut s,seat,"JTL_057",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?}");
+        assert_eq!(s.source,pilot);
+        assert!(e.legal_actions(&s).iter().any(|a|a.id()==Some(damaged)));
+        let done=e.apply(&s,&e.card_action(&s,damaged)).unwrap();
+        assert_eq!(done.card(damaged).damage,1,"{seat:?}");
+    }
+    // Played as a unit: WhenPlayed must not fire.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_057");
+    let damaged=unit(&e,&mut s,Seat::P1,"LOF_256");s.card_mut(damaged).damage=3;
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::Window);
+    assert_eq!(s.card(damaged).damage,3);
+}
+
+#[test]
+fn piloting_self_victor_two_creates_tie_when_attached() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_084"),"{:?}",e.rejected_cards().unwrap().get("JTL_084"));
+    assert!(e.by_code.contains_key("TOKEN_TIE_FIGHTER"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"TOKEN_XWING");
+        let before=e.arena_units(&s).len();
+        let pilot=attach(&e,&mut s,seat,"JTL_084",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        let ties:Vec<_>=e.arena_units(&s).into_iter().filter(|&id|e.def(&s,id).code=="TOKEN_TIE_FIGHTER"&&s.card(id).owner==seat).collect();
+        assert_eq!(ties.len(),1,"{seat:?}");
+        assert!(s.card(ties[0]).exhausted);
+        assert_eq!(e.arena_units(&s).len(),before+1);
+    }
+}
+
+#[test]
+fn piloting_self_backstabber_experience_excludes_host() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_086"),"{:?}",e.rejected_cards().unwrap().get("JTL_086"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let ally=unit(&e,&mut s,seat,"LOF_256");
+        let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+        let pilot=attach(&e,&mut s,seat,"JTL_086",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?}");
+        let actions=e.legal_actions(&s);
+        assert!(actions.iter().any(|a|a.id()==Some(ally)));
+        assert!(actions.iter().any(|a|a.id()==Some(enemy)));
+        assert!(!actions.iter().any(|a|a.id()==Some(host)),"host excluded via parentCard");
+        let done=e.apply(&s,&e.card_action(&s,ally)).unwrap();
+        assert_eq!(e.upgrades(&done,ally).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),1);
+    }
+}
+
+#[test]
+fn piloting_self_rejects_non_when_played_and_companions() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_057").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_057");
+    assert!(admitted(original.clone()));
+    for (path,value) in [
+        ("/abilities/card/0/effect/registration/program/hooks",json!([{"alias":"onAttack","enabled":true}])),
+        ("/abilities/card/0/effect/kind",json!("attachedAbilityRegistration")),
+        ("/abilities/card/0/effect/target",json!("parent")),
+        ("/abilities/card/0/effect/sourceBinding",json!("attachedHost")),
+        ("/card/keywords",json!(["piloting","ambush"])),
+        ("/abilities/card",json!([
+            original["abilities"]["card"][0].clone(),
+            {"trigger":"whenPlayed","title":"extra","costs":[],"effect":{"kind":"noAction"}}
+        ])),
+    ] {
+        let mut bad=original.clone();
+        if path=="/abilities/card" {
+            bad["abilities"]["card"]=value;
+        } else {
+            let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut target=&mut bad;
+            for k in &parts[..parts.len()-1] {target=if target.is_array(){&mut target[k.parse::<usize>().unwrap()]}else{&mut target[*k]};}
+            target[parts[parts.len()-1]]=value;
+        }
+        assert!(!admitted(bad),"{path}");
     }
 }

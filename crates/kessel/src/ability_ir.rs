@@ -1085,6 +1085,9 @@ pub struct Ability {
     /// Set only by the strict attached-registration loader, never accepted from raw IR.
     #[serde(skip)]
     pub attached_host: bool,
+    /// Set only by the pilotingRegistration loader: WhenPlayed fires only while attached.
+    #[serde(skip)]
+    pub piloting_ability: bool,
 
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub hooks: Vec<crate::death_hooks::Hook>,
@@ -1280,6 +1283,8 @@ impl Instruction {
 pub struct Program {
     #[serde(default, skip_serializing_if="std::ops::Not::not")]
     pub attached_host: bool,
+    #[serde(default, skip_serializing_if="std::ops::Not::not")]
+    pub piloting_ability: bool,
 
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub hooks: Vec<crate::death_hooks::Hook>,
@@ -1920,6 +1925,7 @@ impl Program {
         }
         let mut p = Self {
             attached_host: ability.attached_host,
+            piloting_ability: ability.piloting_ability,
 
             hooks: ability.hooks.clone(),
             gained_host: ability.gained_host,
@@ -2738,6 +2744,7 @@ impl Catalogue {
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard"
                     && !crate::piloting_attached::entry(entry)
                     && !crate::attached_registration::piloting_host_entry(entry)
+                    && !crate::attached_registration::piloting_self_entry(entry)
                 {
                     return Err("parent references require an ordinary attached upgrade".into());
                 }

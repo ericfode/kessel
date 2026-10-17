@@ -580,6 +580,7 @@ impl Engine {
                         // may attach as upgrades; it is not an intrinsic combat flag.
                         if !crate::piloting_attached::entry(entry)
                             && !crate::attached_registration::piloting_host_entry(entry)
+                            && !crate::attached_registration::piloting_self_entry(entry)
                         {
                             return Err("unimplemented runtime keyword piloting".into());
                         }
@@ -3729,6 +3730,10 @@ impl Engine {
             // Piloting / upgrade host grants must not fire from the grantor as an
             // arena unit; attached_host_grants enumerates them on the parent host.
             if p.attached_host {
+                continue;
+            }
+            // addPilotingAbility WhenPlayed registers only while the pilot is attached.
+            if p.piloting_ability && !self.attached_in_play(s, s.source) {
                 continue;
             }
             if triggers.iter().any(|t| p.trigger == *t)

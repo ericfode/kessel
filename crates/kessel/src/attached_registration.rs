@@ -5,6 +5,9 @@
 //! Reviewed NonLeader Pilot units may use the same host-grant path with
 //! `registrationMode: "piloting"` (Paige / Tam): the program still installs on
 //! the physical host while the pilot is attached.
+//!
+//! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber)
+//! keeps the program on the pilot and fires WhenPlayed only while attached.
 use crate::ability_ir::{Ability, Sides};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -24,11 +27,17 @@ struct Grant {
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct Registration { r#type:String, program:Value }
 
-fn marker(v:&Value)->bool {
+fn host_marker(v:&Value)->bool {
     v["kind"]=="attachedAbilityRegistration" || match v {
-        Value::Object(o)=>o.values().any(marker),Value::Array(a)=>a.iter().any(marker),_=>false
+        Value::Object(o)=>o.values().any(host_marker),Value::Array(a)=>a.iter().any(host_marker),_=>false
     }
 }
+fn self_marker(v:&Value)->bool {
+    v["kind"]=="pilotingRegistration" || match v {
+        Value::Object(o)=>o.values().any(self_marker),Value::Array(a)=>a.iter().any(self_marker),_=>false
+    }
+}
+fn marker(v:&Value)->bool { host_marker(v)||self_marker(v) }
 fn internal(v:&Value)->bool {match v {
     Value::Object(o)=>o.contains_key("attachedHost")||o.values().any(internal),
     Value::Array(a)=>a.iter().any(internal),_=>false
@@ -129,6 +138,65 @@ fn compile_host_program(mut p:Value,title:&str)->Result<Ability,String> {
     a.attached_host=true;
     Ok(a)
 }
+/// WhenPlayed body on the pilot while attached; may read `source.parentCard` for host filters.
+fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
+    if p["title"]!=title {return Err("piloting registration requires matching ability title".into());}
+    // Effects that install onto the host belong on attachedAbilityRegistration.
+    if parent_effect_target(&p) {
+        return Err("pilotingRegistration WhenPlayed cannot grant parent-targeted effects".into());
+    }
+    p.as_object_mut().ok_or("piloting program must be an object")?.remove("hooks");
+    normalize_zone_names(&mut p);
+    let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("piloting program: {e}"))?;
+    if a.trigger!="whenPlayed"||a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate
+        ||!a.costs.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
+        ||a.then.is_some()||a.if_you_do.is_some()||a.condition.is_some()||!a.context_title.is_empty()
+    {
+        return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
+    }
+    if !piloting_self_effect_ok(&a) {
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token shapes".into());
+    }
+    a.piloting_ability=true;
+    Ok(a)
+}
+fn parent_effect_target(v:&Value)->bool {
+    v["target"]=="parent" || match v {
+        Value::Object(o)=>o.values().any(parent_effect_target),
+        Value::Array(a)=>a.iter().any(parent_effect_target),
+        _=>false,
+    }
+}
+fn piloting_self_effect_ok(a:&Ability)->bool {
+    use crate::ability_ir::{Effect, Expr, Target};
+    let amount_one=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(1));
+    let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
+    match &a.effect {
+        Effect::Heal{target:Target::Name(n),amount} if n=="chosen"&&amount_two(amount)
+            && a.optional
+            && a.target_resolver.as_ref().is_some_and(|r|{
+                r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")
+                    &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
+                    &&r.predicate.is_none()&&r.prompt_title.is_none()
+            }) => true,
+        Effect::CreateTokenUnit{token_type,target:Target::Name(n),amount,enters_ready}
+            if token_type=="tieFighter"&&n=="ownPlayer"&&amount_one(amount)&&!*enters_ready
+            && !a.optional && a.target_resolver.is_none() => true,
+        Effect::GiveExperience{target:Target::Name(n),amount} if n=="chosen"&&amount_one(amount)
+            && a.optional
+            && a.target_resolver.as_ref().is_some_and(|r|{
+                r.owner=="any"&&matches!(r.card_type.as_str(), "any"|"unit")
+                    &&r.zone.as_deref()==Some("anyAttackable")&&!r.optional&&r.arena.is_none()
+                    &&r.count.is_none()&&r.mode.is_none()&&r.prompt_title.is_none()
+                    && r.predicate.as_ref().is_some_and(|p| matches!(p,
+                        Expr::Binary{op,left,right} if op=="!=="
+                            && matches!(left.as_ref(), Expr::Ref{path} if path==&["card"])
+                            && matches!(right.as_ref(), Expr::Ref{path} if path==&["source","parentCard"])
+                    ))
+            }) => true,
+        _ => false,
+    }
+}
 fn upgrade_grant(g:&Grant)->bool {
     g.registration_mode=="upgrade"&&g.target=="parent"&&g.target_controller=="any"
         &&g.source_binding=="attachedHost"&&g.controller_binding=="hostController"
@@ -141,7 +209,13 @@ fn piloting_grant(g:&Grant)->bool {
         &&g.requires_grantor_in_play&&g.requires_attachable&&g.source_mode=="unitUpgrade"
         &&g.target_zone=="anyArena"&&g.target_types==["unit"]&&g.registration.r#type=="triggered"
 }
-fn programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
+fn piloting_self_grant(g:&Grant)->bool {
+    g.registration_mode=="piloting"&&g.target=="self"&&g.target_controller=="any"
+        &&g.source_binding=="grantor"&&g.controller_binding=="grantorController"
+        &&g.requires_grantor_in_play&&g.requires_attachable&&g.source_mode=="unitUpgrade"
+        &&g.target_zone=="anyArena"&&g.target_types==["unit"]&&g.registration.r#type=="triggered"
+}
+fn host_programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
     let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
     let g=w.effect;
     if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="attachedAbilityRegistration"
@@ -186,6 +260,27 @@ fn programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
     }
     Ok(vec![compile_host_program(p,&w.title)?])
 }
+fn self_programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
+    let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("piloting registration: {e}"))?;
+    let g=w.effect;
+    if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="pilotingRegistration"||!piloting_self_grant(&g) {
+        return Err("pilotingRegistration requires exact Pilot self/whenPlayed contract".into());
+    }
+    if !plain_pilot(entry) {
+        return Err("pilotingRegistration requires complete ordinary Pilot unit metadata".into());
+    }
+    if defeat_text_override(entry) {
+        return Err("pilotingRegistration does not use defeat-text validation overrides".into());
+    }
+    let mut p=g.registration.program;
+    let trigger=p["trigger"].as_str().ok_or("piloting registration missing trigger")?.to_owned();
+    let hooks=p["hooks"].clone();
+    if trigger!="eventHooks"||hooks!=json!([{"alias":"whenPlayed","enabled":true}]) {
+        return Err("pilotingRegistration admits only WhenPlayed eventHooks".into());
+    }
+    p["trigger"]=json!("whenPlayed");
+    Ok(vec![compile_self_when_played(p,&w.title)?])
+}
 pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let raw=&entry["abilities"];
     if internal(raw) {return Err("attachedHost is an internal program marker".into());}
@@ -196,9 +291,17 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let card=raw["card"].as_array().ok_or("attached aliases need card-side registrations")?;
     if card.is_empty()||card.len()>8 {return Err("attached registration count exceeds bound".into());}
     let mut out=Sides::default();
+    let mut saw_self=false;
+    let mut saw_host=false;
     for a in card {
-        if marker(a) {
-            out.card.extend(programs(a,entry)?);
+        if self_marker(a) {
+            if saw_host {return Err("pilotingRegistration cannot mix with attachedAbilityRegistration".into());}
+            saw_self=true;
+            out.card.extend(self_programs(a,entry)?);
+        } else if host_marker(a) {
+            if saw_self {return Err("pilotingRegistration cannot mix with attachedAbilityRegistration".into());}
+            saw_host=true;
+            out.card.extend(host_programs(a,entry)?);
         } else if crate::attached_constants::marker(a) {
             if plain_pilot(entry) {
                 return Err("piloting attached registration does not admit companion constants".into());
@@ -217,6 +320,12 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
 /// Exact reviewed Pilot + piloting-mode host registration contract.
 pub(crate) fn piloting_host_entry(entry:&Value)->bool {
     plain_pilot(entry)
-        && entry["abilities"]["card"].as_array().is_some_and(|card|!card.is_empty()&&card.iter().all(marker))
+        && entry["abilities"]["card"].as_array().is_some_and(|card|!card.is_empty()&&card.iter().all(host_marker))
+        && sides(entry).is_ok()
+}
+/// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract.
+pub(crate) fn piloting_self_entry(entry:&Value)->bool {
+    plain_pilot(entry)
+        && entry["abilities"]["card"].as_array().is_some_and(|card|!card.is_empty()&&card.iter().all(self_marker))
         && sides(entry).is_ok()
 }
