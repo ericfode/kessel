@@ -112,12 +112,18 @@ pub(crate) struct PlayProjection {
     pub unit: bool,
     /// `cardTypeWhenInPlay === "event"`.
     pub event: bool,
+    /// Upgrade play: `basicUpgrade` and/or `playAsType === "upgrade"`.
+    pub upgrade: bool,
     /// Friendly controller (`event.player === player`).
     pub same_controller: bool,
     /// Opposing controller (`event.player !== player`).
     pub opponent_controller: bool,
     /// Exclude the watcher (`event.card !== source`).
     pub other: bool,
+    /// Played upgrade must attach to the watcher (`event.attachTarget === source`).
+    pub attach_to_source: bool,
+    /// Played card must be unique (`event.card.unique`).
+    pub require_unique: bool,
     /// Optional printed aspect filter on the played card.
     pub aspect: Option<String>,
     /// Optional printed trait filter on the played card.
@@ -249,6 +255,27 @@ impl Predicate {
                     && right.const_str("event")
         )
     }
+    fn play_upgrade_atom(&self, binding: &mut Option<String>) -> bool {
+        matches!(
+            self,
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && ((left.path(&["cardTypeWhenInPlay"], binding)
+                        && right.const_str("basicUpgrade"))
+                        || (left.path(&["playAsType"], binding) && right.const_str("upgrade")))
+        )
+    }
+    fn play_upgrade_type(&self, binding: &mut Option<String>) -> bool {
+        match self {
+            Self::Binary { op, left, right } if op == "||" => {
+                left.play_upgrade_atom(binding) && right.play_upgrade_atom(binding)
+            }
+            _ => self.play_upgrade_atom(binding),
+        }
+    }
+    fn play_card_unique(&self, binding: &mut Option<String>) -> bool {
+        self.path(&["card", "unique"], binding)
+    }
     fn play_data_call(
         &self,
         method: &str,
@@ -286,12 +313,20 @@ impl Predicate {
                 left.play_project(out, binding, depth + 1)
                     && right.play_project(out, binding, depth + 1)
             }
-            _ if self.play_unit_type(binding) && !out.unit && !out.event => {
+            _ if self.play_unit_type(binding) && !out.unit && !out.event && !out.upgrade => {
                 out.unit = true;
                 true
             }
-            _ if self.play_event_type(binding) && !out.event && !out.unit => {
+            _ if self.play_event_type(binding) && !out.event && !out.unit && !out.upgrade => {
                 out.event = true;
+                true
+            }
+            _ if self.play_upgrade_type(binding) && !out.upgrade && !out.unit && !out.event => {
+                out.upgrade = true;
+                true
+            }
+            _ if self.play_card_unique(binding) && !out.require_unique => {
+                out.require_unique = true;
                 true
             }
             Self::Binary { op, left, right }
@@ -324,6 +359,15 @@ impl Predicate {
                 true
             }
             Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["attachTarget"], binding)
+                    && right.reference(&["source"])
+                    && !out.attach_to_source =>
+            {
+                out.attach_to_source = true;
+                true
+            }
+            Self::Binary { op, left, right }
                 if op == "<="
                     && left.path(&["card", "cost"], binding)
                     && out.max_cost.is_none() =>
@@ -346,7 +390,8 @@ impl Predicate {
                 && args.is_empty()
                 && receiver.path(&["card"], binding)
                 && !out.event
-                && !out.unit =>
+                && !out.unit
+                && !out.upgrade =>
             {
                 out.event = true;
                 true
@@ -373,14 +418,19 @@ impl Predicate {
         self.play_project(&mut p, &mut None, 0)
             .then_some(p)
             .filter(|p| {
-                // Unit/event type, or aspect/trait-only "any card" filters
-                // (Lady Proxima / Fighters for Freedom).
+                // Unit/event type, aspect/trait-only "any card" filters
+                // (Lady Proxima / Fighters), or upgrade-attached-to-self (Kylo).
                 let typed = p.unit || p.event;
                 let tagged = p.aspect.is_some() || p.trait_name.is_some();
-                (typed || tagged)
+                let attached_upgrade = p.upgrade && p.attach_to_source;
+                (typed || tagged || attached_upgrade)
                     && (p.same_controller || p.opponent_controller)
                     && !(p.same_controller && p.opponent_controller)
                     && !(p.unit && p.event)
+                    && !(p.unit && p.upgrade)
+                    && !(p.event && p.upgrade)
+                    && (!p.require_unique || p.unit)
+                    && (!p.attach_to_source || p.upgrade)
             })
     }
 }
@@ -561,9 +611,57 @@ fn plain_attackable_resolver(r: &TargetResolver, card_type: &str) -> bool {
         && r.native.is_none()
         && !r.player_selection
 }
-/// Sole OnCardPlayed watcher: reviewed unit/event play → Experience, heal, Sentinel,
-/// optional exhaust→Battle Droid, opponent-event base damage, or optional
-/// aspect/trait/event damage selectors (Lady Proxima / Fighters / Bossk).
+fn plain_if_you_do_unit_resolver(next: &Ability) -> bool {
+    next.trigger.is_empty()
+        && !next.optional
+        && !next.requires_confirmation
+        && !next.coordinate
+        && next.gained_host.is_none()
+        && next.attached_context.is_none()
+        && !next.attacker_must_survive
+        && next.costs.is_empty()
+        && next.context_title.is_empty()
+        && next.target_resolvers.is_empty()
+        && next.condition.is_none()
+        && next.then.is_none()
+        && next.if_you_do.is_none()
+        && next.hooks.is_empty()
+        && next
+            .target_resolver
+            .as_ref()
+            .is_some_and(|r| plain_attackable_resolver(r, "unit"))
+}
+fn self_experience_and_shield(effect: &Effect) -> bool {
+    let one = |e: &Expr| matches!(e, Expr::Const { value } if value.as_u64() == Some(1));
+    match effect {
+        Effect::Simultaneous { effects } if effects.len() == 2 => {
+            let exp = effects.iter().any(|e| {
+                matches!(
+                    e,
+                    Effect::GiveExperience {
+                        target: Target::Name(t),
+                        amount,
+                    } if t == "self" && one(amount)
+                )
+            });
+            let shield = effects.iter().any(|e| {
+                matches!(
+                    e,
+                    Effect::GiveShield {
+                        target: Target::Name(t),
+                        amount,
+                    } if t == "self" && one(amount)
+                )
+            });
+            exp && shield
+        }
+        _ => false,
+    }
+}
+/// Sole OnCardPlayed watcher: reviewed unit/event/upgrade play → Experience, heal,
+/// Sentinel, optional exhaust→Battle Droid, opponent-event base damage, optional
+/// aspect/trait/event damage selectors, or optional useForce continuations
+/// (Eighth Brother / Kylo / Luke).
 pub(crate) fn card_played_registration(a: &Ability) -> bool {
     if !card_played_hook_header(a) {
         return false;
@@ -576,7 +674,14 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
     };
     let one = |e: &Expr| matches!(e, Expr::Const { value } if value.as_u64() == Some(1));
     // Mandatory friendly-unit watchers (Maz / Yularen / Force Sentinel family).
-    if !a.optional && a.target_resolver.is_none() && a.if_you_do.is_none() && proj.unit && proj.same_controller
+    if !a.optional
+        && a.target_resolver.is_none()
+        && a.if_you_do.is_none()
+        && proj.unit
+        && proj.same_controller
+        && !proj.upgrade
+        && !proj.attach_to_source
+        && !proj.require_unique
     {
         return match &a.effect {
             Effect::GiveExperience {
@@ -603,6 +708,9 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
         && proj.event
         && proj.opponent_controller
         && !proj.other
+        && !proj.upgrade
+        && !proj.attach_to_source
+        && !proj.require_unique
         && proj.aspect.is_none()
         && proj.trait_name.is_none()
         && proj.max_cost.is_none()
@@ -621,6 +729,9 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
         && proj.unit
         && proj.same_controller
         && proj.other
+        && !proj.upgrade
+        && !proj.attach_to_source
+        && !proj.require_unique
         && proj.aspect.is_none()
         && proj.trait_name.is_none()
         && proj.max_cost.is_none()
@@ -652,6 +763,9 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
         && a.if_you_do.is_none()
         && proj.same_controller
         && !proj.opponent_controller
+        && !proj.upgrade
+        && !proj.attach_to_source
+        && !proj.require_unique
         && proj.max_cost.is_none()
     {
         if let (
@@ -698,6 +812,75 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
                 }
             }
         }
+    }
+    // Optional useForce → bounded ifYouDo (Eighth Brother / Kylo / Luke).
+    if a.optional
+        && a.target_resolver.is_none()
+        && proj.same_controller
+        && !proj.opponent_controller
+        && proj.aspect.is_none()
+        && proj.trait_name.is_none()
+        && proj.max_cost.is_none()
+        && matches!(
+            &a.effect,
+            Effect::UseForce {
+                target: Target::Name(t),
+            } if t == "ownPlayer"
+        )
+    {
+        return a.if_you_do.as_deref().is_some_and(|next| {
+            // Eighth Brother: other friendly unit → +2/+2 for the phase.
+            if proj.unit
+                && proj.other
+                && !proj.event
+                && !proj.upgrade
+                && !proj.attach_to_source
+                && !proj.require_unique
+                && plain_if_you_do_unit_resolver(next)
+            {
+                return matches!(
+                    &next.effect,
+                    Effect::ModifyStats {
+                        target: Target::Name(t),
+                        duration,
+                        power: Expr::Const { value: power },
+                        hp: Expr::Const { value: hp },
+                    } if t == "chosen"
+                        && duration == "phase"
+                        && power.as_u64() == Some(2)
+                        && hp.as_u64() == Some(2)
+                );
+            }
+            // Luke: other friendly unique unit → Experience + Shield on self.
+            if proj.unit
+                && proj.other
+                && proj.require_unique
+                && !proj.event
+                && !proj.upgrade
+                && !proj.attach_to_source
+                && plain_if_you_do(next)
+            {
+                return self_experience_and_shield(&next.effect);
+            }
+            // Kylo: friendly upgrade attached to this unit → draw 1.
+            if proj.upgrade
+                && proj.attach_to_source
+                && !proj.unit
+                && !proj.event
+                && !proj.other
+                && !proj.require_unique
+                && plain_if_you_do(next)
+            {
+                return matches!(
+                    &next.effect,
+                    Effect::Draw {
+                        target: Target::Name(t),
+                        amount: Expr::Const { value },
+                    } if t == "ownPlayer" && value.as_u64() == Some(1)
+                );
+            }
+            false
+        });
     }
     false
 }

@@ -3749,6 +3749,9 @@ impl Engine {
                     if proj.event && !is_event {
                         continue;
                     }
+                    if proj.upgrade && !is_upgrade {
+                        continue;
+                    }
                     if proj.same_controller && owner != played_owner {
                         continue;
                     }
@@ -3756,6 +3759,12 @@ impl Engine {
                         continue;
                     }
                     if proj.other && watcher == played {
+                        continue;
+                    }
+                    if proj.attach_to_source && s.card(played).parent != watcher {
+                        continue;
+                    }
+                    if proj.require_unique && !self.def(s, played).info.unique {
                         continue;
                     }
                     if let Some(max) = proj.max_cost {
