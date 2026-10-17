@@ -1545,6 +1545,9 @@ impl Engine {
         }
     }
     fn matching_targets(&self, s: &State, source: CardId, r: &TargetResolver) -> Vec<CardId> {
+        if r.player_selection {
+            return vec![s.players[0].base, s.players[1].base];
+        }
         if let Some(native)=&r.native {return self.native_selector_candidates(s,source,r,native).into_iter().filter(|id|r.predicate.as_ref().is_none_or(|p|self.eval(s,source,*id,p).truth())).collect();}
         let owner = s.card(source).owner;
         let mut out = Vec::new();
@@ -1888,11 +1891,19 @@ impl Engine {
                     } else { out.push(Action::button("Choose no target","noTarget")); }
                 }
                 if named && !s.ability_committed && s.ability_return==0 { out.push(Action::button("Cancel","cancel")); }
-                let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
-                    self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
-                };
-                for id in candidates {
-                    if !r.is_multiple() || picks.len<r.max_targets().expect("validated selector") as u8 || picks.ids[..picks.len as usize].contains(&id) { out.push(self.card_action(s,id)); }
+                if r.player_selection {
+                    let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
+                        self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
+                    };
+                    if candidates.contains(&s.player(s.active).base) { out.push(Action::button("You",0)); }
+                    if candidates.contains(&s.player(s.active.other()).base) { out.push(Action::button("Opponent",1)); }
+                } else {
+                    let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
+                        self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
+                    };
+                    for id in candidates {
+                        if !r.is_multiple() || picks.len<r.max_targets().expect("validated selector") as u8 || picks.ids[..picks.len as usize].contains(&id) { out.push(self.card_action(s,id)); }
+                    }
                 }
             }
             Decision::AbilityDistribute => {
@@ -2683,6 +2694,9 @@ impl Engine {
                 "ownPlayer" => vec![Eval::Player(owner)],
                 "enemyPlayer" => vec![Eval::Player(owner.other())],
                 "bothPlayers" => vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)],
+                "chosenPlayer" if s.ability_target != 0 && self.def(s, s.ability_target).info.is("base") => {
+                    vec![Eval::Player(s.card(s.ability_target).owner)]
+                }
                 _ => vec![],
             },
         }
@@ -3149,6 +3163,17 @@ impl Engine {
                 let r=if let Some((r,_))=nested { r } else { let Instruction::Select(r)=&p.instructions[s.ability_pc as usize] else { unreachable!() }; r };
                 if a.arg.as_ref().and_then(Value::as_str)==Some("passAbility") { self.end_program(&mut t)?; }
                 else if a.arg.as_ref().and_then(Value::as_str)==Some("cancel") { self.cancel(&mut t); }
+                else if r.player_selection {
+                    let seat=if a.arg.as_ref().and_then(Value::as_u64)==Some(0){s.active}else if a.arg.as_ref().and_then(Value::as_u64)==Some(1){s.active.other()}else{return Err("player selection requires You/Opponent".into());};
+                    let base=t.player(seat).base;
+                    let candidates=if let Some((resolver,effect))=nested{self.group_candidates(s,resolver,effect,false)}else{self.program_targets(s,s.source,s.ability_program-1,s.ability_pc as usize,r,false)};
+                    if !candidates.contains(&base){return Err("selected player is not a legal target".into());}
+                    if nested.is_some(){return Err("nested player selection is unsupported".into());}
+                    t.ability_target=base;
+                    t.ability_selection=Selection::one(base);
+                    t.ability_pc+=1;
+                    self.run_program(&mut t)?;
+                }
                 else {
                     if r.is_multiple() && a.id().is_some() {
                         let picks=if nested.is_some(){t.event_group.picks}else{t.ability_selection};

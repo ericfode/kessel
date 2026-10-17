@@ -658,6 +658,7 @@ impl Target {
                     "enemyBase",
                     "bothBases",
                     "chosen",
+                    "chosenPlayer",
                     "ownPlayer",
                     "enemyPlayer",
                     "bothPlayers",
@@ -709,6 +710,8 @@ pub struct TargetResolver {
     pub mode: Option<String>,
     pub count: Option<Expr>,
     pub native: Option<selector_contract::NativeCardSelection>,
+    /// Exact `playerSelection` / mode `player` resolver from the compiler IR.
+    pub player_selection: bool,
 }
 impl TargetResolver {
     /// A positive type predicate supplies the selector inventory domain; ordinary
@@ -736,6 +739,12 @@ impl TargetResolver {
         self.predicate.as_ref().is_some_and(mentions)
     }
     pub fn max_targets(&self) -> Result<usize, String> {
+        if self.player_selection {
+            if self.mode.as_deref() != Some("player") || self.count.is_some() || self.optional {
+                return Err("player selection requires exact non-optional mode player".into());
+            }
+            return Ok(1);
+        }
         match self.mode.as_deref() {
             None | Some("single") if self.count.is_none() => Ok(1),
             Some("upTo") => match self.count.as_ref().map(Expr::original) {
@@ -756,6 +765,31 @@ impl TargetResolver {
             native.validate()?;
             if let Some(predicate)=&self.predicate {predicate.validate()?;}
             return Ok(());
+        }
+        if self.player_selection {
+            if self.card_type != "player"
+                || self.owner != "any"
+                || self.arena.is_some()
+                || self.zone.is_some()
+                || self.optional
+                || self.predicate.is_some()
+                || self.count.is_some()
+                || self.prompt_title.is_some()
+                || self.mode.as_deref() != Some("player")
+            {
+                return Err("player selection requires exact reviewed single-player resolver shape".into());
+            }
+            let mut bytes = 0;
+            for fragment in &self.prompt_title_parts {
+                let Expr::Const { value } = fragment else {
+                    return Err("player selection prompt requires bounded static text".into());
+                };
+                bytes += value.as_str().ok_or("player selection prompt requires string fragments")?.len();
+            }
+            if bytes > 1024 || self.prompt_title_parts.len() > 32 {
+                return Err("player selection prompt exceeds capacity".into());
+            }
+            return self.max_targets().map(|_| ());
         }
         if !self.prompt_title_parts.is_empty() {
             let expected=serde_json::json!([{"kind":"const","value":"Choose a unit to deal "},{"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]},{"kind":"const","value":" damage to"}]);
@@ -904,6 +938,16 @@ pub enum Effect {
         #[serde(rename = "targetResolver")]
         target_resolver: TargetResolver,
     },
+    /// Compiler `selectedPlayerSystem`; lowered to draw/ready/discard at program compile.
+    SelectedPlayerSystem {
+        system: String,
+        target: serde_json::Value,
+        #[serde(default)]
+        properties: crate::selected_player::SelectedPlayerProperties,
+        defaults: String,
+        #[serde(rename = "defaultTargetOverride")]
+        default_target_override: serde_json::Value,
+    },
 }
 impl Target {
     fn visit_expression_roots_mut(&mut self, visit: &mut impl FnMut(&mut Expr)) {
@@ -950,7 +994,8 @@ impl Effect {
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
             Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
-            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
+            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
+            | Self::SelectedPlayerSystem { .. } => {}
         }
     }
 }
@@ -2049,7 +2094,7 @@ impl Program {
         Ok(())
     }
     fn scalar_hand_amount(amount:&Expr,target:&Target)->Result<usize,String> {
-        if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer"].contains(&name.as_str())) {return Err("hand effects require a scalar player target".into());}
+        if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer","chosenPlayer"].contains(&name.as_str())) {return Err("hand effects require a scalar player target".into());}
         match amount.original() {Expr::Const {value}=>value.as_u64().filter(|n|(1..=2).contains(n)).map(|n|n as usize).ok_or("hand effect amount must be 1..2".into()),_=>Err("hand effects require literal bounded amounts".into())}
     }
     fn scalar_deck_amount(amount:&Expr,target:&Target)->Result<usize,String> {
@@ -2319,7 +2364,29 @@ impl Program {
             Effect::ReadyResources {amount,target} => {
                 amount.validate_number()?;target.validate()?;
                 if matches!(target,Target::Name(name) if name=="bothPlayers") {return Err("multi-player resource ready requires verified event batching".into());}
+                if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer","chosenPlayer"].contains(&name.as_str())) {
+                    return Err("resource ready requires a scalar player target".into());
+                }
+                if !matches!(amount.original(),Expr::Const{value} if value.as_u64().is_some_and(|n|(1..=2).contains(&n))) {
+                    return Err("resource ready amount must be literal 1..2".into());
+                }
                 self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::SelectedPlayerSystem {
+                system,
+                target,
+                properties,
+                defaults,
+                default_target_override,
+            } => {
+                let lowered = crate::selected_player::lower_fields(
+                    system,
+                    target,
+                    properties,
+                    defaults,
+                    default_target_override,
+                )?;
+                self.compile_effect(&lowered, depth)?;
             }
             Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=>{
                 if depth!=0 || !(if list.controller_order.is_some() {["event","whenDefeated"].contains(&self.trigger.as_str())}else{["whenPlayed","onAttack","whenDefeated"].contains(&self.trigger.as_str())}) || !value.as_u64().is_some_and(|n|(1..=3).contains(&n)) {return Err("arena damage requires literal standalone unit damage1..3".into());}
@@ -2891,7 +2958,7 @@ mod tests {
         assert!(matches!(portable, Expr::Const { .. }));
         assert_eq!(bytes, serde_json::to_vec(&portable).unwrap());
         let resolver = TargetResolver { native:None, owner: "any".into(), card_type:"unit".into(), arena:None,
-            zone:None, optional:false, predicate:None, mode:Some("upTo".into()), count:Some(expression), prompt_title:None, prompt_title_parts:vec![] };
+            zone:None, optional:false, predicate:None, mode:Some("upTo".into()), count:Some(expression), prompt_title:None, prompt_title_parts:vec![], player_selection:false };
         assert_eq!(resolver.max_targets(), Ok(3));
     }
     #[test]

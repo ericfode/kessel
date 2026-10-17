@@ -36,6 +36,9 @@ mod attached_constants;
 
 #[path = "src/deck_search.rs"]
 mod deck_search;
+#[allow(dead_code)]
+#[path = "src/selected_player.rs"]
+mod selected_player;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -79,6 +82,7 @@ fn targets(t: &Target) -> Result<String, String> {
         "ownPlayer" => "vec![Eval::Player(s.card(s.source).owner)]",
         "enemyPlayer" => "vec![Eval::Player(s.card(s.source).owner.other())]",
         "bothPlayers" => "vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)]",
+        "chosenPlayer" => "if s.ability_target!=0 && self.def(s,s.ability_target).info.is(\"base\") {vec![Eval::Player(s.card(s.ability_target).owner)]}else{vec![]}",
         _ => return Err(format!("target {n} requires interpreter")),
     }
     .into())
@@ -162,6 +166,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
+    println!("cargo:rerun-if-changed=src/selected_player.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");

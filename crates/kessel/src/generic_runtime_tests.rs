@@ -3800,3 +3800,6 @@ mod death_hook_tests;
 
 #[path = "smuggle_runtime_tests.rs"]
 mod smuggle_runtime_tests;
+
+#[path = "selected_player_tests.rs"]
+mod selected_player_tests;
