@@ -1,6 +1,5 @@
 //! Native, live self-play reductions. These registrations are extracted into a
 //! Definition cost rule, never executed as an ability or replaced with a no-op.
-use crate::model::{CardId, Seat, State};
 use serde_json::{json, Value};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -145,34 +144,4 @@ pub(crate) fn normalize(entry: &Value, abilities: &mut Value) -> Result<(), Stri
         abilities["card"] = json!([]);
     }
     Ok(())
-}
-
-impl SelfPlayCost {
-    pub(crate) fn reduction(self, state: &State, source: CardId) -> u16 {
-        let owner = state.card(source).owner;
-        let seats: &[Seat] = match self {
-            Self::FriendlyDamagedUnits => std::slice::from_ref(&owner),
-            Self::AllDamagedGroundUnits => &[Seat::P1, Seat::P2],
-        };
-        seats
-            .iter()
-            .map(|seat| {
-                let player = state.player(*seat);
-                player
-                    .ground
-                    .as_slice()
-                    .iter()
-                    .chain(
-                        if self == Self::FriendlyDamagedUnits {
-                            player.space.as_slice()
-                        } else {
-                            &[]
-                        }
-                        .iter(),
-                    )
-                    .filter(|&&id| state.card(id).present && state.card(id).damage > 0)
-                    .count() as u16
-            })
-            .sum()
-    }
 }
