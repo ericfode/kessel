@@ -1368,28 +1368,50 @@ pub(crate) fn basezone_source_kind(entry:&Value)->Option<bool> {
  }
  if epic_base_meta(entry,&sides) {
   let a=&sides.card[0];
-  if !epic_header(a){return None;}
-  if entry["card"]["text"]=="Epic Action: Give a Shield token to a non-leader unit."
-   && non_leader_unit_any(a)
-   && matches!(&a.effect,Effect::GiveShield{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1))
-  {return Some(false);}
-  if entry["card"]["text"]=="Epic Action: Deal 3 damage to a damaged non-leader unit."
-   && a.target_resolver.as_ref().is_some_and(|r|r.owner=="any"&&r.card_type=="any"&&r.zone.as_deref()==Some("anyAttackable")
-    &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()&&r.prompt_title.is_none()
-    && r.predicate.as_ref().is_some_and(|p|matches!(p,Expr::Binary{op,left,right} if op=="&&"
-     && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isNonLeaderUnit"&&reference(receiver,&["card"])&&args.is_empty())
-     && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&reference(left,&["card","damage"])&&num(right,0)))))
-   && matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(3))
-  {return Some(false);}
-  if entry["card"]["text"]=="Epic Action: Give a non-leader unit -4/-0 for this phase."
-   && non_leader_unit_any(a)
-   && matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),power,hp,duration}
-    if n=="chosen"&&duration=="phase"
-    && matches!(power,Expr::Unary{op,value} if op=="-"&&num(value,4))
-    && num(hp,0))
-  {return Some(false);}
-  return None;
+  if epic_header(a) {
+   if entry["card"]["text"]=="Epic Action: Give a Shield token to a non-leader unit."
+    && non_leader_unit_any(a)
+    && matches!(&a.effect,Effect::GiveShield{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(1))
+   {return Some(false);}
+   if entry["card"]["text"]=="Epic Action: Deal 3 damage to a damaged non-leader unit."
+    && a.target_resolver.as_ref().is_some_and(|r|r.owner=="any"&&r.card_type=="any"&&r.zone.as_deref()==Some("anyAttackable")
+     &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()&&r.prompt_title.is_none()
+     && r.predicate.as_ref().is_some_and(|p|matches!(p,Expr::Binary{op,left,right} if op=="&&"
+      && matches!(left.as_ref(),Expr::Query{name,receiver,args} if name=="isNonLeaderUnit"&&reference(receiver,&["card"])&&args.is_empty())
+      && matches!(right.as_ref(),Expr::Binary{op,left,right} if op=="!=="&&reference(left,&["card","damage"])&&num(right,0)))))
+    && matches!(&a.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Const{value}} if n=="chosen"&&value.as_u64()==Some(3))
+   {return Some(false);}
+   if entry["card"]["text"]=="Epic Action: Give a non-leader unit -4/-0 for this phase."
+    && non_leader_unit_any(a)
+    && matches!(&a.effect,Effect::ModifyStats{target:Target::Name(n),power,hp,duration}
+     if n=="chosen"&&duration=="phase"
+     && matches!(power,Expr::Unary{op,value} if op=="-"&&num(value,4))
+     && num(hp,0))
+   {return Some(false);}
+   return None;
+  }
  }
+ // Reviewed base OnLeaderDeployed watchers (Droid Manufactory / Shadow Collective Camp).
+ fn deploy_base_meta(entry:&Value,sides:&Sides,hp:u64)->bool {
+  entry["baseClass"]=="BaseCard"&&entry["card"]["types"]==serde_json::json!(["base"])&&entry["card"]["unique"]==false
+   &&entry["card"]["hp"]==hp&&entry["card"]["cost"].is_null()&&entry["card"]["power"].is_null()
+   &&(entry["card"]["epicAction"].is_null()||entry["card"]["epicAction"].as_str()==Some(""))
+   &&entry["card"]["rules"].is_null()&&entry["card"]["deployBox"].is_null()
+   &&entry["card"]["upgradePower"].is_null()&&entry["card"]["upgradeHp"].is_null()
+   &&entry["keywordValues"]==serde_json::json!({})&&entry["card"]["keywords"]==serde_json::json!([])
+   &&sides.card.len()==1&&sides.leader.is_empty()&&sides.unit.is_empty()
+   &&crate::death_hooks::leader_deploy_base_registration(&sides.card[0])
+ }
+ if deploy_base_meta(entry,&sides,24)
+  &&entry["card"]["text"]=="When you deploy a leader: Create 2 Battle Droid tokens."
+  && matches!(&sides.card[0].effect,Effect::CreateTokenUnit{token_type,amount:Expr::Const{value},target:Target::Name(t),enters_ready}
+   if token_type=="battleDroid"&&value.as_u64()==Some(2)&&t=="ownPlayer"&&!*enters_ready)
+ {return Some(false);}
+ if deploy_base_meta(entry,&sides,25)
+  &&entry["card"]["text"]=="When you deploy a leader: Draw a card."
+  && matches!(&sides.card[0].effect,Effect::Draw{target:Target::Name(t),amount:Expr::Const{value}}
+   if t=="ownPlayer"&&value.as_u64()==Some(1))
+ {return Some(false);}
  None
 }
 fn trait_constant_registration(a:&Ability)->bool {
@@ -1676,7 +1698,8 @@ impl Program {
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
             let smuggle=crate::death_hooks::smuggle_play_registration(ability);
-            if !crate::death_hooks::registration(ability) && !smuggle {
+            let leader_deploy=crate::death_hooks::leader_deploy_base_registration(ability);
+            if !crate::death_hooks::registration(ability) && !smuggle && !leader_deploy {
                 return Err(crate::death_hooks::reject_reason(ability));
             }
             let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
@@ -1684,6 +1707,8 @@ impl Program {
             program.hooks=ability.hooks.clone();
             if smuggle {
                 program.trigger="whenPlayedUsingSmuggle".into();
+            } else if leader_deploy {
+                program.trigger="onLeaderDeployed".into();
             } else if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(v) if matches!(v.alias,crate::death_hooks::AliasName::WhenPlayed))) {
                 program.trigger="eventHooks".into();
             }
@@ -2703,6 +2728,8 @@ impl Catalogue {
                         if !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
                     } else if hooks.iter().all(|a|crate::death_hooks::smuggle_play_registration(a)) {
                         if !crate::death_hooks::smuggle_play_entry(entry,&sides) {return Err("smuggle when-played requires complete ordinary smuggle unit source metadata and registration".into());}
+                    } else if hooks.iter().all(|a|crate::death_hooks::leader_deploy_base_registration(a)) {
+                        if !crate::death_hooks::leader_deploy_base_entry(entry,&sides) {return Err("leader-deploy base watchers require exact reviewed base shape".into());}
                     } else {
                         return Err(crate::death_hooks::reject_reason(hooks[0]));
                     }

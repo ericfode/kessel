@@ -36,6 +36,8 @@ pub struct Event {
 pub enum EventName {
     #[serde(rename = "onCardDefeated")]
     Defeated,
+    #[serde(rename = "onLeaderDeployed")]
+    LeaderDeployed,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
@@ -171,6 +173,17 @@ impl Predicate {
                 && (!p.other || !same_card)
         })
     }
+    /// Base watchers: `event.card.controller === player` (friendly leader deploy).
+    pub(crate) fn leader_deploy_friendly_controller(&self) -> bool {
+        let mut binding = None;
+        matches!(
+            self,
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["card", "controller"], &mut binding)
+                    && right.reference(&["player"])
+        )
+    }
 }
 fn plain_hook_header(a: &Ability) -> bool {
     a.trigger == "eventHooks"
@@ -270,6 +283,36 @@ pub(crate) fn smuggle_play_registration(a: &Ability) -> bool {
         _ => false,
     }
 }
+/// Sole OnLeaderDeployed watcher: friendly controller deploy → Battle Droid×2 or Draw 1.
+pub(crate) fn leader_deploy_base_registration(a: &Ability) -> bool {
+    if !plain_hook_header(a) || a.hooks.len() != 1 || a.target_resolver.is_some() {
+        return false;
+    }
+    match &a.hooks[0] {
+        Hook::Event(v)
+            if matches!(v.event, EventName::LeaderDeployed)
+                && v.predicate.leader_deploy_friendly_controller() => {}
+        _ => return false,
+    }
+    match &a.effect {
+        Effect::CreateTokenUnit {
+            token_type,
+            amount: Expr::Const { value },
+            target: Target::Name(t),
+            enters_ready,
+        } => {
+            token_type == "battleDroid"
+                && value.as_u64() == Some(2)
+                && t == "ownPlayer"
+                && !*enters_ready
+        }
+        Effect::Draw {
+            target: Target::Name(t),
+            amount: Expr::Const { value },
+        } => t == "ownPlayer" && value.as_u64() == Some(1),
+        _ => false,
+    }
+}
 pub(crate) fn reject_reason(a: &Ability) -> String {
     for hook in &a.hooks {
         if let Hook::Unsupported(v) = hook {
@@ -280,6 +323,11 @@ pub(crate) fn reject_reason(a: &Ability) -> String {
                 return format!("unimplemented hook alias {alias}");
             }
             return "unsupported event hook shape".into();
+        }
+        if let Hook::Event(v) = hook {
+            if matches!(v.event, EventName::LeaderDeployed) {
+                return "leader-deploy requires exact reviewed base registration".into();
+            }
         }
     }
     if a.hooks.iter().any(|h| {
@@ -344,4 +392,29 @@ pub(crate) fn smuggle_play_entry(e: &Value, sides: &Sides) -> bool {
             .is_some_and(|k| k.iter().any(|v| v == "smuggle"))
         && sides.card.len() == 1
         && smuggle_play_registration(&sides.card[0])
+}
+pub(crate) fn leader_deploy_base_entry(e: &Value, sides: &Sides) -> bool {
+    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
+        && e["baseClass"] == "BaseCard"
+        && e["card"]["types"] == serde_json::json!(["base"])
+        && e["card"]["unique"] == false
+        && e["card"]["cost"].is_null()
+        && e["card"]["power"].is_null()
+        && (e["card"]["epicAction"].is_null() || e["card"]["epicAction"] == "")
+        && e["card"]["rules"].is_null()
+        && e["card"]["deployBox"].is_null()
+        && e["card"]["upgradePower"].is_null()
+        && e["card"]["upgradeHp"].is_null()
+        && e["keywordValues"] == serde_json::json!({})
+        && e["card"]["keywords"] == serde_json::json!([])
+        && e["piloting"].is_null()
+        && e["attachCondition"].is_null()
+        && (e["stateWatchers"].is_null()
+            || e["stateWatchers"] == serde_json::json!([])
+            || e["stateWatchers"] == serde_json::json!({}))
+        && sides.leader.is_empty()
+        && sides.unit.is_empty()
+        && sides.card.len() == 1
+        && leader_deploy_base_registration(&sides.card[0])
+        && crate::ability_ir::basezone_source_kind(e) == Some(false)
 }

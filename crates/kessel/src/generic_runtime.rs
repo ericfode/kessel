@@ -3775,9 +3775,33 @@ impl Engine {
             } else {
                 self.finish(s)
             }
+        } else if self.begin_leader_deploy_base_watcher(s)? {
+            // Friendly base OnLeaderDeployed (draw / Battle Droid×2) after enter keywords.
+            Ok(())
         } else {
             self.finish(s)
         }
+    }
+    /// After a leader enters via deploy, fire the controller's reviewed base watcher.
+    fn begin_leader_deploy_base_watcher(&self, s: &mut State) -> Result<bool, String> {
+        if s.trigger_context != 1 || s.source == 0 {
+            return Ok(false);
+        }
+        let leader = s.source;
+        if !self.def(s, leader).info.is("leader") || !s.card(leader).deployed {
+            return Ok(false);
+        }
+        let base = s.player(s.card(leader).owner).base;
+        let Some(&program) = self
+            .card_programs(s, base)
+            .iter()
+            .find(|&&p| self.program(p).trigger == "onLeaderDeployed")
+        else {
+            return Ok(false);
+        };
+        s.source = base;
+        self.begin_program(s, program, 0)?;
+        Ok(true)
     }
 }
 

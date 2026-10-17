@@ -138,12 +138,112 @@ fn epic_action_no_targets_can_spend_with_use_anyway() {
 #[test]
 fn play_card_and_force_base_shapes_stay_rejected() {
     let e = engine();
-    for code in ["SOR_022", "LAW_020", "LOF_022", "TWI_025"] {
+    for code in ["SOR_022", "LAW_020", "LOF_022", "HMW_012"] {
         assert!(!e.by_code.contains_key(code), "{code} must stay rejected");
         let reason = e.rejected_cards().unwrap()[code].clone();
         assert!(
-            reason.contains("base-zone") || reason.contains("playCard") || reason.contains("event hook") || reason.contains("invalid") || reason.contains("inherited"),
+            reason.contains("base-zone") || reason.contains("playCard") || reason.contains("event hook") || reason.contains("invalid") || reason.contains("inherited") || reason.contains("leader-deploy"),
             "{code}: {reason}"
         );
     }
+}
+
+#[test]
+fn droid_manufactory_creates_two_battle_droids_on_leader_deploy() {
+    let e = engine();
+    assert!(e.by_code.contains_key("TWI_022"), "{:?}", e.rejected_cards().unwrap().get("TWI_022"));
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e);
+        let base = s.player(seat).base;
+        s.card_mut(base).def = e.by_code["TWI_022"];
+        let leader = s.player(seat).leader;
+        s.card_mut(leader).def = e.by_code["SOR_001"];
+        for _ in 0..5 {
+            let id = add(&e, &mut s, seat, "ASH_034");
+            s.player_mut(seat).resources.push(id).unwrap();
+            s.card_mut(id).exhausted = false;
+        }
+        s.active = seat;
+        s.action_player = Some(seat);
+        let menu = e.apply(&s, &e.card_action(&s, leader)).unwrap();
+        assert_eq!(menu.decision, Decision::LeaderMenu);
+        let deploy = e
+            .legal_actions(&menu)
+            .into_iter()
+            .find(|a| a.label.starts_with("Deploy "))
+            .expect("deploy");
+        let done = e.apply(&menu, &deploy).unwrap();
+        assert!(done.card(leader).deployed);
+        let droids: Vec<_> = e
+            .arena_units(&done)
+            .into_iter()
+            .filter(|&id| e.def(&done, id).code == "TOKEN_BATTLE_DROID" && done.card(id).owner == seat)
+            .collect();
+        assert_eq!(droids.len(), 2, "seat {seat:?}");
+        assert_eq!(done.decision, Decision::Window);
+    }
+}
+
+#[test]
+fn shadow_collective_camp_draws_on_leader_deploy() {
+    let e = engine();
+    assert!(e.by_code.contains_key("TWI_025"), "{:?}", e.rejected_cards().unwrap().get("TWI_025"));
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e);
+        let base = s.player(seat).base;
+        s.card_mut(base).def = e.by_code["TWI_025"];
+        let leader = s.player(seat).leader;
+        s.card_mut(leader).def = e.by_code["SOR_001"];
+        let drawn = add(&e, &mut s, seat, "ASH_034");
+        s.player_mut(seat).deck.push(drawn).unwrap();
+        let hand_before = s.player(seat).hand.len;
+        for _ in 0..5 {
+            let id = add(&e, &mut s, seat, "ASH_034");
+            s.player_mut(seat).resources.push(id).unwrap();
+            s.card_mut(id).exhausted = false;
+        }
+        s.active = seat;
+        s.action_player = Some(seat);
+        let menu = e.apply(&s, &e.card_action(&s, leader)).unwrap();
+        let deploy = e
+            .legal_actions(&menu)
+            .into_iter()
+            .find(|a| a.label.starts_with("Deploy "))
+            .expect("deploy");
+        let done = e.apply(&menu, &deploy).unwrap();
+        assert!(done.player(seat).hand.contains(drawn));
+        assert_eq!(done.player(seat).hand.len, hand_before + 1);
+        assert!(!done.player(seat.other()).hand.contains(drawn));
+    }
+}
+
+#[test]
+fn leader_deploy_base_watcher_does_not_fire_for_opponent_base() {
+    let e = engine();
+    let mut s = board(&e);
+    s.card_mut(s.players[0].base).def = e.by_code["TWI_025"];
+    s.card_mut(s.players[1].base).def = e.by_code["TWI_025"];
+    let leader = s.players[0].leader;
+    s.card_mut(leader).def = e.by_code["SOR_001"];
+    let p1_card = add(&e, &mut s, Seat::P1, "ASH_034");
+    let p2_card = add(&e, &mut s, Seat::P2, "ASH_034");
+    s.players[0].deck.push(p1_card).unwrap();
+    s.players[1].deck.push(p2_card).unwrap();
+    for _ in 0..5 {
+        let id = add(&e, &mut s, Seat::P1, "ASH_034");
+        s.players[0].resources.push(id).unwrap();
+        s.card_mut(id).exhausted = false;
+    }
+    s.active = Seat::P1;
+    s.action_player = Some(Seat::P1);
+    let menu = e.apply(&s, &e.card_action(&s, leader)).unwrap();
+    let deploy = e
+        .legal_actions(&menu)
+        .into_iter()
+        .find(|a| a.label.starts_with("Deploy "))
+        .expect("deploy");
+    let done = e.apply(&menu, &deploy).unwrap();
+    assert!(done.players[0].hand.contains(p1_card));
+    assert!(!done.players[1].hand.contains(p2_card));
+    assert!(done.players[1].deck.contains(p2_card));
 }
