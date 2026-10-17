@@ -1661,9 +1661,6 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
-        if v.get("arenaUnitOrder").is_none() && self.needs_modal_arena_order() {
-            return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
-        }
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
@@ -1779,6 +1776,11 @@ impl Engine {
             s.decision = Decision::Terminal;
         }
         self.check_stat_capacity(&s)?;
+        // Preserve existing import diagnostics before checking the additional
+        // selected-pool requirement. No imported state escapes either guard.
+        if !s.arena_order_exact && self.needs_modal_arena_order() {
+            return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
+        }
         Ok(s)
     }
     fn card_ref(&self, s: &State, id: CardId) -> Value {

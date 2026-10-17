@@ -519,6 +519,25 @@ fn modal_arena_import_guard_uses_selected_pool_and_execution_rejects_missing_glo
         imported.is_ok(),
         "retained unused programs do not broaden selected-pool reachability: {imported:?}"
     );
+    // Persecutor needs arena order even in a pool with no registration hooks,
+    // and before the future card itself enters play.
+    let persecutor = e.compiled_pool().unwrap()["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|card| card["setCode"] == "LAW_178")
+        .unwrap()
+        .clone();
+    selected["cards"].as_array_mut().unwrap().push(persecutor);
+    let modal_only = Engine::from_compiled_pool_bytes(
+        &serde_json::to_vec(&selected).unwrap(),
+        include_bytes!("../../../compiler/generated/catalog.json"),
+    )
+    .unwrap();
+    assert!(!modal_only.needs_registration_order());
+    assert!(modal_only.needs_modal_arena_order());
+    let err = modal_only.load_state(&strict_snapshot).unwrap_err();
+    assert!(err.contains("modal global damage"), "{err}");
 }
 
 #[test]
