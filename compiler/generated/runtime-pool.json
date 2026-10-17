@@ -33220,6 +33220,127 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "Raid 1 (This unit gets +1/+0 while attacking.)\nWhen you play a card using Smuggle: You may give an Experience token to a unit.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "3045538805",
+      "internalName": "hondo-ohnaka#thats-good-business",
+      "keywords": [
+        "smuggle",
+        "raid"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_005",
+      "setCodes": [
+        {
+          "number": 5,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 5,
+        "set": "SHD"
+      },
+      "subtitle": "That's Good Business",
+      "text": "When you play a card using Smuggle: You may exhaust this leader. If you do, give an Experience token to a unit.",
+      "title": "Hondo Ohnaka",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "Each other friendly unit that has 1 or more keywords gets +1/+0.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "9334480612",
+      "internalName": "boba-fett#daimyo",
+      "keywords": [],
+      "power": 4,
+      "rules": "A unit still has its keywords even if they don’t have any effect, as long as another ability has not made it lose those keywords\nBoba’s ability triggers if the played unit has a keyword upon entering play, so a unit with an active conditional keyword still triggers his ability.\n",
+      "setCode": "SHD_008",
+      "setCodes": [
+        {
+          "number": 8,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 8,
+        "set": "SHD"
+      },
+      "subtitle": "Daimyo",
+      "text": "When you play a unit that has 1 or more keywords: You may exhaust this leader. If you do, give a friendly unit +1/+0 for this phase.",
+      "title": "Boba Fett",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": "When you play an upgrade: You may exhaust an enemy unit with 6 or less remaining HP.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader. (Flip him, ready him, and move him to the ground arena.)",
+      "hp": 7,
+      "id": "9005139831",
+      "internalName": "the-mandalorian#sworn-to-the-creed",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_018",
+      "setCodes": [
+        {
+          "number": 18,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 18,
+        "set": "SHD"
+      },
+      "subtitle": "Sworn To The Creed",
+      "text": "When you play an upgrade: You may exhaust this leader. If you do, exhaust an enemy unit with 4 or less remaining HP.",
+      "title": "The Mandalorian",
+      "traits": [
+        "mandalorian",
+        "bounty hunter"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance"
       ],

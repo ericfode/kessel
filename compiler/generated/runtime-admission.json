@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 796
+    "sourceIr": 799
   },
   "runtimeAdmittedCards": [
     {
@@ -4096,6 +4096,21 @@
       "setCode": "SHD_004"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "hondo-ohnaka#thats-good-business",
+      "setCode": "SHD_005"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "boba-fett#daimyo",
+      "setCode": "SHD_008"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-mandalorian#sworn-to-the-creed",
+      "setCode": "SHD_018"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "remnant-science-facility",
       "setCode": "SHD_019"
@@ -5936,7 +5951,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1185,
+  "runtimeAdmittedCount": 1188,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -10559,11 +10574,6 @@
       "setCode": "SHD_003"
     },
     {
-      "internalName": "hondo-ohnaka#thats-good-business",
-      "reason": "hondo-ohnaka#thats-good-business: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SHD_005"
-    },
-    {
       "internalName": "jabba-the-hutt#his-high-exaltedness",
       "reason": "jabba-the-hutt#his-high-exaltedness: invalid ability IR: unknown variant `gainBounty`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SHD_006"
@@ -10572,11 +10582,6 @@
       "internalName": "moff-gideon#formidable-commander",
       "reason": "moff-gideon#formidable-commander: native attacks require a complete sole ordinary unit/event registration",
       "setCode": "SHD_007"
-    },
-    {
-      "internalName": "boba-fett#daimyo",
-      "reason": "boba-fett#daimyo: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SHD_008"
     },
     {
       "internalName": "hunter#outcast-sergeant",
@@ -10622,11 +10627,6 @@
       "internalName": "lando-calrissian#with-impeccable-taste",
       "reason": "lando-calrissian#with-impeccable-taste: invalid ability IR: unknown variant `playCardSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SHD_017"
-    },
-    {
-      "internalName": "the-mandalorian#sworn-to-the-creed",
-      "reason": "the-mandalorian#sworn-to-the-creed: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SHD_018"
     },
     {
       "internalName": "hylobon-enforcer",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1420,
+  "runtimeRejectedCount": 1417,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
