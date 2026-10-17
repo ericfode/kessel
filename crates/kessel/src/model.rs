@@ -6,10 +6,10 @@ pub const MAX_ZONE: usize = 64;
 // Exact budget: 28,208 + native attack grants 64 + registration chronology 256
 // + Disclose selection and alignment 16 + first-strike support flags (2 x 32 = 64)
 // + phase restriction mask (Card 36→40, 256 cards = 1024)
-// + Exploit pay-mode selection/continuation (Selection 12 + resume/settled 2,
-//   padded to 16). The added bytes are default-zero and stay off the hash stream.
+// + the inline Exploit pay-mode selection (net 8 bytes after alignment). The
+//   added field is default-zero and stays off the hash stream.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_648;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_640;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -398,17 +398,11 @@ impl Selection {
 
 /// Pinned-engine Exploit play-cost adjustment. `selection` retains the friendly
 /// units chosen at the play-cost prompt (capacity 5 covers the catalogue's
-/// maximum printed Exploit 4). `resume` records which continuation the event
-/// payment boundary interrupted, because the engine offers the adjuster after
-/// an event's early targets and before its cost is committed. `settled` marks
-/// that the pay-mode choice was already answered for the pending payment, so a
-/// resumed program instruction cannot offer the prompt twice.
+/// maximum printed Exploit 4). The engine resolves this prompt before an
+/// event's early targets and before any program instruction runs, so no
+/// continuation needs to be stored here.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct ExploitState { pub selection: Selection, pub resume: u8, pub settled: bool }
-/// Resume the interrupted event program (`run_program`).
-pub const EXPLOIT_RESUME_PROGRAM: u8 = 0;
-/// Commit the suspended event cost, then end a program with no resolvable effect.
-pub const EXPLOIT_RESUME_END: u8 = 1;
+pub struct ExploitState { pub selection: Selection }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct PreparedEvent {
     pub op: u16, pub target: CardId, pub amount: u16,
@@ -923,8 +917,6 @@ impl State {
         // pending; default storage stays off the historical hash stream.
         if self.exploit != ExploitState::default() {
             put(0x4558504c4f4954);
-            put(self.exploit.resume as u64);
-            put(self.exploit.settled as u64);
             put(self.exploit.selection.len as u64);
             for &id in &self.exploit.selection.ids[..self.exploit.selection.len as usize] {
                 put(id as u64);

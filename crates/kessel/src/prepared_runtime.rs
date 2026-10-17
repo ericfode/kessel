@@ -274,15 +274,12 @@ impl Engine {
                         s.active=s.event_group.initiator;
                         if matches!(choosers[index],crate::ability_ir::NamedChooser::Opponent) {
                             // Opponent pretarget always delays until original-player costs are paid.
-                            if !self.commit_program(s,true)? { return Ok(false); }
-                            s.active=s.event_group.initiator.other();
+                            self.commit_program(s)?;s.active=s.event_group.initiator.other();
                         }
                     }
                     if self.group_candidates(s,r,child,true).is_empty() {
                         // A missing pretarget delays the remaining named resolver chain until costs.
-                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {
-                            if !self.commit_program(s,true)? { return Ok(false); }
-                        }
+                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {self.commit_program(s)?;}
                         if matches!(self.program(s.ability_program-1).instructions[s.ability_pc as usize],Instruction::NamedChooserGroup{..}) {s.active=s.event_group.initiator;}
                         s.event_group.pc=*end as u16; continue;
                     }

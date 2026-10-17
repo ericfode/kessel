@@ -754,6 +754,17 @@ impl Engine {
                         t.set_trigger_context(TriggerContext::Action);
                         let programs = self.available_programs(&t, id, "event");
                         let program = *programs.first().ok_or("event has no executable ability")?;
+                        // Intrinsic Exploit settles before any program
+                        // instruction: the pinned engine suppresses an event's
+                        // early targets while Exploit is available and pays its
+                        // costs before activateHandler/resolveTargets. Without a
+                        // legal friendly target the adjuster does not exist, so
+                        // the ordinary delayed-payment flow applies.
+                        if self.def(&t, id).exploit > 0 && self.exploit_max_count(&t, seat, id) > 0 {
+                            t.exploit = ExploitState::default();
+                            t.decision = Decision::ExploitChoice;
+                            return Ok(t);
+                        }
                         self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                         return Ok(t);
                     }
@@ -930,11 +941,16 @@ impl Engine {
             }
             Decision::ExploitChoice => {
                 match arg {
-                    // Declining still pays the printed cost (plus aspect
-                    // penalty); the engine's adjuster contributes nothing.
+                    // Declining still settles the play at the printed cost (plus
+                    // aspect penalty); the engine's adjuster contributes nothing
+                    // but its early targets were already suppressed and costs
+                    // are paid before the program runs.
                     "playWithoutExploit" => {
                         if self.def(&t, t.source).info.is("event") {
-                            self.resume_exploit_program(&mut t)?;
+                            let event=t.source;
+                            let program=*self.available_programs(&t, event, "event").first().ok_or("event has no executable ability")?;
+                            self.preflight_exploit_event_settlement(&t, program)?;
+                            self.settle_exploit_event_program(&mut t, program, 0)?;
                         } else {
                             let played=t.source;
                             t.exploit=ExploitState::default();
@@ -954,14 +970,33 @@ impl Engine {
                 if arg=="done" {
                     let count=t.exploit.selection.len as u16;
                     let units=t.exploit.selection.as_slice().to_vec();
-                    // All selected units are defeated by the ability-sourced
-                    // adjuster. Capture every registration before moving any
-                    // unit: the engine creates all contingent defeat events in
-                    // one window, so each sees the pre-handler snapshot.
-                    self.defeat_many(&mut t, &units)?;
                     if self.def(&t, source).info.is("event") {
-                        self.resume_exploit_program(&mut t)?;
+                        let program=*self.available_programs(&t, source, "event").first().ok_or("event has no executable ability")?;
+                        // Preflight the settlement before any defeat mutates the
+                        // board (phase history, mandatory Force identity).
+                        self.preflight_exploit_event_settlement(&t, program)?;
+                        // All selected units are defeated by the ability-sourced
+                        // adjuster. Capture every registration before moving any
+                        // unit: the engine creates all contingent defeat events
+                        // in one window, so each sees the pre-handler snapshot.
+                        let start=t.death_pending.len as usize;
+                        self.defeat_many(&mut t, &units)?;
+                        // Stat deaths caused by an exploited aura departing are
+                        // part of the same cost-defeat window.
+                        self.sweep_stat_defeats(&mut t)?;
+                        let end=t.death_pending.len as usize;
+                        let event_end=self.program(program).event_end;
+                        let depth=t.death_depth;
+                        // These are the event's cost triggers: they resolve after
+                        // the play event's effect, so defer them to event_end
+                        // exactly like a defeat captured during the program.
+                        for entry in &mut t.death_pending.entries[start..end] {
+                            entry.after_pc=event_end;
+                            entry.defer_depth=depth;
+                        }
+                        self.settle_exploit_event_program(&mut t, program, 2*count)?;
                     } else {
+                        self.defeat_many(&mut t, &units)?;
                         t.exploit=ExploitState::default();
                         self.play_unit_from_hand(&mut t, seat, source, 2*count)?;
                     }
