@@ -2202,8 +2202,15 @@ impl Engine {
     /// register in the play event's window and resolve after its effect (the
     /// `after_pc = event_end` capture below). Keeping the card in hand until the
     /// choice settles preserves that order and makes Cancel free.
+    ///
+    /// A Plot/Smuggle event continuation also reaches this boundary with
+    /// `ability_committed` already set (the triggered play cannot be cancelled),
+    /// but its play cost is still paid here: PlayEventAction pays after early
+    /// targets and before the effect, so `pending_resource_event` keeps the
+    /// payment committed exactly once.
     fn commit_program(&self, s: &mut State, offer_exploit: bool) -> Result<bool, String> {
-        if s.ability_committed {
+        let pending_resource_event = self.pending_resource_event(s);
+        if s.ability_committed && !pending_resource_event {
             return Ok(true);
         }
         let source = s.source;
@@ -2236,6 +2243,8 @@ impl Engine {
             s.player_mut(s.active).discard.push(source)?;
             s.phase_history.played(s.active,source)?;
             s.exploit = ExploitState::default();
+        } else if pending_resource_event {
+            self.commit_resource_event_play(s)?;
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -2276,6 +2285,12 @@ impl Engine {
     }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
         s.disclose=DiscloseState::default();
+        // A resource-zone event play always pays for itself, including paths that
+        // end the program without executing an effect (declined optional ability,
+        // no-effect continuation). This is a no-op once the program committed.
+        if self.pending_resource_event(s) {
+            self.commit_resource_event_play(s)?;
+        }
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();

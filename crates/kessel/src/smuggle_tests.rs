@@ -53,6 +53,12 @@ fn smuggle_plays_unit_from_resources_for_smuggle_cost() {
     assert!(!played.player(Seat::P1).resources.contains(source));
     // 11 resources - source + replacement. The exhausted source pays first, then
     // six ready resources; the replacement enters exhausted.
+    //
+    // CONVENTION (hidden information, not engine-determined): forceteki shuffles
+    // the resource zone in rearrangeResourceExhaustState when a Smuggle play pays
+    // and reassigns which resources are exhausted. CR 1.7.4 makes that identity a
+    // legal player choice, so Kessel fixes one legal deterministic assignment
+    // (played card first, then Kessel zone order, counts preserved, no reorder).
     assert_eq!(played.player(Seat::P1).resources.len, 11);
     assert_eq!(exhausted(&played, Seat::P1), 7);
     assert_eq!(ready(&played, Seat::P1), 4);
@@ -61,8 +67,10 @@ fn smuggle_plays_unit_from_resources_for_smuggle_cost() {
     assert_eq!(played.player(Seat::P1).deck.len, 0);
     assert_eq!(played.decision, Decision::Window);
     assert_eq!(played.active, Seat::P2);
-    // Deterministic layout convention: the zone is not reordered, the played card
-    // is removed, and the replacement is appended.
+    // CONVENTION assertion (not parity evidence): Kessel's deterministic hidden
+    // resource layout is a fixed legal CR 1.7.4 assignment -- the zone is not
+    // reordered, the played card is removed, the replacement is appended, and the
+    // first ready resources in zone order pay. The engine shuffles this layout.
     let zone: Vec<_> = played
         .player(Seat::P1)
         .resources
@@ -90,6 +98,8 @@ fn smuggle_pays_keyword_cost_not_printed_cost() {
     assert!(can_play(&e, &s, source));
     let played = e.apply(&s, &e.card_action(&s, source)).unwrap();
     assert!(e.in_arena(&played, source));
+    // CONVENTION: the 9 exhausted resources follow Kessel's deterministic
+    // source-first hidden-resource assignment, not the engine's shuffle.
     assert_eq!(exhausted(&played, Seat::P1), 9);
 }
 
@@ -309,4 +319,59 @@ fn smuggle_admission_rejects_duplicate_and_additional_cost_shapes() {
             aspects: [1, 0, 0, 0, 0, 0]
         })
     );
+}
+
+/// PlayEventAction resolves a mandatory event ability's early targets before the
+/// play action is paid, and a player play action is cancellable there: the same
+/// card in the resource zone must stay there, unpaid, when the target prompt is
+/// abandoned. Choosing a target then pays, discards, replaces and resolves.
+#[test]
+fn smuggle_event_resolves_early_target_before_payment_and_can_be_cancelled() {
+    let e = engine();
+    let mut s = board(&e);
+    let source = resource(&e, &mut s, Seat::P1, "SHD_075"); // heal 2 + Experience, mandatory target
+    fillers(&e, &mut s, Seat::P1, 4);
+    let top = deck_top(&e, &mut s, Seat::P1, "LOF_256");
+    let target = unit(&e, &mut s, Seat::P1, "LOF_256");
+    s.card_mut(target).damage = 2;
+    assert!(can_play(&e, &s, source));
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    assert_eq!(prompt.decision, Decision::AbilityTarget);
+    assert!(
+        prompt.player(Seat::P1).resources.contains(source),
+        "early targets resolve before the Smuggle play cost"
+    );
+    assert_eq!(exhausted(&prompt, Seat::P1), 0);
+    assert!(prompt.player(Seat::P1).deck.contains(top));
+    let labels: Vec<_> = e
+        .legal_actions(&prompt)
+        .into_iter()
+        .map(|action| action.label)
+        .collect();
+    assert!(labels.iter().any(|label| label == "Cancel"), "{labels:?}");
+    // Cancelling the target selection abandons the play without any payment,
+    // discard or replacement.
+    let cancelled = e.apply(&prompt, &Action::button("Cancel", "cancel")).unwrap();
+    assert!(cancelled.player(Seat::P1).resources.contains(source));
+    assert!(!cancelled.card(source).exhausted);
+    assert!(cancelled.player(Seat::P1).deck.contains(top));
+    assert!(!cancelled.player(Seat::P1).discard.contains(source));
+    assert_eq!(exhausted(&cancelled, Seat::P1), 0);
+    assert_eq!(cancelled.decision, Decision::Window);
+    // A second attempt with a chosen target pays the keyword cost (3), performs
+    // the sibling replacement, then resolves the effect.
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    let resolved = e.apply(&prompt, &e.card_action(&prompt, target)).unwrap();
+    assert_eq!(resolved.card(target).damage, 0);
+    assert_eq!(e.token_count(&resolved, resolved.card(target).experience), 1);
+    assert!(resolved.player(Seat::P1).discard.contains(source));
+    assert!(!resolved.player(Seat::P1).resources.contains(source));
+    assert!(resolved.player(Seat::P1).resources.contains(top));
+    assert!(resolved.card(top).exhausted);
+    // CONVENTION: source-first payment then the replacement, using Kessel's
+    // deterministic hidden-resource assignment (the engine shuffles it).
+    assert_eq!(resolved.player(Seat::P1).resources.len, 5);
+    assert_eq!(exhausted(&resolved, Seat::P1), 3);
+    assert_eq!(resolved.decision, Decision::Window);
+    assert_eq!(resolved.active, Seat::P2);
 }

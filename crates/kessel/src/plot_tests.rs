@@ -68,6 +68,13 @@ fn plot_play_from_resources_pays_cost_and_replaces_with_exhausted_top_deck() {
     // 11 resources - source + replacement = 11. Payment exhausts the source
     // first (5 = 3 printed + 2 aspect penalty), so 4 in-zone resources stay
     // exhausted and the replacement enters exhausted.
+    //
+    // CONVENTION (hidden information, not engine-determined): forceteki shuffles
+    // the resource zone in rearrangeResourceExhaustState when a Plot play pays and
+    // reassigns which resources are exhausted. CR 1.7.4 makes that identity a
+    // legal player choice, so Kessel fixes one legal deterministic assignment
+    // (played card first, then Kessel zone order, counts preserved, no reorder).
+    // The counts below assert that convention, not parity with a recording.
     assert_eq!(played.player(Seat::P1).resources.len, 11);
     assert_eq!(exhausted(&played, Seat::P1), 5);
     assert_eq!(ready(&played, Seat::P1), 6);
@@ -98,6 +105,8 @@ fn plot_empty_deck_still_plays_without_replacement() {
         .apply(&after, &Action::button("Trigger", "trigger"))
         .unwrap();
     assert!(e.in_arena(&played, plot));
+    // CONVENTION: the exhausted counts use Kessel's deterministic hidden-resource
+    // assignment (see the payment/replacement test above), not the engine shuffle.
     assert_eq!(played.player(Seat::P1).resources.len, 10);
     assert_eq!(exhausted(&played, Seat::P1), 4);
     assert_eq!(ready(&played, Seat::P1), 6);
@@ -296,4 +305,101 @@ fn plot_admission_boundaries_are_explicit() {
     })
     .unwrap();
     assert!(leader.rejected_cards().unwrap()["SOR_014"].contains("cannot be printed on a leader"));
+}
+
+/// SYNTHETIC diagnostic (no printed Plot event is admitted, so the dormant plot
+/// event continuation is exercised by marking an admitted event's Definition):
+/// PlayEventAction resolves a mandatory event ability's targets before the play
+/// cost, the nested plot play has no Cancel, and the plot `ifYouDo` replacement
+/// happens after the effect.
+#[test]
+fn plot_event_resolves_early_target_before_payment_without_cancel() {
+    let mut e = engine();
+    let def = e.by_code["SOR_073"]; // 1-cost vigilance event, mandatory unit target
+    e.definitions[def as usize].plot = true;
+    let mut s = board(&e);
+    let event = resource(&e, &mut s, Seat::P1, "SOR_073");
+    fillers(&e, &mut s, Seat::P1, 3);
+    let top = deck_top(&e, &mut s, Seat::P1, "LOF_256");
+    let target = unit(&e, &mut s, Seat::P1, "LOF_254");
+    let after = deploy(&e, &s, Seat::P1);
+    assert_eq!(after.decision, Decision::PlotOptional);
+    let prompt = e
+        .apply(&after, &Action::button("Trigger", "trigger"))
+        .unwrap();
+    assert_eq!(prompt.decision, Decision::AbilityTarget);
+    // The plot cost (1, vigilance matched by the base) is paid only after the
+    // target is chosen; the card is still in the resource zone at the prompt.
+    assert!(prompt.player(Seat::P1).resources.contains(event));
+    assert_eq!(exhausted(&prompt, Seat::P1), 0);
+    assert!(prompt.player(Seat::P1).deck.contains(top));
+    let labels = labels(&e, &prompt);
+    assert!(
+        !labels.iter().any(|label| label == "Cancel"),
+        "the nested plot play is not cancellable: {labels:?}"
+    );
+    assert!(
+        e.apply(&prompt, &Action::button("Cancel", "cancel")).is_err(),
+        "Cancel is not a legal plot target action"
+    );
+    let resolved = e.apply(&prompt, &e.card_action(&prompt, target)).unwrap();
+    assert_ne!(resolved.card(target).shield, 0, "plotted event gave a Shield");
+    assert!(resolved.player(Seat::P1).discard.contains(event));
+    assert!(!resolved.player(Seat::P1).resources.contains(event));
+    assert!(resolved.player(Seat::P1).resources.contains(top));
+    assert!(resolved.card(top).exhausted);
+    // CONVENTION: source-first payment then the ifYouDo replacement, using
+    // Kessel's deterministic hidden-resource assignment.
+    assert_eq!(resolved.player(Seat::P1).resources.len, 4);
+    assert_eq!(exhausted(&resolved, Seat::P1), 1);
+    assert_eq!(resolved.decision, Decision::Window);
+    assert_eq!(resolved.active, Seat::P2);
+    assert_eq!(resolved.plot, PlotState::default());
+}
+
+/// SYNTHETIC diagnostic (every printed Plot upgrade stays rejected, so this marks
+/// an admitted plain upgrade's Definition as Plot): PlayUpgradeAction resolves the
+/// attach target before paying, the nested plot continuation has no Cancel, and a
+/// plot upgrade can therefore never be abandoned after payment into no zone.
+#[test]
+fn plot_upgrade_attach_is_mandatory_and_pays_on_the_chosen_target() {
+    let mut e = engine();
+    let def = e.by_code["HMW_235"]; // 1-cost cunning upgrade, no abilities
+    e.definitions[def as usize].plot = true;
+    let mut s = board(&e);
+    let upgrade = resource(&e, &mut s, Seat::P1, "HMW_235");
+    fillers(&e, &mut s, Seat::P1, 5);
+    let top = deck_top(&e, &mut s, Seat::P1, "LOF_256");
+    let leader = s.player(Seat::P1).leader;
+    let after = deploy(&e, &s, Seat::P1);
+    assert_eq!(after.decision, Decision::PlotOptional);
+    let prompt = e
+        .apply(&after, &Action::button("Trigger", "trigger"))
+        .unwrap();
+    assert_eq!(prompt.decision, Decision::UpgradeTarget);
+    assert!(
+        prompt.player(Seat::P1).resources.contains(upgrade),
+        "the attach target is chosen before the plot cost is paid"
+    );
+    assert_eq!(exhausted(&prompt, Seat::P1), 0);
+    let labels = labels(&e, &prompt);
+    assert!(
+        !labels.iter().any(|label| label == "Cancel"),
+        "the plot upgrade attach is not cancellable: {labels:?}"
+    );
+    assert!(
+        e.apply(&prompt, &Action::button("Cancel", "cancel")).is_err(),
+        "a paid plot upgrade can never be abandoned into a cardless state"
+    );
+    let attached = e.apply(&prompt, &e.card_action(&prompt, leader)).unwrap();
+    assert!(e.upgrades(&attached, leader).contains(&upgrade));
+    assert!(!attached.player(Seat::P1).resources.contains(upgrade));
+    assert!(attached.player(Seat::P1).resources.contains(top));
+    assert!(attached.card(top).exhausted);
+    // Cost 3 = 1 printed + 2 for the unmatched cunning aspect; source first then
+    // two ready fillers, then the replacement (CONVENTION hidden-resource layout).
+    assert_eq!(attached.player(Seat::P1).resources.len, 6);
+    assert_eq!(exhausted(&attached, Seat::P1), 3);
+    assert_eq!(attached.decision, Decision::Window);
+    assert_eq!(attached.active, Seat::P2);
 }
