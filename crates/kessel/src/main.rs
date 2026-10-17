@@ -153,6 +153,13 @@ fn catalogue(args: &Args) -> Result<(), String> {
                 code,
                 json!({"setCode":code,"internalName":name,"reason":reason}),
             );
+        } else if let Some(canonical) = entry["aliasOf"].as_str() {
+            // Loadable reprint printings stay out of compiled_pool / runtime-pool.
+            // Keep the admission inventory identical to that export.
+            rejections.insert(
+                code,
+                json!({"setCode":code,"internalName":name,"reason":format!("reprint alias of {canonical}")}),
+            );
         } else {
             let implementation = if entry["status"] != "supported" {
                 native_adapters += 1;

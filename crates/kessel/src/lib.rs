@@ -28,6 +28,8 @@ mod attack_history;
 
 mod attached_registration;
 
+mod piloting_attached;
+
 mod native_attack;
 
 mod advantage;
@@ -35,3 +37,9 @@ mod advantage;
 mod attached_constants;
 
 mod deck_search;
+
+mod selected_player;
+
+mod discard_return;
+
+mod view_cards;

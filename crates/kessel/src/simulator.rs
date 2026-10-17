@@ -303,7 +303,8 @@ impl Engine {
         Ok(())
     }
     fn attached_in_play(&self,s:&State,id:CardId)->bool {
-        s.card(id).parent!=0 && self.in_arena(s,s.card(id).parent)
+        let parent=s.card(id).parent;
+        parent!=0 && (self.in_arena(s,parent) || s.players.iter().any(|p|p.base==parent))
     }
     fn upgrades(&self,s:&State,parent:CardId)->Vec<CardId> {
         let mut ids=vec![];let mut id=s.card(parent).upgrades;
@@ -334,7 +335,11 @@ impl Engine {
             let mut id=s.card(parent).upgrades;let mut chain=std::collections::HashSet::new();
             while id!=0 {
                 if id>=s.next_id || !s.card(id).present || !chain.insert(id) || !seen.insert(id) {return Err("invalid or cyclic attachment chain".into());}
-                if s.card(id).parent!=parent || !self.in_arena(s,parent) || !self.def(s,id).info.is("upgrade") || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
+                let parent_live=self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent);
+                let attachable=self.def(s,id).info.is("upgrade")
+                    || (self.def(s,id).info.is("unit") && self.def(s,id).info.has_keyword("piloting")
+                        && self.def(s,id).info.upgrade_power.is_some() && self.def(s,id).info.upgrade_hp.is_some());
+                if s.card(id).parent!=parent || !parent_live || !attachable || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
                 id=s.card(id).next_upgrade;
             }
             for (head,def) in [(s.card(parent).shield,Some(self.shield_def)),(s.card(parent).experience,self.experience_def)] {
@@ -506,6 +511,13 @@ impl Engine {
                 if deploy || ability {
                     out.push(self.card_action(s, p.leader));
                 }
+                let base = p.base;
+                if base != 0
+                    && !s.card(base).epic_used
+                    && !self.available_programs(s, base, "epicAction").is_empty()
+                {
+                    out.push(self.card_action(s, base));
+                }
             }
             Decision::LeaderMenu => {
                 let (deploy, ability) = self.leader_available(s);
@@ -627,7 +639,7 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -728,6 +740,17 @@ impl Engine {
                     } else if ability {
                         self.use_leader(&mut t)?;
                     }
+                } else if id == t.player(seat).base {
+                    if t.card(id).epic_used {
+                        return Err("base epic action already spent".into());
+                    }
+                    let programs = self.available_programs(&t, id, "epicAction");
+                    let program = *programs
+                        .first()
+                        .ok_or("base has no executable epic action")?;
+                    t.source = id;
+                    t.trigger_context = 0;
+                    self.begin_program(&mut t, program, 0)?;
                 } else if t.player(seat).hand.contains(id) {
                     if self.def(&t,id).info.is("upgrade") {t.source=id;t.decision=Decision::UpgradeTarget;return Ok(t);}
                     if self.catalogue.is_some() && self.def(&t, id).info.is("event") {
@@ -784,6 +807,7 @@ impl Engine {
                         t.player_mut(seat).hand.remove(upgrade);
                     }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
+                    t.enter_smuggle=from_resources;
                     if from_resources {self.resource_deck_top_after_play(&mut t,seat)?;}
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
@@ -852,7 +876,7 @@ impl Engine {
                     if self.catalogue.is_none() && (d.code == "SOR_014" || d.code == "IBH_053") {
                         t.pending_triggers |= T_LEADER;
                     }
-                    self.queue_programs(&mut t, "onAttack");
+                    self.queue_programs(&mut t, &["onAttack"]);
                     if let Some(context)=declaration_context.as_ref() {
                         if !self.capture_defense_window(&mut t,context)? {self.process_triggers(&mut t)?;}
                     } else {self.process_triggers(&mut t)?;}
@@ -951,7 +975,7 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;
@@ -1036,6 +1060,7 @@ impl Engine {
         self.resource_deck_top_after_play(s, seat)?;
         s.source = id;
         s.trigger_context = 1;
+        s.enter_smuggle = true;
         if self.def(s, id).info.unique && self.duplicates(s, id) > 1 {
             s.decision = Decision::Unique;
             Ok(())
@@ -1123,7 +1148,7 @@ impl Engine {
         // unique copy's ongoing effects disabled. Resolution sees settled deaths.
         s.decision = Decision::Window;
         s.disabled_ongoing_source = unique_defeat.unwrap_or(0);
-        self.capture_enter_triggers(s);
+        self.capture_enter_triggers(s)?;
         s.disabled_ongoing_source = 0;
         if let Some(id) = unique_defeat {
             self.defeat(s, id)?;
@@ -1131,17 +1156,27 @@ impl Engine {
         self.sweep_stat_defeats(s)?;
         self.process_triggers(s)
     }
-    fn capture_enter_triggers(&self, s: &mut State) {
+    fn capture_enter_triggers(&self, s: &mut State) -> Result<(), String> {
         let flags = self.effective_flags(s, s.source);
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
             | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
             | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
         s.trigger_context = 1;
+        let smuggle = s.enter_smuggle;
+        s.enter_smuggle = false;
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
-        // Ambush/Shielded also watch OnLeaderDeployed.
+        // Ambush/Shielded also watch OnLeaderDeployed. Smuggle-only aliases
+        // watch OnCardPlayed with PlayType.Smuggle; leader fronts also watch
+        // Smuggle playType via capture_card_played_watchers.
         if !self.def(s, s.source).info.is("leader") {
-            self.queue_programs(s, "whenPlayed");
+            if smuggle {
+                self.queue_programs(s, &["whenPlayed", "whenPlayedUsingSmuggle"]);
+            } else {
+                self.queue_programs(s, &["whenPlayed"]);
+            }
+            self.capture_card_played_watchers(s, smuggle)?;
         }
+        Ok(())
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.trigger_context==4 {return self.process_deaths(s);}
@@ -1580,7 +1615,10 @@ impl Engine {
                     s.card_mut(id).experience = uid;
                     prior
                 } else {
-                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
+                    let attachable=self.def(s,uid).info.is("upgrade")
+                        || (self.def(s,uid).info.is("unit") && self.def(s,uid).info.has_keyword("piloting")
+                            && self.def(s,uid).info.upgrade_power.is_some() && self.def(s,uid).info.upgrade_hp.is_some());
+                    if !attachable || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
                     0
                 };
                 s.card_mut(uid).next_token = prior;

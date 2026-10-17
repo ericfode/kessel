@@ -27,6 +27,10 @@ mod attack_history;
 #[path = "src/attached_registration.rs"]
 mod attached_registration;
 
+#[allow(dead_code)]
+#[path = "src/piloting_attached.rs"]
+mod piloting_attached;
+
 #[path="src/advantage.rs"]
 mod advantage;
 
@@ -36,6 +40,15 @@ mod attached_constants;
 
 #[path = "src/deck_search.rs"]
 mod deck_search;
+#[allow(dead_code)]
+#[path = "src/selected_player.rs"]
+mod selected_player;
+#[allow(dead_code)]
+#[path = "src/discard_return.rs"]
+mod discard_return;
+#[allow(dead_code)]
+#[path = "src/view_cards.rs"]
+mod view_cards;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -79,6 +92,7 @@ fn targets(t: &Target) -> Result<String, String> {
         "ownPlayer" => "vec![Eval::Player(s.card(s.source).owner)]",
         "enemyPlayer" => "vec![Eval::Player(s.card(s.source).owner.other())]",
         "bothPlayers" => "vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)]",
+        "chosenPlayer" => "if s.ability_target!=0 && self.def(s,s.ability_target).info.is(\"base\") {vec![Eval::Player(s.card(s.ability_target).owner)]}else{vec![]}",
         _ => return Err(format!("target {n} requires interpreter")),
     }
     .into())
@@ -135,6 +149,7 @@ fn lower(p: &Program) -> Result<String, String> {
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
             Instruction::Apply(Effect::DistributeHealing{..})=>"s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
+            Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),
             Instruction::Apply(e)=>format!("self.commit_program(s)?;{}s.ability_pc+=1;",primitive(e)?),
             _=>return Err("instruction control/expression requires interpreter".into()),
@@ -155,6 +170,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
+    println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
@@ -162,6 +178,8 @@ fn main() {
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
+    println!("cargo:rerun-if-changed=src/selected_player.rs");
+    println!("cargo:rerun-if-changed=src/discard_return.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");
