@@ -69,6 +69,28 @@ pub(crate) fn delegated_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
         && entry["card"]["keywords"].as_array().is_some_and(|keywords|
             keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
 }
+/// One persistent attached-unit restriction registration, optionally beside one
+/// ordinary play/attack/defense registration. The restriction is a live
+/// parent-targeted constant, so the host identity and its lifecycle stay the
+/// upgrade's physical attachment rather than a new event registration.
+pub(crate) fn attached_restriction_constant(a: &Ability) -> bool {
+    a.trigger == "constant" && a.attached_context.as_deref() == Some("upgrade") && a.condition.is_none()
+        && a.target_resolver.is_none() && a.target_resolvers.is_empty() && a.then.is_none() && a.if_you_do.is_none()
+        && a.costs.is_empty() && !a.optional && !a.coordinate && !a.requires_confirmation && a.context_title.is_empty()
+        && matches!(&a.effect, crate::ability_ir::Effect::CardRestriction {
+            target: crate::ability_ir::Target::Name(n), duration, condition: None, ..
+        } if n == "parent" && duration == "persistent")
+}
+pub(crate) fn attached_restriction_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::LegacyContext.accepts(entry) && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["unique"].is_boolean()
+        && entry["card"]["keywords"].as_array().is_some_and(|keywords|
+            keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
+        && sides.card.len() == 2
+        && sides.card.iter().filter(|a|attached_restriction_constant(a)).count() == 1
+        && sides.card.iter().filter(|a|!attached_restriction_constant(a)).all(|a|
+            ["whenPlayed", "whenDefeated", "onAttack", "onDefense"].contains(&a.trigger.as_str()))
+}
 
 fn marker(v:&Value)->bool { crate::ability_ir::contains(v,|v|v["kind"]=="attachedAbilityRegistration") }
 fn internal(v:&Value)->bool {crate::ability_ir::contains(v,|v|v.as_object().is_some_and(|o|o.contains_key("attachedHost"))) }

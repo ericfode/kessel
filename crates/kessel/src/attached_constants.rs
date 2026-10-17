@@ -132,7 +132,9 @@ pub(crate) fn validate_context(ability:&Ability)->Result<(),String> {
             return Err("attached contexts require bounded constant keyword registrations".into());
         }
         let binding=binding.expect("checked attachment context");
-        if !binding.keyword_leaves(&ability.effect,ability.target_resolver.is_some()) && !crate::attached_constants::host_trait_aura(ability) || (binding==AttachmentContext::Upgrade && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
+        let upgrade_restriction = binding==AttachmentContext::Upgrade
+            && crate::attached_registration::attached_restriction_constant(ability);
+        if (!binding.keyword_leaves(&ability.effect,ability.target_resolver.is_some()) && !upgrade_restriction && !crate::attached_constants::host_trait_aura(ability)) || (binding==AttachmentContext::Upgrade && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
         if binding==AttachmentContext::Host {
             if ability.condition.as_ref().is_some_and(|e|e.any(|e|match e {
                 Expr::NativeTokenPredicate{..}|Expr::Compiled(_)=>Some(false),

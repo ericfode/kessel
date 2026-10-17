@@ -2,7 +2,7 @@ use super::*;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
-// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 = 28544 bytes; Card remains 36 bytes.
+// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 + first-strike support flags (32 x 2 = 64) + phase restriction mask (Card 36->40, 256 cards = 1024) = 29632 bytes; Card remains 40 bytes.
 use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
@@ -1819,7 +1819,7 @@ fn restricted_pools_must_hold_the_tokens_their_cards_create() {
     pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_XWING");
     let err=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap();
     assert!(err.contains("creates TOKEN_XWING, which the pool omits"),"{err}");
-    pool["cards"].as_array_mut().unwrap().retain(|c|!["JTL_099","JTL_117","JTL_252","JTL_254"].contains(&c["setCode"].as_str().unwrap()));
+    pool["cards"].as_array_mut().unwrap().retain(|c|!["JTL_099","JTL_117","JTL_205","JTL_252","JTL_254"].contains(&c["setCode"].as_str().unwrap()));
     assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).is_ok());
 }
 #[test]
@@ -2449,7 +2449,7 @@ fn weakness_effect()->crate::ability_ir::Effect {serde_json::from_value(json!({"
 #[test]
 fn weakness_admission_preserves_reviewed_native_token_and_completed_sources() {
     let e=engine();for code in ["HMW_059","HMW_087","HMW_242","HMW_003","HMW_065","TOKEN_WEAKNESS"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}
-    assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+    assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
     let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for (field,value) in [("power",json!(1)),("upgradeHp",json!(0)),("types",json!(["unit","token"])),("traits",json!([])),("aspects",json!(["heroism"])),("text",json!("Draw a card")),("unique",json!(true)),("cost",json!(1))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token["card"][field]=value;let altered=Engine::from_catalogue_value(&catalog).unwrap();assert!(!altered.by_code.contains_key("TOKEN_WEAKNESS"),"{field}");}
     for (field,value) in [("keywordValues",json!({"hidden":1})),("abilities",json!({"leader":[],"unit":[],"card":[{"trigger":"whenPlayed","title":"Injected","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}]}))] {let mut catalog=original.clone();let token=catalog["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_WEAKNESS").unwrap();token[field]=value;assert!(!Engine::from_catalogue_value(&catalog).unwrap().by_code.contains_key("TOKEN_WEAKNESS"));}
@@ -2896,7 +2896,7 @@ fn named_chooser_raw_shapes_fail_closed() {
  for (field,value) in [("owner",json!("any")),("optional",json!(true)),("type",json!("nonLeaderUnit")),("arena",json!("ground"))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for (field,value) in [("pilotText",json!("Pilot")),("keywords",json!(["ambush"])),("types",json!(["leader","unit"])),("unique",json!(null))] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["card"][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
  for name in ["target","constructor","prototype","__proto__","0choice"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LAW_099").unwrap();card["abilities"]["card"][0]["targetResolvers"][0]["name"]=json!(name);assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LAW_099"));}
- assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+ assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 
 #[test]
@@ -2972,7 +2972,7 @@ fn arena_uniform_damage_shield_context_ids_both_owner_orders() {
 #[test]
 fn arena_uniform_damage_storage_hash_and_size_are_explicit() {
     assert!(UniformDamageRecord::new(0,0).is_err());assert!(UniformDamageRecord::new(256,0).is_err());assert!(UniformDamageRecord::new(1,256).is_err());assert_eq!(UniformDamageRecord::new(255,255).unwrap().target(),255);
-    let s=State::default();let unchanged=s;assert_eq!(s.zobrist(),unchanged.zobrist());let mut pending=s;pending.event_group.uniform_damage.active=true;pending.event_group.uniform_damage.count=1;pending.event_group.uniform_damage.records[0]=UniformDamageRecord::new(1,2).unwrap();assert_ne!(s.zobrist(),pending.zobrist());let before=pending.zobrist();pending.event_group.uniform_damage.prevent(0);assert_ne!(before,pending.zobrist());pending.event_group=EventGroupState::default();assert_eq!(s.zobrist(),pending.zobrist());assert_eq!(std::mem::size_of::<Card>(),36);eprintln!("uniform State bytes={}",std::mem::size_of::<State>());
+    let s=State::default();let unchanged=s;assert_eq!(s.zobrist(),unchanged.zobrist());let mut pending=s;pending.event_group.uniform_damage.active=true;pending.event_group.uniform_damage.count=1;pending.event_group.uniform_damage.records[0]=UniformDamageRecord::new(1,2).unwrap();assert_ne!(s.zobrist(),pending.zobrist());let before=pending.zobrist();pending.event_group.uniform_damage.prevent(0);assert_ne!(before,pending.zobrist());pending.event_group=EventGroupState::default();assert_eq!(s.zobrist(),pending.zobrist());assert_eq!(std::mem::size_of::<Card>(),40);eprintln!("uniform State bytes={}",std::mem::size_of::<State>());
 }
 #[test]
 fn arena_uniform_damage_same_owner_shields_rotate_alternates() {
@@ -3017,7 +3017,7 @@ fn weakness4_admission_preserves_whole_sources_and_native_dependencies() {
  let e=engine();for code in ["HMW_100","HMW_199","HMW_202","HMW_231"] {assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));}assert_eq!(e.definitions[*e.by_code.get("HMW_202").unwrap() as usize].programs.card.len(),2);
  let original:Value=committed_catalogue().clone();
  for token in ["TOKEN_WEAKNESS","TOKEN_BEAST"] {for malformed in [false,true] {let mut c=original.clone();if malformed {c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==token).unwrap()["card"]["title"]=json!("Wrong native");}else{c["cards"].as_array_mut().unwrap().retain(|e|e["setCode"]!=token);}let e=Engine::from_catalogue_value(&c).unwrap();assert!(!e.by_code.contains_key("HMW_199"));if token=="TOKEN_WEAKNESS" {for code in ["HMW_100","HMW_202","HMW_231"] {assert!(!e.by_code.contains_key(code));}}}}
- assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+ assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 #[test]
 fn weakness4_raw_shapes_fail_closed_without_mixed_group_relaxation() {
@@ -3207,7 +3207,7 @@ fn conditional_arena2_saw_restore_order_and_own_base_threshold() {
 #[test]
 fn conditional_arena2_raw_wrapper_scope_and_depth_remain_closed() {
  let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for code in ["ASH_112","TWI_150"] {for mode in ["optional","wrong-condition","wrong-receiver","wrong-amount","false-effect","nested","continuation","side","type","extra-companion","deep-condition"] {let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let a=&mut card["abilities"]["card"][0];match mode {"optional"=>a["optional"]=json!(true),"wrong-condition"=>a["effect"]["condition"]["right"]["value"]=json!(3),"wrong-receiver"=>a["effect"]["onTrue"]["target"]["receiver"]=json!({"kind":"ref","path":["game"]}),"wrong-amount"=>a["effect"]["onTrue"]["amount"]["value"]=json!(2),"false-effect"=>a["effect"]["onFalse"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}),"nested"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":effect,"onFalse":{"kind":"noAction"}});},"continuation"=>{let effect=a["effect"].clone();a["effect"]=json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}});a["then"]=json!({"title":"nested","effect":effect});},"side"=>{card["abilities"]["unit"]=card["abilities"]["card"].clone();card["abilities"]["card"]=json!([]);},"type"=>card["card"]["types"]=json!(["leader","unit"]),"extra-companion"=>{card["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"constant","coordinate":true,"title":"extra","effect":{"kind":"gainKeyword","target":"self","keyword":"raid","duration":"persistent","amount":{"kind":"const","value":2}}}));},_=>{let p=&mut a["effect"]["condition"];for _ in 0..25 {*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
- let e=engine();for code in ["ASH_151","LOF_141","SEC_183"] {assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+ let e=engine();for code in ["ASH_151","LOF_141","SEC_183"] {assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 
 #[test]
@@ -3245,7 +3245,7 @@ fn uniform_token4_raw_shapes_and_reviewed_experience_dependency() {
 #[test]
 fn uniform_token4_unique_new_capture_and_selected_pool_dependency() {
  let e=engine();for seat in [Seat::P1,Seat::P2] {for keep_new in [false,true] {let mut s=board(&e);let old=unit(&e,&mut s,seat,"SEC_119");let donor=unit(&e,&mut s,seat,"ASH_061");let new=conditional_wave_hand(&e,&mut s,seat,"SEC_119");let choice=e.apply(&s,&e.card_action(&s,new)).unwrap();assert_eq!(choice.decision,Decision::Unique);let dead=if keep_new{old}else{new};let mut done=e.apply(&choice,&e.card_action(&choice,dead)).unwrap();for _ in 0..10 {if done.decision==Decision::Window{break;}let actions=e.legal_actions(&done);let next=actions.iter().find(|a|a.id().is_none()).unwrap();done=e.apply(&done,next).unwrap();}assert!(done.player(seat).discard.contains(dead));assert_eq!(e.token_count(&done,done.card(donor).experience),2);assert_eq!(e.token_count(&done,done.card(if keep_new{new}else{old}).experience),if keep_new{1}else{2});}}
- let catalogue=include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+ let catalogue=include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));let pool=e.compiled_pool().unwrap();let make=|codes:&[&str]|{let mut p=pool.clone();p["cards"].as_array_mut().unwrap().retain(|c|codes.contains(&c["setCode"].as_str().unwrap()));serde_json::to_vec(&p).unwrap()};let minimal=["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SEC_119"];assert!(Engine::from_compiled_pool_bytes(&make(&minimal),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));let mut complete=minimal.to_vec();complete.push("TOKEN_EXPERIENCE");assert!(Engine::from_compiled_pool_bytes(&make(&complete),catalogue).is_ok());let mut malformed:Value=serde_json::from_slice(&make(&complete)).unwrap();malformed["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="TOKEN_EXPERIENCE").unwrap()["traits"]=json!([]);assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&malformed).unwrap(),catalogue).is_err());assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 #[test]
 fn uniform_token4_shield_native_outer_metadata_fails_closed() {
@@ -3270,7 +3270,7 @@ fn basezone3_pau_printed_hp_survival_and_actual_base_lethal_threshold() {
 #[test]
 fn basezone3_raw_whole_source_side_and_metadata_scope_fail_closed() {
  let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
- let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),36);
+ let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 
 #[test]
@@ -4025,3 +4025,9 @@ mod activation_contract_tests;
 
 #[path="disclose_runtime_tests.rs"]
 mod disclose_tests;
+
+#[path = "card_restriction_tests.rs"]
+mod card_restriction_tests;
+
+#[path="zone_statics_tests.rs"]
+mod zone_statics_tests;

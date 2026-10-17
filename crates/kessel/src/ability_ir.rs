@@ -817,7 +817,7 @@ impl TargetResolver {
         if self
             .zone
             .as_deref()
-            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard"].contains(&z))
+            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand"].contains(&z))
         {
             return Err(format!("unsupported target zone {:?}", self.zone));
         }
@@ -839,6 +839,50 @@ pub enum Cost {
         #[serde(rename = "mustFullyResolve")]
         must_fully_resolve: bool,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum RestrictionVerb {
+    BeAttacked,
+    BeHealed,
+    Attack,
+    Ready,
+    DealCombatDamage,
+    DoesNotReadyDuringRegroup,
+}
+impl RestrictionVerb {
+    pub const ALL: [Self; 6] = [
+        Self::BeAttacked,
+        Self::BeHealed,
+        Self::Attack,
+        Self::Ready,
+        Self::DealCombatDamage,
+        Self::DoesNotReadyDuringRegroup,
+    ];
+    pub fn bit(self) -> u8 {
+        1 << match self {
+            Self::BeAttacked => 0,
+            Self::BeHealed => 1,
+            Self::Attack => 2,
+            Self::Ready => 3,
+            Self::DealCombatDamage => 4,
+            Self::DoesNotReadyDuringRegroup => 5,
+        }
+    }
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::BeAttacked => "beAttacked",
+            Self::BeHealed => "beHealed",
+            Self::Attack => "attack",
+            Self::Ready => "ready",
+            Self::DealCombatDamage => "dealCombatDamage",
+            Self::DoesNotReadyDuringRegroup => "doesNotReadyDuringRegroup",
+        }
+    }
+    pub fn parse(name: &str) -> Option<Self> {
+        serde_json::from_value(Value::String(name.to_owned())).ok()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -877,8 +921,46 @@ pub enum Effect {
         target: Target,
         amount: Expr,
     },
+    /// Card-effect resource payment ("You may pay N resources"): the source
+    /// controller exhausts N ready resources, and the continuation runs only if
+    /// the whole charge was available. Raw shape mirrors the compiler's
+    /// `payResources` lowering; no cost adjusters exist in the admitted model.
+    PayAdjustedResources {
+        target: Target,
+        amount: Expr,
+        #[serde(rename = "paymentType")]
+        payment_type: String,
+        #[serde(rename = "isCost")]
+        is_cost: bool,
+        #[serde(rename = "canCancelDuringPayment")]
+        can_cancel_during_payment: bool,
+        #[serde(rename = "allowCostAdjustments")]
+        allow_cost_adjustments: bool,
+    },
     NoAction,
     ResourceCard { target: Target },
+    /// A reviewed ResourceCardSystem shape: move one card into a resource zone.
+    /// The reviewer admits only self or own-top-deck targets with the player's
+    /// own resource zone; the optional ready is the engine's contingent event.
+    ResourceCardSystem {
+        target: Target,
+        #[serde(rename = "targetPlayer")]
+        target_player: String,
+        #[serde(rename = "readyResource")]
+        ready_resource: bool,
+        #[serde(rename = "readyTiming")]
+        ready_timing: String,
+        #[serde(rename = "readinessTargets")]
+        readiness_targets: String,
+    },
+    /// Put a chosen card from a hand or discard pile on the bottom of its
+    /// owner's deck. Play-zone moves stay rejected until their cleanup windows
+    /// are reviewed.
+    MoveToBottomOfDeck { target: Target },
+    /// While attacking, this unit deals its combat damage before the defender.
+    /// Only the reviewed persistent self registration and the reviewed
+    /// until-end-of-attack participant grant are executable.
+    DealsCombatDamageFirst { target: Target, duration: String },
     ReturnToHand {
         target: Target,
     },
@@ -942,6 +1024,13 @@ pub enum Effect {
         #[serde(rename = "targetResolver")]
         target_resolver: TargetResolver,
     },
+    CardRestriction {
+        target: Target,
+        duration: String,
+        restriction: RestrictionVerb,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        condition: Option<Expr>,
+    },
 }
 impl Target {
     fn visit_expression_roots_mut(&mut self, visit: &mut impl FnMut(&mut Expr)) {
@@ -960,7 +1049,9 @@ impl Effect {
             Self::DiscardOwnHand { amount, target } | Self::DiscardDeck { amount, target }
             | Self::CreateTokenUnit { amount, target, .. } | Self::Damage { amount, target }
             | Self::Heal { amount, target } | Self::Draw { amount, target }
-            | Self::ReadyResources { amount, target } | Self::GiveShield { amount, target }
+            | Self::ReadyResources { amount, target }
+            | Self::PayAdjustedResources { amount, target, .. }
+            | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
@@ -985,10 +1076,17 @@ impl Effect {
             Self::DistributeHealing { amount, target_resolver, .. } => {
                 visit(amount); target_resolver.visit_expression_roots_mut(visit);
             }
+            Self::CardRestriction { target, condition, .. } => {
+                target.visit_expression_roots_mut(visit);
+                if let Some(condition) = condition { visit(condition); }
+            }
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
             Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
-            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
+            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
+            // The reviewed ResourceCardSystem moves one top-deck/self card and
+            // its raw target expression is never evaluated by the generic path.
+            | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
         }
     }
 }
@@ -1006,6 +1104,37 @@ fn scalar_upgrade_operation(effect:&Effect,discard:bool)->bool {
 }
 fn one() -> Expr {
     Expr::number(1)
+}
+
+/// Closed contract for the one resource payment the runtime models: a
+/// card-effect charge fixed at compile time, paid by the source controller, that
+/// cannot be cancelled and has no interactive adjustment. The compiler's
+/// `payResources` lowering sets exactly this metadata; `payUnadjustedResources`
+/// (an ability cost with a "for each resource paid" clause) is a different
+/// payment and stays rejected.
+pub(crate) fn card_effect_payment(effect: &Effect) -> Result<u16, String> {
+    let Effect::PayAdjustedResources { target, amount, payment_type, is_cost, can_cancel_during_payment, allow_cost_adjustments } = effect else {
+        return Err("not a card-effect resource payment".into());
+    };
+    if payment_type != "cardEffectPayment" {
+        return Err(format!("unsupported payAdjustedResources paymentType {payment_type}"));
+    }
+    if *is_cost {
+        return Err("payAdjustedResources ability-cost flag is a different payment".into());
+    }
+    if *can_cancel_during_payment {
+        return Err("payAdjustedResources cancellation during payment needs a payment prompt".into());
+    }
+    if !*allow_cost_adjustments {
+        return Err("payAdjustedResources without adjustment permission is a different payment".into());
+    }
+    if !matches!(target, Target::Name(name) if name == "ownPlayer") {
+        return Err("payAdjustedResources only pays the source controller".into());
+    }
+    match amount.original() {
+        Expr::Const { value } => value.as_u64().filter(|n| (1..=u16::MAX as u64).contains(n)).map(|n| n as u16).ok_or_else(|| "payAdjustedResources amount must be a constant from 1 to 65535".into()),
+        _ => Err("payAdjustedResources requires a constant amount".into()),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1071,6 +1200,16 @@ pub struct Sides {
 
 fn contains_resource<T:Serialize>(v:&T)->bool {
     serde_json::to_value(v).map(|v|contains(&v,|v|v["kind"]=="resourceCard")).unwrap_or(true)
+}
+/// The reviewed ResourceCardSystem target domain: the acting player's own top
+/// deck card, or the source card itself (e.g. a defeated unit in its discard).
+pub(crate) fn resource_card_system_target(target:&Target)->bool {
+    match target {
+        Target::Name(n)=>n=="self",
+        Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="topDeckCard" && args.is_empty()
+            && matches!(receiver.original(),Expr::Ref{path} if path==&["player"])),
+        _=>false,
+    }
 }
 fn top_deck_marker(v:&Value)->bool { contains(v,|v|v.get("target").is_some_and(|t|t.as_str()==Some("ownTopDeck"))) }
 fn top_deck_resource_registration(a:&Ability)->bool {
@@ -1800,6 +1939,9 @@ impl Program {
                     Effect::CopyKeywords {target,duration,domain} if valid_target(target,duration) && domain.iter().map(String::as_str).collect::<Vec<_>>()==COPY_KEYWORDS=>Ok(()),
                     Effect::GainKeyword { target, amount, duration, .. } if valid_target(target, duration) && !amount.depends_on_keywords() => Ok(()),
                     Effect::LoseKeyword { target, duration, .. } if valid_target(target, duration) => Ok(()),
+                    Effect::CardRestriction { target, duration, condition, .. } if valid_target(target, duration) && condition.is_none() => Ok(()),
+                    Effect::CardRestriction { .. } => Err("constant card restrictions cannot carry an effect condition".into()),
+                    Effect::DealsCombatDamageFirst { target, duration } if valid_target(target, duration) => Ok(()),
                     Effect::Simultaneous { effects } if !effects.is_empty() => { for e in effects { validate_constant(e, selected)?; } Ok(()) }
                     _ => Err("unsupported constant modifier or recursive effective-stat/keyword dependency".into()),
                 }
@@ -1808,7 +1950,18 @@ impl Program {
             fn modifies_keywords(e: &Effect) -> bool { match e { Effect::CopyKeywords{..}|Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => true, Effect::Simultaneous { effects } => effects.iter().any(modifies_keywords), _ => false } }
             if !crate::bounded_reductions::power_maximum_grant(ability) && modifies_keywords(&ability.effect) && (ability.condition.as_ref().is_some_and(Expr::depends_on_keywords) || ability.target_resolver.as_ref().and_then(|r| r.predicate.as_ref()).is_some_and(Expr::depends_on_keywords)) { return Err("constant keyword-dependent conditions would form evaluation cycles".into()); }
 
-            if !crate::bounded_reductions::power_maximum_grant(ability) && (ability
+            // Restriction queries never recurse into stat evaluation: power/HP reads
+            // only inspect stat and keyword scopes, so a live power condition on a
+            // persistent restriction has no evaluation cycle.
+            fn restriction_only(e: &Effect) -> bool {
+                match e {
+                    Effect::CardRestriction { .. } => true,
+                    Effect::Simultaneous { effects } => !effects.is_empty() && effects.iter().all(restriction_only),
+                    _ => false,
+                }
+            }
+            let restriction_constant = restriction_only(&ability.effect);
+            if !restriction_constant && !crate::bounded_reductions::power_maximum_grant(ability) && (ability
                 .condition
                 .as_ref()
                 .is_some_and(Expr::depends_on_stats)
@@ -1824,10 +1977,10 @@ impl Program {
             }
             if ability.target_resolver.as_ref().is_some_and(|r| {
                 r.optional || r.mode.is_some() || r.count.is_some()
-                    || !matches!(
+                    || !(matches!(
                         r.zone.as_deref(),
                         None | Some("arena") | Some("anyAttackable")
-                    )
+                    ) || (restriction_constant && matches!(r.zone.as_deref(), Some("base"))))
             }) {
                 return Err(
                     "constant target filter must be arena-only without optional choice".into(),
@@ -2007,7 +2160,19 @@ impl Program {
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
             let death=ability.trigger=="whenDefeated" && ability.optional && ability.if_you_do.is_none() && matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op=="===" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["source","zoneName"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_str()==Some("discard")) && resource_self(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
             let force=ability.trigger=="whenDefeated" && ability.optional && matches!(&ability.effect,Effect::UseForce{target:Target::Name(n)} if n=="ownPlayer") && ability.if_you_do.as_ref().is_some_and(|n|resource_self(&n.effect));
-            if !header || !(event||death||force) {return Err("resourceCard requires bounded self event/death registration".into());}
+            // "Resource a card from your hand. If you do, resource the top card
+            // of your deck": one optional single hand selection whose resource
+            // event is the success condition of a reviewed top-deck resource
+            // continuation.
+            let selected_hand=ability.trigger=="whenDefeated" && !ability.optional
+                && matches!(&ability.effect,Effect::Conditional{on_true,..}
+                    if matches!(on_true.as_ref(),Effect::Select{target_resolver,effect}
+                        if target_resolver.owner=="self"&&target_resolver.card_type=="any"
+                            && target_resolver.zone.as_deref()==Some("hand")&&target_resolver.optional
+                            && !target_resolver.is_multiple()&&target_resolver.predicate.is_none()
+                            && matches!(effect.as_ref(),Effect::ResourceCard{target:Target::Name(n)} if n=="chosen")))
+                && ability.if_you_do.as_ref().is_some_and(|next|matches!(&next.effect,Effect::ResourceCardSystem{target,..} if crate::ability_ir::resource_card_system_target(target)));
+            if !header || !(event||death||force||selected_hand) {return Err("resourceCard requires bounded self event/death registration".into());}
         }
         if contains_force_presence(ability) {
             let header=depth==0 && ability.trigger=="constant" && !ability.optional && !ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolvers.is_empty() && ability.then.is_none() && ability.if_you_do.is_none() && matches!(&ability.condition,Some(Expr::Ref{path}) if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","hasTheForce"]);
@@ -2200,19 +2365,41 @@ impl Program {
         if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer"].contains(&name.as_str())) {return Err("token creation requires a scalar player target".into());}
         match amount.original() {Expr::Const {value}=>value.as_u64().filter(|n|(1..=5).contains(n)).map(|n|n as usize).ok_or("token creation amount must be 1..5".into()),_=>Err("token creation requires a literal bounded amount".into())}
     }
+    /// Phase restriction marks only touch cards in the arena/base domain. Root
+    /// effects take ordinary bounded target references; arena-list snapshots reuse
+    /// receiver/predicate expression validation instead of scalar target rules.
+    fn validate_phase_restriction_target(target: &Target) -> Result<(), String> {
+        match target {
+            Target::ArenaList(list) => {
+                if list.controller_order.is_some() { return Err("ordered arena lists cannot be restricted for a phase".into()); }
+                list.receiver.validate()?;
+                list.predicate.validate()?;
+                Ok(())
+            }
+            _ => target.validate(),
+        }
+    }
     fn validate_phase_modifiers(&self, effects: &[Effect]) -> Result<(), String> {
         if effects.is_empty() || effects.len() > 8 { return Err("phase modifier list exceeds bounded capacity".into()); }
         let mut shared_target = None;
         for effect in effects {
             let (target, duration) = match effect {
                 Effect::ModifyStats {target, duration, ..} | Effect::GainKeyword {target, duration, ..} | Effect::LoseKeyword {target, duration, ..} => (target, duration),
+                Effect::CardRestriction {target, duration, restriction, condition} => {
+                    if condition.is_some() { return Err("phase modifier lists cannot gate a card restriction".into()); }
+                    if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup { return Err("doesNotReadyDuringRegroup requires a persistent constant".into()); }
+                    Self::validate_phase_restriction_target(target)?;
+                    (target, duration)
+                },
                 _ => return Err("phase modifier lists contain only primitive lasting modifiers".into()),
             };
             if duration != "phase" { return Err("phase modifier list requires phase duration".into()); }
             let encoded = serde_json::to_value(target).map_err(|e| e.to_string())?;
             if shared_target.as_ref().is_some_and(|prior| prior != &encoded) { return Err("phase modifier list must share one target".into()); }
             shared_target = Some(encoded);
-            let mut checker = self.clone(); checker.instructions.clear(); checker.compile_effect(effect, 0)?;
+            if !matches!(effect, Effect::CardRestriction { .. }) {
+                let mut checker = self.clone(); checker.instructions.clear(); checker.compile_effect(effect, 0)?;
+            }
         }
         Ok(())
     }
@@ -2285,14 +2472,21 @@ impl Program {
                     p.validate_phase_modifiers(effects)?;
                     if array && effects.iter().any(|e| match e { Effect::ModifyStats {power,hp,..} => target_dependent(power)||target_dependent(hp), Effect::GainKeyword {amount,..} => target_dependent(amount), _ => false }) { return Err("array-dependent phase modifier values are unsupported".into()); }
                     let mut records=0usize;
-                    for e in effects { let target=match e { Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..}=>target,_=>unreachable!() }; records+=multiplicity(target,targets,array)?; }
+                    for e in effects { let target=match e { Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..}|Effect::CardRestriction {target,..}=>target,_=>unreachable!() }; records+=multiplicity(target,targets,array)?; }
                     GroupRequirements::attachments(records)
                 },
                 Effect::DiscardOwnHand {amount,target} => GroupRequirements::hand(Program::scalar_hand_amount(amount,target)?+1),
                 Effect::DiscardDeck {amount,target} => GroupRequirements::hand(Program::scalar_deck_amount(amount,target)?+1),
                 Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;GroupRequirements::hand(2)},
                 Effect::CreateTokenUnit {token_type,amount,target,..} => GroupRequirements::attachments(Program::token_unit_amount(token_type,amount,target)?+1),
-                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::CardRestriction { target, duration, restriction, condition } => {
+                    if condition.is_some() { return Err("grouped card restrictions cannot carry action conditions".into()); }
+                    if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup { return Err("doesNotReadyDuringRegroup requires a persistent constant".into()); }
+                    if duration != "phase" { return Err("grouped card restrictions require phase duration".into()); }
+                    Program::validate_phase_restriction_target(target)?;
+                    GroupRequirements::ordinary(multiplicity(target,targets,array)?)
+                },
+                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2332,7 +2526,7 @@ impl Program {
             match e {
                 Effect::Damage {target:t,amount}|Effect::Heal {target:t,amount}|Effect::Draw {target:t,amount}|Effect::GiveShield {target:t,amount}|Effect::GiveExperience {target:t,amount}|Effect::ReadyResources {target:t,amount}|Effect::GainKeyword {target:t,amount,..}=>target(t)||target_dependent(amount),
                 Effect::ModifyStats {target:t,power,hp,..}=>target(t)||target_dependent(power)||target_dependent(hp),
-                Effect::Ready {target:t}|Effect::Exhaust {target:t}|Effect::Defeat {target:t}|Effect::ReturnToHand {target:t}|Effect::LoseKeyword {target:t,..}=>target(t),
+                Effect::Ready {target:t}|Effect::Exhaust {target:t}|Effect::Defeat {target:t}|Effect::ReturnToHand {target:t}|Effect::LoseKeyword {target:t,..}|Effect::CardRestriction {target:t,..}=>target(t),
                 _=>false,
             }
         }
@@ -2457,6 +2651,10 @@ impl Program {
                 if matches!(target,Target::Name(name) if name=="bothPlayers") {return Err("multi-player resource ready requires verified event batching".into());}
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
+            Effect::PayAdjustedResources {..} => {
+                card_effect_payment(effect)?;
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=>{
                 if depth!=0 || !(if list.controller_order.is_some() {["event","whenDefeated"].contains(&self.trigger.as_str())}else{["whenPlayed","onAttack","whenDefeated"].contains(&self.trigger.as_str())}) || !value.as_u64().is_some_and(|n|(1..=3).contains(&n)) {return Err("arena damage requires literal standalone unit damage1..3".into());}
                 if list.controller_order.is_some(){list.validate_ordered_ground()?;}else{list.validate_damage()?;}self.instructions.push(Instruction::Group(effect.clone()));
@@ -2484,7 +2682,36 @@ impl Program {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
                 list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
             }
-            Effect::ResourceCard {target} => {if !matches!(target,Target::Name(n) if n=="self"||n=="ownTopDeck") {return Err("resourceCard supports self or the reviewed own top-deck target only".into());} self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::ResourceCard {target} => {
+                let selected_hand_or_discard = matches!(target,Target::Name(n) if n=="chosen")
+                    && self.instructions.iter().rev().find_map(|i|if let Instruction::Select(r)=i {Some(r)}else{None})
+                        .is_some_and(|r|!r.is_multiple()&&matches!(r.zone.as_deref(),Some("hand"|"discard")));
+                if !matches!(target,Target::Name(n) if n=="self"||n=="ownTopDeck") && !selected_hand_or_discard {
+                    return Err("resourceCard supports self, the reviewed own top-deck target, or a single chosen card from a hand or discard pile only".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::ResourceCardSystem { target, target_player, ready_timing, readiness_targets, .. } => {
+                if target_player!="self" || ready_timing!="contingentAfterResourceEvent" || readiness_targets!="completeSystemTargetList" || !resource_card_system_target(target) {
+                    return Err("resourceCardSystem supports only the reviewed self/own-top-deck resource move with contingent readiness".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::MoveToBottomOfDeck { target } => {
+                if !matches!(target,Target::Name(n) if n=="chosen") {return Err("moveToBottomOfDeck supports only a chosen card from a hand or discard pile".into());}
+                let resolver=self.instructions.iter().rev().find_map(|i|if let Instruction::Select(r)=i {Some(r)}else{None});
+                if !resolver.is_some_and(|r|!r.is_multiple() && matches!(r.zone.as_deref(),Some("hand"|"discard"))) {return Err("moveToBottomOfDeck requires a single chosen card from a hand or discard pile".into());}
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::DealsCombatDamageFirst { target, duration } => {
+                if self.trigger!="constant" || duration!="persistent" || !matches!(target,Target::Name(n) if n=="self") {
+                    return Err("dealsCombatDamageFirst requires a persistent self constant registration".into());
+                }
+                if !self.condition.as_ref().is_some_and(|c|matches!(c.original(),Expr::Query{name,receiver,args} if name=="isAttacking"&&args.is_empty()&&matches!(receiver.original(),Expr::Ref{path} if path==&["source"]))) {
+                    return Err("dealsCombatDamageFirst requires the reviewed live isAttacking(source) condition".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::ReturnToHand { target } => { target.validate()?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
@@ -2534,6 +2761,27 @@ impl Program {
                 }else{target.validate()?;} self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => { target.validate()?;self.instructions.push(Instruction::Apply(effect.clone())); }
+            Effect::CardRestriction { target, duration, restriction, condition } => {
+                if condition.is_some() {
+                    return Err("card restriction action conditions stay on the constant ability".into());
+                }
+                // advance() clears phase marks before regroup ready, so this verb only exists as a live constant.
+                if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup && duration != "persistent" {
+                    return Err("doesNotReadyDuringRegroup only lives on a persistent constant".into());
+                }
+                let chosen = matches!(target, Target::Name(n) if n == "chosen");
+                let resolved = self.instructions.iter().any(|i| matches!(i, Instruction::Select(_)));
+                let constant_target = matches!(target, Target::Name(n) if ["self", "parent"].contains(&n.as_str()))
+                    || (chosen && resolved);
+                if self.trigger == "constant" && duration == "persistent" && depth == 0 && constant_target {
+                    self.instructions.push(Instruction::Apply(effect.clone()));
+                } else if self.trigger != "constant" && duration == "phase" && depth == 0 && (!chosen || resolved) {
+                    Self::validate_phase_restriction_target(target)?;
+                    self.instructions.push(Instruction::Apply(effect.clone()));
+                } else {
+                    return Err("card restrictions execute as persistent constants or a root phase mark".into());
+                }
+            }
         }
         Ok(())
     }
@@ -2751,7 +2999,8 @@ impl Catalogue {
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
                 let parent_title=contains(&entry["abilities"],|v|v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]));
                 if (attached_context || parent_title) && !crate::attached_constants::entry(entry) {
-                    if !crate::attached_registration::delegated_upgrade_metadata(entry,&sides) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
+                    if !crate::attached_registration::delegated_upgrade_metadata(entry,&sides)
+                        && !crate::attached_registration::attached_restriction_upgrade_metadata(entry,&sides) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
                 }
                 if contains_keyword_inventory(&entry["abilities"]) {
                     if entry["baseClass"]!="NonLeaderUnitCard"||sides.card.len()!=1||!sides.card.iter().all(keyword_inventory_registration)||!entry["attachCondition"].is_null()||!entry["card"]["unique"].is_boolean()||!no_keywords||!no_pilot {return Err("keyword inventory requires sole ordinary nonleader unit metadata".into());}

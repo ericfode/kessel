@@ -146,6 +146,20 @@ impl Engine {
             }
             return Ok(());
         }
+        // Phase restriction marks are primitive captures with no payload: each
+        // surviving recipient records one idempotent, capacity-free mark.
+        if let Effect::CardRestriction { target, duration, restriction, condition } = e {
+            if condition.is_some() || duration != "phase" { return Err("grouped card restriction requires a phase mark".into()); }
+            for value in self.effect_targets(s,target) {
+                let Eval::Card(id)=value else { continue; };
+                if id == 0 || !(self.in_arena(s,id) || self.def(s,id).info.is("base")) { continue; }
+                if s.card(id).phase_restrictions & restriction.bit() != 0 { continue; }
+                if s.event_group.count as usize == 32 { return Err("prepared event capacity exceeded".into()); }
+                let n=s.event_group.count as usize;
+                s.event_group.records[n]=PreparedEvent{op:op as u16,target:id,amount:1,..PreparedEvent::default()};s.event_group.count+=1;
+            }
+            return Ok(());
+        }
         if !matches!(e,Effect::Damage {..}|Effect::Heal {..}|Effect::GiveShield {..}|Effect::GiveExperience {..}
             |Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::GainKeyword {..}|Effect::Ready {..}
             |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}) {return Err("unsupported group primitive".into());}
@@ -491,6 +505,17 @@ impl Engine {
                 let attachment=matches!(effect,Effect::GiveShield {..}|Effect::GiveExperience {..}|Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::CreateTokenUnit {..});
                 let applies=if contingent {attachment || matches!(effect,Effect::Draw {..})} else {!attachment};
                 if !applies {continue;}
+                if let Effect::CardRestriction { restriction, .. } = effect {
+                    let bit=restriction.bit();
+                    if self.in_arena(s,r.target) || self.def(s,r.target).info.is("base") {
+                        if s.card(r.target).phase_restrictions & bit == 0 {
+                            s.card_mut(r.target).phase_restrictions |= bit;
+                            s.ability_result=s.ability_result.saturating_add(1);
+                        }
+                        s.ability_succeeded=true;
+                    }
+                    continue;
+                }
                 match effect {
                     Effect::DiscardDeck {..}=> {
                         if self.def(s,r.target).info.is("base") {s.ability_succeeded=true;}

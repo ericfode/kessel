@@ -44,6 +44,7 @@ pub(crate) struct Modifiers {
     pub power: i16,
     pub keywords: [u16; 9],
     pub presence: u16,
+    pub deals_combat_damage_first: bool,
 }
 impl Properties {
     pub(crate) fn predicate(&self) -> Result<Option<Expr>, String> {
@@ -70,18 +71,31 @@ impl Properties {
                         .as_array()
                         .ok_or("attack callback reference path missing")?;
                     if path.first().and_then(Value::as_str) == Some(c.parameters[0].root.as_str()) {
-                        if path.len() != 1 {
+                        // The candidate's controller is its owner: admitted state
+                        // imports do not model control changes.
+                        if path.len() == 2 && path[1] == "controller" {
+                            v["path"] = serde_json::json!(["card", "controller"]);
+                        } else if path.len() != 1 {
                             return Err(
                                 "native attack candidate member reads are not implemented".into()
                             );
+                        } else {
+                            v["path"] = serde_json::json!(["card"]);
                         }
-                        v["path"] = serde_json::json!(["card"]);
                     } else if c.parameters.get(1).is_some_and(|p| {
                         path.first().and_then(Value::as_str) == Some(p.root.as_str())
                     }) && path.len() == 2
                         && path[1] == "source"
                     {
                         v["path"] = serde_json::json!(["source"]);
+                    } else if c.parameters.get(1).is_some_and(|p| {
+                        path.first().and_then(Value::as_str) == Some(p.root.as_str())
+                    }) && path.len() == 2
+                        && path[1] == "player"
+                    {
+                        // systemContext.player is the initiating player; the
+                        // physical source's controller is that same player.
+                        v["path"] = serde_json::json!(["source", "controller"]);
                     } else {
                         return Err(
                             "native attack condition cannot capture outer callback values".into(),
@@ -182,8 +196,13 @@ impl Properties {
                         1
                     };
                 }
+                Effect::DealsCombatDamageFirst { target, duration }
+                    if participant(target) && duration == "attack" =>
+                {
+                    out.deals_combat_damage_first = true;
+                }
                 _ => return Err(
-                    "native attack lasting effect requires literal power or reviewed core keyword"
+                    "native attack lasting effect requires literal power, reviewed core keyword or first-strike"
                         .into(),
                 ),
             }
