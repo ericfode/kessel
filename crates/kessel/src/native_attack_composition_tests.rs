@@ -354,6 +354,7 @@ fn native_composition_whole_metadata_headers_and_other_continuations_stay_closed
             ("types", json!(["unit", "leader"])),
             ("unique", Value::Null),
             ("pilotText", json!("Piloting [1]")),
+            ("upgradePower", json!(0)),
             ("upgradeHp", json!(0)),
             ("deployCost", json!(1)),
             ("epicAction", json!("Draw 1 card")),

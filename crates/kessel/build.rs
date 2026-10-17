@@ -177,6 +177,7 @@ fn lower(p: &Program) -> Result<String, String> {
 }
 fn main() {
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
+    println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
     println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
