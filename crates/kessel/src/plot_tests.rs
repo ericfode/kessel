@@ -238,3 +238,62 @@ fn plot_window_shares_deploy_triggers_and_resumes_after_played_triggers() {
     }
 }
 
+
+/// Printed-text derivation boundaries from the pinned engine parser
+/// (KeywordHelpers.getRegexForKeyword / isKeywordEnabled).
+#[test]
+fn plot_derivation_requires_one_own_line_occurrence() {
+    use crate::simulator::play_from_resources::plot_instance;
+    assert_eq!(plot_instance(1, &["Raid 1\nPlot (When you deploy a leader.)"]), Ok(true));
+    assert_eq!(plot_instance(0, &["Raid 1\nPlot (When you deploy a leader.)"]), Ok(false));
+    assert_eq!(plot_instance(1, &["Search for a card with Plot or attack."]), Ok(false));
+    // The engine regex is a prefix match at a line start, so "Plotting" counts.
+    assert_eq!(plot_instance(1, &["Plotting a course"]), Ok(true));
+    assert_eq!(
+        plot_instance(1, &["Plot (When you deploy a leader.)"]),
+        Ok(true)
+    );
+    assert!(plot_instance(1, &["Plot (one)\nPlot (two)"])
+        .unwrap_err()
+        .contains("more than once"));
+}
+
+/// Admission boundaries: metadata mentions do not create a Plot instance, a
+/// second printed line is rejected, and a leader cannot carry Plot.
+#[test]
+fn plot_admission_boundaries_are_explicit() {
+    let mutate = |code: &str, change: fn(&mut serde_json::Value)| {
+        let mut catalogue = committed_catalogue().clone();
+        let entry = catalogue["cards"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|entry| entry["setCode"] == code)
+            .unwrap();
+        change(entry);
+        Engine::from_catalogue_value(&catalogue)
+    };
+    // A metadata mention without an own-printed Plot line is not a keyword
+    // instance; the card stays admitted and gets no plot ability.
+    let mentioned = mutate("SOR_073", |entry| {
+        entry["card"]["keywords"] = json!(["plot"]);
+        entry["card"]["text"] = json!("Give a shield token to a unit. Search for a card with Plot.");
+    })
+    .unwrap();
+    assert!(mentioned.by_code.contains_key("SOR_073"));
+    assert!(!mentioned.definitions[mentioned.by_code["SOR_073"] as usize].plot);
+    // Two own-printed Plot lines are an engine error, so admission rejects them.
+    let duplicate = mutate("SOR_073", |entry| {
+        entry["card"]["keywords"] = json!(["plot"]);
+        entry["card"]["text"] = json!("Plot (one)\nPlot (two)");
+    })
+    .unwrap();
+    assert!(duplicate.rejected_cards().unwrap()["SOR_073"].contains("printed Plot appears more than once"));
+    // PlotAbility asserts non-leaders, so a printed leader Plot is invalid data.
+    let leader = mutate("SOR_014", |entry| {
+        entry["card"]["keywords"] = json!(["plot"]);
+        entry["card"]["deployBox"] = json!("When Deployed: draw a card.\nPlot");
+    })
+    .unwrap();
+    assert!(leader.rejected_cards().unwrap()["SOR_014"].contains("cannot be printed on a leader"));
+}
