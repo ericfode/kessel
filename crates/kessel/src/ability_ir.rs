@@ -3165,8 +3165,14 @@ impl Catalogue {
                 }
                 // These leaves are bounded ordinary-card mechanisms, not a
                 // general leader/front/base or attachment execution path.
-                let zone_static = |a:&Ability| serde_json::to_value(a).map(|v|contains(&v,|v|
-                    matches!(v["kind"].as_str(),Some("resourceCardSystem"|"moveToBottomOfDeck"|"dealsCombatDamageFirst")))).unwrap_or(true);
+                fn zone_static_marker(value:&Value)->bool {
+                    matches!(value["kind"].as_str(),Some("resourceCardSystem"|"moveToBottomOfDeck"|"dealsCombatDamageFirst")) || match value {
+                        Value::Array(values)=>values.iter().any(zone_static_marker),
+                        Value::Object(fields)=>fields.values().any(zone_static_marker),
+                        _=>false,
+                    }
+                }
+                let zone_static = |a:&Ability| serde_json::to_value(a).map(|v|zone_static_marker(&v)).unwrap_or(true);
                 if sides.leader.iter().chain(&sides.unit).any(zone_static)
                     || sides.card.iter().any(|a|zone_static(a) &&
                         !((entry["baseClass"]=="NonLeaderUnitCard"&&exact_type("unit")&&["constant","whenDefeated","onAttack","whenPlayed","action"].contains(&a.trigger.as_str()))

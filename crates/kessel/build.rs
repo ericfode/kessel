@@ -176,6 +176,8 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/modal_choices.rs");
+    println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
     println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")
