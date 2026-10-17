@@ -11,12 +11,41 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","SHD_175","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121"] {
         assert!(!e.by_code.contains_key(code),"unsupported attached child admitted {code}");
     }
+}
+#[test]
+fn attached_alias_inspiring_mentor_expands_dual_hooks_like_separate_registrations() {
+    for code in ["IC27_085","SHD_104"] {for seat in [Seat::P1,Seat::P2] {
+        let e=engine();let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");let ally=unit(&e,&mut s,seat,"LOF_254");let enemy=unit(&e,&mut s,seat.other(),"LOF_254");
+        attach(&e,&mut s,seat.other(),code,host);let base=s.player(seat.other()).base;
+        let prompt=attack(&e,s,host,base);assert_eq!(prompt.decision,Decision::AbilityTarget,"{code} onAttack prompt");
+        assert_eq!(prompt.source,host);assert_eq!(prompt.active,seat);
+        let attack_actions=e.legal_actions(&prompt);assert!(attack_actions.iter().any(|a|a.id()==Some(ally)));assert!(!attack_actions.iter().any(|a|a.id()==Some(host)||a.id()==Some(enemy)));
+        let done=e.apply(&prompt,&e.card_action(&prompt,ally)).unwrap();assert_eq!(e.upgrades(&done,ally).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),1,"{code} onAttack");
+        let mut dead=done;e.defeat(&mut dead,host).unwrap();assert_eq!(dead.death_pending.len,1);e.open_deaths(&mut dead,3).unwrap();assert_eq!(dead.decision,Decision::AbilityTarget);
+        let actions=e.legal_actions(&dead);assert!(actions.iter().any(|a|a.id()==Some(ally)));assert!(!actions.iter().any(|a|a.id()==Some(enemy)));
+        let done=e.apply(&dead,&e.card_action(&dead,ally)).unwrap();assert_eq!(e.upgrades(&done,ally).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),2,"{code} whenDefeated stacks");
+    }}
+}
+#[test]
+fn attached_alias_dual_hooks_require_defeat_text_override_and_reject_partial_shapes() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SHD_104").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("SHD_104");
+    assert!(admitted(original.clone()));
+    let mut no_override=original.clone();no_override["setupValidationOverrides"]=json!([]);assert!(!admitted(no_override));
+    let mut bad_override=original.clone();bad_override["setupValidationOverrides"][0]["gameplayEffect"]=json!("changesRules");assert!(!admitted(bad_override));
+    let mut single=original.clone();single["abilities"]["card"][0]["effect"]["registration"]["program"]["trigger"]=json!("onAttack");
+    single["abilities"]["card"][0]["effect"]["registration"]["program"]["hooks"]=json!([{"alias":"onAttack","enabled":true}]);
+    assert!(!admitted(single),"override without dual hooks");
+    let mut reversed=original.clone();reversed["abilities"]["card"][0]["effect"]["registration"]["program"]["hooks"]=json!([{"alias":"whenDefeated","enabled":true},{"alias":"onAttack","enabled":true}]);
+    assert!(!admitted(reversed),"hook order is part of the reviewed contract");
 }
 #[test]
 fn attached_alias_defense_uses_host_controller_and_exact_arena_before_combat() {
@@ -136,7 +165,7 @@ fn attached_alias_raw_metadata_hooks_fields_and_context_are_fail_closed() {
 #[test]
 fn attached_alias_selected_pool_requires_each_created_token_definition() {
     let e=engine();let bytes=include_bytes!("../../../compiler/generated/catalog.json");
-    for (code,token) in [("ASH_134","TOKEN_MANDALORIAN"),("TWI_169","TOKEN_CLONE_TROOPER"),("TWI_218","TOKEN_BATTLE_DROID"),("TS26_052","TOKEN_EXPERIENCE")] {
+    for (code,token) in [("ASH_134","TOKEN_MANDALORIAN"),("TWI_169","TOKEN_CLONE_TROOPER"),("TWI_218","TOKEN_BATTLE_DROID"),("TS26_052","TOKEN_EXPERIENCE"),("SHD_104","TOKEN_EXPERIENCE"),("IC27_085","TOKEN_EXPERIENCE")] {
         let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|a|a["setCode"]==code||a["setCode"]==token||a["setCode"]=="TOKEN_SHIELD");
         let valid=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),bytes);assert!(valid.is_ok(),"{code}: {:?}",valid.err());
         pool["cards"].as_array_mut().unwrap().retain(|a|a["setCode"]!=token);

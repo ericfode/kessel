@@ -36,6 +36,24 @@ fn mention_keywords(e:&Value)->bool {
         &&a["effect"]["keyword"]==*name&&a["effect"]["duration"]=="persistent"
         &&a["effect"]["amount"]["value"].as_u64().is_some_and(|n|(1..=1000).contains(&n)))))
 }
+/// Engine-only card-text validation: dual On Attack / When Defeated host grants
+/// trip forceteki's When Defeated source check; gameplay is unaffected.
+fn defeat_text_override(e:&Value)->bool {
+    e["setupValidationOverrides"]==json!([{
+        "kind":"cardTextValidationOverride",
+        "property":"disableWhenDefeatedCheck",
+        "value":true,
+        "applyAt":"orderedSourceSetupStatement",
+        "default":false,
+        "consumer":"InPlayCard.validateCardAbilities",
+        "gameplayEffect":"none",
+        "setupMethod":"setupCardAbilities",
+        "statementIndex":0
+    }])
+}
+fn empty_context(e:&Value,key:&str)->bool {
+    e[key].is_null()||e[key]==json!([])
+}
 // The pending compiler preserves the zone object getter; the portable evaluator
 // exposes its name directly. Only physical card roots receive this equivalence.
 fn normalize_zone_names(v:&mut Value) {
@@ -45,37 +63,26 @@ fn normalize_zone_names(v:&mut Value) {
     match v {Value::Object(o)=>for child in o.values_mut(){normalize_zone_names(child)},Value::Array(a)=>for child in a {normalize_zone_names(child)},_=>{}}
 }
 pub(crate) fn plain_upgrade(e:&Value)->bool {
-    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().any(|k|!e[*k].is_null()&&e[*k]!=json!([])) {return false;}
+    let setup_ok=empty_context(e,"setupValidationOverrides")||defeat_text_override(e);
+    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride"].iter().any(|k|!empty_context(e,k))||!setup_ok {return false;}
     e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
     && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
     && mention_keywords(e) && e["piloting"].is_null()
     && ["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().all(|k|e["card"][*k].is_null())
     && (e["card"]["epicAction"].is_null()||e["card"]["epicAction"]=="")
     && [("power","upgradePower"),("hp","upgradeHp")].iter().all(|(a,b)|e["card"][*a]==e["card"][*b]&&e["card"][*a].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
-    && ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
     && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
 }
 fn invalid_host_scope(v:&Value)->bool {
     v["target"]=="parent"||(v["kind"]=="ref"&&v["path"][0]=="source"&&matches!(v["path"][1].as_str(),Some("parentCard"|"parentUnit")))
         ||match v {Value::Object(o)=>o.values().any(invalid_host_scope),Value::Array(a)=>a.iter().any(invalid_host_scope),_=>false}
 }
-fn program(v:&Value)->Result<Ability,String> {
-    let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
-    let g=w.effect;
-    if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="attachedAbilityRegistration"
-        ||g.registration_mode!="upgrade"||g.target!="parent"||g.target_controller!="any"
-        ||g.source_binding!="attachedHost"||g.controller_binding!="hostController"
-        ||!g.requires_grantor_in_play||g.requires_attachable||g.source_mode!="upgrade"
-        ||g.target_zone!="anyAttackable"||g.target_types!=["unit","base"]||g.registration.r#type!="triggered" {
-        return Err("attached registration requires exact ordinary upgrade/host/controller contract".into());
-    }
-    let mut p=g.registration.program;
+fn dual_attack_defeat_hooks(hooks:&Value)->bool {
+    *hooks==json!([{"alias":"onAttack","enabled":true},{"alias":"whenDefeated","enabled":true}])
+}
+fn compile_host_program(mut p:Value,title:&str)->Result<Ability,String> {
     if invalid_host_scope(&p) {return Err("attached host program cannot read grantor/parent context".into());}
-    let trigger=p["trigger"].as_str().ok_or("attached registration missing trigger")?.to_owned();
-    if !["onAttack","onDefense","whenDefeated"].contains(&trigger.as_str())
-        ||p["title"]!=w.title||p["hooks"]!=json!([{"alias":trigger,"enabled":true}]) {
-        return Err("attached registration requires one exact attack/defense/defeat alias".into());
-    }
+    if p["title"]!=title {return Err("attached registration requires one exact attack/defense/defeat alias".into());}
     p.as_object_mut().ok_or("attached program must be an object")?.remove("hooks");
     normalize_zone_names(&mut p);
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("attached program: {e}"))?;
@@ -86,6 +93,41 @@ fn program(v:&Value)->Result<Ability,String> {
     a.attached_host=true;
     Ok(a)
 }
+fn programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
+    let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
+    let g=w.effect;
+    if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="attachedAbilityRegistration"
+        ||g.registration_mode!="upgrade"||g.target!="parent"||g.target_controller!="any"
+        ||g.source_binding!="attachedHost"||g.controller_binding!="hostController"
+        ||!g.requires_grantor_in_play||g.requires_attachable||g.source_mode!="upgrade"
+        ||g.target_zone!="anyAttackable"||g.target_types!=["unit","base"]||g.registration.r#type!="triggered" {
+        return Err("attached registration requires exact ordinary upgrade/host/controller contract".into());
+    }
+    let p=g.registration.program;
+    let trigger=p["trigger"].as_str().ok_or("attached registration missing trigger")?.to_owned();
+    let hooks=&p["hooks"];
+    if trigger=="eventHooks"&&dual_attack_defeat_hooks(hooks) {
+        if !defeat_text_override(entry) {
+            return Err("dual attack/defeat attached aliases require reviewed defeat-text validation override".into());
+        }
+        let mut out=Vec::with_capacity(2);
+        for alias in ["onAttack","whenDefeated"] {
+            let mut one=p.clone();
+            one["trigger"]=json!(alias);
+            one["hooks"]=json!([{"alias":alias,"enabled":true}]);
+            out.push(compile_host_program(one,&w.title)?);
+        }
+        return Ok(out);
+    }
+    if defeat_text_override(entry) {
+        return Err("defeat-text validation override requires dual onAttack/whenDefeated attached aliases".into());
+    }
+    if !["onAttack","onDefense","whenDefeated"].contains(&trigger.as_str())
+        ||*hooks!=json!([{"alias":trigger,"enabled":true}]) {
+        return Err("attached registration requires one exact attack/defense/defeat alias".into());
+    }
+    Ok(vec![compile_host_program(p,&w.title)?])
+}
 pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let raw=&entry["abilities"];
     if internal(raw) {return Err("attachedHost is an internal program marker".into());}
@@ -95,7 +137,14 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     if card.is_empty()||card.len()>8 {return Err("attached registration count exceeds bound".into());}
     let mut out=Sides::default();
     for a in card {
-        out.card.push(if marker(a) {program(a)?}else if crate::attached_constants::marker(a) {crate::attached_constants::ability(a)?}else{crate::attached_constants::companion(a)?});
+        if marker(a) {
+            out.card.extend(programs(a,entry)?);
+        } else if crate::attached_constants::marker(a) {
+            out.card.push(crate::attached_constants::ability(a)?);
+        } else {
+            out.card.push(crate::attached_constants::companion(a)?);
+        }
     }
+    if out.card.len()>8 {return Err("attached registration count exceeds bound".into());}
     Ok(out)
 }
