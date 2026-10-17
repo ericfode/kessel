@@ -8,6 +8,8 @@ mod selector_runtime;
 mod registration_runtime;
 #[path = "legacy_leader.rs"]
 mod legacy_leader;
+#[path = "play_from_resources.rs"]
+mod play_from_resources;
 #[path = "snapshot_evidence.rs"]
 mod snapshot_evidence;
 use crate::ability_ir::{CardPrograms, Catalogue};
@@ -40,6 +42,11 @@ pub struct Definition {
     aspects: [u8; 6],
     programs: CardPrograms,
     traits: Vec<String>,
+    /// Intrinsic printed Plot instance (`KeywordHelpers` own-line parse); the
+    /// compiler does not lower this keyword into `keywordValues`.
+    plot: bool,
+    /// Intrinsic printed Smuggle instance with its own cost and aspect list.
+    smuggle: Option<play_from_resources::SmuggleCost>,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RulesBackend { #[default] Auto, Interpreter, Aot }
@@ -223,6 +230,8 @@ impl Engine {
                 aspects,
                 programs: CardPrograms::default(),
                 traits: vec![],
+                plot: false,
+                smuggle: None,
             });
         }
         // The shared loader owns catalogue interpretation; this also exercises its identity indexing.
@@ -367,7 +376,13 @@ impl Engine {
             .count()
     }
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
-        let p = s.player(s.card(id).owner);
+        self.cost_for(s, s.card(id).owner, id)
+    }
+    /// Printed cost plus the aspect penalty for an explicit payer. Resource-zone
+    /// alternate plays (Plot/Smuggle) use the playing player, which the admitted
+    /// model equals the resource card's owner for.
+    pub(super) fn cost_for(&self, s: &State, seat: Seat, id: CardId) -> u16 {
+        let p = s.player(seat);
         let d = self.def(s, id);
         let leader = self.def(s, p.leader);
         let base = self.def(s, p.base);
@@ -452,10 +467,19 @@ impl Engine {
                         out.push(self.card_action(s, id));
                     }
                 }
+                for &id in p.resources.as_slice() {
+                    if self.smuggle_playable(s, id) {
+                        out.push(self.card_action(s, id));
+                    }
+                }
                 let (deploy, ability) = self.leader_available(s);
                 if deploy || ability {
                     out.push(self.card_action(s, p.leader));
                 }
+            }
+            Decision::PlotOptional => {
+                out.push(Action::button("Trigger", "trigger"));
+                out.push(Action::button("Pass", "pass"));
             }
             Decision::LeaderMenu => {
                 let (deploy, ability) = self.leader_available(s);
@@ -703,6 +727,8 @@ impl Engine {
                     } else {
                         self.enter_triggers(&mut t)?;
                     }
+                } else if t.player(seat).resources.contains(id) {
+                    self.begin_smuggle_play(&mut t, seat, id)?;
                 } else {
                     t.source = id;
                     t.ambush = false;
@@ -721,12 +747,31 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,seat,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
+                    let upgrade=t.source;
+                    // Plot already paid when the triggered ability resolved and has
+                    // no cancel; Smuggle pays when its attach target is chosen.
+                    let plot_attach = t.plot.stage==PlotState::ATTACH && t.plot.card==upgrade;
+                    let smuggled = !plot_attach && t.player(seat).resources.contains(upgrade);
+                    if !plot_attach {
+                        t.phase_history.preflight_play(seat)?;
+                        let cost = if smuggled {self.smuggle_cost(&t,upgrade).ok_or("missing Smuggle cost")?} else {self.cost(&t,upgrade)};
+                        if smuggled {
+                            self.exhaust_played_resource(&mut t,seat,cost,upgrade);
+                            t.player_mut(seat).resources.remove(upgrade);
+                        } else {
+                            self.spend(&mut t,seat,cost);
+                            t.player_mut(seat).hand.remove(upgrade);
+                        }
+                    }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
+                    t.source=upgrade;
+                    if smuggled {self.resource_top_of_deck(&mut t,seat)?;}
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
-                        if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
-                    }else{self.enter_triggers(&mut t)?;}
+                        if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {
+                            if plot_attach {t.plot.stage=PlotState::UNIQUE;self.plot_settle_enter(&mut t,Some(same[0]))?;}else{self.settle_enter_triggers(&mut t,Some(same[0]))?;}
+                        }else if plot_attach {t.plot.stage=PlotState::UNIQUE;t.decision=Decision::Unique;}else{t.decision=Decision::Unique;}
+                    }else if plot_attach {self.plot_settle_enter(&mut t,None)?;}else{self.enter_triggers(&mut t)?;}
                 }
             }
             Decision::LeaderMenu => {
@@ -744,7 +789,7 @@ impl Engine {
                     self.add_arena(&mut t, leader)?;
                     t.phase_history.entered(seat,leader);
                     t.source = leader;
-                    self.enter_triggers(&mut t)?;
+                    self.deploy_triggers(&mut t)?;
                 } else {
                     if self.catalogue.is_some() {
                         let id = t.player(seat).leader;
@@ -858,7 +903,11 @@ impl Engine {
                 }
             }
             Decision::Unique => {
-                self.settle_enter_triggers(&mut t, Some(id))?;
+                if t.plot.stage==PlotState::UNIQUE {
+                    self.plot_settle_enter(&mut t, Some(id))?;
+                } else {
+                    self.settle_enter_triggers(&mut t, Some(id))?;
+                }
             }
             Decision::Support => {
                 if arg=="passAbility" {self.process_triggers(&mut t)?;}else{self.begin_support_attack(&mut t,id)?;}
@@ -878,6 +927,13 @@ impl Engine {
             Decision::TriggerOrder => {
                 let index = arg.parse::<usize>().map_err(|e| e.to_string())?;
                 self.resolve_ordered_trigger(&mut t, index)?;
+            }
+            Decision::PlotOptional => {
+                if arg == "pass" {
+                    self.pass_plot_trigger(&mut t)?;
+                } else {
+                    self.confirm_plot_trigger(&mut t)?;
+                }
             }
             Decision::ShieldOrder => {
                 t.attack_shield_opponent_first=a.arg.as_ref().and_then(Value::as_u64)==Some(1);
@@ -935,6 +991,7 @@ impl Engine {
     }
     fn clear_action_context(&self, s: &mut State) {
         s.disclose=DiscloseState::default();
+        s.plot=PlotState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
@@ -962,6 +1019,21 @@ impl Engine {
     }
     fn enter_triggers(&self, s: &mut State) -> Result<(), String> {
         self.settle_enter_triggers(s, None)
+    }
+    /// A deployed leader's trigger window: its own deployed keyword triggers plus
+    /// every Plot keyword ability controlled in the deploying player's resource
+    /// zone (forceteki `onLeaderDeployed`). The context stays distinct from
+    /// Enter so Plot candidates cannot be offered after ordinary enters.
+    fn deploy_triggers(&self, s: &mut State) -> Result<(), String> {
+        s.decision = Decision::Window;
+        s.disabled_ongoing_source = 0;
+        // One fresh leader-deploy window per deployment: the window marker keeps
+        // already-resolved Plot instances from being offered again.
+        s.plot = PlotState { leader: s.source, ..PlotState::default() };
+        self.capture_enter_triggers(s);
+        s.set_trigger_context(TriggerContext::LeaderDeploy);
+        self.sweep_stat_defeats(s)?;
+        self.process_triggers(s)
     }
     fn settle_enter_triggers(
         &self,

@@ -6,9 +6,12 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     copy::<State>();
     let mut s=State::default();
     // 28,544 + first-strike support flags (2 x 32 = 64) + one u8 phase-restriction
-    // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632. Zero
-    // masks/flags stay off the hash stream, so the historical hashes below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29632);
+    // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632, plus the
+    // leader-deploy Plot window: PlotState card/leader u16 + pending u8 + stage u8
+    // + programs u16 + padding = 8, and its resolved-instance bitmask [u64; 4] = 32,
+    // for 29,672. An inactive Plot window stays off the hash stream, so the
+    // historical hashes below are unchanged.
+    assert_eq!(std::mem::size_of::<State>(),29672);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
@@ -23,8 +26,8 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
 #[test]
 fn numeric_views_do_not_reinterpret_unknown_or_empty_boundaries() {
     for raw in 0..=u8::MAX {
-        assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=4).then_some(raw));
-        assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=2).then_some(raw));
+        assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=5).then_some(raw));
+        assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=3).then_some(raw));
         assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=7).contains(&raw).then_some(raw));
     }
     assert_eq!(DeathFrame::default().continuation(),None);
