@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 814
+    "sourceIr": 815
   },
   "runtimeAdmittedCards": [
     {
@@ -2229,6 +2229,11 @@
       "implementation": "sourceIr",
       "internalName": "jam-communications",
       "setCode": "JTL_207"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-mandalorian#weathered-pilot",
+      "setCode": "JTL_210"
     },
     {
       "implementation": "sourceIr",
@@ -6026,7 +6031,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1203,
+  "runtimeAdmittedCount": 1204,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8267,11 +8272,6 @@
       "internalName": "its-a-trap",
       "reason": "its-a-trap: arena lists require standalone verified phase-stat semantics",
       "setCode": "JTL_209"
-    },
-    {
-      "internalName": "the-mandalorian#weathered-pilot",
-      "reason": "the-mandalorian#weathered-pilot: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_210"
     },
     {
       "internalName": "sidon-ithano#the-crimson-corsair",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1402,
+  "runtimeRejectedCount": 1401,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

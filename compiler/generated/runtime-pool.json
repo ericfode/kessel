@@ -18169,6 +18169,50 @@
     {
       "arena": "ground",
       "aspects": [
+        "cunning",
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "6421006753",
+      "internalName": "the-mandalorian#weathered-pilot",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Cunning]\nWhen played as an upgrade: Exhaust an enemy unit in this arena.",
+      "power": 5,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_210",
+      "setCodes": [
+        {
+          "number": 210,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 210,
+        "set": "JTL"
+      },
+      "subtitle": "Weathered Pilot",
+      "text": "When played as a unit: Exhaust up to 2 ground units.",
+      "title": "The Mandalorian",
+      "traits": [
+        "mandalorian",
+        "bounty hunter",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 1,
+      "upgradePower": 3
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "cunning"
       ],
       "cost": 1,
