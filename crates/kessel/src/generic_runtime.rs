@@ -564,8 +564,10 @@ impl Engine {
                         continue;
                     }
                     if name == "smuggle" {
+                        // Leaders/tokens can mention Smuggle without an intrinsic
+                        // alternate cost (Hondo watches Smuggle plays from base zone).
                         if info.is("leader") || info.is("token") || !(info.is("unit") || info.is("event") || info.is("upgrade")) {
-                            return Err("Smuggle requires an ordinary playable card".into());
+                            continue;
                         }
                         if smuggle.is_some() {
                             return Err("multiple Smuggle keyword tags".into());
@@ -2074,13 +2076,13 @@ impl Engine {
         }
         if self.def(s, source).info.is("event") {
             let seat = s.active;
-            let played = if s.player(seat).hand.contains(source) {
+            let (played, via_smuggle) = if s.player(seat).hand.contains(source) {
                 s.phase_history.preflight_play(seat)?;
                 self.spend(s, self.cost(s, source));
                 s.player_mut(seat).hand.remove(source);
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
-                true
+                (true, false)
             } else if s.player(seat).resources.contains(source) {
                 let cost = self
                     .smuggle_cost(s, source)
@@ -2091,12 +2093,12 @@ impl Engine {
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
                 self.resource_deck_top_after_play(s, seat)?;
-                true
+                (true, true)
             } else {
-                false
+                (false, false)
             };
             if played {
-                self.capture_card_played_watchers(s)?;
+                self.capture_card_played_watchers(s, via_smuggle)?;
             }
         }
         // Base epic actions spend their once-per-game limit when the ability commits
@@ -3699,8 +3701,12 @@ impl Engine {
             }
         }
     }
-    /// Capture reviewed OnCardPlayed arena watchers for the unit/event/upgrade just played.
-    pub(super) fn capture_card_played_watchers(&self, s: &mut State) -> Result<(), String> {
+    /// Capture reviewed OnCardPlayed arena and base-zone leader watchers.
+    pub(super) fn capture_card_played_watchers(
+        &self,
+        s: &mut State,
+        via_smuggle: bool,
+    ) -> Result<(), String> {
         if self.catalogue.is_none() {
             return Ok(());
         }
@@ -3709,14 +3715,15 @@ impl Engine {
         let is_unit = info.is("unit");
         let is_event = info.is("event");
         let is_upgrade = info.is("upgrade");
-        // Aspect/trait watchers (Lady Proxima / Fighters) also need upgrade plays.
+        // Aspect/trait (Lady Proxima / Fighters) and Smuggle (Hondo) watchers
+        // also need upgrade plays; Smuggle covers any playable type.
         if !is_unit && !is_event && !is_upgrade {
             return Ok(());
         }
         let played_owner = s.card(played).owner;
         let cost = info.cost().max(0) as u64;
         for owner in [Seat::P1, Seat::P2] {
-            let watchers: Vec<_> = s
+            let mut watchers: Vec<_> = s
                 .player(owner)
                 .ground
                 .as_slice()
@@ -3724,8 +3731,18 @@ impl Engine {
                 .chain(s.player(owner).space.as_slice())
                 .copied()
                 .collect();
+            // Undeployed leaders watch from the base zone (Hondo / Boba / Mando fronts).
+            let leader = s.player(owner).leader;
+            if leader != 0
+                && s.card(leader).present
+                && !s.card(leader).deployed
+                && self.def(s, leader).info.is("leader")
+            {
+                watchers.push(leader);
+            }
             for watcher in watchers {
-                if !self.in_arena(s, watcher) {
+                let in_base_zone = watcher == leader && !s.card(watcher).deployed;
+                if !in_base_zone && !self.in_arena(s, watcher) {
                     continue;
                 }
                 for &program in self.card_programs(s, watcher) {
@@ -3752,6 +3769,9 @@ impl Engine {
                     if proj.upgrade && !is_upgrade {
                         continue;
                     }
+                    if proj.require_smuggle && !via_smuggle {
+                        continue;
+                    }
                     if proj.same_controller && owner != played_owner {
                         continue;
                     }
@@ -3765,6 +3785,9 @@ impl Engine {
                         continue;
                     }
                     if proj.require_unique && !self.def(s, played).info.unique {
+                        continue;
+                    }
+                    if proj.require_keywords && self.keyword_inventory_len(s, played) == 0 {
                         continue;
                     }
                     if let Some(max) = proj.max_cost {

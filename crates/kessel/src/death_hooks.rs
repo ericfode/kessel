@@ -112,7 +112,7 @@ pub(crate) struct PlayProjection {
     pub unit: bool,
     /// `cardTypeWhenInPlay === "event"`.
     pub event: bool,
-    /// Upgrade play: `basicUpgrade` and/or `playAsType === "upgrade"`.
+    /// Upgrade play: `basicUpgrade`, `playAsType === "upgrade"`, or `card.isUpgrade()`.
     pub upgrade: bool,
     /// Friendly controller (`event.player === player`).
     pub same_controller: bool,
@@ -124,6 +124,10 @@ pub(crate) struct PlayProjection {
     pub attach_to_source: bool,
     /// Played card must be unique (`event.card.unique`).
     pub require_unique: bool,
+    /// Played unit must have at least one keyword (`event.card.keywords.length > 0`).
+    pub require_keywords: bool,
+    /// Play used Smuggle (`event.playType === "smuggle"`).
+    pub require_smuggle: bool,
     /// Optional printed aspect filter on the played card.
     pub aspect: Option<String>,
     /// Optional printed trait filter on the played card.
@@ -396,6 +400,44 @@ impl Predicate {
                 out.event = true;
                 true
             }
+            Self::DataCall {
+                method,
+                receiver,
+                args,
+                optional_call: false,
+                optional_receiver: false,
+            } if method == "isUpgrade"
+                && args.is_empty()
+                && receiver.path(&["card"], binding)
+                && !out.upgrade
+                && !out.unit
+                && !out.event =>
+            {
+                out.upgrade = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["playType"], binding)
+                    && right.const_str("smuggle")
+                    && !out.require_smuggle =>
+            {
+                out.require_smuggle = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == ">"
+                    && left.path(&["card", "keywords", "length"], binding)
+                    && !out.require_keywords =>
+            {
+                if let Self::Const { value } = right.as_ref() {
+                    if value.as_u64() == Some(0) {
+                        out.require_keywords = true;
+                        return true;
+                    }
+                }
+                false
+            }
             _ => {
                 if out.aspect.is_none() {
                     if let Some(aspect) = self.play_data_call("hasSomeAspect", binding) {
@@ -418,12 +460,12 @@ impl Predicate {
         self.play_project(&mut p, &mut None, 0)
             .then_some(p)
             .filter(|p| {
-                // Unit/event type, aspect/trait-only "any card" filters
-                // (Lady Proxima / Fighters), or upgrade-attached-to-self (Kylo).
-                let typed = p.unit || p.event;
+                // Unit/event/upgrade type, aspect/trait-only "any card" filters
+                // (Lady Proxima / Fighters), or Smuggle play-type watchers (Hondo).
+                let typed = p.unit || p.event || p.upgrade;
                 let tagged = p.aspect.is_some() || p.trait_name.is_some();
-                let attached_upgrade = p.upgrade && p.attach_to_source;
-                (typed || tagged || attached_upgrade)
+                let smuggle_play = p.require_smuggle;
+                (typed || tagged || smuggle_play)
                     && (p.same_controller || p.opponent_controller)
                     && !(p.same_controller && p.opponent_controller)
                     && !(p.unit && p.event)
@@ -431,6 +473,18 @@ impl Predicate {
                     && !(p.event && p.upgrade)
                     && (!p.require_unique || p.unit)
                     && (!p.attach_to_source || p.upgrade)
+                    && (!p.require_keywords || p.unit)
+                    && (!p.require_smuggle
+                        || (!p.unit
+                            && !p.event
+                            && !p.upgrade
+                            && p.aspect.is_none()
+                            && p.trait_name.is_none()
+                            && !p.require_keywords
+                            && !p.require_unique
+                            && !p.attach_to_source
+                            && !p.other
+                            && p.max_cost.is_none()))
             })
     }
 }
@@ -631,6 +685,93 @@ fn plain_if_you_do_unit_resolver(next: &Ability) -> bool {
             .as_ref()
             .is_some_and(|r| plain_attackable_resolver(r, "unit"))
 }
+fn plain_if_you_do_header(next: &Ability) -> bool {
+    next.trigger.is_empty()
+        && !next.optional
+        && !next.requires_confirmation
+        && !next.coordinate
+        && next.gained_host.is_none()
+        && next.attached_context.is_none()
+        && !next.attacker_must_survive
+        && next.costs.is_empty()
+        && next.context_title.is_empty()
+        && next.target_resolvers.is_empty()
+        && next.condition.is_none()
+        && next.then.is_none()
+        && next.if_you_do.is_none()
+        && next.hooks.is_empty()
+}
+fn attackable_owner_resolver(r: &TargetResolver, owner: &str, card_type: &str) -> bool {
+    r.owner == owner
+        && r.card_type == card_type
+        && r.zone.as_deref() == Some("anyAttackable")
+        && !r.optional
+        && r.count.is_none()
+        && r.mode.is_none()
+        && r.arena.is_none()
+        && r.prompt_title.is_none()
+        && r.prompt_title_parts.is_empty()
+        && r.predicate.is_none()
+        && r.native.is_none()
+        && !r.player_selection
+}
+fn remaining_hp_exhaust_resolver(r: &TargetResolver, max_hp: u64) -> bool {
+    r.owner == "opponent"
+        && r.card_type == "any"
+        && r.zone.as_deref() == Some("anyAttackable")
+        && !r.optional
+        && r.count.is_none()
+        && r.mode.is_none()
+        && r.arena.is_none()
+        && r.prompt_title.is_none()
+        && r.prompt_title_parts.is_empty()
+        && r.native.is_none()
+        && !r.player_selection
+        && r.predicate.as_ref().is_some_and(|p| {
+            matches!(
+                p,
+                Expr::Binary { op, left, right }
+                    if op == "&&"
+                        && matches!(
+                            left.as_ref(),
+                            Expr::Query { name, receiver, args }
+                                if name == "isUnit"
+                                    && args.is_empty()
+                                    && matches!(receiver.as_ref(), Expr::Ref { path } if path == &["card"])
+                        )
+                        && matches!(
+                            right.as_ref(),
+                            Expr::Binary { op, left, right }
+                                if op == "<="
+                                    && matches!(
+                                        left.as_ref(),
+                                        Expr::Ref { path } if path == &["card", "remainingHp"]
+                                    )
+                                    && matches!(
+                                        right.as_ref(),
+                                        Expr::Const { value } if value.as_u64() == Some(max_hp)
+                                    )
+                        )
+            )
+        })
+}
+fn optional_exhaust_self(a: &Ability) -> bool {
+    a.optional
+        && a.target_resolver.is_none()
+        && matches!(
+            &a.effect,
+            Effect::Exhaust {
+                target: Target::Name(t),
+            } if t == "self"
+        )
+}
+fn friendly_play_proj(proj: &PlayProjection) -> bool {
+    proj.same_controller
+        && !proj.opponent_controller
+        && proj.aspect.is_none()
+        && proj.trait_name.is_none()
+        && proj.max_cost.is_none()
+}
 fn self_experience_and_shield(effect: &Effect) -> bool {
     let one = |e: &Expr| matches!(e, Expr::Const { value } if value.as_u64() == Some(1));
     match effect {
@@ -660,8 +801,9 @@ fn self_experience_and_shield(effect: &Effect) -> bool {
 }
 /// Sole OnCardPlayed watcher: reviewed unit/event/upgrade play → Experience, heal,
 /// Sentinel, optional exhaust→Battle Droid, opponent-event base damage, optional
-/// aspect/trait/event damage selectors, or optional useForce continuations
-/// (Eighth Brother / Kylo / Luke).
+/// aspect/trait/event damage selectors, optional useForce continuations
+/// (Eighth Brother / Kylo / Luke), or LeaderUnitCard exhaust→effect / unit-side
+/// optional shapes (Hondo / Boba / Mando).
 pub(crate) fn card_played_registration(a: &Ability) -> bool {
     if !card_played_hook_header(a) {
         return false;
@@ -882,6 +1024,125 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
             false
         });
     }
+    // Leader base-zone exhaust→effect (Hondo / Boba / Mando fronts).
+    if optional_exhaust_self(a) && friendly_play_proj(&proj) && !proj.attach_to_source {
+        return a.if_you_do.as_deref().is_some_and(|next| {
+            if !plain_if_you_do_header(next) {
+                return false;
+            }
+            // Hondo: Smuggle play → Experience to any attackable.
+            if proj.require_smuggle
+                && !proj.unit
+                && !proj.event
+                && !proj.upgrade
+                && !proj.other
+                && !proj.require_unique
+                && !proj.require_keywords
+                && next
+                    .target_resolver
+                    .as_ref()
+                    .is_some_and(|r| attackable_owner_resolver(r, "any", "any"))
+            {
+                return matches!(
+                    &next.effect,
+                    Effect::GiveExperience {
+                        target: Target::Name(t),
+                        amount: Expr::Const { value },
+                    } if t == "chosen" && value.as_u64() == Some(1)
+                );
+            }
+            // Boba: keyworded unit play → friendly unit +1/+0 for the phase.
+            if proj.unit
+                && proj.require_keywords
+                && !proj.event
+                && !proj.upgrade
+                && !proj.other
+                && !proj.require_unique
+                && !proj.require_smuggle
+                && next
+                    .target_resolver
+                    .as_ref()
+                    .is_some_and(|r| attackable_owner_resolver(r, "self", "unit"))
+            {
+                return matches!(
+                    &next.effect,
+                    Effect::ModifyStats {
+                        target: Target::Name(t),
+                        duration,
+                        power: Expr::Const { value: power },
+                        hp: Expr::Const { value: hp },
+                    } if t == "chosen"
+                        && duration == "phase"
+                        && power.as_u64() == Some(1)
+                        && hp.as_u64() == Some(0)
+                );
+            }
+            // Mando: upgrade play → exhaust enemy unit with remaining HP ≤ 4.
+            if proj.upgrade
+                && !proj.unit
+                && !proj.event
+                && !proj.other
+                && !proj.require_unique
+                && !proj.require_keywords
+                && !proj.require_smuggle
+                && next
+                    .target_resolver
+                    .as_ref()
+                    .is_some_and(|r| remaining_hp_exhaust_resolver(r, 4))
+            {
+                return matches!(
+                    &next.effect,
+                    Effect::Exhaust {
+                        target: Target::Name(t),
+                    } if t == "chosen"
+                );
+            }
+            false
+        });
+    }
+    // Deployed leader unit-side optional direct effects (Hondo / Mando).
+    if a.optional
+        && a.if_you_do.is_none()
+        && friendly_play_proj(&proj)
+        && !proj.attach_to_source
+        && !proj.other
+        && !proj.require_unique
+        && !proj.require_keywords
+    {
+        // Hondo unit: Smuggle play → Experience to any attackable.
+        if proj.require_smuggle
+            && !proj.unit
+            && !proj.event
+            && !proj.upgrade
+            && a.target_resolver
+                .as_ref()
+                .is_some_and(|r| attackable_owner_resolver(r, "any", "any"))
+        {
+            return matches!(
+                &a.effect,
+                Effect::GiveExperience {
+                    target: Target::Name(t),
+                    amount: Expr::Const { value },
+                } if t == "chosen" && value.as_u64() == Some(1)
+            );
+        }
+        // Mando unit: upgrade play → exhaust enemy unit with remaining HP ≤ 6.
+        if proj.upgrade
+            && !proj.unit
+            && !proj.event
+            && !proj.require_smuggle
+            && a.target_resolver
+                .as_ref()
+                .is_some_and(|r| remaining_hp_exhaust_resolver(r, 6))
+        {
+            return matches!(
+                &a.effect,
+                Effect::Exhaust {
+                    target: Target::Name(t),
+                } if t == "chosen"
+            );
+        }
+    }
     false
 }
 pub(crate) fn reject_reason(a: &Ability) -> String {
@@ -967,13 +1228,64 @@ pub(crate) fn smuggle_play_entry(e: &Value, sides: &Sides) -> bool {
         && sides.card.len() == 1
         && smuggle_play_registration(&sides.card[0])
 }
+fn ordinary_leader_hook_source(e: &Value, sides: &Sides) -> bool {
+    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
+        && e["baseClass"] == "LeaderUnitCard"
+        && e["card"]["types"] == serde_json::json!(["leader"])
+        && e["card"]["unique"] == true
+        && e["card"]["cost"].as_u64().is_some_and(|n| (1..=10).contains(&n))
+        && e["card"]["hp"].as_i64().is_some_and(|n| (1..=20).contains(&n))
+        && e["card"]["power"].as_i64().is_some_and(|n| (0..=20).contains(&n))
+        && e["card"]["arena"] == "ground"
+        && e["card"]["deployBox"].as_str().is_some_and(|s| !s.is_empty() && s.len() <= 512)
+        && e["card"]["epicAction"]
+            .as_str()
+            .is_some_and(|s| !s.is_empty() && s.len() <= 256)
+        && e["card"]["upgradePower"].is_null()
+        && e["card"]["upgradeHp"].is_null()
+        && sides.card.is_empty()
+        && sides.leader.len() == 1
+        && sides.unit.len() == 1
+        && (e["stateWatchers"].is_null()
+            || e["stateWatchers"] == serde_json::json!([])
+            || e["stateWatchers"] == serde_json::json!({}))
+        && e["piloting"].is_null()
+        && e["attachCondition"].is_null()
+        && ["pilotText", "pilotBox", "pilotingBox", "deployCost"]
+            .iter()
+            .all(|key| e["card"][key].is_null())
+}
+fn card_played_leader_entry(e: &Value, sides: &Sides) -> bool {
+    if !ordinary_leader_hook_source(e, sides) {
+        return false;
+    }
+    let hooks: Vec<_> = sides
+        .leader
+        .iter()
+        .chain(&sides.unit)
+        .filter(|a| marker(&serde_json::to_value(a).expect("serializable ability")))
+        .collect();
+    if hooks.is_empty() || !hooks.iter().all(|a| card_played_registration(a)) {
+        return false;
+    }
+    // Non-hook companions (Boba unit aura) stay out of the hook list; ability_ir
+    // keyword-inventory admission reviews them separately.
+    sides
+        .leader
+        .iter()
+        .chain(&sides.unit)
+        .filter(|a| !marker(&serde_json::to_value(a).expect("serializable ability")))
+        .all(|a| a.trigger == "constant")
+}
 pub(crate) fn card_played_entry(e: &Value, sides: &Sides) -> bool {
-    ordinary_unit_hook_source(e, sides)
-        && sides
+    if ordinary_unit_hook_source(e, sides) {
+        return sides
             .card
             .iter()
             .filter(|a| marker(&serde_json::to_value(a).expect("serializable ability")))
-            .all(card_played_registration)
+            .all(card_played_registration);
+    }
+    card_played_leader_entry(e, sides)
 }
 pub(crate) fn leader_deploy_base_entry(e: &Value, sides: &Sides) -> bool {
     ["historyHelpers","privatePrograms","classMethods","privateClassConstants","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))

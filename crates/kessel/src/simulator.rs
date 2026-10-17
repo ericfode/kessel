@@ -1161,14 +1161,15 @@ impl Engine {
         s.enter_smuggle = false;
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
         // Ambush/Shielded also watch OnLeaderDeployed. Smuggle-only aliases
-        // watch OnCardPlayed with PlayType.Smuggle.
+        // watch OnCardPlayed with PlayType.Smuggle; leader fronts also watch
+        // Smuggle playType via capture_card_played_watchers.
         if !self.def(s, s.source).info.is("leader") {
             if smuggle {
                 self.queue_programs(s, &["whenPlayed", "whenPlayedUsingSmuggle"]);
             } else {
                 self.queue_programs(s, &["whenPlayed"]);
             }
-            self.capture_card_played_watchers(s)?;
+            self.capture_card_played_watchers(s, smuggle)?;
         }
         Ok(())
     }

@@ -717,7 +717,7 @@ fn card_played_hook_admission_maz_yularen_leia_force_sentinel_adi_poggle_and_sel
     let e = engine();
     for code in [
         "SHD_096", "SOR_109", "HMW_115", "LOF_096", "LOF_142", "TWI_080", "SHD_255", "SOR_143",
-        "SOR_182", "LOF_087", "LOF_229", "LOF_249",
+        "SOR_182", "LOF_087", "LOF_229", "LOF_249", "SHD_005", "SHD_008", "SHD_018",
     ] {
         assert!(
             e.by_code.contains_key(code),
@@ -1226,5 +1226,175 @@ fn hand_for(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
         s.player_mut(seat).resources.push(resource).unwrap();
     }
     id
+}
+
+fn set_leader(e: &Engine, s: &mut State, seat: Seat, code: &str) {
+    let leader = s.player(seat).leader;
+    s.card_mut(leader).def = *e.by_code.get(code).unwrap_or_else(|| {
+        panic!("{code}: {:?}", e.rejected_cards().unwrap().get(code))
+    });
+}
+
+fn deploy_leader(e: &Engine, s: &mut State, seat: Seat) {
+    let leader = s.player(seat).leader;
+    s.card_mut(leader).deployed = true;
+    s.card_mut(leader).epic_used = true;
+    e.add_arena(s, leader).unwrap();
+}
+
+#[test]
+fn card_played_mando_front_may_exhaust_to_exhaust_low_hp_enemy_on_upgrade() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_018");
+            let leader = s.player(seat).leader;
+            assert!(!s.card(leader).deployed);
+            assert!(!s.card(leader).exhausted);
+            let host = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034"); // hp 3 ≤ 4
+            assert!(!s.card(enemy).exhausted);
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            assert_eq!(done.decision, Decision::UpgradeTarget);
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(host))
+                .expect("attach host");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert!(done.card(enemy).exhausted, "{backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_mando_deployed_may_exhaust_enemy_on_upgrade_without_self_exhaust() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_018");
+            deploy_leader(&e, &mut s, seat);
+            let leader = s.player(seat).leader;
+            assert!(!s.card(leader).exhausted);
+            let host = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034");
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(host))
+                .expect("attach host");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(!done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert!(done.card(enemy).exhausted, "{backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_boba_front_may_exhaust_to_buff_friendly_on_keyword_unit() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            let leader = s.player(seat).leader;
+            let ally = unit(&e, &mut s, seat, "LOF_254");
+            let before = e.power(&s, ally, false);
+            let played = hand_for(&e, &mut s, seat, "ASH_034"); // saboteur
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert_eq!(
+                e.power(&done, ally, false),
+                before + 1,
+                "{backend:?}/{seat:?}"
+            );
+            // Non-keyword play does not open the window.
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            let leader = s.player(seat).leader;
+            let played = hand_for(&e, &mut s, seat, "LOF_254");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(!done.card(leader).exhausted, "plain unit {backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_boba_deployed_aura_buffs_other_keyword_units() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            deploy_leader(&e, &mut s, seat);
+            let keyworded = unit(&e, &mut s, seat, "ASH_034");
+            let plain = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034");
+            assert_eq!(
+                e.power(&s, keyworded, false),
+                e.def(&s, keyworded).info.power.unwrap_or(0) as u16 + 1,
+                "{backend:?}/{seat:?}"
+            );
+            assert_eq!(
+                e.power(&s, plain, false),
+                e.def(&s, plain).info.power.unwrap_or(0) as u16,
+                "{backend:?}/{seat:?}"
+            );
+            assert_eq!(
+                e.power(&s, enemy, false),
+                e.def(&s, enemy).info.power.unwrap_or(0) as u16,
+                "{backend:?}/{seat:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn card_played_hondo_front_may_exhaust_to_give_experience_on_smuggle() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_005");
+            let leader = s.player(seat).leader;
+            let ally = unit(&e, &mut s, seat, "LOF_254");
+            assert_eq!(e.upgrades(&s, ally).len(), 0);
+            for _ in 0..6 {
+                let resource = add(&e, &mut s, seat, "LOF_254");
+                s.player_mut(seat).resources.push(resource).unwrap();
+            }
+            let smuggled = add(&e, &mut s, seat, "SHD_160");
+            s.player_mut(seat).resources.push(smuggled).unwrap();
+            let top = add(&e, &mut s, seat, "LOF_256");
+            s.player_mut(seat).deck.push(top).unwrap();
+            let mut done = e.apply(&s, &e.card_action(&s, smuggled)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert_eq!(e.upgrades(&done, ally).len(), 1, "{backend:?}/{seat:?}");
+            // Ordinary hand play does not fire Hondo.
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_005");
+            let leader = s.player(seat).leader;
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(!done.card(leader).exhausted, "hand play {backend:?}/{seat:?}");
+        }
+    }
 }
 
