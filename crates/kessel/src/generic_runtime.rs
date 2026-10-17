@@ -537,20 +537,18 @@ impl Engine {
                     vec![entry["card"]["text"].as_str().unwrap_or("")]
                 };
                 let plot_instance = super::play_from_resources::plot_instance(keyword_mentions("plot"), &printed_sides)?;
-                if info.is("leader") && plot_instance {
-                    return Err("Plot cannot be printed on a leader: PlotAbility asserts non-leaders".into());
+                let smuggle_instance = super::play_from_resources::smuggle_instance(keyword_mentions("smuggle"), &printed_sides)?;
+                if info.is("leader") && (plot_instance || smuggle_instance.is_some()) {
+                    return Err("Plot/Smuggle cannot be printed on a leader: PlotAbility asserts non-leaders and leaders never enter the resource zone".into());
                 }
                 let mut flags = 0;
                 let mut raid = 0;
                 let mut restore = 0;
                 for keyword in entry["card"]["keywords"].as_array().into_iter().flatten() {
                     let name = keyword.as_str().ok_or("invalid keyword")?;
-                    if name=="plot" {
+                    if name=="plot" || name=="smuggle" {
                         // Derived above; a metadata mention alone is not an instance.
                         continue;
-                    }
-                    if name=="smuggle" {
-                        return Err("unimplemented runtime keyword smuggle".into());
                     }
                     if name=="coordinate" {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
@@ -625,7 +623,7 @@ impl Engine {
                     aspects,
                     programs,
                     plot: plot_instance,
-                    smuggle: None,
+                    smuggle: smuggle_instance,
                     traits: entry["card"]["traits"]
                         .as_array()
                         .into_iter()

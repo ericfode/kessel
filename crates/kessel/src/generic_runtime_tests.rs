@@ -3714,6 +3714,8 @@ mod support_tests;
 #[path="plot_tests.rs"]
 mod plot_tests;
 
+#[path="smuggle_tests.rs"]
+mod smuggle_tests;
 
 // These isolate the two source programs; Support deployment is owned by its
 // separate capability and must be tested on the complete integrated leader.
