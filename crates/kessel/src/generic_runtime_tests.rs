@@ -3830,3 +3830,6 @@ mod modal_choice_tests;
 
 #[path="zone_statics_tests.rs"]
 mod zone_statics_tests;
+
+#[path = "native_attack_composition_tests.rs"]
+mod native_attack_composition_tests;
