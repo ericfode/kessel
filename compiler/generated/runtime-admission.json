@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 759
+    "sourceIr": 760
   },
   "runtimeAdmittedCards": [
     {
@@ -2034,6 +2034,11 @@
       "implementation": "sourceIr",
       "internalName": "air-superiority",
       "setCode": "JTL_125"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "general-hux#no-terms-no-surrender",
+      "setCode": "JTL_134"
     },
     {
       "implementation": "sourceIr",
@@ -5751,7 +5756,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1148,
+  "runtimeAdmittedCount": 1149,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5785,7 +5790,7 @@
     },
     {
       "internalName": "moff-gideon#indomitable-warlord",
-      "reason": "moff-gideon#indomitable-warlord: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "moff-gideon#indomitable-warlord: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_008"
     },
     {
@@ -5815,7 +5820,7 @@
     },
     {
       "internalName": "shin-hati#eager-adversary",
-      "reason": "shin-hati#eager-adversary: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "shin-hati#eager-adversary: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_016"
     },
     {
@@ -5865,7 +5870,7 @@
     },
     {
       "internalName": "baylan-skoll#fallen-jedi",
-      "reason": "baylan-skoll#fallen-jedi: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "baylan-skoll#fallen-jedi: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_039"
     },
     {
@@ -5945,7 +5950,7 @@
     },
     {
       "internalName": "pit-droid-team",
-      "reason": "pit-droid-team: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "pit-droid-team: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_075"
     },
     {
@@ -6000,12 +6005,12 @@
     },
     {
       "internalName": "the-great-mothers#with-strange-magicks",
-      "reason": "the-great-mothers#with-strange-magicks: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "the-great-mothers#with-strange-magicks: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_101"
     },
     {
       "internalName": "ravager#final-imperial-command",
-      "reason": "ravager#final-imperial-command: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "ravager#final-imperial-command: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_102"
     },
     {
@@ -6280,7 +6285,7 @@
     },
     {
       "internalName": "peli-motto#you-bring-the-cash",
-      "reason": "peli-motto#you-bring-the-cash: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "peli-motto#you-bring-the-cash: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_212"
     },
     {
@@ -6410,7 +6415,7 @@
     },
     {
       "internalName": "jar-jar-binks#bombad-general",
-      "reason": "jar-jar-binks#bombad-general: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "jar-jar-binks#bombad-general: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_005"
     },
     {
@@ -6460,7 +6465,7 @@
     },
     {
       "internalName": "osha#haunted-by-her-past",
-      "reason": "osha#haunted-by-her-past: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "osha#haunted-by-her-past: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_017"
     },
     {
@@ -6570,7 +6575,7 @@
     },
     {
       "internalName": "the-great-progenitor#first-of-the-drengir",
-      "reason": "the-great-progenitor#first-of-the-drengir: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "the-great-progenitor#first-of-the-drengir: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_067"
     },
     {
@@ -6610,7 +6615,7 @@
     },
     {
       "internalName": "sando-aqua-monster",
-      "reason": "sando-aqua-monster: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "sando-aqua-monster: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_094"
     },
     {
@@ -6735,7 +6740,7 @@
     },
     {
       "internalName": "origin-tree-shyyyo",
-      "reason": "origin-tree-shyyyo: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "origin-tree-shyyyo: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_145"
     },
     {
@@ -7435,7 +7440,7 @@
     },
     {
       "internalName": "captain-phasma#chrome-dome",
-      "reason": "captain-phasma#chrome-dome: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "captain-phasma#chrome-dome: unresolved phase history helpers require reviewed registration",
       "setCode": "JTL_010"
     },
     {
@@ -7520,7 +7525,7 @@
     },
     {
       "internalName": "director-krennic#on-the-verge-of-greatness",
-      "reason": "director-krennic#on-the-verge-of-greatness: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "director-krennic#on-the-verge-of-greatness: unresolved phase history helpers require reviewed registration",
       "setCode": "JTL_032"
     },
     {
@@ -7809,11 +7814,6 @@
       "setCode": "JTL_133"
     },
     {
-      "internalName": "general-hux#no-terms-no-surrender",
-      "reason": "general-hux#no-terms-no-surrender: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "JTL_134"
-    },
-    {
       "internalName": "prototype-tie-advanced",
       "reason": "reprint alias of LAW_175",
       "setCode": "JTL_136"
@@ -7985,7 +7985,7 @@
     },
     {
       "internalName": "mist-hunter#the-findsmans-pursuit",
-      "reason": "mist-hunter#the-findsmans-pursuit: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "mist-hunter#the-findsmans-pursuit: unresolved phase history helpers require reviewed registration",
       "setCode": "JTL_186"
     },
     {
@@ -8250,7 +8250,7 @@
     },
     {
       "internalName": "death-star-plans",
-      "reason": "death-star-plans: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "death-star-plans: unresolved phase history helpers require reviewed registration",
       "setCode": "JTL_260"
     },
     {
@@ -8555,7 +8555,7 @@
     },
     {
       "internalName": "anakin-skywalker#prescient-podracer",
-      "reason": "anakin-skywalker#prescient-podracer: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "anakin-skywalker#prescient-podracer: unresolved phase history helpers require reviewed registration",
       "setCode": "LAW_088"
     },
     {
@@ -9040,7 +9040,7 @@
     },
     {
       "internalName": "avar-kriss#marshal-of-starlight",
-      "reason": "avar-kriss#marshal-of-starlight: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "avar-kriss#marshal-of-starlight: unresolved phase history helpers require reviewed registration",
       "setCode": "LOF_007"
     },
     {
@@ -9060,7 +9060,7 @@
     },
     {
       "internalName": "rey#nobody",
-      "reason": "rey#nobody: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "rey#nobody: unresolved phase history helpers require reviewed registration",
       "setCode": "LOF_012"
     },
     {
@@ -9325,7 +9325,7 @@
     },
     {
       "internalName": "malakili#loving-rancor-keeper",
-      "reason": "malakili#loving-rancor-keeper: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "malakili#loving-rancor-keeper: unresolved phase history helpers require reviewed registration",
       "setCode": "LOF_108"
     },
     {
@@ -9815,7 +9815,7 @@
     },
     {
       "internalName": "congress-of-malastare",
-      "reason": "congress-of-malastare: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "congress-of-malastare: unresolved phase history helpers require reviewed registration",
       "setCode": "SEC_064"
     },
     {
@@ -10230,7 +10230,7 @@
     },
     {
       "internalName": "fully-armed-and-operational",
-      "reason": "fully-armed-and-operational: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "fully-armed-and-operational: unresolved phase history helpers require reviewed registration",
       "setCode": "SEC_194"
     },
     {
@@ -11345,7 +11345,7 @@
     },
     {
       "internalName": "darth-vader#dark-lord-of-the-sith",
-      "reason": "darth-vader#dark-lord-of-the-sith: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "darth-vader#dark-lord-of-the-sith: unresolved phase history helpers require reviewed registration",
       "setCode": "SOR_010"
     },
     {
@@ -11860,7 +11860,7 @@
     },
     {
       "internalName": "boba-fett#disintegrator",
-      "reason": "boba-fett#disintegrator: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "boba-fett#disintegrator: unresolved phase history helpers require reviewed registration",
       "setCode": "SOR_179"
     },
     {
@@ -12115,7 +12115,7 @@
     },
     {
       "internalName": "anakin-skywalker#protect-her-at-all-costs",
-      "reason": "anakin-skywalker#protect-her-at-all-costs: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "anakin-skywalker#protect-her-at-all-costs: unresolved phase history helpers require reviewed registration",
       "setCode": "TS26_002"
     },
     {
@@ -12245,7 +12245,7 @@
     },
     {
       "internalName": "tribunal#grave-of-the-332nd",
-      "reason": "tribunal#grave-of-the-332nd: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "tribunal#grave-of-the-332nd: unresolved phase history helpers require reviewed registration",
       "setCode": "TS26_036"
     },
     {
@@ -12410,7 +12410,7 @@
     },
     {
       "internalName": "wat-tambor#techno-union-foreman",
-      "reason": "wat-tambor#techno-union-foreman: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "wat-tambor#techno-union-foreman: unresolved phase history helpers require reviewed registration",
       "setCode": "TWI_006"
     },
     {
@@ -12460,7 +12460,7 @@
     },
     {
       "internalName": "chancellor-palpatine#playing-both-sides",
-      "reason": "chancellor-palpatine#playing-both-sides: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "chancellor-palpatine#playing-both-sides: unresolved phase history helpers require reviewed registration",
       "setCode": "TWI_017"
     },
     {
@@ -12510,7 +12510,7 @@
     },
     {
       "internalName": "a-fine-addition",
-      "reason": "a-fine-addition: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "a-fine-addition: unresolved phase history helpers require reviewed registration",
       "setCode": "TWI_040"
     },
     {
@@ -12550,7 +12550,7 @@
     },
     {
       "internalName": "kiadimundi#composed-and-confident",
-      "reason": "kiadimundi#composed-and-confident: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "kiadimundi#composed-and-confident: unresolved phase history helpers require reviewed registration",
       "setCode": "TWI_064"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1457,
+  "runtimeRejectedCount": 1456,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
