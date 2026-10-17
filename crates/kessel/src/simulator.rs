@@ -2,6 +2,8 @@
 mod generic_runtime;
 #[path = "support_runtime.rs"]
 mod support_runtime;
+#[path = "attack_stats.rs"]
+mod attack_stats;
 #[path = "selector_runtime.rs"]
 mod selector_runtime;
 #[path = "registration_runtime.rs"]
@@ -379,7 +381,7 @@ impl Engine {
         d.info.cost().max(0) as u16 + penalty
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
-        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
+        self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)+self.attack_stat_bonus(s,id).0
     }
     pub fn power(&self,s:&State,id:CardId,attacking:bool)->u16 {u16::try_from(self.raw_power(s,id,attacking).max(0)).expect("power exceeds validated compact capacity")}
     fn leader_available(&self, s: &State) -> (bool, bool) {
@@ -1178,6 +1180,10 @@ impl Engine {
         self.capture_attack_end(s)?;
         if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.clear_support_grants(s);
+        // AttackFlow cleanup is one sweep for every UntilEndOfAttack effect; the
+        // captured OnAttackEnd triggers above resolved while these grants were
+        // still active, exactly like the engine's OnAttackEnd window.
+        self.clear_attack_stats(s);
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         self.sweep_stat_defeats(s)?;
         if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
@@ -1235,6 +1241,7 @@ impl Engine {
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
         if self.in_arena(s,id) {self.mark_attack_lifecycle(s,id,false);}
         self.remove_support_target(s,id);
+        self.remove_attack_stats_target(s,id);
         self.detach(s,id);
         let owner = s.card(id).owner;
         let leader = id == s.player(owner).leader;

@@ -505,13 +505,20 @@ impl Expr {
                     "hasControlledInPlayTrait"=>2,
                     "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isBase" | "isLeader" | "getPower" | "getHp"
-                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
+                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount"
+                    | "getAllAttackTargets" => 0,
                     "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
                     | "arenaUnitCount" | "hasControlledInPlayTitle" | "hasAttachedTrait" | "hasAttachedNativeToken" => 1,
                     _ => return Err(format!("unsupported runtime query {name}")),
                 };
                 if args.len() != arity {
                     return Err(format!("query {name} expects {arity} arguments"));
+                }
+                if name=="getAllAttackTargets" {
+                    // The pinned attack target list lives on the resolving attack
+                    // event (`context.event.attack.getAllTargets()`).
+                    if !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["event","attack"]) {return Err("attack target list requires the event.attack receiver".into());}
+                    return Ok(());
                 }
                 if crate::bounded_reductions::QUERIES.contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]||path==&["opponent"]) {return Err("bounded arena reduction requires exact scalar player receiver".into());}
                 if name==crate::live_power_maximum::DISPLAY_QUERY&&!matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]) {return Err("maximum display requires exact own-player receiver".into());}
@@ -717,6 +724,12 @@ impl Target {
                                 | ["source" | "target" | "card", "controller"]
                                 | ["source", "parentCard" | "parentUnit"]
                         ),
+                        // The pinned attack's captured target list is a bounded card
+                        // list (one admitted target per attack); its runtime query
+                        // returns only a unit still in play.
+                        Expr::Query { name, receiver, args } => name == "getAllAttackTargets"
+                            && args.is_empty()
+                            && matches!(receiver.as_ref(), Expr::Ref { path } if path == &["event", "attack"]),
                         Expr::Conditional { then, r#else, .. } => {
                             is_target(then) && (is_target(r#else) || matches!(r#else.as_ref(),Expr::Const {value} if value.is_null()))
                         }
@@ -2489,6 +2502,10 @@ impl Program {
                 Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
+                    // Grouped stats resolve through the phase-stat prepared windows;
+                    // an attack-duration grant inside a group would silently use the
+                    // wrong expiry, so it stays an explicit rejection.
+                    if matches!(primitive, Effect::ModifyStats { duration, .. } if duration=="attack") { return Err("grouped stat modifications require phase duration".into()); }
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
                     let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
                     if array && amount.is_some_and(target_dependent) { return Err("array-dependent group amount is unsupported".into()); }
@@ -2715,19 +2732,32 @@ impl Program {
             Effect::ReturnToHand { target } => { target.validate()?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
-                if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }
-                if let Target::ArenaList(list)=target {
-                    if self.trigger=="onAttack" && list.token_unit_attack_scope() {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
-                }else{target.validate()?;}
-                if matches!(target,Target::ArenaList(_)) {
-                    // Unary plus is emitted by signed source literals. Normalize only this
-                    // bounded stat scope; general expression unary-plus remains rejected.
-                    fn normalized(e:&Expr)->Expr {match e {Expr::Unary{op,value} if op=="+" && matches!(value.as_ref(),Expr::Const{value} if value.as_i64().is_some_and(|n|(0..=65535).contains(&n)))=>*value.clone(),_=>e.clone()}}
-                    let power=normalized(power);let hp=normalized(hp);power.validate_number()?;hp.validate_number()?;
-                    self.instructions.push(Instruction::Apply(Effect::ModifyStats{target:target.clone(),power,hp,duration:duration.clone()}));
-                }else {
-                    if duration=="persistent" {power.live_stat_bounds()?;hp.live_stat_bounds()?;}else{power.validate_number()?;hp.validate_number()?;}
+                if duration=="attack" {
+                    // Pinned CardAttackLastingEffectSystem: one unit-only ongoing
+                    // stat effect per resolved target with Duration.UntilEndOfAttack.
+                    // Only an attack-triggered registration observes that window,
+                    // the target must resolve to cards, and the effect is not part
+                    // of any simultaneous group (group execution would otherwise
+                    // re-use phase-stat semantics; validate_group rejects it).
+                    if self.trigger!="onAttack" {return Err("attack stat modifications require an On Attack trigger".into());}
+                    if matches!(target,Target::ArenaList(_)) {return Err("attack stat modifications require one resolved card target".into());}
+                    power.validate_number()?;hp.validate_number()?;target.validate()?;
                     self.instructions.push(Instruction::Apply(effect.clone()));
+                } else {
+                    if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }
+                    if let Target::ArenaList(list)=target {
+                        if self.trigger=="onAttack" && list.token_unit_attack_scope() {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
+                    }else{target.validate()?;}
+                    if matches!(target,Target::ArenaList(_)) {
+                        // Unary plus is emitted by signed source literals. Normalize only this
+                        // bounded stat scope; general expression unary-plus remains rejected.
+                        fn normalized(e:&Expr)->Expr {match e {Expr::Unary{op,value} if op=="+" && matches!(value.as_ref(),Expr::Const{value} if value.as_i64().is_some_and(|n|(0..=65535).contains(&n)))=>*value.clone(),_=>e.clone()}}
+                        let power=normalized(power);let hp=normalized(hp);power.validate_number()?;hp.validate_number()?;
+                        self.instructions.push(Instruction::Apply(Effect::ModifyStats{target:target.clone(),power,hp,duration:duration.clone()}));
+                    }else {
+                        if duration=="persistent" {power.live_stat_bounds()?;hp.live_stat_bounds()?;}else{power.validate_number()?;hp.validate_number()?;}
+                        self.instructions.push(Instruction::Apply(effect.clone()));
+                    }
                 }
             }
             Effect::MaximumPowerExperience{..}=>return Err("maximum capture cannot be nested or used as a primitive".into()),

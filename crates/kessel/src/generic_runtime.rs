@@ -799,10 +799,12 @@ impl Engine {
                 if !(0..=65535).contains(&self.raw_keyword_amount(s, id, keyword)) { return Err(format!("computed {keyword} exceeds bounded keyword capacity")); }
             }
             let (constant_power, constant_hp) = self.constant_stats(s, id);
+            let (attack_power, attack_hp) = self.attack_stat_bonus(s, id);
             let power = d.info.power.unwrap_or(0) as i64
                 + self.token_count(s, s.card(id).experience) as i64
                 + s.card(id).phase_power as i64
                 + constant_power + self.upgrade_stats(s,id).0 + self.native_attack_power(s,id)
+                + attack_power
                 + if self.keyword_amount(s, id, "grit") > 0 {
                     s.card(id).damage as i64
                 } else {
@@ -812,7 +814,8 @@ impl Engine {
             let hp = d.info.hp.unwrap_or(0) as i64
                 + self.token_count(s, s.card(id).experience) as i64
                 + s.card(id).phase_hp as i64
-                + constant_hp + self.upgrade_stats(s,id).1;
+                + constant_hp + self.upgrade_stats(s,id).1
+                + attack_hp;
             if power > 65535 || hp > 65535 {
                 return Err("computed stats exceed compact capacity".into());
             }
@@ -1005,7 +1008,7 @@ impl Engine {
     pub(super) fn effective_flags(&self, s: &State, target: CardId) -> u16 {
         crate::ability_ir::CORE_KEYWORDS.iter().enumerate().filter(|(i,_)| crate::ability_ir::numeric_keyword_slot(*i).is_none()).fold(0, |flags, (i, k)| flags | if self.keyword_amount(s, target, k) > 0 { 1 << i } else { 0 })
     }
-    fn raw_hp(&self,s:&State,id:CardId)->i64 {self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_hp as i64+self.constant_stats(s,id).1+self.upgrade_stats(s,id).1}
+    fn raw_hp(&self,s:&State,id:CardId)->i64 {self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_hp as i64+self.constant_stats(s,id).1+self.upgrade_stats(s,id).1+self.attack_stat_bonus(s,id).1}
     pub fn hp(&self,s:&State,id:CardId)->u16 {u16::try_from(self.raw_hp(s,id).max(0)).expect("HP exceeds validated compact capacity")}
     pub(super) fn program(&self, id: u16) -> &Program {
         &self.catalogue.as_ref().expect("IR catalogue").programs[id as usize]
@@ -1051,6 +1054,12 @@ impl Engine {
     }
     fn active_attack_pair(&self,s:&State,id:CardId)->(CardId,CardId) {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
+    }
+    /// The attack currently resolving, independent of which card owns the
+    /// observing ability. `getAllAttackTargets` reads the event's attack.
+    fn current_attack_pair(&self,s:&State)->(CardId,CardId) {
+        if s.attack_source!=0 {return (s.attack_source,s.attack_defender);}
+        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))
     }
     pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
         if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_attacker_departed}else{s.attack_defender_departed};}
@@ -1364,6 +1373,14 @@ impl Engine {
                 receiver,
                 args,
             } => {
+                if name=="getAllAttackTargets" {
+                    // `context.event.attack.getAllTargets()`: the attack's captured
+                    // target list. Kessel admits one target per attack, and the
+                    // pinned lasting-effect system's own canAffect filter accepts
+                    // units only, so a unit still in play is the complete list.
+                    let (_,defender)=self.current_attack_pair(s);
+                    return Eval::Array(if defender!=0 && self.in_arena(s,defender) {vec![Eval::Card(defender)]}else{vec![]});
+                }
                 if name=="leaderTraits" {
                     let Eval::Player(player)=sub(receiver) else {return Eval::Null;};
                     let mut traits=std::collections::BTreeSet::new();
@@ -2644,9 +2661,15 @@ impl Engine {
                             s.card_mut(id).add_lost_keyword(index);
                             result += 1;
                         }
-                        Effect::ModifyStats { .. } if in_arena => {
-                            self.modify_phase_stats(s, id,
-                                modifier.expect("stat modifier captured before event batch"))?;
+                        Effect::ModifyStats { duration, .. } if in_arena => {
+                            let delta = modifier.expect("stat modifier captured before event batch");
+                            if duration == "attack" {
+                                // CardAttackLastingEffectSystem: unit-only, until
+                                // the attack ends, resolved deltas applied now.
+                                self.grant_attack_stats(s, id, delta.power, delta.hp)?;
+                            } else {
+                                self.modify_phase_stats(s, id, delta)?;
+                            }
                             result += 1;
                         }
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {
@@ -3209,6 +3232,9 @@ impl Engine {
                 self.capture_advantage_end(s)?;
                 self.combat_after_damage(s)
             } else {
+                // AttackFlow still runs cleanUpAttack when the attack does not
+                // resolve combat damage, so UntilEndOfAttack effects expire here.
+                self.clear_attack_stats(s);
                 self.finish(s)
             }
         } else {

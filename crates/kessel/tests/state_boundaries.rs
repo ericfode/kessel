@@ -7,12 +7,12 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     let mut s=State::default();
     // 28,544 + first-strike support flags (2 x 32 = 64) + one u8 phase-restriction
     // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632
-    // + the CardsDefeatedThisPhase projections: one u16 unit-defeat counter and
-    // one u16 while-attacking counter per controller (8 bytes with alignment).
-    // Both counters are existential/count history only; no identity bitsets are
-    // added. Zero counters stay off the hash stream, so the historical hashes
-    // below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29640);
+    // + until-end-of-attack stat grants (32 x 6 bytes + length, net 192 after
+    // alignment) + the CardsDefeatedThisPhase projections: one u16 unit-defeat
+    // counter and one u16 while-attacking counter per controller (8 bytes with
+    // alignment) = 29,832. Zero counters/masks/flags/grants stay off the hash
+    // stream, so the historical hashes below are unchanged.
+    assert_eq!(std::mem::size_of::<State>(),29832);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
