@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 768
+    "sourceIr": 769
   },
   "runtimeAdmittedCards": [
     {
@@ -1699,6 +1699,11 @@
       "implementation": "sourceIr",
       "internalName": "luke-skywalker#do-you-read-me",
       "setCode": "IC27_082"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "inspiring-mentor",
+      "setCode": "IC27_085"
     },
     {
       "implementation": "dataOnly",
@@ -5796,7 +5801,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1157,
+  "runtimeAdmittedCount": 1158,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7392,11 +7397,6 @@
       "internalName": "lethal-crackdown",
       "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "IC27_030"
-    },
-    {
-      "internalName": "inspiring-mentor",
-      "reason": "inspiring-mentor: attached aliases require complete ordinary upgrade metadata and matching printed stats",
-      "setCode": "IC27_085"
     },
     {
       "internalName": "eighth-brother#illfated-escape",
@@ -10755,7 +10755,7 @@
     },
     {
       "internalName": "inspiring-mentor",
-      "reason": "inspiring-mentor: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "reprint alias of IC27_085",
       "setCode": "SHD_104"
     },
     {
@@ -12240,7 +12240,7 @@
     },
     {
       "internalName": "ahsokas-lightsabers#dont-hurt-them",
-      "reason": "ahsokas-lightsabers#dont-hurt-them: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "ahsokas-lightsabers#dont-hurt-them: attached program: unknown variant `phasePlayerCostEffect`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`",
       "setCode": "TS26_035"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1448,
+  "runtimeRejectedCount": 1447,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

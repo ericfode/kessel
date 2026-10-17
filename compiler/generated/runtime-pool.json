@@ -13778,6 +13778,48 @@
     },
     {
       "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "6775521270",
+      "internalName": "inspiring-mentor",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "IC27_085",
+      "setCodes": [
+        {
+          "number": 104,
+          "set": "SHD"
+        },
+        {
+          "number": 85,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 85,
+        "set": "IC27"
+      },
+      "subtitle": "",
+      "text": "Attach to a non-Vehicle unit.\nAttached unit gains, “On Attack/When Defeated: Give an Experience token to another friendly unit.”",
+      "title": "Inspiring Mentor",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
         "command"
       ],
       "cost": 2,
