@@ -300,24 +300,99 @@ fn piloting_grant(g:&Grant)->bool {
         &&g.requires_grantor_in_play&&g.requires_attachable&&g.source_mode=="unitUpgrade"
         &&g.target_zone=="anyArena"&&g.target_types==["unit"]&&g.registration.r#type=="triggered"
 }
+/// Constant host aura granted while piloting (IG-88): registration.type constant.
+fn piloting_constant_grant(g:&Grant)->bool {
+    g.registration_mode=="piloting"&&g.target=="parent"&&g.target_controller=="any"
+        &&g.source_binding=="attachedHost"&&g.controller_binding=="hostController"
+        &&g.requires_grantor_in_play&&g.requires_attachable&&g.source_mode=="unitUpgrade"
+        &&g.target_zone=="anyArena"&&g.target_types==["unit"]&&g.registration.r#type=="constant"
+}
 fn piloting_self_grant(g:&Grant)->bool {
     g.registration_mode=="piloting"&&g.target=="self"&&g.target_controller=="any"
         &&g.source_binding=="grantor"&&g.controller_binding=="grantorController"
         &&g.requires_grantor_in_play&&g.requires_attachable&&g.source_mode=="unitUpgrade"
         &&g.target_zone=="anyArena"&&g.target_types==["unit"]&&g.registration.r#type=="triggered"
 }
+/// Opponent has at least one damaged arena unit (`true && card.damage > 0`).
+fn enemy_damaged_condition(e:&Expr)->bool {
+    matches!(e,Expr::Query{name,receiver,args} if name=="hasSomeArenaUnit"
+        && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["opponent"])
+        && args.len()==1
+        && matches!(&args[0],Expr::Binary{op,left,right} if op=="&&"
+            && matches!(left.as_ref(),Expr::Const{value} if value.as_bool()==Some(true))
+            && matches!(right.as_ref(),Expr::Binary{op,left,right} if op==">"
+                && matches!(left.as_ref(),Expr::Ref{path} if path==&["card","damage"])
+                && matches!(right.as_ref(),Expr::Const{value} if value.as_u64()==Some(0)))))
+}
+fn self_power_buff(e:&Effect,power:i64)->bool {
+    matches!(e,Effect::ModifyStats{
+        target:Target::Name(n),duration,power:Expr::Const{value:p},hp:Expr::Const{value:h}
+    } if n=="self"&&duration=="persistent"&&p.as_i64()==Some(power)&&h.as_i64()==Some(0))
+}
+fn parent_power_buff(e:&Effect,power:i64)->bool {
+    matches!(e,Effect::ModifyStats{
+        target:Target::Name(n),duration,power:Expr::Const{value:p},hp:Expr::Const{value:h}
+    } if n=="parent"&&duration=="persistent"&&p.as_i64()==Some(power)&&h.as_i64()==Some(0))
+}
+/// Reviewed IG-88 unit-side mirror: same enemy-damaged +3/+0 constant on self.
+pub(crate) fn enemy_damaged_companion(v:&Value)->bool {
+    if v["trigger"]!="constant"||v["costs"]!=json!([])||host_marker(v)||self_marker(v) {return false;}
+    let Ok(a)=serde_json::from_value::<Ability>(v.clone()) else {return false;};
+    !a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()
+        &&a.gained_host.is_none()&&!a.attached_host&&a.context_title.is_empty()
+        &&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()
+        &&a.condition.as_ref().is_some_and(enemy_damaged_condition)
+        &&self_power_buff(&a.effect,3)
+}
+fn enemy_damaged_parent_stats(a:&Ability)->bool {
+    a.trigger=="constant"&&a.condition.as_ref().is_some_and(enemy_damaged_condition)&&parent_power_buff(&a.effect,3)
+}
+/// Lower host-gained constant stats onto the pilot as a parent-targeted grant.
+fn compile_host_constant_stats(mut p:Value,title:&str)->Result<Ability,String> {
+    if invalid_host_scope(&p) {return Err("attached host program cannot read grantor/parent context".into());}
+    if p["title"]!=title {return Err("attached registration requires matching ability title".into());}
+    if let Some(hooks)=p.get("hooks") {
+        if !hooks.is_null()&&hooks!=&json!([]) {
+            return Err("piloting constant host grant does not use event hooks".into());
+        }
+    }
+    p.as_object_mut().ok_or("attached program must be an object")?.remove("hooks");
+    normalize_zone_names(&mut p);
+    let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("attached program: {e}"))?;
+    if a.trigger!="constant"||a.optional||a.requires_confirmation||a.coordinate
+        ||a.gained_host.is_some()||a.attached_context.is_some()||!a.costs.is_empty()
+        ||!a.context_title.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
+        ||a.then.is_some()||a.if_you_do.is_some()||a.target_resolver.is_some()
+        ||!a.condition.as_ref().is_some_and(enemy_damaged_condition)
+        ||!self_power_buff(&a.effect,3)
+    {
+        return Err("piloting constant host requires reviewed enemy-damaged +3/+0 shape".into());
+    }
+    // Host-gain IR uses target self (ability lives on the host). Rewrite to parent so
+    // the pilot's constant registration buffs the attached unit while attached.
+    if let Effect::ModifyStats{target,..}=&mut a.effect {
+        *target=Target::Name("parent".into());
+    }
+    Ok(a)
+}
 fn host_programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
     let w:Wrapper=serde_json::from_value(v.clone()).map_err(|e|format!("attached registration: {e}"))?;
     let g=w.effect;
     if w.trigger!="constant"||!w.costs.is_empty()||g.kind!="attachedAbilityRegistration"
-        ||!(upgrade_grant(&g)||piloting_grant(&g)) {
+        ||!(upgrade_grant(&g)||piloting_grant(&g)||piloting_constant_grant(&g)) {
         return Err("attached registration requires exact ordinary upgrade/host/controller contract".into());
     }
-    if piloting_grant(&g)&&!plain_pilot(entry) {
+    if (piloting_grant(&g)||piloting_constant_grant(&g))&&!plain_pilot(entry) {
         return Err("piloting attached registration requires complete ordinary Pilot unit metadata".into());
     }
     if upgrade_grant(&g)&&!plain_upgrade(entry) {
         return Err("attached registration requires exact ordinary upgrade/host/controller contract".into());
+    }
+    if piloting_constant_grant(&g) {
+        if defeat_text_override(entry) {
+            return Err("piloting constant host grant does not use defeat-text validation overrides".into());
+        }
+        return Ok(vec![compile_host_constant_stats(g.registration.program,&w.title)?]);
     }
     let mut p=g.registration.program;
     let mut trigger=p["trigger"].as_str().ok_or("attached registration missing trigger")?.to_owned();
@@ -384,6 +459,8 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let mut out=Sides::default();
     let mut saw_self=false;
     let mut saw_host=false;
+    let mut saw_enemy_damaged_companion=false;
+    let mut saw_enemy_damaged_host=false;
     for a in card {
         if self_marker(a) {
             if saw_host {return Err("pilotingRegistration cannot mix with attachedAbilityRegistration".into());}
@@ -392,7 +469,9 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
         } else if host_marker(a) {
             if saw_self {return Err("pilotingRegistration cannot mix with attachedAbilityRegistration".into());}
             saw_host=true;
-            out.card.extend(host_programs(a,entry)?);
+            let programs=host_programs(a,entry)?;
+            if programs.iter().any(enemy_damaged_parent_stats) {saw_enemy_damaged_host=true;}
+            out.card.extend(programs);
         } else if crate::attached_constants::marker(a) {
             if plain_pilot(entry) {
                 return Err("piloting attached registration does not admit companion constants".into());
@@ -400,18 +479,33 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
             out.card.push(crate::attached_constants::ability(a)?);
         } else {
             if plain_pilot(entry) {
-                return Err("piloting attached registration does not admit companion registrations".into());
+                // IG-88: unit-side mirror of the constant host enemy-damaged aura.
+                if !enemy_damaged_companion(a) {
+                    return Err("piloting attached registration does not admit companion registrations".into());
+                }
+                if saw_enemy_damaged_companion {
+                    return Err("piloting enemy-damaged companion admits at most one registration".into());
+                }
+                saw_enemy_damaged_companion=true;
             }
             out.card.push(crate::attached_constants::companion(a)?);
         }
+    }
+    if saw_enemy_damaged_companion&&!saw_enemy_damaged_host {
+        return Err("enemy-damaged companion requires matching piloting constant host grant".into());
     }
     if out.card.len()>8 {return Err("attached registration count exceeds bound".into());}
     Ok(out)
 }
 /// Exact reviewed Pilot + piloting-mode host registration contract.
+/// May include one reviewed unit-side companion that mirrors a constant host aura.
 pub(crate) fn piloting_host_entry(entry:&Value)->bool {
     plain_pilot(entry)
-        && entry["abilities"]["card"].as_array().is_some_and(|card|!card.is_empty()&&card.iter().all(host_marker))
+        && entry["abilities"]["card"].as_array().is_some_and(|card|{
+            !card.is_empty()
+                && card.iter().any(host_marker)
+                && card.iter().all(|a|host_marker(a)||enemy_damaged_companion(a))
+        })
         && sides(entry).is_ok()
 }
 /// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract.

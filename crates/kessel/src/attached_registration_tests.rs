@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_189","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -274,6 +274,58 @@ fn fire_attached_when_played(e:&Engine,s:&mut State,pilot:CardId) {
     s.source=pilot;s.trigger_context=1;s.decision=Decision::Window;
     e.queue_programs(s,&["whenPlayed"]);
     e.process_all_triggers(s).unwrap();
+}
+
+#[test]
+fn piloting_host_ig88_enemy_damaged_buffs_unit_and_attached_host() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_141"),"{:?}",e.rejected_cards().unwrap().get("JTL_141"));
+    for seat in [Seat::P1,Seat::P2] {
+        // As a unit: +3/+0 while an enemy unit is damaged.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let ig=unit(&e,&mut s,seat,"JTL_141");
+        let printed=e.power(&s,ig,false);
+        assert_eq!(e.power(&s,ig,false),printed,"{seat:?} no enemy damage yet");
+        let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+        s.card_mut(enemy).damage=1;
+        assert_eq!(e.power(&s,ig,false),printed+3,"{seat:?} unit buff");
+
+        // While attached: host gains the aura; the pilot does not stay a unit.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let host_printed=e.power(&s,host,false);
+        let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+        attach(&e,&mut s,seat,"JTL_141",host);
+        assert_eq!(e.power(&s,host,false),host_printed,"{seat:?} attached without damage");
+        s.card_mut(enemy).damage=1;
+        assert_eq!(e.power(&s,host,false),host_printed+3,"{seat:?} host buff while attached");
+    }
+}
+
+#[test]
+fn piloting_host_ig88_rejects_mismatched_companion_and_hooks() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_141").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_141");
+    assert!(admitted(original.clone()));
+    // Host-only (no companion) still admits via constant parent grant.
+    let mut host_only=original.clone();
+    host_only["abilities"]["card"]=json!([original["abilities"]["card"][1].clone()]);
+    assert!(admitted(host_only),"host-only constant grant");
+    // Turn the constant grant into an onAttack hook: unit companion is no longer a reviewed mirror.
+    let mut hooked=original.clone();
+    hooked["abilities"]["card"][1]["effect"]["registration"]["type"]=json!("triggered");
+    hooked["abilities"]["card"][1]["effect"]["registration"]["program"]["trigger"]=json!("eventHooks");
+    hooked["abilities"]["card"][1]["effect"]["registration"]["program"]["hooks"]=json!([{"alias":"onAttack","enabled":true}]);
+    assert!(!admitted(hooked),"onAttack host + companion");
+    // Wrong buff amount on the host program.
+    let mut wrong=original.clone();
+    wrong["abilities"]["card"][1]["effect"]["registration"]["program"]["effect"]["power"]["value"]=json!(2);
+    assert!(!admitted(wrong),"mismatched host amount");
+    // Companion amount drift while host stays reviewed.
+    let mut companion_wrong=original.clone();
+    companion_wrong["abilities"]["card"][0]["effect"]["power"]["value"]=json!(1);
+    assert!(!admitted(companion_wrong),"mismatched companion amount");
 }
 
 #[test]
