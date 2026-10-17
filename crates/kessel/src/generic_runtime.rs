@@ -2132,6 +2132,11 @@ impl Engine {
         } else if next == 1 {
             self.process_triggers(s)
         } else {
+            // Event play with no effect commits then ends here; open ready
+            // OnCardPlayed watchers before returning to the action window.
+            if self.open_deaths(s, 3)? {
+                return Ok(());
+            }
             self.finish(s)
         }
     }
@@ -3708,14 +3713,6 @@ impl Engine {
         }
         let played_owner = s.card(played).owner;
         let cost = info.cost().max(0) as u64;
-        let (after_pc, defer_depth) = if s.ability_program != 0 {
-            (
-                self.program(s.ability_program - 1).event_end,
-                s.death_depth,
-            )
-        } else {
-            (0, 0)
-        };
         for owner in [Seat::P1, Seat::P2] {
             let watchers: Vec<_> = s
                 .player(owner)
@@ -3784,12 +3781,12 @@ impl Engine {
                     if n == MAX_DEATH_TRIGGERS {
                         return Err("onCardPlayed watcher capacity exceeded (64)".into());
                     }
+                    // Ready immediately (after_pc=0). Event AbilityNoEffect /
+                    // end_program paths flush these before finish.
                     s.death_pending.entries[n] = DeathTrigger {
                         source: watcher,
                         program,
                         player: owner,
-                        after_pc,
-                        defer_depth,
                         ..DeathTrigger::default()
                     };
                     s.death_pending.len += 1;

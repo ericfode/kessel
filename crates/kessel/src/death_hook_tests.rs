@@ -826,6 +826,8 @@ fn card_played_adi_damages_enemy_base_when_opponent_plays_event() {
             let adi = unit(&e, &mut s, seat, "LOF_142");
             let enemy_base = s.players[seat.other().index()].base;
             assert_eq!(s.card(enemy_base).damage, 0);
+            // Heal is effective so the event does not take AbilityNoEffect.
+            s.card_mut(enemy_base).damage = 2;
             let event = hand_for(&e, &mut s, seat.other(), "SHD_252");
             s.active = seat.other();
             s.action_player = Some(seat.other());
@@ -833,15 +835,19 @@ fn card_played_adi_damages_enemy_base_when_opponent_plays_event() {
             done = drive_ability_prompts(&e, done, 16);
             assert!(e.in_arena(&done, adi));
             assert!(done.players[seat.other().index()].discard.contains(event));
+            // Heal 3 from 2 → 0, then Adi deals 1 to that base.
             assert_eq!(done.card(enemy_base).damage, 1, "{backend:?}/{seat:?}");
             // Friendly event play does not trigger Adi.
             let mut s = midgame(&e, seat);
             let _adi = unit(&e, &mut s, seat, "LOF_142");
-            let own_base = s.players[seat.other().index()].base;
+            let foe_base = s.players[seat.other().index()].base;
+            let own_base = s.players[seat.index()].base;
+            s.card_mut(own_base).damage = 2;
             let event = hand_for(&e, &mut s, seat, "SHD_252");
             let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
             done = drive_ability_prompts(&e, done, 16);
-            assert_eq!(done.card(own_base).damage, 0, "friendly event {backend:?}/{seat:?}");
+            assert_eq!(done.card(foe_base).damage, 0, "friendly event {backend:?}/{seat:?}");
+            assert_eq!(done.card(own_base).damage, 0, "heal only {backend:?}/{seat:?}");
         }
     }
 }
