@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 876
+    "sourceIr": 879
   },
   "runtimeAdmittedCards": [
     {
@@ -502,6 +502,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "follow-me",
+      "setCode": "ASH_184"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "intimidation",
       "setCode": "ASH_185"
     },
@@ -729,6 +734,11 @@
       "implementation": "sourceIr",
       "internalName": "doctor-hemlock#emotion-has-no-place-here",
       "setCode": "HMW_003"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "omega#close-your-eyes-and-focus",
+      "setCode": "HMW_006"
     },
     {
       "implementation": "sourceIr",
@@ -5672,6 +5682,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "maul#a-rival-in-darkness",
+      "setCode": "TWI_009"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "general-grievous#general-of-the-droid-armies",
       "setCode": "TWI_015"
     },
@@ -6336,7 +6351,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1265,
+  "runtimeAdmittedCount": 1268,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6764,11 +6779,6 @@
       "setCode": "ASH_183"
     },
     {
-      "internalName": "follow-me",
-      "reason": "follow-me: native attacks require a complete sole ordinary unit/event registration",
-      "setCode": "ASH_184"
-    },
-    {
       "internalName": "treacherous-minefield",
       "reason": "treacherous-minefield: compiler rejected \"treacherous-minefield\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":67,\"file\":\"game/cards/08_ASH/events/TreacherousMinefield.ts\",\"line\":31,\"message\":\"arena-query-receiver\",\"pattern\":\"arena-query-receiver\"}]",
       "setCode": "ASH_186"
@@ -6962,11 +6972,6 @@
       "internalName": "jar-jar-binks#bombad-general",
       "reason": "jar-jar-binks#bombad-general: unresolved phase history helpers require reviewed registration",
       "setCode": "HMW_005"
-    },
-    {
-      "internalName": "omega#close-your-eyes-and-focus",
-      "reason": "omega#close-your-eyes-and-focus: native attacks require a complete sole ordinary unit/event registration",
-      "setCode": "HMW_006"
     },
     {
       "internalName": "general-grievous#separatist-warlord",
@@ -12459,11 +12464,6 @@
       "setCode": "TWI_008"
     },
     {
-      "internalName": "maul#a-rival-in-darkness",
-      "reason": "maul#a-rival-in-darkness: native attacks require a complete sole ordinary unit/event registration",
-      "setCode": "TWI_009"
-    },
-    {
       "internalName": "pre-vizsla#pursuing-the-throne",
       "reason": "pre-vizsla#pursuing-the-throne: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "TWI_010"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1340,
+  "runtimeRejectedCount": 1337,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

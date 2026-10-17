@@ -3957,6 +3957,43 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4388494523",
+      "internalName": "follow-me",
+      "keywords": [],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "ASH_184",
+      "setCodes": [
+        {
+          "number": 184,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 184,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. After completing the attack, give 3 Advantage tokens to a unit.",
+      "title": "Follow Me",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -5774,6 +5811,47 @@
       "traits": [
         "imperial",
         "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": "Other friendly Heroism units gain Grit.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "5495312929",
+      "internalName": "omega#close-your-eyes-and-focus",
+      "keywords": [
+        "grit"
+      ],
+      "power": 2,
+      "rules": "If you use Omega’s leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "HMW_006",
+      "setCodes": [
+        {
+          "number": 6,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 6,
+        "set": "HMW"
+      },
+      "subtitle": "Close Your Eyes and Focus",
+      "text": "Action [1 resource, Exhaust]: Attack with a Heroism unit. It gains Grit for this attack. (It gets +1/+0 for each damage on it.)",
+      "title": "Omega",
+      "traits": [
+        "clone"
       ],
       "types": [
         "leader"
@@ -45836,6 +45914,48 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "Overwhelm\nEach other friendly unit gains Overwhelm.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "6461101372",
+      "internalName": "maul#a-rival-in-darkness",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 6,
+      "rules": "If you use Maul's leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "TWI_009",
+      "setCodes": [
+        {
+          "number": 9,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 9,
+        "set": "TWI"
+      },
+      "subtitle": "A Rival in Darkness",
+      "text": "Action [Exhaust]: Attack with a unit. It gains Overwhelm for this attack. (When attacking an enemy unit, deal excess damage to the opponent's base.)",
+      "title": "Maul",
+      "traits": [
+        "force",
+        "underworld"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

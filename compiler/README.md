@@ -161,6 +161,15 @@ physical donor. They use the interpreter fallback in Auto mode. General attack
 factories, attack-end/on-attack initiation, exhausted-attacker permissions,
 defender modifiers, altered damage, and unverified continuations remain rejected.
 
+Two closed leader compositions reuse this machinery: a front-side native attack
+action with physical resource/exhaustion costs, and a deployed other-friendly
+Grit or Overwhelm aura. The Grit composition filters Heroism units. A bounded
+ordinary event can also follow initiation with a fresh three-Advantage selection.
+Its `ifYouDo` tests resolution of the initiating event: cancelling the later
+defender picker still runs the continuation, while cancelling before initiation
+or creating no initiation event skips it. Attack/death triggers finish before
+the fresh recipient prompt. Other leader and continuation shapes stay rejected.
+
 
 Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
 `includes`, retaining order, duplicates, empty-array truthiness, and physical
