@@ -3270,7 +3270,7 @@ fn basezone3_pau_printed_hp_survival_and_actual_base_lethal_threshold() {
 #[test]
 fn basezone3_raw_whole_source_side_and_metadata_scope_fail_closed() {
  let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for code in ["TWI_019","TWI_028","HMW_007"]{for mode in ["missing-unique","type","class","owner","amount","predicate","condition","extra-side","pilot","epic-text","front-text","deploy-text","upgrade-stat","rules","deep"]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();let side=if code=="HMW_007"{"leader"}else{"card"};let a=&mut card["abilities"][side][0];match mode{"missing-unique"=>{card["card"].as_object_mut().unwrap().remove("unique");},"type"=>{card["card"]["types"]=json!(["unit"]);card["card"]["arena"]=json!("ground");},"class"=>card["baseClass"]=json!("NonLeaderUnitCard"),"owner"=>a["targetResolver"]["owner"]=json!("opponent"),"amount"=>{if code=="HMW_007"{a["effect"]["amount"]["value"]=json!(2);}else{a["effect"]["hp"]["value"]=json!(2);}},"predicate"=>a["targetResolver"]["predicate"]=json!({"kind":"const","value":true}),"condition"=>a["condition"]=json!({"kind":"const","value":true}),"extra-side"=>card["abilities"]["unit"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","title":"extra","effect":{"kind":"noAction"}})),"pilot"=>card["piloting"]=json!({}),"epic-text"=>card["card"]["epicAction"]=json!("Epic Action: Draw 3 cards."),"front-text"=>card["card"]["text"]=json!("When Played: Draw 3 cards."),"deploy-text"=>card["card"]["deployBox"]=json!("When Deployed: Draw 3 cards."),"upgrade-stat"=>card["card"]["upgradePower"]=json!(1),"rules"=>card["card"]["rules"]=json!("Your minimum deck size is 10."),_=>{let p=&mut a["targetResolver"]["predicate"];*p=json!({"kind":"const","value":true});for _ in 0..25{*p=json!({"kind":"binary","op":"&&","left":{"kind":"const","value":true},"right":p.clone()});}}}assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key(code),"{code}:{mode}");}}
- let e=engine();for code in ["JTL_024","JTL_025"]{assert!(!e.by_code.contains_key(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
+ let e=engine();for code in ["JTL_024","JTL_025"]{assert!(e.by_code.contains_key(code),"construction-only base {code}: {:?}",e.rejected_cards().unwrap().get(code));}assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
 }
 
 #[test]
@@ -3770,6 +3770,9 @@ mod attack_stats_tests;
 
 #[path="resource_zone_tests.rs"]
 mod resource_zone_tests;
+
+#[path="construction_base_tests.rs"]
+mod construction_base_tests;
 
 #[path="resolved_event_tests.rs"]
 mod resolved_event_tests;

@@ -488,8 +488,26 @@ impl Engine {
                     }
                     }
                 } else if info.is("base") {
+                    // Pinned DataVault/ThermalOscillator are plain BaseCard
+                    // subclasses whose source comment reads "no implementation
+                    // here, the 'implementation' is in DeckValidator": their
+                    // printed minimum-deck-size sentence is a deck-construction
+                    // rule, not an in-game ability, and a position is a caller-
+                    // supplied deck. Admit exactly those printed sentences on a
+                    // base with no registered programs; any other non-plain base
+                    // still needs the reviewed base-zone ongoing source.
+                    fn construction_only(text: &str) -> bool {
+                        matches!(
+                            text,
+                            "Your minimum deck size is increased by 10 cards."
+                                | "Your minimum deck size is decreased by 5 cards."
+                        )
+                    }
+                    let text = info.text.as_deref().unwrap_or("");
+                    let construction_only =
+                        programs.card.is_empty() && construction_only(text.trim());
                     if !info.hp.is_some_and(|n| (1..=1000).contains(&n))
-                        || ((!info.text.as_deref().unwrap_or("").trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base))
+                        || ((!text.trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base)&&!construction_only)
                     {
                         return Err("only plain bases with bounded positive HP execute".into());
                     }
