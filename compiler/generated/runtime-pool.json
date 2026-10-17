@@ -17439,6 +17439,50 @@
       ],
       "cost": 1,
       "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "2283726359",
+      "internalName": "bb8#happy-beeps",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [1 resource Aggression Heroism] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: You may pay 2 resources. If you do, ready a Resistance unit.",
+      "power": 1,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_145",
+      "setCodes": [
+        {
+          "number": 145,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 145,
+        "set": "JTL"
+      },
+      "subtitle": "Happy Beeps",
+      "text": "",
+      "title": "BB-8",
+      "traits": [
+        "resistance",
+        "droid",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 1
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
       "epicAction": "",
       "hp": 4,
       "id": "6600603122",
