@@ -796,7 +796,8 @@ impl TargetResolver {
         if !self.prompt_title_parts.is_empty() {
             let expected=serde_json::json!([{"kind":"const","value":"Choose a unit to deal "},{"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]},{"kind":"const","value":" damage to"}]);
             let source_power_parts=self.prompt_title_parts.len()<=32 && self.prompt_title_parts.iter().all(|e|match e {Expr::Const{value}=>value.as_str().is_some(),Expr::Query{name,receiver,args}=>name=="getPower"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["source"]),_=>false}) && self.prompt_title_parts.iter().map(|e|match e {Expr::Const{value}=>value.as_str().map_or(0,str::len),_=>0}).sum::<usize>()<=1024;
-            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts{return Err("dynamic prompt requires bounded live arena damage sum, maximum, or source power".into());}
+            let parent_trait_amount=crate::attached_registration::parent_trait_scaled_title_parts(&self.prompt_title_parts,"transport",2,1);
+            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts&&!parent_trait_amount{return Err("dynamic prompt requires bounded live arena damage sum, maximum, source power, or reviewed host-trait amount".into());}
         }
         if self.prompt_title.is_some() {return Err("named prompt titles require a named descriptor".into());}
         self.max_targets()?;

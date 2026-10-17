@@ -11,10 +11,10 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_189","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
-    for code in ["LOF_138","SHD_175","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
+    for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
         assert!(!e.by_code.contains_key(code),"unsupported attached child admitted {code}");
     }
 }
@@ -367,4 +367,75 @@ fn piloting_self_rejects_non_when_played_and_companions() {
         }
         assert!(!admitted(bad),"{path}");
     }
+}
+
+#[test]
+fn piloting_self_boba_damages_by_host_transport_trait() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_189"),"{:?}",e.rejected_cards().unwrap().get("JTL_189"));
+    for seat in [Seat::P1,Seat::P2] {
+        // Non-Transport host: 1 damage.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"TOKEN_XWING");
+        let victim=unit(&e,&mut s,seat.other(),"LOF_256");
+        let pilot=attach(&e,&mut s,seat,"JTL_189",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?} non-transport");
+        let done=e.apply(&s,&e.card_action(&s,victim)).unwrap();
+        assert_eq!(done.card(victim).damage,1,"{seat:?} non-transport");
+
+        // Transport host: 2 damage.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"ASH_254");
+        let victim=unit(&e,&mut s,seat.other(),"LOF_256");
+        let pilot=attach(&e,&mut s,seat,"JTL_189",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?} transport");
+        let done=e.apply(&s,&e.card_action(&s,victim)).unwrap();
+        assert_eq!(done.card(victim).damage,2,"{seat:?} transport");
+    }
+    // Played as a unit: WhenPlayed must not fire.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_189");
+    let victim=unit(&e,&mut s,Seat::P2,"LOF_256");
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::Window);
+    assert_eq!(s.card(victim).damage,0);
+}
+
+#[test]
+fn attached_alias_smuggle_mention_admits_armed_to_the_teeth() {
+    let e=engine();
+    assert!(e.by_code.contains_key("SHD_175"),"{:?}",e.rejected_cards().unwrap().get("SHD_175"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let ally=unit(&e,&mut s,seat,"LOF_256");
+        let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+        let printed=e.power(&s,ally,false);
+        attach(&e,&mut s,seat,"SHD_175",host);
+        let base=s.player(seat.other()).base;
+        let prompt=attack(&e,s,host,base);
+        assert_eq!(prompt.decision,Decision::AbilityTarget,"{seat:?}");
+        assert_eq!(prompt.source,host);
+        let actions=e.legal_actions(&prompt);
+        assert!(actions.iter().any(|a|a.id()==Some(ally)),"{seat:?} ally");
+        assert!(!actions.iter().any(|a|a.id()==Some(host)||a.id()==Some(enemy)),"{seat:?} excludes host/enemy");
+        let done=e.apply(&prompt,&e.card_action(&prompt,ally)).unwrap();
+        assert_eq!(e.power(&done,ally,false),printed+2,"{seat:?}");
+    }
+}
+
+#[test]
+fn attached_alias_smuggle_mention_requires_printed_cost_text() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SHD_175").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("SHD_175");
+    assert!(admitted(original.clone()));
+    let mut no_text=original.clone();
+    no_text["card"]["text"]=json!("Attached unit gains: “On Attack: Give another friendly unit +2/+0 for this phase.”");
+    assert!(!admitted(no_text),"smuggle without printed cost");
+    let mut bare=original.clone();
+    bare["card"]["keywords"]=json!(["smuggle","raid"]);
+    assert!(!admitted(bare),"raid mention still needs a parent grant");
 }

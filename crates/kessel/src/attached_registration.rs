@@ -6,9 +6,9 @@
 //! `registrationMode: "piloting"` (Paige / Tam): the program still installs on
 //! the physical host while the pilot is attached.
 //!
-//! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber)
-//! keeps the program on the pilot and fires WhenPlayed only while attached.
-use crate::ability_ir::{Ability, Sides};
+//! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber /
+//! Boba Fett) keeps the program on the pilot and fires WhenPlayed only while attached.
+use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -42,12 +42,35 @@ fn internal(v:&Value)->bool {match v {
     Value::Object(o)=>o.contains_key("attachedHost")||o.values().any(internal),
     Value::Array(a)=>a.iter().any(internal),_=>false
 }}
+/// Smuggle is a resource-zone play cost mention (like Piloting's play mode), not a
+/// host keyword grant. Require the same printed cost line the engine loader parses.
+fn smuggle_text_ok(text:&str)->bool {
+    let mut found=false;
+    for (idx,_) in text.match_indices("Smuggle") {
+        if idx>0 && !text[..idx].ends_with('\n') {continue;}
+        let rest=text[idx+"Smuggle".len()..].trim_start();
+        let Some(rest)=rest.strip_prefix('[') else {continue;};
+        let Some((body,_))=rest.split_once(']') else {return false;};
+        let body=body.trim();
+        let Some((amount_text,aspects_text))=body.split_once("resources").map(|(a,b)|(a.trim(),b.trim())) else {return false;};
+        if amount_text.parse::<u16>().ok().is_none_or(|n|n>1000) {return false;}
+        let aspects_text=aspects_text.trim().trim_start_matches(',').trim();
+        if aspects_text.is_empty()||aspects_text.contains(',') {return false;}
+        if found {return false;}
+        found=true;
+    }
+    found
+}
 fn mention_keywords(e:&Value)->bool {
     let Some(names)=e["card"]["keywords"].as_array() else{return false;};
-    names.iter().all(|name|name.as_str().is_some_and(|n|["raid","restore","grit"].contains(&n))&&e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|
-        a["trigger"]=="constant"&&a["effect"]["kind"]=="gainKeyword"&&a["effect"]["target"]=="parent"
-        &&a["effect"]["keyword"]==*name&&a["effect"]["duration"]=="persistent"
-        &&a["effect"]["amount"]["value"].as_u64().is_some_and(|n|(1..=1000).contains(&n)))))
+    names.iter().all(|name|{
+        let Some(n)=name.as_str() else {return false;};
+        if n=="smuggle" {return smuggle_text_ok(e["card"]["text"].as_str().unwrap_or(""));}
+        ["raid","restore","grit"].contains(&n)&&e["abilities"]["card"].as_array().is_some_and(|a|a.iter().any(|a|
+            a["trigger"]=="constant"&&a["effect"]["kind"]=="gainKeyword"&&a["effect"]["target"]=="parent"
+            &&a["effect"]["keyword"]==*name&&a["effect"]["duration"]=="persistent"
+            &&a["effect"]["amount"]["value"].as_u64().is_some_and(|n|(1..=1000).contains(&n))))
+    })
 }
 /// Engine-only card-text validation: dual On Attack / When Defeated host grants
 /// trip forceteki's When Defeated source check; gameplay is unaffected.
@@ -101,11 +124,18 @@ fn plain_pilot(e:&Value)->bool {
         ||e["abilities"]["leader"]!=json!([])||e["abilities"]["unit"]!=json!([])
         ||!e["card"]["arena"].as_str().is_some_and(|a|a=="ground"||a=="space")
         ||!e["card"]["traits"].as_array().is_some_and(|t|t.iter().any(|v|v=="pilot"))
-        ||e["keywordValues"]!=json!({})
     {return false;}
     let Some(names)=e["card"]["keywords"].as_array() else{return false;};
-    // Piloting is a play-mode mention; other printed keywords need a separate grant path.
-    if names!=&[json!("piloting")] {return false;}
+    // Piloting is a play-mode mention. Shielded may appear as an intrinsic unit keyword
+    // (Boba Fett / Iden); other printed keywords need a separate grant path.
+    if !names.iter().any(|n|n=="piloting")
+        || names.len()>2
+        || !names.iter().all(|n|matches!(n.as_str(),Some("piloting"|"shielded")))
+    {
+        return false;
+    }
+    let expected_kv=if names.iter().any(|n|n=="shielded") {json!({"shielded":1})} else {json!({})};
+    if e["keywordValues"]!=expected_kv {return false;}
     for field in ["power","hp","upgradePower","upgradeHp"] {
         if !e["card"][field].as_i64().is_some_and(|n|(0..=1000).contains(&n)) {return false;}
     }
@@ -138,6 +168,42 @@ fn compile_host_program(mut p:Value,title:&str)->Result<Ability,String> {
     a.attached_host=true;
     Ok(a)
 }
+/// Host-trait gate used by Boba Fett's WhenPlayed damage amount / menu text.
+fn parent_trait_query(e:&Expr,trait_name:&str)->bool {
+    matches!(e,Expr::Query{name,receiver,args} if name=="hasSomeTrait"
+        && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["source","parentCard"])
+        && args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some(trait_name)))
+}
+fn parent_trait_amount(e:&Expr,trait_name:&str,high:u64,low:u64)->bool {
+    matches!(e,Expr::Conditional{condition,then,r#else}
+        if parent_trait_query(condition,trait_name)
+            && matches!(then.as_ref(),Expr::Const{value} if value.as_u64()==Some(high))
+            && matches!(r#else.as_ref(),Expr::Const{value} if value.as_u64()==Some(low)))
+}
+/// Menu / context fragments: static text plus one parent-trait amount (number or digit string).
+pub(crate) fn parent_trait_scaled_title_parts(parts:&[Expr],trait_name:&str,high:u64,low:u64)->bool {
+    if parts.len()!=3 {return false;}
+    let amount_fragment=|e:&Expr|->bool {
+        match e {
+            Expr::Conditional{condition,then,r#else} if parent_trait_query(condition,trait_name) => {
+                let digit=|v:&Value,n:u64| {
+                    let label=match n {1=>Some("1"),2=>Some("2"),3=>Some("3"),_=>None};
+                    v.as_u64()==Some(n) || label.is_some_and(|s|v.as_str()==Some(s))
+                };
+                matches!(then.as_ref(),Expr::Const{value} if digit(value,high))
+                    && matches!(r#else.as_ref(),Expr::Const{value} if digit(value,low))
+            }
+            _ => false,
+        }
+    };
+    matches!(&parts[0],Expr::Const{value} if value.as_str().is_some_and(|s|!s.is_empty()&&s.len()<=64))
+        && amount_fragment(&parts[1])
+        && matches!(&parts[2],Expr::Const{value} if value.as_str().is_some_and(|s|!s.is_empty()&&s.len()<=64))
+}
+fn piloting_self_titles_ok(a:&Ability)->bool {
+    a.context_title.is_empty()
+        || parent_trait_scaled_title_parts(&a.context_title,"transport",2,1)
+}
 /// WhenPlayed body on the pilot while attached; may read `source.parentCard` for host filters.
 fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     if p["title"]!=title {return Err("piloting registration requires matching ability title".into());}
@@ -145,17 +211,23 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     if parent_effect_target(&p) {
         return Err("pilotingRegistration WhenPlayed cannot grant parent-targeted effects".into());
     }
-    p.as_object_mut().ok_or("piloting program must be an object")?.remove("hooks");
+    {
+        let obj=p.as_object_mut().ok_or("piloting program must be an object")?;
+        obj.remove("hooks");
+        // Compiler displayParts are not part of the executable Ability contract.
+        obj.remove("titleParts");
+    }
     normalize_zone_names(&mut p);
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("piloting program: {e}"))?;
     if a.trigger!="whenPlayed"||a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate
         ||!a.costs.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
-        ||a.then.is_some()||a.if_you_do.is_some()||a.condition.is_some()||!a.context_title.is_empty()
+        ||a.then.is_some()||a.if_you_do.is_some()||a.condition.is_some()
+        ||!piloting_self_titles_ok(&a)
     {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -167,18 +239,30 @@ fn parent_effect_target(v:&Value)->bool {
         _=>false,
     }
 }
+fn static_prompt_parts(parts:&[Expr])->bool {
+    !parts.is_empty()
+        && parts.len()<=32
+        && parts.iter().all(|e|matches!(e,Expr::Const{value} if value.as_str().is_some_and(|s|!s.is_empty()&&s.len()<=128)))
+        && parts.iter().map(|e|match e {Expr::Const{value}=>value.as_str().map_or(0,str::len),_=>0}).sum::<usize>()<=1024
+}
+fn piloting_prompt_ok(parts:&[Expr])->bool {
+    parts.is_empty()
+        || static_prompt_parts(parts)
+        || parent_trait_scaled_title_parts(parts,"transport",2,1)
+}
 fn piloting_self_effect_ok(a:&Ability)->bool {
-    use crate::ability_ir::{Effect, Expr, Target};
     let amount_one=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(1));
     let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
+    let plain_unit_resolver=|r:&crate::ability_ir::TargetResolver|{
+        r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")
+            &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
+            &&r.predicate.is_none()&&r.prompt_title.is_none()
+            && piloting_prompt_ok(&r.prompt_title_parts)
+    };
     match &a.effect {
         Effect::Heal{target:Target::Name(n),amount} if n=="chosen"&&amount_two(amount)
             && a.optional
-            && a.target_resolver.as_ref().is_some_and(|r|{
-                r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")
-                    &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
-                    &&r.predicate.is_none()&&r.prompt_title.is_none()
-            }) => true,
+            && a.target_resolver.as_ref().is_some_and(plain_unit_resolver) => true,
         Effect::CreateTokenUnit{token_type,target:Target::Name(n),amount,enters_ready}
             if token_type=="tieFighter"&&n=="ownPlayer"&&amount_one(amount)&&!*enters_ready
             && !a.optional && a.target_resolver.is_none() => true,
@@ -188,12 +272,19 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
                 r.owner=="any"&&matches!(r.card_type.as_str(), "any"|"unit")
                     &&r.zone.as_deref()==Some("anyAttackable")&&!r.optional&&r.arena.is_none()
                     &&r.count.is_none()&&r.mode.is_none()&&r.prompt_title.is_none()
+                    && piloting_prompt_ok(&r.prompt_title_parts)
                     && r.predicate.as_ref().is_some_and(|p| matches!(p,
                         Expr::Binary{op,left,right} if op=="!=="
                             && matches!(left.as_ref(), Expr::Ref{path} if path==&["card"])
                             && matches!(right.as_ref(), Expr::Ref{path} if path==&["source","parentCard"])
                     ))
             }) => true,
+        // Boba Fett: optional WhenPlayed damage 1, or 2 when the host is a Transport.
+        Effect::Damage{target:Target::Name(n),amount} if n=="chosen"
+            && parent_trait_amount(amount,"transport",2,1)
+            && a.optional
+            && parent_trait_scaled_title_parts(&a.context_title,"transport",2,1)
+            && a.target_resolver.as_ref().is_some_and(plain_unit_resolver) => true,
         _ => false,
     }
 }
