@@ -227,3 +227,86 @@ fn smuggle_event_pays_replaces_and_resolves() {
     assert_eq!(played.decision, Decision::Window);
     assert_eq!(played.active, Seat::P2);
 }
+
+/// Printed-text derivation boundaries from the pinned engine parser: exact cost
+/// and aspect multiset, single occurrence, no additional costs, valid aspects.
+#[test]
+fn smuggle_derivation_matches_the_engine_regex_and_failure_modes() {
+    use crate::simulator::play_from_resources::{smuggle_instance, SmuggleCost};
+    let expected = Some(SmuggleCost {
+        cost: 5,
+        aspects: [1, 0, 0, 0, 0, 1],
+    });
+    assert_eq!(
+        smuggle_instance(1, &["On Attack: draw a card.\nSmuggle [5 resources Vigilance Villainy]"]),
+        Ok(expected)
+    );
+    assert_eq!(
+        smuggle_instance(1, &["Smuggle [5 resources vigilance villainy]"]),
+        Ok(expected)
+    );
+    assert_eq!(smuggle_instance(0, &["Smuggle [5 resources Vigilance Villainy]"]), Ok(None));
+    assert_eq!(smuggle_instance(1, &["Play a card using Smuggle."]), Ok(None));
+    assert_eq!(smuggle_instance(2, &["Smuggle [5 resources Vigilance Villainy]"]), Err("duplicate Smuggle keyword metadata would produce duplicate play actions".into()));
+    assert!(smuggle_instance(1, &["Smuggle [5 resources Vigilance Villainy]\nSmuggle [5 resources Vigilance Villainy]"])
+        .unwrap_err()
+        .contains("more than once"));
+    assert!(smuggle_instance(1, &["Smuggle [5 resources Nonsense]"])
+        .unwrap_err()
+        .contains("invalid printed Smuggle aspect"));
+    assert_eq!(
+        smuggle_instance(1, &["Smuggle [5 resources Vigilance, Pay 1 resource]"]),
+        Err("Smuggle additional costs are not implemented".into())
+    );
+    assert_eq!(smuggle_instance(1, &["Smuggle [1001 resources Vigilance]"]), Err("Smuggle cost must be an integer in 0..=1000".into()));
+}
+
+/// Admission keeps unsupported Smuggle shapes explicit instead of guessing: a
+/// second printed instance and additional costs are rejected with their own
+/// reasons.
+#[test]
+fn smuggle_admission_rejects_duplicate_and_additional_cost_shapes() {
+    let mutate = |change: fn(&mut serde_json::Value)| {
+        let mut catalogue = committed_catalogue().clone();
+        let entry = catalogue["cards"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|entry| entry["setCode"] == "SOR_073")
+            .unwrap();
+        change(entry);
+        Engine::from_catalogue_value(&catalogue)
+    };
+    let duplicate = mutate(|entry| {
+        entry["card"]["keywords"] = json!(["smuggle"]);
+        entry["card"]["text"] = json!(
+            "Give a shield token to a unit.\nSmuggle [3 resources Vigilance]\nSmuggle [4 resources Cunning]"
+        );
+    })
+    .unwrap();
+    assert!(duplicate.rejected_cards().unwrap()["SOR_073"].contains("printed Smuggle appears more than once"));
+    let additional = mutate(|entry| {
+        entry["card"]["keywords"] = json!(["smuggle"]);
+        entry["card"]["text"] = json!(
+            "Give a shield token to a unit.\nSmuggle [3 resources Vigilance, Defeat a resource]"
+        );
+    })
+    .unwrap();
+    assert!(additional.rejected_cards().unwrap()["SOR_073"].contains("Smuggle additional costs are not implemented"));
+    // A valid keyword on an otherwise playable event admits and stores the cost.
+    let valid = mutate(|entry| {
+        entry["card"]["keywords"] = json!(["smuggle"]);
+        entry["card"]["text"] = json!(
+            "Give a shield token to a unit.\nSmuggle [3 resources Vigilance]"
+        );
+    })
+    .unwrap();
+    let definition = &valid.definitions[valid.by_code["SOR_073"] as usize];
+    assert_eq!(
+        definition.smuggle,
+        Some(SmuggleCost {
+            cost: 3,
+            aspects: [1, 0, 0, 0, 0, 0]
+        })
+    );
+}
