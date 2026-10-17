@@ -1296,6 +1296,9 @@ impl Engine {
     fn combat(&self, s: &mut State) -> Result<(), String> {
         let source = s.source;
         let target = s.target;
+        if self.in_arena(s,target) && self.deals_combat_damage_first(s,source) {
+            return self.combat_first_window(s);
+        }
         let attack=self.combat_damage(s,source,true);
         let target_unit=self.in_arena(s,target);
         let defend=if target_unit {self.combat_damage(s,target,false)}else{0};

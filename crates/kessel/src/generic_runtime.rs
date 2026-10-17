@@ -5,7 +5,7 @@ use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVer
 enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
 
 #[derive(Clone, Copy)]
-enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), Restriction, #[cfg(test)] All }
+enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), Restriction, CombatDamageFirst, #[cfg(test)] All }
 impl ConstantScope<'_> {
     fn accepts(self,e:&Effect)->bool {match (self,e) {
         (Self::Traits(filter),Effect::GainTrait{trait_name,..}|Effect::LoseTrait{trait_name,..})=>filter.is_none_or(|t|t==trait_name),
@@ -16,6 +16,7 @@ impl ConstantScope<'_> {
         (Self::Keyword(filter),Effect::CopyKeywords{..})=>filter.is_none_or(|name|crate::ability_ir::COPY_KEYWORDS.contains(&name)),
         (Self::Keyword(filter),Effect::GainKeyword{keyword,..}|Effect::LoseKeyword{keyword,..})=>filter.is_none_or(|name|name==keyword),
         (Self::Restriction,Effect::CardRestriction{..})=>true,
+        (Self::CombatDamageFirst,Effect::DealsCombatDamageFirst{..})=>true,
         #[cfg(test)] (Self::All,_)=>true,
         _=>false,
     }}
@@ -1602,6 +1603,8 @@ impl Engine {
             let p = s.player(seat);
             let candidates: Vec<CardId> = if r.zone.as_deref() == Some("discard") {
                 p.discard.as_slice().to_vec()
+            } else if r.zone.as_deref() == Some("hand") {
+                p.hand.as_slice().to_vec()
             } else if r.is_upgrade_domain() {
                 (1..s.next_id).filter(|id|s.card(*id).owner==seat && self.attached_in_play(s,*id)).collect()
             } else {
@@ -1651,6 +1654,16 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::MoveToBottomOfDeck { target: destination } => {
+                let mut context=*s;context.source=source;context.ability_target=target;
+                if context.event_group.active {context.event_group.context=Selection::one(target);}
+                return self.effect_targets(&context,destination).into_iter().any(|value|match value {
+                    Eval::Card(id)=>self.move_to_bottom_eligible(&context,id), _=>false,
+                });
+            }
+            Effect::ResourceCardSystem { target: destination, target_player, .. } => {
+                return matches!(self.resource_card_system_card(s,source,destination,target_player),Ok(Some(id)) if self.resource_card_system_eligible(s,id));
+            }
             Effect::Disclose{aspects,..}=>return !self.def(s,source).info.is("event")||self.can_disclose(s,s.card(source).owner,aspects),
             Effect::PayAdjustedResources { .. } => {
                 let Ok(amount) = crate::pay_adjusted_resources::amount(e) else { return false; };
@@ -1707,7 +1720,7 @@ impl Engine {
                 self.eval(&context, source, context.ability_target, amount)
                     .number(),
             ),
-            Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
+            Effect::MoveToBottomOfDeck{target}|Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
             Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => {
                 (target, 1)
             }
@@ -1750,7 +1763,8 @@ impl Engine {
                         }
                         Effect::Defeat { .. } => unit || self.attached_in_play(s,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="ownTopDeck" => self.resource_top_deck_eligible(&context,id),
-                        Effect::ResourceCard {..} => self.resource_source_eligible(&context,id) && (!require_change || !s.player(s.card(id).owner).resources.contains(id)),
+                        Effect::ResourceCard {target:Target::Name(n)} if n=="self" => self.resource_source_eligible(&context,id) && (!require_change || !s.player(s.card(id).owner).resources.contains(id)),
+                        Effect::ResourceCard { .. } => self.resource_card_eligible(&context,id),
                         Effect::ReturnToHand { .. } => {
                             !self.def(s, id).info.is("leader")
                                 && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id))
@@ -3240,6 +3254,7 @@ impl Engine {
                 return Ok((targets.len() as u16,!targets.is_empty()));
             }
         }
+        if let Effect::ResourceCardSystem{target,target_player,ready_resource,..}=e {return self.apply_resource_card_system(s,target,target_player,*ready_resource);}
         if matches!(e,Effect::Exhaust{target:Target::ArenaList(l)} if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground exhaust requires recorded arena order".into());}
         if matches!(e,Effect::GiveShield{target:Target::ArenaList(_),..}|Effect::GiveExperience{target:Target::ArenaList(_),..}) {return self.apply_arena_tokens(s,e);}
         if matches!(e,Effect::PhaseModifiers{effects}|Effect::Simultaneous{effects} if effects.len()==2&&effects.iter().all(|e|matches!(e,Effect::GainKeyword{target:Target::ArenaList(_),..}|Effect::LoseKeyword{target:Target::ArenaList(_),..}))) {return self.apply_arena_keyword_batch(s,e);}
@@ -3297,7 +3312,7 @@ impl Engine {
             | Effect::GiveWeakness {target,amount}
             | Effect::GiveAdvantage {target,amount,..}
             | Effect::GainKeyword { target, amount, .. } => (target, self.effect_amount(s, amount)?),
-            Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
+            Effect::MoveToBottomOfDeck{target}|Effect::ResourceCard{target}|Effect::UseForce{target}|Effect::GainForce{target}|Effect::ReturnToHand { target } | Effect::ModifyStats { target, .. } | Effect::LoseKeyword { target, .. } => (target, 1),
             Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => {
                 (target, 1)
             }
@@ -3319,7 +3334,16 @@ impl Engine {
         let mut resources_fully_resolved = true;
         for target in targets {
             match target {
-                Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {let n=if matches!(e,Effect::ResourceCard{target:Target::Name(n)} if n=="ownTopDeck"){self.resource_top_deck(s,id)?}else{self.resource_source(s,id)?};result=result.saturating_add(n);}
+                Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {
+                    let n=match e {
+                        Effect::ResourceCard{target:Target::Name(n)} if n=="ownTopDeck"=>self.resource_top_deck(s,id)?,
+                        Effect::ResourceCard{target:Target::Name(n)} if n=="self"=>self.resource_source(s,id)?,
+                        Effect::ResourceCard{..}=>self.resource_card_card(s,id)?,
+                        _=>unreachable!(),
+                    };
+                    result=result.saturating_add(n);
+                }
+                Eval::Card(id) if matches!(e,Effect::MoveToBottomOfDeck{..}) => {result=result.saturating_add(self.move_to_bottom_of_deck(s,id)?);}
                 Eval::Player(player) if matches!(e,Effect::UseForce{..}|Effect::GainForce{..})=> {
                     if !s.force_state_exact || s.player(player).force_id==0 || self.force_def.is_none() {return Err("Force requires exact identity and reviewed native definition".into());}
                     let desired=matches!(e,Effect::GainForce{..});
@@ -3814,6 +3838,7 @@ impl Engine {
     }
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
     pub(super) fn open_deaths(&self,s:&mut State,resume:u8)->Result<bool,String> {
+        if !(1..=8).contains(&resume) {return Err("invalid defeat continuation".into());}
         let ready=|e:&DeathTrigger|e.after_pc==0 || (e.defer_depth==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
         if !s.death_pending.entries[..s.death_pending.len as usize].iter().any(ready) {return Ok(false);}
         if s.event_group!=EventGroupState::default() {return Err("defeat window opened before event group settled".into());}
@@ -3969,7 +3994,7 @@ impl Engine {
                 if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;continue;}
                 let n=s.death_depth as usize-1;let frame=s.death_frames[n];s.death_frames[n]=DeathFrame::default();s.death_depth-=1;
                 s.death_window=frame.window;frame.context.restore(s);
-                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),_=>Err("invalid defeat continuation".into())};
+                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),8=>self.combat_after_first_window(s),_=>Err("invalid defeat continuation".into())};
             }
             s.active=s.death_window.player;
             if s.death_window.resolve_all {
@@ -4427,3 +4452,6 @@ include!("disclose_runtime.rs");
 #[cfg(test)]
 #[path="self_play_cost_tests.rs"]
 mod self_play_cost_tests;
+
+#[path="zone_statics.rs"]
+mod zone_statics;

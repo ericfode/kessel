@@ -3823,3 +3823,6 @@ mod disclose_tests;
 
 #[path="modal_choice_tests.rs"]
 mod modal_choice_tests;
+
+#[path="zone_statics_tests.rs"]
+mod zone_statics_tests;

@@ -3,9 +3,10 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
-// Exact budget: 28,208 + native attack grants 64 + registration chronology 256.
+// Inline budget: base 28,528 + Card restriction mask/padding 1,024
+// + Disclose selection/alignment 16 + first-strike Support flags 64.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_568;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -150,13 +151,15 @@ pub struct SupportGrant {
     pub target: CardId,
     pub donor: CardId,
     pub native_attack: bool,
+    /// Until-end-of-attack "deals combat damage first" grant (first-strike).
+    pub deals_combat_damage_first: bool,
     pub power: i16,
     pub programs: [u16; MAX_SUPPORT_PROGRAMS],
     pub len: u8,
     pub keywords: [u16; 9],
     pub presence: u16,
 }
-impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
+impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,deals_combat_damage_first:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupportState {
     pub grants: [SupportGrant; MAX_SUPPORT_GRANTS],
@@ -672,6 +675,7 @@ impl State {
             put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
             for g in &self.support.grants[..self.support.len as usize] {
                 if g.native_attack {put(0x4e41544956454154);put(g.power as u64);}
+                if g.deals_combat_damage_first {put(0x4445414c53464952);}
                 put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);
                 for &p in &g.programs[..g.len as usize] {put(p as u64);}
                 for n in g.keywords {put(n as u64);}
