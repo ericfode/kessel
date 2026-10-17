@@ -2735,7 +2735,10 @@ impl Catalogue {
                 if crate::view_cards::marker(&entry["abilities"])&&!crate::view_cards::entry(entry){return Err("view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
-                if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" && !crate::piloting_attached::entry(entry) {
+                if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard"
+                    && !crate::piloting_attached::entry(entry)
+                    && !crate::attached_registration::piloting_host_entry(entry)
+                {
                     return Err("parent references require an ordinary attached upgrade".into());
                 }
                 let mut entry_owned = entry.clone();

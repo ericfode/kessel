@@ -11,10 +11,10 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
-    for code in ["LOF_138","SHD_175","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121"] {
+    for code in ["LOF_138","SHD_175","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
         assert!(!e.by_code.contains_key(code),"unsupported attached child admitted {code}");
     }
 }
@@ -151,7 +151,9 @@ fn attached_alias_raw_metadata_hooks_fields_and_context_are_fail_closed() {
         ("/abilities/card/0/optional",json!(true)),("/abilities/card/0/effect/unknown",json!(true)),("/abilities/card/0/effect/requiresGrantorInPlay",json!(false)),("/abilities/card/0/effect/controllerBinding",json!("grantorController")),("/abilities/card/0/effect/sourceBinding",json!("grantor")),("/abilities/card/0/effect/registrationMode",json!("piloting")),
         ("/abilities/card/0/effect/registration/gainCondition",json!({"kind":"const","value":true})),("/abilities/card/0/effect/registration/limit",json!({"kind":"perRound","amount":1})),("/abilities/card/0/effect/registration/type",json!("action")),
         ("/abilities/card/0/effect/registration/program/hooks",json!([{"alias":"whenDefeated","enabled":false}])),("/abilities/card/0/effect/registration/program/hooks",json!([{"event":"onCardDefeated","predicate":{"kind":"const","value":true}}])),
-        ("/abilities/card/0/effect/registration/program/trigger",json!("eventHooks")),("/abilities/card/0/effect/registration/program/attachedHost",json!(true)),("/abilities/card/0/effect/registration/program/condition",json!({"kind":"ref","path":["source","parentUnit"]})),("/abilities/card/0/effect/registration/program/effect/target",json!("parent")),
+        // Bare eventHooks without a reviewed alias rewrite stays rejected; matching
+        // single-alias eventHooks (Paige) is normalized separately.
+        ("/abilities/card/0/effect/registration/program/hooks",json!([])),("/abilities/card/0/effect/registration/program/trigger",json!("whenPlayed")),("/abilities/card/0/effect/registration/program/attachedHost",json!(true)),("/abilities/card/0/effect/registration/program/condition",json!({"kind":"ref","path":["source","parentUnit"]})),("/abilities/card/0/effect/registration/program/effect/target",json!("parent")),
         ("/abilities/card/0/effect/registration/program/effect/tokenType",json!("credit")),("/abilities/card/0/effect/registration/program/then",json!({"title":"unsupported","effect":{"kind":"privateProgramCall","name":"arbitrary"}})),
     ] {
         let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut target=&mut bad;
@@ -190,5 +192,80 @@ fn attached_alias_source_context_extras_are_not_silently_discarded() {
         for extra in [json!([{"unsupported":"source context"}]),json!({"unknown":true}),json!(true)] {
             let mut bad=original.clone();bad[field]=extra;let c=crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[bad]})).unwrap();assert!(!c.cards.contains_key("TWI_218"),"{field}");
         }
+    }
+}
+
+#[test]
+fn piloting_host_paige_on_attack_experience_then_self_damage() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_046"),"{:?}",e.rejected_cards().unwrap().get("JTL_046"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        // Blank host: avoid stacking a unit onAttack beside the piloting grant.
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let printed_hp=e.hp(&s,host);
+        attach(&e,&mut s,seat,"JTL_046",host);
+        let base=s.player(seat.other()).base;
+        let done=attack(&e,s,host,base);
+        assert_eq!(e.upgrades(&done,host).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),1,"{seat:?} experience");
+        assert_eq!(done.card(host).damage,1,"{seat:?} self damage after experience");
+        assert!(e.hp(&done,host)>=printed_hp,"{seat:?} experience raises hp before damage");
+    }
+}
+
+#[test]
+fn piloting_host_paige_as_unit_does_not_fire_attached_grant() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_046");
+    let base=s.player(Seat::P2).base;
+    let done=attack(&e,s,pilot,base);
+    assert_eq!(e.upgrades(&done,pilot).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_EXPERIENCE").count(),0);
+    assert_eq!(done.card(pilot).damage,0);
+}
+
+#[test]
+fn piloting_host_tam_debuffs_enemy_in_same_arena() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_035"),"{:?}",e.rejected_cards().unwrap().get("JTL_035"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let enemy=unit(&e,&mut s,seat.other(),"LOF_256");
+        let space=unit(&e,&mut s,seat.other(),"TOKEN_XWING");
+        let printed=e.power(&s,enemy,false);
+        let printed_hp=e.hp(&s,enemy);
+        attach(&e,&mut s,seat,"JTL_035",host);
+        let base=s.player(seat.other()).base;
+        let prompt=attack(&e,s,host,base);
+        assert_eq!(prompt.decision,Decision::AbilityTarget,"{seat:?}");
+        assert_eq!(prompt.source,host);
+        let actions=e.legal_actions(&prompt);
+        assert!(actions.iter().any(|a|a.id()==Some(enemy)));
+        assert!(!actions.iter().any(|a|a.id()==Some(space)||a.id()==Some(host)));
+        let done=e.apply(&prompt,&e.card_action(&prompt,enemy)).unwrap();
+        assert_eq!(e.power(&done,enemy,false),printed.saturating_sub(1));
+        assert_eq!(e.hp(&done,enemy),printed_hp.saturating_sub(1));
+    }
+}
+
+#[test]
+fn piloting_host_rejects_leaders_and_extra_keywords() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_046").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_046");
+    assert!(admitted(original.clone()));
+    for (path,value) in [
+        ("/baseClass",json!("LeaderUnitCard")),
+        ("/card/pilotText",json!(null)),
+        ("/card/keywords",json!(["piloting","grit"])),
+        ("/abilities/card/0/effect/registrationMode",json!("upgrade")),
+        ("/abilities/card/0/effect/requiresAttachable",json!(false)),
+        ("/abilities/card/0/effect/registration/program/hooks",json!([{"alias":"whenPlayed","enabled":true}])),
+        ("/abilities/unit",json!([{"trigger":"onAttack","title":"extra","costs":[],"effect":{"kind":"noAction"}}])),
+    ] {
+        let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut target=&mut bad;
+        for k in &parts[..parts.len()-1] {target=if target.is_array(){&mut target[k.parse::<usize>().unwrap()]}else{&mut target[*k]};}
+        target[parts[parts.len()-1]]=value;assert!(!admitted(bad),"{path}");
     }
 }

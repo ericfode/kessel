@@ -578,7 +578,9 @@ impl Engine {
                     if name == "piloting" {
                         // Piloting is a play-mode mention on reviewed Pilot units that
                         // may attach as upgrades; it is not an intrinsic combat flag.
-                        if !crate::piloting_attached::entry(entry) {
+                        if !crate::piloting_attached::entry(entry)
+                            && !crate::attached_registration::piloting_host_entry(entry)
+                        {
                             return Err("unimplemented runtime keyword piloting".into());
                         }
                         continue;
@@ -3468,7 +3470,10 @@ impl Engine {
         if self.catalogue.is_none() {return Ok(());}
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
         let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
-            let p=self.program(program);p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
+            let p=self.program(program);
+            // Host grants live on the pilot/upgrade definition but only fire through
+            // attached_host_grants while the card is attached to an arena host.
+            !p.attached_host&&p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
         }).map(|program|(program,0)).collect::<Vec<_>>();
         registrations.extend(self.attached_host_grants(&context,id,"whenDefeated").into_iter().map(|e|(e.program,e.grantor)));
         if s.death_pending.len as usize+registrations.len()>MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
@@ -3573,7 +3578,7 @@ impl Engine {
     /// Capture one declaration window before either player's effects resolve.
     /// Existing source-only attack protocol stays intact without defender triggers.
     pub(super) fn has_defense_registration(&self,s:&State,id:CardId)->bool {
-        self.catalogue.is_some() && (self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onDefense")||!self.attached_host_grants(s,id,"onDefense").is_empty())
+        self.catalogue.is_some() && (self.card_programs(s,id).iter().any(|p|{let p=self.program(*p);p.trigger=="onDefense"&&!p.attached_host})||!self.attached_host_grants(s,id,"onDefense").is_empty())
     }
     /// Enumerate the physical attachment list while the host is in play. A
     /// captured grant no longer depends on grantor presence at resolution.
@@ -3603,7 +3608,7 @@ impl Engine {
     fn capture_attack_window_inner(&self,s:&mut State,declaration:&State)->Result<bool,String> {
         if self.catalogue.is_none() {return Ok(false);}
         let defender=declaration.attack_defender;
-        let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
+        let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);!p.attached_host&&p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
         let grants=self.gained_attack_grants(declaration,declaration.source);
         let defense_grants=self.attached_host_grants(declaration,defender,"onDefense");
         if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty() {return Ok(false);}
@@ -3721,6 +3726,11 @@ impl Engine {
         }
         for (i, p) in self.card_programs(s, s.source).iter().enumerate() {
             let p = self.program(*p);
+            // Piloting / upgrade host grants must not fire from the grantor as an
+            // arena unit; attached_host_grants enumerates them on the parent host.
+            if p.attached_host {
+                continue;
+            }
             if triggers.iter().any(|t| p.trigger == *t)
                 && (!p.coordinate || self.coordinate_active(s,s.source))
                 && p.condition
