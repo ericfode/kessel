@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 775
+    "sourceIr": 777
   },
   "runtimeAdmittedCards": [
     {
@@ -564,6 +564,11 @@
       "implementation": "sourceIr",
       "internalName": "ferry-droid",
       "setCode": "ASH_218"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "remnant-lookouts",
+      "setCode": "ASH_220"
     },
     {
       "implementation": "sourceIr",
@@ -4392,6 +4397,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "bazine-netal#spy-for-the-first-order",
+      "setCode": "SHD_184"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "4lom#bounty-hunter-for-hire",
       "setCode": "SHD_188"
     },
@@ -5831,7 +5841,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1164,
+  "runtimeAdmittedCount": 1166,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6372,11 +6382,6 @@
       "internalName": "jod-na-nawood#keeping-secrets",
       "reason": "jod-na-nawood#keeping-secrets: invalid ability IR: unknown variant `payAdjustedResources`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "ASH_219"
-    },
-    {
-      "internalName": "remnant-lookouts",
-      "reason": "remnant-lookouts: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
-      "setCode": "ASH_220"
     },
     {
       "internalName": "elzar-mann#haunted-by-a-vision",
@@ -11054,11 +11059,6 @@
       "setCode": "SHD_183"
     },
     {
-      "internalName": "bazine-netal#spy-for-the-first-order",
-      "reason": "bazine-netal#spy-for-the-first-order: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
-      "setCode": "SHD_184"
-    },
-    {
       "internalName": "doctor-evazan#wanted-on-twelve-systems",
       "reason": "doctor-evazan#wanted-on-twelve-systems: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_185"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1441,
+  "runtimeRejectedCount": 1439,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

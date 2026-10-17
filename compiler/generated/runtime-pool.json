@@ -4477,6 +4477,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "1969872404",
+      "internalName": "remnant-lookouts",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_220",
+      "setCodes": [
+        {
+          "number": 220,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 220,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: Look at an opponent's hand. You may discard a card from it. If you do, they draw a card.",
+      "title": "Remnant Lookouts",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning"
@@ -35589,6 +35628,47 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "5830140660",
+      "internalName": "bazine-netal#spy-for-the-first-order",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 1,
+      "rules": "(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+      "setCode": "SHD_184",
+      "setCodes": [
+        {
+          "number": 184,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 184,
+        "set": "SHD"
+      },
+      "subtitle": "Spy for the First Order",
+      "text": "When Played: Look at an opponent's hand. You may discard 1 of those cards. If you do, that player draws a card.\nSmuggle [4 resources Cunning Villainy]",
+      "title": "Bazine Netal",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
