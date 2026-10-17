@@ -105,13 +105,17 @@ struct Projection {
     controller: Option<bool>,
     other: bool,
 }
-/// Reviewed OnCardPlayed watcher filter over the entering card.
+/// Reviewed OnCardPlayed watcher filter over the entering/played card.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub(crate) struct PlayProjection {
     /// `cardTypeWhenInPlay === "basicUnit"` or `isUnit(cardTypeWhenInPlay)`.
     pub unit: bool,
+    /// `cardTypeWhenInPlay === "event"`.
+    pub event: bool,
     /// Friendly controller (`event.player === player`).
     pub same_controller: bool,
+    /// Opposing controller (`event.player !== player`).
+    pub opponent_controller: bool,
     /// Exclude the watcher (`event.card !== source`).
     pub other: bool,
     /// Optional printed aspect filter on the played card.
@@ -236,6 +240,15 @@ impl Predicate {
             _ => false,
         }
     }
+    fn play_event_type(&self, binding: &mut Option<String>) -> bool {
+        matches!(
+            self,
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["cardTypeWhenInPlay"], binding)
+                    && right.const_str("event")
+        )
+    }
     fn play_data_call(
         &self,
         method: &str,
@@ -273,17 +286,32 @@ impl Predicate {
                 left.play_project(out, binding, depth + 1)
                     && right.play_project(out, binding, depth + 1)
             }
-            _ if self.play_unit_type(binding) && !out.unit => {
+            _ if self.play_unit_type(binding) && !out.unit && !out.event => {
                 out.unit = true;
+                true
+            }
+            _ if self.play_event_type(binding) && !out.event && !out.unit => {
+                out.event = true;
                 true
             }
             Self::Binary { op, left, right }
                 if op == "==="
                     && left.path(&["player"], binding)
                     && right.reference(&["player"])
-                    && !out.same_controller =>
+                    && !out.same_controller
+                    && !out.opponent_controller =>
             {
                 out.same_controller = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == "!=="
+                    && left.path(&["player"], binding)
+                    && right.reference(&["player"])
+                    && !out.same_controller
+                    && !out.opponent_controller =>
+            {
+                out.opponent_controller = true;
                 true
             }
             Self::Binary { op, left, right }
@@ -329,7 +357,12 @@ impl Predicate {
         let mut p = PlayProjection::default();
         self.play_project(&mut p, &mut None, 0)
             .then_some(p)
-            .filter(|p| p.unit && p.same_controller)
+            .filter(|p| {
+                (p.unit || p.event)
+                    && (p.same_controller || p.opponent_controller)
+                    && !(p.same_controller && p.opponent_controller)
+                    && !(p.unit && p.event)
+            })
     }
 }
 fn plain_hook_header(a: &Ability) -> bool {
@@ -464,34 +497,123 @@ pub(crate) fn leader_deploy_base_registration(a: &Ability) -> bool {
         _ => false,
     }
 }
-/// Sole OnCardPlayed watcher: friendly unit play → self Experience, own-base heal, or phase Sentinel.
+fn card_played_hook_header(a: &Ability) -> bool {
+    a.trigger == "eventHooks"
+        && a.hooks.len() == 1
+        && !a.requires_confirmation
+        && !a.coordinate
+        && a.gained_host.is_none()
+        && a.attached_context.is_none()
+        && !a.attacker_must_survive
+        && a.costs.is_empty()
+        && a.context_title.is_empty()
+        && a.target_resolvers.is_empty()
+        && a.condition.is_none()
+        && a.then.is_none()
+}
+fn plain_if_you_do(next: &Ability) -> bool {
+    next.trigger.is_empty()
+        && !next.optional
+        && !next.requires_confirmation
+        && !next.coordinate
+        && next.gained_host.is_none()
+        && next.attached_context.is_none()
+        && !next.attacker_must_survive
+        && next.costs.is_empty()
+        && next.context_title.is_empty()
+        && next.target_resolver.is_none()
+        && next.target_resolvers.is_empty()
+        && next.condition.is_none()
+        && next.then.is_none()
+        && next.if_you_do.is_none()
+        && next.hooks.is_empty()
+}
+/// Sole OnCardPlayed watcher: reviewed unit/event play → Experience, heal, Sentinel,
+/// optional exhaust→Battle Droid, or opponent-event base damage.
 pub(crate) fn card_played_registration(a: &Ability) -> bool {
-    if !plain_hook_header(a) || a.hooks.len() != 1 || a.target_resolver.is_some() {
+    if !card_played_hook_header(a) {
         return false;
     }
-    match &a.hooks[0] {
-        Hook::Event(v)
-            if matches!(v.event, EventName::CardPlayed) && v.predicate.play_projection().is_some() => {}
-        _ => return false,
-    }
+    let Some(proj) = (match &a.hooks[0] {
+        Hook::Event(v) if matches!(v.event, EventName::CardPlayed) => v.predicate.play_projection(),
+        _ => None,
+    }) else {
+        return false;
+    };
     let one = |e: &Expr| matches!(e, Expr::Const { value } if value.as_u64() == Some(1));
-    match &a.effect {
-        Effect::GiveExperience {
-            target: Target::Name(t),
-            amount,
-        } => t == "self" && one(amount),
-        Effect::Heal {
-            target: Target::Name(t),
-            amount,
-        } => t == "ownBase" && one(amount),
-        Effect::GainKeyword {
-            target: Target::Name(t),
-            keyword,
-            amount,
-            duration,
-        } => t == "self" && keyword == "sentinel" && duration == "phase" && one(amount),
-        _ => false,
+    // Mandatory friendly-unit watchers (Maz / Yularen / Force Sentinel family).
+    if !a.optional && a.target_resolver.is_none() && a.if_you_do.is_none() && proj.unit && proj.same_controller
+    {
+        return match &a.effect {
+            Effect::GiveExperience {
+                target: Target::Name(t),
+                amount,
+            } => t == "self" && one(amount),
+            Effect::Heal {
+                target: Target::Name(t),
+                amount,
+            } => t == "ownBase" && one(amount),
+            Effect::GainKeyword {
+                target: Target::Name(t),
+                keyword,
+                amount,
+                duration,
+            } => t == "self" && keyword == "sentinel" && duration == "phase" && one(amount),
+            _ => false,
+        };
     }
+    // Adi Gallia: opponent plays an event → damage that player's base.
+    if !a.optional
+        && a.target_resolver.is_none()
+        && a.if_you_do.is_none()
+        && proj.event
+        && proj.opponent_controller
+        && !proj.other
+        && proj.aspect.is_none()
+        && proj.trait_name.is_none()
+        && proj.max_cost.is_none()
+    {
+        return matches!(
+            &a.effect,
+            Effect::Damage {
+                target: Target::Name(t),
+                amount,
+            } if t == "enemyBase" && one(amount)
+        );
+    }
+    // Poggle: other friendly unit play → optional exhaust self → Battle Droid.
+    if a.optional
+        && a.target_resolver.is_none()
+        && proj.unit
+        && proj.same_controller
+        && proj.other
+        && proj.aspect.is_none()
+        && proj.trait_name.is_none()
+        && proj.max_cost.is_none()
+        && matches!(
+            &a.effect,
+            Effect::Exhaust {
+                target: Target::Name(t),
+            } if t == "self"
+        )
+    {
+        return a.if_you_do.as_deref().is_some_and(|next| {
+            plain_if_you_do(next)
+                && matches!(
+                    &next.effect,
+                    Effect::CreateTokenUnit {
+                        token_type,
+                        amount,
+                        target: Target::Name(t),
+                        enters_ready,
+                    } if token_type == "battleDroid"
+                        && one(amount)
+                        && t == "ownPlayer"
+                        && !*enters_ready
+                )
+        });
+    }
+    false
 }
 pub(crate) fn reject_reason(a: &Ability) -> String {
     for hook in &a.hooks {

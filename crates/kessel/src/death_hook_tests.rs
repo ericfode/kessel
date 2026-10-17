@@ -713,17 +713,17 @@ fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() 
 }
 
 #[test]
-fn card_played_hook_admission_maz_yularen_leia_and_force_sentinel() {
+fn card_played_hook_admission_maz_yularen_leia_force_sentinel_adi_and_poggle() {
     let e = engine();
-    for code in ["SHD_096", "SOR_109", "HMW_115", "LOF_096"] {
+    for code in ["SHD_096", "SOR_109", "HMW_115", "LOF_096", "LOF_142", "TWI_080"] {
         assert!(
             e.by_code.contains_key(code),
             "{code}: {:?}",
             e.rejected_cards().unwrap().get(code)
         );
     }
-    // Opponent-event damage and optional exhaust+ifYouDo stay rejected.
-    for code in ["LOF_142", "TWI_080", "SHD_255"] {
+    // Optional aspect/trait base-damage watchers stay rejected (need non-unit play capture).
+    for code in ["SHD_255", "SOR_143", "SOR_182"] {
         assert!(!e.by_code.contains_key(code), "{code} must stay rejected");
         let reason = e.rejected_cards().unwrap()[code].clone();
         assert!(
@@ -785,6 +785,123 @@ fn card_played_yularen_heals_on_command_unit_including_self() {
         let yularen = hand(&e, &mut s, "SOR_109");
         let done = e.apply(&s, &e.card_action(&s, yularen)).unwrap();
         assert_eq!(done.card(base).damage, 1);
+    }
+}
+
+fn drive_ability_prompts(e: &Engine, mut s: State, limit: usize) -> State {
+    for _ in 0..limit {
+        if !e.is_ability_decision(s.decision)
+            && !matches!(
+                s.decision,
+                Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityOptional
+            )
+        {
+            return s;
+        }
+        let actions = e.legal_actions(&s);
+        assert!(!actions.is_empty(), "{:?}", s.decision);
+        let preferred = actions
+            .iter()
+            .find(|a| {
+                matches!(
+                    a.arg.as_ref().and_then(Value::as_str),
+                    Some("trigger" | "all")
+                ) || a.label == "Trigger"
+                    || a.label.starts_with("You")
+            })
+            .cloned()
+            .unwrap_or_else(|| actions[0].clone());
+        s = e.apply(&s, &preferred).unwrap();
+    }
+    s
+}
+
+#[test]
+fn card_played_adi_damages_enemy_base_when_opponent_plays_event() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let adi = unit(&e, &mut s, seat, "LOF_142");
+            let enemy_base = s.players[seat.other().index()].base;
+            assert_eq!(s.card(enemy_base).damage, 0);
+            let event = hand_for(&e, &mut s, seat.other(), "SHD_252");
+            s.active = seat.other();
+            s.action_player = Some(seat.other());
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(e.in_arena(&done, adi));
+            assert!(done.players[seat.other().index()].discard.contains(event));
+            assert_eq!(done.card(enemy_base).damage, 1, "{backend:?}/{seat:?}");
+            // Friendly event play does not trigger Adi.
+            let mut s = midgame(&e, seat);
+            let _adi = unit(&e, &mut s, seat, "LOF_142");
+            let own_base = s.players[seat.other().index()].base;
+            let event = hand_for(&e, &mut s, seat, "SHD_252");
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(done.card(own_base).damage, 0, "friendly event {backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_poggle_may_exhaust_to_create_battle_droid() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let poggle = unit(&e, &mut s, seat, "TWI_080");
+            assert!(!s.card(poggle).exhausted);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(e.in_arena(&done, played));
+            assert!(done.card(poggle).exhausted, "{backend:?}/{seat:?}");
+            let tokens = e
+                .arena_units(&done)
+                .into_iter()
+                .filter(|&id| e.def(&done, id).code == "TOKEN_BATTLE_DROID")
+                .collect::<Vec<_>>();
+            assert_eq!(tokens.len(), 1, "{backend:?}/{seat:?}");
+            assert_eq!(done.card(tokens[0]).owner, seat);
+            // Passing declines the Battle Droid.
+            let mut s = midgame(&e, seat);
+            let poggle = unit(&e, &mut s, seat, "TWI_080");
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            for _ in 0..16 {
+                if done.decision == Decision::AbilityOptional && done.source == poggle {
+                    let pass = e
+                        .legal_actions(&done)
+                        .into_iter()
+                        .find(|a| a.arg.as_ref().and_then(Value::as_str) == Some("pass"))
+                        .expect("Pass");
+                    done = e.apply(&done, &pass).unwrap();
+                    break;
+                }
+                if !e.is_ability_decision(done.decision)
+                    && !matches!(
+                        done.decision,
+                        Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch
+                    )
+                {
+                    break;
+                }
+                let actions = e.legal_actions(&done);
+                done = e.apply(&done, &actions[0]).unwrap();
+            }
+            assert!(!done.card(poggle).exhausted);
+            assert_eq!(
+                e.arena_units(&done)
+                    .into_iter()
+                    .filter(|&id| e.def(&done, id).code == "TOKEN_BATTLE_DROID")
+                    .count(),
+                0
+            );
+        }
     }
 }
 

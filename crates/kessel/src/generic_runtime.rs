@@ -2074,12 +2074,13 @@ impl Engine {
         }
         if self.def(s, source).info.is("event") {
             let seat = s.active;
-            if s.player(seat).hand.contains(source) {
+            let played = if s.player(seat).hand.contains(source) {
                 s.phase_history.preflight_play(seat)?;
                 self.spend(s, self.cost(s, source));
                 s.player_mut(seat).hand.remove(source);
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
+                true
             } else if s.player(seat).resources.contains(source) {
                 let cost = self
                     .smuggle_cost(s, source)
@@ -2090,6 +2091,12 @@ impl Engine {
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
                 self.resource_deck_top_after_play(s, seat)?;
+                true
+            } else {
+                false
+            };
+            if played {
+                self.capture_card_played_watchers(s)?;
             }
         }
         // Base epic actions spend their once-per-game limit when the ability commits
@@ -3687,17 +3694,28 @@ impl Engine {
             }
         }
     }
-    /// Capture reviewed OnCardPlayed arena watchers for the unit that just entered.
+    /// Capture reviewed OnCardPlayed arena watchers for the unit/event just played.
     pub(super) fn capture_card_played_watchers(&self, s: &mut State) -> Result<(), String> {
         if self.catalogue.is_none() {
             return Ok(());
         }
         let played = s.source;
-        if !self.def(s, played).info.is("unit") {
+        let info = &self.def(s, played).info;
+        let is_unit = info.is("unit");
+        let is_event = info.is("event");
+        if !is_unit && !is_event {
             return Ok(());
         }
         let played_owner = s.card(played).owner;
-        let cost = self.def(s, played).info.cost().max(0) as u64;
+        let cost = info.cost().max(0) as u64;
+        let (after_pc, defer_depth) = if s.ability_program != 0 {
+            (
+                self.program(s.ability_program - 1).event_end,
+                s.death_depth,
+            )
+        } else {
+            (0, 0)
+        };
         for owner in [Seat::P1, Seat::P2] {
             let watchers: Vec<_> = s
                 .player(owner)
@@ -3726,7 +3744,16 @@ impl Engine {
                     }) else {
                         continue;
                     };
-                    if proj.same_controller != (owner == played_owner) {
+                    if proj.unit && !is_unit {
+                        continue;
+                    }
+                    if proj.event && !is_event {
+                        continue;
+                    }
+                    if proj.same_controller && owner != played_owner {
+                        continue;
+                    }
+                    if proj.opponent_controller && owner == played_owner {
                         continue;
                     }
                     if proj.other && watcher == played {
@@ -3761,6 +3788,8 @@ impl Engine {
                         source: watcher,
                         program,
                         player: owner,
+                        after_pc,
+                        defer_depth,
                         ..DeathTrigger::default()
                     };
                     s.death_pending.len += 1;
