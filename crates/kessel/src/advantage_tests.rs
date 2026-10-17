@@ -335,8 +335,8 @@ fn advantage_missing_malformed_native_and_selected_pool_dependencies_fail_closed
     assert!(err.contains("TOKEN_ADVANTAGE"), "{err}");
     pool["cards"].as_array_mut().unwrap().retain(|v| {
         ![
-            "ASH_036", "ASH_157", "ASH_167", "ASH_178", "ASH_205", "ASH_218", "ASH_221", "ASH_238",
-            "ASH_251", "ASH_254", "ASH_264",
+            "ASH_036", "ASH_146", "ASH_157", "ASH_167", "ASH_176", "ASH_178", "ASH_205", "ASH_218",
+            "ASH_221", "ASH_238", "ASH_251", "ASH_254", "ASH_264",
         ]
         .iter()
         .any(|code| v["setCode"] == *code)

@@ -177,3 +177,91 @@ fn smuggle_additional_cost_text_fails_admission() {
     assert!(!e.by_code.contains_key("SHD_160"));
     assert!(e.rejected_cards().unwrap()["SHD_160"].contains("additional costs"));
 }
+
+#[test]
+fn smuggle_when_played_hooks_admit_privateer_and_cassian() {
+    let e = engine();
+    for code in ["SHD_113", "SHD_148"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+        let def = &e.definitions[*e.by_code.get(code).unwrap() as usize];
+        assert!(def.smuggle.is_some());
+        assert!(
+            def.programs
+                .card
+                .iter()
+                .any(|&p| e.program(p).trigger == "whenPlayedUsingSmuggle"),
+            "{code} missing smuggle when-played program"
+        );
+    }
+}
+
+#[test]
+fn smuggle_privateer_gives_three_experience_only_from_resources() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = board(&e);
+        fill_resources(&e, &mut s, Seat::P1, 8);
+        let unit = resource_card(&e, &mut s, Seat::P1, "SHD_113");
+        let done = e.apply(&s, &e.card_action(&s, unit)).unwrap();
+        assert!(done.players[0].ground.contains(unit));
+        assert_eq!(e.token_count(&done, done.card(unit).experience), 3);
+        // Hand play does not fire WhenPlayedUsingSmuggle.
+        let mut s = board(&e);
+        fill_resources(&e, &mut s, Seat::P1, 8);
+        let hand = hand(&e, &mut s, "SHD_113");
+        let done = e.apply(&s, &e.card_action(&s, hand)).unwrap();
+        assert!(done.players[0].ground.contains(hand));
+        assert_eq!(done.card(hand).experience, 0);
+    }
+}
+
+#[test]
+fn smuggle_cassian_enters_ready_only_from_resources() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = board(&e);
+        fill_resources(&e, &mut s, Seat::P1, 8);
+        let unit = resource_card(&e, &mut s, Seat::P1, "SHD_148");
+        let done = e.apply(&s, &e.card_action(&s, unit)).unwrap();
+        assert!(done.players[0].ground.contains(unit));
+        assert!(!done.card(unit).exhausted);
+        let mut s = board(&e);
+        fill_resources(&e, &mut s, Seat::P1, 8);
+        let hand = hand(&e, &mut s, "SHD_148");
+        let done = e.apply(&s, &e.card_action(&s, hand)).unwrap();
+        assert!(done.players[0].ground.contains(hand));
+        assert!(done.card(hand).exhausted);
+    }
+}
+
+#[test]
+fn hook_unsupported_shapes_reject_with_event_name() {
+    let e = engine();
+    // HMW_115 / LOF_142 / SHD_255 are reviewed OnCardPlayed; ASH_204 stays onDamageDealt.
+    assert!(
+        e.by_code.contains_key("HMW_115"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("HMW_115")
+    );
+    assert!(
+        e.by_code.contains_key("LOF_142"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("LOF_142")
+    );
+    assert!(
+        e.by_code.contains_key("SHD_255"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("SHD_255")
+    );
+    let reason = e.rejected_cards().unwrap()["ASH_204"].clone();
+    assert!(
+        reason.contains("unimplemented event hook onDamageDealt"),
+        "{reason}"
+    );
+}

@@ -380,7 +380,9 @@ pub fn validate_state_with_catalogue(
                             &format!("{at}.upgrades"),
                         )?;
                         let (_, info) = refs.card(u, &format!("{at}.upgrades"))?;
-                        if !has_type(info,"upgrade") {return Err(format!("{at}: attachment must be an upgrade"));}
+                        if !has_type(info,"upgrade") && !crate::piloting_attached::metadata_is_pilot_attachment(info) {
+                            return Err(format!("{at}: attachment must be an upgrade"));
+                        }
                         let token=boolean(u,"token","upgrade")?;
                         if token {
                             if !matches!(u["setCode"].as_str(),Some("TOKEN_SHIELD"|"TOKEN_EXPERIENCE"|"TOKEN_WEAKNESS"|"TOKEN_ADVANTAGE")) || !has_type(info,"token") {return Err(format!("{at}: only Shield, Experience, Weakness and Advantage tokens are supported"));}

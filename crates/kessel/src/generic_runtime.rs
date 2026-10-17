@@ -126,6 +126,9 @@ fn parse_smuggle_cost(text: &str) -> Result<SmuggleCost, String> {
         if amount > 1000 {
             return Err("Smuggle cost amount exceeds bound".into());
         }
+        // Pinned regex allows `(?:,\s*|\s+)` between `resources` and aspects;
+        // a later `, …` is an unimplemented non-aspect additional cost.
+        let aspects_text = aspects_text.trim().trim_start_matches(',').trim();
         if aspects_text.contains(',') {
             return Err("Smuggle additional costs are not implemented".into());
         }
@@ -561,13 +564,26 @@ impl Engine {
                         continue;
                     }
                     if name == "smuggle" {
+                        // Leaders/tokens can mention Smuggle without an intrinsic
+                        // alternate cost (Hondo watches Smuggle plays from base zone).
                         if info.is("leader") || info.is("token") || !(info.is("unit") || info.is("event") || info.is("upgrade")) {
-                            return Err("Smuggle requires an ordinary playable card".into());
+                            continue;
                         }
                         if smuggle.is_some() {
                             return Err("multiple Smuggle keyword tags".into());
                         }
                         smuggle = Some(parse_smuggle_cost(entry["card"]["text"].as_str().unwrap_or(""))?);
+                        continue;
+                    }
+                    if name == "piloting" {
+                        // Piloting is a play-mode mention on reviewed Pilot units that
+                        // may attach as upgrades; it is not an intrinsic combat flag.
+                        if !crate::piloting_attached::entry(entry)
+                            && !crate::attached_registration::piloting_host_entry(entry)
+                            && !crate::attached_registration::piloting_self_entry(entry)
+                        {
+                            return Err("unimplemented runtime keyword piloting".into());
+                        }
                         continue;
                     }
                     if name == "plot" {
@@ -977,6 +993,15 @@ impl Engine {
 
                 let effect_source=if program.attached_context.as_deref()==Some("host") {if !self.attached_in_play(s,source) {continue;} s.card(source).parent}else{source};
                 if program.attached_context.is_some() && !self.attached_in_play(s,source) {continue;}
+                // Parent-targeted grants (keywords/traits/stats) require a live attachment
+                // before conditions that read source.parent* are evaluated.
+                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(
+                    Effect::GainKeyword {target:Target::Name(n),..}
+                    |Effect::GainTrait{target:Target::Name(n),..}
+                    |Effect::LoseTrait{target:Target::Name(n),..}
+                    |Effect::ModifyStats{target:Target::Name(n),..}
+                ) if n=="parent"));
+                if parent_target && !self.attached_in_play(s,source) {continue;}
                 if (program.coordinate && !self.coordinate_active(s,source))
                     || program
                         .condition
@@ -992,7 +1017,6 @@ impl Engine {
                         None
                     }
                 });
-                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..}) if n=="parent"));
                 let friendly_ambush=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase))));
                 let native_trait=program.instructions.iter().find_map(|i|match i {Instruction::Apply(Effect::ConstantEffectRegistration(r))=>match r.native(){Ok(crate::static_ongoing::NativeModifier::Traits(rule))=>Some(rule),_=>None},_=>None});
                 if resolver.map_or(if let Some(rule)=native_trait {!self.native_trait_target(s,effect_source,target,rule)}else if friendly_ambush {s.card(source).owner!=s.card(target).owner}else if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
@@ -1197,7 +1221,7 @@ impl Engine {
         match q.admitted_kind() {
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
-            QueryKind::PlayedForce => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,"force")),
+            QueryKind::PlayedTrait(trait_name) => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,trait_name.as_str())),
             QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
         }
     }
@@ -1316,9 +1340,8 @@ impl Engine {
                 if path.iter().map(String::as_str).collect::<Vec<_>>()==["card","activeAttack","attacker"] {return Eval::Card(self.active_attack_pair(s,card).0);}
                 if root=="source" && matches!(field,Some("parentCard"|"parentUnit")) {
                     let parent=s.card(source).parent;
-                    // Compiler permits parent access only on ordinary attached upgrades.
-                    // Source registrations are evaluated while attachment is valid.
-                    assert!(parent!=0 && self.in_arena(s,parent),"parentCard/parentUnit requires a live attached source");
+                    // Upgrade source registrations evaluate while attachment is valid.
+                    assert!(parent!=0 && (self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent)),"parentCard/parentUnit requires a live attached source");
                     if let Some(property)=path.get(2) {return self.eval_with_card(s,source,target,parent,&Expr::Ref {path:vec!["card".into(),property.clone()]});}
                     return Eval::Card(parent);
                 }
@@ -1331,6 +1354,17 @@ impl Engine {
                 };
                 if id == 0 {
                     return Eval::Null;
+                }
+                // Selector hosts: an upgrade candidate's parentCard/parentUnit.
+                if matches!(field,Some("parentCard"|"parentUnit")) {
+                    let parent=s.card(id).parent;
+                    if parent==0 || !(self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent)) {
+                        return Eval::Null;
+                    }
+                    if let Some(property)=path.get(2) {
+                        return self.eval_with_card(s,source,target,parent,&Expr::Ref {path:vec!["card".into(),property.clone()]});
+                    }
+                    return Eval::Card(parent);
                 }
                 match field {
                     None => Eval::Card(id),
@@ -1350,7 +1384,11 @@ impl Engine {
                     Some("cost" | "printedCost") => Eval::Number(self.def(s, id).info.cost() as i64),
                     Some("exhausted") => Eval::Bool(s.card(id).exhausted),
                     Some("zoneName") => {
-                        if self.attached_in_play(s,id) {return Eval::Text(if self.def(s,s.card(id).parent).info.arena.as_deref()==Some("space") {"spaceArena"}else{"groundArena"}.into());}
+                        if self.attached_in_play(s,id) {
+                            let parent=s.card(id).parent;
+                            if self.def(s,parent).info.is("base") {return Eval::Text("base".into());}
+                            return Eval::Text(if self.def(s,parent).info.arena.as_deref()==Some("space") {"spaceArena"}else{"groundArena"}.into());
+                        }
                         let p = s.player(s.card(id).owner);
                         let zone = if p.ground.contains(id) {
                             "groundArena"
@@ -1488,6 +1526,7 @@ impl Engine {
                     "isUnit" => Eval::Bool(
                         d.info.is("unit") || (d.info.is("leader") && s.card(id).deployed),
                     ),
+                    "isEvent" => Eval::Bool(d.info.is("event")),
                     "isAttacking"=>Eval::Bool(self.is_attacking(s,id)),
                     "isDefending"=>Eval::Bool(self.is_defending(s,id)),
                     "hasCost"=>Eval::Bool(["unit","leader","upgrade","event","token"].iter().any(|kind|d.info.is(kind))),
@@ -1542,6 +1581,9 @@ impl Engine {
         }
     }
     fn matching_targets(&self, s: &State, source: CardId, r: &TargetResolver) -> Vec<CardId> {
+        if r.player_selection {
+            return vec![s.players[0].base, s.players[1].base];
+        }
         if let Some(native)=&r.native {return self.native_selector_candidates(s,source,r,native).into_iter().filter(|id|r.predicate.as_ref().is_none_or(|p|self.eval(s,source,*id,p).truth())).collect();}
         let owner = s.card(source).owner;
         let mut out = Vec::new();
@@ -1605,6 +1647,22 @@ impl Engine {
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
+            Effect::LookAt { target: view_target, .. } => {
+                let _ = require_change;
+                return matches!(
+                    self.eval(s, source, target, view_target),
+                    Eval::Array(cards) if !cards.is_empty()
+                );
+            }
+            Effect::LookAtAndSelectCard { target: view_target, .. } => {
+                let _ = require_change;
+                // Empty hands make the event illegal (Play anyway). A nonempty hand
+                // can always be looked at, even when the discard filter matches nothing.
+                return matches!(
+                    self.eval(s, source, target, view_target),
+                    Eval::Array(cards) if !cards.is_empty()
+                );
+            }
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => return effects.iter().any(|e| self.effect_can_affect(s,source,target,e,require_change)),
             Effect::Select { target_resolver,effect } => return self.matching_targets(s,source,target_resolver).into_iter().any(|id| self.effect_can_affect(s,source,id,effect,require_change)),
             Effect::Conditional { condition,on_true,on_false } => return if self.eval(s,source,target,condition).truth() { self.effect_can_affect(s,source,target,on_true,require_change) } else { on_false.as_ref().is_some_and(|e| self.effect_can_affect(s,source,target,e,require_change)) },
@@ -1616,6 +1674,7 @@ impl Engine {
         if context.event_group.active { context.event_group.context=Selection::one(target); }
         let (dest, amount) = match e {
             Effect::DiscardDeck {target,amount} | Effect::DiscardOwnHand {target,amount} | Effect::CreateTokenUnit {target,amount,..} | Effect::ReadyResources { target, amount }
+            | Effect::PayResources { target, amount }
             | Effect::Damage { target, amount }
             | Effect::Heal { target, amount }
             | Effect::Draw { target, amount }
@@ -1649,6 +1708,9 @@ impl Engine {
                                 .as_slice()
                                 .iter()
                                 .any(|&id| s.card(id).exhausted)
+                    } else if matches!(e, Effect::PayResources { .. }) {
+                        amount > 0
+                            && self.ready_resources(s, player) as i64 >= amount
                     } else {
                         matches!(e, Effect::Draw { .. } | Effect::CreateTokenUnit {..}) && (!require_change || amount > 0)
                     }
@@ -1722,7 +1784,7 @@ impl Engine {
                     pc = scope;
                     continue;
                 }
-                Instruction::IfResult { .. } => break,
+                Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } => break,
                 Instruction::Apply(effect) | Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup {effect,..} => {
                     if self.effect_can_affect(s, source, target, effect, require_change) {
                         return true;
@@ -1815,7 +1877,45 @@ impl Engine {
                 | Decision::AbilityNoEffect
                 | Decision::AbilityDistribute
                 | Decision::AbilityGroupShield | Decision::AbilityDiscard
+                | Decision::AbilityDisplay
         )
+    }
+    /// Current Apply instruction when it is a reviewed lookAtAndSelectCard.
+    fn look_at_select_effect<'a>(&'a self, s: &State) -> Option<&'a Effect> {
+        if s.ability_program == 0 {
+            return None;
+        }
+        let Instruction::Apply(effect) =
+            self.program(s.ability_program - 1)
+                .instructions
+                .get(s.ability_pc as usize)?
+        else {
+            return None;
+        };
+        matches!(effect, Effect::LookAtAndSelectCard { .. }).then_some(effect)
+    }
+    /// When the current instruction is reviewed lookAtAndSelectCard, returns the
+    /// live filtered opponent-hand candidates (possibly empty). Otherwise None.
+    fn look_at_select_candidates(&self, s: &State) -> Option<Vec<CardId>> {
+        let effect = self.look_at_select_effect(s)?;
+        let Effect::LookAtAndSelectCard { target, .. } = effect else {
+            return None;
+        };
+        let predicate = crate::view_cards::selection_predicate(effect)?;
+        let cards = match self.eval(s, s.source, s.ability_target, target) {
+            Eval::Array(cards) => cards,
+            _ => return Some(Vec::new()),
+        };
+        let mut out = Vec::new();
+        for item in cards {
+            let Eval::Card(id) = item else {
+                continue;
+            };
+            if self.eval(s, s.source, id, &predicate).truth() {
+                out.push(id);
+            }
+        }
+        Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
         let mut out = Vec::new();
@@ -1825,6 +1925,25 @@ impl Engine {
                 let g=&s.event_group;
                 if g.discard_count>1 && g.picks.len==g.discard_count {out.push(Action::button("Done","done"));}
                 for &id in s.player(g.discard_owner).hand.as_slice() {if g.picks.len<g.discard_count || g.picks.ids[..g.picks.len as usize].contains(&id) {out.push(self.card_action(s,id));}}
+            }
+            Decision::AbilityDisplay => {
+                if let Some(selectable) = self.look_at_select_candidates(s) {
+                    let optional = self
+                        .look_at_select_effect(s)
+                        .is_some_and(crate::view_cards::can_choose_fewer);
+                    if selectable.is_empty() {
+                        out.push(Action::button("Done", "done"));
+                    } else {
+                        for id in selectable {
+                            out.push(self.card_action(s, id));
+                        }
+                        if optional {
+                            out.push(Action::button("Done", "done"));
+                        }
+                    }
+                } else {
+                    out.push(Action::button("Done", "done"));
+                }
             }
             Decision::DeathPlayer => {out.push(Action::button("You",0));out.push(Action::button("Opponent",1));}
             Decision::DeathOrder => {
@@ -1885,17 +2004,26 @@ impl Engine {
                     } else { out.push(Action::button("Choose no target","noTarget")); }
                 }
                 if named && !s.ability_committed && s.ability_return==0 { out.push(Action::button("Cancel","cancel")); }
-                let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
-                    self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
-                };
-                for id in candidates {
-                    if !r.is_multiple() || picks.len<r.max_targets().expect("validated selector") as u8 || picks.ids[..picks.len as usize].contains(&id) { out.push(self.card_action(s,id)); }
+                if r.player_selection {
+                    let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
+                        self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
+                    };
+                    if candidates.contains(&s.player(s.active).base) { out.push(Action::button("You",0)); }
+                    if candidates.contains(&s.player(s.active.other()).base) { out.push(Action::button("Opponent",1)); }
+                } else {
+                    let candidates=if let Some(e)=child { self.group_candidates(s,r,e,false) } else {
+                        self.program_targets(s,source,s.ability_program-1,s.ability_pc as usize,r,false)
+                    };
+                    for id in candidates {
+                        if !r.is_multiple() || picks.len<r.max_targets().expect("validated selector") as u8 || picks.ids[..picks.len as usize].contains(&id) { out.push(self.card_action(s,id)); }
+                    }
                 }
             }
             Decision::AbilityDistribute => {
                 let p = self.program(s.ability_program - 1);
                 let Instruction::Apply(Effect::DistributeHealing {
                     amount,
+                    max_targets,
                     target_resolver,
                     can_choose_no_targets,
                     can_distribute_less,
@@ -1915,7 +2043,8 @@ impl Engine {
                         label: label.clone(),
                     });
                 }
-                for id in self.matching_targets(s, source, target_resolver) {
+                let targets = self.matching_targets(s, source, target_resolver);
+                for &id in &targets {
                     for n in 1..=amount {
                         if n != amount && !can_distribute_less {
                             continue;
@@ -1927,6 +2056,24 @@ impl Engine {
                             method: None,
                             label: label.clone(),
                         });
+                    }
+                }
+                // Reviewed Trace shape: amount 2 / maxTargets 2 / full amount required.
+                // Enumerate unordered 1+1 splits across distinct unit candidates.
+                if *max_targets > 1 && amount == 2 {
+                    for i in 0..targets.len() {
+                        for j in (i + 1)..targets.len() {
+                            out.push(Action {
+                                kind: "distribute".into(),
+                                card: None,
+                                arg: Some(json!([
+                                    [format!("c{}", targets[i] - 1), 1],
+                                    [format!("c{}", targets[j] - 1), 1]
+                                ])),
+                                method: None,
+                                label: label.clone(),
+                            });
+                        }
                     }
                 }
             }
@@ -1986,12 +2133,13 @@ impl Engine {
         }
         if self.def(s, source).info.is("event") {
             let seat = s.active;
-            if s.player(seat).hand.contains(source) {
+            let (played, via_smuggle) = if s.player(seat).hand.contains(source) {
                 s.phase_history.preflight_play(seat)?;
                 self.spend(s, self.cost(s, source));
                 s.player_mut(seat).hand.remove(source);
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
+                (true, false)
             } else if s.player(seat).resources.contains(source) {
                 let cost = self
                     .smuggle_cost(s, source)
@@ -2002,7 +2150,21 @@ impl Engine {
                 s.player_mut(seat).discard.push(source)?;
                 s.phase_history.played(seat, source)?;
                 self.resource_deck_top_after_play(s, seat)?;
+                (true, true)
+            } else {
+                (false, false)
+            };
+            if played {
+                self.capture_card_played_watchers(s, via_smuggle)?;
             }
+        }
+        // Base epic actions spend their once-per-game limit when the ability commits
+        // (after targeting, or when resolving with no effect via "Use it anyway").
+        if self.program(s.ability_program - 1).trigger == "epicAction" {
+            if !self.def(s, source).info.is("base") || s.card(source).epic_used {
+                return Err("epic action requires an unspent base source".into());
+            }
+            s.card_mut(source).epic_used = true;
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -2029,6 +2191,11 @@ impl Engine {
         } else if next == 1 {
             self.process_triggers(s)
         } else {
+            // Event play with no effect commits then ends here; open ready
+            // OnCardPlayed watchers before returning to the action window.
+            if self.open_deaths(s, 3)? {
+                return Ok(());
+            }
             self.finish(s)
         }
     }
@@ -2088,6 +2255,31 @@ impl Engine {
                         *skip as u8
                     };
                 }
+                Instruction::IfWillDefeat { skip } => {
+                    s.ability_pc = if s.ability_succeeded && s.event_result.will_defeat {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::IfDiscardedSharesAspect { skip } => {
+                    s.ability_pc = if s.ability_succeeded && self.discarded_shares_base_aspect(s) {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::IfDiscardedIsUnit { skip } => {
+                    s.ability_pc = if s.ability_succeeded && self.discarded_is_unit(s) {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::OptionalConfirm { .. } => {
+                    s.decision = Decision::AbilityOptional;
+                    return Ok(());
+                }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
                     self.commit_program(s)?;
@@ -2100,6 +2292,51 @@ impl Engine {
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
+                }
+                Instruction::Apply(Effect::LookAt { target, player, .. }) => {
+                    self.commit_program(s)?;
+                    let viewer = match self.eval(s, s.source, s.ability_target, player) {
+                        Eval::Player(seat) => seat,
+                        _ => return Err("lookAt viewer must be a player".into()),
+                    };
+                    let cards = match self.eval(s, s.source, s.ability_target, target) {
+                        Eval::Array(cards) => cards,
+                        _ => return Err("lookAt target must be a card list".into()),
+                    };
+                    if cards.is_empty() {
+                        s.ability_result = 0;
+                        s.ability_succeeded = false;
+                        s.ability_pc += 1;
+                    } else {
+                        s.active = viewer;
+                        s.decision = Decision::AbilityDisplay;
+                        s.ability_result = u16::try_from(cards.len())
+                            .map_err(|_| "lookAt display exceeds card count capacity")?;
+                        return Ok(());
+                    }
+                }
+                Instruction::Apply(Effect::LookAtAndSelectCard { target, player, .. }) => {
+                    // Shape was fenced at Program::compile; expressions may already be Compiled.
+                    self.commit_program(s)?;
+                    let viewer = match self.eval(s, s.source, s.ability_target, player) {
+                        Eval::Player(seat) => seat,
+                        _ => return Err("lookAtAndSelectCard viewer must be a player".into()),
+                    };
+                    let cards = match self.eval(s, s.source, s.ability_target, target) {
+                        Eval::Array(cards) => cards,
+                        _ => return Err("lookAtAndSelectCard target must be a card list".into()),
+                    };
+                    if cards.is_empty() {
+                        s.ability_result = 0;
+                        s.ability_succeeded = false;
+                        s.ability_pc += 1;
+                    } else {
+                        s.active = viewer;
+                        s.decision = Decision::AbilityDisplay;
+                        s.ability_result = u16::try_from(cards.len())
+                            .map_err(|_| "lookAtAndSelectCard display exceeds card count capacity")?;
+                        return Ok(());
+                    }
                 }
                 Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup{effect,..} => {
                     let named=instruction.is_named_group();
@@ -2115,8 +2352,11 @@ impl Engine {
                     if !self.generate_group(s,effect)? { return Ok(()); }
                     if named { self.commit_program(s)?; self.allocate_named_tokens(s,effect)?; }
                     if !self.resolve_group(s,effect)? { return Ok(()); }
+                    // Reviewed discardDeck→return continuations read discarded card ids from
+                    // ability_selection (Selection capacity matches deck-discard amount 0..=5).
+                    let discarded=self.capture_discarded_selection(s,effect);
                     s.event_group=EventGroupState::default();
-                    s.ability_selection=Selection::default();
+                    s.ability_selection=discarded;
                     s.ability_pc+=1;
                 }
                 Instruction::Apply(effect) => {
@@ -2680,9 +2920,59 @@ impl Engine {
                 "ownPlayer" => vec![Eval::Player(owner)],
                 "enemyPlayer" => vec![Eval::Player(owner.other())],
                 "bothPlayers" => vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)],
+                "chosenPlayer" if s.ability_target != 0 && self.def(s, s.ability_target).info.is("base") => {
+                    vec![Eval::Player(s.card(s.ability_target).owner)]
+                }
+                "discardedCard" => s.ability_selection.ids[..s.ability_selection.len as usize]
+                    .first()
+                    .copied()
+                    .map(|id| vec![Eval::Card(id)])
+                    .unwrap_or_default(),
+                "oddCostDiscarded" => s.ability_selection.ids[..s.ability_selection.len as usize]
+                    .iter()
+                    .copied()
+                    .filter(|&id| {
+                        let cost = self.def(s, id).info.cost();
+                        cost >= 0 && cost % 2 == 1
+                    })
+                    .map(Eval::Card)
+                    .collect(),
                 _ => vec![],
             },
         }
+    }
+    fn capture_discarded_selection(&self, s: &State, effect: &Effect) -> Selection {
+        let ops = group_ops(effect);
+        let mut out = Selection::default();
+        for r in &s.event_group.records[..s.event_group.count as usize] {
+            if !matches!(&ops[r.op as usize], GroupOp::Leaf(Effect::DiscardDeck { .. })) {
+                continue;
+            }
+            if self.def(s, r.target).info.is("base") {
+                continue;
+            }
+            if out.len as usize >= out.ids.len() {
+                break;
+            }
+            out.ids[out.len as usize] = r.target;
+            out.len += 1;
+        }
+        out
+    }
+    fn discarded_shares_base_aspect(&self, s: &State) -> bool {
+        let Some(&card) = s.ability_selection.ids[..s.ability_selection.len as usize].first() else {
+            return false;
+        };
+        let owner = s.card(s.source).owner;
+        let base = s.player(owner).base;
+        let base_aspects = self.def(s, base).info.aspects();
+        let card_aspects = self.def(s, card).info.aspects();
+        card_aspects.iter().any(|a| base_aspects.iter().any(|b| b == a))
+    }
+    fn discarded_is_unit(&self, s: &State) -> bool {
+        s.ability_selection.ids[..s.ability_selection.len as usize]
+            .first()
+            .is_some_and(|&id| self.def(s, id).info.is("unit"))
     }
     fn create_token(&self, s: &mut State, target: CardId, experience: bool) -> Result<(), String> {
         let def = if experience {
@@ -2883,6 +3173,7 @@ impl Engine {
         }
         let (target, amount) = match e {
             Effect::ReadyResources { target, amount }
+            | Effect::PayResources { target, amount }
             | Effect::Damage { target, amount }
             | Effect::Heal { target, amount }
             | Effect::Draw { target, amount }
@@ -2934,6 +3225,21 @@ impl Engine {
                     }
                     resources_fully_resolved &= readied == amount;
                 }
+                Eval::Player(seat) if matches!(e, Effect::PayResources { .. }) => {
+                    let resources = s.player(seat).resources;
+                    let mut paid = 0u16;
+                    for &id in resources.as_slice() {
+                        if paid >= amount {
+                            break;
+                        }
+                        if !s.card(id).exhausted {
+                            s.card_mut(id).exhausted = true;
+                            paid = paid.saturating_add(1);
+                            result = result.saturating_add(1);
+                        }
+                    }
+                    resources_fully_resolved &= paid == amount;
+                }
                 Eval::Player(seat) if matches!(e, Effect::Draw { .. }) => {
                     // Fatigue is a contingent of a resolved draw, even with no cards drawn.
                     draw_resolved |= amount > 0;
@@ -2966,6 +3272,10 @@ impl Engine {
                             let before = s.card(id).damage;
                             let remaining=self.hp(s,id).saturating_sub(before);
                             let prevented=s.card(id).shield!=0;
+                            // Engine willDefeat ignores Shield; lethal vs printed remaining HP.
+                            if in_arena && amount >= remaining {
+                                events.will_defeat = true;
+                            }
                             self.damage(s, id, amount);
                             if !prevented {events.damage_dealt=events.damage_dealt.checked_add(u32::from(amount.min(remaining))).ok_or("actual damage result exceeds capacity")?;}
                             result =
@@ -3068,7 +3378,7 @@ impl Engine {
         s.event_result=events;
         Ok((
             result,
-            if matches!(e, Effect::ReadyResources { .. }) {
+            if matches!(e, Effect::ReadyResources { .. } | Effect::PayResources { .. }) {
                 resources_fully_resolved
             } else {
                 result > 0 || replacement_resolved || draw_resolved
@@ -3135,8 +3445,80 @@ impl Engine {
             }
             Decision::AbilityOptional => {
                 if a.arg.as_ref().and_then(Value::as_str) == Some("pass") {
-                    self.end_program(&mut t)?;
+                    if let Some(Instruction::OptionalConfirm { skip }) =
+                        self.program(t.ability_program - 1).instructions.get(t.ability_pc as usize)
+                    {
+                        t.ability_pc = *skip as u8;
+                        self.run_program(&mut t)?;
+                    } else {
+                        self.end_program(&mut t)?;
+                    }
+                } else if matches!(
+                    self.program(t.ability_program - 1).instructions.get(t.ability_pc as usize),
+                    Some(Instruction::OptionalConfirm { .. })
+                ) {
+                    t.ability_pc += 1;
+                    self.run_program(&mut t)?;
                 } else {
+                    self.run_program(&mut t)?;
+                }
+            }
+            Decision::AbilityDisplay => {
+                if let Some(selectable) = self.look_at_select_candidates(s) {
+                    let effect = self
+                        .look_at_select_effect(s)
+                        .ok_or("lookAtAndSelectCard display missing effect")?;
+                    let optional = crate::view_cards::can_choose_fewer(effect);
+                    let opponent_draw = crate::view_cards::draws_for_opponent(effect);
+                    if a.arg.as_ref().and_then(Value::as_str) == Some("done") {
+                        if !selectable.is_empty() && !optional {
+                            return Err(
+                                "lookAtAndSelectCard Done requires no match or canChooseFewer"
+                                    .into(),
+                            );
+                        }
+                        t.active = t.card(t.source).owner;
+                        t.ability_succeeded = t.ability_result > 0;
+                        t.ability_pc += 1;
+                        self.run_program(&mut t)?;
+                    } else {
+                        let id = a.id().ok_or("lookAtAndSelectCard requires a selected card")?;
+                        if !selectable.contains(&id) {
+                            return Err(
+                                "selected card is not a legal lookAtAndSelectCard discard".into(),
+                            );
+                        }
+                        let owner = t.card(id).owner;
+                        if !t.player_mut(owner).hand.remove(id) {
+                            return Err(
+                                "lookAtAndSelectCard discard requires the card in hand".into(),
+                            );
+                        }
+                        t.player_mut(owner).discard.push(id)?;
+                        if opponent_draw {
+                            // Reviewed sequence: discard then draw 1 for the discarded card's owner.
+                            let (drawn, _) = self.apply_effect(
+                                &mut t,
+                                &Effect::Draw {
+                                    target: Target::name("enemyPlayer"),
+                                    amount: Expr::number(1),
+                                },
+                            )?;
+                            let _ = drawn;
+                        }
+                        t.active = t.card(t.source).owner;
+                        t.ability_succeeded = true;
+                        t.ability_result = 1;
+                        t.ability_pc += 1;
+                        self.run_program(&mut t)?;
+                    }
+                } else {
+                    if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
+                        return Err("lookAt display requires Done".into());
+                    }
+                    t.active = t.card(t.source).owner;
+                    t.ability_succeeded = t.ability_result > 0;
+                    t.ability_pc += 1;
                     self.run_program(&mut t)?;
                 }
             }
@@ -3146,6 +3528,17 @@ impl Engine {
                 let r=if let Some((r,_))=nested { r } else { let Instruction::Select(r)=&p.instructions[s.ability_pc as usize] else { unreachable!() }; r };
                 if a.arg.as_ref().and_then(Value::as_str)==Some("passAbility") { self.end_program(&mut t)?; }
                 else if a.arg.as_ref().and_then(Value::as_str)==Some("cancel") { self.cancel(&mut t); }
+                else if r.player_selection {
+                    let seat=if a.arg.as_ref().and_then(Value::as_u64)==Some(0){s.active}else if a.arg.as_ref().and_then(Value::as_u64)==Some(1){s.active.other()}else{return Err("player selection requires You/Opponent".into());};
+                    let base=t.player(seat).base;
+                    let candidates=if let Some((resolver,effect))=nested{self.group_candidates(s,resolver,effect,false)}else{self.program_targets(s,s.source,s.ability_program-1,s.ability_pc as usize,r,false)};
+                    if !candidates.contains(&base){return Err("selected player is not a legal target".into());}
+                    if nested.is_some(){return Err("nested player selection is unsupported".into());}
+                    t.ability_target=base;
+                    t.ability_selection=Selection::one(base);
+                    t.ability_pc+=1;
+                    self.run_program(&mut t)?;
+                }
                 else {
                     if r.is_multiple() && a.id().is_some() {
                         let picks=if nested.is_some(){t.event_group.picks}else{t.ability_selection};
@@ -3173,18 +3566,24 @@ impl Engine {
                 t.event_result=StepEventResult::for_state(&t);
                 t.ability_result = 0;
                 t.ability_succeeded = false;
-                if let Some(pair) = a
-                    .arg
-                    .as_ref()
-                    .and_then(Value::as_array)
-                    .and_then(|a| a.first())
-                {
-                    let id = cid(pair[0].as_str().ok_or("distribution target missing")?)?;
-                    let heal = (pair[1].as_u64().ok_or("distribution amount missing")? as u16)
-                        .min(t.card(id).damage);
-                    t.card_mut(id).damage -= heal;
-                    t.ability_result = heal;
-                    t.ability_succeeded = heal > 0;
+                if let Some(pairs) = a.arg.as_ref().and_then(Value::as_array) {
+                    let mut total = 0u16;
+                    for pair in pairs {
+                        let id = cid(
+                            pair.get(0)
+                                .and_then(Value::as_str)
+                                .ok_or("distribution target missing")?,
+                        )?;
+                        let heal = (pair
+                            .get(1)
+                            .and_then(Value::as_u64)
+                            .ok_or("distribution amount missing")? as u16)
+                            .min(t.card(id).damage);
+                        t.card_mut(id).damage -= heal;
+                        total = total.saturating_add(heal);
+                    }
+                    t.ability_result = total;
+                    t.ability_succeeded = total > 0;
                 }
                 t.ability_pc += 1;
                 self.run_program(&mut t)?;
@@ -3210,7 +3609,10 @@ impl Engine {
         if self.catalogue.is_none() {return Ok(());}
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
         let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
-            let p=self.program(program);p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
+            let p=self.program(program);
+            // Host grants live on the pilot/upgrade definition but only fire through
+            // attached_host_grants while the card is attached to an arena host.
+            !p.attached_host&&p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
         }).map(|program|(program,0)).collect::<Vec<_>>();
         registrations.extend(self.attached_host_grants(&context,id,"whenDefeated").into_iter().map(|e|(e.program,e.grantor)));
         if s.death_pending.len as usize+registrations.len()>MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
@@ -3227,7 +3629,7 @@ impl Engine {
         for owner in [Seat::P1,Seat::P2] {let sources:Vec<_>=s.player(owner).ground.as_slice().iter().chain(s.player(owner).space.as_slice()).copied().collect();for source in sources {
             for &program in self.card_programs(s,source) {
                 let p=self.program(program);
-                if !p.hooks.iter().any(|hook|matches!(hook,crate::death_hooks::Hook::Event(h) if h.predicate.matches(token,owner==s.card(id).owner,source==id))) {continue;}
+                if !p.hooks.iter().any(|hook|matches!(hook,crate::death_hooks::Hook::Event(h) if matches!(h.event,crate::death_hooks::EventName::Defeated)&&h.predicate.matches(token,owner==s.card(id).owner,source==id))) {continue;}
                 let n=s.death_pending.len as usize;
                 if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
                 s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,source,self.is_attacking(s,source)),source,program,player:owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,..DeathTrigger::default()};s.death_pending.len+=1;
@@ -3315,7 +3717,7 @@ impl Engine {
     /// Capture one declaration window before either player's effects resolve.
     /// Existing source-only attack protocol stays intact without defender triggers.
     pub(super) fn has_defense_registration(&self,s:&State,id:CardId)->bool {
-        self.catalogue.is_some() && (self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onDefense")||!self.attached_host_grants(s,id,"onDefense").is_empty())
+        self.catalogue.is_some() && (self.card_programs(s,id).iter().any(|p|{let p=self.program(*p);p.trigger=="onDefense"&&!p.attached_host})||!self.attached_host_grants(s,id,"onDefense").is_empty())
     }
     /// Enumerate the physical attachment list while the host is in play. A
     /// captured grant no longer depends on grantor presence at resolution.
@@ -3345,7 +3747,7 @@ impl Engine {
     fn capture_attack_window_inner(&self,s:&mut State,declaration:&State)->Result<bool,String> {
         if self.catalogue.is_none() {return Ok(false);}
         let defender=declaration.attack_defender;
-        let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
+        let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);!p.attached_host&&p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
         let grants=self.gained_attack_grants(declaration,declaration.source);
         let defense_grants=self.attached_host_grants(declaration,defender,"onDefense");
         if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty() {return Ok(false);}
@@ -3353,7 +3755,7 @@ impl Engine {
         registration.pending_triggers=0;registration.attack_restore=self.keyword_amount(&registration,registration.source,"restore");
         if self.has_keyword(&registration,registration.source,"restore") {registration.pending_triggers|=T_RESTORE;}
         if self.keyword_amount(&registration,registration.source,"saboteur")>0 && self.in_arena(&registration,defender) {registration.pending_triggers|=T_SABOTEUR;}
-        self.queue_programs(&mut registration,"onAttack");s.attack_restore=registration.attack_restore;
+        self.queue_programs(&mut registration,&["onAttack"]);s.attack_restore=registration.attack_restore;
         let mut entries=Vec::new();
         for (i,&program) in self.card_programs(&registration,registration.source).iter().enumerate() {if registration.pending_programs&(1<<i)!=0 {entries.push(DeathTrigger {source:registration.source,program,player:registration.card(registration.source).owner,..DeathTrigger::default()});}}
         for keyword in self.trigger_bits(&registration) {entries.push(DeathTrigger {source:registration.source,keyword,player:registration.card(registration.source).owner,..DeathTrigger::default()});}
@@ -3456,14 +3858,27 @@ impl Engine {
         let p=s.player(s.card(source).owner);
         self.in_arena(s,source) && p.ground.len as u16+p.space.len as u16>=3
     }
-    pub(super) fn queue_programs(&self, s: &mut State, trigger: &str) {
+    pub(super) fn queue_programs(&self, s: &mut State, triggers: &[&str]) {
         s.pending_programs = 0;
         if self.catalogue.is_none() {
             return;
         }
         for (i, p) in self.card_programs(s, s.source).iter().enumerate() {
             let p = self.program(*p);
-            if p.trigger == trigger
+            // Piloting / upgrade host grants must not fire from the grantor as an
+            // arena unit; attached_host_grants enumerates them on the parent host.
+            if p.attached_host {
+                continue;
+            }
+            // addPilotingAbility WhenPlayed registers only while the pilot is attached.
+            if p.piloting_ability && !self.attached_in_play(s, s.source) {
+                continue;
+            }
+            // Reviewed Pilot unit-side WhenPlayed (Mandalorian) does not fire while attached.
+            if p.pilot_unit_ability && self.attached_in_play(s, s.source) {
+                continue;
+            }
+            if triggers.iter().any(|t| p.trigger == *t)
                 && (!p.coordinate || self.coordinate_active(s,s.source))
                 && p.condition
                     .as_ref()
@@ -3472,6 +3887,134 @@ impl Engine {
                 s.pending_programs |= 1 << i;
             }
         }
+    }
+    /// Capture reviewed OnCardPlayed arena and base-zone leader watchers.
+    pub(super) fn capture_card_played_watchers(
+        &self,
+        s: &mut State,
+        via_smuggle: bool,
+    ) -> Result<(), String> {
+        if self.catalogue.is_none() {
+            return Ok(());
+        }
+        let played = s.source;
+        let info = &self.def(s, played).info;
+        let is_unit = info.is("unit");
+        let is_event = info.is("event");
+        let is_upgrade = info.is("upgrade");
+        // Aspect/trait (Lady Proxima / Fighters) and Smuggle (Hondo) watchers
+        // also need upgrade plays; Smuggle covers any playable type.
+        if !is_unit && !is_event && !is_upgrade {
+            return Ok(());
+        }
+        let played_owner = s.card(played).owner;
+        let cost = info.cost().max(0) as u64;
+        for owner in [Seat::P1, Seat::P2] {
+            let mut watchers: Vec<_> = s
+                .player(owner)
+                .ground
+                .as_slice()
+                .iter()
+                .chain(s.player(owner).space.as_slice())
+                .copied()
+                .collect();
+            // Undeployed leaders watch from the base zone (Hondo / Boba / Mando fronts).
+            let leader = s.player(owner).leader;
+            if leader != 0
+                && s.card(leader).present
+                && !s.card(leader).deployed
+                && self.def(s, leader).info.is("leader")
+            {
+                watchers.push(leader);
+            }
+            for watcher in watchers {
+                let in_base_zone = watcher == leader && !s.card(watcher).deployed;
+                if !in_base_zone && !self.in_arena(s, watcher) {
+                    continue;
+                }
+                for &program in self.card_programs(s, watcher) {
+                    let p = self.program(program);
+                    if p.trigger != "onCardPlayed" {
+                        continue;
+                    }
+                    let Some(proj) = p.hooks.iter().find_map(|hook| match hook {
+                        crate::death_hooks::Hook::Event(h)
+                            if matches!(h.event, crate::death_hooks::EventName::CardPlayed) =>
+                        {
+                            h.predicate.play_projection()
+                        }
+                        _ => None,
+                    }) else {
+                        continue;
+                    };
+                    if proj.unit && !is_unit {
+                        continue;
+                    }
+                    if proj.event && !is_event {
+                        continue;
+                    }
+                    if proj.upgrade && !is_upgrade {
+                        continue;
+                    }
+                    if proj.require_smuggle && !via_smuggle {
+                        continue;
+                    }
+                    if proj.same_controller && owner != played_owner {
+                        continue;
+                    }
+                    if proj.opponent_controller && owner == played_owner {
+                        continue;
+                    }
+                    if proj.other && watcher == played {
+                        continue;
+                    }
+                    if proj.attach_to_source && s.card(played).parent != watcher {
+                        continue;
+                    }
+                    if proj.require_unique && !self.def(s, played).info.unique {
+                        continue;
+                    }
+                    if proj.require_keywords && self.keyword_inventory_len(s, played) == 0 {
+                        continue;
+                    }
+                    if let Some(max) = proj.max_cost {
+                        if cost > max {
+                            continue;
+                        }
+                    }
+                    if let Some(aspect) = &proj.aspect {
+                        if !self
+                            .def(s, played)
+                            .info
+                            .aspects()
+                            .iter()
+                            .any(|a| a == aspect)
+                        {
+                            continue;
+                        }
+                    }
+                    if let Some(trait_name) = &proj.trait_name {
+                        if !self.card_has_trait(s, played, trait_name) {
+                            continue;
+                        }
+                    }
+                    let n = s.death_pending.len as usize;
+                    if n == MAX_DEATH_TRIGGERS {
+                        return Err("onCardPlayed watcher capacity exceeded (64)".into());
+                    }
+                    // Ready immediately (after_pc=0). Event AbilityNoEffect /
+                    // end_program paths flush these before finish.
+                    s.death_pending.entries[n] = DeathTrigger {
+                        source: watcher,
+                        program,
+                        player: owner,
+                        ..DeathTrigger::default()
+                    };
+                    s.death_pending.len += 1;
+                }
+            }
+        }
+        Ok(())
     }
     fn ordered_triggers(&self, s: &State) -> Vec<Trigger> {
         let mut out: Vec<_> = vec![];
@@ -3561,9 +4104,33 @@ impl Engine {
             } else {
                 self.finish(s)
             }
+        } else if self.begin_leader_deploy_base_watcher(s)? {
+            // Friendly base OnLeaderDeployed (draw / Battle Droid×2) after enter keywords.
+            Ok(())
         } else {
             self.finish(s)
         }
+    }
+    /// After a leader enters via deploy, fire the controller's reviewed base watcher.
+    fn begin_leader_deploy_base_watcher(&self, s: &mut State) -> Result<bool, String> {
+        if s.trigger_context != 1 || s.source == 0 {
+            return Ok(false);
+        }
+        let leader = s.source;
+        if !self.def(s, leader).info.is("leader") || !s.card(leader).deployed {
+            return Ok(false);
+        }
+        let base = s.player(s.card(leader).owner).base;
+        let Some(&program) = self
+            .card_programs(s, base)
+            .iter()
+            .find(|&&p| self.program(p).trigger == "onLeaderDeployed")
+        else {
+            return Ok(false);
+        };
+        s.source = base;
+        self.begin_program(s, program, 0)?;
+        Ok(true)
     }
 }
 
