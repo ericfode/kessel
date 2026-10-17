@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 782
+    "sourceIr": 784
   },
   "runtimeAdmittedCards": [
     {
@@ -5256,6 +5256,11 @@
       "setCode": "TWI_021"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "droid-manufactory",
+      "setCode": "TWI_022"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "lair-of-grievous",
       "setCode": "TWI_023"
@@ -5264,6 +5269,11 @@
       "implementation": "dataOnly",
       "internalName": "tipoca-city",
       "setCode": "TWI_024"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "shadow-collective-camp",
+      "setCode": "TWI_025"
     },
     {
       "implementation": "dataOnly",
@@ -5866,7 +5876,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1171,
+  "runtimeAdmittedCount": 1173,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6540,7 +6550,7 @@
     },
     {
       "internalName": "poggle-the-lesser#let-the-executions-begin",
-      "reason": "poggle-the-lesser#let-the-executions-begin: unimplemented event hook onLeaderDeployed",
+      "reason": "poggle-the-lesser#let-the-executions-begin: leader-deploy requires exact reviewed base registration",
       "setCode": "HMW_012"
     },
     {
@@ -8350,7 +8360,7 @@
     },
     {
       "internalName": "aurra-sing#assassin",
-      "reason": "aurra-sing#assassin: unimplemented event hook onLeaderDeployed",
+      "reason": "aurra-sing#assassin: leader-deploy requires exact reviewed base registration",
       "setCode": "LAW_004"
     },
     {
@@ -12469,16 +12479,6 @@
       "setCode": "TWI_018"
     },
     {
-      "internalName": "droid-manufactory",
-      "reason": "droid-manufactory: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "TWI_022"
-    },
-    {
-      "internalName": "shadow-collective-camp",
-      "reason": "shadow-collective-camp: base-zone ongoing source requires exact reviewed base or two-side leader shape",
-      "setCode": "TWI_025"
-    },
-    {
       "internalName": "kcm-mining-facility",
       "reason": "reprint alias of IC27_011",
       "setCode": "TWI_026"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1434,
+  "runtimeRejectedCount": 1432,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

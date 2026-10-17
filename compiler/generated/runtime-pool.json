@@ -42446,6 +42446,43 @@
       "cost": null,
       "deployBox": null,
       "epicAction": null,
+      "hp": 24,
+      "id": "8589863038",
+      "internalName": "droid-manufactory",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_022",
+      "setCodes": [
+        {
+          "number": 22,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 22,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When you deploy a leader: Create 2 Battle Droid tokens.",
+      "title": "Droid Manufactory",
+      "traits": [
+        "geonosis"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
       "hp": 30,
       "id": "7827173440",
       "internalName": "lair-of-grievous",
@@ -42505,6 +42542,43 @@
       "title": "Tipoca City",
       "traits": [
         "kamino"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 25,
+      "id": "6854189262",
+      "internalName": "shadow-collective-camp",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_025",
+      "setCodes": [
+        {
+          "number": 25,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 25,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "When you deploy a leader: Draw a card.",
+      "title": "Shadow Collective Camp",
+      "traits": [
+        "zanbar"
       ],
       "types": [
         "base"
