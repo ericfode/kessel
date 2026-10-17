@@ -1197,7 +1197,7 @@ impl Engine {
         match q.admitted_kind() {
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
-            QueryKind::PlayedForce => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,"force")),
+            QueryKind::PlayedTrait(trait_name) => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,trait_name.as_str())),
             QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
         }
     }

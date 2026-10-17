@@ -335,10 +335,19 @@ fn phase_history_import_hash_copy_reset_and_overflow_are_explicit() {
     );
 }
 #[test]
-fn phase_history_admits_four_complete_cards_and_rejects_unknown_filter_scope() {
+fn phase_history_admits_complete_cards_and_rejects_unknown_filter_scope() {
     let c: Value =
         serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
     let e = engine();
+    // Sole history registrations plus General Hux (trait-played action with a
+    // reviewed ordinary companion aura).
+    for code in ["HMW_103", "TWI_052", "LOF_243", "HMW_040", "JTL_134"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
     for code in ["HMW_103", "TWI_052", "LOF_243", "HMW_040"] {
         assert!(
             e.by_code.contains_key(code),
@@ -401,6 +410,77 @@ fn phase_history_admits_four_complete_cards_and_rejects_unknown_filter_scope() {
             )
             .unwrap();
             assert!(!loaded.cards.contains_key(code), "{code}:{mutation}");
+        }
+    }
+    // Duplicating Hux's history-bearing action (not the companion aura) must reject.
+    let mut hux = c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["setCode"] == "JTL_134")
+        .unwrap()
+        .clone();
+    let history = hux["abilities"]["card"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|a| a["effect"]["condition"]["kind"] == "historyQuery")
+        .unwrap()
+        .clone();
+    hux["abilities"]["card"]
+        .as_array_mut()
+        .unwrap()
+        .push(history);
+    let loaded = crate::ability_ir::Catalogue::load(
+        &json!({"schema":"swu-card-ir/v1","cards":[hux]}),
+    )
+    .unwrap();
+    assert!(!loaded.cards.contains_key("JTL_134"));
+}
+
+#[test]
+fn phase_history_hux_draws_for_friendly_first_order_play_not_enemy_or_other_trait() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for prior in ["none", "enemy-first-order", "friendly-force", "friendly-first-order"] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = board(&e);
+            let hux = unit(&e, &mut s, Seat::P1, "JTL_134");
+            let drawn = draw_card(&e, &mut s, Seat::P1);
+            if prior != "none" {
+                let owner = if prior == "enemy-first-order" {
+                    Seat::P2
+                } else {
+                    Seat::P1
+                };
+                let code = if prior == "friendly-force" {
+                    "LOF_256"
+                } else {
+                    "JTL_081"
+                };
+                let prior_card = add(&e, &mut s, owner, code);
+                s.player_mut(owner).hand.push(prior_card).unwrap();
+                s = play(&e, &s, prior_card);
+            }
+            s.active = Seat::P1;
+            s.action_player = Some(Seat::P1);
+            s.source = hux;
+            let p = e.available_programs(&s, hux, "action")[0];
+            e.begin_program(&mut s, p, 0).unwrap();
+            if s.decision == Decision::AbilityNoEffect {
+                let action = e
+                    .legal_actions(&s)
+                    .into_iter()
+                    .find(|a| a.label == "Use it anyway")
+                    .unwrap();
+                s = e.apply(&s, &action).unwrap();
+            }
+            assert!(s.card(hux).exhausted);
+            assert_eq!(
+                s.players[0].hand.contains(drawn),
+                prior == "friendly-first-order",
+                "{backend:?}:{prior}"
+            );
         }
     }
 }

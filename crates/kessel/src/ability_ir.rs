@@ -2466,7 +2466,10 @@ impl Catalogue {
                     (value["kind"]=="ref" && value["path"][1].as_str().is_some_and(|p|p=="parentCard"||p=="parentUnit")) || (value["target"]=="parent") || match value {Value::Array(a)=>a.iter().any(parent_reference),Value::Object(o)=>o.values().any(parent_reference),_=>false}
                 }
                 if crate::native_attack::marker(&entry["abilities"])&&!crate::native_attack::entry(entry){return Err("native attacks require a complete sole ordinary unit/event registration".into());}
-                if crate::phase_history::marker(entry)&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
+                // historyHelpers/privatePrograms may embed historyQuery AST that is not part of
+                // executable abilities; do not treat those leftovers as admitted phase history.
+                if crate::phase_history::marker(&entry["historyHelpers"])||crate::phase_history::marker(&entry["privatePrograms"]){return Err("unresolved phase history helpers require reviewed registration".into());}
+                if crate::phase_history::marker(&entry["abilities"])&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
