@@ -28616,6 +28616,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "8613908567",
+      "internalName": "senate-warden",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_059",
+      "setCodes": [
+        {
+          "number": 59,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 59,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Defeated: You may disclose Vigilance (reveal a card from your hand with this aspect icon). If you do, give an Experience token to a unit.",
+      "title": "Senate Warden",
+      "traits": [
+        "republic",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -28649,6 +28688,46 @@
         "new republic",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6928341517",
+      "internalName": "bardottan-ornithopter",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_062",
+      "setCodes": [
+        {
+          "number": 62,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 62,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: You may disclose Vigilance (reveal a card from your hand with this aspect icon). If you do, draw a card.",
+      "title": "Bardottan Ornithopter",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -28807,6 +28886,43 @@
       "title": "Knowledge and Defense",
       "traits": [
         "learned"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "7930132943",
+      "internalName": "charged-with-murder",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_076",
+      "setCodes": [
+        {
+          "number": 76,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 76,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "You may disclose VigilanceVigilance (reveal cards from your hand with these aspect icons among them). If you do, defeat a damaged non-leader unit.",
+      "title": "Charged with Murder",
+      "traits": [
+        "law"
       ],
       "types": [
         "event"
@@ -29110,6 +29226,48 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "9378249305",
+      "internalName": "mina-bonteri#stop-this-war",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_094",
+      "setCodes": [
+        {
+          "number": 94,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 94,
+        "set": "SEC"
+      },
+      "subtitle": "Stop This War",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)\nWhen Defeated: You may disclose CommandCommandHeroism (reveal cards from your hand with these aspect icons among them). If you do, draw a card.",
+      "title": "Mina Bonteri",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 3,
       "id": "9857313649",
       "internalName": "theed-security",
@@ -29178,6 +29336,49 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8088607505",
+      "internalName": "captain-typho#all-necessary-precautions",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": "“When this unit is attacked” triggers at the same time as “On Attack” abilities.\nOn Defense abilities trigger when this unit is chosen as the defender for an attack, in the same window as the attacker's On Attack abilities.\n",
+      "setCode": "SEC_098",
+      "setCodes": [
+        {
+          "number": 98,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 98,
+        "set": "SEC"
+      },
+      "subtitle": "All Necessary Precautions",
+      "text": "Sentinel\nWhen this unit is attacked: You may disclose CommandHeroism. If you do, heal 1 damage from your base.",
+      "title": "Captain Typho",
+      "traits": [
+        "naboo",
+        "republic",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -29592,6 +29793,47 @@
       "aspects": [
         "command"
       ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "1002827363",
+      "internalName": "naboo-security-force",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "SEC_120",
+      "setCodes": [
+        {
+          "number": 120,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 120,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played/When Defeated: You may disclose Command (reveal a card from your hand with this aspect icon). If you do, give a friendly unit Sentinel for this phase.",
+      "title": "Naboo Security Force",
+      "traits": [
+        "naboo",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 7,
       "deployBox": null,
       "epicAction": "",
@@ -29911,6 +30153,47 @@
         "aggression",
         "villainy"
       ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8897596897",
+      "internalName": "the-galleon#marauding-pirate-ship",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "SEC_141",
+      "setCodes": [
+        {
+          "number": 141,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 141,
+        "set": "SEC"
+      },
+      "subtitle": "Marauding Pirate Ship",
+      "text": "When Played: You may disclose AggressionAggressionVillainy (reveal cards from your hand with these aspect icons among them). If you do, create 3 Spy tokens.",
+      "title": "The Galleon",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
       "cost": 8,
       "deployBox": null,
       "epicAction": "",
@@ -29994,6 +30277,47 @@
         "aggression",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "0994241595",
+      "internalName": "karis-nemik#freedom-is-a-pure-idea",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_148",
+      "setCodes": [
+        {
+          "number": 148,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 148,
+        "set": "SEC"
+      },
+      "subtitle": "Freedom is a Pure Idea",
+      "text": "Hidden\nWhen Defeated: You may disclose AggressionHeroism (reveal cards from your hand with these aspect icons among them). If you do, create a Spy token and ready it.",
+      "title": "Karis Nemik",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -30021,6 +30345,47 @@
       "title": "Kazuda Xiono",
       "traits": [
         "resistance"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "7243187516",
+      "internalName": "luthens-haulcraft#countermeasures-armed",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "SEC_153",
+      "setCodes": [
+        {
+          "number": 153,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 153,
+        "set": "SEC"
+      },
+      "subtitle": "Countermeasures Armed",
+      "text": "When Defeated: You may choose an opponent and disclose AggressionAggressionHeroism (reveal cards from your hand with these aspect icons among them). If you do, that opponent discards 2 cards from their hand.",
+      "title": "Luthen's Haulcraft",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -30469,6 +30834,80 @@
       "upgradePower": 1
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3260156899",
+      "internalName": "unauthorized-investigation",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_181",
+      "setCodes": [
+        {
+          "number": 181,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 181,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Create a Spy token.\nYou may disclose Aggression (reveal a card from your hand with this aspect icon). If you do, create another Spy token.",
+      "title": "Unauthorized Investigation",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3761473695",
+      "internalName": "charged-with-treason",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_182",
+      "setCodes": [
+        {
+          "number": 182,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 182,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "You may disclose AggressionAggression (reveal cards from your hand with these aspect icons among them). If you do, deal 5 damage to a unit.",
+      "title": "Charged with Treason",
+      "traits": [
+        "law"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -30542,6 +30981,47 @@
       "traits": [
         "force",
         "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3595837658",
+      "internalName": "soulless-one#swift-and-agile",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_190",
+      "setCodes": [
+        {
+          "number": 190,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 190,
+        "set": "SEC"
+      },
+      "subtitle": "Swift and Agile",
+      "text": "On Attack: You may disclose CunningCunningVillainy (reveal cards from your hand with these aspect icons among them). If you do, ready 2 resources.",
+      "title": "Soulless One",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "fighter"
       ],
       "types": [
         "unit"
@@ -31399,6 +31879,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "5030756090",
+      "internalName": "b2emo#thats-two-lies",
+      "keywords": [
+        "restore",
+        "sentinel"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "SEC_248",
+      "setCodes": [
+        {
+          "number": 248,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 248,
+        "set": "SEC"
+      },
+      "subtitle": "That's Two Lies",
+      "text": "Restore 1\nOn Attack: You may disclose HeroismHeroism (reveal cards from your hand with these aspect icons among them). If you do, give a unit Sentinel for this phase.",
+      "title": "B2EMO",
+      "traits": [
+        "fringe",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

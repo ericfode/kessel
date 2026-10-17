@@ -111,6 +111,8 @@ function planCardProbes(entry, options = {}) {
     if (upgradeReturnPlan) return upgradeReturnPlan;
     const costPlan = require('./cost-probes').planCostProbes(entry, options);
     if (costPlan) return costPlan;
+    const disclosePlan = require('./disclose-probes').planDiscloseProbes(entry, options);
+    if (disclosePlan) return disclosePlan;
     const cardId = entry.setCode;
     const result = {
         schema: 'swu-card-probes/v1',

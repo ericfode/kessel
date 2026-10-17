@@ -2,7 +2,7 @@ use super::*;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
-// State remains inline: prior 28208 + native attack (64) + registration chronology (net 256) = 28528 bytes; Card remains 36 bytes.
+// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 = 28544 bytes; Card remains 36 bytes.
 use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
@@ -4022,3 +4022,6 @@ fn typed_continuation_keeps_unknown_persisted_program_fallback_and_death_error()
 
 #[path = "activation_runtime_tests.rs"]
 mod activation_contract_tests;
+
+#[path="disclose_runtime_tests.rs"]
+mod disclose_tests;
