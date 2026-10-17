@@ -15039,6 +15039,50 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "3878744555",
+      "internalName": "interceptor-ace",
+      "keywords": [
+        "grit",
+        "piloting"
+      ],
+      "pilotText": "Piloting [3 resources Vigilance Villainy] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nAttached unit gains Grit.",
+      "power": 2,
+      "rules": "Any ability whose trigger starts with \"When defeated…\" or includes \"When Defeated\" is considered a \"When Defeated\" ability.\nPilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Grit (This unit gets +1/+0 for each damage on it.)",
+      "title": "Interceptor Ace",
+      "traits": [
+        "imperial",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 2
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance",
@@ -15198,6 +15242,52 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9430527677",
+      "internalName": "hera-syndulla#weve-lost-enough",
+      "keywords": [
+        "restore",
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Vigilance Heroism] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nAttached unit gains Restore 1.",
+      "power": 2,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_045",
+      "setCodes": [
+        {
+          "number": 45,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 45,
+        "set": "JTL"
+      },
+      "subtitle": "We've Lost Enough",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)",
+      "title": "Hera Syndulla",
+      "traits": [
+        "rebel",
+        "twi'lek",
+        "spectre",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 2
     },
     {
       "arena": "space",
@@ -15367,6 +15457,49 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "3874382333",
+      "internalName": "academy-graduate",
+      "keywords": [
+        "sentinel",
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Vigilance] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nAttached unit gains Sentinel.",
+      "power": 1,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_058",
+      "setCodes": [
+        {
+          "number": 58,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 58,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)",
+      "title": "Academy Graduate",
+      "traits": [
+        "imperial",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 1
     },
     {
       "arena": "space",
@@ -17683,6 +17816,49 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "0587196584",
+      "internalName": "independent-smuggler",
+      "keywords": [
+        "raid",
+        "piloting"
+      ],
+      "pilotText": "Piloting [1 resource Cunning] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nAttached unit gains Raid 1.",
+      "power": 1,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_211",
+      "setCodes": [
+        {
+          "number": 211,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 211,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)",
+      "title": "Independent Smuggler",
+      "traits": [
+        "underworld",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "arena": "space",

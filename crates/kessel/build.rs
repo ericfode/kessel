@@ -27,6 +27,10 @@ mod attack_history;
 #[path = "src/attached_registration.rs"]
 mod attached_registration;
 
+#[allow(dead_code)]
+#[path = "src/piloting_attached.rs"]
+mod piloting_attached;
+
 #[path="src/advantage.rs"]
 mod advantage;
 
@@ -162,6 +166,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
+    println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");

@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 801
+    "sourceIr": 805
   },
   "runtimeAdmittedCards": [
     {
@@ -1852,6 +1852,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "interceptor-ace",
+      "setCode": "JTL_034"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "banshee#crippling-command",
       "setCode": "JTL_037"
     },
@@ -1872,6 +1877,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "hera-syndulla#weve-lost-enough",
+      "setCode": "JTL_045"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "red-squadron-xwing",
       "setCode": "JTL_051"
     },
@@ -1889,6 +1899,11 @@
       "implementation": "sourceIr",
       "internalName": "gold-leader#fastest-ship-in-the-fleet",
       "setCode": "JTL_054"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "academy-graduate",
+      "setCode": "JTL_058"
     },
     {
       "implementation": "sourceIr",
@@ -2174,6 +2189,11 @@
       "implementation": "sourceIr",
       "internalName": "jam-communications",
       "setCode": "JTL_207"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "independent-smuggler",
+      "setCode": "JTL_211"
     },
     {
       "implementation": "dataOnly",
@@ -5961,7 +5981,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1190,
+  "runtimeAdmittedCount": 1194,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7704,11 +7724,6 @@
       "setCode": "JTL_033"
     },
     {
-      "internalName": "interceptor-ace",
-      "reason": "interceptor-ace: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_034"
-    },
-    {
       "internalName": "tam-ryvora#searching-for-purpose",
       "reason": "tam-ryvora#searching-for-purpose: parent references require an ordinary attached upgrade",
       "setCode": "JTL_035"
@@ -7737,11 +7752,6 @@
       "internalName": "no-glory-only-results",
       "reason": "no-glory-only-results: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_043"
-    },
-    {
-      "internalName": "hera-syndulla#weve-lost-enough",
-      "reason": "hera-syndulla#weve-lost-enough: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_045"
     },
     {
       "internalName": "paige-tico#dropping-the-hammer",
@@ -7782,11 +7792,6 @@
       "internalName": "astromech-pilot",
       "reason": "astromech-pilot: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_057"
-    },
-    {
-      "internalName": "academy-graduate",
-      "reason": "academy-graduate: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_058"
     },
     {
       "internalName": "silver-angel#traces-hope",
@@ -8262,11 +8267,6 @@
       "internalName": "the-mandalorian#weathered-pilot",
       "reason": "the-mandalorian#weathered-pilot: parent references require an ordinary attached upgrade",
       "setCode": "JTL_210"
-    },
-    {
-      "internalName": "independent-smuggler",
-      "reason": "independent-smuggler: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_211"
     },
     {
       "internalName": "sidon-ithano#the-crimson-corsair",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1415,
+  "runtimeRejectedCount": 1411,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

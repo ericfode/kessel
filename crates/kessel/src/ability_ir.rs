@@ -2735,7 +2735,15 @@ impl Catalogue {
                 if crate::view_cards::marker(&entry["abilities"])&&!crate::view_cards::entry(entry){return Err("view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
-                if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
+                if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" && !crate::piloting_attached::entry(entry) {
+                    return Err("parent references require an ordinary attached upgrade".into());
+                }
+                let mut entry_owned = entry.clone();
+                let piloting_keyword_grant = crate::piloting_attached::marker(&entry_owned["abilities"]);
+                if piloting_keyword_grant {
+                    crate::piloting_attached::normalize(&mut entry_owned)?;
+                }
+                let entry = &entry_owned;
                 if crate::live_power_maximum::marker(entry)&&!crate::live_power_maximum::entry(entry){return Err("live maximum requires complete two-sided leader metadata and registrations".into());}
                 if power_feedback&&crate::bounded_reductions::leader_entry(entry){return Err("power maximum keyword grant conflicts with keyword-dependent stat source".into());}
                 if crate::bounded_reductions::marker(entry)&&!crate::bounded_reductions::entry(entry){return Err("bounded arena reductions require complete reviewed registration and source metadata".into());}
@@ -2743,6 +2751,11 @@ impl Catalogue {
                 if basezone_relevant&&basezone_source_kind(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = crate::attached_registration::sides(entry)?;
+                if piloting_keyword_grant
+                    && (sides.card.len() != 1 || !crate::piloting_attached::registration(&sides.card[0]))
+                {
+                    return Err("piloting attached keyword requires a sole persistent parent grant".into());
+                }
 
                 if crate::advantage::marker(&entry["abilities"]) && !crate::advantage::source_entry(entry) {return Err("Advantage requires complete ordinary unit/event sources and bounded native token contracts".into());}
 

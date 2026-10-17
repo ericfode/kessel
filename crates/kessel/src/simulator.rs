@@ -336,7 +336,10 @@ impl Engine {
             while id!=0 {
                 if id>=s.next_id || !s.card(id).present || !chain.insert(id) || !seen.insert(id) {return Err("invalid or cyclic attachment chain".into());}
                 let parent_live=self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent);
-                if s.card(id).parent!=parent || !parent_live || !self.def(s,id).info.is("upgrade") || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
+                let attachable=self.def(s,id).info.is("upgrade")
+                    || (self.def(s,id).info.is("unit") && self.def(s,id).info.has_keyword("piloting")
+                        && self.def(s,id).info.upgrade_power.is_some() && self.def(s,id).info.upgrade_hp.is_some());
+                if s.card(id).parent!=parent || !parent_live || !attachable || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
                 id=s.card(id).next_upgrade;
             }
             for (head,def) in [(s.card(parent).shield,Some(self.shield_def)),(s.card(parent).experience,self.experience_def)] {
@@ -1612,7 +1615,10 @@ impl Engine {
                     s.card_mut(id).experience = uid;
                     prior
                 } else {
-                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
+                    let attachable=self.def(s,uid).info.is("upgrade")
+                        || (self.def(s,uid).info.is("unit") && self.def(s,uid).info.has_keyword("piloting")
+                            && self.def(s,uid).info.upgrade_power.is_some() && self.def(s,uid).info.upgrade_hp.is_some());
+                    if !attachable || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
                     0
                 };
                 s.card_mut(uid).next_token = prior;

@@ -28,6 +28,8 @@ mod attack_history;
 
 mod attached_registration;
 
+mod piloting_attached;
+
 mod native_attack;
 
 mod advantage;

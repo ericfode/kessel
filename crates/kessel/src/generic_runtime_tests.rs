@@ -3811,3 +3811,6 @@ mod base_zone_tests;
 
 #[path = "parent_host_selector_tests.rs"]
 mod parent_host_selector_tests;
+
+#[path = "piloting_attached_tests.rs"]
+mod piloting_attached_tests;

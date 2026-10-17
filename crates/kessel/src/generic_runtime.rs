@@ -575,6 +575,14 @@ impl Engine {
                         smuggle = Some(parse_smuggle_cost(entry["card"]["text"].as_str().unwrap_or(""))?);
                         continue;
                     }
+                    if name == "piloting" {
+                        // Piloting is a play-mode mention on reviewed Pilot units that
+                        // may attach as upgrades; it is not an intrinsic combat flag.
+                        if !crate::piloting_attached::entry(entry) {
+                            return Err("unimplemented runtime keyword piloting".into());
+                        }
+                        continue;
+                    }
                     if name == "plot" {
                         // Plot watches OnLeaderDeployed from resource-zone cards and
                         // must share the deploy TriggerOrder with Shielded and peer
