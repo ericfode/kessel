@@ -166,6 +166,7 @@ pub fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
         && entry["card"]["types"] == json!(["unit"]))
         || (entry["baseClass"] == "EventCard" && entry["card"]["types"] == json!(["event"]));
     if !source
+        || !crate::static_ongoing::closed_source_context(entry)
         || cards.len() != 1
         || ["unit", "leader"].iter().any(|side| {
             !entry["abilities"][side]

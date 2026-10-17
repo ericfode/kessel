@@ -411,3 +411,57 @@ fn modal_leia_root_still_prompts_when_all_legal_modes_are_ineffective() {
     event["abilities"]["card"][0]["targetResolver"]["chooser"]["value"] = json!("opponent");
     assert!(crate::modal_choices::prepare(&event).is_err());
 }
+
+#[test]
+fn modal_catalogue_rejects_unexecuted_source_context_before_normalization() {
+    for code in [
+        "SOR_145", "SOR_189", "LAW_067", "ASH_147", "LOF_065", "TWI_102",
+    ] {
+        let original = catalog_entry(code);
+        let load = |entry: Value| {
+            crate::ability_ir::Catalogue::load(&json!({
+                "schema": crate::ability_ir::SCHEMA,
+                "cards": [entry]
+            }))
+            .unwrap()
+        };
+        assert!(
+            load(original.clone()).cards.contains_key(code),
+            "baseline {code}"
+        );
+        for key in [
+            "stateWatchers",
+            "historyHelpers",
+            "privatePrograms",
+            "classMethods",
+            "privateClassConstants",
+            "inheritedSource",
+            "deploymentOverride",
+            "setupValidationOverrides",
+        ] {
+            // These fields carry complete source contracts beyond the emitted
+            // ability. Leaving one unused must reject the containing card.
+            for context in [
+                json!([{"kind":"unreviewedWatcher"}]),
+                json!([{}]),
+                json!({}),
+                json!(true),
+            ] {
+                let mut entry = original.clone();
+                entry[key] = context.clone();
+                let loaded = load(entry);
+                assert!(
+                    !loaded.cards.contains_key(code),
+                    "{code}: accepted {key}={context}"
+                );
+                assert!(
+                    loaded.rejected.contains_key(code),
+                    "{code}: rejection missing for {key}"
+                );
+            }
+            let mut empty = original.clone();
+            empty[key] = json!([]);
+            assert!(load(empty).cards.contains_key(code), "{code}: empty {key}");
+        }
+    }
+}
