@@ -27,6 +27,8 @@ fn unit(e: &Engine, s: &mut State, owner: Seat, code: &str, damage: u16) -> Card
 }
 fn board(e: &Engine, owner: Seat) -> State {
     let mut s = State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();
     s.active = owner;
     s.action_player = Some(owner);
     s.round = 7;

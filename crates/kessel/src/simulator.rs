@@ -1,3 +1,7 @@
+#[path = "credit_runtime.rs"]
+mod credit_runtime;
+#[path = "resource_payment_runtime.rs"]
+mod resource_payment_runtime;
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
 #[path = "support_runtime.rs"]
@@ -62,6 +66,7 @@ pub struct Engine {
     advantage_def: Option<u16>,
     advantage_program: Option<u16>,
     force_def: Option<u16>,
+    credit_def: Option<u16>,
     catalogue: Option<Catalogue>,
     rules_backend: RulesBackend,
     rules_instrumentation: bool,
@@ -252,6 +257,7 @@ impl Engine {
             advantage_def: None,
             advantage_program: None,
             force_def: None,
+            credit_def: None,
             catalogue: None,
             rules_backend: RulesBackend::Auto,
             rules_instrumentation: false,
@@ -393,7 +399,7 @@ impl Engine {
     /// Future payment methods must retain `host` across any yielding prompt and
     /// revalidate the same physical choice instead of selecting another host.
     fn can_pay_upgrade_cost(&self,s:&State,upgrade:CardId,_host:CardId,cost:u16)->bool {
-        s.card(upgrade).owner==s.active && cost as usize<=self.ready_resources(s,s.active)
+        s.card(upgrade).owner==s.active && self.can_pay_resources(s,s.active,cost)
     }
     /// Availability is existential over ordinary legal hosts; the prompt and
     /// final payment use the same live per-host calculation.
@@ -447,7 +453,7 @@ impl Engine {
         {
             return false;
         }
-        cost as usize <= self.ready_resources(s, seat)
+        self.can_pay_resources(s,seat,cost)
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
         self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
@@ -544,7 +550,7 @@ impl Engine {
                     {
                         continue;
                     }
-                    if self.cost(s, id) as usize <= self.ready_resources(s, s.active) {
+                    if self.can_pay_resources(s,s.active,self.cost(s,id)) {
                         out.push(self.card_action(s, id));
                     }
                 }
@@ -680,7 +686,7 @@ impl Engine {
                 out.push(Action::button("You", 0));
                 out.push(Action::button("Opponent", 1));
             }
-            Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
             | Decision::AbilityTarget
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
@@ -808,20 +814,7 @@ impl Engine {
                         self.begin_program(&mut t, program, 0)?;
                         return Ok(t);
                     }
-                    t.phase_history.preflight_play(seat)?;
-                    self.spend(&mut t, self.cost(s, id));
-                    t.player_mut(seat).hand.remove(id);
-                    t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
-                    t.card_mut(id).set_hidden_qualified(true);
-                    self.add_arena(&mut t, id)?;
-                    t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
-                    t.source = id;
-                    t.trigger_context = 1;
-                    if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
-                        t.decision = Decision::Unique;
-                    } else {
-                        self.enter_triggers(&mut t)?;
-                    }
+                    self.play_unit_with_payment(&mut t,id,false)?;
                 } else if t.player(seat).resources.contains(id) {
                     self.begin_smuggle_play(&mut t, id)?;
                 } else {
@@ -843,26 +836,7 @@ impl Engine {
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
                     let upgrade=t.source;
-                    let from_resources=t.player(seat).resources.contains(upgrade);
-                    // `id` is the chosen host, not an arbitrary qualifying unit.
-                    // A future yielding payment stage must retain this identity.
-                    let cost=self.upgrade_play_cost(s,upgrade,id).ok_or("illegal attachment play context")?;
-                    if !self.can_pay_upgrade_cost(s,upgrade,id,cost) {return Err("chosen attachment host is unaffordable".into());}
-                    t.phase_history.preflight_play(seat)?;
-                    if from_resources {
-                        self.spend_resource_play(&mut t,cost,upgrade);
-                        t.player_mut(seat).resources.remove(upgrade);
-                    } else {
-                        self.spend(&mut t,cost);
-                        t.player_mut(seat).hand.remove(upgrade);
-                    }
-                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
-                    t.enter_smuggle=from_resources;
-                    if from_resources {self.resource_deck_top_after_play(&mut t,seat)?;}
-                    if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
-                        let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
-                        if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
-                    }else{self.enter_triggers(&mut t)?;}
+                    self.play_upgrade_with_payment(&mut t,upgrade,id)?;
                 }
             }
             Decision::LeaderMenu => {
@@ -1020,7 +994,7 @@ impl Engine {
                 t.trigger_context = 3;
                 self.combat(&mut t)?;
             }
-            Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
             | Decision::AbilityTarget
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
@@ -1082,7 +1056,6 @@ impl Engine {
         Ok(())
     }
     fn begin_smuggle_play(&self, s: &mut State, id: CardId) -> Result<(), String> {
-        let seat = s.active;
         if !self.can_smuggle(s, id) {
             return Err("illegal smuggle".into());
         }
@@ -1098,26 +1071,8 @@ impl Engine {
             let program = *programs.first().ok_or("event has no executable ability")?;
             return self.begin_program(s, program, 0);
         }
-        let cost = self.smuggle_cost(s, id).ok_or("smuggle cost missing")?;
-        s.phase_history.preflight_play(seat)?;
-        self.spend_resource_play(s, cost, id);
-        s.player_mut(seat).resources.remove(id);
-        s.card_mut(id).exhausted =
-            !self.self_static_ongoing(s, id, crate::static_ongoing::SelfEffect::EntersPlayReady);
-        s.card_mut(id).set_hidden_qualified(true);
-        self.add_arena(s, id)?;
-        s.phase_history.entered(seat, id);
-        s.phase_history.played(seat, id)?;
-        self.resource_deck_top_after_play(s, seat)?;
-        s.source = id;
-        s.trigger_context = 1;
-        s.enter_smuggle = true;
-        if self.def(s, id).info.unique && self.duplicates(s, id) > 1 {
-            s.decision = Decision::Unique;
-            Ok(())
-        } else {
-            self.enter_triggers(s)
-        }
+        self.play_unit_with_payment(s,id,true)?;
+        Ok(())
     }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
@@ -1162,6 +1117,7 @@ impl Engine {
         Ok(())
     }
     fn clear_action_context(&self, s: &mut State) {
+        s.resource_payment=crate::resource_payment::ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;s.payment_group=EventGroupState::default();
         s.disclose=DiscloseState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
@@ -1700,6 +1656,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
@@ -1776,6 +1733,9 @@ impl Engine {
             for seat in [Seat::P1,Seat::P2] {let token=&v["players"][seat.as_str()]["forceToken"];s.player_mut(seat).force_id=cid(token["id"].as_str().ok_or("Force identity missing")?)?;s.player_mut(seat).force_held=token["held"].as_bool().ok_or("Force held must be boolean")?;}
             if self.force_def.is_none() && s.players.iter().any(|p|p.force_held) {return Err("held Force requires reviewed native definition".into());}
         }else if self.needs_force_state() {return Err("selected pool requires explicit Force state version".into());}
+        // Load supplied physical Credit metadata before history and live-stat validation.
+        // Only the missing-version gate is deferred to preserve legacy diagnostics.
+        if v.get("creditStateVersion").is_some() {self.load_credit_state(&mut s,v)?;}
         if let Some(history)=v.get("phaseHistory") {
             s.phase_history=crate::model::PhaseHistory::parse(history,s.next_id)?;
             for seat in [Seat::P1,Seat::P2] {for id in 1..s.next_id {
@@ -1820,6 +1780,7 @@ impl Engine {
         if !s.arena_order_exact && self.needs_modal_arena_order() {
             return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
         }
+        if v.get("creditStateVersion").is_none() {self.load_credit_state(&mut s,v)?;}
         Ok(s)
     }
     fn card_ref(&self, s: &State, id: CardId) -> Value {
@@ -1907,6 +1868,10 @@ impl Engine {
         if s.phase_history.exact {value["phaseHistory"]=s.phase_history.snapshot();}
         if s.registration_order.exact {value["registrationOrder"]=json!({"version":1,"cards":s.registration_order.as_slice().iter().map(|id|format!("c{}",*id as u16-1)).collect::<Vec<_>>()});}
         if s.arena_order_exact {value["arenaUnitOrder"]=json!({"ground":s.arena_unit_order[0].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>(),"space":s.arena_unit_order[1].as_slice().iter().map(|id|format!("c{}",id-1)).collect::<Vec<_>>()});}
+        self.snapshot_credit_state(s,&mut value);
+        if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {
+            value["creditPaymentPending"]=json!(true);
+        }
         value
     }
 }
@@ -1920,3 +1885,7 @@ pub(crate) fn program_backend(hash:&str,bytes:&[u8])->Result<usize,&'static str>
 pub(crate) fn expression_backend(hash: &str, bytes: &[u8]) -> Option<usize> {
     generic_runtime::generated_expression_backend(hash, bytes)
 }
+
+#[cfg(test)]
+#[path = "credit_action_tests.rs"]
+mod credit_action_tests;

@@ -86,6 +86,16 @@ impl Engine {
         }
         Ok(())
     }
+    pub(super) fn validate_credit_account(&self, s: &State, seat: Seat) -> Result<(), String> {
+        let definition = self.selected_credit_definition()?;
+        if !s.credit_state_exact {
+            return Err("Credit payment requires exact Credit state".into());
+        }
+        for id in s.player(seat).credits.as_slice() {
+            self.validate_credit_identity(s, seat, u16::from(*id), definition)?;
+        }
+        Ok(())
+    }
     pub(super) fn create_credit_tokens(
         &self,
         s: &mut State,
@@ -200,10 +210,10 @@ impl Engine {
             }
             if s.players.iter().any(|p| !p.credits.is_empty())
                 || [Seat::P1, Seat::P2].iter().any(|seat| {
-                    (value["players"][seat.as_str()].get("credits").is_some()
+                    value["players"][seat.as_str()].get("credits").is_some()
                         || value["players"][seat.as_str()]
                             .get("retiredCredits")
-                            .is_some())
+                            .is_some()
                 })
             {
                 return Err("Credit identities require creditStateVersion".into());

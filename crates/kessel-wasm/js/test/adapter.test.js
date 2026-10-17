@@ -123,13 +123,22 @@ test('catalogue JSON supports both all-admitted cards and an exact raw subset po
         assert.equal(versioned.hiddenHistoryVersion, 1);
         // Force witnesses predate pool-selected defeat/phase/Support evidence required by
         // today's all-admitted catalogue. Empty arenas make empty order/history exact.
+        const forcePool = JSON.parse(fs.readFileSync(path.join(referenceFixtures, 'pools', forceRecording.poolSha256 + '.json'), 'utf8'));
+        assert.equal(forcePool.cards.some((card) => card.setCode === 'TOKEN_CREDIT'), false);
+        // This initial witness used a pool without Credits. Its empty live and
+        // retired ledgers are explicit evidence for the all-admitted projection.
         const allSnapshot = {
             ...structuredClone(versioned),
             registrationOrder: { version: 1, cards: [] },
             phaseHistory: { version: 1, entered: [], played: [], playCounts: [0, 0] },
             supportStateVersion: 1,
             supportGrants: [],
+            creditStateVersion: 1,
         };
+        for (const player of Object.values(allSnapshot.players)) {
+            player.credits = [];
+            player.retiredCredits = [];
+        }
         for (const [simulator, snapshot] of [[subset, initial], [all, allSnapshot]]) {
             const game = simulator.loadState(snapshot);
             try {

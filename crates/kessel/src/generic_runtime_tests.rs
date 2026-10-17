@@ -83,6 +83,8 @@ fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
 }
 fn board(e: &Engine) -> State {
     let mut s = State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();
     s.hidden_history_exact=true;
     s.force_state_exact=true;
     for (seat, leader) in [(Seat::P1, "SOR_014"), (Seat::P2, "IBH_053")] {
@@ -3845,3 +3847,25 @@ mod self_play_cost_event_tests;
 
 #[path="attachment_play_cost_tests.rs"]
 mod attachment_play_cost_tests;
+
+#[path="current_played_unit_tests.rs"]
+mod current_played_unit_tests;
+
+#[test]
+fn credit_base_zone_title_and_trait_queries_follow_live_controller_and_retirement() {
+    let e=engine();let mut s=board(&e);s.credit_state_exact=true;
+    let id=s.next_id;
+    e.create_credit_tokens(&mut s,Seat::P1,1).unwrap();
+    // Query dispatch is shared with the complete title and trait registrations.
+    let title:crate::ability_ir::Expr=serde_json::from_value(json!({"kind":"query","name":"hasControlledInPlayTitle","receiver":{"kind":"ref","path":["player"]},"args":[{"kind":"const","value":"Credit"}]})).unwrap();
+    let source=s.player(Seat::P1).leader;
+    assert!(e.eval(&s,source,0,&title).truth());
+    assert!(!e.in_arena(&s,id));
+    assert!(e.card_has_trait(&s,id,"supply"));
+    e.transfer_credit_tokens(&mut s,Seat::P1,Seat::P2,1).unwrap();
+    assert!(!e.eval(&s,source,0,&title).truth());
+    s.active=Seat::P2;
+    assert!(e.eval(&s,s.player(Seat::P2).leader,0,&title).truth());
+    e.defeat_credits_for_payment(&mut s,Seat::P2,1).unwrap();
+    assert!(!e.eval(&s,s.player(Seat::P2).leader,0,&title).truth());
+}

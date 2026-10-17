@@ -2,11 +2,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
+const _: ()=assert!(MAX_CARDS==crate::credits::CAPACITY);
 pub const MAX_ZONE: usize = 64;
 // Inline budget: base 28,528 + Card restriction mask/padding 1,024
-// + Disclose selection/alignment 16 + first-strike Support flags 64.
+// + Disclose selection/alignment 16 + first-strike Support flags 64
+// + Credit ledgers and prepared payment/death-group continuations 2,544.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_176;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -300,6 +302,7 @@ pub struct Player {
     pub out: bool,
     pub force_id: CardId,
     pub force_held: bool,
+    pub credits: crate::credits::CreditList,
 }
 
 /// Every engine prompt is retained, including confirmation and cancellation prompts.
@@ -336,6 +339,8 @@ pub enum Decision {
     DiscloseSelect,
     DisclosePause,
     DiscloseReveal,
+    CreditMenu,
+    CreditAmount,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -463,10 +468,13 @@ pub struct ResolutionContext {
     pub ability_succeeded: bool,
     pub ability_return: u8,
     pub ability_committed: bool,
+    pub resource_payment: crate::resource_payment::ResourcePayment,
+    pub resource_cost_index: u16,
+    pub resource_cost_locked: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -494,6 +502,7 @@ pub struct State {
     pub hidden_history_exact:bool,
     pub phase_history:PhaseHistory,
     pub force_state_exact:bool,
+    pub credit_state_exact:bool,
     pub round: u16,
     pub regroup: bool,
     pub initiative: Seat,
@@ -539,6 +548,13 @@ pub struct State {
     pub ability_succeeded: bool,
     pub ability_return: u8,
     pub ability_committed: bool,
+    pub resource_payment: crate::resource_payment::ResourcePayment,
+    pub resource_cost_index: u16,
+    pub resource_cost_locked: bool,
+    /// One prepared named group may wait for a cost-event child window.
+    /// Triggered costs and adjusted payments inside groups are not admitted,
+    /// so a second such suspended group cannot occur in supported programs.
+    pub payment_group: EventGroupState,
     pub resource_done: [bool; 2],
     pub resource_selected: [CardId; 2],
     /// 0 ongoing, 1 p1, 2 p2, 3 draw.
@@ -554,7 +570,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,phase_history:PhaseHistory::default(),
+            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,
@@ -589,6 +605,10 @@ impl Default for State {
             ability_succeeded: false,
             ability_return: 0,
             ability_committed: false,
+            resource_payment: crate::resource_payment::ResourcePayment::default(),
+            resource_cost_index: 0,
+            resource_cost_locked: false,
+            payment_group: EventGroupState::default(),
             resource_done: [false; 2],
             resource_selected: [0; 2],
             outcome: 0,
@@ -648,6 +668,26 @@ impl State {
             for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
             if c.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(c.maximum_capture.power as u64);put(c.maximum_capture.sole as u64);put(c.maximum_capture.count as u64);}
+            c.resource_payment.hash_values(put);
+            if c.resource_cost_index!=0 || c.resource_cost_locked {put(0x434f535450524f47);put(c.resource_cost_index as u64);put(c.resource_cost_locked as u64);}
+        }
+        fn group_values(g:&EventGroupState,put:&mut impl FnMut(u64)) {
+        put(g.discard_count as u64);put(g.discard_owner.index() as u64);
+        put(g.active as u64); put(g.resolving as u64); put(g.replacement_done as u64); put(g.shield_mask as u64); put(g.shield_count as u64); put(g.shield_priority as u64); put(g.shield_stash_len as u64); for id in g.shield_stash { put(id as u64); } put(g.initiator.index() as u64); put(g.pc as u64); put(g.count as u64); put(g.depth as u64);
+        for selection in [g.context, g.picks].into_iter().chain(g.stack) {
+            put(selection.len as u64); for id in selection.hash_ids() { put(id as u64); }
+        }
+        for event in g.records { put(event.op as u64); put(event.target as u64); put(event.amount as u64);
+            put(event.power as u64); put(event.hp as u64); put(event.token as u64);  }
+
+        // Inactive default storage preserves the historical hash stream.
+        let uniform=&g.uniform_damage;
+        if uniform.active {
+            put(uniform.active as u64);put(uniform.count as u64);
+            for mask in uniform.prevented {put(mask);}
+            for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
+        } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
+
         }
         fn window_values(w:&DeathWindow,put:&mut impl FnMut(u64)) {
             for v in [w.len as u64,w.initiator.index() as u64,w.player.index() as u64,w.player_chosen as u64,w.group_program as u64,w.group_source as u64,w.group_keyword as u64,w.resolve_all as u64] {put(v);}
@@ -668,6 +708,8 @@ impl State {
         if self.hidden_history_exact {put(1); }
         self.phase_history.hash_values(&mut put);
         if self.force_state_exact {put(1);}
+        if self.credit_state_exact {put(0x4352454449545631);}
+        for (seat,player) in self.players.iter().enumerate() {player.credits.hash_values(0x4352454449540000+seat as u64,&mut put);}
         put(self.regroup as u64);
         put(self.initiative.index() as u64);
         put(self.initiative_claimed as u64);
@@ -709,22 +751,11 @@ impl State {
         put(self.ability_selection.len as u64);
         for id in self.ability_selection.hash_ids() { put(id as u64); }
         if self.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(self.maximum_capture.power as u64);put(self.maximum_capture.sole as u64);put(self.maximum_capture.count as u64);}
-        let g = &self.event_group;
-        put(g.discard_count as u64);put(g.discard_owner.index() as u64);
-        put(g.active as u64); put(g.resolving as u64); put(g.replacement_done as u64); put(g.shield_mask as u64); put(g.shield_count as u64); put(g.shield_priority as u64); put(g.shield_stash_len as u64); for id in g.shield_stash { put(id as u64); } put(g.initiator.index() as u64); put(g.pc as u64); put(g.count as u64); put(g.depth as u64);
-        for selection in [g.context, g.picks].into_iter().chain(g.stack) {
-            put(selection.len as u64); for id in selection.hash_ids() { put(id as u64); }
-        }
-        for event in g.records { put(event.op as u64); put(event.target as u64); put(event.amount as u64);
-            put(event.power as u64); put(event.hp as u64); put(event.token as u64);  }
-
-        // Inactive default storage preserves the historical hash stream.
-        let uniform=&g.uniform_damage;
-        if uniform.active {
-            put(uniform.active as u64);put(uniform.count as u64);
-            for mask in uniform.prevented {put(mask);}
-            for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
-        } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
+        group_values(&self.event_group,&mut put);
+        if self.payment_group.active {put(0x50415947524f5550);group_values(&self.payment_group,&mut put);}
+        else {debug_assert_eq!(self.payment_group,EventGroupState::default(),"unused payment group must be cleared");}
+        self.resource_payment.hash_values(&mut put);
+        if self.resource_cost_index!=0 || self.resource_cost_locked {put(0x434f535450524f47);put(self.resource_cost_index as u64);put(self.resource_cost_locked as u64);}
 
         if self.disclose!=DiscloseState::default(){put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids(){put(id as u64);}}
         put(self.ability_result as u64);

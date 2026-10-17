@@ -388,7 +388,7 @@ fn current_played_unit_attachment_mode_is_not_an_arena_unit_incarnation() {
         !e.current_played_unit_matches(&s, pilot),
         "plain re-entry after attachment cannot reuse earlier play"
     );
-    s.player_mut(Seat::P1).ground.remove(pilot);
+    e.leave_play_primary_to_discard(&mut s,pilot,false).unwrap();
     s.player_mut(Seat::P1).hand.push(pilot).unwrap();
     fund(&e, &mut s, Seat::P1);
     s = play(&e, &s, pilot);

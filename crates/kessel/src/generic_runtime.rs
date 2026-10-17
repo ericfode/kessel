@@ -1,5 +1,6 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
 use super::*;
+use crate::resource_payment::{PaymentPurpose, ResourcePayment};
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVerb, Target, TargetResolver};
 
 enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
@@ -181,6 +182,7 @@ impl TokenRequirements {
                 Effect::GiveExperience { .. } => out.created.push("TOKEN_EXPERIENCE".into()),
                 Effect::GiveWeakness { .. } => out.weakness = true,
                 Effect::GiveAdvantage { .. } => out.created.push("TOKEN_ADVANTAGE".into()),
+                Effect::CreateCreditToken { .. } => out.created.push("TOKEN_CREDIT".into()),
                 Effect::CreateTokenUnit { token_type, .. } => out.created.push(
                     token_unit_code(token_type).map_or_else(
                         || format!("unsupported token unit {token_type}"), str::to_owned)),
@@ -340,9 +342,11 @@ fn reviewed_force_entry(entry:&Value)->bool {
 
 impl Engine {
     // Player.getInPlayCards: controller-owned arena cards plus the player's BaseZone.
-    // Credits and Fortify cannot occur in the admitted state model.
+    // Live Credits occupy BaseZone; retired physical slots are outside play.
+    // Fortify has no admitted producer.
     fn controlled_in_play_card(&self,s:&State,player:Seat,id:CardId)->bool {
-        let c=s.card(id);c.present&&c.owner==player&&(self.in_arena(s,id)||self.attached_in_play(s,id)||id==s.player(player).base||id==s.player(player).leader)
+        let c=s.card(id);c.present&&c.owner==player&&(self.in_arena(s,id)||self.attached_in_play(s,id)||id==s.player(player).base||id==s.player(player).leader
+            ||(s.credit_state_exact&&self.needs_credit_state()&&s.player(player).credits.contains(id)))
     }
     fn printed_trait_names<'a>(&'a self,s:&State,id:CardId)->impl Iterator<Item=&'a str> {
         let definition=self.def(s,id);
@@ -428,6 +432,7 @@ impl Engine {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
     }
     pub(super) fn needs_hidden_history(&self) -> bool {
+        if self.needs_current_played_history(){return true;}
         fn grants(v:&Value)->bool {match v {Value::Object(o)=>o.get("keyword").is_some_and(|k| k=="hidden") || o.values().any(grants),Value::Array(a)=>a.iter().any(grants),_=>false}}
         let Some(catalogue)=&self.catalogue else {return self.definitions.iter().any(|d|d.flags & (1<<8)!=0);};
         catalogue.metadata.keys().any(|code| {
@@ -443,6 +448,7 @@ impl Engine {
         let experience_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_experience_entry);
         let force_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_force_entry);
         let advantage_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(crate::advantage::reviewed_entry);
+        let credit_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(crate::credits::native_entry);
         let weakness_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_weakness_entry);
         let beast_available=catalogue.cards.contains_key("TOKEN_BEAST")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_beast_entry));
         let spy_available=catalogue.cards.contains_key("TOKEN_SPY")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_spy_entry));
@@ -453,12 +459,13 @@ impl Engine {
         let mut weakness_def = None;
         let mut advantage_def = None;
         let mut force_def = None;
+        let mut credit_def = None;
         for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
             let code = entry["setCode"]
                 .as_str()
                 .ok_or("catalogue card missing code")?
                 .to_owned();
-            let native_token = matches!(code.as_str(), "TOKEN_SHIELD" | "TOKEN_EXPERIENCE" | "TOKEN_WEAKNESS" | "TOKEN_THE_FORCE" | "TOKEN_ADVANTAGE");
+            let native_token = matches!(code.as_str(), "TOKEN_SHIELD" | "TOKEN_EXPERIENCE" | "TOKEN_WEAKNESS" | "TOKEN_THE_FORCE" | "TOKEN_ADVANTAGE" | "TOKEN_CREDIT");
             if !native_token && !catalogue.cards.contains_key(&code) {
                 continue;
             }
@@ -486,6 +493,7 @@ impl Engine {
                     (shield_available, "TOKEN_SHIELD", "reviewed Shield token unavailable"),
                     (experience_available, "TOKEN_EXPERIENCE", "reviewed Experience token unavailable"),
                     (force_available, "TOKEN_THE_FORCE", "reviewed Force token unavailable; dependent source cannot execute"),
+                    (credit_available, "TOKEN_CREDIT", "reviewed Credit token unavailable; dependent source cannot execute"),
                     (advantage_available,"TOKEN_ADVANTAGE","reviewed Advantage token unavailable; dependent source cannot execute"),
                     (weakness_available, "TOKEN_WEAKNESS", "Weakness token unavailable; dependent source cannot execute"),
                     (spy_available, "TOKEN_SPY", "reviewed Spy token unavailable"),
@@ -497,7 +505,9 @@ impl Engine {
                 }
                 if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense"&&!catalogue.programs[*p as usize].attached_host) && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
                 if native_token {
-                    if code=="TOKEN_ADVANTAGE" {
+                    if code=="TOKEN_CREDIT" {
+                        if !crate::credits::native_entry(entry) {return Err("native Credit source/metadata differs from reviewed adapter".into());}
+                    }else if code=="TOKEN_ADVANTAGE" {
                         if !crate::advantage::reviewed_entry(entry) {return Err("native Advantage source/metadata differs from reviewed adapter".into());}
                     }else if code=="TOKEN_THE_FORCE" {
                         if !reviewed_force_entry(entry) {return Err("native Force source/metadata differs from reviewed adapter".into());}
@@ -693,6 +703,7 @@ impl Engine {
                     if code=="TOKEN_WEAKNESS" {weakness_def=Some(id);}
                     if code=="TOKEN_ADVANTAGE" {advantage_def=Some(id);}
                     if code=="TOKEN_THE_FORCE" {force_def=Some(id);}
+                    if code=="TOKEN_CREDIT" {credit_def=Some(id);}
                     catalogue.rejected.remove(&code);
                     catalogue
                         .metadata
@@ -782,6 +793,7 @@ impl Engine {
             advantage_def,
             advantage_program,
             force_def,
+            credit_def,
             rules_backend: RulesBackend::Auto,
             rules_instrumentation: false,
             rules_hits: Default::default(),
@@ -899,6 +911,7 @@ impl Engine {
             ("TOKEN_ADVANTAGE","pool containing GiveAdvantage cards must include reviewed TOKEN_ADVANTAGE"),
             ("TOKEN_WEAKNESS", "pool containing GiveWeakness cards must include reviewed TOKEN_WEAKNESS"),
             ("TOKEN_THE_FORCE", "pool containing Force gain/use/presence cards must include reviewed TOKEN_THE_FORCE"),
+            ("TOKEN_CREDIT", "pool containing Credit creation cards must include reviewed TOKEN_CREDIT"),
             ("TOKEN_SPY", "pool containing Spy creation must include reviewed TOKEN_SPY"),
             ("TOKEN_BEAST", "pool containing Beast creation must include reviewed TOKEN_BEAST"),
             ("TOKEN_EXPERIENCE", "pool containing Experience creation must include reviewed TOKEN_EXPERIENCE"),
@@ -1190,7 +1203,7 @@ impl Engine {
                             _ => 0,
                         })
                         .sum::<i64>()
-                        <= self.ready_resources(s, s.card(id).owner) as i64
+                        <= self.ready_resources(s, s.card(id).owner) as i64 + i64::from(self.available_credit_count(s,s.card(id).owner))
             })
             .collect()
     }
@@ -1220,6 +1233,7 @@ impl Engine {
         }
     }
     pub(super) fn needs_phase_history(&self)->bool {
+        if self.needs_current_played_history(){return true;}
         fn expression(e:&Expr)->bool {match e.original() {
             Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
             Expr::Binary{left,right,..}=>expression(left)||expression(right),
@@ -1229,6 +1243,16 @@ impl Engine {
             let p = &definition.programs;
             p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id|self.program(id).instructions.iter().any(|i|match i {Instruction::Conditional{condition,..}=>expression(condition),Instruction::Select(r)=>r.predicate.as_ref().is_some_and(expression),_=>false}))
         })
+    }
+    fn needs_current_played_history(&self)->bool {
+        self.selected_definition_any(|d|d.programs.card.iter().chain(&d.programs.leader).chain(&d.programs.unit).any(|p|crate::current_played_unit::requires(self.program(*p))))
+    }
+    fn current_played_unit_matches(&self,s:&State,id:CardId)->bool {
+        assert!(s.phase_history.exact&&s.hidden_history_exact,"current played-unit projection requires exact phase and Hidden history");
+        if id==0 || id>=s.next_id || !s.card(id).present || s.card(id).parent!=0 || !self.in_arena(s,id){return false;}
+        let info=&self.def(s,id).info;
+        info.is("unit")&&!info.is("leader")&&!info.is("token")&&s.card(id).hidden_qualified()
+            && [Seat::P1,Seat::P2].into_iter().any(|seat|crate::model::PhaseHistory::contains(&s.phase_history.played,seat,id))
     }
     fn history_boolean(&self,s:&State,source:CardId,card:CardId,q:&crate::phase_history::Query)->bool {
         use crate::model::PhaseHistory;use crate::phase_history::QueryKind;
@@ -1482,6 +1506,7 @@ impl Engine {
                 receiver,
                 args,
             } => {
+                if name==crate::current_played_unit::QUERY{return Eval::Bool(self.current_played_unit_matches(s,card));}
                 if name=="leaderTraits" {
                     let Eval::Player(player)=sub(receiver) else {return Eval::Null;};
                     let mut traits=std::collections::BTreeSet::new();
@@ -1661,6 +1686,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::CreateCreditToken {..} => return s.credit_state_exact && self.needs_credit_state(),
             Effect::MoveToBottomOfDeck { target: destination } => {
                 let mut context=*s;context.source=source;context.ability_target=target;
                 if context.event_group.active {context.event_group.context=Selection::one(target);}
@@ -1674,7 +1700,7 @@ impl Engine {
             Effect::Disclose{aspects,..}=>return !self.def(s,source).info.is("event")||self.can_disclose(s,s.card(source).owner,aspects),
             Effect::PayAdjustedResources { .. } => {
                 let Ok(amount) = crate::pay_adjusted_resources::amount(e) else { return false; };
-                return source != 0 && self.ready_resources(s, s.card(source).owner) >= amount as usize;
+                return source != 0 && self.can_pay_resources(s,s.card(source).owner,amount);
             }
             Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
@@ -1921,7 +1947,7 @@ impl Engine {
     pub(super) fn is_ability_decision(&self, d: Decision) -> bool {
         matches!(
             d,
-            Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
                 | Decision::AbilityTarget
                 | Decision::AbilityOptional
                 | Decision::AbilityNoEffect
@@ -1969,6 +1995,7 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.credit_payment_actions(s);}
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
             let p = self.program(s.ability_program - 1);
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
@@ -2144,10 +2171,13 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: u8) -> Result<(), String> {
+        if self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::CreateCreditToken{..}))) && !s.credit_state_exact {return Err("Credit creation requires exact Credit state".into());}
+        if crate::current_played_unit::requires(self.program(p))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if !s.arena_order_exact && crate::modal_arena_choices::requires_global_order(self.program(p)) {
             return Err("modal global arena damage requires recorded arena order".into());
         }
         s.disclose=DiscloseState::default();
+        s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -2180,75 +2210,80 @@ impl Engine {
         }
         if !self.program_has_effect(s, s.source, p) {
             if self.program(p).trigger == "event" {
-                self.commit_program(s)?;
+                if !self.commit_program_mode(s,true)? {return Ok(());}
             }
             return self.end_program(s);
         }
         self.run_program(s)
     }
-    fn commit_program(&self, s: &mut State) -> Result<(), String> {
-        if s.ability_committed {
-            return Ok(());
-        }
-        let source = s.source;
-        // Mandatory Force payment must still be possible after targeting. Check
-        // before mutating any other cost, so a failed payment stays atomic.
-        if self.program(s.ability_program - 1).costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. }))
-            && !self.can_pay_force_cost(s, source) {
+    fn commit_program(&self,s:&mut State)->Result<bool,String> {
+        self.commit_program_mode(s,false)
+    }
+    pub(super) fn commit_program_mode(&self,s:&mut State,end_program:bool)->Result<bool,String> {
+        if s.ability_committed {return Ok(true);}
+        let source=s.source;
+        if s.resource_cost_index==0 && self.program(s.ability_program-1).costs.iter().any(|cost|matches!(cost,Cost::UseForceCost{..}))
+            && !self.can_pay_force_cost(s,source) {
             return Err("Force cost requires exact held Force identity".into());
         }
-        if self.def(s, source).info.is("event") {
-            let seat = s.active;
-            let (played, via_smuggle) = if s.player(seat).hand.contains(source) {
+        if self.def(s,source).info.is("event") {
+            let seat=s.card(source).owner;
+            let hand=s.player(seat).hand.contains(source);
+            let from_resources=s.player(seat).resources.contains(source);
+            if hand || from_resources {
+                let cost=if from_resources {self.smuggle_cost(s,source).ok_or("event smuggle requires a printed Smuggle cost")?}else{self.cost(s,source)};
                 s.phase_history.preflight_play(seat)?;
-                self.spend(s, self.cost(s, source));
-                s.player_mut(seat).hand.remove(source);
+                let request=self.resource_request(s,PaymentPurpose::ProgramPlay,source,s.ability_target,
+                    cost,from_resources,!s.resource_cost_locked,end_program);
+                if self.pay_resource_cost(s,request)?.is_none() {return Ok(false);}
+                if from_resources {s.player_mut(seat).resources.remove(source);}
+                else {s.player_mut(seat).hand.remove(source);}
                 s.player_mut(seat).discard.push(source)?;
-                s.phase_history.played(seat, source)?;
-                (true, false)
-            } else if s.player(seat).resources.contains(source) {
-                let cost = self
-                    .smuggle_cost(s, source)
-                    .ok_or("event smuggle requires a printed Smuggle cost")?;
-                s.phase_history.preflight_play(seat)?;
-                self.spend_resource_play(s, cost, source);
-                s.player_mut(seat).resources.remove(source);
-                s.player_mut(seat).discard.push(source)?;
-                s.phase_history.played(seat, source)?;
-                self.resource_deck_top_after_play(s, seat)?;
-                (true, true)
-            } else {
-                (false, false)
-            };
-            if played {
-                self.capture_card_played_watchers(s, via_smuggle)?;
+                s.phase_history.played(seat,source)?;
+                if from_resources {self.resource_deck_top_after_play(s,seat)?;}
+                self.capture_card_played_watchers(s,from_resources)?;
+                s.resource_cost_locked=true;
+            }else if s.resource_payment.purpose==PaymentPurpose::ProgramPlay {
+                return Err("event left its prepared payment origin".into());
             }
         }
-        // Base epic actions spend their once-per-game limit when the ability commits
-        // (after targeting, or when resolving with no effect via "Use it anyway").
-        if self.program(s.ability_program - 1).trigger == "epicAction" {
-            if !self.def(s, source).info.is("base") || s.card(source).epic_used {
+        if self.program(s.ability_program-1).trigger=="epicAction" {
+            if !self.def(s,source).info.is("base") || s.card(source).epic_used {
                 return Err("epic action requires an unspent base source".into());
             }
-            s.card_mut(source).epic_used = true;
         }
-        for cost in &self.program(s.ability_program - 1).costs {
+        let costs=self.program(s.ability_program-1).costs.clone();
+        for (index,cost) in costs.iter().enumerate().skip(usize::from(s.resource_cost_index)) {
+            let resource=matches!(cost,Cost::Resources{..});
             match cost {
-                Cost::ExhaustSelf => s.card_mut(source).exhausted = true,
-                Cost::Resources { amount } => self.spend(
-                    s,
-                    self.eval(s, source, s.ability_target, amount)
-                        .number()
-                        .clamp(0, u16::MAX as i64) as u16,
-                ),
-                Cost::UseForceCost { .. } => s.player_mut(s.card(source).owner).force_held = false,
+                Cost::ExhaustSelf=>{
+                    if s.card(source).exhausted {return Err("exhaust cost became unavailable; recovery is unsupported".into());}
+                    s.card_mut(source).exhausted=true;
+                },
+                Cost::UseForceCost{..}=>{
+                    if !self.can_pay_force_cost(s,source) {return Err("Force cost became unavailable; recovery is unsupported".into());}
+                    s.player_mut(s.card(source).owner).force_held=false;
+                },
+                Cost::Resources{amount}=>{
+                    let amount=u16::try_from(self.eval(s,source,s.ability_target,amount).number().max(0))
+                        .map_err(|_|"ability resource cost exceeds runtime capacity")?;
+                    let request=self.resource_request(s,PaymentPurpose::AbilityCost,source,s.ability_target,
+                        amount,false,!s.resource_cost_locked,end_program);
+                    if self.pay_resource_cost(s,request)?.is_none() {return Ok(false);}
+                }
             }
+            s.resource_cost_index=u16::try_from(index+1).map_err(|_|"ability cost progress capacity exceeded")?;
+            s.resource_cost_locked=true;
+            if !resource && self.settle_cost_window(s,end_program)? {return Ok(false);}
         }
-        s.ability_committed = true;
-        Ok(())
+        if self.program(s.ability_program-1).trigger=="epicAction" {s.card_mut(source).epic_used=true;}
+        s.ability_committed=true;
+        s.resource_cost_index=0;s.resource_cost_locked=false;
+        Ok(true)
     }
-    fn end_program(&self, s: &mut State) -> Result<(), String> {
+    pub(super) fn end_program(&self, s: &mut State) -> Result<(), String> {
         s.disclose=DiscloseState::default();
+        s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();
@@ -2267,6 +2302,7 @@ impl Engine {
         }
     }
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
+        if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if s.ability_program != 0 && !s.arena_order_exact
             && crate::modal_arena_choices::requires_global_order(self.program(s.ability_program - 1)) {
             return Err("modal global arena damage requires recorded arena order".into());
@@ -2289,7 +2325,7 @@ impl Engine {
                 Instruction::EndStep => {s.ability_pc+=1;}
                 Instruction::CaptureMaximum{aspect}=>{self.capture_maximum(s,s.source,aspect)?;s.ability_pc+=1;}
                 Instruction::Commit => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s)? {return Ok(());}
                     s.ability_pc += 1;
                 }
                 Instruction::ModalChoice(menu) => {
@@ -2375,7 +2411,7 @@ impl Engine {
                 }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s)? {return Ok(());}
                     if self.native_attack_eligible(s,s.source,s.ability_target,properties) {
                         self.begin_native_attack(s,properties,p.optional)?;
                         return Ok(());
@@ -2384,11 +2420,12 @@ impl Engine {
                 }
                 Instruction::Apply(Effect::Disclose{aspects,..})=>{if self.start_disclose(s,aspects,&p.trigger)?{return Ok(());}}
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
+                    if !self.commit_program(s)? {return Ok(());}
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
                 }
                 Instruction::Apply(Effect::LookAt { target, player, .. }) => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s)? {return Ok(());}
                     let viewer = match self.eval(s, s.source, s.ability_target, player) {
                         Eval::Player(seat) => seat,
                         _ => return Err("lookAt viewer must be a player".into()),
@@ -2411,7 +2448,7 @@ impl Engine {
                 }
                 Instruction::Apply(Effect::LookAtAndSelectCard { target, player, .. }) => {
                     // Shape was fenced at Program::compile; expressions may already be Compiled.
-                    self.commit_program(s)?;
+                    if !self.commit_program(s)? {return Ok(());}
                     let viewer = match self.eval(s, s.source, s.ability_target, player) {
                         Eval::Player(seat) => seat,
                         _ => return Err("lookAtAndSelectCard viewer must be a player".into()),
@@ -2434,7 +2471,7 @@ impl Engine {
                 }
                 Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup{effect,..} => {
                     let named=instruction.is_named_group();
-                    if !named { self.commit_program(s)?; }
+                    if !named { if !self.commit_program(s)? {return Ok(());} }
                     if !s.event_group.active {
                         s.ability_succeeded=false;
                         s.event_group.active=true; s.event_group.initiator=s.active;
@@ -2444,7 +2481,7 @@ impl Engine {
                     // Replacement prompts retain their own actor until resolve_group consumes them.
                     if matches!(instruction,Instruction::NamedChooserGroup{..}) && !s.event_group.replacement_done {s.active=s.event_group.initiator;}
                     if !self.generate_group(s,effect)? { return Ok(()); }
-                    if named { self.commit_program(s)?; self.allocate_named_tokens(s,effect)?; }
+                    if named { if !self.commit_program(s)? {return Ok(());} self.allocate_named_tokens(s,effect)?; }
                     if !self.resolve_group(s,effect)? { return Ok(()); }
                     // Reviewed discardDeck→return continuations read discarded card ids from
                     // ability_selection (Selection capacity matches deck-discard amount 0..=5).
@@ -2454,7 +2491,11 @@ impl Engine {
                     s.ability_pc+=1;
                 }
                 Instruction::Apply(effect) => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s)? {return Ok(());}
+                    if matches!(effect,Effect::PayAdjustedResources{..}) {
+                        if !self.run_adjusted_resource_payment(s,effect)? {return Ok(());}
+                        s.ability_pc+=1;continue;
+                    }
                     let (amount, resolved) = self.apply_effect(s, effect)?;
                     s.ability_result = amount;
                     s.ability_succeeded = resolved;
@@ -2639,12 +2680,12 @@ impl Engine {
                         s.active=s.event_group.initiator;
                         if matches!(choosers[index],crate::ability_ir::NamedChooser::Opponent) {
                             // Opponent pretarget always delays until original-player costs are paid.
-                            self.commit_program(s)?;s.active=s.event_group.initiator.other();
+                            if !self.commit_program(s)? {return Ok(false);}s.active=s.event_group.initiator.other();
                         }
                     }
                     if self.group_candidates(s,r,child,true).is_empty() {
                         // A missing pretarget delays the remaining named resolver chain until costs.
-                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {self.commit_program(s)?;}
+                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {if !self.commit_program(s)? {return Ok(false);}}
                         if matches!(self.program(s.ability_program-1).instructions[s.ability_pc as usize],Instruction::NamedChooserGroup{..}) {s.active=s.event_group.initiator;}
                         s.event_group.pc=*end as u16; continue;
                     }
@@ -3238,7 +3279,14 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if let Effect::CreateCreditToken {target,amount,..}=e {
+            let payer=s.card(s.source).owner;
+            if self.effect_targets(s,target)!=vec![Eval::Player(payer)] {return Err("Credit creation requires source controller".into());}
+            let count=self.effect_amount(s,amount)?;
+            let created=self.create_credit_tokens(s,payer,count)?;return Ok((created,created>0));
+        }
         if let Effect::PayAdjustedResources { target, .. } = e {
+            if self.available_credit_count(s,s.card(s.source).owner)>0 {return Err("Credit effect payment requires a prepared program continuation".into());}
             let amount = crate::pay_adjusted_resources::amount(e)?;
             if s.source == 0 { return Err("payAdjustedResources requires an ability source".into()); }
             let payer = s.card(s.source).owner;
@@ -3539,6 +3587,8 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
+        if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.apply_credit_payment_action(s,a);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.apply_disclose_action(s,a);}
         let mut t = *s;
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
@@ -3609,7 +3659,7 @@ impl Engine {
                 if a.label == "Cancel" {
                     self.cancel(&mut t);
                 } else {
-                    self.commit_program(&mut t)?;
+                    if !self.commit_program_mode(&mut t,true)? {return Ok(t);}
                     self.end_program(&mut t)?;
                 }
             }
@@ -3732,7 +3782,7 @@ impl Engine {
                 }
             }
             Decision::AbilityDistribute => {
-                self.commit_program(&mut t)?;
+                if !self.commit_program(&mut t)? {return Ok(t);}
                 t.event_result=StepEventResult::for_state(&t);
                 t.ability_result = 0;
                 t.ability_succeeded = false;
@@ -3852,13 +3902,14 @@ impl Engine {
     }
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
     pub(super) fn open_deaths(&self,s:&mut State,resume:u8)->Result<bool,String> {
-        if !(1..=8).contains(&resume) {return Err("invalid defeat continuation".into());}
+        if !(1..=9).contains(&resume) || (resume==9 && (!s.resource_payment.active() || s.resource_payment.stage!=crate::resource_payment::PaymentStage::Paid)) {return Err("invalid defeat continuation".into());}
         let ready=|e:&DeathTrigger|e.after_pc==0 || (e.defer_depth==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
         if !s.death_pending.entries[..s.death_pending.len as usize].iter().any(ready) {return Ok(false);}
         if s.event_group!=EventGroupState::default() {return Err("defeat window opened before event group settled".into());}
         let n=s.death_depth as usize;
         if n==MAX_DEATH_DEPTH {return Err("nested defeat window capacity exceeded (8)".into());}
         s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume};
+        s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
         s.death_depth+=1;
         let pending=s.death_pending; s.death_window=DeathWindow::default();s.death_pending=DeathWindow::default();
         for e in &pending.entries[..pending.len as usize] {
@@ -4008,7 +4059,7 @@ impl Engine {
                 if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;continue;}
                 let n=s.death_depth as usize-1;let frame=s.death_frames[n];s.death_frames[n]=DeathFrame::default();s.death_depth-=1;
                 s.death_window=frame.window;frame.context.restore(s);
-                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),8=>self.combat_after_first_window(s),_=>Err("invalid defeat continuation".into())};
+                return match frame.resume {1=>self.run_program(s),2=>self.process_triggers(s),3=>self.finish(s),4=>self.advance_after_expiry(s),5=>self.combat_after_damage(s),6=>self.process_deaths(s),7=>self.native_attack_after_early_effects(s),8=>self.combat_after_first_window(s),9=>self.resume_resource_payment(s),_=>Err("invalid defeat continuation".into())};
             }
             s.active=s.death_window.player;
             if s.death_window.resolve_all {

@@ -60,7 +60,8 @@ fn native_predicate_staged_identity_reconciliation_distinguishes_native_adapters
     for stage in staged {let card=cards.iter().find(|c|c["id"]==stage["identity"]["id"]).unwrap();assert_eq!(card["internalName"],stage["identity"]["internalName"]);assert_eq!(card["sourcePath"],stage["sourcePath"]);assert_eq!(card["sourceHash"],stage["sourceHash"]);assert_eq!(card["status"],"unsupported");}
     assert!(!c["sourceSupport"].as_array().unwrap().iter().any(|s|s["role"]=="source-without-card-data" && s["sourcePath"]=="game/cards/08_ASH/tokens/Advantage.ts"));
     let e=engine();for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_WEAKNESS","TOKEN_THE_FORCE","TOKEN_ADVANTAGE"] {assert!(e.by_code.contains_key(code));}
-    for code in ["TOKEN_CREDIT"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap().contains_key(code));}
+    assert!(e.by_code.contains_key("TOKEN_CREDIT"));
+    assert!(!e.rejected_cards().unwrap().contains_key("TOKEN_CREDIT"));
     let baseline:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/runtime-admission.json")).unwrap();
     let known=baseline["runtimeAdmittedCards"].as_array().unwrap().iter().map(|c|c["setCode"].as_str().unwrap()).collect::<std::collections::BTreeSet<_>>();
     let new=e.by_code.keys().filter(|code|!known.contains(code.as_str())).collect::<std::collections::BTreeSet<_>>();

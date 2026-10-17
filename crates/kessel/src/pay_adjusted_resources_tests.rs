@@ -38,6 +38,8 @@ fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
 }
 fn board(e: &Engine) -> State {
     let mut s = State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();
     s.hidden_history_exact = true;
     s.force_state_exact = true;
     for (seat, leader) in [(Seat::P1, "SOR_014"), (Seat::P2, "IBH_053")] {

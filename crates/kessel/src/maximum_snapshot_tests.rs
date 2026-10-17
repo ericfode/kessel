@@ -2,7 +2,9 @@ use super::*;
 fn engine()->Engine{Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()}
 fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId{let id=s.next_id;s.next_id+=1;*s.card_mut(id)=Card{present:true,def:*e.by_code.get(code).unwrap_or_else(||panic!("{code}: {:?}",e.rejected_cards().unwrap().get(code))),owner:seat,..Card::default()};id}
 fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId{let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
-fn board(e:&Engine,seat:Seat)->State{let mut s=State::default();s.force_state_exact=true;s.hidden_history_exact=true;s.active=seat;for player in[Seat::P1,Seat::P2]{let base=add(e,&mut s,player,"ASH_019");let leader=add(e,&mut s,player,if player==seat{"LOF_006"}else{"SOR_014"});s.player_mut(player).base=base;s.player_mut(player).leader=leader;s.player_mut(player).force_id=s.next_id;s.next_id+=1;}for _ in 0..2{let resource=add(e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(resource).unwrap();}s}
+fn board(e:&Engine,seat:Seat)->State{let mut s=State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();s.force_state_exact=true;s.hidden_history_exact=true;s.active=seat;for player in[Seat::P1,Seat::P2]{let base=add(e,&mut s,player,"ASH_019");let leader=add(e,&mut s,player,if player==seat{"LOF_006"}else{"SOR_014"});s.player_mut(player).base=base;s.player_mut(player).leader=leader;s.player_mut(player).force_id=s.next_id;s.next_id+=1;}for _ in 0..2{let resource=add(e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(resource).unwrap();}s}
 fn front(e:&Engine,s:&mut State,seat:Seat){s.active=seat;s.source=s.player(seat).leader;let p=e.def(s,s.source).programs.leader[0];e.begin_program(s,p,0).unwrap();}
 #[test]fn maximum_snapshot_sole_recipient_is_automatic_and_ties_prompt_after_payment(){
  let e=engine();assert!(e.by_code.contains_key("LOF_006"),"{:?}",e.rejected_cards().unwrap().get("LOF_006"));

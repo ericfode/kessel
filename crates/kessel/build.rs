@@ -75,6 +75,9 @@ mod view_cards;
 #[allow(dead_code)]
 #[path = "src/disclose.rs"]
 mod disclose;
+#[allow(dead_code)]
+#[path="src/current_played_unit.rs"]
+mod current_played_unit;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -124,7 +127,8 @@ fn targets(t: &Target) -> Result<String, String> {
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
-    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
+    if matches!(e,Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated payment identity mismatch\".into())};if !self.run_adjusted_resource_payment(s,effect)? {return Ok(true);}".into());}
+    if matches!(e,Effect::CreateCreditToken{..}|Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }
@@ -170,14 +174,14 @@ fn lower(p: &Program) -> Result<String, String> {
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
-            Instruction::Commit=>"self.commit_program(s)?;s.ability_pc+=1;".into(),
+            Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
             Instruction::Select(_)=>format!("let Instruction::Select(r)=&p.instructions[{pc}] else {{return Err(\"AOT selection identity mismatch\".into())}};if self.program_targets(s,s.source,s.ability_program-1,{pc},r,true).is_empty() {{s.ability_target=0;s.ability_selection=Selection::default();s.ability_pc+=1;}} else {{s.decision=Decision::AbilityTarget;return Ok(true);}}"),
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
-            Instruction::Apply(Effect::DistributeHealing{..})=>"s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
+            Instruction::Apply(Effect::DistributeHealing{..})=>"if !self.commit_program(s)? {return Ok(true);}s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
             Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),
-            Instruction::Apply(e)=>format!("self.commit_program(s)?;{}s.ability_pc+=1;",primitive(e)?),
+            Instruction::Apply(e)=>format!("if !self.commit_program(s)? {{return Ok(true);}}{}s.ability_pc+=1;",primitive(e)?),
             _=>return Err("instruction control/expression requires interpreter".into()),
         };
         body.push_str(&format!("{pc}=>{{{step}}},\n"));
@@ -201,6 +205,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/current_played_unit.rs");
     println!("cargo:rerun-if-changed=src/self_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attachment_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");

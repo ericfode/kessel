@@ -273,7 +273,8 @@ Physical `hasExperience`, `hasShield`, and `hasWeakness` predicates require thei
 reviewed native definitions in the selected pool, even when no token is created.
 Bounded scalar leader actions and optional unit-side attacks can give Weakness;
 the complete two-sided source, costs, target filters, and continuations remain
-admission boundaries. Credit remains a staged lifecycle contract. Advantage remains compiler-unsupported
+admission boundaries. The bounded Credit lifecycle and payments described below
+execute through the shared runtime. Advantage remains compiler-unsupported
 because its pinned source contains two classes, while an exact native adapter
 executes its complete reviewed lifecycle; native admission is counted separately
 from source conversion.
@@ -497,6 +498,15 @@ checks event resolution/replacement status, rather than a numerical result.
 unresolvable display flag. Its default branch is automatic when the unless system
 cannot fully or partially resolve. These remain pending executor operations.
 
+The complete ready/conditional-Spy event registration can project current unit
+play from existing exact phase-played IDs and current-incarnation qualification.
+Both histories are required: an old played bit after departure/placement is
+insufficient, as is qualification from deployment or token creation. The target
+may belong to either player; Spy creation belongs to the event player and is
+independent of whether readying changed the target. General captured event lists
+and other history callbacks remain rejected.
+
+
 ## Runtime admission and conformance
 
 ```sh
@@ -514,8 +524,8 @@ Closed whole-source contracts also admit bounded card restrictions, adjusted
 resource payments, Disclose continuations, self-play cost reductions, modal
 choices, first-strike combat and selected hand/discard resource or bottom-deck
 moves. These validators check the complete source registration and metadata;
-the presence of an IR node alone does not admit its containing card. Credit-token
-payments, unsupported companions and unreviewed source contexts remain rejected.
+the presence of an IR node alone does not admit its containing card. Unsupported
+companions and unreviewed source contexts remain rejected.
 Self-play reductions read their validated live unit/leader counts when calculating the total
 play cost, including aspect penalties, and floor the result at zero. First-strike
 combat settles the attacker's damage and death triggers before calculating a
@@ -561,13 +571,48 @@ summary` and `generated/runtime-admission.json`, rather than historical batch to
 Follow the [conversion skill](../.agents/skills/swu-card-conversion/SKILL.md)
 for implementation, source-derived witnesses, and independent review requirements.
 
+## Bounded Credit and attachment payments
+
+The exact native Credit definition supports four complete sole registrations:
+ordinary unit entry creating one Credit, and ordinary events creating one or
+three. Creation allocates fresh physical identities as one batch before ordered
+BaseZone entry. The ledger retains zone order, controller/owner changes and
+retired physical metadata; defeating a Credit never recycles its identity.
+Other printed Credit registrations and modified or blanked Credit states remain
+rejected. These contracts do not imply support for every Credit card.
+
+The shared resource-cost boundary applies Credits after ordinary reductions and
+aspect penalties for normal play, Smuggle, action costs and adjusted card-effect
+payments. It preserves mandatory minimums, amount selection, skip and inherited
+cancellation rules. Earlier costs settle before later payment stages. A prompt
+retains its evaluated cost, physical source and chosen attachment host. Paying
+entirely with Credits still resolves a zero-amount resource event, so the
+payment's success continuation can run. Unadjusted resource effects retain their
+separate semantics. A cost that becomes unavailable during a child window fails
+explicitly when recovery is unsupported.
+
+Stable selected-pool snapshots require `creditStateVersion: 1` and explicit live
+`credits` and canonical `retiredCredits` references for both players, including
+empty lists. Legacy snapshots cannot establish unknown Credit evidence. Native
+state copies retain pending payment and child-window continuations; JSON export
+marks those frames and action-window import rejects them.
+
+Three complete upgrade contracts reduce the price by one when the physical
+attachment target is Imperial, Mandalorian or unique. Target availability and
+payment use that particular host, including a zero floor. Target-free printed
+cost queries remain undiscounted, and Smuggle retains its printed alternative
+cost. Broader player cost modifiers, captured attachment lists and unsupported
+companion registrations remain rejected.
+
 ## Bounded controlled-title and physical-attachment queries
 
 `hasControlledInPlayTitle(player, literalTitle)` tests exact printed title equality
 across controlled arena cards (including upgrades on opposing hosts), the player's
 base and undeployed leader, and held Force. Force-title programs require the
-reviewed native definition and explicit Force state. Credits, Fortify and printed
-attribute overrides remain outside runtime admission. Title-dependent source
+reviewed native definition and explicit Force state. Live Credits participate in
+controlled in-play title and trait queries through their BaseZone ledger; retired
+Credit identities do not. Fortify and printed attribute overrides remain outside
+runtime admission. Title-dependent source
 registrations require complete ordinary-unit metadata. Reviewed consumers are
 persistent self constants with the query condition, mandatory entry self-ready,
 optional On Attack one-damage unit selection, and optional death Experience
@@ -733,7 +778,7 @@ when no explicit target was supplied. Advantage grants preserve creator identity
 recipient-controller ownership and one batched creation event. Advantage
 distribution instead retains a separate creation event per recipient and its
 aggregate result. Phase player-cost effects preserve one lasting-effect
-application with expiry at phase end. Only the bounded Advantage grant contracts described above execute in Rust;
+application with expiry at phase end. The bounded Advantage grants and Credit contracts described above execute in Rust;
 other resource/token forms still need runtime implementation and native token
 contracts. Catalog conversion alone does not admit them for play, and executed
 source-engine verification remains pending.

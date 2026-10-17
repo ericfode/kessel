@@ -303,3 +303,26 @@ fn credit_native_provenance_is_required_in_the_selected_pool() {
     let mut s = board(&rejected);
     assert!(rejected.create_credit_tokens(&mut s, Seat::P2, 1).is_err());
 }
+
+#[test]
+fn credit_identity_never_satisfies_unit_entry_or_card_play_history() {
+    let e = engine();
+    let mut s = board(&e);
+    let id = s.next_id;
+    e.create_credit_tokens(&mut s, Seat::P1, 1).unwrap();
+    let snapshot = e.snapshot(&s);
+    for kind in ["entered", "played"] {
+        let mut bad = snapshot.clone();
+        bad["phaseHistory"][kind] = json!([{"card":format!("c{}",id-1),"playedBy":"p1"}]);
+        if kind == "played" {
+            bad["phaseHistory"]["playCounts"] = json!([1, 0]);
+        }
+        assert!(e.load_state(&bad).is_err(), "Credit is not a {kind} unit");
+    }
+    let mut unversioned = snapshot;
+    unversioned
+        .as_object_mut()
+        .unwrap()
+        .remove("creditStateVersion");
+    assert!(e.load_state(&unversioned).is_err());
+}

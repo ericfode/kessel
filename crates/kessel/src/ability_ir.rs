@@ -308,7 +308,7 @@ impl Expr {
     }
     fn contains_typed_query(&self)->bool {
         fn walk(v:&Value)->bool {
-            (v["kind"]=="nativeTokenPredicate") || (v["kind"]=="query" && v["name"].as_str().is_some_and(|n|["hasControlledInPlayTitle","hasControlledInPlayTrait","hasAttachedTrait","hasAttachedNativeToken","leaderTraits"].contains(&n))) || match v {Value::Object(o)=>o.values().any(walk),Value::Array(a)=>a.iter().any(walk),_=>false}
+            (v["kind"]=="nativeTokenPredicate") || (v["kind"]=="query" && v["name"].as_str().is_some_and(|n|["hasControlledInPlayTitle","hasControlledInPlayTrait","hasAttachedTrait","hasAttachedNativeToken","leaderTraits",crate::current_played_unit::QUERY].contains(&n))) || match v {Value::Object(o)=>o.values().any(walk),Value::Array(a)=>a.iter().any(walk),_=>false}
         }
         walk(&serde_json::to_value(self).expect("typed expression serializes"))
     }
@@ -499,6 +499,7 @@ impl Expr {
             } => {
                 if receiver.physical_inventory_value()||args.iter().any(Self::physical_inventory_value){return Err("physical card inventories require typed collection operations".into());}
                 if receiver.references_title() || args.iter().any(Self::references_title) { return Err("printed title query coercion is unsupported".into()); }
+                if name==crate::current_played_unit::QUERY {return if crate::current_played_unit::query(self){Ok(())}else{Err("current played-unit query requires the scalar selector candidate".into())};}
                 let arity = match name.as_str() {
                     "hasControlledInPlayTrait"=>2,
                     "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
@@ -876,6 +877,13 @@ pub enum Effect {
         amount: Expr,
         target: Target,
     },
+    CreateCreditToken {
+        target: Target,
+        amount: Expr,
+        destination: String,
+        #[serde(rename = "creationTiming")]
+        creation_timing: String,
+    },
     Select {
         #[serde(rename = "targetResolver")]
         target_resolver: TargetResolver,
@@ -1077,6 +1085,7 @@ impl Effect {
             | Self::Heal { amount, target } | Self::Draw { amount, target }
             | Self::ReadyResources { amount, target } | Self::PayResources { amount, target }
             | Self::PayAdjustedResources { amount, target, .. }
+            | Self::CreateCreditToken { amount, target, .. }
             | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
@@ -1816,6 +1825,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::current_played_unit::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::current_played_unit::ability(ability){return Err("current played-unit query requires the complete ready/conditional-Spy event registration".into());}
         if crate::disclose::has_disclose(ability)&&!crate::disclose::registration(ability){return Err("disclose requires a complete bounded All registration and supported continuation".into());}
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
 
@@ -2603,7 +2613,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     (multiplicity(target,targets,array)?,false,false)
                 },
-                Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => (0,false,false),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2793,6 +2803,14 @@ impl Program {
             }
             Effect::PayAdjustedResources { .. } => {
                 crate::pay_adjusted_resources::amount(effect)?;
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::CreateCreditToken {target,amount,destination,creation_timing}=>{
+                if !matches!(target,Target::Name(n) if n=="ownPlayer")
+                    || destination!="base" || creation_timing!="eventUpdate"
+                    || !matches!(amount.original(),Expr::Const{value} if value.as_u64().is_some_and(|n|(1..=3).contains(&n))) {
+                    return Err("Credit creation requires the closed own-player base-zone batch contract".into());
+                }
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::PayResources {amount,target} => {
@@ -3039,7 +3057,9 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                let current_played_unit=crate::current_played_unit::prepare(entry)?;
                 crate::pay_adjusted_resources::validate_entry(entry)?;
+                crate::credits::creation_source(entry)?;
                 for key in ["abilities", "attachCondition", "piloting"] { crate::deck_search::reject(&entry[key])?; }
                 // Upgrade grant/host refs use source.parent* or target "parent".
                 // Selector predicates on an upgrade candidate use card.parent* and must not
@@ -3059,7 +3079,7 @@ impl Catalogue {
                 // historyHelpers/privatePrograms may embed historyQuery AST that is not part of
                 // executable abilities; do not treat those leftovers as admitted phase history.
                 if crate::phase_history::marker(&entry["historyHelpers"])||crate::phase_history::marker(&entry["privatePrograms"]){return Err("unresolved phase history helpers require reviewed registration".into());}
-                if crate::phase_history::marker(&entry["abilities"])&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
+                if current_played_unit.is_none()&&crate::phase_history::marker(&entry["abilities"])&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
                 if crate::view_cards::marker(&entry["abilities"])&&!crate::view_cards::entry(entry){return Err("view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
@@ -3085,7 +3105,7 @@ impl Catalogue {
                 if basezone_relevant&&basezone_source_kind(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = {
-                    let mut abilities = entry["abilities"].clone();
+                    let mut abilities = current_played_unit.clone().unwrap_or_else(||entry["abilities"].clone());
                     if crate::attachment_play_cost::extract(entry)?.is_some() {
                         crate::attachment_play_cost::normalize(entry, &mut abilities)?;
                     } else {

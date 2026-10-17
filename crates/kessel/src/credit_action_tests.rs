@@ -225,6 +225,10 @@ fn credit_skip_preserves_tokens_and_cancel_preserves_card_and_resources() {
         assert_eq!(live(&cancelled, actor), vec![old]);
         assert!(!cancelled.card(row[0]).exhausted);
         assert_eq!(cancelled.active, actor);
+        assert_eq!(
+            cancelled, s,
+            "cancelling before the first cost preserves the whole position"
+        );
         let done = button(e, &prompt, "Pay costs without Credit tokens");
         assert_eq!(live(&done, actor), vec![old, fresh]);
         assert!(done.card(row[0]).exhausted);
@@ -493,4 +497,107 @@ fn credit_creation_actions_reject_missing_exact_state_and_selected_native_defini
     .err()
     .expect("selected creator without native Credit must reject");
     assert!(error.contains("TOKEN_CREDIT"), "{error}");
+}
+
+#[test]
+fn credit_disclose_event_pays_before_opening_hand_selection() {
+    cases(|e, actor| {
+        let mut s = standard(e, actor);
+        let event = hand(e, &mut s, actor, "SEC_076");
+        let first = hand(e, &mut s, actor, "SEC_032");
+        let second = hand(e, &mut s, actor, "SEC_032");
+        let target = unit(e, &mut s, actor.other(), "SOR_239");
+        s.card_mut(target).damage = 1;
+        let charge = e.cost(&s, event);
+        credits(e, &mut s, actor, charge);
+        let prompt = choose(e, &s, event);
+        let label = format!("Use {charge} Credits");
+        menu(e, &prompt, &[&label, "Cancel"]);
+        assert_eq!(prompt.disclose, DiscloseState::default());
+        let selected = button(e, &prompt, &label);
+        assert_eq!(selected.decision, Decision::DiscloseSelect);
+        assert!(selected.player(actor).discard.contains(event));
+        assert!(live(&selected, actor).is_empty());
+        let selected = choose(e, &selected, first);
+        let revealed = choose(e, &selected, second);
+        let revealed = button(e, &revealed, "Done");
+        assert_eq!(revealed.decision, Decision::DiscloseReveal);
+        let targets = button(e, &revealed, "Done");
+        assert_eq!(targets.decision, Decision::AbilityTarget);
+        let done = choose(e, &targets, target);
+        assert!(done.player(actor.other()).discard.contains(target));
+    });
+}
+
+#[test]
+fn resource_cost_death_window_restores_parent_before_the_selected_effect() {
+    cases(|e, actor| {
+        let mut s = standard(e, actor);
+        s.player_mut(actor).force_held = true;
+        let source = unit(e, &mut s, actor, "LOF_178");
+        let sentinel = unit(e, &mut s, actor, "LOF_196");
+        unit(e, &mut s, actor, "SEC_032");
+        let printed = e.def(&s, sentinel).info.hp.unwrap() as u16;
+        s.card_mut(sentinel).damage = printed;
+        assert!(e.hp(&s, sentinel) > printed);
+        let watcher = unit(e, &mut s, actor.other(), "SOR_036");
+        let target = unit(e, &mut s, actor.other(), "SOR_239");
+        let menu_state = choose(e, &s, source);
+        let targets = button(e, &menu_state, "Exhaust a unit");
+        let child = choose(e, &targets, target);
+        assert!(child.player(actor).discard.contains(sentinel));
+        assert!(!child.player(actor).force_held);
+        assert!(child.card(source).exhausted);
+        assert!(
+            !child.card(target).exhausted,
+            "selected effect waits for the cost event window"
+        );
+        assert_eq!(child.source, watcher);
+        assert_eq!(child.decision, Decision::AbilityTarget);
+        assert_pending_copy(e, &child);
+        let done = choose(e, &child, watcher);
+        assert!(done.card(watcher).experience != 0);
+        assert!(done.card(target).exhausted);
+        assert_eq!(done.decision, Decision::Window);
+        assert_eq!(
+            done.resource_payment,
+            crate::resource_payment::ResourcePayment::default()
+        );
+        assert_eq!(done.payment_group, EventGroupState::default());
+    });
+}
+
+#[test]
+fn credit_attachment_discount_and_payment_share_the_chosen_physical_host() {
+    cases(|e, actor| {
+        let mut s = standard(e, actor);
+        let upgrade = hand(e, &mut s, actor, "ASH_262");
+        let cheap = unit(e, &mut s, actor, "JTL_058");
+        let plain = unit(e, &mut s, actor, "LOF_256");
+        let full = e.cost(&s, upgrade);
+        let reduced = full - 1;
+        assert_eq!(e.upgrade_play_cost(&s, upgrade, cheap), Some(reduced));
+        credits(e, &mut s, actor, reduced);
+        let hosts = choose(e, &s, upgrade);
+        assert!(e
+            .legal_actions(&hosts)
+            .contains(&e.card_action(&hosts, cheap)));
+        assert!(!e
+            .legal_actions(&hosts)
+            .contains(&e.card_action(&hosts, plain)));
+        let prompt = choose(e, &hosts, cheap);
+        let label = if reduced == 1 {
+            "Use 1 Credit".into()
+        } else {
+            format!("Use {reduced} Credits")
+        };
+        menu(e, &prompt, &[&label, "Cancel"]);
+        assert_eq!(prompt.resource_payment.target, cheap);
+        assert_eq!(prompt.resource_payment.amount, reduced);
+        assert_eq!(prompt.card(upgrade).parent, 0);
+        let done = button(e, &prompt, &label);
+        assert_eq!(done.card(upgrade).parent, cheap);
+        assert!(live(&done, actor).is_empty());
+        assert_eq!(done.decision, Decision::Window);
+    });
 }

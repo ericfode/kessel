@@ -61,6 +61,9 @@ mod modal_arena_choices;
 mod attachment_play_cost;
 
 mod credits;
+mod resource_payment;
 #[cfg(test)]
 #[path = "credit_payment_tests.rs"]
 mod credit_payment_tests;
+
+mod current_played_unit;

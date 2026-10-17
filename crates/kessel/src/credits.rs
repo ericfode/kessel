@@ -9,7 +9,7 @@ pub(crate) const CAPACITY: usize = 256;
 /// Physical BaseZone insertion order, independent of ordinary zone capacity.
 /// Zero is never a physical ID. Callers retain ownership and presence on cards.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct CreditList {
+pub struct CreditList {
     ids: [u8; CAPACITY],
     len: u16,
 }

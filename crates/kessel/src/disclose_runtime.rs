@@ -78,7 +78,7 @@ impl Engine {
         aspects: &[String],
         trigger: &str,
     ) -> Result<bool, String> {
-        self.commit_program(s)?;
+        if !self.commit_program(s)? {return Ok(true);}
         s.ability_result = 0;
         s.ability_succeeded = false;
         let player = s.card(s.source).owner;
