@@ -18,6 +18,9 @@ pub struct Branch {
     pub start: usize,
     /// Exclusive branch end, before its jump to the common continuation.
     pub end: usize,
+    /// NoAction({ hasLegalTarget: true }) is legal without an effective event.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub always_legal: bool,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Menu {
@@ -292,60 +295,76 @@ pub fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
 }
 impl Prepared {
     pub fn compile(&self, ability: &Ability) -> Result<Program, String> {
-        let mut program = Program::compile(ability)?;
-        program.instructions.clear();
-        program.select_ends.clear();
-        let mut menu = Menu {
-            chooser: self.chooser,
-            prompt_title: self.prompt_title.clone(),
-            branches: Vec::new(),
-            end: 0,
-        };
-        // Placeholder is replaced after the absolute branch boundaries are known.
-        program.instructions.push(Instruction::EndStep);
-        let mut jumps = Vec::new();
-        for (label, child) in &self.branches {
-            let start = program.instructions.len();
-            for instruction in child.instructions.iter().take(child.instructions.len() - 1) {
-                // Our closed effect vocabulary emits no conditional/jump subprograms.
-                if !matches!(
-                    instruction,
-                    Instruction::Commit
-                        | Instruction::Select(_)
-                        | Instruction::Apply(_)
-                        | Instruction::Group(_)
-                ) {
-                    return Err("modal branch emitted unsupported control flow".into());
-                }
-                program.instructions.push(instruction.clone());
-            }
-            let end = program.instructions.len();
-            for (at, stop) in &child.select_ends {
-                program.select_ends.push((start + at, start + stop));
-            }
-            menu.branches.push(Branch {
-                label: label.clone(),
-                start,
-                end,
-            });
-            jumps.push(end);
-            program.instructions.push(Instruction::EndStep);
-        }
-        menu.end = program.instructions.len();
-        for pc in jumps {
-            program.instructions[pc] = Instruction::Jump { to: menu.end };
-        }
-        program.instructions[0] = Instruction::ModalChoice(menu);
-        program.event_end = program
-            .instructions
-            .len()
-            .try_into()
-            .map_err(|_| "modal instruction capacity exceeded")?;
-        program.instructions.push(Instruction::EndStep);
-        if program.instructions.len() > crate::ability_ir::MAX_PROGRAM_INSTRUCTIONS {
-            return Err("modal instruction capacity exceeded".into());
-        }
-        program.executable = Err("modal choices use validated interpreter continuation");
-        Ok(program)
+        let branches = self
+            .branches
+            .iter()
+            .map(|(label, program)| (label.clone(), program.clone(), false))
+            .collect::<Vec<_>>();
+        compile_branches(ability, self.chooser, &self.prompt_title, &branches)
     }
+}
+/// Reuse the same bounded jump table for fully validated native modal leaves.
+/// Explicit legality is separate from the selected branch's execution result.
+pub(crate) fn compile_branches(
+    ability: &Ability,
+    chooser: Chooser,
+    prompt_title: &str,
+    branches: &[(String, Program, bool)],
+) -> Result<Program, String> {
+    let mut program = Program::compile(ability)?;
+    program.instructions.clear();
+    program.select_ends.clear();
+    let mut menu = Menu {
+        chooser,
+        prompt_title: prompt_title.to_owned(),
+        branches: Vec::new(),
+        end: 0,
+    };
+    // Placeholder is replaced after the absolute branch boundaries are known.
+    program.instructions.push(Instruction::EndStep);
+    let mut jumps = Vec::new();
+    for (label, child, always_legal) in branches {
+        let start = program.instructions.len();
+        for instruction in child.instructions.iter().take(child.instructions.len() - 1) {
+            // Our closed effect vocabulary emits no conditional/jump subprograms.
+            if !matches!(
+                instruction,
+                Instruction::Commit
+                    | Instruction::Select(_)
+                    | Instruction::Apply(_)
+                    | Instruction::Group(_)
+            ) {
+                return Err("modal branch emitted unsupported control flow".into());
+            }
+            program.instructions.push(instruction.clone());
+        }
+        let end = program.instructions.len();
+        for (at, stop) in &child.select_ends {
+            program.select_ends.push((start + at, start + stop));
+        }
+        menu.branches.push(Branch {
+            label: label.clone(),
+            start,
+            end,
+            always_legal: *always_legal,
+        });
+        jumps.push(end);
+        program.instructions.push(Instruction::EndStep);
+    }
+    menu.end = program.instructions.len();
+    for pc in jumps {
+        program.instructions[pc] = Instruction::Jump { to: menu.end };
+    }
+    program.instructions[0] = Instruction::ModalChoice(menu);
+    program.event_end = program
+        .instructions
+        .len()
+        .try_into()
+        .map_err(|_| "modal instruction capacity exceeded")?;
+    program.instructions.push(Instruction::EndStep);
+    if program.instructions.len() > crate::ability_ir::MAX_PROGRAM_INSTRUCTIONS {
+        return Err("modal instruction capacity exceeded".into());
+    }
+    program.executable = Err("modal choices use validated interpreter continuation");
+    Ok(program)
 }

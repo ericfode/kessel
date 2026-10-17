@@ -42,7 +42,7 @@ fn modal_choices_admit_complete_closed_sources_and_reject_other_families() {
         );
     }
     for code in [
-        "SHD_191", "SEC_193", "SEC_207", "SEC_220", "LAW_080", "LAW_086", "LAW_101", "LAW_178",
+        "SHD_191", "SEC_193", "SEC_220", "LAW_080", "LAW_086", "LAW_101",
         "JTL_131", "HMW_054", "HMW_188", "ASH_045", "ASH_257",
     ] {
         assert!(

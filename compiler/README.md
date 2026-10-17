@@ -161,6 +161,23 @@ physical donor. They use the interpreter fallback in Auto mode. General attack
 factories, attack-end/on-attack initiation, exhausted-attacker permissions,
 defender modifiers, altered damage, and unverified continuations remain rejected.
 
+Two closed leader compositions reuse this machinery: a front-side native attack
+action with physical resource/exhaustion costs, and a deployed other-friendly
+Grit or Overwhelm aura. The Grit composition filters Heroism units. A bounded
+ordinary event can also follow initiation with a fresh three-Advantage selection.
+Its `ifYouDo` tests resolution of the initiating event: cancelling the later
+defender picker still runs the continuation, while cancelling before initiation
+or creating no initiation event skips it. Attack/death triggers finish before
+the fresh recipient prompt. Other leader and continuation shapes stay rejected.
+
+Closed arena-choice sources reuse the same menu interpreter for opponent arena
+exhaustion on death and uniform three-damage arena batches on play or attack.
+An explicitly legal Pass remains available without an effective event and
+publishes a false result with no event payload. Global damage batches require
+recorded global arena order at import and execution; existing registration
+chronology guards still apply. Unrelated selected pools retain their legacy
+snapshot compatibility without inferring missing order.
+
 
 Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
 `includes`, retaining order, duplicates, empty-array truthiness, and physical
@@ -499,11 +516,19 @@ choices, first-strike combat and selected hand/discard resource or bottom-deck
 moves. These validators check the complete source registration and metadata;
 the presence of an IR node alone does not admit its containing card. Credit-token
 payments, unsupported companions and unreviewed source contexts remain rejected.
-Self-play reductions read live damaged-unit counts when calculating the total
+Self-play reductions read their validated live unit/leader counts when calculating the total
 play cost, including aspect penalties, and floor the result at zero. First-strike
 combat settles the attacker's damage and death triggers before calculating a
 surviving defender's return power. Modal choices preserve the chooser and resume
 the selected branch through the ordinary program interpreter.
+
+Two closed ordinary-event cost contracts retain their executable event after
+extracting the cost registration: friendly arena leader units reduce an up-to-three
+Experience event, and friendly Rebel units/leaders reduce a Draw 2 event. The
+Rebel inventory uses live traits and counts the undeployed leader once; attached
+ordinary Pilots retain upgrade mode and do not count as units. Leader-upgrade
+modes remain outside admission. These reductions apply to the source's play cost,
+not ability costs or card-effect resource payments.
 
 The fixture generator records real engine games across four bot pairings plus
 explicit effect/continuation decks, and preserves the exact pool beside them.

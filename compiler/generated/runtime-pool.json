@@ -3957,6 +3957,43 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4388494523",
+      "internalName": "follow-me",
+      "keywords": [],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "ASH_184",
+      "setCodes": [
+        {
+          "number": 184,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 184,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. After completing the attack, give 3 Advantage tokens to a unit.",
+      "title": "Follow Me",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -5774,6 +5811,47 @@
       "traits": [
         "imperial",
         "official"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": "Other friendly Heroism units gain Grit.",
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "hp": 7,
+      "id": "5495312929",
+      "internalName": "omega#close-your-eyes-and-focus",
+      "keywords": [
+        "grit"
+      ],
+      "power": 2,
+      "rules": "If you use Omega’s leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "HMW_006",
+      "setCodes": [
+        {
+          "number": 6,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 6,
+        "set": "HMW"
+      },
+      "subtitle": "Close Your Eyes and Focus",
+      "text": "Action [1 resource, Exhaust]: Attack with a Heroism unit. It gains Grit for this attack. (It gets +1/+0 for each damage on it.)",
+      "title": "Omega",
+      "traits": [
+        "clone"
       ],
       "types": [
         "leader"
@@ -9392,6 +9470,45 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "5533325371",
+      "internalName": "rebel-operation",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "HMW_173",
+      "setCodes": [
+        {
+          "number": 173,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 173,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "This card costs 1 resource less to play for each friendly Rebel unit and leader.\nDraw 2 cards.",
+      "title": "Rebel Operation",
+      "traits": [
+        "rebel",
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -22984,6 +23101,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "5725363168",
+      "internalName": "persecutor#fire-over-scarif",
+      "keywords": [],
+      "power": 9,
+      "rules": null,
+      "setCode": "LAW_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "LAW"
+      },
+      "subtitle": "Fire Over Scarif",
+      "text": "When Played/On Attack: Choose an arena. You may deal 3 damage to each unit in that arena.",
+      "title": "Persecutor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -34800,6 +34958,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2808340732",
+      "internalName": "lightmaker#i-have-an-idea",
+      "keywords": [
+        "raid"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_207",
+      "setCodes": [
+        {
+          "number": 207,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 207,
+        "set": "SEC"
+      },
+      "subtitle": "I Have An Idea",
+      "text": "Raid 4\nWhen Defeated: Choose an arena. Exhaust each enemy unit in that arena.",
+      "title": "Lightmaker",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning"
@@ -45406,6 +45607,43 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4540524041",
+      "internalName": "take-charge",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TS26_060",
+      "setCodes": [
+        {
+          "number": 60,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 60,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "This event costs 1 resource less to play for each friendly leader unit.\nGive an Experience token to each of up to 3 units.",
+      "title": "Take Charge",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -45836,6 +46074,48 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": "Overwhelm\nEach other friendly unit gains Overwhelm.",
+      "epicAction": "Epic Action: If you control 6 or more resources, deploy this leader.",
+      "hp": 6,
+      "id": "6461101372",
+      "internalName": "maul#a-rival-in-darkness",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 6,
+      "rules": "If you use Maul's leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "TWI_009",
+      "setCodes": [
+        {
+          "number": 9,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 9,
+        "set": "TWI"
+      },
+      "subtitle": "A Rival in Darkness",
+      "text": "Action [Exhaust]: Attack with a unit. It gains Overwhelm for this attack. (When attacking an enemy unit, deal excess damage to the opponent's base.)",
+      "title": "Maul",
+      "traits": [
+        "force",
+        "underworld"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

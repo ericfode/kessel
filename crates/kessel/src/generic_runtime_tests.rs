@@ -2307,6 +2307,9 @@ fn legacy_hidden_guard_uses_selected_pool_and_rejects_both_modifier_masks() {
     };
     let v=legacy_snapshot(&e);
     assert!(e.load_state(&v).unwrap_err().contains("requires explicit Hidden"));
+    let mut missing_order=v.clone();missing_order.as_object_mut().unwrap().remove("arenaUnitOrder");
+    assert!(e.needs_modal_arena_order());
+    assert!(e.load_state(&missing_order).unwrap_err().contains("requires explicit Hidden"));
     e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
     // Recreate under the selected pool: unrelated Support versioning from the
     // full catalogue is not part of this legacy Hidden-free input.
@@ -3828,5 +3831,14 @@ mod disclose_tests;
 #[path="modal_choice_tests.rs"]
 mod modal_choice_tests;
 
+#[path = "modal_arena_choice_tests.rs"]
+mod modal_arena_choice_tests;
+
 #[path="zone_statics_tests.rs"]
 mod zone_statics_tests;
+
+#[path = "native_attack_composition_tests.rs"]
+mod native_attack_composition_tests;
+
+#[path="self_play_cost_event_tests.rs"]
+mod self_play_cost_event_tests;
