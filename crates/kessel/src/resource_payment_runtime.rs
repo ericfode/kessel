@@ -290,6 +290,8 @@ impl Engine {
         if !self.open_payment_deaths(&mut t)? {
             self.resume_resource_payment(&mut t)?;
         }
+        // Match the ordinary public action boundary, including unique-entry prompts.
+        self.sweep_stat_defeats(&mut t)?;
         Ok(t)
     }
     pub(super) fn run_adjusted_resource_payment(

@@ -624,7 +624,7 @@ fn death_hook_registration_legacy_compatibility_uses_selected_pool_and_future_ca
     let mut e = engine();
     let mut s = midgame(&e, Seat::P1);
     unit(&e, &mut s, Seat::P1, "LOF_254");
-    let mut snapshot = e.snapshot(&s);
+    let mut snapshot = without_empty_credit_state(e.snapshot(&s));
     snapshot
         .as_object_mut()
         .unwrap()

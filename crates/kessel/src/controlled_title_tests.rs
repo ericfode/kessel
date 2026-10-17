@@ -349,7 +349,7 @@ fn controlled_title_force_literal_requires_native_definition_and_explicit_state(
     let complete_pool = pool(&["ASH_019","SOR_014","IBH_053","TOKEN_SHIELD","SOR_082","TOKEN_THE_FORCE"]);
     assert!(Engine::from_compiled_pool_bytes(&complete_pool, &bytes).is_ok());
     let s = controlled_title_board(&e, Seat::P1);
-    let mut snapshot = e.snapshot(&s);
+    let mut snapshot = without_empty_credit_state(e.snapshot(&s));
     snapshot.as_object_mut().unwrap().remove("forceStateVersion");
     for seat in ["p1", "p2"] { snapshot["players"][seat].as_object_mut().unwrap().remove("forceToken"); }
     e.catalogue.as_mut().unwrap().metadata.retain(|code, _| ["ASH_019","SOR_014","IBH_053","TOKEN_THE_FORCE","SOR_082"].contains(&code.as_str()));

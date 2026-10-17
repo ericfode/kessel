@@ -601,3 +601,40 @@ fn credit_attachment_discount_and_payment_share_the_chosen_physical_host() {
         assert_eq!(done.decision, Decision::Window);
     });
 }
+
+#[test]
+fn credit_named_event_retains_both_pretargets_and_allocates_shield_after_payment() {
+    cases(|e, actor| {
+        let mut s = standard(e, actor);
+        let event = hand(e, &mut s, actor, "SOR_218");
+        let enemy = unit(e, &mut s, actor.other(), "LOF_256");
+        let friendly = unit(e, &mut s, actor, "LOF_254");
+        let charge = e.cost(&s, event);
+        credits(e, &mut s, actor, charge);
+        let next = s.next_id;
+        let first = choose(e, &s, event);
+        assert_eq!(first.decision, Decision::AbilityTarget);
+        let second = choose(e, &first, enemy);
+        assert_eq!(second.decision, Decision::AbilityTarget);
+        let prompt = choose(e, &second, friendly);
+        let label = if charge == 1 {
+            "Use 1 Credit".into()
+        } else {
+            format!("Use {charge} Credits")
+        };
+        menu(e, &prompt, &[&label, "Cancel"]);
+        assert!(prompt.event_group.active);
+        assert_eq!(prompt.next_id, next, "Shield allocation follows payment");
+        assert!(!prompt.card(enemy).exhausted);
+        assert_eq!(prompt.card(friendly).shield, 0);
+        assert_eq!(button(e, &prompt, "Cancel"), s);
+        let done = button(e, &prompt, &label);
+        assert!(done.player(actor).discard.contains(event));
+        assert!(done.card(enemy).exhausted);
+        assert_eq!(done.card(friendly).shield, next);
+        assert_eq!(done.card(next).owner, actor);
+        assert!(live(&done, actor).is_empty());
+        assert_eq!(done.event_group, EventGroupState::default());
+        assert_eq!(done.decision, Decision::Window);
+    });
+}

@@ -8,7 +8,7 @@ pub(super) fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
 }
 pub(super) fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
 pub(super) fn board(e:&Engine,actor:Seat,code:&str)->State {
-    let mut s=State::default();s.hidden_history_exact=true;s.force_state_exact=true;s.active=actor;s.action_player=Some(actor);
+    let mut s=State::default();s.credit_state_exact=e.needs_credit_state();s.hidden_history_exact=true;s.force_state_exact=true;s.active=actor;s.action_player=Some(actor);
     for seat in [Seat::P1,Seat::P2] {
         let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,if seat==actor {code}else{"SOR_014"});
         s.player_mut(seat).base=base;s.player_mut(seat).leader=leader;s.player_mut(seat).force_id=s.next_id;s.next_id+=1;

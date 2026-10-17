@@ -97,6 +97,16 @@ fn board(e: &Engine) -> State {
     }
     s
 }
+// These legacy fixtures deliberately select a pool without Credits. Both exact
+// empty lists must be observed before projecting away unrelated version evidence.
+fn without_empty_credit_state(mut snapshot:Value)->Value {
+    assert_eq!(snapshot["creditStateVersion"],json!(1));
+    for seat in ["p1","p2"] {for field in ["credits","retiredCredits"] {
+        assert_eq!(snapshot["players"][seat][field],json!([]));
+        snapshot["players"][seat].as_object_mut().unwrap().remove(field);
+    }}
+    snapshot.as_object_mut().unwrap().remove("creditStateVersion");snapshot
+}
 fn unit(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = add(e, s, seat, code);
     e.add_arena(s, id).unwrap();
@@ -1670,7 +1680,7 @@ fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_
     let token=unit(&e,&mut s,Seat::P2,"TOKEN_MANDALORIAN");let leader=s.players[0].leader;s.card_mut(leader).deployed=true;s.card_mut(leader).epic_used=true;e.add_arena(&mut s,leader).unwrap();assert_eq!(e.arena_units(&s),vec![late,early,token,leader]);
     // Legacy evidence is valid only for a selected pool without future listener registrations.
     let mut legacy_engine=engine();legacy_engine.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_256"].contains(&code.as_str()));
-    let mut legacy=snapshot;legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");legacy.as_object_mut().unwrap().remove("supportStateVersion");legacy.as_object_mut().unwrap().remove("supportGrants");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
+    let mut legacy=without_empty_credit_state(snapshot);legacy.as_object_mut().unwrap().remove("arenaUnitOrder");legacy.as_object_mut().unwrap().remove("registrationOrder");legacy.as_object_mut().unwrap().remove("supportStateVersion");legacy.as_object_mut().unwrap().remove("supportGrants");let legacy_state=legacy_engine.load_state(&legacy).unwrap();assert!(!legacy_state.arena_order_exact);assert_eq!(legacy_engine.snapshot(&legacy_state),legacy);assert_ne!(legacy_state.zobrist(),hash);
 }
 #[test]
 fn repeated_defeat_records_prepare_repeated_cleanup_before_deduplicated_handlers() {
@@ -2303,7 +2313,9 @@ fn hidden_live_qualification_and_numeric_storage_are_separate() {
 fn legacy_hidden_guard_uses_selected_pool_and_rejects_both_modifier_masks() {
     let mut e=engine();let mut s=board(&e);unit(&e,&mut s,Seat::P1,"LOF_256");
     let legacy_snapshot=|engine:&Engine| {
-        let mut v=engine.snapshot(&s);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
+        // This fresh fixture has no live or retired Credits; project only selected evidence.
+        let mut projected=s;projected.credit_state_exact=engine.needs_credit_state();
+        let mut v=engine.snapshot(&projected);v.as_object_mut().unwrap().remove("hiddenHistoryVersion");
         for seat in ["p1","p2"] {for arena in ["ground","space"] {for card in v["players"][seat][arena].as_array_mut().unwrap() {card.as_object_mut().unwrap().remove("hiddenQualified");}}}
         v
     };
@@ -2595,7 +2607,7 @@ fn force_version_ids_and_selected_native_are_strict() {
  let mut e=engine();let s=board(&e);let snapshot=e.snapshot(&s);
  for value in [json!(null),json!(0),json!(true),json!("1")] {let mut bad=snapshot.clone();bad["forceStateVersion"]=value;assert!(e.load_state(&bad).is_err());}
  let mut bad=snapshot.clone();bad["players"]["p1"]["forceToken"]["id"]=snapshot["players"]["p1"]["base"]["id"].clone();assert!(e.load_state(&bad).is_err());
- e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053"].contains(&code.as_str()));assert!(e.load_state(&snapshot).is_ok());
+ e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053"].contains(&code.as_str()));let snapshot=without_empty_credit_state(snapshot);assert!(e.load_state(&snapshot).is_ok());
  let mut held=snapshot.clone();held["players"]["p1"]["forceToken"]["held"]=json!(true);assert!(e.load_state(&held).unwrap_err().contains("selected native"));
  let mut legacy=snapshot.clone();legacy.as_object_mut().unwrap().remove("forceStateVersion");for seat in ["p1","p2"]{legacy["players"][seat].as_object_mut().unwrap().remove("forceToken");}assert!(e.load_state(&legacy).is_ok());
 }
@@ -2657,6 +2669,7 @@ fn force_presence_sentinel_changes_attack_domain_and_overrides_hidden() {
 fn force_presence_selected_queries_require_native_and_explicit_history_even_when_absent() {
  let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let mut bad=original.clone();bad["cards"].as_array_mut().unwrap().retain(|v|v["setCode"]!="TOKEN_THE_FORCE");let rejected=Engine::from_catalogue_value(&bad).unwrap();for code in ["LOF_050","LOF_196","LOF_231","LOF_237"]{assert!(!rejected.by_code.contains_key(code));}
  let mut e=engine();let mut snapshot=e.snapshot(&board(&e));snapshot.as_object_mut().unwrap().remove("forceStateVersion");for seat in ["p1","p2"]{snapshot["players"][seat].as_object_mut().unwrap().remove("forceToken");}
+ snapshot=without_empty_credit_state(snapshot);
  e.catalogue.as_mut().unwrap().metadata.retain(|code,_|["ASH_019","SOR_014","IBH_053","LOF_050","TOKEN_THE_FORCE"].contains(&code.as_str()));assert!(e.load_state(&snapshot).unwrap_err().contains("Force"));e.catalogue.as_mut().unwrap().metadata.remove("LOF_050");assert!(e.load_state(&snapshot).is_ok());
 }
 #[test]

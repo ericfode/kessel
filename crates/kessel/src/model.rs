@@ -891,7 +891,7 @@ mod hash_protocol_tests {
 
     #[test]
     fn historical_prompt_hash_tags_remain_stable() {
-        // Frozen before Disclose was added. Both State and saved continuation
+        // Frozen before Credit was added. Both State and saved continuation
         // hashes use these tags, including Support's existing value of 24.
         let historical = [
             Decision::Window, Decision::LeaderMenu, Decision::AttackTarget,
@@ -903,12 +903,13 @@ mod hash_protocol_tests {
             Decision::AbilityGroupShield, Decision::AbilityDiscard,
             Decision::AbilityDisplay, Decision::DeathPlayer, Decision::DeathOrder,
             Decision::DeathBatch, Decision::Terminal, Decision::Support,
+            Decision::DiscloseSelect, Decision::DisclosePause, Decision::DiscloseReveal,
         ];
         for (tag, decision) in historical.into_iter().enumerate() {
             assert_eq!(decision as usize, tag, "historical {decision:?} hash tag changed");
         }
-        for decision in [Decision::DiscloseSelect, Decision::DisclosePause, Decision::DiscloseReveal] {
-            assert!(decision as usize > Decision::Support as usize);
+        for decision in [Decision::CreditMenu, Decision::CreditAmount] {
+            assert!(decision as usize > Decision::DiscloseReveal as usize);
         }
     }
 }
