@@ -13,7 +13,7 @@ impl Engine {
         if source == 0 || target == 0 || !self.in_arena(s, source) || !self.in_arena(s, target) {
             return Err("first-strike window requires live attack participants".into());
         }
-        let attack = self.power(s, source, true);
+        let attack = self.combat_damage(s, source, true);
         let before = s.card(target).damage;
         let remaining = self.hp(s, target).saturating_sub(before);
         // A Shield cancels the combat-damage parent and its Overwhelm contingent.
@@ -62,7 +62,7 @@ impl Engine {
         self.capture_attack_end(s)?;
         let before = s.card(source).damage;
         if self.in_arena(s, target) && self.in_arena(s, source) {
-            let defend = self.power(s, target, false);
+            let defend = self.combat_damage(s, target, false);
             self.damage(s, source, defend);
         }
         let mut dead = vec![];

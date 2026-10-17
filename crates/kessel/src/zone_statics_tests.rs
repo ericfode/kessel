@@ -680,3 +680,122 @@ fn zone_statics_complete_cards_and_imported_continuations_fail_closed() {
     assert!(e.open_deaths(&mut invalid, 9).is_err());
     assert_eq!(invalid, s);
 }
+
+fn betrayed_trust_marks(e: &Engine, s: &mut State, caster: Seat, target: CardId) -> State {
+    // Play the complete card and choose its real enemy-unit resolver. This
+    // creates the sibling restriction mechanism's phase mark through its IR.
+    s.active = caster;
+    s.action_player = Some(caster);
+    let event = add(e, s, caster, "LAW_130");
+    s.player_mut(caster).hand.push(event).unwrap();
+    for _ in 0..8 {
+        let resource = add(e, s, caster, "LOF_254");
+        s.player_mut(caster).resources.push(resource).unwrap();
+    }
+    let prompt = click(e, s, event);
+    assert_eq!(prompt.decision, Decision::AbilityTarget);
+    let marked = settle(e, click(e, &prompt, target));
+    assert!(marked.player(caster).discard.contains(event));
+    assert!(e.card_restricted(
+        &marked,
+        target,
+        crate::ability_ir::RestrictionVerb::DealCombatDamage
+    ));
+    marked
+}
+
+#[test]
+fn zone_statics_betrayed_trust_first_strike_attacker_deals_no_damage_or_overwhelm() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1, Seat::P2] {
+            let mut s = start(&e, seat.other());
+            let attacker = unit(&e, &mut s, seat, "SHD_234");
+            let defender = unit(&e, &mut s, seat.other(), "LOF_254");
+            // Isolate the Overwhelm interaction using the existing phase grant
+            // primitive; the restriction itself comes from playing LAW_130.
+            s.source = attacker;
+            let overwhelm: Effect = serde_json::from_value(json!({
+                "kind":"gainKeyword", "target":"self", "duration":"phase",
+                "keyword":"overwhelm", "amount":{"kind":"const","value":1}
+            }))
+            .unwrap();
+            assert_eq!(e.apply_effect(&mut s, &overwhelm).unwrap(), (1, true));
+            s.source = 0;
+            let mut marked = betrayed_trust_marks(&e, &mut s, seat.other(), attacker);
+            assert_eq!(marked.active, seat);
+            assert_eq!(e.power(&marked, attacker, true), 2);
+            assert_eq!(e.combat_damage(&marked, attacker, true), 0);
+            assert_eq!(e.keyword_amount(&marked, attacker, "overwhelm"), 1);
+            let base = marked.player(seat.other()).base;
+            let base_before = marked.card(base).damage;
+            let done = settle(&e, attack(&e, &mut marked, attacker, defender));
+            assert!(e.in_arena(&done, attacker));
+            assert!(e.in_arena(&done, defender));
+            assert_eq!(done.card(defender).damage, 0);
+            assert_eq!(done.card(attacker).damage, 1);
+            assert_eq!(done.card(base).damage, base_before);
+        }
+    }
+}
+
+#[test]
+fn zone_statics_betrayed_trust_surviving_grit_defender_deals_no_return_damage() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1, Seat::P2] {
+            let mut s = start(&e, seat);
+            let attacker = unit(&e, &mut s, seat, "SHD_234");
+            let defender = unit(&e, &mut s, seat.other(), "ASH_074");
+            let marked = betrayed_trust_marks(&e, &mut s, seat, defender);
+            // The other player passes after the event, returning a legal action
+            // window to the attacker while the phase restriction remains live.
+            let mut marked = settle(&e, named_button(&e, &marked, "Pass"));
+            assert_eq!(marked.active, seat);
+            let done = settle(&e, attack(&e, &mut marked, attacker, defender));
+            assert!(e.in_arena(&done, attacker));
+            assert!(e.in_arena(&done, defender));
+            assert_eq!(done.card(defender).damage, 2);
+            assert_eq!(e.power(&done, defender, false), 3);
+            assert_eq!(e.combat_damage(&done, defender, false), 0);
+            assert_eq!(done.card(attacker).damage, 0);
+        }
+    }
+}
+
+#[test]
+fn zone_statics_full_catalogue_rejects_unimplemented_source_context() {
+    let catalogue: Value =
+        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let focus = [
+        "ASH_202", "SHD_234", "SOR_198", "SOR_217", "HMW_044", "SHD_085", "JTL_205", "LAW_174",
+    ];
+    let original = crate::ability_ir::Catalogue::load(&catalogue).unwrap();
+    for code in focus {
+        assert!(
+            original.cards.contains_key(code),
+            "{code} legitimate complete source"
+        );
+    }
+    for (field, value) in [
+        ("stateWatchers", json!([{"watcher":"unreviewed"}])),
+        ("inheritedSource", json!({"baseClass":"Unreviewed"})),
+    ] {
+        let mut changed = catalogue.clone();
+        for entry in changed["cards"].as_array_mut().unwrap() {
+            if entry["setCode"]
+                .as_str()
+                .is_some_and(|code| focus.contains(&code))
+            {
+                entry[field] = value.clone();
+            }
+        }
+        let loaded = crate::ability_ir::Catalogue::load(&changed).unwrap();
+        for code in focus {
+            assert!(loaded.rejected.contains_key(code), "{code}:{field}");
+            assert!(!loaded.cards.contains_key(code), "{code}:{field}");
+        }
+    }
+}
