@@ -1784,7 +1784,7 @@ impl Engine {
                     pc = scope;
                     continue;
                 }
-                Instruction::IfResult { .. } => break,
+                Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } => break,
                 Instruction::Apply(effect) | Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup {effect,..} => {
                     if self.effect_can_affect(s, source, target, effect, require_change) {
                         return true;
@@ -2230,6 +2230,13 @@ impl Engine {
                 }
                 Instruction::IfResult { skip } => {
                     s.ability_pc = if s.ability_succeeded {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::IfWillDefeat { skip } => {
+                    s.ability_pc = if s.ability_succeeded && s.event_result.will_defeat {
                         s.ability_pc + 1
                     } else {
                         *skip as u8
@@ -3177,6 +3184,10 @@ impl Engine {
                             let before = s.card(id).damage;
                             let remaining=self.hp(s,id).saturating_sub(before);
                             let prevented=s.card(id).shield!=0;
+                            // Engine willDefeat ignores Shield; lethal vs printed remaining HP.
+                            if in_arena && amount >= remaining {
+                                events.will_defeat = true;
+                            }
                             self.damage(s, id, amount);
                             if !prevented {events.damage_dealt=events.damage_dealt.checked_add(u32::from(amount.min(remaining))).ok_or("actual damage result exceeds capacity")?;}
                             result =

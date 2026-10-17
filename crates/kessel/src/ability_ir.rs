@@ -1131,6 +1131,9 @@ pub struct Ability {
     pub then: Option<Box<Ability>>,
     #[serde(default)]
     pub if_you_do: Option<Box<Ability>>,
+    /// Reviewed compiler `ifYouDoCondition`. Only `eventResult`/`willDefeat` executes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub if_you_do_condition: Option<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1276,6 +1279,8 @@ pub enum Instruction {
     CaptureMaximum {aspect:String},
     Conditional { condition: Expr, skip: usize },
     IfResult { skip: usize },
+    /// ifYouDo gated by reviewed resolvedEvents[0].willDefeat (and prior step success).
+    IfWillDefeat { skip: usize },
     Jump { to: usize },
     Apply(Effect),
     Group(Effect),
@@ -1665,6 +1670,19 @@ fn parent_upgrade_registration(a:&Ability)->Option<bool> {
 }
 
 fn contains_event_ref(v:&Value)->bool {(v["kind"]=="ref"&&v["path"][0]=="event")||match v {Value::Array(a)=>a.iter().any(contains_event_ref),Value::Object(o)=>o.values().any(contains_event_ref),_=>false}}
+/// Reviewed `ifYouDoCondition: resolvedEvents[0].willDefeat` (Darth Vader / Justifier / Shoot Down).
+fn will_defeat_if_you_do_condition(v:&Value)->bool {
+    v["kind"]=="eventResult"
+        && v["collection"]=="resolvedEvents"
+        && v["eventIndex"]==0
+        && v["path"]==serde_json::json!(["willDefeat"])
+        && (v["optionalAccess"].is_null()||v["optionalAccess"]==serde_json::json!([]))
+        && v["contextBinding"]["role"]=="ifYouDoCondition"
+        && v["contextBinding"]["bindAt"]=="callbackInvocation"
+        && v["contextBinding"]["readAt"]=="expressionEvaluation"
+        && v["contextBinding"]["reference"]=="lexicalContextObject"
+        && v["contextBinding"]["id"].as_str().is_some_and(|id|id.starts_with("callback:")&&id.len()<=64)
+}
 fn plain_result_child(a:&Ability)->bool {a.trigger.is_empty()&&!a.optional&&!a.coordinate&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.condition.is_none()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()}
 fn resolved_defeat_continuation(a:&Ability)->bool {
     let Some(next)=a.then.as_deref() else{return false;};
@@ -1710,7 +1728,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::Jump { .. } => {}
+                Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -2261,11 +2279,54 @@ impl Program {
         }
         if let Some(next) = &ability.if_you_do {
             let start = self.instructions.len();
-            self.instructions.push(Instruction::IfResult { skip: 0 });
-            self.compile_ability(next, depth + 1)?;
-            self.instructions[start] = Instruction::IfResult {
-                skip: self.instructions.len(),
-            };
+            let will_defeat = next.if_you_do_condition.as_ref().is_some_and(will_defeat_if_you_do_condition);
+            if next.if_you_do_condition.is_some() && !will_defeat {
+                return Err("ifYouDoCondition requires reviewed willDefeat eventResult".into());
+            }
+            if will_defeat {
+                self.instructions.push(Instruction::IfWillDefeat { skip: 0 });
+            } else {
+                self.instructions.push(Instruction::IfResult { skip: 0 });
+            }
+            // Optional ifYouDo + selectCard lowers to an optional selector (Choose nothing),
+            // matching the reviewed Vader / Shoot Down "you may" continuation.
+            let mut next = (**next).clone();
+            if next.optional {
+                let Effect::Select { target_resolver, effect } = &next.effect else {
+                    return Err(
+                        "nested continuation costs, optional triggers and registrations are unsupported"
+                            .into(),
+                    );
+                };
+                let damage_ok = matches!(
+                    effect.as_ref(),
+                    Effect::Damage { amount: Expr::Const { value }, target: Target::Name(n) }
+                        if n == "chosen" && value.as_u64().is_some_and(|n| (1..=2).contains(&n))
+                );
+                if !will_defeat || !damage_ok || target_resolver.is_multiple() {
+                    return Err(
+                        "nested continuation costs, optional triggers and registrations are unsupported"
+                            .into(),
+                    );
+                }
+                let mut resolver = target_resolver.clone();
+                resolver.optional = true;
+                next.optional = false;
+                next.effect = Effect::Select {
+                    target_resolver: resolver,
+                    effect: effect.clone(),
+                };
+            }
+            self.compile_ability(&next, depth + 1)?;
+            if will_defeat {
+                self.instructions[start] = Instruction::IfWillDefeat {
+                    skip: self.instructions.len(),
+                };
+            } else {
+                self.instructions[start] = Instruction::IfResult {
+                    skip: self.instructions.len(),
+                };
+            }
         }
         Ok(())
     }

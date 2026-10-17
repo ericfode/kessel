@@ -434,6 +434,8 @@ impl Default for EventGroupState {
 pub struct StepEventResult {
     pub source: CardId, pub program: u16, pub pc: u8,
     pub damage_dealt: u32, pub defeated_units: [u16; 2],
+    /// Ability damage would defeat the unit (remaining HP), independent of Shield replacement.
+    pub will_defeat: bool,
 }
 impl StepEventResult {
     pub fn for_state(s:&State)->Self {Self {source:s.source,program:s.ability_program,pc:s.ability_pc,..Self::default()}}
@@ -661,7 +663,7 @@ impl State {
             h ^= key(i, v);
         };
         fn result_values(r:StepEventResult,lki_source:CardId,lki_power:u16,put:&mut impl FnMut(u64)) {
-            if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}}
+            if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,u64::from(r.will_defeat),lki_source as u64,lki_power as u64]{put(v);}}
         }
         fn context_values(c:&ResolutionContext,put:&mut impl FnMut(u64)) {
             if c.attack_end_captured || c.attack_attacker_defeated || c.attack_attacker_departed || c.attack_defender_defeated || c.attack_defender_departed {put(0x41545441434b454e);put(c.attack_end_captured as u64);put(c.attack_attacker_defeated as u64);put(c.attack_attacker_departed as u64);put(c.attack_defender_defeated as u64);put(c.attack_defender_departed as u64);}

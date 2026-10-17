@@ -146,6 +146,7 @@ fn lower(p: &Program) -> Result<String, String> {
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
             Instruction::Apply(Effect::DistributeHealing{..})=>"s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
+            Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),
             Instruction::Apply(e)=>format!("self.commit_program(s)?;{}s.ability_pc+=1;",primitive(e)?),
             _=>return Err("instruction control/expression requires interpreter".into()),

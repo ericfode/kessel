@@ -11,10 +11,10 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_145","JTL_148","JTL_189","JTL_210","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_142","JTL_145","JTL_148","JTL_189","JTL_210","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
-    for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
+    for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066"] {
         assert!(!e.by_code.contains_key(code),"unsupported attached child admitted {code}");
     }
 }
@@ -779,4 +779,135 @@ fn attached_alias_smuggle_mention_requires_printed_cost_text() {
     let mut bare=original.clone();
     bare["card"]["keywords"]=json!(["smuggle","raid"]);
     assert!(!admitted(bare),"raid mention still needs a parent grant");
+}
+
+
+#[test]
+fn piloting_host_vader_will_defeat_continues_to_optional_followup() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_142"),"{:?}",e.rejected_cards().unwrap().get("JTL_142"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let fragile=unit(&e,&mut s,seat.other(),"LOF_256");
+        // Leave 1 HP so ability damage 1 willDefeat.
+        s.card_mut(fragile).damage=e.hp(&s,fragile).saturating_sub(1);
+        let tough=unit(&e,&mut s,seat.other(),"LOF_254");
+        attach(&e,&mut s,seat,"JTL_142",host);
+        let base=s.player(seat.other()).base;
+        // Optional + Select opens AbilityTarget with Pass (not a separate AbilityOptional).
+        let prompt=attack(&e,s,host,base);
+        assert_eq!(prompt.decision,Decision::AbilityTarget,"{seat:?}");
+        assert_eq!(prompt.source,host);
+        let actions=e.legal_actions(&prompt);
+        assert!(actions.iter().any(|a|a.id()==Some(fragile)));
+        assert!(actions.iter().any(|a|a.id()==Some(tough)));
+        assert!(actions.iter().any(|a|a.arg.as_ref().and_then(|v|v.as_str())==Some("passAbility")));
+        let follow=e.apply(&prompt,&e.card_action(&prompt,fragile)).unwrap();
+        assert!(follow.player(seat.other()).discard.contains(fragile),"{seat:?} defeated");
+        // Optional "you may" follow-up: Choose nothing after Commit.
+        assert_eq!(follow.decision,Decision::AbilityTarget,"{seat:?} follow-up");
+        assert!(e.legal_actions(&follow).iter().any(|a|a.label=="Choose nothing"||a.arg.as_ref().and_then(|v|v.as_str())==Some("done")));
+        let done=e.apply(&follow,&Action::button("Choose nothing","done")).unwrap();
+        assert_eq!(done.decision,Decision::Window);
+        assert_eq!(done.card(tough).damage,0);
+
+        // Non-lethal damage must not offer the follow-up.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let tough=unit(&e,&mut s,seat.other(),"LOF_256");
+        attach(&e,&mut s,seat,"JTL_142",host);
+        let base=s.player(seat.other()).base;
+        let prompt=attack(&e,s,host,base);
+        let done=e.apply(&prompt,&e.card_action(&prompt,tough)).unwrap();
+        assert!(e.in_arena(&done,tough));
+        assert_eq!(done.card(tough).damage,1);
+        assert_eq!(done.decision,Decision::Window,"{seat:?} no follow-up without willDefeat");
+    }
+}
+
+#[test]
+fn piloting_host_vader_rejects_missing_will_defeat_condition() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_142").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_142");
+    assert!(admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_host_entry(&original));
+    let mut no_cond=original.clone();
+    no_cond["abilities"]["card"][0]["effect"]["registration"]["program"]["ifYouDo"].as_object_mut().unwrap().remove("ifYouDoCondition");
+    assert!(!admitted(no_cond),"missing willDefeat condition would fire on any damage");
+    let mut bad_path=original.clone();
+    bad_path["abilities"]["card"][0]["effect"]["registration"]["program"]["ifYouDo"]["ifYouDoCondition"]["path"]=json!(["damageDealt"]);
+    assert!(!admitted(bad_path),"non-willDefeat eventResult");
+}
+
+
+#[test]
+fn will_defeat_justifier_and_scout_walker_give_advantage() {
+    let e=engine();
+    assert!(e.by_code.contains_key("ASH_146"),"{:?}",e.rejected_cards().unwrap().get("ASH_146"));
+    assert!(e.by_code.contains_key("ASH_176"),"{:?}",e.rejected_cards().unwrap().get("ASH_176"));
+    // Justifier When Played: lethal damage grants Advantage to a chosen unit.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let source=unit(&e,&mut s,Seat::P1,"ASH_146");
+    let fragile=unit(&e,&mut s,Seat::P2,"LOF_256");
+    s.card_mut(fragile).damage=e.hp(&s,fragile).saturating_sub(1);
+    let ally=unit(&e,&mut s,Seat::P1,"LOF_256");
+    s.source=source;s.trigger_context=1;s.decision=Decision::Window;
+    e.queue_programs(&mut s,&["whenPlayed"]);
+    e.process_all_triggers(&mut s).unwrap();
+    assert_eq!(s.decision,Decision::AbilityTarget);
+    let follow=e.apply(&s,&e.card_action(&s,fragile)).unwrap();
+    assert!(follow.player(Seat::P2).discard.contains(fragile));
+    assert_eq!(follow.decision,Decision::AbilityTarget);
+    let done=e.apply(&follow,&e.card_action(&follow,ally)).unwrap();
+    assert_eq!(e.upgrades(&done,ally).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_ADVANTAGE").count(),1);
+
+    // Scout Walker: ground-only 3 damage; self gains 3 Advantage on willDefeat.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let source=unit(&e,&mut s,Seat::P1,"ASH_176");
+    let ground=unit(&e,&mut s,Seat::P2,"LOF_256");
+    s.card_mut(ground).damage=e.hp(&s,ground).saturating_sub(3);
+    let space=unit(&e,&mut s,Seat::P2,"TOKEN_XWING");
+    s.source=source;s.trigger_context=1;s.decision=Decision::Window;
+    e.queue_programs(&mut s,&["whenPlayed"]);
+    e.process_all_triggers(&mut s).unwrap();
+    assert_eq!(s.decision,Decision::AbilityTarget);
+    let actions=e.legal_actions(&s);
+    assert!(actions.iter().any(|a|a.id()==Some(ground)));
+    assert!(!actions.iter().any(|a|a.id()==Some(space)),"space excluded");
+    let done=e.apply(&s,&e.card_action(&s,ground)).unwrap();
+    assert!(done.player(Seat::P2).discard.contains(ground));
+    assert_eq!(e.upgrades(&done,source).iter().filter(|&&id|e.def(&done,id).code=="TOKEN_ADVANTAGE").count(),3);
+}
+
+#[test]
+fn will_defeat_shoot_down_optional_base_followup() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_176"),"{:?}",e.rejected_cards().unwrap().get("JTL_176"));
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    // Stock resources to play the event (cost 2).
+    for _ in 0..2 {
+        let id=add(&e,&mut s,Seat::P1,"LOF_254");
+        s.player_mut(Seat::P1).resources.push(id).unwrap();
+        s.card_mut(id).exhausted=false;
+    }
+    let event=hand(&e,&mut s,"JTL_176");
+    let space=unit(&e,&mut s,Seat::P2,"TOKEN_XWING");
+    s.card_mut(space).damage=e.hp(&s,space).saturating_sub(3);
+    let ground=unit(&e,&mut s,Seat::P2,"LOF_256");
+    let prompt=e.apply(&s,&e.card_action(&s,event)).unwrap();
+    assert_eq!(prompt.decision,Decision::AbilityTarget);
+    let actions=e.legal_actions(&prompt);
+    assert!(actions.iter().any(|a|a.id()==Some(space)));
+    assert!(!actions.iter().any(|a|a.id()==Some(ground)),"ground excluded");
+    let follow=e.apply(&prompt,&e.card_action(&prompt,space)).unwrap();
+    // Token fighters leave play without a discard pile entry.
+    assert!(!e.in_arena(&follow,space));
+    assert!(follow.event_result.will_defeat);
+    assert_eq!(follow.decision,Decision::AbilityTarget,"optional base select");
+    let enemy_base=follow.player(Seat::P2).base;
+    let before=follow.card(enemy_base).damage;
+    let done=e.apply(&follow,&e.card_action(&follow,enemy_base)).unwrap();
+    assert_eq!(done.card(enemy_base).damage,before+2);
 }
