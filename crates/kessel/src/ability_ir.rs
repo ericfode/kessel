@@ -2425,6 +2425,8 @@ pub struct Catalogue {
     pub cards: std::collections::HashMap<String, CardPrograms>,
     pub metadata: std::collections::HashMap<String, Value>,
     pub rejected: std::collections::BTreeMap<String, String>,
+    /// Alternate printings (`setCodes`) mapped to the catalogue's canonical setCode.
+    pub reprint_of: std::collections::HashMap<String, String>,
 }
 impl Catalogue {
     /// Converts every compiler entry into executable programs or a named, explicit

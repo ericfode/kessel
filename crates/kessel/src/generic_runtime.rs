@@ -285,6 +285,12 @@ fn program_needs_force(program: &Program) -> bool {
             |effect| matches!(effect, Effect::UseForce { .. } | Effect::GainForce { .. })))
     })
 }
+/// Format a catalog `setCodes` entry the same way the card loader indexes printings.
+fn reprint_set_code(value: &Value) -> Option<String> {
+    let set = value["set"].as_str().filter(|s| !s.is_empty())?;
+    let number = value["number"].as_u64()?;
+    Some(format!("{set}_{number:03}"))
+}
 fn reviewed_shield_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r#"{"title":"Shield","subtitle":null,"cost":0,"hp":0,"power":0,"text":"If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.","deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":0,"upgradeHp":0,"id":"8752877738","aspects":[],"traits":["armor"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"shield"}"#).expect("reviewed Shield metadata");entry["setCode"]=="TOKEN_SHIELD"&&entry["status"]=="unsupported"&&entry["baseClass"]=="TokenUpgradeCard"&&entry["sourcePath"]=="game/cards/01_SOR/tokens/Shield.ts"&&entry["sourceHash"]=="39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f"&&entry["card"]==expected&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]})}
 fn reviewed_experience_entry(entry:&Value)->bool {
  let expected:Value=serde_json::from_str(r#"{"title":"Experience","subtitle":null,"cost":0,"hp":1,"power":1,"text":null,"deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":1,"upgradeHp":1,"id":"2007868442","aspects":[],"traits":["learned"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"experience"}"#).expect("reviewed Experience metadata");
@@ -685,6 +691,50 @@ impl Engine {
             catalogue.metadata.remove(&code);
             catalogue.rejected.insert(code, format!("creates {token}, which is not admitted"));
         }
+        // Catalogue entries emitted with aliasOf are alternate printings of an
+        // admitted card. Keep them in by_code for pool/trace lookup, but mark
+        // reprint_of so compiled_pool stays canonical-only.
+        for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
+            let code = entry["setCode"].as_str().unwrap_or("");
+            let Some(canonical) = entry["aliasOf"].as_str() else { continue };
+            if !by_code.contains_key(code) {
+                continue;
+            }
+            catalogue.reprint_of.insert(code.to_owned(), canonical.to_owned());
+        }
+        // Reprint printings share one admitted programme. Clone a Definition per
+        // alternate setCode so snapshots keep the printing named in pools/traces,
+        // without expanding compiled_pool metadata export.
+        for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
+            let code = entry["setCode"].as_str().unwrap_or("");
+            let Some(&id) = by_code.get(code) else { continue };
+            let Some(set_codes) = entry["card"]["setCodes"].as_array() else { continue };
+            let programs = catalogue.cards.get(code).cloned().unwrap_or_default();
+            for sc in set_codes {
+                let Some(alias) = reprint_set_code(sc) else { continue };
+                // Never resurrect a printing that failed admission, and never
+                // replace a first-class catalogue entry (including aliasOf rows).
+                if alias == code
+                    || by_code.contains_key(&alias)
+                    || catalogue.rejected.contains_key(&alias)
+                {
+                    continue;
+                }
+                if definitions.len() > u16::MAX as usize {
+                    return Err("reprint alias definition capacity exceeded".into());
+                }
+                catalogue.cards.insert(alias.clone(), programs.clone());
+                // Metadata membership is what state validation consults; keep the
+                // printing visible without exporting it from compiled_pool.
+                catalogue.metadata.insert(alias.clone(), entry["card"].clone());
+                catalogue.reprint_of.insert(alias.clone(), code.to_owned());
+                let mut def = definitions[id as usize].clone();
+                def.code = alias.clone();
+                let alias_id = definitions.len() as u16;
+                definitions.push(def);
+                by_code.insert(alias, alias_id);
+            }
+        }
         // Native registration is not a compiler conversion. The exact reviewed
         // two-class token uses one shared mandatory scalar defeat program.
         let advantage_program=if advantage_def.is_some() {
@@ -722,7 +772,11 @@ impl Engine {
             .catalogue
             .as_ref()
             .ok_or("engine has no compiled catalogue")?;
-        let mut codes: Vec<_> = catalogue.metadata.keys().collect();
+        let mut codes: Vec<_> = catalogue
+            .metadata
+            .keys()
+            .filter(|code| !catalogue.reprint_of.contains_key(code.as_str()))
+            .collect();
         codes.sort();
         let cards: Vec<_> = codes
             .into_iter()
@@ -746,8 +800,6 @@ impl Engine {
             return Err("unsupported pool schema".into());
         }
         let mut engine = Self::from_catalogue_bytes(catalogue_bytes)?;
-        let catalogue = engine.catalogue.as_mut().unwrap();
-        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
             let code = card["setCode"]
@@ -756,16 +808,24 @@ impl Engine {
             if !included.insert(code.to_owned()) {
                 return Err(format!("duplicate pool card {code}"));
             }
-            let approved = catalogue.metadata.get(code).ok_or_else(|| {
-                format!(
-                    "unsupported pool card {code}: {}",
-                    catalogue
-                        .rejected
-                        .get(code)
-                        .map(String::as_str)
-                        .unwrap_or("not in compiled catalogue")
-                )
-            })?;
+            let canonical = {
+                let catalogue = engine.catalogue.as_ref().unwrap();
+                if catalogue.metadata.contains_key(code) {
+                    code.to_owned()
+                } else if let Some(canonical) = catalogue.reprint_of.get(code) {
+                    canonical.clone()
+                } else {
+                    return Err(format!(
+                        "unsupported pool card {code}: {}",
+                        catalogue
+                            .rejected
+                            .get(code)
+                            .map(String::as_str)
+                            .unwrap_or("not in compiled catalogue")
+                    ));
+                }
+            };
+            let approved = engine.catalogue.as_ref().unwrap().metadata[&canonical].clone();
             for field in [
                 "title",
                 "subtitle",
@@ -793,7 +853,19 @@ impl Engine {
                     ));
                 }
             }
+            // Bind the pool's printing code into metadata so retain keeps the
+            // exact pool identity while programmes stay on the canonical entry.
+            if canonical != code {
+                engine
+                    .catalogue
+                    .as_mut()
+                    .unwrap()
+                    .metadata
+                    .insert(code.to_owned(), approved);
+            }
         }
+        let catalogue = engine.catalogue.as_mut().unwrap();
+        let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         if !included.contains("TOKEN_SHIELD") {
             return Err("pool must include TOKEN_SHIELD".into());
         }
