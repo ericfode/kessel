@@ -567,7 +567,12 @@ impl Engine {
                 }
             }
             Decision::UpgradeTarget => {
-                out.push(Action::button("Cancel","cancel"));
+                // A Plot upgrade's play is the nested, non-cancellable plot
+                // PlayCardSystem continuation (AbilityResolver canCancel = false),
+                // so its attach prompt has no Cancel. Hand and Smuggle attaches are
+                // cancellable player plays and target before paying.
+                let plot_attach = s.plot.stage==PlotState::ATTACH && s.plot.card==s.source;
+                if !plot_attach {out.push(Action::button("Cancel","cancel"));}
                 for id in self.upgrade_targets(s,s.source) {out.push(self.card_action(s,id));}
             }
             Decision::Unique => {
@@ -748,20 +753,23 @@ impl Engine {
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
                     let upgrade=t.source;
-                    // Plot already paid when the triggered ability resolved and has
-                    // no cancel; Smuggle pays when its attach target is chosen.
+                    // Plot and Smuggle resolve their attach target before paying
+                    // (PlayUpgradeAction early targets). A Plot attach is not
+                    // cancellable and pays here, so the upgrade card is never
+                    // removed from the resource zone without entering play.
                     let plot_attach = t.plot.stage==PlotState::ATTACH && t.plot.card==upgrade;
                     let smuggled = !plot_attach && t.player(seat).resources.contains(upgrade);
-                    if !plot_attach {
-                        t.phase_history.preflight_play(seat)?;
-                        let cost = if smuggled {self.smuggle_cost(&t,upgrade).ok_or("missing Smuggle cost")?} else {self.cost(&t,upgrade)};
-                        if smuggled {
-                            self.exhaust_played_resource(&mut t,seat,cost,upgrade);
-                            t.player_mut(seat).resources.remove(upgrade);
-                        } else {
-                            self.spend(&mut t,seat,cost);
-                            t.player_mut(seat).hand.remove(upgrade);
-                        }
+                    if plot_attach && !t.player(seat).resources.contains(upgrade) {
+                        return Err("Plot upgrade attach requires the card in the resource zone".into());
+                    }
+                    t.phase_history.preflight_play(seat)?;
+                    let cost = if plot_attach {self.cost_for(&t,seat,upgrade)} else if smuggled {self.smuggle_cost(&t,upgrade).ok_or("missing Smuggle cost")?} else {self.cost(&t,upgrade)};
+                    if plot_attach || smuggled {
+                        self.exhaust_played_resource(&mut t,seat,cost,upgrade);
+                        t.player_mut(seat).resources.remove(upgrade);
+                    } else {
+                        self.spend(&mut t,seat,cost);
+                        t.player_mut(seat).hand.remove(upgrade);
                     }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
                     t.source=upgrade;

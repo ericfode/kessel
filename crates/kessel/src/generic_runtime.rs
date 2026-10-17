@@ -1946,7 +1946,11 @@ impl Engine {
         self.run_program(s)
     }
     fn commit_program(&self, s: &mut State) -> Result<(), String> {
-        if s.ability_committed {
+        // A Plot event's continuation suppresses Cancel by setting
+        // ability_committed, but its play cost is still paid at this boundary
+        // (PlayEventAction pays after early targets, before the effect).
+        let pending_resource_event = self.pending_resource_event(s);
+        if s.ability_committed && !pending_resource_event {
             return Ok(());
         }
         let source = s.source;
@@ -1962,6 +1966,8 @@ impl Engine {
             s.player_mut(s.active).hand.remove(source);
             s.player_mut(s.active).discard.push(source)?;
             s.phase_history.played(s.active,source)?;
+        } else if pending_resource_event {
+            self.commit_resource_event_play(s)?;
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -1981,6 +1987,12 @@ impl Engine {
     }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
         s.disclose=DiscloseState::default();
+        // A resource-zone event play always pays for itself, including paths that
+        // end the program without executing an effect (declined optional ability,
+        // no-effect continuation). This is a no-op once the program committed.
+        if self.pending_resource_event(s) {
+            self.commit_resource_event_play(s)?;
+        }
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();

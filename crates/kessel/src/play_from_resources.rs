@@ -34,6 +34,18 @@
 //! more than one instance of a keyword in the same text, so duplicate text is
 //! rejected instead of guessed.
 //!
+//! ## Play cost timing (early targets)
+//!
+//! `PlayEventAction.resolveEarlyTargets` resolves a non-optional event ability's
+//! targets before the play action is paid; `PlayUpgradeAction` likewise resolves
+//! its attach target before paying. The resource-zone play paths therefore defer
+//! payment to the commit boundary (events: the program's first effect
+//! instruction; upgrades: the chosen attach target) and keep the card in the
+//! resource zone until then, so a cancelled player play costs nothing and a
+//! non-cancellable plot continuation can never leave a paid card without a zone.
+//! Optional event abilities skip early targets and pay before their optional
+//! prompt, so their payment is committed before the program starts.
+//!
 //! ## Deterministic resource layout
 //!
 //! `rearrangeResourceExhaustState` shuffles the resource zone and re-assigns
@@ -379,6 +391,47 @@ impl Engine {
         debug_assert_eq!(left, 0, "validated resource payment must be affordable");
     }
 
+    /// True while a Plot/Smuggle event play is waiting for its program to commit
+    /// (before the play cost is paid). The card is still in the player's resource
+    /// zone; early targets and cancellable player plays resolve against that
+    /// pre-payment state, exactly like forceteki's PlayEventAction early targets.
+    pub(super) fn pending_resource_event(&self, s: &State) -> bool {
+        let source = s.source;
+        self.def(s, source).info.is("event")
+            && s.player(s.active).resources.contains(source)
+            && ((s.plot.window_open() && s.plot.card == source)
+                || self.def(s, source).smuggle.is_some())
+    }
+
+    /// Pays a resource-zone event play exactly once: the plot cost or the smuggle
+    /// cost with the played resource card exhausted first, the event moved to its
+    /// owner's discard pile, and (Smuggle only) the deck-top replacement moved to
+    /// resources before the effect resolves. Plot's replacement is the ability's
+    /// `ifYouDo` and stays in `plot_settle_enter`.
+    pub(super) fn commit_resource_event_play(&self, s: &mut State) -> Result<(), String> {
+        let source = s.source;
+        let seat = s.active;
+        if !self.pending_resource_event(s) {
+            return Ok(());
+        }
+        let plot_play = s.plot.window_open() && s.plot.card == source;
+        let cost = if plot_play {
+            self.cost_for(s, seat, source)
+        } else {
+            self.smuggle_cost(s, source)
+                .ok_or("resource-zone event play has no Plot or Smuggle cost")?
+        };
+        s.phase_history.preflight_play(seat)?;
+        self.exhaust_played_resource(s, seat, cost, source);
+        s.player_mut(seat).resources.remove(source);
+        s.player_mut(seat).discard.push(source)?;
+        s.phase_history.played(seat, source)?;
+        if !plot_play {
+            self.resource_top_of_deck(s, seat)?;
+        }
+        Ok(())
+    }
+
     /// The engine's replacement: the top card of the payer's deck enters the
     /// resource zone exhausted (`Player.resourceCard`/`initializeForCurrentZone`),
     /// or nothing happens when the deck is empty and the play still succeeds.
@@ -402,31 +455,40 @@ impl Engine {
             return Err("chosen Plot play is no longer legal".into());
         }
         let id = plot.card;
-        s.phase_history.preflight_play(seat)?;
-        let cost = self.cost_for(s, seat, id);
-        self.exhaust_played_resource(s, seat, cost, id);
-        s.player_mut(seat).resources.remove(id);
         let def = self.def(s, id);
         if def.info.is("event") {
-            s.player_mut(seat).discard.push(id)?;
-            s.phase_history.played(seat, id)?;
+            // PlayEventAction resolves early targets before the play action pays
+            // (PlayEventAction.resolveEarlyTargets); the event program commits the
+            // plot payment after the target prompt, then resolves the effect. The
+            // nested plot play is not cancellable, which begin_program(Plot)
+            // carries through the suppressed Cancel.
             s.source = id;
             s.set_trigger_context(TriggerContext::Action);
             let programs = self.available_programs(s, id, "event");
             let program = *programs
                 .first()
                 .ok_or("Plot event has no executable ability")?;
+            if self.program(program).optional {
+                // Optional abilities skip early targets and resolve after the play
+                // cost (PlayEventAction + AbilityResolver order): pay first.
+                self.commit_resource_event_play(s)?;
+            }
             return self.begin_program(s, program, ProgramContinuation::Plot);
         }
         if def.info.is("upgrade") {
-            // PlayUpgradeAction resolves its attach target before paying; there is
-            // no cancel once the triggered ability resolves, so the attach prompt
-            // has no Cancel (AbilityResolver canCancel = false from PlotAbility).
+            // PlayUpgradeAction resolves its attach target before paying, and the
+            // nested plot play has no Cancel (AbilityResolver canCancel = false
+            // from PlotAbility). Payment happens when the attach target is chosen,
+            // so a paid card can never be left without a zone.
             s.source = id;
             s.plot.stage = PlotState::ATTACH;
             s.decision = Decision::UpgradeTarget;
             return Ok(());
         }
+        s.phase_history.preflight_play(seat)?;
+        let cost = self.cost_for(s, seat, id);
+        self.exhaust_played_resource(s, seat, cost, id);
+        s.player_mut(seat).resources.remove(id);
         s.card_mut(id).exhausted = !self.self_static_ongoing(
             s,
             id,
@@ -451,6 +513,9 @@ impl Engine {
         unique_defeat: Option<CardId>,
     ) -> Result<(), String> {
         let seat = s.active;
+        // A plot event whose program ended without executing an effect (declined
+        // optional ability, no-effect continuation) still pays for the play.
+        self.commit_resource_event_play(s)?;
         s.decision = Decision::Window;
         s.disabled_ongoing_source = unique_defeat.unwrap_or(0);
         self.capture_enter_triggers(s);
@@ -504,21 +569,27 @@ impl Engine {
             s.decision = Decision::UpgradeTarget;
             return Ok(());
         }
-        s.phase_history.preflight_play(seat)?;
-        self.exhaust_played_resource(s, seat, cost, id);
-        s.player_mut(seat).resources.remove(id);
         if def.info.is("event") {
-            s.player_mut(seat).discard.push(id)?;
-            s.phase_history.played(seat, id)?;
-            self.resource_top_of_deck(s, seat)?;
+            // PlayEventAction resolves early targets before costs (cancellable for
+            // a player play action); the program's commit pays, moves the event to
+            // the discard pile and performs the Smuggle replacement before the
+            // effect resolves.
             s.source = id;
             s.set_trigger_context(TriggerContext::Action);
             let programs = self.available_programs(s, id, "event");
             let program = *programs
                 .first()
                 .ok_or("Smuggle event has no executable ability")?;
+            if self.program(program).optional {
+                // Optional abilities skip early targets and resolve after the play
+                // cost and Smuggle replacement (PlayEventAction order): pay first.
+                self.commit_resource_event_play(s)?;
+            }
             return self.begin_program(s, program, ProgramContinuation::Finish);
         }
+        s.phase_history.preflight_play(seat)?;
+        self.exhaust_played_resource(s, seat, cost, id);
+        s.player_mut(seat).resources.remove(id);
         s.card_mut(id).exhausted = !self.self_static_ongoing(
             s,
             id,
