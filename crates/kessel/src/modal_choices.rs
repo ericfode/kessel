@@ -235,6 +235,11 @@ pub fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
         Expr::Const { value } if value == "opponent" => Chooser::Opponent,
         _ => return Err("modal chooser must be literal self or opponent".into()),
     };
+    // Opponent event targeting is delayed until after event payment. That is
+    // a separate resolver stage; this lane admits only self-chooser events.
+    if entry["baseClass"] == "EventCard" && chooser != Chooser::Own {
+        return Err("opponent modal event selection requires post-payment targeting".into());
+    }
     if resolver.kind != "choiceSelection"
         || resolver.mode != "select"
         || resolver.result_binding != "select"

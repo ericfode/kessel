@@ -384,3 +384,30 @@ fn modal_property_order_duplicates_and_text_bounds_follow_pinned_contract() {
         ["value"] = json!("x".repeat(1025));
     assert!(crate::modal_choices::prepare(&invalid).is_err());
 }
+
+#[test]
+fn modal_leia_root_still_prompts_when_all_legal_modes_are_ineffective() {
+    let e = engine();
+    let mut s = board(&e);
+    let source = unit(&e, &mut s, Seat::P1, "SOR_189");
+    s.card_mut(source).exhausted = true;
+    // No resources can ready, and the only unit is already exhausted. The
+    // pinned modal resolver still finds legal player/unit targets at None.
+    start(&e, &mut s, source);
+    assert_eq!(
+        labels(&e, &s),
+        [
+            "Ready a friendly resource",
+            "Ready an enemy resource",
+            "Exhaust a unit"
+        ]
+    );
+    let next_id = s.next_id;
+    let done = choose(&e, &s, "Exhaust a unit");
+    assert_eq!(done.ability_program, 0);
+    assert_eq!(done.next_id, next_id);
+    assert!(done.card(source).exhausted);
+    let mut event = catalog_entry("TWI_102");
+    event["abilities"]["card"][0]["targetResolver"]["chooser"]["value"] = json!("opponent");
+    assert!(crate::modal_choices::prepare(&event).is_err());
+}
