@@ -5,7 +5,7 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     fn copy<T: Copy>() {}
     copy::<State>();
     let mut s=State::default();
-    assert_eq!(std::mem::size_of::<State>(),28528);
+    assert_eq!(std::mem::size_of::<State>(),28544);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();

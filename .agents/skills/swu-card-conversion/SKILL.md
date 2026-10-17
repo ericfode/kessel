@@ -105,6 +105,12 @@ source and embedded catalogue. Use reference `check --corpus DIR` to select a
 generated corpus; `--out` does not select checking input. An interrupted broad
 test command is not a completed checkpoint.
 
+When changing `State` or its inline storage, also run `cargo test --locked -p
+kessel --test state_boundaries`. Library tests do not execute that integration
+suite. Review its exact size budget alongside the shared library budget, and
+preserve existing hash assertions unless a separately justified hash change is
+part of the implementation.
+
 When adding a construction adapter, wire both planner/fixture dispatch and the
 central fixture dependency inventory so reusable recordings bind the new source
 files. Compare every preceding full plan object, including its obligations and
