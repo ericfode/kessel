@@ -24510,6 +24510,49 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "7821324752",
+      "internalName": "eighth-brother#hunt-together",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 5,
+      "rules": "Ambush is an ability that triggers at the same time as \"When Played\" abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "LOF_087",
+      "setCodes": [
+        {
+          "number": 87,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 87,
+        "set": "LOF"
+      },
+      "subtitle": "Hunt Together",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhen you play another unit: You may use the Force (lose your Force token). If you do, give a unit +2/+2 for this phase.",
+      "title": "Eighth Brother",
+      "traits": [
+        "force",
+        "imperial",
+        "inquisitor"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "command",
@@ -27853,6 +27896,47 @@
       "aspects": [
         "villainy"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4145147486",
+      "internalName": "kylo-ren#i-know-your-story",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 2,
+      "rules": "Attaching an upgrade already in play or creating and attaching a token upgrade do not trigger  Kylo Ren's ability.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\n",
+      "setCode": "LOF_229",
+      "setCodes": [
+        {
+          "number": 229,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 229,
+        "set": "LOF"
+      },
+      "subtitle": "I Know Your Story",
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\nWhen you play an upgrade on this unit: You may use the Force (lose your Force token). If you do, draw a card.",
+      "title": "Kylo Ren",
+      "traits": [
+        "force",
+        "first order"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -28448,6 +28532,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "7338701361",
+      "internalName": "luke-skywalker#a-heros-beginning",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_249",
+      "setCodes": [
+        {
+          "number": 249,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 249,
+        "set": "LOF"
+      },
+      "subtitle": "A Hero's Beginning",
+      "text": "When you play another <uq> (unique) unit: You may use the Force (lose your Force token). If you do, give an Experience token and a Shield token to this unit.",
+      "title": "Luke Skywalker",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 793
+    "sourceIr": 796
   },
   "runtimeAdmittedCards": [
     {
@@ -3016,6 +3016,11 @@
       "setCode": "LOF_084"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "eighth-brother#hunt-together",
+      "setCode": "LOF_087"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "eye-of-sion#to-peridea",
       "setCode": "LOF_088"
@@ -3426,6 +3431,11 @@
       "setCode": "LOF_228"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "kylo-ren#i-know-your-story",
+      "setCode": "LOF_229"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "fallen-jedi",
       "setCode": "LOF_230"
@@ -3499,6 +3509,11 @@
       "implementation": "dataOnly",
       "internalName": "gungan-warrior",
       "setCode": "LOF_247"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "luke-skywalker#a-heros-beginning",
+      "setCode": "LOF_249"
     },
     {
       "implementation": "dataOnly",
@@ -5921,7 +5936,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1182,
+  "runtimeAdmittedCount": 1185,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -9394,11 +9409,6 @@
       "setCode": "LOF_086"
     },
     {
-      "internalName": "eighth-brother#hunt-together",
-      "reason": "eighth-brother#hunt-together: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "LOF_087"
-    },
-    {
       "internalName": "inquisitors-lightsaber",
       "reason": "inquisitors-lightsaber: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "LOF_090"
@@ -9694,11 +9704,6 @@
       "setCode": "LOF_227"
     },
     {
-      "internalName": "kylo-ren#i-know-your-story",
-      "reason": "kylo-ren#i-know-your-story: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "LOF_229"
-    },
-    {
       "internalName": "hk87-assassin-droid",
       "reason": "reprint alias of IC27_182",
       "setCode": "LOF_235"
@@ -9717,11 +9722,6 @@
       "internalName": "jocasta-nu#the-gift-of-knowledge",
       "reason": "jocasta-nu#the-gift-of-knowledge: parent references require an ordinary attached upgrade",
       "setCode": "LOF_248"
-    },
-    {
-      "internalName": "luke-skywalker#a-heros-beginning",
-      "reason": "luke-skywalker#a-heros-beginning: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "LOF_249"
     },
     {
       "internalName": "medical-frigate",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1423,
+  "runtimeRejectedCount": 1420,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
