@@ -538,3 +538,129 @@ fn paid_self_effects_grant_phase_stats_and_both_tokens() {
     assert_eq!(e.token_count(&done, done.card(source).experience), 1);
     assert_eq!(e.token_count(&done, done.card(source).shield), 1);
 }
+
+#[test]
+fn payment_catalogue_rejects_unreviewed_source_envelopes() {
+    use crate::ability_ir::Catalogue;
+    let entries = committed_catalogue()["cards"].as_array().unwrap();
+    let load = |entry: Value| {
+        Catalogue::load(&json!({"schema": crate::ability_ir::SCHEMA, "cards": [entry]})).unwrap()
+    };
+    // Check the complete catalogue admission path on every restored source,
+    // including Boba's two registrations and the Ambush companions' metadata.
+    for code in [
+        "LAW_113", "LAW_148", "LAW_198", "LAW_214", "LAW_227", "LAW_257", "SOR_206", "TS26_077",
+        "TWI_212",
+    ] {
+        let entry = entries
+            .iter()
+            .find(|entry| entry["setCode"] == code)
+            .unwrap();
+        let loaded = load(entry.clone());
+        assert!(
+            loaded.cards.contains_key(code),
+            "{code}: {:?}",
+            loaded.rejected.get(code)
+        );
+    }
+    let original = entries
+        .iter()
+        .find(|entry| entry["setCode"] == "LAW_227")
+        .unwrap();
+    let reject = |entry: Value, mutation: &str| {
+        let loaded = load(entry);
+        assert!(!loaded.cards.contains_key("LAW_227"), "admitted {mutation}");
+        let reason = loaded
+            .rejected
+            .get("LAW_227")
+            .expect("named source-envelope rejection");
+        assert!(
+            reason.contains(
+                "card-effect resource payment requires ordinary nonleader unit source metadata"
+            ),
+            "{mutation}: {reason}"
+        );
+    };
+    for field in [
+        "stateWatchers",
+        "historyHelpers",
+        "privatePrograms",
+        "classMethods",
+        "privateClassConstants",
+        "inheritedSource",
+        "deploymentOverride",
+        "setupValidationOverrides",
+    ] {
+        let mut entry = original.clone();
+        entry[field] = json!([{"kind": "unreviewedSourceContext"}]);
+        reject(entry, field);
+    }
+    for field in ["piloting", "attachCondition"] {
+        let mut entry = original.clone();
+        entry[field] = json!({});
+        reject(entry, field);
+    }
+    for field in [
+        "pilotText",
+        "pilotBox",
+        "pilotingBox",
+        "deployBox",
+        "deployCost",
+        "upgradePower",
+        "upgradeHp",
+        "epicAction",
+    ] {
+        let mut entry = original.clone();
+        entry["card"][field] = json!("unreviewed");
+        reject(entry, field);
+    }
+    for (field, value) in [
+        ("unique", json!("yes")),
+        ("types", json!(["unit", "upgrade"])),
+        ("arena", json!("base")),
+        ("cost", json!(-1)),
+        ("hp", json!(0)),
+        ("power", json!(1001)),
+    ] {
+        let mut entry = original.clone();
+        entry["card"][field] = value;
+        reject(entry, field);
+    }
+    let mut entry = original.clone();
+    entry["baseClass"] = json!("UpgradeCard");
+    reject(entry, "baseClass");
+    for side in ["leader", "unit"] {
+        let mut entry = original.clone();
+        entry["abilities"][side] = json!([entry["abilities"]["card"][0].clone()]);
+        reject(entry, side);
+    }
+    for continuation in [false, true] {
+        for (field, value) in [
+            ("gainedHost", json!(false)),
+            ("attachedContext", json!("parent")),
+            ("attachedHost", json!(true)),
+            ("pilotingAbility", json!(true)),
+            ("pilotUnitAbility", json!(true)),
+            ("attackerMustSurvive", json!(true)),
+            (
+                "hooks",
+                json!([{"event": "onCardDefeated", "predicate": {"kind": "const", "value": true}}]),
+            ),
+        ] {
+            let mut entry = original.clone();
+            let ability = &mut entry["abilities"]["card"][0];
+            if continuation {
+                ability["ifYouDo"][field] = value;
+            } else {
+                ability[field] = value;
+            }
+            reject(entry, &format!("{field} in continuation={continuation}"));
+        }
+    }
+    let mut entry = original.clone();
+    entry["abilities"]["card"][0]["ifYouDo"]["then"] = json!({
+        "title": "Unreviewed nested context", "effect": {"kind": "noAction"},
+        "attachedContext": "parent"
+    });
+    reject(entry, "nested then context");
+}
