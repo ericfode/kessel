@@ -365,18 +365,54 @@ fn phase_history_defeated_projection_resets_exports_and_bounds_capacity() {
 }
 
 #[test]
+fn phase_history_defeated_projection_gates_the_constant_self_buff_live() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        // The unit entered before any defeat, so a snapshot at registration time
+        // would miss the buff the engine's live constant condition applies.
+        let mut s = board(&e);
+        let jyn = unit(&e, &mut s, Seat::P1, "TWI_143");
+        let base_power = e.power(&s, jyn, false);
+        let base_hp = e.hp(&s, jyn);
+        assert!(!e.has_keyword(&s, jyn, "saboteur"), "{backend:?}");
+        // A friendly defeat is not an enemy defeat.
+        let friendly = unit(&e, &mut s, Seat::P1, "LOF_256");
+        e.defeat(&mut s, friendly).unwrap();
+        assert_eq!(e.power(&s, jyn, false), base_power);
+        assert!(!e.has_keyword(&s, jyn, "saboteur"));
+        // An enemy defeat turns the passive buff on for the same in-play unit.
+        let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
+        e.defeat(&mut s, enemy).unwrap();
+        assert_eq!(e.power(&s, jyn, false), base_power + 1);
+        assert_eq!(e.hp(&s, jyn), base_hp);
+        assert!(e.has_keyword(&s, jyn, "saboteur"), "{backend:?}");
+        // Phase end clears the watcher, so the buff disappears even though the
+        // unit stays in play.
+        s.players[0].out = true;
+        s.players[1].out = true;
+        e.advance(&mut s).unwrap();
+        assert_eq!(s.phase_history.defeated_counts, [0, 0]);
+        assert_eq!(e.power(&s, jyn, false), base_power);
+        assert!(!e.has_keyword(&s, jyn, "saboteur"));
+    }
+}
+
+#[test]
 fn phase_history_defeated_family_keeps_unimplemented_projections_rejected() {
     let e = engine();
     // Admitted here: single-registration ordinary unit/event shapes.
-    for code in ["LAW_109", "SEC_083", "SOR_051", "TWI_031", "LOF_263", "SEC_158"] {
+    for code in [
+        "LAW_109", "SEC_083", "SOR_051", "TWI_031", "LOF_263", "SEC_158", "TWI_143",
+    ] {
         assert!(e.by_code.contains_key(code), "{code}");
     }
     // Kept explicit: identity/incarnation reads, leader and constant
     // registrations, multi-registration entries and unrelated runtime gaps.
     let rejected = e.rejected_cards().unwrap();
     for code in [
-        "SHD_105", "SOR_091", "TWI_086", "ASH_093", "TWI_143", "SOR_002", "TWI_002", "SEC_035",
-        "ASH_079", "LOF_007",
+        "SHD_105", "SOR_091", "TWI_086", "ASH_093", "SOR_002", "TWI_002", "SEC_035", "ASH_079",
+        "LOF_007",
     ] {
         assert!(
             rejected.get(code).is_some_and(|reason| reason.ends_with(

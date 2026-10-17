@@ -267,6 +267,31 @@ impl Query {
 }
 pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "historyQuery") }
 pub(crate) fn ability(a: &Ability) -> bool {
+    let literal =
+        |e: &Expr, n: i64| matches!(e.original(),Expr::Const{value} if value.as_i64()==Some(n));
+    // The one reviewed family that owns a root condition: a passive self
+    // registration gated by the live `cardsDefeatedThisPhase` controller read.
+    // Every other root-condition field stays rejected by the prelude below.
+    if a.trigger == "constant"
+        && !a.coordinate
+        && !a.requires_confirmation
+        && a.gained_host.is_none()
+        && a.attached_context.is_none()
+        && a.context_title.is_empty()
+        && a.target_resolvers.is_empty()
+        && a.then.is_none()
+        && a.if_you_do.is_none()
+        && !a.optional
+        && a.costs.is_empty()
+        && a.target_resolver.is_none()
+        && matches!(&a.condition,Some(Expr::HistoryQuery(q)) if q.kind()==Ok(QueryKind::DefeatedUnit(PlayerRef::Opponent)))
+        && matches!(&a.effect,Effect::Simultaneous{effects}
+            if effects.len()==2
+            && matches!(&effects[0],Effect::ModifyStats{target:Target::Name(t),duration,power,hp} if t=="self"&&duration=="persistent"&&literal(power,1)&&literal(hp,0))
+            && matches!(&effects[1],Effect::GainKeyword{target:Target::Name(t),keyword,duration,amount} if t=="self"&&duration=="persistent"&&keyword=="saboteur"&&literal(amount,1)))
+    {
+        return true;
+    }
     if a.coordinate
         || a.requires_confirmation
         || a.gained_host.is_some()
@@ -279,8 +304,6 @@ pub(crate) fn ability(a: &Ability) -> bool {
     {
         return false;
     }
-    let literal =
-        |e: &Expr, n: i64| matches!(e.original(),Expr::Const{value} if value.as_i64()==Some(n));
     let draw = |e: &Effect| matches!(e,Effect::Draw{target:Target::Name(t),amount} if t=="ownPlayer"&&literal(amount,1));
     let simple_resolver = |predicate: bool| {
         a.target_resolver.as_ref().is_some_and(|r|r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.arena.is_none()&&r.prompt_title.is_none()&&if predicate{matches!(&r.predicate,Some(Expr::HistoryQuery(q)) if q.kind()==Ok(QueryKind::EnteredCard))}else{r.predicate.is_none()})
@@ -446,7 +469,8 @@ pub(crate) fn entry(e: &Value) -> bool {
         && (if event {
             s.card[0].trigger == "event"
         } else {
-            ["whenPlayed", "action", "onAttack"].contains(&s.card[0].trigger.as_str())
+            ["whenPlayed", "action", "onAttack", "constant"]
+                .contains(&s.card[0].trigger.as_str())
         })
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()

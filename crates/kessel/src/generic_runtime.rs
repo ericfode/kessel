@@ -1101,7 +1101,9 @@ impl Engine {
         self.catalogue.is_some() && self.selected_definition_any(|definition| {
             let p = &definition.programs;
             p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id| {
-                serde_json::to_value(&self.program(id).instructions)
+                // A constant registration keeps its condition on the program,
+                // outside the instruction list, so scan the complete program.
+                serde_json::to_value(self.program(id))
                     .ok()
                     .is_some_and(|v| found(&v, wanted))
             })
