@@ -490,8 +490,26 @@ impl Engine {
                     }
                     }
                 } else if info.is("base") {
+                    // Pinned DataVault/ThermalOscillator are plain BaseCard
+                    // subclasses whose source comment reads "no implementation
+                    // here, the 'implementation' is in DeckValidator": their
+                    // printed minimum-deck-size sentence is a deck-construction
+                    // rule, not an in-game ability, and a position is a caller-
+                    // supplied deck. Admit exactly those printed sentences on a
+                    // base with no registered programs; any other non-plain base
+                    // still needs the reviewed base-zone ongoing source.
+                    fn construction_only(text: &str) -> bool {
+                        matches!(
+                            text,
+                            "Your minimum deck size is increased by 10 cards."
+                                | "Your minimum deck size is decreased by 5 cards."
+                        )
+                    }
+                    let text = info.text.as_deref().unwrap_or("");
+                    let construction_only =
+                        programs.card.is_empty() && construction_only(text.trim());
                     if !info.hp.is_some_and(|n| (1..=1000).contains(&n))
-                        || ((!info.text.as_deref().unwrap_or("").trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base))
+                        || ((!text.trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base)&&!construction_only)
                     {
                         return Err("only plain bases with bounded positive HP execute".into());
                     }
@@ -1537,6 +1555,8 @@ impl Engine {
                 p.discard.as_slice().to_vec()
             } else if r.zone.as_deref() == Some("hand") {
                 p.hand.as_slice().to_vec()
+            } else if r.zone.as_deref() == Some("resource") {
+                p.resources.as_slice().to_vec()
             } else if r.is_upgrade_domain() {
                 (1..s.next_id).filter(|id|s.card(*id).owner==seat && self.attached_in_play(s,*id)).collect()
             } else {
@@ -1684,13 +1704,13 @@ impl Engine {
                         Effect::Exhaust { .. } => {
                             self.exhaustible_card(s,id) && (!require_change || !s.card(id).exhausted)
                         }
-                        Effect::Defeat { .. } => unit || self.attached_in_play(s,id),
+                        Effect::Defeat { .. } => unit || self.attached_in_play(s,id) || self.resource_zone_card(s,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="ownTopDeck" => self.resource_top_deck_eligible(&context,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="self" => self.resource_source_eligible(&context,id) && (!require_change || !s.player(s.card(id).owner).resources.contains(id)),
                         Effect::ResourceCard { .. } => self.resource_card_eligible(&context,id),
                         Effect::ReturnToHand { .. } => {
                             !self.def(s, id).info.is("leader")
-                                && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id))
+                                && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id) || self.resource_zone_card(s,id))
                         }
                         Effect::ModifyStats { .. } | Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => unit,
                         Effect::GiveShield { .. } | Effect::GiveExperience { .. } | Effect::GiveWeakness{..}|Effect::GiveAdvantage{..} => {
@@ -2253,6 +2273,57 @@ impl Engine {
         };
         u16::try_from(n).map_err(|_| format!("effect amount {n} exceeds bounded runtime"))
     }
+    fn resource_zone_card(&self, s: &State, id: CardId) -> bool {
+        id != 0 && s.player(s.card(id).owner).resources.contains(id)
+    }
+    /// `CardTargetSystem.leavesResourceZoneEventHandler` (pinned): when a ready
+    /// resource controlled by the ability's player leaves the resource zone, it
+    /// first swaps ready state with the first exhausted resource; the effect then
+    /// consumes readiness rather than a particular physical resource identity.
+    fn swap_resource_ready_state_on_departure(&self, s: &mut State, id: CardId) {
+        if s.card(id).exhausted || s.card(id).owner != s.card(s.source).owner {
+            return;
+        }
+        let owner = s.card(id).owner;
+        let other = s
+            .player(owner)
+            .resources
+            .as_slice()
+            .iter()
+            .copied()
+            .find(|&resource| resource != id && s.card(resource).exhausted);
+        if let Some(other) = other {
+            s.card_mut(id).exhausted = true;
+            s.card_mut(other).exhausted = false;
+        }
+    }
+    /// `DefeatCardSystem` on a card in the Resource zone: swap readiness, leave
+    /// the zone, and move the physical card to its owner's discard. This is a
+    /// zone move, not a leaves-play event; no defeat registration is captured.
+    fn defeat_resource(&self, s: &mut State, id: CardId) -> Result<u16, String> {
+        if !self.resource_zone_card(s, id) {
+            return Ok(0);
+        }
+        self.swap_resource_ready_state_on_departure(s, id);
+        let owner = s.card(id).owner;
+        let p = s.player_mut(owner);
+        p.resources.remove(id);
+        p.discard.push(id)?;
+        Ok(1)
+    }
+    /// `MoveCardSystem(returnToHand)` on a card in the Resource zone: the same
+    /// readiness swap, then the card moves to its owner's hand.
+    fn return_resource_to_hand(&self, s: &mut State, id: CardId) -> Result<u16, String> {
+        if !self.resource_zone_card(s, id) {
+            return Ok(0);
+        }
+        self.swap_resource_ready_state_on_departure(s, id);
+        let owner = s.card(id).owner;
+        let p = s.player_mut(owner);
+        p.resources.remove(id);
+        p.hand.push(id)?;
+        Ok(1)
+    }
     fn resource_top_deck_eligible(&self,s:&State,id:CardId)->bool {
         if id==0||!s.card(id).present||s.source==0{return false;}
         let owner=s.card(s.source).owner;let info=&self.def(s,id).info;
@@ -2643,7 +2714,8 @@ impl Engine {
                             || (matches!(e,Effect::Ready{..}|Effect::Exhaust{..}) && self.exhaustible_card(s,id))
                             || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.attached_in_play(s,id))
                             || (matches!(e, Effect::ReturnToHand { .. })
-                                && s.player(s.card(id).owner).discard.contains(id))) =>
+                                && s.player(s.card(id).owner).discard.contains(id))
+                            || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.resource_zone_card(s,id))) =>
                 {
                     let in_arena = self.in_arena(s, id);
                     match e {
@@ -2665,6 +2737,9 @@ impl Engine {
                         }
                         Effect::Exhaust { .. } if self.exhaustible_card(s,id) => {
                             result += self.set_card_exhausted(s, id, true);
+                        }
+                        Effect::ReturnToHand { .. } if self.resource_zone_card(s,id) => {
+                            result = result.saturating_add(self.return_resource_to_hand(s,id)?);
                         }
                         Effect::ReturnToHand { .. } if !self.def(s, id).info.is("leader") => {
                             let owner = s.card(id).owner;
@@ -2702,6 +2777,11 @@ impl Engine {
                                 self.modify_phase_stats(s, id, delta)?;
                             }
                             result += 1;
+                        }
+                        Effect::Defeat { .. } if self.resource_zone_card(s,id) => {
+                            // A resource defeat is a zone move, not a leaves-play
+                            // event (the card was never in play this incarnation).
+                            result = result.saturating_add(self.defeat_resource(s,id)?);
                         }
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {
                             if in_arena {events.defeated_units[s.card(id).owner.index()]+=1;}

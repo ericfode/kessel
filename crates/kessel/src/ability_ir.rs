@@ -830,9 +830,18 @@ impl TargetResolver {
         if self
             .zone
             .as_deref()
-            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand"].contains(&z))
+            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand", "resource"].contains(&z))
         {
             return Err(format!("unsupported target zone {:?}", self.zone));
+        }
+        if self.zone.as_deref()==Some("resource") {
+            // Resource-zone selectors are the engine's ZoneName.Resource domain:
+            // physical unit/event/upgrade cards a player controls as resources.
+            // Kessel keeps the bounded untyped domain (the three printed sources
+            // all use WildcardCardType.Any) and rejects arena filters.
+            if self.card_type!="any" || self.arena.is_some() {
+                return Err("resource selectors require the any card type without an arena filter".into());
+            }
         }
         if let Some(p) = &self.predicate {
             p.validate()?;
