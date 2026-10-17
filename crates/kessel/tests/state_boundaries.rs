@@ -10,9 +10,12 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     // + until-end-of-attack stat grants (32 x 6 bytes + length, net 192 after
     // alignment) + the CardsDefeatedThisPhase projections: one u16 unit-defeat
     // counter and one u16 while-attacking counter per controller (8 bytes with
-    // alignment) = 29,832. Zero counters/masks/flags/grants stay off the hash
+    // alignment) + the leader-deploy Plot window: PlotState card/leader u16 +
+    // pending u8 + stage u8 + programs u16 + padding = 8, and its
+    // resolved-instance bitmask [u64; 4] = 32, for 29,872. Zero
+    // counters/masks/flags/grants and inactive plot windows stay off the hash
     // stream, so the historical hashes below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29832);
+    assert_eq!(std::mem::size_of::<State>(),29872);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
@@ -27,8 +30,8 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
 #[test]
 fn numeric_views_do_not_reinterpret_unknown_or_empty_boundaries() {
     for raw in 0..=u8::MAX {
-        assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=4).then_some(raw));
-        assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=2).then_some(raw));
+        assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=5).then_some(raw));
+        assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=3).then_some(raw));
         assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=7).contains(&raw).then_some(raw));
     }
     assert_eq!(DeathFrame::default().continuation(),None);

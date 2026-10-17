@@ -500,8 +500,10 @@ fn native_attack_immutable_copy_hash_capacity_and_forged_import_boundaries() {
         .unwrap_err()
         .contains("capacity"));
     assert_eq!(full, before);
-    assert!(!e.by_code.contains_key("SEC_172"));
-    assert!(e.rejected_cards().unwrap()["SEC_172"].contains("plot"));
+    // Admission state is untouched by the failed native attack; a still
+    // unimplemented card remains explicitly rejected.
+    assert!(!e.by_code.contains_key("ASH_002"));
+    assert!(e.rejected_cards().unwrap()["ASH_002"].contains("invalid ability IR"));
 }
 #[test]
 fn native_attack_inline_layout_budget_preserves_card_size() {

@@ -8,9 +8,12 @@ pub const MAX_ZONE: usize = 64;
 // + phase restriction mask (Card 36→40, 256 cards = 1024)
 // + until-end-of-attack stat grants (32 targets x 6 bytes + length = 194
 // bytes, which reused the 2-byte alignment gap before the event window: net 192)
-// + phase unit-defeat counters (2 controllers x 2 counters x u16 = 8, padded).
+// + phase unit-defeat counters (2 controllers x 2 counters x u16 = 8, padded)
+// + leader-deploy Plot window (PlotState: card/leader u16, pending u8,
+//   programs u16, stage u8 + padding = 8, plus the resolved-instance bitmask
+//   [u64; 4] = 32 that keeps one window from re-offering a resolved Plot).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_832;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_872;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -496,6 +499,9 @@ pub enum Decision {
     DisclosePause,
     DiscloseReveal,
     Support,
+    /// Optional prompt for a Plot keyword ability that was chosen in the
+    /// leader-deploy trigger window: Trigger plays, Pass returns to the window.
+    PlotOptional,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -579,21 +585,28 @@ impl StepEventResult {
 /// suspended contexts: their numeric hashing and legacy compatibility are stable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum TriggerContext { Action=0, Enter=1, Attack=2, ShieldOrder=3, DeathKeyword=4 }
+pub enum TriggerContext { Action=0, Enter=1, Attack=2, ShieldOrder=3, DeathKeyword=4,
+    /// The deploying player's leader entered the arena. Plot keyword abilities of
+    /// cards in that player's resource zone watch this event (forceteki
+    /// PlotAbility.buildPlotAbilityProperties, `onLeaderDeployed`).
+    LeaderDeploy=5 }
 impl TriggerContext {
     pub const fn raw(self)->u8 {self as u8}
     pub const fn from_raw(raw:u8)->Option<Self> {match raw {
         0=>Some(Self::Action),1=>Some(Self::Enter),2=>Some(Self::Attack),
-        3=>Some(Self::ShieldOrder),4=>Some(Self::DeathKeyword),_=>None,
+        3=>Some(Self::ShieldOrder),4=>Some(Self::DeathKeyword),5=>Some(Self::LeaderDeploy),_=>None,
     }}
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum ProgramContinuation { Finish=0, Triggers=1, Deaths=2 }
+pub enum ProgramContinuation { Finish=0, Triggers=1, Deaths=2,
+    /// A Plot play of an event: after the event ability resolves, execute the
+    /// Plot `ifYouDo` replacement and the played card's deferred triggers.
+    Plot=3 }
 impl ProgramContinuation {
     pub const fn raw(self)->u8 {self as u8}
     pub const fn from_raw(raw:u8)->Option<Self> {match raw {
-        0=>Some(Self::Finish),1=>Some(Self::Triggers),2=>Some(Self::Deaths),_=>None,
+        0=>Some(Self::Finish),1=>Some(Self::Triggers),2=>Some(Self::Deaths),3=>Some(Self::Plot),_=>None,
     }}
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -699,10 +712,51 @@ impl DeathFrame {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 
+/// A suspended leader-deploy trigger window while a Plot keyword ability plays
+/// the chosen resource-zone card. PlotAbility.ts resolves the play through
+/// PlayCardSystem (nested=false), so the play's event window passes its triggers
+/// to the Plot ability's window: the top-of-deck resourcing runs before the
+/// played card's When Played triggers, and those triggers resolve before the
+/// leader's remaining deploy triggers are offered again. `leader_pending` and
+/// `leader_programs` preserve exactly the outer window's still-unresolved
+/// triggers. Zero everything else means no plot window is open.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct PlotState {
+    /// Plot card being offered (or already played while stage is Inner).
+    pub card: CardId,
+    /// Deploying leader whose trigger window is suspended. Nonzero means the
+    /// leader-deploy trigger window is still open, including while a plot card
+    /// resolves.
+    pub leader: CardId,
+    pub leader_pending: u8,
+    pub leader_programs: u16,
+    pub stage: u8,
+    /// Plot instances already resolved (played or declined) in this window; the
+    /// engine removes each triggered ability from its window when resolved.
+    pub done: [u64; 4],
+}
+impl PlotState {
+    /// Optional Trigger/Pass prompt for the chosen plot card.
+    pub const OFFERED: u8 = 1;
+    /// A plot upgrade waits for its attach target before entering play.
+    pub const ATTACH: u8 = 2;
+    /// The played card's own enter triggers resolve before the outer window.
+    pub const INNER: u8 = 3;
+    /// A plot play that created a unique replacement needs the choice first;
+    /// the engine's uniqueness check runs inside the play window, before the
+    /// Plot `ifYouDo` replacement.
+    pub const UNIQUE: u8 = 4;
+    pub fn active(self)->bool {self.stage!=0 || self.leader!=0}
+    pub fn window_open(self)->bool {self.leader!=0}
+    pub fn is_done(self, id:CardId)->bool {self.done[id as usize/64] & (1u64<<(id as usize%64)) != 0}
+    pub fn mark_done(&mut self, id:CardId) {self.done[id as usize/64] |= 1u64<<(id as usize%64);}
+}
+
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
     pub disclose:DiscloseState,
+    pub plot:PlotState,
     pub support: SupportState,
     /// Until-end-of-attack stat effects; cleared by the same attack-end sweep
     /// that removes the Support/native-attack grants.
@@ -773,6 +827,7 @@ impl Default for State {
     fn default() -> Self {
         Self {
             disclose:DiscloseState::default(),
+            plot: PlotState::default(),
             support: SupportState::default(),
             attack_stats: AttackStats::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
@@ -961,6 +1016,9 @@ impl State {
         } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
 
         if self.disclose!=DiscloseState::default() {put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids() {put(id as u64);}}
+        // A suspended leader-deploy Plot window is internal prompt state; inactive
+        // plot storage stays off the historical hash stream.
+        if self.plot.active() {put(0x504c4f54);put(self.plot.card as u64);put(self.plot.leader as u64);put(self.plot.leader_pending as u64);put(self.plot.leader_programs as u64);put(self.plot.stage as u64);for word in self.plot.done {put(word);}}
         put(self.ability_result as u64);
         put(self.ability_succeeded as u64);
         put(self.ability_return as u64);

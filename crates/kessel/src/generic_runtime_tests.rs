@@ -2,7 +2,7 @@ use super::*;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
-// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 + first-strike support flags (32 x 2 = 64) + phase restriction mask (Card 36->40, 256 cards = 1024) + until-end-of-attack stat grants (32 x 6 bytes + length, net 192) = 29824 bytes; Card remains 40 bytes.
+// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 + first-strike support flags (32 x 2 = 64) + phase restriction mask (Card 36->40, 256 cards = 1024) + until-end-of-attack stat grants (32 x 6 bytes + length, net 192) + CardsDefeatedThisPhase counters (8) = 29832, plus the leader-deploy Plot window (40 bytes: PlotState 8 + resolved-instance bitmask 32) = 29872 bytes; Card remains 40 bytes.
 use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
@@ -3710,6 +3710,12 @@ fn bounded_reduction_sum_capacity_is_checked_without_truncating_or_mutating() {
 
 #[path="support_tests.rs"]
 mod support_tests;
+
+#[path="plot_tests.rs"]
+mod plot_tests;
+
+#[path="smuggle_tests.rs"]
+mod smuggle_tests;
 
 // These isolate the two source programs; Support deployment is owned by its
 // separate capability and must be tested on the complete integrated leader.

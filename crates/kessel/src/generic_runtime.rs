@@ -118,6 +118,8 @@ fn evaluate_collection(mut receiver:Eval,name:&str,mut callback:impl FnMut(CardI
 enum Trigger {
     Keyword(u8),
     Program(usize, u16),
+    /// A Plot keyword ability offered by the leader-deploy window.
+    Plot(CardId),
 }
 
 fn token_unit_code(token_type: &str) -> Option<&'static str> {
@@ -517,11 +519,37 @@ impl Engine {
                 let coordinate_programs=programs.card.iter().chain(&programs.unit).chain(&programs.leader).filter(|&&id|catalogue.programs[id as usize].coordinate).count();
                 let coordinate_value=entry["keywordValues"].get("coordinate");
                 if coordinate_names>1||coordinate_names!=coordinate_programs||if coordinate_names==0 {coordinate_value.is_some()}else{coordinate_value.and_then(Value::as_u64)!=Some(1)} {return Err("Coordinate printed metadata, keyword value and registration count must agree at zero or one".into());}
+                // Plot and Smuggle are alternate-play-from-resources keywords.
+                // The compiler leaves keywordValues empty for them, and the
+                // metadata keyword list is a mention list, so derive the exact
+                // intrinsic instance with the pinned engine's own printed-text
+                // regexes (KeywordHelpers.getRegexForKeyword) and require one
+                // own-printed occurrence. Mention-only text is not a keyword.
+                let keyword_mentions = |name: &str| -> usize {
+                    entry["card"]["keywords"].as_array().into_iter().flatten().filter(|k| k.as_str()==Some(name)).count()
+                };
+                let printed_sides: Vec<&str> = if info.is("leader") {
+                    vec![
+                        entry["card"]["deployBox"].as_str().unwrap_or(""),
+                        entry["card"]["text"].as_str().unwrap_or(""),
+                    ]
+                } else {
+                    vec![entry["card"]["text"].as_str().unwrap_or("")]
+                };
+                let plot_instance = super::play_from_resources::plot_instance(keyword_mentions("plot"), &printed_sides)?;
+                let smuggle_instance = super::play_from_resources::smuggle_instance(keyword_mentions("smuggle"), &printed_sides)?;
+                if info.is("leader") && (plot_instance || smuggle_instance.is_some()) {
+                    return Err("Plot/Smuggle cannot be printed on a leader: PlotAbility asserts non-leaders and leaders never enter the resource zone".into());
+                }
                 let mut flags = 0;
                 let mut raid = 0;
                 let mut restore = 0;
                 for keyword in entry["card"]["keywords"].as_array().into_iter().flatten() {
                     let name = keyword.as_str().ok_or("invalid keyword")?;
+                    if name=="plot" || name=="smuggle" {
+                        // Derived above; a metadata mention alone is not an instance.
+                        continue;
+                    }
                     if name=="coordinate" {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
                         continue;
@@ -594,6 +622,8 @@ impl Engine {
                     restore,
                     aspects,
                     programs,
+                    plot: plot_instance,
+                    smuggle: smuggle_instance,
                     traits: entry["card"]["traits"]
                         .as_array()
                         .into_iter()
@@ -2016,6 +2046,7 @@ impl Engine {
         match ProgramContinuation::from_raw(next) {
             Some(ProgramContinuation::Deaths) => self.process_deaths(s),
             Some(ProgramContinuation::Triggers) => self.process_triggers(s),
+            Some(ProgramContinuation::Plot) => self.plot_settle_enter(s, None),
             // Historical raw values outside the two resumable cases finish.
             _ => self.finish(s),
         }
@@ -3155,10 +3186,15 @@ impl Engine {
                 }
             }
         }
+        if s.trigger_context_is(TriggerContext::LeaderDeploy) {
+            out.extend(self.plot_candidates(s).into_iter().map(Trigger::Plot));
+        }
         out.extend(self.trigger_bits(s).into_iter().map(Trigger::Keyword));
         out.sort_by_key(|t| !match t {
             Trigger::Keyword(bit) => self.trigger_effect(s, *bit),
             Trigger::Program(_, p) => self.trigger_has_effect(s, s.source, *p),
+            // Plot candidates are only listed while the play is legal.
+            Trigger::Plot(_) => true,
         });
         out
     }
@@ -3175,6 +3211,7 @@ impl Engine {
                     }
                 }
                 Trigger::Program(_, p) => self.program_menu_title(s, s.source, *p),
+                Trigger::Plot(id) => self.plot_trigger_title(s, *id),
             })
             .collect()
     }
@@ -3193,17 +3230,27 @@ impl Engine {
                 s.pending_programs &= !(1 << i);
                 self.begin_program(s, p, ProgramContinuation::Triggers)
             }
+            Trigger::Plot(id) => self.begin_plot_trigger(s, id),
         }
     }
     pub(super) fn process_all_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.is_terminal() && !s.trigger_context_is(TriggerContext::Attack) {
             return if s.pending_triggers==0 && s.pending_programs==0 && s.death_pending.len==0 && s.death_depth==0 {self.finish(s)} else {Ok(())};
         }
+        // A Plot play's own trigger window is nested inside the suspended
+        // leader-deploy window; once it is exhausted, resume the outer window.
+        if s.plot.stage==PlotState::INNER
+            && s.pending_triggers==0 && s.pending_programs==0
+            && s.death_pending.len==0 && s.death_depth==0
+        {
+            return self.resume_leader_window(s);
+        }
         let triggers = self.ordered_triggers(s);
         if triggers.len() > 1 {
             if triggers.iter().all(|t| match t {
                 Trigger::Keyword(bit) => !self.trigger_effect(s, *bit),
                 Trigger::Program(_, p) => !self.trigger_has_effect(s, s.source, *p),
+                Trigger::Plot(_) => false,
             }) {
                 s.pending_triggers = 0;
                 s.pending_programs = 0;
@@ -3212,7 +3259,13 @@ impl Engine {
                 return Ok(());
             }
         }
-        if s.pending_triggers != 0 || s.pending_programs != 0 {
+        // A lone Plot trigger is not represented in pending_triggers /
+        // pending_programs; every other trigger still follows the historical
+        // pending-bit driver below.
+        if s.pending_triggers != 0
+            || s.pending_programs != 0
+            || triggers.iter().any(|t| matches!(t, Trigger::Plot(_)))
+        {
             return self.resolve_ordered_trigger(s, 0);
         }
         if s.trigger_context_is(TriggerContext::Attack) {
