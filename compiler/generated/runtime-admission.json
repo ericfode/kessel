@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 815
+    "sourceIr": 816
   },
   "runtimeAdmittedCards": [
     {
@@ -1859,6 +1859,11 @@
       "implementation": "sourceIr",
       "internalName": "tam-ryvora#searching-for-purpose",
       "setCode": "JTL_035"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "iden-versio#adapt-or-die",
+      "setCode": "JTL_036"
     },
     {
       "implementation": "sourceIr",
@@ -6031,7 +6036,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1204,
+  "runtimeAdmittedCount": 1205,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7772,11 +7777,6 @@
       "internalName": "onyx-squadron-brute",
       "reason": "reprint alias of IC27_015",
       "setCode": "JTL_033"
-    },
-    {
-      "internalName": "iden-versio#adapt-or-die",
-      "reason": "iden-versio#adapt-or-die: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_036"
     },
     {
       "internalName": "corvus#inferno-squadron-raider",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1401,
+  "runtimeRejectedCount": 1400,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
