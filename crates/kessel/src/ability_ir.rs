@@ -2752,9 +2752,11 @@ impl Catalogue {
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = crate::attached_registration::sides(entry)?;
                 if piloting_keyword_grant
-                    && (sides.card.len() != 1 || !crate::piloting_attached::registration(&sides.card[0]))
+                    && (sides.card.is_empty()
+                        || sides.card.len() > 8
+                        || !sides.card.iter().all(crate::piloting_attached::registration))
                 {
-                    return Err("piloting attached keyword requires a sole persistent parent grant".into());
+                    return Err("piloting attached keyword requires persistent parent grants only".into());
                 }
 
                 if crate::advantage::marker(&entry["abilities"]) && !crate::advantage::source_entry(entry) {return Err("Advantage requires complete ordinary unit/event sources and bounded native token contracts".into());}

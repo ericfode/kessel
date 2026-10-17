@@ -990,6 +990,15 @@ impl Engine {
 
                 let effect_source=if program.attached_context.as_deref()==Some("host") {if !self.attached_in_play(s,source) {continue;} s.card(source).parent}else{source};
                 if program.attached_context.is_some() && !self.attached_in_play(s,source) {continue;}
+                // Parent-targeted grants (keywords/traits/stats) require a live attachment
+                // before conditions that read source.parent* are evaluated.
+                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(
+                    Effect::GainKeyword {target:Target::Name(n),..}
+                    |Effect::GainTrait{target:Target::Name(n),..}
+                    |Effect::LoseTrait{target:Target::Name(n),..}
+                    |Effect::ModifyStats{target:Target::Name(n),..}
+                ) if n=="parent"));
+                if parent_target && !self.attached_in_play(s,source) {continue;}
                 if (program.coordinate && !self.coordinate_active(s,source))
                     || program
                         .condition
@@ -1005,7 +1014,6 @@ impl Engine {
                         None
                     }
                 });
-                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..}) if n=="parent"));
                 let friendly_ambush=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase))));
                 let native_trait=program.instructions.iter().find_map(|i|match i {Instruction::Apply(Effect::ConstantEffectRegistration(r))=>match r.native(){Ok(crate::static_ongoing::NativeModifier::Traits(rule))=>Some(rule),_=>None},_=>None});
                 if resolver.map_or(if let Some(rule)=native_trait {!self.native_trait_target(s,effect_source,target,rule)}else if friendly_ambush {s.card(source).owner!=s.card(target).owner}else if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
