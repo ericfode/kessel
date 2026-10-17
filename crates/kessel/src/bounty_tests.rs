@@ -435,6 +435,49 @@ fn bounty_source_mutants_stay_explicit_rejections() {
 }
 
 #[test]
+fn bounty_collection_matches_between_generated_and_interpreter_backends() {
+    // The Auto backend executes the content-bound generated body whenever one exists,
+    // so replaying the draw bounty under Auto and Interpreter compares the generated
+    // target resolution with the interpreter's ability context player.
+    let mut expected: Option<u64> = None;
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = board(&e);
+        s.active = Seat::P1;
+        decks(&e, &mut s, Seat::P2, 1);
+        let source = unit(&e, &mut s, Seat::P1, "SHD_027");
+        let prompt = defeated(&e, s, source);
+        let collected = named_button(&e, &prompt, "Trigger");
+        assert_eq!(collected.decision, Decision::Window, "{backend:?}");
+        assert_eq!(collected.players[1].hand.len, 1, "the collector draws on {backend:?}");
+        match expected {
+            None => expected = Some(collected.zobrist()),
+            Some(hash) => assert_eq!(hash, collected.zobrist(), "generated and interpreter states agree"),
+        }
+    }
+    // Which reviewed effect shapes the generated backend covers today. The resource and
+    // ready-resource shapes stay on the interpreter; both paths share `apply_effect`,
+    // so the collector-relative target owner cannot diverge.
+    let e = engine();
+    for (code, generated) in [
+        ("SHD_027", true),
+        ("SHD_058", true),
+        ("SHD_095", true),
+        ("SHD_116", false),
+        ("SHD_134", true),
+        ("SHD_167", true),
+        ("SHD_185", false),
+        ("SHD_195", true),
+        ("SHD_211", true),
+    ] {
+        let d = &e.definitions[*e.by_code.get(code).unwrap() as usize];
+        let program = d.programs.card.iter().map(|p| e.program(*p)).find(|p| p.trigger == "bounty").unwrap();
+        assert_eq!(program.executable.is_ok(), generated, "{code}");
+    }
+}
+
+#[test]
 fn bounty_metadata_is_never_serialized_into_a_runtime_program() {
     // The executable program content hash covers instruction dispatch only; the
     // reviewed metadata is admission-time input, so two catalogues that differ only
