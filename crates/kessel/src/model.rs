@@ -5,9 +5,11 @@ pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
 // Exact budget: 28,208 + native attack grants 64 + registration chronology 256
 // + Disclose selection and alignment 16 + first-strike support flags (2 x 32 = 64)
-// + phase restriction mask (Card 36→40, 256 cards = 1024).
+// + phase restriction mask (Card 36→40, 256 cards = 1024)
+// + until-end-of-attack stat grants (32 targets x 6 bytes + length = 194
+// bytes, which reused the 2-byte alignment gap before the event window: net 192).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_824;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -209,6 +211,33 @@ pub struct SupportState {
     pub context: ResolutionContext,
 }
 impl Default for SupportState {fn default()->Self {Self {grants:[SupportGrant::default();MAX_SUPPORT_GRANTS],len:0,pending:false,native_attack:false,optional_attack:false,context:ResolutionContext::default()}}}
+
+/// One until-end-of-attack stat modification. The pinned engine creates one
+/// unit-only `OngoingCardEffect` per target with `Duration.UntilEndOfAttack`
+/// (`CardAttackLastingEffectSystem`); the values are the deltas resolved when
+/// the ability applied, not composed live stats.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct AttackStatGrant {
+    pub target: CardId,
+    pub power: i16,
+    pub hp: i16,
+}
+pub const MAX_ATTACK_STAT_GRANTS: usize = 32;
+/// Until-end-of-attack stat effects share one lifecycle: every `AttackFlow`
+/// cleanup removes all of them, and a target that leaves play loses its own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AttackStats {
+    pub grants: [AttackStatGrant; MAX_ATTACK_STAT_GRANTS],
+    pub len: u8,
+}
+impl Default for AttackStats {
+    fn default() -> Self {
+        Self {
+            grants: [AttackStatGrant::default(); MAX_ATTACK_STAT_GRANTS],
+            len: 0,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Zone {
@@ -580,6 +609,9 @@ pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 pub struct State {
     pub disclose:DiscloseState,
     pub support: SupportState,
+    /// Until-end-of-attack stat effects; cleared by the same attack-end sweep
+    /// that removes the Support/native-attack grants.
+    pub attack_stats: AttackStats,
     pub death_pending: DeathWindow,
     pub death_window: DeathWindow,
     pub death_frames: [DeathFrame; MAX_DEATH_DEPTH],
@@ -647,6 +679,7 @@ impl Default for State {
         Self {
             disclose:DiscloseState::default(),
             support: SupportState::default(),
+            attack_stats: AttackStats::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
             death_frames:[DeathFrame::default();MAX_DEATH_DEPTH], death_depth:0,
             cards: [Card::default(); MAX_CARDS],
@@ -783,6 +816,14 @@ impl State {
             if self.support.pending {
                 if self.support.native_attack {put(0x4e41544956455041);put(self.support.optional_attack as u64);}
                 context_values(&self.support.context,&mut put);
+            }
+        }
+        // Attack-duration stat grants are resolution-internal: empty outside an
+        // attack, so every zero grant leaves the historical hash stream untouched.
+        if self.attack_stats.len != 0 {
+            put(0x41545441434b5354);put(self.attack_stats.len as u64);
+            for g in &self.attack_stats.grants[..self.attack_stats.len as usize] {
+                put(g.target as u64);put(g.power as u16 as u64);put(g.hp as u16 as u64);
             }
         }
         put(self.active.index() as u64);

@@ -6,9 +6,11 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     copy::<State>();
     let mut s=State::default();
     // 28,544 + first-strike support flags (2 x 32 = 64) + one u8 phase-restriction
-    // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632. Zero
-    // masks/flags stay off the hash stream, so the historical hashes below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29632);
+    // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632
+    // + until-end-of-attack stat grants (32 x 6 bytes + length, net 192 after
+    // alignment) = 29,824. Zero masks/flags/grants stay off the hash stream, so
+    // the historical hashes below are unchanged.
+    assert_eq!(std::mem::size_of::<State>(),29824);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
