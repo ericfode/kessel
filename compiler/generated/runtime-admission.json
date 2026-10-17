@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 760
+    "sourceIr": 762
   },
   "runtimeAdmittedCards": [
     {
@@ -4256,6 +4256,11 @@
       "setCode": "SHD_112"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "privateer-crew",
+      "setCode": "SHD_113"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "mercenary-company",
       "setCode": "SHD_121"
@@ -4274,6 +4279,11 @@
       "implementation": "dataOnly",
       "internalName": "heroic-renegade",
       "setCode": "SHD_146"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "cassian-andor#rebellions-are-built-on-hope",
+      "setCode": "SHD_148"
     },
     {
       "implementation": "sourceIr",
@@ -5756,7 +5766,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1149,
+  "runtimeAdmittedCount": 1151,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5850,7 +5860,7 @@
     },
     {
       "internalName": "rancor-keeper",
-      "reason": "rancor-keeper: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "rancor-keeper: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_032"
     },
     {
@@ -5895,7 +5905,7 @@
     },
     {
       "internalName": "gar-saxon#coveting-power",
-      "reason": "gar-saxon#coveting-power: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "gar-saxon#coveting-power: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_047"
     },
     {
@@ -6140,17 +6150,17 @@
     },
     {
       "internalName": "alphabet-squadron-uwing#quiet-devotion",
-      "reason": "alphabet-squadron-uwing#quiet-devotion: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "alphabet-squadron-uwing#quiet-devotion: unimplemented event hook onPhaseStarted",
       "setCode": "ASH_159"
     },
     {
       "internalName": "kachirho-militia",
-      "reason": "kachirho-militia: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "kachirho-militia: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_160"
     },
     {
       "internalName": "zeb-orrelios#fists-work-every-time",
-      "reason": "zeb-orrelios#fists-work-every-time: defeat hooks require complete ordinary unit source metadata and bounded registrations",
+      "reason": "zeb-orrelios#fists-work-every-time: defeat hooks require one bounded typed root registration",
       "setCode": "ASH_161"
     },
     {
@@ -6260,7 +6270,7 @@
     },
     {
       "internalName": "blade-three#bane-of-the-devastator",
-      "reason": "blade-three#bane-of-the-devastator: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "blade-three#bane-of-the-devastator: unimplemented event hook onDamageDealt",
       "setCode": "ASH_204"
     },
     {
@@ -6440,22 +6450,22 @@
     },
     {
       "internalName": "darth-sidious#there-is-no-mercy",
-      "reason": "darth-sidious#there-is-no-mercy: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "darth-sidious#there-is-no-mercy: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_011"
     },
     {
       "internalName": "poggle-the-lesser#let-the-executions-begin",
-      "reason": "poggle-the-lesser#let-the-executions-begin: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "poggle-the-lesser#let-the-executions-begin: unimplemented event hook onLeaderDeployed",
       "setCode": "HMW_012"
     },
     {
       "internalName": "cham-syndulla#hammer-of-ryloth",
-      "reason": "cham-syndulla#hammer-of-ryloth: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "cham-syndulla#hammer-of-ryloth: unimplemented event hook onDamageDealt",
       "setCode": "HMW_013"
     },
     {
       "internalName": "wicket#few-greater-battles-to-fight",
-      "reason": "wicket#few-greater-battles-to-fight: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "wicket#few-greater-battles-to-fight: unimplemented event hook onAttackDeclared",
       "setCode": "HMW_014"
     },
     {
@@ -6510,7 +6520,7 @@
     },
     {
       "internalName": "logray#bright-tree-shaman",
-      "reason": "logray#bright-tree-shaman: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "logray#bright-tree-shaman: unimplemented event hook onDamageDealt",
       "setCode": "HMW_045"
     },
     {
@@ -6565,7 +6575,7 @@
     },
     {
       "internalName": "nuvo-vindi#blue-shadow-perfected",
-      "reason": "nuvo-vindi#blue-shadow-perfected: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "nuvo-vindi#blue-shadow-perfected: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_062"
     },
     {
@@ -6680,7 +6690,7 @@
     },
     {
       "internalName": "leia-organa#these-are-my-friends",
-      "reason": "leia-organa#these-are-my-friends: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "leia-organa#these-are-my-friends: unimplemented event hook onCardPlayed",
       "setCode": "HMW_115"
     },
     {
@@ -6775,7 +6785,7 @@
     },
     {
       "internalName": "arena-acklay#screaming-predator",
-      "reason": "arena-acklay#screaming-predator: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "arena-acklay#screaming-predator: unimplemented event hook onDamageDealt",
       "setCode": "HMW_156"
     },
     {
@@ -6800,7 +6810,7 @@
     },
     {
       "internalName": "ezra-bridger#what-are-you-afraid-of",
-      "reason": "ezra-bridger#what-are-you-afraid-of: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "ezra-bridger#what-are-you-afraid-of: unimplemented event hook onClaimInitiative",
       "setCode": "HMW_168"
     },
     {
@@ -6895,7 +6905,7 @@
     },
     {
       "internalName": "tech#i-thought-it-was-obvious",
-      "reason": "tech#i-thought-it-was-obvious: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "tech#i-thought-it-was-obvious: unimplemented event hook onDamageDealt",
       "setCode": "HMW_211"
     },
     {
@@ -7620,7 +7630,7 @@
     },
     {
       "internalName": "silver-angel#traces-hope",
-      "reason": "silver-angel#traces-hope: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "silver-angel#traces-hope: unimplemented event hook onDamageHealed",
       "setCode": "JTL_062"
     },
     {
@@ -8040,7 +8050,7 @@
     },
     {
       "internalName": "fireball#an-explosion-with-wings",
-      "reason": "fireball#an-explosion-with-wings: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "fireball#an-explosion-with-wings: unimplemented event hook onPhaseStarted",
       "setCode": "JTL_198"
     },
     {
@@ -8115,7 +8125,7 @@
     },
     {
       "internalName": "contracted-hunter",
-      "reason": "contracted-hunter: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "contracted-hunter: unimplemented event hook onPhaseStarted",
       "setCode": "JTL_216"
     },
     {
@@ -8140,7 +8150,7 @@
     },
     {
       "internalName": "razor-crest#ride-for-hire",
-      "reason": "razor-crest#ride-for-hire: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "razor-crest#ride-for-hire: unimplemented event hook onUpgradeAttached",
       "setCode": "JTL_223"
     },
     {
@@ -8275,7 +8285,7 @@
     },
     {
       "internalName": "aurra-sing#assassin",
-      "reason": "aurra-sing#assassin: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "aurra-sing#assassin: unimplemented event hook onLeaderDeployed",
       "setCode": "LAW_004"
     },
     {
@@ -8290,7 +8300,7 @@
     },
     {
       "internalName": "boba-fett#krayts-claw-commander",
-      "reason": "boba-fett#krayts-claw-commander: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "boba-fett#krayts-claw-commander: invalid ability IR: unknown variant `createCreditToken`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LAW_007"
     },
     {
@@ -8465,7 +8475,7 @@
     },
     {
       "internalName": "cassian-andor#everything-for-the-rebellion",
-      "reason": "cassian-andor#everything-for-the-rebellion: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "cassian-andor#everything-for-the-rebellion: unimplemented event hook onAttackEnd",
       "setCode": "LAW_056"
     },
     {
@@ -8510,7 +8520,7 @@
     },
     {
       "internalName": "patient-hunter",
-      "reason": "patient-hunter: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "patient-hunter: invalid ability IR: unknown variant `cardRestriction`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LAW_073"
     },
     {
@@ -8860,7 +8870,7 @@
     },
     {
       "internalName": "thats-a-rock",
-      "reason": "thats-a-rock: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "thats-a-rock: invalid ability IR: unknown field `zoneFilter`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_206"
     },
     {
@@ -9190,7 +9200,7 @@
     },
     {
       "internalName": "dume#redeem-the-future",
-      "reason": "dume#redeem-the-future: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "dume#redeem-the-future: unimplemented event hook onPhaseStarted",
       "setCode": "LOF_055"
     },
     {
@@ -9270,7 +9280,7 @@
     },
     {
       "internalName": "eighth-brother#hunt-together",
-      "reason": "eighth-brother#hunt-together: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "eighth-brother#hunt-together: unimplemented event hook onCardPlayed",
       "setCode": "LOF_087"
     },
     {
@@ -9290,7 +9300,7 @@
     },
     {
       "internalName": "obiwan-kenobi#protective-padawan",
-      "reason": "obiwan-kenobi#protective-padawan: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "obiwan-kenobi#protective-padawan: unimplemented event hook onCardPlayed",
       "setCode": "LOF_096"
     },
     {
@@ -9390,7 +9400,7 @@
     },
     {
       "internalName": "adi-gallia#stern-and-focused",
-      "reason": "adi-gallia#stern-and-focused: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "adi-gallia#stern-and-focused: unimplemented event hook onCardPlayed",
       "setCode": "LOF_142"
     },
     {
@@ -9430,7 +9440,7 @@
     },
     {
       "internalName": "blockade-runner",
-      "reason": "blockade-runner: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "blockade-runner: unimplemented event hook onDamageDealt",
       "setCode": "LOF_166"
     },
     {
@@ -9585,7 +9595,7 @@
     },
     {
       "internalName": "kylo-ren#i-know-your-story",
-      "reason": "kylo-ren#i-know-your-story: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "kylo-ren#i-know-your-story: unimplemented event hook onCardPlayed",
       "setCode": "LOF_229"
     },
     {
@@ -9610,7 +9620,7 @@
     },
     {
       "internalName": "luke-skywalker#a-heros-beginning",
-      "reason": "luke-skywalker#a-heros-beginning: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "luke-skywalker#a-heros-beginning: unimplemented event hook onCardPlayed",
       "setCode": "LOF_249"
     },
     {
@@ -9620,7 +9630,7 @@
     },
     {
       "internalName": "the-daughter#embodiment-of-light",
-      "reason": "the-daughter#embodiment-of-light: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "the-daughter#embodiment-of-light: unimplemented event hook onDamageDealt",
       "setCode": "LOF_252"
     },
     {
@@ -9630,7 +9640,7 @@
     },
     {
       "internalName": "the-father#maintaining-balance",
-      "reason": "the-father#maintaining-balance: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "the-father#maintaining-balance: unimplemented event hook onForceUsed",
       "setCode": "LOF_260"
     },
     {
@@ -9695,7 +9705,7 @@
     },
     {
       "internalName": "luthen-rael#dont-you-want-to-fight-for-real",
-      "reason": "luthen-rael#dont-you-want-to-fight-for-real: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "luthen-rael#dont-you-want-to-fight-for-real: unimplemented event hook onCardDefeated",
       "setCode": "SEC_013"
     },
     {
@@ -9705,7 +9715,7 @@
     },
     {
       "internalName": "sabe#queens-shadow",
-      "reason": "sabe#queens-shadow: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "sabe#queens-shadow: invalid ability IR: unknown variant `lookAtAndSelectCard`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SEC_017"
     },
     {
@@ -9755,7 +9765,7 @@
     },
     {
       "internalName": "populist-advisor",
-      "reason": "populist-advisor: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "populist-advisor: unimplemented event hook onDamageDealt",
       "setCode": "SEC_041"
     },
     {
@@ -9870,7 +9880,7 @@
     },
     {
       "internalName": "major-partagaz#healthcare-provider",
-      "reason": "major-partagaz#healthcare-provider: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "major-partagaz#healthcare-provider: unimplemented event hook onAttackDeclared",
       "setCode": "SEC_081"
     },
     {
@@ -9895,7 +9905,7 @@
     },
     {
       "internalName": "first-light#threatening-elegance",
-      "reason": "first-light#threatening-elegance: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "first-light#threatening-elegance: unimplemented event hook onCardDefeated",
       "setCode": "SEC_088"
     },
     {
@@ -10055,7 +10065,7 @@
     },
     {
       "internalName": "the-elite-squad#neutralizing-insurgents",
-      "reason": "the-elite-squad#neutralizing-insurgents: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "the-elite-squad#neutralizing-insurgents: unimplemented event hook onDamageDealt",
       "setCode": "SEC_143"
     },
     {
@@ -10085,7 +10095,7 @@
     },
     {
       "internalName": "valiant-commando",
-      "reason": "valiant-commando: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "valiant-commando: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SEC_150"
     },
     {
@@ -10130,7 +10140,7 @@
     },
     {
       "internalName": "ziton-moj#black-sun-bully",
-      "reason": "ziton-moj#black-sun-bully: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "ziton-moj#black-sun-bully: unimplemented event hook onClaimInitiative",
       "setCode": "SEC_168"
     },
     {
@@ -10460,7 +10470,7 @@
     },
     {
       "internalName": "hondo-ohnaka#thats-good-business",
-      "reason": "hondo-ohnaka#thats-good-business: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "hondo-ohnaka#thats-good-business: unimplemented event hook onCardPlayed",
       "setCode": "SHD_005"
     },
     {
@@ -10475,7 +10485,7 @@
     },
     {
       "internalName": "boba-fett#daimyo",
-      "reason": "boba-fett#daimyo: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "boba-fett#daimyo: unimplemented event hook onCardPlayed",
       "setCode": "SHD_008"
     },
     {
@@ -10505,7 +10515,7 @@
     },
     {
       "internalName": "cad-bane#he-who-needs-no-introduction",
-      "reason": "cad-bane#he-who-needs-no-introduction: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "cad-bane#he-who-needs-no-introduction: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_014"
     },
     {
@@ -10525,7 +10535,7 @@
     },
     {
       "internalName": "the-mandalorian#sworn-to-the-creed",
-      "reason": "the-mandalorian#sworn-to-the-creed: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "the-mandalorian#sworn-to-the-creed: unimplemented event hook onCardPlayed",
       "setCode": "SHD_018"
     },
     {
@@ -10660,7 +10670,7 @@
     },
     {
       "internalName": "phaseiii-dark-trooper",
-      "reason": "phaseiii-dark-trooper: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "phaseiii-dark-trooper: unimplemented event hook onDamageDealt",
       "setCode": "SHD_084"
     },
     {
@@ -10710,7 +10720,7 @@
     },
     {
       "internalName": "maz-kanata#pirate-queen",
-      "reason": "maz-kanata#pirate-queen: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "maz-kanata#pirate-queen: unimplemented event hook onCardPlayed",
       "setCode": "SHD_096"
     },
     {
@@ -10757,11 +10767,6 @@
       "internalName": "collections-starhopper",
       "reason": "collections-starhopper: compiler rejected \"collections-starhopper\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/collections-starhopper.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
       "setCode": "SHD_111"
-    },
-    {
-      "internalName": "privateer-crew",
-      "reason": "privateer-crew: invalid ability IR: data did not match any variant of untagged enum Hook",
-      "setCode": "SHD_113"
     },
     {
       "internalName": "scanning-officer",
@@ -10865,7 +10870,7 @@
     },
     {
       "internalName": "punishing-one#dengars-jumpmaster",
-      "reason": "punishing-one#dengars-jumpmaster: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "punishing-one#dengars-jumpmaster: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_137"
     },
     {
@@ -10910,13 +10915,8 @@
     },
     {
       "internalName": "ketsu-onyo#old-friend",
-      "reason": "ketsu-onyo#old-friend: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "ketsu-onyo#old-friend: unimplemented event hook onDamageDealt",
       "setCode": "SHD_147"
-    },
-    {
-      "internalName": "cassian-andor#rebellions-are-built-on-hope",
-      "reason": "cassian-andor#rebellions-are-built-on-hope: invalid ability IR: data did not match any variant of untagged enum Hook",
-      "setCode": "SHD_148"
     },
     {
       "internalName": "nite-owl-skirmisher",
@@ -11155,7 +11155,7 @@
     },
     {
       "internalName": "tobias-beckett#i-trust-no-one",
-      "reason": "tobias-beckett#i-trust-no-one: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "tobias-beckett#i-trust-no-one: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_217"
     },
     {
@@ -11240,7 +11240,7 @@
     },
     {
       "internalName": "kragan-gorr#warbird-captain",
-      "reason": "kragan-gorr#warbird-captain: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "kragan-gorr#warbird-captain: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_241"
     },
     {
@@ -11285,7 +11285,7 @@
     },
     {
       "internalName": "lady-proxima#white-worm-matriarch",
-      "reason": "lady-proxima#white-worm-matriarch: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "lady-proxima#white-worm-matriarch: unimplemented event hook onCardPlayed",
       "setCode": "SHD_255"
     },
     {
@@ -11625,7 +11625,7 @@
     },
     {
       "internalName": "colonel-yularen#isb-director",
-      "reason": "colonel-yularen#isb-director: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "colonel-yularen#isb-director: unimplemented event hook onCardPlayed",
       "setCode": "SOR_109"
     },
     {
@@ -11710,7 +11710,7 @@
     },
     {
       "internalName": "seventh-sister#implacable-inquisitor",
-      "reason": "seventh-sister#implacable-inquisitor: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "seventh-sister#implacable-inquisitor: unimplemented event hook onDamageDealt",
       "setCode": "SOR_133"
     },
     {
@@ -11745,7 +11745,7 @@
     },
     {
       "internalName": "fighters-for-freedom",
-      "reason": "fighters-for-freedom: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "fighters-for-freedom: unimplemented event hook onCardPlayed",
       "setCode": "SOR_143"
     },
     {
@@ -11760,7 +11760,7 @@
     },
     {
       "internalName": "mace-windu#party-crasher",
-      "reason": "mace-windu#party-crasher: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "mace-windu#party-crasher: unimplemented event hook onCardDefeated",
       "setCode": "SOR_149"
     },
     {
@@ -11870,7 +11870,7 @@
     },
     {
       "internalName": "bossk#deadly-stalker",
-      "reason": "bossk#deadly-stalker: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "bossk#deadly-stalker: unimplemented event hook onCardPlayed",
       "setCode": "SOR_182"
     },
     {
@@ -12145,7 +12145,7 @@
     },
     {
       "internalName": "ahsoka-tano#i-have-an-idea",
-      "reason": "ahsoka-tano#i-have-an-idea: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "ahsoka-tano#i-have-an-idea: invalid ability IR: unknown variant `lookAtOptions`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "TS26_008"
     },
     {
@@ -12195,7 +12195,7 @@
     },
     {
       "internalName": "assault-lander-laat",
-      "reason": "assault-lander-laat: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "assault-lander-laat: unimplemented event hook onPhaseStarted",
       "setCode": "TS26_023"
     },
     {
@@ -12340,7 +12340,7 @@
     },
     {
       "internalName": "moralo-eval#infamous-murderer",
-      "reason": "moralo-eval#infamous-murderer: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "moralo-eval#infamous-murderer: unimplemented event hook onDamageDealt",
       "setCode": "TS26_073"
     },
     {
@@ -12455,7 +12455,7 @@
     },
     {
       "internalName": "jango-fett#concealing-the-conspiracy",
-      "reason": "jango-fett#concealing-the-conspiracy: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "jango-fett#concealing-the-conspiracy: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "TWI_016"
     },
     {
@@ -12465,7 +12465,7 @@
     },
     {
       "internalName": "quinlan-vos#sticking-the-landing",
-      "reason": "quinlan-vos#sticking-the-landing: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "quinlan-vos#sticking-the-landing: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_018"
     },
     {
@@ -12560,7 +12560,7 @@
     },
     {
       "internalName": "the-zillo-beast#awoken-from-the-depths",
-      "reason": "the-zillo-beast#awoken-from-the-depths: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "the-zillo-beast#awoken-from-the-depths: unimplemented event hook onPhaseStarted",
       "setCode": "TWI_067"
     },
     {
@@ -12585,7 +12585,7 @@
     },
     {
       "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
-      "reason": "poggle-the-lesser#archduke-of-the-stalgasin-hive: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "poggle-the-lesser#archduke-of-the-stalgasin-hive: unimplemented event hook onCardPlayed",
       "setCode": "TWI_080"
     },
     {
@@ -12775,7 +12775,7 @@
     },
     {
       "internalName": "aurra-sing#crackshot-sniper",
-      "reason": "aurra-sing#crackshot-sniper: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "aurra-sing#crackshot-sniper: unimplemented event hook onAttackDeclared",
       "setCode": "TWI_166"
     },
     {
@@ -12815,7 +12815,7 @@
     },
     {
       "internalName": "tactical-droid-commander",
-      "reason": "tactical-droid-commander: invalid ability IR: data did not match any variant of untagged enum Hook",
+      "reason": "tactical-droid-commander: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_184"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1456,
+  "runtimeRejectedCount": 1454,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

@@ -34509,6 +34509,46 @@
       "aspects": [
         "command"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "2288926269",
+      "internalName": "privateer-crew",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_113",
+      "setCodes": [
+        {
+          "number": 113,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 113,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": "Smuggle [6 resources, command] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)\n\nWhen played using Smuggle: Give 3 Experience tokens to this unit.",
+      "title": "Privateer Crew",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
       "cost": 6,
       "deployBox": null,
       "epicAction": null,
@@ -34668,6 +34708,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "6234506067",
+      "internalName": "cassian-andor#rebellions-are-built-on-hope",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_148",
+      "setCodes": [
+        {
+          "number": 148,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 148,
+        "set": "SHD"
+      },
+      "subtitle": "Rebellions Are Built On Hope",
+      "text": "Smuggle [5 resources Aggression Heroism] (If this card is a resource, you may play him for his smuggle cost. Replace it with the top card of your deck.)\nWhen played using Smuggle: Ready this unit.",
+      "title": "Cassian Andor",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

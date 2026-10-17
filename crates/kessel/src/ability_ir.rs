@@ -1512,11 +1512,18 @@ impl Program {
 
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
-            if !crate::death_hooks::registration(ability) {return Err("defeat hooks require one bounded typed root registration".into());}
+            let smuggle=crate::death_hooks::smuggle_play_registration(ability);
+            if !crate::death_hooks::registration(ability) && !smuggle {
+                return Err(crate::death_hooks::reject_reason(ability));
+            }
             let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
             let mut program=Self::compile(&normalized)?;
             program.hooks=ability.hooks.clone();
-            if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(_))) {program.trigger="eventHooks".into();}
+            if smuggle {
+                program.trigger="whenPlayedUsingSmuggle".into();
+            } else if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(v) if matches!(v.alias,crate::death_hooks::AliasName::WhenPlayed))) {
+                program.trigger="eventHooks".into();
+            }
             program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);
             return Ok(program);
         }
@@ -2484,7 +2491,16 @@ impl Catalogue {
                 if crate::advantage::marker(&entry["abilities"]) && !crate::advantage::source_entry(entry) {return Err("Advantage requires complete ordinary unit/event sources and bounded native token contracts".into());}
 
                 if sides.card.iter().any(crate::attached_constants::host_trait_aura)&&!crate::attached_constants::entry(entry) {return Err("host trait auras require the complete attached constant wrapper source contract".into());}
-                if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|!a.hooks.is_empty()||a.trigger=="eventHooks") && !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
+                if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|!a.hooks.is_empty()||a.trigger=="eventHooks") {
+                    let hooks:Vec<_>=sides.card.iter().chain(&sides.leader).chain(&sides.unit).filter(|a|!a.hooks.is_empty()||a.trigger=="eventHooks").collect();
+                    if hooks.iter().all(|a|crate::death_hooks::registration(a)) {
+                        if !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
+                    } else if hooks.iter().all(|a|crate::death_hooks::smuggle_play_registration(a)) {
+                        if !crate::death_hooks::smuggle_play_entry(entry,&sides) {return Err("smuggle when-played requires complete ordinary smuggle unit source metadata and registration".into());}
+                    } else {
+                        return Err(crate::death_hooks::reject_reason(hooks[0]));
+                    }
+                }
                 if selector_contract::expanded_selector_marker(&entry["abilities"]) && !selector_contract::native_source_entry(entry,&sides) {return Err("expanded selectors require complete ordinary unit/event card-side source metadata without unimplemented registration contexts".into());}
                 if ["abilities","attachCondition","piloting"].iter().any(|k|parent_defense_marker(&entry[*k]))&&!parent_defense_upgrade_entry(entry){return Err("parent defense requires complete nonunique non-Vehicle-attached upgrade metadata".into());}
 

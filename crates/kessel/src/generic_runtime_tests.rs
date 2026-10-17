@@ -1260,9 +1260,9 @@ fn coordinate_stats_follow_both_friendly_arenas_and_attack_registration_is_captu
     s.players[0].ground.remove(third);s.players[0].space.push(third).unwrap();
     let hp=e.hp(&s,source);death_program(&mut e,&s,source,json!({"trigger":"constant","coordinate":true,"title":"Coordinate HP","effect":{"kind":"modifyStats","duration":"persistent","target":"self","power":{"kind":"const","value":0},"hp":{"kind":"const","value":3}}}));assert_eq!(e.hp(&s,source),hp+3);
     let program=death_program(&mut e,&s,source,json!({"trigger":"onAttack","coordinate":true,"title":"Draw a card","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}));let drawn=deck_card(&e,&mut s,Seat::P1);
-    s.source=source;e.queue_programs(&mut s,"onAttack");let captured=s.pending_programs;assert_ne!(captured,0);
+    s.source=source;e.queue_programs(&mut s,&["onAttack"]);let captured=s.pending_programs;assert_ne!(captured,0);
     e.leave_play(&mut s,third).unwrap();assert_eq!(e.hp(&s,source),hp);assert_eq!(s.pending_programs,captured);e.begin_program(&mut s,program,0).unwrap();assert!(s.players[0].hand.contains(drawn));
-    s.source=source;e.queue_programs(&mut s,"onAttack");assert_eq!(s.pending_programs,0);assert!(e.in_arena(&s,second));
+    s.source=source;e.queue_programs(&mut s,&["onAttack"]);assert_eq!(s.pending_programs,0);assert!(e.in_arena(&s,second));
 }
 #[test]
 fn simultaneous_explicit_defeat_conditions_capture_before_any_source_moves() {

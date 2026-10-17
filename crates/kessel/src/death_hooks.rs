@@ -1,6 +1,7 @@
-//! Closed projections of defeat-event registrations. The predicate is evaluated
-//! against the event's pre-handler unit/type/controller snapshot; effect programs
-//! cannot read or retain an unmodeled event context.
+//! Closed projections of defeat-event and smuggle-play registrations. Defeat
+//! predicates are evaluated against the event's pre-handler unit/type/controller
+//! snapshot; effect programs cannot read or retain an unmodeled event context.
+//! Unsupported hook JSON deserializes as [`Hook::Unsupported`] and stays rejected.
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -9,6 +10,8 @@ use serde_json::Value;
 pub enum Hook {
     Alias(Alias),
     Event(Event),
+    /// Any hook shape that is not a reviewed Alias/Event projection.
+    Unsupported(Value),
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -20,6 +23,8 @@ pub struct Alias {
 pub enum AliasName {
     #[serde(rename = "whenPlayed")]
     WhenPlayed,
+    #[serde(rename = "whenPlayedUsingSmuggle")]
+    WhenPlayedUsingSmuggle,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -167,30 +172,32 @@ impl Predicate {
         })
     }
 }
+fn plain_hook_header(a: &Ability) -> bool {
+    a.trigger == "eventHooks"
+        && !a.hooks.is_empty()
+        && a.hooks.len() <= 2
+        && !a.optional
+        && !a.requires_confirmation
+        && !a.coordinate
+        && a.gained_host.is_none()
+        && a.attached_context.is_none()
+        && !a.attacker_must_survive
+        && a.costs.is_empty()
+        && a.context_title.is_empty()
+        && a.target_resolvers.is_empty()
+        && a.condition.is_none()
+        && a.then.is_none()
+        && a.if_you_do.is_none()
+}
 pub(crate) fn registration(a: &Ability) -> bool {
-    if a.trigger != "eventHooks"
-        || a.hooks.is_empty()
-        || a.hooks.len() > 2
-        || a.optional
-        || a.requires_confirmation
-        || a.coordinate
-        || a.gained_host.is_some()
-        || a.attached_context.is_some()
-        || a.attacker_must_survive
-        || !a.costs.is_empty()
-        || !a.context_title.is_empty()
-        || !a.target_resolvers.is_empty()
-        || a.condition.is_some()
-        || a.then.is_some()
-        || a.if_you_do.is_some()
-    {
+    if !plain_hook_header(a) {
         return false;
     }
     let mut deaths = 0;
     let mut plays = 0;
     for hook in &a.hooks {
         match hook {
-            Hook::Alias(v) if v.enabled => plays += 1,
+            Hook::Alias(v) if v.enabled && matches!(v.alias, AliasName::WhenPlayed) => plays += 1,
             Hook::Event(v) if v.predicate.projection().is_some() => deaths += 1,
             _ => return false,
         }
@@ -243,6 +250,49 @@ pub(crate) fn registration(a: &Ability) -> bool {
         _ => false,
     }
 }
+/// Sole WhenPlayedUsingSmuggle alias with self Experience 1..=3 or Ready self.
+pub(crate) fn smuggle_play_registration(a: &Ability) -> bool {
+    if !plain_hook_header(a) || a.hooks.len() != 1 || a.target_resolver.is_some() {
+        return false;
+    }
+    match &a.hooks[0] {
+        Hook::Alias(v) if v.enabled && matches!(v.alias, AliasName::WhenPlayedUsingSmuggle) => {}
+        _ => return false,
+    }
+    match &a.effect {
+        Effect::GiveExperience {
+            target: Target::Name(t),
+            amount: Expr::Const { value },
+        } => t == "self" && value.as_u64().is_some_and(|n| (1..=3).contains(&n)),
+        Effect::Ready {
+            target: Target::Name(t),
+        } => t == "self",
+        _ => false,
+    }
+}
+pub(crate) fn reject_reason(a: &Ability) -> String {
+    for hook in &a.hooks {
+        if let Hook::Unsupported(v) = hook {
+            if let Some(event) = v.get("event").and_then(Value::as_str) {
+                return format!("unimplemented event hook {event}");
+            }
+            if let Some(alias) = v.get("alias").and_then(Value::as_str) {
+                return format!("unimplemented hook alias {alias}");
+            }
+            return "unsupported event hook shape".into();
+        }
+    }
+    if a.hooks.iter().any(|h| {
+        matches!(
+            h,
+            Hook::Alias(v) if matches!(v.alias, AliasName::WhenPlayedUsingSmuggle)
+        )
+    }) {
+        return "smuggle when-played requires complete ordinary self Experience/Ready registration"
+            .into();
+    }
+    "defeat hooks require one bounded typed root registration".into()
+}
 pub(crate) fn marker(v: &Value) -> bool {
     v.get("hooks").is_some()
         || v["trigger"] == "eventHooks"
@@ -252,7 +302,7 @@ pub(crate) fn marker(v: &Value) -> bool {
             _ => false,
         }
 }
-pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
+fn ordinary_unit_hook_source(e: &Value, sides: &Sides) -> bool {
     ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
         && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
@@ -278,9 +328,20 @@ pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
         .iter()
         .all(|key| e["card"][key].is_null())
         && (e["card"]["epicAction"].is_null() || e["card"]["epicAction"] == "")
+}
+pub(crate) fn entry(e: &Value, sides: &Sides) -> bool {
+    ordinary_unit_hook_source(e, sides)
         && sides
             .card
             .iter()
             .filter(|a| marker(&serde_json::to_value(a).expect("serializable ability")))
             .all(registration)
+}
+pub(crate) fn smuggle_play_entry(e: &Value, sides: &Sides) -> bool {
+    ordinary_unit_hook_source(e, sides)
+        && e["card"]["keywords"]
+            .as_array()
+            .is_some_and(|k| k.iter().any(|v| v == "smuggle"))
+        && sides.card.len() == 1
+        && smuggle_play_registration(&sides.card[0])
 }

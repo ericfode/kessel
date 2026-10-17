@@ -528,6 +528,8 @@ pub struct State {
     pub disabled_ongoing_source: CardId,
     pub target: CardId,
     pub ambush: bool,
+    /// True while settling enter triggers for a Smuggle play (including Unique).
+    pub enter_smuggle: bool,
     pub after_attack_triggers: u8,
     pub attack_restore: u16,
     pub attack_source: CardId,
@@ -584,6 +586,7 @@ impl Default for State {
             disabled_ongoing_source: 0,
             target: 0,
             ambush: false,
+            enter_smuggle: false,
             after_attack_triggers: 0,
             attack_restore: 0,
             attack_source: 0,attack_defender:0,attack_end_captured:false,attack_attacker_defeated:false,attack_attacker_departed:false,attack_defender_defeated:false,attack_defender_departed:false,
@@ -707,6 +710,7 @@ impl State {
         put(self.source as u64);
         put(self.target as u64);
         put(self.ambush as u64);
+        put(self.enter_smuggle as u64);
         put(self.after_attack_triggers as u64);
         put(self.attack_restore as u64);
         put(self.attack_source as u64);put(self.attack_defender as u64);

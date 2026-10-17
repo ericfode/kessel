@@ -126,6 +126,9 @@ fn parse_smuggle_cost(text: &str) -> Result<SmuggleCost, String> {
         if amount > 1000 {
             return Err("Smuggle cost amount exceeds bound".into());
         }
+        // Pinned regex allows `(?:,\s*|\s+)` between `resources` and aspects;
+        // a later `, …` is an unimplemented non-aspect additional cost.
+        let aspects_text = aspects_text.trim().trim_start_matches(',').trim();
         if aspects_text.contains(',') {
             return Err("Smuggle additional costs are not implemented".into());
         }
@@ -3353,7 +3356,7 @@ impl Engine {
         registration.pending_triggers=0;registration.attack_restore=self.keyword_amount(&registration,registration.source,"restore");
         if self.has_keyword(&registration,registration.source,"restore") {registration.pending_triggers|=T_RESTORE;}
         if self.keyword_amount(&registration,registration.source,"saboteur")>0 && self.in_arena(&registration,defender) {registration.pending_triggers|=T_SABOTEUR;}
-        self.queue_programs(&mut registration,"onAttack");s.attack_restore=registration.attack_restore;
+        self.queue_programs(&mut registration,&["onAttack"]);s.attack_restore=registration.attack_restore;
         let mut entries=Vec::new();
         for (i,&program) in self.card_programs(&registration,registration.source).iter().enumerate() {if registration.pending_programs&(1<<i)!=0 {entries.push(DeathTrigger {source:registration.source,program,player:registration.card(registration.source).owner,..DeathTrigger::default()});}}
         for keyword in self.trigger_bits(&registration) {entries.push(DeathTrigger {source:registration.source,keyword,player:registration.card(registration.source).owner,..DeathTrigger::default()});}
@@ -3456,14 +3459,14 @@ impl Engine {
         let p=s.player(s.card(source).owner);
         self.in_arena(s,source) && p.ground.len as u16+p.space.len as u16>=3
     }
-    pub(super) fn queue_programs(&self, s: &mut State, trigger: &str) {
+    pub(super) fn queue_programs(&self, s: &mut State, triggers: &[&str]) {
         s.pending_programs = 0;
         if self.catalogue.is_none() {
             return;
         }
         for (i, p) in self.card_programs(s, s.source).iter().enumerate() {
             let p = self.program(*p);
-            if p.trigger == trigger
+            if triggers.iter().any(|t| p.trigger == *t)
                 && (!p.coordinate || self.coordinate_active(s,s.source))
                 && p.condition
                     .as_ref()

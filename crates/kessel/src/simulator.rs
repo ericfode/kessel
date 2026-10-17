@@ -784,6 +784,7 @@ impl Engine {
                         t.player_mut(seat).hand.remove(upgrade);
                     }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;
+                    t.enter_smuggle=from_resources;
                     if from_resources {self.resource_deck_top_after_play(&mut t,seat)?;}
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
@@ -852,7 +853,7 @@ impl Engine {
                     if self.catalogue.is_none() && (d.code == "SOR_014" || d.code == "IBH_053") {
                         t.pending_triggers |= T_LEADER;
                     }
-                    self.queue_programs(&mut t, "onAttack");
+                    self.queue_programs(&mut t, &["onAttack"]);
                     if let Some(context)=declaration_context.as_ref() {
                         if !self.capture_defense_window(&mut t,context)? {self.process_triggers(&mut t)?;}
                     } else {self.process_triggers(&mut t)?;}
@@ -1036,6 +1037,7 @@ impl Engine {
         self.resource_deck_top_after_play(s, seat)?;
         s.source = id;
         s.trigger_context = 1;
+        s.enter_smuggle = true;
         if self.def(s, id).info.unique && self.duplicates(s, id) > 1 {
             s.decision = Decision::Unique;
             Ok(())
@@ -1137,10 +1139,17 @@ impl Engine {
             | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
             | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
         s.trigger_context = 1;
+        let smuggle = s.enter_smuggle;
+        s.enter_smuggle = false;
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
-        // Ambush/Shielded also watch OnLeaderDeployed.
+        // Ambush/Shielded also watch OnLeaderDeployed. Smuggle-only aliases
+        // watch OnCardPlayed with PlayType.Smuggle.
         if !self.def(s, s.source).info.is("leader") {
-            self.queue_programs(s, "whenPlayed");
+            if smuggle {
+                self.queue_programs(s, &["whenPlayed", "whenPlayedUsingSmuggle"]);
+            } else {
+                self.queue_programs(s, &["whenPlayed"]);
+            }
         }
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
