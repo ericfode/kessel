@@ -15549,6 +15549,48 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "0511138070",
+      "internalName": "astromech-pilot",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Vigilance] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: You may heal 2 damage from a unit.",
+      "power": 1,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_057",
+      "setCodes": [
+        {
+          "number": 57,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 57,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Astromech Pilot",
+      "traits": [
+        "droid",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 1
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -16350,6 +16392,49 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "4921363233",
+      "internalName": "wingman-victor-two#mauler-mithel",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [1 resource Command Villainy] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: Create a TIE Fighter token.",
+      "power": 3,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_084",
+      "setCodes": [
+        {
+          "number": 84,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 84,
+        "set": "JTL"
+      },
+      "subtitle": "Mauler Mithel",
+      "text": "",
+      "title": "Wingman Victor Two",
+      "traits": [
+        "imperial",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
       "arena": "space",
       "aspects": [
         "command",
@@ -16389,6 +16474,49 @@
       "unique": true,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "1911230033",
+      "internalName": "wingman-victor-three#backstabber",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [1 resource Command Villainy] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nWhen played as an upgrade: You may give an Experience token to another unit.",
+      "power": 4,
+      "rules": "(ERRATA) When played as an upgrade: You may give an Experience token to a unit other than the attached unit.\nPilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_086",
+      "setCodes": [
+        {
+          "number": 86,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 86,
+        "set": "JTL"
+      },
+      "subtitle": "Backstabber",
+      "text": "",
+      "title": "Wingman Victor Three",
+      "traits": [
+        "imperial",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 1,
+      "upgradePower": 1
     },
     {
       "arena": "space",

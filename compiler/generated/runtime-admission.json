@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 808
+    "sourceIr": 811
   },
   "runtimeAdmittedCards": [
     {
@@ -1912,6 +1912,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "astromech-pilot",
+      "setCode": "JTL_057"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "academy-graduate",
       "setCode": "JTL_058"
     },
@@ -2012,8 +2017,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "wingman-victor-two#mauler-mithel",
+      "setCode": "JTL_084"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "victor-leader#leading-from-the-front",
       "setCode": "JTL_085"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "wingman-victor-three#backstabber",
+      "setCode": "JTL_086"
     },
     {
       "implementation": "sourceIr",
@@ -5996,7 +6011,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1197,
+  "runtimeAdmittedCount": 1200,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7640,7 +7655,7 @@
     },
     {
       "internalName": "boba-fett#any-methods-necessary",
-      "reason": "boba-fett#any-methods-necessary: invalid ability IR: unknown variant `pilotDeploy`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "boba-fett#any-methods-necessary: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "JTL_009"
     },
     {
@@ -7660,7 +7675,7 @@
     },
     {
       "internalName": "poe-dameron#i-can-fly-anything",
-      "reason": "poe-dameron#i-can-fly-anything: invalid ability IR: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "poe-dameron#i-can-fly-anything: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "JTL_013"
     },
     {
@@ -7794,11 +7809,6 @@
       "setCode": "JTL_056"
     },
     {
-      "internalName": "astromech-pilot",
-      "reason": "astromech-pilot: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
-      "setCode": "JTL_057"
-    },
-    {
       "internalName": "silver-angel#traces-hope",
       "reason": "silver-angel#traces-hope: unimplemented event hook onDamageHealed",
       "setCode": "JTL_062"
@@ -7825,18 +7835,8 @@
     },
     {
       "internalName": "pantoran-starship-thief",
-      "reason": "pantoran-starship-thief: invalid ability IR: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "pantoran-starship-thief: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "JTL_083"
-    },
-    {
-      "internalName": "wingman-victor-two#mauler-mithel",
-      "reason": "wingman-victor-two#mauler-mithel: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
-      "setCode": "JTL_084"
-    },
-    {
-      "internalName": "wingman-victor-three#backstabber",
-      "reason": "wingman-victor-three#backstabber: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_086"
     },
     {
       "internalName": "the-invisible-hand#crawling-with-vultures",
@@ -7860,7 +7860,7 @@
     },
     {
       "internalName": "luke-skywalker#you-still-with-me",
-      "reason": "luke-skywalker#you-still-with-me: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "luke-skywalker#you-still-with-me: pilotingRegistration requires exact Pilot self/whenPlayed contract",
       "setCode": "JTL_094"
     },
     {
@@ -8030,12 +8030,12 @@
     },
     {
       "internalName": "bb8#happy-beeps",
-      "reason": "bb8#happy-beeps: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "bb8#happy-beeps: piloting program: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_145"
     },
     {
       "internalName": "frisk#vanguard-loudmouth",
-      "reason": "frisk#vanguard-loudmouth: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "frisk#vanguard-loudmouth: piloting program: unknown variant `registrationQuery`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_148"
     },
     {
@@ -8275,7 +8275,7 @@
     },
     {
       "internalName": "boshek#charismatic-smuggler",
-      "reason": "boshek#charismatic-smuggler: invalid ability IR: unknown variant `pilotingRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
+      "reason": "boshek#charismatic-smuggler: piloting program: data did not match any variant of untagged enum Target",
       "setCode": "JTL_215"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1408,
+  "runtimeRejectedCount": 1405,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
