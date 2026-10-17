@@ -26,9 +26,12 @@ impl Engine {
         }
         (power, hp)
     }
-    /// Append one resolved stat delta. The pinned effect is unit-only, so a
-    /// non-arena target is not an error: the caller only reaches this for
-    /// in-play units (bases are filtered by the lasting effect's canAffect).
+    /// Append one resolved stat delta. The pinned effect is unit-only and its
+    /// `updateEvent` Contract-asserts that the target is participating in the
+    /// resolving attack (`target.activeAttack`); the admission gate admits only
+    /// `self`/attack-target-list shapes, and this invariant re-checks the
+    /// resolved target so a foreign or non-attacking card can never receive a
+    /// grant even if a program is constructed elsewhere.
     pub(super) fn grant_attack_stats(
         &self,
         s: &mut State,
@@ -38,6 +41,10 @@ impl Engine {
     ) -> Result<(), String> {
         if target == 0 || !self.in_arena(s, target) {
             return Err("attack stats require an in-play unit target".into());
+        }
+        let (attacker, defender) = self.current_attack_pair(s);
+        if attacker == 0 || (target != attacker && target != defender) {
+            return Err("attack stats require a participant of the resolving attack".into());
         }
         let power = i16::try_from(power)
             .map_err(|_| "attack stat power exceeds bounded capacity".to_string())?;

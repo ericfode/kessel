@@ -505,20 +505,13 @@ impl Expr {
                     "hasControlledInPlayTrait"=>2,
                     "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isBase" | "isLeader" | "getPower" | "getHp"
-                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount"
-                    | "getAllAttackTargets" => 0,
+                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
                     "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
                     | "arenaUnitCount" | "hasControlledInPlayTitle" | "hasAttachedTrait" | "hasAttachedNativeToken" => 1,
                     _ => return Err(format!("unsupported runtime query {name}")),
                 };
                 if args.len() != arity {
                     return Err(format!("query {name} expects {arity} arguments"));
-                }
-                if name=="getAllAttackTargets" {
-                    // The pinned attack target list lives on the resolving attack
-                    // event (`context.event.attack.getAllTargets()`).
-                    if !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["event","attack"]) {return Err("attack target list requires the event.attack receiver".into());}
-                    return Ok(());
                 }
                 if crate::bounded_reductions::QUERIES.contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]||path==&["opponent"]) {return Err("bounded arena reduction requires exact scalar player receiver".into());}
                 if name==crate::live_power_maximum::DISPLAY_QUERY&&!matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]) {return Err("maximum display requires exact own-player receiver".into());}
@@ -724,12 +717,6 @@ impl Target {
                                 | ["source" | "target" | "card", "controller"]
                                 | ["source", "parentCard" | "parentUnit"]
                         ),
-                        // The pinned attack's captured target list is a bounded card
-                        // list (one admitted target per attack); its runtime query
-                        // returns only a unit still in play.
-                        Expr::Query { name, receiver, args } => name == "getAllAttackTargets"
-                            && args.is_empty()
-                            && matches!(receiver.as_ref(), Expr::Ref { path } if path == &["event", "attack"]),
                         Expr::Conditional { then, r#else, .. } => {
                             is_target(then) && (is_target(r#else) || matches!(r#else.as_ref(),Expr::Const {value} if value.is_null()))
                         }
@@ -1235,6 +1222,24 @@ pub(crate) fn resource_card_system_target(target:&Target)->bool {
         Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="topDeckCard" && args.is_empty()
             && matches!(receiver.original(),Expr::Ref{path} if path==&["player"])),
         _=>false,
+    }
+}
+/// The pinned `CardAttackLastingEffectSystem` can only attach its
+/// until-end-of-attack stat effect to a card that is participating in the
+/// resolving attack: its `updateEvent` Contract-asserts `target.activeAttack`
+/// and `canAffectInternal` additionally accepts units only. In IR terms that is
+/// the ability's own source (`self`, the helper's default `context.source`) or
+/// the attack's captured target list (`context.event.attack.getAllTargets()`,
+/// which this runtime evaluates to the attacking unit's unit defender). A
+/// chosen card, arbitrary card/player reference or base target has no asserted
+/// active attack, so it stays an explicit rejection instead of silently
+/// granting an effect the engine would not create.
+pub(crate) fn attack_duration_target(target:&Target)->bool {
+    match target {
+        Target::Name(name)=>name=="self",
+        Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="getAllAttackTargets" && args.is_empty()
+            && matches!(receiver.original(),Expr::Ref{path} if path==&["event","attack"])),
+        Target::ArenaList(_)=>false,
     }
 }
 fn top_deck_marker(v:&Value)->bool { contains(v,|v|v.get("target").is_some_and(|t|t.as_str()==Some("ownTopDeck"))) }
@@ -2756,14 +2761,20 @@ impl Program {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
                 if duration=="attack" {
                     // Pinned CardAttackLastingEffectSystem: one unit-only ongoing
-                    // stat effect per resolved target with Duration.UntilEndOfAttack.
-                    // Only an attack-triggered registration observes that window,
-                    // the target must resolve to cards, and the effect is not part
-                    // of any simultaneous group (group execution would otherwise
-                    // re-use phase-stat semantics; validate_group rejects it).
+                    // stat effect with Duration.UntilEndOfAttack. Only an attack-
+                    // triggered registration observes that window, the target must
+                    // be one the engine can attach to (it Contract-asserts
+                    // `target.activeAttack`), and the effect is not part of any
+                    // simultaneous group (group execution would otherwise re-use
+                    // phase-stat semantics; validate_group rejects it).
                     if self.trigger!="onAttack" {return Err("attack stat modifications require an On Attack trigger".into());}
-                    if matches!(target,Target::ArenaList(_)) {return Err("attack stat modifications require one resolved card target".into());}
-                    power.validate_number()?;hp.validate_number()?;target.validate()?;
+                    if !attack_duration_target(target) {
+                        return Err("attack stat modifications require self or the current attack's target list".into());
+                    }
+                    power.validate_number()?;hp.validate_number()?;
+                    // `attack_duration_target` already checked the query's exact
+                    // name, empty arguments and event.attack receiver, so the
+                    // attack target list is not admitted anywhere else.
                     self.instructions.push(Instruction::Apply(effect.clone()));
                 } else {
                     if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }

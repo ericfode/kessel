@@ -1240,8 +1240,9 @@ impl Engine {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
     /// The attack currently resolving, independent of which card owns the
-    /// observing ability. `getAllAttackTargets` reads the event's attack.
-    fn current_attack_pair(&self,s:&State)->(CardId,CardId) {
+    /// observing ability. `getAllAttackTargets` reads the event's attack and the
+    /// attack-duration granted-effect store checks participation.
+    pub(super) fn current_attack_pair(&self,s:&State)->(CardId,CardId) {
         if s.attack_source!=0 {return (s.attack_source,s.attack_defender);}
         s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))
     }
