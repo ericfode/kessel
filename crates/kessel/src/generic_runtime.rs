@@ -2023,6 +2023,7 @@ impl Engine {
                 let p = self.program(s.ability_program - 1);
                 let Instruction::Apply(Effect::DistributeHealing {
                     amount,
+                    max_targets,
                     target_resolver,
                     can_choose_no_targets,
                     can_distribute_less,
@@ -2042,7 +2043,8 @@ impl Engine {
                         label: label.clone(),
                     });
                 }
-                for id in self.matching_targets(s, source, target_resolver) {
+                let targets = self.matching_targets(s, source, target_resolver);
+                for &id in &targets {
                     for n in 1..=amount {
                         if n != amount && !can_distribute_less {
                             continue;
@@ -2054,6 +2056,24 @@ impl Engine {
                             method: None,
                             label: label.clone(),
                         });
+                    }
+                }
+                // Reviewed Trace shape: amount 2 / maxTargets 2 / full amount required.
+                // Enumerate unordered 1+1 splits across distinct unit candidates.
+                if *max_targets > 1 && amount == 2 {
+                    for i in 0..targets.len() {
+                        for j in (i + 1)..targets.len() {
+                            out.push(Action {
+                                kind: "distribute".into(),
+                                card: None,
+                                arg: Some(json!([
+                                    [format!("c{}", targets[i] - 1), 1],
+                                    [format!("c{}", targets[j] - 1), 1]
+                                ])),
+                                method: None,
+                                label: label.clone(),
+                            });
+                        }
                     }
                 }
             }
@@ -3546,18 +3566,24 @@ impl Engine {
                 t.event_result=StepEventResult::for_state(&t);
                 t.ability_result = 0;
                 t.ability_succeeded = false;
-                if let Some(pair) = a
-                    .arg
-                    .as_ref()
-                    .and_then(Value::as_array)
-                    .and_then(|a| a.first())
-                {
-                    let id = cid(pair[0].as_str().ok_or("distribution target missing")?)?;
-                    let heal = (pair[1].as_u64().ok_or("distribution amount missing")? as u16)
-                        .min(t.card(id).damage);
-                    t.card_mut(id).damage -= heal;
-                    t.ability_result = heal;
-                    t.ability_succeeded = heal > 0;
+                if let Some(pairs) = a.arg.as_ref().and_then(Value::as_array) {
+                    let mut total = 0u16;
+                    for pair in pairs {
+                        let id = cid(
+                            pair.get(0)
+                                .and_then(Value::as_str)
+                                .ok_or("distribution target missing")?,
+                        )?;
+                        let heal = (pair
+                            .get(1)
+                            .and_then(Value::as_u64)
+                            .ok_or("distribution amount missing")? as u16)
+                            .min(t.card(id).damage);
+                        t.card_mut(id).damage -= heal;
+                        total = total.saturating_add(heal);
+                    }
+                    t.ability_result = total;
+                    t.ability_succeeded = total > 0;
                 }
                 t.ability_pc += 1;
                 self.run_program(&mut t)?;

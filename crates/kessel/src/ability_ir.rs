@@ -2628,8 +2628,19 @@ impl Program {
             Effect::PhaseModifiers {effects:_} => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::DistributeHealing { amount, max_targets, target_resolver, .. } => {
                 amount.validate_number()?;target_resolver.validate()?;
-                if *max_targets != 1 { return Err("distribution runtime currently supports exactly one selected target".into()); }
-                if !matches!(amount, Expr::Const{value} if value.as_u64().is_some_and(|n|n<=3)){return Err("distribution runtime currently supports up to three healing".into());}
+                let amount_n = match amount {
+                    Expr::Const { value } if value.as_u64().is_some_and(|n| (1..=3).contains(&n)) => {
+                        value.as_u64().unwrap()
+                    }
+                    _ => return Err("distribution runtime currently supports literal healing 1..=3".into()),
+                };
+                if *max_targets == 0 || u64::from(*max_targets) > amount_n {
+                    return Err("distribution maxTargets must be between 1 and the healing amount".into());
+                }
+                // Multi-target splits are reviewed only for amount 1..=2 (Trace host grant).
+                if *max_targets > 1 && amount_n > 2 {
+                    return Err("multi-target distribution currently supports amount at most 2".into());
+                }
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::ReadyResources {amount,target} => {

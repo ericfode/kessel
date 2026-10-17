@@ -11,10 +11,10 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_142","JTL_145","JTL_148","JTL_189","JTL_210","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_142","JTL_145","JTL_148","JTL_189","JTL_210","SHD_175","JTL_066"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
-    for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066"] {
+    for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121"] {
         assert!(!e.by_code.contains_key(code),"unsupported attached child admitted {code}");
     }
 }
@@ -922,8 +922,90 @@ fn discard_return_admits_boshek_kuiil_krennic() {
             e.rejected_cards().unwrap().get(code)
         );
     }
-    // Trace still needs distributeHealingAmong.
-    assert!(!e.by_code.contains_key("JTL_066"),"Trace still rejected");
+}
+
+#[test]
+fn piloting_host_trace_distributes_healing_across_units() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_066"),"{:?}",e.rejected_cards().unwrap().get("JTL_066"));
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        // High-HP Vehicle host so pre-damage survives until the On Attack prompt.
+        let host=unit(&e,&mut s,seat,"JTL_051");
+        let ally=unit(&e,&mut s,seat,"LOF_256");
+        let enemy=unit(&e,&mut s,seat.other(),"ASH_034");
+        s.card_mut(host).damage=3;
+        s.card_mut(ally).damage=2;
+        s.card_mut(enemy).damage=1;
+        attach(&e,&mut s,seat,"JTL_066",host);
+        let base=s.player(seat.other()).base;
+        let prompt=attack(&e,s,host,base);
+        assert_eq!(prompt.decision,Decision::AbilityDistribute,"{seat:?}");
+        assert_eq!(prompt.source,host);
+        let actions=e.legal_actions(&prompt);
+        assert!(actions.iter().any(|a|a.kind=="distribute"&&a.arg==Some(json!([]))),"choose none");
+        assert!(actions.iter().any(|a|a.kind=="distribute"&&a.arg==Some(json!([[format!("c{}",host-1),2]]))),"full on host");
+        let split=actions.iter().find(|a|{
+            a.kind=="distribute" && a.arg.as_ref().is_some_and(|arg|{
+                let Some(pairs)=arg.as_array() else {return false;};
+                pairs.len()==2
+                    && pairs.iter().any(|p|p.get(0)==Some(&json!(format!("c{}",ally-1))) && p.get(1)==Some(&json!(1)))
+                    && pairs.iter().any(|p|p.get(0)==Some(&json!(format!("c{}",host-1))) && p.get(1)==Some(&json!(1)))
+            })
+        }).unwrap_or_else(||panic!("missing 1+1 split: {actions:?}"));
+        let done=e.apply(&prompt,split).unwrap();
+        assert_eq!(done.card(host).damage,2,"{seat:?} host healed 1");
+        assert_eq!(done.card(ally).damage,1,"{seat:?} ally healed 1");
+        assert_eq!(done.card(enemy).damage,1,"{seat:?} enemy untouched");
+    }
+}
+
+#[test]
+fn piloting_host_trace_can_choose_no_targets() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let host=unit(&e,&mut s,Seat::P1,"JTL_051");
+    s.card_mut(host).damage=3;
+    attach(&e,&mut s,Seat::P1,"JTL_066",host);
+    let base=s.player(Seat::P2).base;
+    let prompt=attack(&e,s,host,base);
+    assert_eq!(prompt.decision,Decision::AbilityDistribute);
+    let none=e.legal_actions(&prompt).into_iter()
+        .find(|a|a.kind=="distribute"&&a.arg==Some(json!([])))
+        .expect("choose none");
+    let done=e.apply(&prompt,&none).unwrap();
+    assert_eq!(done.card(host).damage,3);
+}
+
+#[test]
+fn piloting_host_trace_as_unit_does_not_fire_attached_grant() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_066");
+    s.card_mut(pilot).damage=2;
+    let base=s.player(Seat::P2).base;
+    let done=attack(&e,s,pilot,base);
+    assert_ne!(done.decision,Decision::AbilityDistribute);
+    assert_eq!(done.card(pilot).damage,2);
+}
+
+#[test]
+fn piloting_host_trace_rejects_unreviewed_distribute_shapes() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_066").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_066");
+    assert!(admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_host_entry(&original));
+    for (path,value) in [
+        ("/abilities/card/0/effect/registration/program/effect/properties/amountToDistribute/value",json!(3)),
+        ("/abilities/card/0/effect/registration/program/effect/properties/canDistributeLess/value",json!(true)),
+        ("/abilities/card/0/effect/registration/program/effect/properties/controller/value",json!("self")),
+        ("/abilities/card/0/effect/registration/program/effect/properties/cardCondition",json!({"kind":"const","value":true})),
+    ] {
+        let mut bad=original.clone();let parts=path.split('/').skip(1).collect::<Vec<_>>();let mut target=&mut bad;
+        for k in &parts[..parts.len()-1] {target=if target.is_array(){&mut target[k.parse::<usize>().unwrap()]}else{&mut target[*k]};}
+        target[parts[parts.len()-1]]=value;assert!(!admitted(bad),"{path}");
+    }
 }
 
 #[test]
@@ -1012,3 +1094,4 @@ fn krennic_optional_return_of_discarded_unit_on_defense() {
     assert!(done.players[0].discard.contains(discarded));
     assert!(!done.players[0].hand.contains(discarded));
 }
+

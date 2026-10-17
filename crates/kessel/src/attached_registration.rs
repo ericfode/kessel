@@ -11,7 +11,9 @@
 //! while attached. Reviewed shapes are WhenPlayed, or self-attach `onUpgradeAttached`
 //! (`event.upgradeCard === source`) normalized to the same whenPlayed-while-attached path
 //! (Iden parent Shield). Optional payResources→ifYouDo ready (BB-8) lowers the compiler
-//! `registrationSystem` into `PayResources` then a trait-gated Ready. Reviewed Pilots may also
+//! `registrationSystem` into `PayResources` then a trait-gated Ready. Host On Attack
+//! `distributeHealingAmong` (Trace) lowers into portable `distributeHealing` with
+//! `maxTargets` equal to the literal amount (bounded multi-target heal). Reviewed Pilots may also
 //! carry one unit-side WhenPlayed companion that fires only while unattached (Mandalorian
 //! exhaust up to 2 ground).
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
@@ -166,6 +168,7 @@ fn compile_host_program(mut p:Value,title:&str)->Result<Ability,String> {
     if p["title"]!=title {return Err("attached registration requires one exact attack/defense/defeat alias".into());}
     p.as_object_mut().ok_or("attached program must be an object")?.remove("hooks");
     normalize_zone_names(&mut p);
+    lower_distribute_healing_system(&mut p)?;
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("attached program: {e}"))?;
     if a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate||!a.costs.is_empty()
         ||!a.target_resolvers.is_empty()||a.attacker_must_survive {
@@ -281,6 +284,59 @@ fn lower_pay_resources_system(v:&mut Value)->Result<(),String> {
     match v {
         Value::Object(o)=>for child in o.values_mut(){lower_pay_resources_system(child)?;},
         Value::Array(a)=>for child in a {lower_pay_resources_system(child)?;},
+        _=>{}
+    }
+    Ok(())
+}
+/// Exact Trace host-grant shape: heal a literal 1..=2 across any units, choose-none
+/// allowed, full amount required, unit-only `cardCondition`.
+fn unit_card_condition(v:&Value)->bool {
+    v==&json!({
+        "kind":"query",
+        "name":"isUnit",
+        "receiver":{"kind":"ref","path":["card"]},
+        "args":[]
+    })
+}
+/// Lower reviewed `registrationSystem: distributeHealingAmong` into portable
+/// `distributeHealing` (maxTargets equals the literal amount).
+fn lower_distribute_healing_system(v:&mut Value)->Result<(),String> {
+    if v["kind"]=="registrationSystem" && v["system"]=="distributeHealingAmong" {
+        let props=&v["properties"];
+        let amount=props["amountToDistribute"]["value"].as_u64()
+            .filter(|_|props["amountToDistribute"]["kind"]=="const")
+            .filter(|n|(1..=2).contains(n));
+        let Some(amount)=amount else {
+            return Err("piloting distributeHealingAmong requires literal amount 1..=2".into());
+        };
+        let keys_ok=props.as_object().is_some_and(|o|{
+            o.len()==5
+                && ["amountToDistribute","controller","canChooseNoTargets","canDistributeLess","cardCondition"]
+                    .iter().all(|k|o.contains_key(*k))
+        });
+        let shape_ok=v["defaults"]=="pinnedSystem"
+            && v["contextTarget"]=="self"
+            && props["controller"]==json!({"kind":"const","value":"any"})
+            && props["canChooseNoTargets"]==json!({"kind":"const","value":true})
+            && props["canDistributeLess"]==json!({"kind":"const","value":false})
+            && unit_card_condition(&props["cardCondition"])
+            && keys_ok;
+        if !shape_ok {
+            return Err("piloting distributeHealingAmong requires reviewed any-unit full-amount shape".into());
+        }
+        *v=json!({
+            "kind":"distributeHealing",
+            "amount":{"kind":"const","value":amount},
+            "maxTargets":amount,
+            "canChooseNoTargets":true,
+            "canDistributeLess":false,
+            "targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"}
+        });
+        return Ok(());
+    }
+    match v {
+        Value::Object(o)=>for child in o.values_mut(){lower_distribute_healing_system(child)?;},
+        Value::Array(a)=>for child in a {lower_distribute_healing_system(child)?;},
         _=>{}
     }
     Ok(())

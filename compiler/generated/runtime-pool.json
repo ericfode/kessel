@@ -15999,6 +15999,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "2532510371",
+      "internalName": "trace-martez#trusting-sister",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [1 resource Vigilance] (You may play this as an upgrade on a friendly Vehicle without a Pilot.)\nAttached unit gains: “On Attack: You may heal 2 total damage from any number of units.”",
+      "power": 2,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "JTL"
+      },
+      "subtitle": "Trusting Sister",
+      "text": "",
+      "title": "Trace Martez",
+      "traits": [
+        "fringe",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 2,
+      "upgradePower": 1
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"

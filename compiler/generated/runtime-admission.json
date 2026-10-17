@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 825
+    "sourceIr": 826
   },
   "runtimeAdmittedCards": [
     {
@@ -1964,6 +1964,11 @@
       "implementation": "dataOnly",
       "internalName": "outer-rim-outlaws",
       "setCode": "JTL_065"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "trace-martez#trusting-sister",
+      "setCode": "JTL_066"
     },
     {
       "implementation": "sourceIr",
@@ -6081,7 +6086,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1214,
+  "runtimeAdmittedCount": 1215,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7867,11 +7872,6 @@
       "internalName": "silver-angel#traces-hope",
       "reason": "silver-angel#traces-hope: unimplemented event hook onDamageHealed",
       "setCode": "JTL_062"
-    },
-    {
-      "internalName": "trace-martez#trusting-sister",
-      "reason": "trace-martez#trusting-sister: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_066"
     },
     {
       "internalName": "uwing-lander",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1391,
+  "runtimeRejectedCount": 1390,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
