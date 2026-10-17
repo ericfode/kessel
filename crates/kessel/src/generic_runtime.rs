@@ -1074,26 +1074,67 @@ impl Engine {
             None => self.definitions.iter().any(predicate),
         }
     }
-    pub(super) fn needs_phase_history(&self)->bool {
-        fn expression(e:&Expr)->bool {match e.original() {
-            Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
-            Expr::Binary{left,right,..}=>expression(left)||expression(right),
-            _=>false,
-        }}
+    /// Scan the compiled program for phase-history reads. The scan is over the
+    /// serialized instructions so a history consumer is found wherever it sits
+    /// (condition, selector predicate, or an effect amount such as `length`),
+    /// not only in the two instruction shapes that used to carry them.
+    fn needs_history(&self, wanted: impl Fn(crate::phase_history::QueryKind) -> bool + Copy) -> bool {
+        fn found(value: &Value, wanted: impl Fn(crate::phase_history::QueryKind) -> bool + Copy) -> bool {
+            match value {
+                Value::Object(o) => {
+                    if o.get("kind").and_then(Value::as_str) == Some("historyQuery") {
+                        // The expression carries the tag; the Query fields are inline.
+                        let mut fields = o.clone();
+                        fields.remove("kind");
+                        if serde_json::from_value::<crate::phase_history::Query>(Value::Object(fields))
+                            .is_ok_and(|q| q.kind().is_ok_and(wanted))
+                        {
+                            return true;
+                        }
+                    }
+                    o.values().any(|v| found(v, wanted))
+                }
+                Value::Array(a) => a.iter().any(|v| found(v, wanted)),
+                _ => false,
+            }
+        }
         self.catalogue.is_some() && self.selected_definition_any(|definition| {
             let p = &definition.programs;
-            p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id|self.program(id).instructions.iter().any(|i|match i {Instruction::Conditional{condition,..}=>expression(condition),Instruction::Select(r)=>r.predicate.as_ref().is_some_and(expression),_=>false}))
+            p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id| {
+                // A constant registration keeps its condition on the program,
+                // outside the instruction list, so scan the complete program.
+                serde_json::to_value(self.program(id))
+                    .ok()
+                    .is_some_and(|v| found(&v, wanted))
+            })
         })
+    }
+    pub(super) fn needs_phase_history(&self)->bool { self.needs_history(|_|true) }
+    /// The defeat counters are their own export capability: a snapshot that does
+    /// not record them cannot support a selected card that reads them.
+    pub(super) fn needs_defeat_history(&self)->bool {
+        self.needs_history(|kind|kind.defeat_projection())
+    }
+    /// Resolve one exact `ref player`/`ref opponent` controller argument.
+    fn history_seat(player:Seat,side:crate::phase_history::PlayerRef)->usize {
+        use crate::phase_history::PlayerRef;
+        if side==PlayerRef::Opponent {player.other().index()} else {player.index()}
     }
     fn history_boolean(&self,s:&State,source:CardId,card:CardId,q:&crate::phase_history::Query)->bool {
         use crate::model::PhaseHistory;use crate::phase_history::QueryKind;
         assert!(s.phase_history.exact,"phase history must be exact before execution");
         let player=s.card(source).owner;
-        match q.admitted_kind() {
+        let kind=q.admitted_kind();
+        if kind.defeat_projection() {assert!(s.phase_history.defeat_exact,"defeat phase history must be exact before execution");}
+        match kind {
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
             QueryKind::PlayedForce => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,"force")),
-            QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
+            // The pinned watcher stores one entry per defeat; these projections
+            // are existential over entries, so a per-controller counter is exact.
+            QueryKind::DefeatedUnit(side) => s.phase_history.defeated_counts[Self::history_seat(player,side)]>0,
+            QueryKind::DefeatedWhileAttacking(side) => s.phase_history.defeated_while_attacking_counts[Self::history_seat(player,side)]>0,
+            QueryKind::PlayedOpponentCount | QueryKind::DefeatedUnitCount(_) => unreachable!("history list requires length consumer"),
         }
     }
     fn eval(&self, s: &State, source: CardId, target: CardId, e: &Expr) -> Eval {
@@ -1126,7 +1167,7 @@ impl Engine {
         match e {
             Expr::Compiled(_) => unreachable!("compiled expression handled above"),
             Expr::HistoryQuery(q) => Eval::Bool(self.history_boolean(s,source,card,q)),
-            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(_),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");Eval::Number(s.phase_history.play_counts[player.other().index()] as i64)},
+            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");let kind=q.admitted_kind();if kind.defeat_projection(){assert!(s.phase_history.defeat_exact,"defeat phase history must be exact before execution");}Eval::Number(match kind {crate::phase_history::QueryKind::PlayedOpponentCount=>s.phase_history.play_counts[player.other().index()] as i64,crate::phase_history::QueryKind::DefeatedUnitCount(side)=>s.phase_history.defeated_counts[Self::history_seat(player,side)] as i64,_=>unreachable!("only count history kinds are length consumers")})},
             Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
@@ -2788,9 +2829,24 @@ impl Engine {
     }
     pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {
         if !self.in_arena(s,id) {return Ok(());}
+        // The pinned `CardsDefeatedThisPhaseWatcher` appends one entry per
+        // `onCardDefeated` for unit and upgrade last-known types. Upgrades are
+        // not in_arena here, so capturing every in-arena defeat is exactly the
+        // unit subset the admitted projections read; `Card.owner` is the
+        // controller while in play. The while-attacking value is the pre-move
+        // event value (`isUnit() && isInPlay() && isAttacking()`), so it is
+        // sampled before the attack lifecycle marks this defeat. The counter is
+        // preflighted here and committed only after every error point, so a
+        // rejected capture cannot fabricate history.
+        let while_attacking=self.is_attacking(s,id);
+        let seat=s.card(id).owner;
+        s.phase_history.preflight_defeat(seat)?;
         self.mark_attack_lifecycle(s,id,true);
         let registration_start=s.death_pending.len as usize;
-        if self.catalogue.is_none() {return Ok(());}
+        if self.catalogue.is_none() {
+            s.phase_history.defeated(seat,while_attacking)?;
+            return Ok(());
+        }
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
         let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
             let p=self.program(program);p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
@@ -2817,6 +2873,7 @@ impl Engine {
             }
         }}
         self.sort_captured_registrations(s,registration_start)?;
+        s.phase_history.defeated(seat,while_attacking)?;
         Ok(())
     }
     /// Keep the original in-play identities, including through non-defeat exits.

@@ -5,25 +5,40 @@ pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
 // Exact budget: 28,208 + native attack grants 64 + registration chronology 256
 // + Disclose selection and alignment 16 + first-strike support flags (2 x 32 = 64)
-// + phase restriction mask (Card 36→40, 256 cards = 1024).
+// + phase restriction mask (Card 36→40, 256 cards = 1024)
+// + phase unit-defeat counters (2 controllers x 2 counters x u16 = 8, padded).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_640;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PhaseHistory {
     pub exact: bool,
+    /// Unit-defeat counters are only reconstructed from snapshots that record
+    /// them; a legacy import keeps them unknown instead of inventing zeros.
+    pub defeat_exact: bool,
     pub entered: [[u64; MAX_CARDS / 64]; 2],
     pub played: [[u64; MAX_CARDS / 64]; 2],
     pub play_counts: [u16; 2],
+    /// `CardsDefeatedThisPhaseWatcher` unit entries by controller-at-defeat.
+    /// Repeated defeats of one physical card are separate entries, so these are
+    /// counters, not identity sets. Existential projections read `> 0`.
+    pub defeated_counts: [u16; 2],
+    /// Subset of `defeated_counts` whose entry had the pinned engine's
+    /// while-attacking flag (the unit was the attacker of the current attack at
+    /// defeat time and still in play).
+    pub defeated_while_attacking_counts: [u16; 2],
 }
 impl Default for PhaseHistory {
     fn default() -> Self {
         Self {
             exact: true,
+            defeat_exact: true,
             entered: [[0; MAX_CARDS / 64]; 2],
             played: [[0; MAX_CARDS / 64]; 2],
             play_counts: [0; 2],
+            defeated_counts: [0; 2],
+            defeated_while_attacking_counts: [0; 2],
         }
     }
 }
@@ -36,6 +51,32 @@ impl PhaseHistory {
         // tracking a suffix would not make their phase history exact.
         if !self.exact {return;}
         self.entered[seat.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
+    }
+    pub fn preflight_defeat(&self, seat: Seat) -> Result<(), String> {
+        if !self.exact || !self.defeat_exact {return Ok(());}
+        self.defeated_counts[seat.index()]
+            .checked_add(1)
+            .map(|_| ())
+            .ok_or("phase unit-defeat count capacity exceeded".into())
+    }
+    /// Record one pinned-engine `DefeatedCardEntry` for an in-play unit. The
+    /// caller has already established that the card is an in-arena unit, that
+    /// it is the controller's while in play, and whether it was attacking.
+    pub fn defeated(&mut self, seat: Seat, while_attacking: bool) -> Result<(), String> {
+        if !self.exact || !self.defeat_exact {return Ok(());}
+        self.preflight_defeat(seat)?;
+        // Both counters are preflighted before either moves, so a refused
+        // capture leaves the recorded history unchanged.
+        if while_attacking {
+            self.defeated_while_attacking_counts[seat.index()]
+                .checked_add(1)
+                .ok_or("phase while-attacking defeat count capacity exceeded")?;
+        }
+        self.defeated_counts[seat.index()] += 1;
+        if while_attacking {
+            self.defeated_while_attacking_counts[seat.index()] += 1;
+        }
+        Ok(())
     }
     pub fn preflight_play(&self, seat: Seat) -> Result<(), String> {
         if !self.exact {return Ok(());}
@@ -53,8 +94,10 @@ impl PhaseHistory {
     }
     pub fn reset(&mut self) {
         let exact = self.exact;
+        let defeat_exact = self.defeat_exact;
         *self = Self::default();
         self.exact = exact;
+        self.defeat_exact = defeat_exact;
     }
     pub fn hash_values(&self, put: &mut impl FnMut(u64)) {
         if self.exact {
@@ -66,6 +109,22 @@ impl PhaseHistory {
             }
             for n in self.play_counts {
                 put(n as u64);
+            }
+            // Zero defeat counters stay off the hash stream, so legacy/default
+            // positions retain their historical hash.
+            if self
+                .defeated_counts
+                .iter()
+                .chain(&self.defeated_while_attacking_counts)
+                .any(|n| *n != 0)
+            {
+                put(0x5048444546454154);
+                for n in self.defeated_counts {
+                    put(n as u64);
+                }
+                for n in self.defeated_while_attacking_counts {
+                    put(n as u64);
+                }
             }
         }
     }
@@ -81,7 +140,16 @@ impl PhaseHistory {
             }
             out
         };
-        json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts})
+        let mut out =
+            json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts});
+        // Same pattern as forceStateVersion: a new capability carries its own
+        // marker, so consumers never infer defeat counters from an old export.
+        if self.defeat_exact {
+            out["defeatsVersion"] = json!(1);
+            out["defeatedCounts"] = json!(self.defeated_counts);
+            out["defeatedWhileAttackingCounts"] = json!(self.defeated_while_attacking_counts);
+        }
+        out
     }
     pub fn parse(v: &Value, next: CardId) -> Result<Self, String> {
         #[derive(Deserialize)]
@@ -91,6 +159,12 @@ impl PhaseHistory {
             entered: Vec<Entry>,
             played: Vec<Entry>,
             play_counts: [u16; 2],
+            #[serde(default)]
+            defeats_version: Option<u8>,
+            #[serde(default)]
+            defeated_counts: [u16; 2],
+            #[serde(default)]
+            defeated_while_attacking_counts: [u16; 2],
         }
         #[derive(Deserialize)]
         #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -105,6 +179,27 @@ impl PhaseHistory {
         }
         let mut out = Self::default();
         out.play_counts = wire.play_counts;
+        match wire.defeats_version {
+            None if wire.defeated_counts == [0; 2]
+                && wire.defeated_while_attacking_counts == [0; 2] =>
+            {
+                out.defeat_exact = false;
+            }
+            None => return Err("defeat counts require an explicit defeatsVersion".into()),
+            Some(1) => {
+                out.defeat_exact = true;
+                out.defeated_counts = wire.defeated_counts;
+                out.defeated_while_attacking_counts = wire.defeated_while_attacking_counts;
+            }
+            Some(_) => return Err("unsupported defeatsVersion".into()),
+        }
+        for seat in [Seat::P1, Seat::P2] {
+            if out.defeated_while_attacking_counts[seat.index()]
+                > out.defeated_counts[seat.index()]
+            {
+                return Err("phaseHistory while-attacking defeats exceed unit defeats".into());
+            }
+        }
         for (entries, bits) in [
             (wire.entered, &mut out.entered),
             (wire.played, &mut out.played),

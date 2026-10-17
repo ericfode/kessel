@@ -643,6 +643,7 @@ impl Engine {
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
         self.check_stat_capacity(s)?;
         if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
+        if !s.phase_history.defeat_exact && self.needs_defeat_history() {return Err("selected pool requires exact defeat phase history".into());}
         if !self.legal_actions(s).contains(a) {
             return Err(format!("illegal action {} at {:?}", a.key(), s.decision));
         }

@@ -3762,6 +3762,8 @@ mod static_ongoing_tests;
 mod collection_query_tests;
 #[path="phase_history_tests.rs"]
 mod phase_history_tests;
+#[path="phase_history_watchers_tests.rs"]
+mod phase_history_watchers_tests;
 #[path="attack_end_tests.rs"]
 mod attack_end_tests;
 
