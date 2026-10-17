@@ -3192,6 +3192,47 @@
       "arena": "space",
       "aspects": [
         "aggression",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "9490691949",
+      "internalName": "justifier#relentless",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_146",
+      "setCodes": [
+        {
+          "number": 146,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 146,
+        "set": "ASH"
+      },
+      "subtitle": "Relentless",
+      "text": "When Played/On Attack: You may deal 1 damage to a unit. If that unit is defeated this way, give an Advantage token to a unit.",
+      "title": "Justifier",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
         "heroism"
       ],
       "cost": 2,
@@ -3664,6 +3705,46 @@
       "title": "Wookiee Chieftain",
       "traits": [
         "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "8185107573",
+      "internalName": "imposing-scout-walker",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_176",
+      "setCodes": [
+        {
+          "number": 176,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 176,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: You may deal 3 damage to a ground unit. If it's defeated this way, give 3 Advantage tokens to this unit.",
+      "title": "Imposing Scout Walker",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "walker"
       ],
       "types": [
         "unit"
@@ -17394,6 +17475,51 @@
       "upgradePower": 0
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "6079255999",
+      "internalName": "darth-vader#scourge-of-squadrons",
+      "keywords": [
+        "piloting"
+      ],
+      "pilotText": "Piloting [3 resources Aggression Villainy]\nAttached unit gains: “On Attack: You may deal 1 damage to a unit. If a unit is defeated this way, you may deal 1 damage to a unit or base.”",
+      "power": 7,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_142",
+      "setCodes": [
+        {
+          "number": 142,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 142,
+        "set": "JTL"
+      },
+      "subtitle": "Scourge of Squadrons",
+      "text": "",
+      "title": "Darth Vader",
+      "traits": [
+        "force",
+        "imperial",
+        "sith",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 3
+    },
+    {
       "aspects": [
         "aggression",
         "villainy"
@@ -18008,6 +18134,43 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "7730475388",
+      "internalName": "shoot-down",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_176",
+      "setCodes": [
+        {
+          "number": 176,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 176,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Deal 3 damage to a space unit. If that unit is defeated this way, you may deal 2 damage to a base.",
+      "title": "Shoot Down",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
