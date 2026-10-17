@@ -3836,3 +3836,6 @@ mod zone_statics_tests;
 
 #[path = "native_attack_composition_tests.rs"]
 mod native_attack_composition_tests;
+
+#[path="self_play_cost_event_tests.rs"]
+mod self_play_cost_event_tests;

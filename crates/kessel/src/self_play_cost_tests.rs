@@ -44,7 +44,7 @@ fn board(e: &Engine, owner: Seat) -> State {
 #[test]
 fn self_play_cost_complete_units_and_companion_rejections() {
     let e = engine();
-    for code in ["LAW_110", "JTL_163"] {
+    for code in ["LAW_110", "JTL_163", "HMW_173", "TS26_060"] {
         assert!(
             e.by_code.contains_key(code),
             "{code}: {:?}",
@@ -52,7 +52,7 @@ fn self_play_cost_complete_units_and_companion_rejections() {
         );
     }
     for code in [
-        "ASH_262", "ASH_263", "HMW_173", "JTL_101", "LAW_129", "SEC_122", "TS26_047", "TS26_060",
+        "ASH_262", "ASH_263", "JTL_101", "LAW_129", "SEC_122", "TS26_047",
     ] {
         assert!(
             !e.by_code.contains_key(code),
