@@ -255,7 +255,7 @@ fn modal_arena_persecutor_actual_play_targets_after_unit_payment_and_pass_keeps_
         assert!(!prompt.players[0].hand.contains(source));
         assert_eq!(
             e.ready_resources(&prompt, Seat::P1),
-            resources - e.cost(&s, source)
+            resources - usize::from(e.cost(&s, source))
         );
         assert_eq!(menu_labels(&e, &prompt), ["Space", "Pass"]);
         let mut dirty = prompt;
