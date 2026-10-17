@@ -4048,3 +4048,6 @@ mod card_restriction_tests;
 
 #[path="zone_statics_tests.rs"]
 mod zone_statics_tests;
+
+#[path = "bounty_tests.rs"]
+mod bounty_tests;

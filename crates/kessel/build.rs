@@ -8,6 +8,9 @@ mod native_attack;
 #[path = "src/death_hooks.rs"]
 mod death_hooks;
 #[allow(dead_code)]
+#[path = "src/bounty.rs"]
+mod bounty;
+#[allow(dead_code)]
 #[path = "src/ability_ir.rs"]
 mod ability_ir;
 #[allow(dead_code)]
@@ -77,11 +80,15 @@ fn targets(t: &Target) -> Result<String, String> {
     Ok(match n.as_str() {
         "self" => "vec![Eval::Card(s.source)]",
         "chosen" => "vec![Eval::Card(s.ability_target)]",
-        "ownBase" => "vec![Eval::Card(s.player(s.card(s.source).owner).base)]",
-        "enemyBase" => "vec![Eval::Card(s.player(s.card(s.source).owner.other()).base)]",
+        // "Own"/"enemy" is relative to the ability's context player, which can differ
+        // from the source card's controller (Bounty is collected by the opponent of
+        // the defeated unit's controller). `context_owner` is the interpreter's single
+        // owner of that decision, so the generated backend cannot drift from it.
+        "ownBase" => "vec![Eval::Card(s.player(self.context_owner(s)).base)]",
+        "enemyBase" => "vec![Eval::Card(s.player(self.context_owner(s).other()).base)]",
         "bothBases" => "vec![Eval::Card(s.players[0].base), Eval::Card(s.players[1].base)]",
-        "ownPlayer" => "vec![Eval::Player(s.card(s.source).owner)]",
-        "enemyPlayer" => "vec![Eval::Player(s.card(s.source).owner.other())]",
+        "ownPlayer" => "vec![Eval::Player(self.context_owner(s))]",
+        "enemyPlayer" => "vec![Eval::Player(self.context_owner(s).other())]",
         "bothPlayers" => "vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)]",
         _ => return Err(format!("target {n} requires interpreter")),
     }
@@ -156,6 +163,7 @@ fn main() {
         }
     }
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/bounty.rs");
     println!("cargo:rerun-if-changed=src/admission.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");

@@ -28,12 +28,21 @@ const AMBUSH: u16 = 8;
 const GRIT: u16 = 16;
 const SHIELDED: u16 = 32;
 const SUPPORT: u16 = 1<<9;
+/// Intrinsic printed Bounty presence (an ability-definition keyword). It stays out
+/// of the numeric/flag keyword inventory: no supported effect grants or removes
+/// Bounty, so the printed instance is the complete answer (see `has_keyword`).
+const BOUNTY: u16 = 1<<10;
 const T_RESTORE: u8 = 1;
 const T_SABOTEUR: u8 = 2;
 const T_LEADER: u8 = 4;
 const T_SHIELD: u8 = 8;
 const T_AMBUSH: u8 = 16;
 const T_SUPPORT: u8 = 32;
+/// A defeat-window entry whose `program` is a Bounty keyword registration. The
+/// collector (the source's opponent) owns it, so it is bucketed and prompted by
+/// player exactly like other trigger windows (SWU 7.6.10), but it resolves a program
+/// whose context player is the collector rather than the defeated card's controller.
+const T_BOUNTY: u8 = 64;
 #[derive(Debug, Clone)]
 pub struct Definition {
     pub code: String,
