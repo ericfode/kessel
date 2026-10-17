@@ -431,10 +431,10 @@ fn static_ongoing_enoch_live_discard_count_checks_owner_type_trait_and_movement(
             let mut s=board(&e);
             let source=unit(&e,&mut s,seat,"LOF_083");
             let original=e.power(&s,source,false);
-            let trooper=unit(&e,&mut s,seat,"SOR_128");
+            let trooper=unit(&e,&mut s,seat,"IC27_097");
             let other=add(&e,&mut s,seat,"LOF_256");s.player_mut(seat).discard.push(other).unwrap();
-            let enemy=add(&e,&mut s,seat.other(),"SOR_128");s.player_mut(seat.other()).discard.push(enemy).unwrap();
-            let hidden=add(&e,&mut s,seat,"SOR_128");s.player_mut(seat).hand.push(hidden).unwrap();
+            let enemy=add(&e,&mut s,seat.other(),"IC27_097");s.player_mut(seat.other()).discard.push(enemy).unwrap();
+            let hidden=add(&e,&mut s,seat,"IC27_097");s.player_mut(seat).hand.push(hidden).unwrap();
             assert_eq!(e.power(&s,source,false),original);
             e.defeat(&mut s,trooper).unwrap();
             assert_eq!(e.power(&s,source,false),original+1);

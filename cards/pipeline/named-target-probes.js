@@ -704,7 +704,8 @@ function classifyNamedDamage(entry) {
     return {family:'named-target',effectFamily:'damage',trigger:a.trigger,descriptors,ambush,defaultPromptTitle:a.title};
 }
 function planNamedDamageProbes(entry,shape,options={}) {
-    const defs=(Array.isArray(options.catalogue)?options.catalogue:options.catalogue?.cards??[]).slice().sort((a,b)=>a.setCode.localeCompare(b.setCode));
+    // Reprint aliases share one definition; only primary codes are probe donors.
+    const defs=(Array.isArray(options.catalogue)?options.catalogue:options.catalogue?.cards??[]).filter(e=>!e.aliasOf).slice().sort((a,b)=>a.setCode.localeCompare(b.setCode));
     const result={schema:'swu-card-probes/v1',cardId:entry.setCode,sourceHash:entry.sourceHash,cases:[],obligations:[],uncovered:[]};
     const obligation=(dimension,reason)=>{const id=`${entry.setCode}:named-target-damage:${dimension}`;result.obligations.push({id,path:'named-target',dimension});if(reason)result.uncovered.push({id,path:'named-target',reason});return id;};
     const ordinary=e=>e.status==='supported'&&(!e.baseClass||e.baseClass==='NonLeaderUnitCard')&&same(e.card.types,['unit'])&&!e.card.unique&&!e.card.keywords?.length&&!Object.keys(e.keywordValues??{}).length&&!e.card.pilotText&&!e.card.pilotBox&&!e.card.pilotingBox&&!e.piloting&&!e.attachCondition;

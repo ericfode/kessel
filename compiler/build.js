@@ -12,6 +12,18 @@ const { isPlainUpgrade } = require('./plain-upgrade');
 
 const repository = path.resolve(__dirname, '..');
 const codeFor = (card) => card.setId?.number == null ? `TOKEN_${card.internalName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}` : `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+// Historical pools and reference recordings keep earlier printings' set codes after
+// card metadata refreshes promote a reprint setId. Emit those codes as aliases.
+const alternateCodesFor = (card) => {
+    const primary = codeFor(card);
+    const codes = [];
+    for (const entry of card.setCodes ?? []) {
+        if (entry?.set == null || entry?.number == null) continue;
+        const code = `${entry.set}_${String(entry.number).padStart(3, '0')}`;
+        if (code !== primary) codes.push(code);
+    }
+    return [...new Set(codes)];
+};
 function files(root, extension) {
     return fs.readdirSync(root, { recursive: true }).filter((f) => f.endsWith(extension)).sort();
 }
@@ -151,6 +163,12 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
         const definition = { setCode, ...compiled, card, dataHash: hash(text), keywordValues: keywordValues(card) };
         definition.requiredCapabilities = requiredCapabilities(definition.abilities, card, definition.attachCondition);
         definitions.push(definition);
+        for (const alternate of alternateCodesFor(card)) {
+            // A distinct card already owns this code as its primary (or earlier alias).
+            if (setCodes.has(alternate)) continue;
+            setCodes.add(alternate);
+            definitions.push({ ...definition, setCode: alternate, aliasOf: setCode });
+        }
     }
     definitions.sort((a, b) => a.setCode.localeCompare(b.setCode));
     for (const source of sources) if (!sourceUsed.has(source.id)) unmatchedSources.push({ sourcePath: source.sourcePath, sourceHash: source.sourceHash, role: 'source-without-card-data', id: source.id, internalName: source.internalName, status: source.status, diagnostics: source.diagnostics });
@@ -210,4 +228,4 @@ function main() {
     if (options.strict && report.unconverted) { console.error(`Strict conversion incomplete: ${report.unconverted} cards have explicit blockers`); process.exitCode = 2; }
 }
 if (require.main === module) { try { main(); } catch (error) { console.error(error.stack || String(error)); process.exitCode = 1; } }
-module.exports = { compileCatalog, coverage, requiredCapabilities, keywordValues, codeFor, args };
+module.exports = { compileCatalog, coverage, requiredCapabilities, keywordValues, codeFor, alternateCodesFor, args };

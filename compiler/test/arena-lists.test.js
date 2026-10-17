@@ -193,7 +193,7 @@ const actualSources = [
         null
     ],
     [
-        "LOF_235",
+        "IC27_182",
         "game/cards/05_LOF/units/HK87AssassinDroid.ts",
         "add5c3778a8b5f07bbff3f3ea9bbce937a17d94d6c0838f642def3497a25c21c",
         null
@@ -351,13 +351,13 @@ test('all 45 full pinned sources match hashes and compile supported',()=>{
         const c=compileSource(source,sourcePath,enums);
         assert.equal(c.status,blocker?'unsupported':'supported',setCode+JSON.stringify(c.diagnostics));
         if(blocker) assert.ok(c.diagnostics.some(d=>d.pattern===blocker),setCode+JSON.stringify(c.diagnostics));
-        else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');if(setCode==='LOF_235'){const target=c.abilities.card[0].effect.target;assert.equal(target.kind,'arenaList');assert.deepEqual(target.receiver,{kind:'ref',path:['game']});assert.equal(target.controllerOrder,'playerFirst');assert.equal(c.abilities.card[0].effect.amount.value,2);}}
+        else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');if(setCode==='IC27_182'){const target=c.abilities.card[0].effect.target;assert.equal(target.kind,'arenaList');assert.deepEqual(target.receiver,{kind:'ref',path:['game']});assert.equal(target.controllerOrder,'playerFirst');assert.equal(c.abilities.card[0].effect.amount.value,2);}}
     }
     assert.equal(supportedCount,45);
 });
 
 test("four additional generic source-only gains retain full source identities",()=>{
-    const sources=[["JTL_217", "game/cards/04_JTL/units/DeathSpaceSkirmisher.ts", "ae8e4acb0ddb8613a37d52aaa504de8ed96abd3174bb7e316e70f21cdcb90b98"], ["SEC_014", "game/cards/06_SEC/leaders/SlyMooreCipherInTheDark.ts", "0a2a30e721f4646995428e662724233577c9718b1d374440ee5e2fcd236c15fe"], ["TWI_137", "game/cards/03_TWI/units/SavageOpressMonster.ts", "6ab2d2128e79311328d13c0bd8f27df93483baf14c3804a48b9fbd4aa72424cc"], ["TWI_194", "game/cards/03_TWI/units/AhsokaTanoAlwaysReadyForTrouble.ts", "4df31d40dc641ac824a829817fd9ad564872bd4824ffee69bd78108a95fcb5c2"]];
+    const sources=[["JTL_217", "game/cards/04_JTL/units/DeathSpaceSkirmisher.ts", "ae8e4acb0ddb8613a37d52aaa504de8ed96abd3174bb7e316e70f21cdcb90b98"], ["SEC_014", "game/cards/06_SEC/leaders/SlyMooreCipherInTheDark.ts", "0a2a30e721f4646995428e662724233577c9718b1d374440ee5e2fcd236c15fe"], ["IC27_108", "game/cards/03_TWI/units/SavageOpressMonster.ts", "6ab2d2128e79311328d13c0bd8f27df93483baf14c3804a48b9fbd4aa72424cc"], ["TWI_194", "game/cards/03_TWI/units/AhsokaTanoAlwaysReadyForTrouble.ts", "4df31d40dc641ac824a829817fd9ad564872bd4824ffee69bd78108a95fcb5c2"]];
     for(const [id,file,expectedHash] of sources){const p=path.join(root,file),source=fs.readFileSync(p,"utf8");assert.equal(hash(source),expectedHash,id);const c=compileSource(source,p,enums);assert.equal(c.status,"supported",id+JSON.stringify(c.diagnostics));}
 });
 

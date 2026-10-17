@@ -43,9 +43,9 @@ test('factories, readonly aliases and captured query objects cannot erase callba
  const start=text.indexOf('registrar.addGainOnAttackAbilityTargetingAttached('),argStart=start+'registrar.addGainOnAttackAbilityTargetingAttached('.length,end=text.indexOf('\n        });',argStart);assert.ok(start>=0&&end>=0);const arg=text.slice(argStart,end+10);reject(id,text.slice(0,start)+'const saved='+arg+';\n        registrar.addGainOnAttackAbilityTargetingAttached(saved);'+text.slice(end+12));}
  const jedi=source('LOF_051').text;reject('LOF_051',jedi.replace('(card, context) => card !== context.source','(card, context)=>{const source=context.source;return card!==source;}'));
 });
-test('all twenty noncohort gained-attack full sources remain rejected',()=>{
- const selected=new Set(Object.values(files).map(f=>'game/cards/'+f));let deferred=0;
- for(const relative of fs.readdirSync(path.join(root,'game/cards'),{recursive:true}).filter(f=>f.endsWith('.ts'))){const file='game/cards/'+relative,text=fs.readFileSync(path.join(root,file),'utf8');if(!text.includes('addGainOnAttackAbilityTargetingAttached')||selected.has(file))continue;const c=compileSource(text,file,enums);assert.equal(c.status,'unsupported',file+JSON.stringify(c.abilities));deferred++;}assert.equal(deferred,20);
+test('noncohort gained-attack sources recover through piloting; remaining sources stay rejected',()=>{
+ const selected=new Set(Object.values(files).map(f=>'game/cards/'+f));let admitted=0,deferred=0;
+ for(const relative of fs.readdirSync(path.join(root,'game/cards'),{recursive:true}).filter(f=>f.endsWith('.ts'))){const file='game/cards/'+relative,text=fs.readFileSync(path.join(root,file),'utf8');if(!text.includes('addGainOnAttackAbilityTargetingAttached')||selected.has(file))continue;const c=compileSource(text,file,enums);if(c.status==='supported'){assert.equal(c.abilities.card[0]?.effect?.kind,'attachedAbilityRegistration',file);admitted++;}else{assert.equal(c.status,'unsupported',file+JSON.stringify(c.diagnostics));deferred++;}}assert.equal(admitted,16);assert.equal(deferred,4);
 });
 
 test('new grant templates require instance setup and pure literal identity methods',()=>{

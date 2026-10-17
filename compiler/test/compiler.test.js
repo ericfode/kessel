@@ -235,6 +235,22 @@ test('inventory automatically discovers newly added cards and retains blocked ca
     fs.appendFileSync(path.join(f.source,'game/core/Constants.ts'),'\n// changed helper semantics');
     assert.notEqual(compileCatalog(f).sourceTreeHash,next.sourceTreeHash,'core engine sources are provenance inputs');
 });
+test('reprint setCodes emit catalogue aliases for historical pool codes', (t) => {
+    const f = fixture(t);
+    const file = path.join(f.cards, 'Card/first.json');
+    const card = JSON.parse(fs.readFileSync(file, 'utf8'));
+    card.setId = { set: 'IC27', number: 80 };
+    card.setCodes = [{ set: 'IBH', number: 14 }, { set: 'IC27', number: 80 }, { set: 'IBH', number: 26 }];
+    fs.writeFileSync(file, JSON.stringify(card));
+    const catalog = compileCatalog(f);
+    assert.deepEqual(catalog.cards.map((c) => c.setCode), ['IBH_014', 'IBH_026', 'IC27_080']);
+    const primary = catalog.cards.find((c) => c.setCode === 'IC27_080');
+    const alias = catalog.cards.find((c) => c.setCode === 'IBH_014');
+    assert.equal(primary.aliasOf, undefined);
+    assert.equal(alias.aliasOf, 'IC27_080');
+    assert.equal(alias.id, primary.id);
+    assert.equal(alias.status, 'supported');
+});
 test('CLI check detects a newly added card; strict conversion fails on blockers', (t) => {
     const f=fixture(t), out=path.join(f.root,'generated');
     const run=(...args)=>spawnSync(process.execPath,[path.join(__dirname,'../build.js'),'--source',f.source,'--cards',f.cards,'--out',out,...args],{encoding:'utf8'});
