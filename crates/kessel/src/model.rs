@@ -331,10 +331,11 @@ pub enum Decision {
     DeathOrder,
     DeathBatch,
     Terminal,
+    Support,
+    // Append prompts: these discriminants are part of historical state hashes.
     DiscloseSelect,
     DisclosePause,
     DiscloseReveal,
-    Support,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -850,5 +851,33 @@ impl Card {
     pub fn clear_hidden_phase_effects(&mut self) {self.hidden_state &= 1;}
     pub fn phase_keyword_amount(&self, index: usize) -> u16 {
         if let Some(slot) = crate::ability_ir::numeric_keyword_slot(index) { self.phase_keyword_values[slot] } else { u16::from(self.phase_keyword_mask() & (1 << index) != 0) }
+    }
+}
+
+#[cfg(test)]
+mod hash_protocol_tests {
+    use super::Decision;
+
+    #[test]
+    fn historical_prompt_hash_tags_remain_stable() {
+        // Frozen before Disclose was added. Both State and saved continuation
+        // hashes use these tags, including Support's existing value of 24.
+        let historical = [
+            Decision::Window, Decision::LeaderMenu, Decision::AttackTarget,
+            Decision::UpgradeTarget, Decision::VaderBase, Decision::SatineHeal,
+            Decision::NoEffect, Decision::Resource, Decision::Unique,
+            Decision::Ambush, Decision::TriggerOrder, Decision::ShieldOrder,
+            Decision::AbilityMenu, Decision::AbilityTarget, Decision::AbilityOptional,
+            Decision::AbilityNoEffect, Decision::AbilityDistribute,
+            Decision::AbilityGroupShield, Decision::AbilityDiscard,
+            Decision::AbilityDisplay, Decision::DeathPlayer, Decision::DeathOrder,
+            Decision::DeathBatch, Decision::Terminal, Decision::Support,
+        ];
+        for (tag, decision) in historical.into_iter().enumerate() {
+            assert_eq!(decision as usize, tag, "historical {decision:?} hash tag changed");
+        }
+        for decision in [Decision::DiscloseSelect, Decision::DisclosePause, Decision::DiscloseReveal] {
+            assert!(decision as usize > Decision::Support as usize);
+        }
     }
 }
