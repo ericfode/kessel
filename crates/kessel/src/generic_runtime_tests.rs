@@ -1832,6 +1832,10 @@ fn restricted_pools_must_hold_the_tokens_their_cards_create() {
     let err=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap();
     assert!(err.contains("creates TOKEN_XWING, which the pool omits"),"{err}");
     pool["cards"].as_array_mut().unwrap().retain(|c|!["JTL_099","JTL_117","JTL_252","JTL_254"].contains(&c["setCode"].as_str().unwrap()));
+    // Commence Patrol is now admitted and is also a complete X-wing creator.
+    let err=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap();
+    assert!(err.contains("JTL_205 creates TOKEN_XWING, which the pool omits"),"{err}");
+    pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="JTL_205");
     assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).is_ok());
 }
 #[test]
