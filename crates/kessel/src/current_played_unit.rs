@@ -74,7 +74,7 @@ pub(crate) fn marker(v: &Value) -> bool {
 /// Return only normalized executable abilities. The original entry, source
 /// provenance, watcher declaration, and catalogue metadata remain unchanged.
 pub(crate) fn prepare(entry: &Value) -> Result<Option<Value>, String> {
-    if !marker(&entry["abilities"]) {
+    if !marker(entry) {
         return Ok(None);
     }
     let invalid = || {

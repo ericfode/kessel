@@ -522,3 +522,36 @@ fn current_played_unit_resumption_rejects_unknown_evidence_before_mutation() {
         assert_eq!(unknown, before);
     }
 }
+
+#[test]
+fn current_played_unit_typed_query_cannot_escape_into_source_attachment_or_helpers() {
+    let c = catalogue();
+    let foreign = c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["setCode"] == "SOR_071")
+        .unwrap();
+    for slot in [
+        "attachCondition",
+        "piloting",
+        "privatePrograms",
+        "historyHelpers",
+    ] {
+        let mut bad = foreign.clone();
+        bad[slot] = serde_json::to_value(played_predicate()).unwrap();
+        assert!(contract::prepare(&bad).is_err(), "foreign {slot}");
+        let mut mutated = c.clone();
+        let row = mutated["cards"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|r| r["setCode"] == "SOR_071")
+            .unwrap();
+        *row = bad;
+        assert!(!Engine::from_catalogue_value(&mutated)
+            .unwrap()
+            .by_code
+            .contains_key("SOR_071"));
+    }
+}
