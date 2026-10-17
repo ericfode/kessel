@@ -86,11 +86,55 @@ fn attack_duration_family_admission_and_exact_gate_boundaries() {
     assert!(err.contains("grouped stat modifications require phase duration"), "{err}");
     // Arena lists are not one resolved card target.
     let err = compile(json!({"trigger":"onAttack","title":"Arena","effect":{"kind":"modifyStats","target":{"kind":"arenaList","receiver":{"kind":"ref","path":["player"]},"predicate":{"kind":"const","value":true}},"duration":"attack","power":{"kind":"const","value":1},"hp":{"kind":"const","value":0}}})).unwrap_err();
-    assert!(err.contains("one resolved card target") || err.contains("arena-list phase stats"), "{err}");
+    assert!(err.contains("self or the current attack's target list") || err.contains("arena-list phase stats"), "{err}");
+    // Engine possible target shapes only: CardAttackLastingEffectSystem
+    // Contract-asserts `target.activeAttack`, so a chosen card, a base or an
+    // arbitrary card/player reference has no active attack and stays rejected
+    // instead of granting an effect the engine would not create.
+    for (label, target) in [
+        ("chosen", json!("chosen")),
+        ("parent", json!("parent")),
+        ("ownBase", json!("ownBase")),
+        ("source ref", json!({"kind":"ref","path":["source"]})),
+        ("card ref", json!({"kind":"ref","path":["card"]})),
+        ("target ref", json!({"kind":"ref","path":["target"]})),
+        ("own base ref", json!({"kind":"ref","path":["player","base"]})),
+        ("opponent base ref", json!({"kind":"ref","path":["opponent","base"]})),
+        ("conditional source", json!({"kind":"conditional","condition":{"kind":"const","value":true},"then":{"kind":"ref","path":["source"]},"else":{"kind":"const","value":null}})),
+    ] {
+        let err = compile(json!({"trigger":"onAttack","title":"Foreign target","effect":{"kind":"modifyStats","target":target,"duration":"attack","power":{"kind":"const","value":1},"hp":{"kind":"const","value":0}}})).unwrap_err();
+        assert!(err.contains("self or the current attack's target list"), "{label}: {err}");
+    }
     // The target list must be the attack event's, and it is not a number.
     let wrong_receiver = json!({"kind":"query","name":"getAllAttackTargets","receiver":{"kind":"ref","path":["player"]},"args":[]});
     let err = compile(json!({"trigger":"onAttack","title":"Bad receiver","effect":{"kind":"modifyStats","target":wrong_receiver,"duration":"attack","power":{"kind":"const","value":1},"hp":{"kind":"const","value":0}}})).unwrap_err();
-    assert!(err.contains("event.attack") || err.contains("effect target"), "{err}");
+    assert!(err.contains("self or the current attack's target list"), "{err}");
+    // The attack target list has exactly one consumer: the unit-only lasting
+    // stat system. A generic effect target would silently skip bases and
+    // departed defenders, so every other consumer is an explicit rejection.
+    for effect in [
+        json!({"kind":"damage","target":attack_targets,"amount":{"kind":"const","value":1}}),
+        json!({"kind":"defeat","target":attack_targets}),
+        json!({"kind":"returnToHand","target":attack_targets}),
+        json!({"kind":"ready","target":attack_targets}),
+        json!({"kind":"modifyStats","target":attack_targets,"duration":"phase","power":{"kind":"const","value":1},"hp":{"kind":"const","value":0}}),
+        json!({"kind":"simultaneous","effects":[{"kind":"damage","target":attack_targets,"amount":{"kind":"const","value":1}},{"kind":"noAction"}]}),
+    ] {
+        let err = compile(json!({"trigger":"onAttack","title":"Wrong consumer","effect":effect.clone()})).unwrap_err();
+        assert!(
+            err.contains("effect target must be a bounded card or player reference")
+                || err.contains("self or the current attack")
+                || err.contains("array targets require verified event batching"),
+            "{effect}: {err}"
+        );
+    }
+    // Same query outside the single admitted consumer is not even a valid
+    // expression: the generic validator rejects the query name, so a future
+    // amount/condition/target consumer cannot quietly use the attack snapshot.
+    let err = compile(json!({"trigger":"onAttack","title":"Amount","effect":{"kind":"damage","target":"enemyBase","amount":attack_targets}})).unwrap_err();
+    assert!(err.contains("unsupported runtime query getAllAttackTargets"), "{err}");
+    let err = compile(json!({"trigger":"onAttack","title":"Condition","condition":attack_targets,"effect":{"kind":"noAction"}})).unwrap_err();
+    assert!(err.contains("unsupported runtime query getAllAttackTargets"), "{err}");
 }
 
 #[test]
@@ -361,6 +405,10 @@ fn attack_duration_store_is_bounded_hashed_and_target_scoped() {
     let mut s = board(&e);
     let a = unit(&e, &mut s, Seat::P1, "HMW_082");
     let b = unit(&e, &mut s, Seat::P2, "HMW_082");
+    let outsider = unit(&e, &mut s, Seat::P1, "HMW_082");
+    s.source = a;
+    s.attack_source = a;
+    s.attack_defender = b;
     let before = e.power(&s, a, false);
     let empty_hash = s.zobrist();
     e.grant_attack_stats(&mut s, a, 2, 0).unwrap();
@@ -368,6 +416,16 @@ fn attack_duration_store_is_bounded_hashed_and_target_scoped() {
     assert_ne!(s.zobrist(), empty_hash);
     let copy = s;
     assert_eq!(copy.zobrist(), s.zobrist());
+    // The engine asserts `target.activeAttack`: a foreign in-play unit is not a
+    // participant of the resolving attack and cannot receive a grant, even
+    // outside the admission gate.
+    let err = e.grant_attack_stats(&mut s, outsider, 1, 0).unwrap_err();
+    assert!(err.contains("participant of the resolving attack"), "{err}");
+    let mut idle = board(&e);
+    let idle_unit = unit(&e, &mut idle, Seat::P1, "HMW_082");
+    idle.source = idle_unit;
+    let err = e.grant_attack_stats(&mut idle, idle_unit, 1, 0).unwrap_err();
+    assert!(err.contains("participant of the resolving attack"), "{err}");
     e.remove_attack_stats_target(&mut s, b);
     assert_eq!(e.power(&s, a, false), before + 2, "other targets keep their grants");
     e.remove_attack_stats_target(&mut s, a);
@@ -378,6 +436,10 @@ fn attack_duration_store_is_bounded_hashed_and_target_scoped() {
     assert!(e.grant_attack_stats(&mut s, a, 40000, 0).is_err());
     let mut full = board(&e);
     let target = unit(&e, &mut full, Seat::P1, "HMW_082");
+    let defender = unit(&e, &mut full, Seat::P2, "HMW_082");
+    full.source = target;
+    full.attack_source = target;
+    full.attack_defender = defender;
     for _ in 0..crate::model::MAX_ATTACK_STAT_GRANTS {
         e.grant_attack_stats(&mut full, target, 1, 0).unwrap();
     }
