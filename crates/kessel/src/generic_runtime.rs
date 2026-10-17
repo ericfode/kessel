@@ -3699,7 +3699,7 @@ impl Engine {
             }
         }
     }
-    /// Capture reviewed OnCardPlayed arena watchers for the unit/event just played.
+    /// Capture reviewed OnCardPlayed arena watchers for the unit/event/upgrade just played.
     pub(super) fn capture_card_played_watchers(&self, s: &mut State) -> Result<(), String> {
         if self.catalogue.is_none() {
             return Ok(());
@@ -3708,7 +3708,9 @@ impl Engine {
         let info = &self.def(s, played).info;
         let is_unit = info.is("unit");
         let is_event = info.is("event");
-        if !is_unit && !is_event {
+        let is_upgrade = info.is("upgrade");
+        // Aspect/trait watchers (Lady Proxima / Fighters) also need upgrade plays.
+        if !is_unit && !is_event && !is_upgrade {
             return Ok(());
         }
         let played_owner = s.card(played).owner;

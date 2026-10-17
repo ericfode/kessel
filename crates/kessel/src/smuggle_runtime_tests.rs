@@ -243,7 +243,7 @@ fn smuggle_cassian_enters_ready_only_from_resources() {
 #[test]
 fn hook_unsupported_shapes_reject_with_event_name() {
     let e = engine();
-    // HMW_115 / SHD_096 / SOR_109 / LOF_096 / LOF_142 / TWI_080 are reviewed OnCardPlayed.
+    // HMW_115 / LOF_142 / SHD_255 are reviewed OnCardPlayed; ASH_204 stays onDamageDealt.
     assert!(
         e.by_code.contains_key("HMW_115"),
         "{:?}",
@@ -254,10 +254,10 @@ fn hook_unsupported_shapes_reject_with_event_name() {
         "{:?}",
         e.rejected_cards().unwrap().get("LOF_142")
     );
-    let reason = e.rejected_cards().unwrap()["SHD_255"].clone();
     assert!(
-        reason.contains("onCardPlayed") || reason.contains("unimplemented event hook"),
-        "{reason}"
+        e.by_code.contains_key("SHD_255"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("SHD_255")
     );
     let reason = e.rejected_cards().unwrap()["ASH_204"].clone();
     assert!(

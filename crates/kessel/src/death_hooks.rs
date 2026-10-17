@@ -2,7 +2,7 @@
 //! predicates are evaluated against the event's pre-handler unit/type/controller
 //! snapshot; effect programs cannot read or retain an unmodeled event context.
 //! Unsupported hook JSON deserializes as [`Hook::Unsupported`] and stays rejected.
-use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
+use crate::ability_ir::{Ability, Effect, Expr, Sides, Target, TargetResolver};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -336,6 +336,21 @@ impl Predicate {
                 }
                 false
             }
+            Self::DataCall {
+                method,
+                receiver,
+                args,
+                optional_call: false,
+                optional_receiver: false,
+            } if method == "isEvent"
+                && args.is_empty()
+                && receiver.path(&["card"], binding)
+                && !out.event
+                && !out.unit =>
+            {
+                out.event = true;
+                true
+            }
             _ => {
                 if out.aspect.is_none() {
                     if let Some(aspect) = self.play_data_call("hasSomeAspect", binding) {
@@ -358,7 +373,11 @@ impl Predicate {
         self.play_project(&mut p, &mut None, 0)
             .then_some(p)
             .filter(|p| {
-                (p.unit || p.event)
+                // Unit/event type, or aspect/trait-only "any card" filters
+                // (Lady Proxima / Fighters for Freedom).
+                let typed = p.unit || p.event;
+                let tagged = p.aspect.is_some() || p.trait_name.is_some();
+                (typed || tagged)
                     && (p.same_controller || p.opponent_controller)
                     && !(p.same_controller && p.opponent_controller)
                     && !(p.unit && p.event)
@@ -528,8 +547,23 @@ fn plain_if_you_do(next: &Ability) -> bool {
         && next.if_you_do.is_none()
         && next.hooks.is_empty()
 }
+fn plain_attackable_resolver(r: &TargetResolver, card_type: &str) -> bool {
+    r.owner == "any"
+        && r.card_type == card_type
+        && r.zone.as_deref() == Some("anyAttackable")
+        && !r.optional
+        && r.count.is_none()
+        && r.mode.is_none()
+        && r.arena.is_none()
+        && r.prompt_title.is_none()
+        && r.prompt_title_parts.is_empty()
+        && r.predicate.is_none()
+        && r.native.is_none()
+        && !r.player_selection
+}
 /// Sole OnCardPlayed watcher: reviewed unit/event play → Experience, heal, Sentinel,
-/// optional exhaust→Battle Droid, or opponent-event base damage.
+/// optional exhaust→Battle Droid, opponent-event base damage, or optional
+/// aspect/trait/event damage selectors (Lady Proxima / Fighters / Bossk).
 pub(crate) fn card_played_registration(a: &Ability) -> bool {
     if !card_played_hook_header(a) {
         return false;
@@ -612,6 +646,58 @@ pub(crate) fn card_played_registration(a: &Ability) -> bool {
                         && !*enters_ready
                 )
         });
+    }
+    // Optional friendly play → choose damage (Lady Proxima / Fighters / Bossk).
+    if a.optional
+        && a.if_you_do.is_none()
+        && proj.same_controller
+        && !proj.opponent_controller
+        && proj.max_cost.is_none()
+    {
+        if let (
+            Effect::Damage {
+                target: Target::Name(t),
+                amount: Expr::Const { value },
+            },
+            Some(r),
+        ) = (&a.effect, a.target_resolver.as_ref())
+        {
+            if t == "chosen" {
+                // Lady Proxima: other Underworld card → 1 damage to a base.
+                if value.as_u64() == Some(1)
+                    && plain_attackable_resolver(r, "base")
+                    && proj.other
+                    && !proj.unit
+                    && !proj.event
+                    && proj.aspect.is_none()
+                    && proj.trait_name.as_deref() == Some("underworld")
+                {
+                    return true;
+                }
+                // Fighters for Freedom: other Aggression card → 1 damage to a base.
+                if value.as_u64() == Some(1)
+                    && plain_attackable_resolver(r, "base")
+                    && proj.other
+                    && !proj.unit
+                    && !proj.event
+                    && proj.aspect.as_deref() == Some("aggression")
+                    && proj.trait_name.is_none()
+                {
+                    return true;
+                }
+                // Bossk: friendly event → 2 damage to a unit.
+                if value.as_u64() == Some(2)
+                    && plain_attackable_resolver(r, "unit")
+                    && !proj.other
+                    && proj.event
+                    && !proj.unit
+                    && proj.aspect.is_none()
+                    && proj.trait_name.is_none()
+                {
+                    return true;
+                }
+            }
+        }
     }
     false
 }
