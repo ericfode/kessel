@@ -11496,6 +11496,44 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "7403509677",
+      "internalName": "wild-space-wanderer",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "HMW_270",
+      "setCodes": [
+        {
+          "number": 270,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 270,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may defeat an upgrade on a base.",
+      "title": "Wild Space Wanderer",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [],
       "cost": 5,
       "deployBox": null,
@@ -21868,6 +21906,45 @@
       "title": "Bracca Shipbreaker",
       "traits": [
         "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3245865353",
+      "internalName": "overcharged-transport",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_195",
+      "setCodes": [
+        {
+          "number": 195,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 195,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played/When Defeated: You may defeat an upgrade attached to a space unit.",
+      "title": "Overcharged Transport",
+      "traits": [
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"

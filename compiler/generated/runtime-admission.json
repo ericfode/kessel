@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 799
+    "sourceIr": 801
   },
   "runtimeAdmittedCards": [
     {
@@ -1447,6 +1447,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "wild-space-wanderer",
+      "setCode": "HMW_270"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "growth",
       "setCode": "HMW_272"
     },
@@ -2689,6 +2694,11 @@
       "implementation": "sourceIr",
       "internalName": "bracca-shipbreaker",
       "setCode": "LAW_192"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "overcharged-transport",
+      "setCode": "LAW_195"
     },
     {
       "implementation": "dataOnly",
@@ -5951,7 +5961,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1188,
+  "runtimeAdmittedCount": 1190,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6730,7 +6740,7 @@
     },
     {
       "internalName": "boss-lyonie#hypnotized",
-      "reason": "boss-lyonie#hypnotized: parent references require an ordinary attached upgrade",
+      "reason": "boss-lyonie#hypnotized: invalid ability IR: unknown variant `giveTokenUpgrade`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "HMW_057"
     },
     {
@@ -6770,7 +6780,7 @@
     },
     {
       "internalName": "boss-nass#otoh-gunga-boss",
-      "reason": "boss-nass#otoh-gunga-boss: parent references require an ordinary attached upgrade",
+      "reason": "boss-nass#otoh-gunga-boss: invalid ability IR: unknown variant `createTokenUnitSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "HMW_077"
     },
     {
@@ -7182,11 +7192,6 @@
       "internalName": "renew",
       "reason": "renew: grouped upgrade selection is not modeled",
       "setCode": "HMW_267"
-    },
-    {
-      "internalName": "wild-space-wanderer",
-      "reason": "wild-space-wanderer: parent references require an ordinary attached upgrade",
-      "setCode": "HMW_270"
     },
     {
       "internalName": "landing-pad",
@@ -7770,7 +7775,7 @@
     },
     {
       "internalName": "hondo-ohnaka#superfluous-swindler",
-      "reason": "hondo-ohnaka#superfluous-swindler: parent references require an ordinary attached upgrade",
+      "reason": "hondo-ohnaka#superfluous-swindler: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_056"
     },
     {
@@ -7795,7 +7800,7 @@
     },
     {
       "internalName": "uwing-lander",
-      "reason": "uwing-lander: parent references require an ordinary attached upgrade",
+      "reason": "uwing-lander: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_070"
     },
     {
@@ -7975,7 +7980,7 @@
     },
     {
       "internalName": "allegiant-general-pryde#ruthless-and-loyal",
-      "reason": "allegiant-general-pryde#ruthless-and-loyal: parent references require an ordinary attached upgrade",
+      "reason": "allegiant-general-pryde#ruthless-and-loyal: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_133"
     },
     {
@@ -8110,7 +8115,7 @@
     },
     {
       "internalName": "system-shock",
-      "reason": "system-shock: parent references require an ordinary attached upgrade",
+      "reason": "system-shock: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "JTL_175"
     },
     {
@@ -8969,11 +8974,6 @@
       "setCode": "LAW_194"
     },
     {
-      "internalName": "overcharged-transport",
-      "reason": "overcharged-transport: parent references require an ordinary attached upgrade",
-      "setCode": "LAW_195"
-    },
-    {
       "internalName": "shifty-suspects",
       "reason": "shifty-suspects: invalid ability IR: unknown variant `cardRestriction`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "LAW_197"
@@ -9410,7 +9410,7 @@
     },
     {
       "internalName": "vanee#i-live-to-serve",
-      "reason": "vanee#i-live-to-serve: parent references require an ordinary attached upgrade",
+      "reason": "vanee#i-live-to-serve: invalid ability IR: unknown variant `memberPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_082"
     },
     {
@@ -9735,7 +9735,7 @@
     },
     {
       "internalName": "jocasta-nu#the-gift-of-knowledge",
-      "reason": "jocasta-nu#the-gift-of-knowledge: parent references require an ordinary attached upgrade",
+      "reason": "jocasta-nu#the-gift-of-knowledge: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_248"
     },
     {
@@ -9780,7 +9780,7 @@
     },
     {
       "internalName": "lama-su#we-modified-their-genetics",
-      "reason": "lama-su#we-modified-their-genetics: parent references require an ordinary attached upgrade",
+      "reason": "lama-su#we-modified-their-genetics: invalid ability IR: unknown variant `playCardSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SEC_003"
     },
     {
@@ -10570,7 +10570,7 @@
     },
     {
       "internalName": "finn#this-is-a-rescue",
-      "reason": "finn#this-is-a-rescue: parent references require an ordinary attached upgrade",
+      "reason": "finn#this-is-a-rescue: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SHD_003"
     },
     {
@@ -10675,7 +10675,7 @@
     },
     {
       "internalName": "rose-tico#dedicated-to-the-cause",
-      "reason": "rose-tico#dedicated-to-the-cause: parent references require an ordinary attached upgrade",
+      "reason": "rose-tico#dedicated-to-the-cause: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SHD_045"
     },
     {
@@ -10750,7 +10750,7 @@
     },
     {
       "internalName": "evidence-of-the-crime",
-      "reason": "evidence-of-the-crime: parent references require an ordinary attached upgrade",
+      "reason": "evidence-of-the-crime: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_077"
     },
     {
@@ -10980,7 +10980,7 @@
     },
     {
       "internalName": "pre-vizsla#power-hungry",
-      "reason": "pre-vizsla#power-hungry: parent references require an ordinary attached upgrade",
+      "reason": "pre-vizsla#power-hungry: invalid ability IR: unknown variant `payCardPrintedCost`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SHD_142"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1417,
+  "runtimeRejectedCount": 1415,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
