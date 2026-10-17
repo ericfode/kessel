@@ -17530,6 +17530,44 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0391050270",
+      "internalName": "jam-communications",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_207",
+      "setCodes": [
+        {
+          "number": 207,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 207,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Look at an opponent's hand and discard an event from it.",
+      "title": "Jam Communications",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning"
@@ -27557,6 +27595,44 @@
       "text": "Attack with a Creature unit. It gets +4/+0 for this attack.",
       "title": "Pounce",
       "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6491675327",
+      "internalName": "tip-the-scale",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_226",
+      "setCodes": [
+        {
+          "number": 226,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 226,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Look at an opponent's hand and discard a non-unit card from it.",
+      "title": "Tip the Scale",
+      "traits": [
+        "force",
         "trick"
       ],
       "types": [
@@ -39550,6 +39626,84 @@
       "traits": [
         "underworld",
         "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "2050990622",
+      "internalName": "spark-of-rebellion",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_200",
+      "setCodes": [
+        {
+          "number": 200,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 200,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Look at an opponent's hand and discard a card from it.",
+      "title": "Spark of Rebellion",
+      "traits": [
+        "spectre"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "7257556541",
+      "internalName": "bodhi-rook#imperial-defector",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_201",
+      "setCodes": [
+        {
+          "number": 201,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 201,
+        "set": "SOR"
+      },
+      "subtitle": "Imperial Defector",
+      "text": "When Played: Look at an opponent's hand and discard a non-unit card from it.",
+      "title": "Bodhi Rook",
+      "traits": [
+        "imperial",
+        "rebel"
       ],
       "types": [
         "unit"
