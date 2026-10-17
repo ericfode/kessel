@@ -570,7 +570,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -881,7 +882,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;
@@ -921,6 +923,7 @@ impl Engine {
         self.use_legacy_leader(s)
     }
     fn clear_action_context(&self, s: &mut State) {
+        s.disclose=DiscloseState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;

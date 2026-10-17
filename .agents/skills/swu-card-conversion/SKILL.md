@@ -71,6 +71,18 @@ subprocess concurrency is not model concurrency. Preserve explicit path ownershi
 and do not edit canonical execution inputs during validation. Queue submission
 and successful comparisons never substitute for independent semantic review.
 
+After a repository migration or exporter contract change, preflight one selected
+real-engine recording through native and Wasm imports before starting the card
+fanout. Preserve failed attempts; a missing shared state field is not a card-level
+semantic failure and must not be bypassed by weakening the runtime import guard.
+
+When initializing a queue through its module API, include every intended ownership
+path in the baseline inventory: existing files need their actual hashes and new
+files need null. A baseline drift error is not permission to bypass the claim;
+correct the inventory in a fresh queue and retain the original failed attempt.
+Keep the original initialization inputs, including plans: the queue manifest
+retains their hash, not the complete plans object needed to recreate the queue.
+
 Use incremental builds and targeted checks for ordinary card increments. Run a
 full clean rebuild and the full accepted corpus only at each 200 newly reviewed,
 runtime-admitted cards. Count unique new admissions with concrete review and
@@ -80,6 +92,18 @@ so ongoing author work can continue. The background agent owns an isolated check
 and target directory, reports failures, and develops fixes there for integration.
 Do not let later canonical changes invalidate or relabel an older checkpoint's
 results. Necessary targeted checks still follow each affected semantic change.
+
+Inspect the actual test bodies before choosing ordinary gates. The Rust library
+test `generated_programs_match_all_committed_engine_traces` covers original fixed
+fixtures; keep it. The separate `reference_conformance` integration test and
+`crates/kessel-wasm/js/test/reference-conformance.test.js` replay the full accepted
+corpus and belong to the 200-card checkpoint. For an ordinary Wasm increment use
+`node --test crates/kessel-wasm/test.js crates/kessel-wasm/js/test/adapter.test.js`,
+plus the selected new and affected reference comparisons. These tests load both
+`crates/kessel-wasm/pkg/node` and `pkg/web`; build and hash both from the final Rust
+source and embedded catalogue. Use reference `check --corpus DIR` to select a
+generated corpus; `--out` does not select checking input. An interrupted broad
+test command is not a completed checkpoint.
 
 When adding a construction adapter, wire both planner/fixture dispatch and the
 central fixture dependency inventory so reusable recordings bind the new source

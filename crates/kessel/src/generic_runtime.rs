@@ -1464,6 +1464,26 @@ impl Engine {
     pub(super) fn native_attack_predicate(&self,s:&State,source:CardId,candidate:CardId,e:&Expr)->bool {
         self.eval_with_card(s,source,candidate,candidate,e).truth()
     }
+    /// Disclose commits the play before reading the hand, then suspends for the
+    /// owner selection and opponent reveal acknowledgment. Only acknowledgment
+    /// publishes success; cancellation and masked failure skip the continuation.
+    /// Selection does not move cards or open child event windows, and is cleared
+    /// before the ordinary continuation can select targets or resolve effects.
+    fn disclose_missing(&self,s:&State,aspects:&[String],selected:&[CardId])->[u8;6] {
+        let mut missing=[0u8;6];for name in aspects {missing[aspect(name).expect("validated disclose aspect")]+=1;}
+        for &id in selected {for (i,count) in self.def(s,id).aspects.iter().enumerate() {missing[i]=missing[i].saturating_sub(*count);}}
+        missing
+    }
+    fn can_disclose(&self,s:&State,player:Seat,aspects:&[String])->bool {self.disclose_missing(s,aspects,s.player(player).hand.as_slice()).iter().all(|n|*n==0)}
+    fn disclose_aspects<'a>(&'a self,s:&State)->&'a [String] {let Instruction::Apply(Effect::Disclose{aspects,..})=&self.program(s.ability_program-1).instructions[s.ability_pc as usize] else{panic!("disclose prompt has no disclosure instruction")};aspects}
+    fn disclose_complete(&self,s:&State)->bool {self.disclose_missing(s,self.disclose_aspects(s),&s.disclose.selected.ids[..s.disclose.selected.len as usize]).iter().all(|n|*n==0)}
+    fn disclose_candidates(&self,s:&State)->Vec<CardId> {
+        let picks=&s.disclose.selected;let missing=self.disclose_missing(s,self.disclose_aspects(s),&picks.ids[..picks.len as usize]);
+        s.player(s.disclose.player).hand.as_slice().iter().copied().filter(|id|picks.ids[..picks.len as usize].contains(id)||(!self.disclose_complete(s)&&self.def(s,*id).aspects.iter().enumerate().any(|(i,n)|*n>0&&missing[i]>0))).collect()
+    }
+    fn finish_disclose(&self,s:&mut State,success:bool)->Result<(),String> {
+        s.active=s.disclose.player;s.disclose=DiscloseState::default();s.ability_result=u16::from(success);s.ability_succeeded=success;s.ability_pc+=1;self.run_program(s)
+    }
     fn effect_can_affect(
         &self,
         s: &State,
@@ -1473,6 +1493,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::Disclose{aspects,..}=>return !self.def(s,source).info.is("event")||self.can_disclose(s,s.card(source).owner,aspects),
             Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
@@ -1671,12 +1692,20 @@ impl Engine {
                 | Decision::AbilityNoEffect
                 | Decision::AbilityDistribute
                 | Decision::AbilityGroupShield | Decision::AbilityDiscard
+                | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal
         )
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
         let mut out = Vec::new();
         let source = s.source;
         match s.decision {
+            Decision::DisclosePause=>out.push(Action::button("Skip","done")),
+            Decision::DiscloseReveal=>out.push(Action::button("Done","done")),
+            Decision::DiscloseSelect=>{
+                if s.disclose.selected.len==0 {out.push(Action::button("Choose nothing","done"));}
+                else if s.disclose.selected.len>1&&self.disclose_complete(s) {out.push(Action::button("Done","done"));}
+                out.push(Action::button("Cancel","cancel"));for id in self.disclose_candidates(s) {out.push(self.card_action(s,id));}
+            }
             Decision::AbilityDiscard => {
                 let g=&s.event_group;
                 if g.discard_count>1 && g.picks.len==g.discard_count {out.push(Action::button("Done","done"));}
@@ -1793,6 +1822,7 @@ impl Engine {
     /// New work chooses a named continuation; only suspended state stores its
     /// historical numeric representation. Legacy raw return decoding stays in end_program.
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        s.disclose=DiscloseState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -1865,6 +1895,7 @@ impl Engine {
         Ok(())
     }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
+        s.disclose=DiscloseState::default();
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();
@@ -1940,6 +1971,13 @@ impl Engine {
                         return Ok(());
                     }
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
+                }
+                Instruction::Apply(Effect::Disclose{aspects,..})=>{
+                    self.commit_program(s)?;s.ability_result=0;s.ability_succeeded=false;
+                    let player=s.card(s.source).owner;s.disclose=DiscloseState{player,selected:Selection::default()};s.active=player;
+                    if self.can_disclose(s,player,aspects) {s.decision=Decision::DiscloseSelect;return Ok(());}
+                    if p.trigger!="event" {s.decision=Decision::DisclosePause;return Ok(());}
+                    s.disclose=DiscloseState::default();s.ability_pc+=1;
                 }
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     s.decision = Decision::AbilityDistribute;
@@ -2434,6 +2472,13 @@ impl Engine {
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
         let mut t = *s;
         match s.decision {
+            Decision::DisclosePause=>{self.finish_disclose(&mut t,false)?;}
+            Decision::DiscloseReveal=>{self.finish_disclose(&mut t,true)?;}
+            Decision::DiscloseSelect=>{
+                if a.arg.as_ref().and_then(Value::as_str)==Some("cancel") {self.finish_disclose(&mut t,false)?;}
+                else if a.arg.as_ref().and_then(Value::as_str)==Some("done") {if s.disclose.selected.len==0 {self.finish_disclose(&mut t,false)?;}else{if !self.disclose_complete(s){return Err("disclose requirements incomplete".into());}t.active=t.disclose.player.other();t.decision=Decision::DiscloseReveal;}}
+                else {let id=a.id().ok_or("disclose selection card missing")?;t.disclose.selected.toggle(id)?;if t.disclose.selected.len==1&&self.disclose_complete(&t) {t.active=t.disclose.player.other();t.decision=Decision::DiscloseReveal;}}
+            }
             Decision::AbilityDiscard => {
                 let count=t.event_group.discard_count;
                 if count==1 {t.event_group.picks=Selection::one(a.id().ok_or("discard card missing")?);}

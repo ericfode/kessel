@@ -3,9 +3,10 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
-// Exact budget: 28,208 + native attack grants 64 + registration chronology 256.
+// Exact budget: 28,208 + native attack grants 64 + registration chronology 256
+// + Disclose selection and alignment 16.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_528;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_544;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -362,6 +363,9 @@ pub enum Decision {
     DeathOrder,
     DeathBatch,
     Terminal,
+    DiscloseSelect,
+    DisclosePause,
+    DiscloseReveal,
     Support,
 }
 
@@ -562,9 +566,14 @@ impl DeathFrame {
     pub fn continuation(self)->Option<DeathContinuation> {DeathContinuation::from_raw(self.resume)}
 }
 
+/// Hand reveal selection is separate from continuation target selection.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct DiscloseState {pub player:Seat,pub selected:Selection}
+
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub disclose:DiscloseState,
     pub support: SupportState,
     pub death_pending: DeathWindow,
     pub death_window: DeathWindow,
@@ -631,6 +640,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
+            disclose:DiscloseState::default(),
             support: SupportState::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
             death_frames:[DeathFrame::default();MAX_DEATH_DEPTH], death_depth:0,
@@ -808,6 +818,7 @@ impl State {
             for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
         } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
 
+        if self.disclose!=DiscloseState::default() {put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids() {put(id as u64);}}
         put(self.ability_result as u64);
         put(self.ability_succeeded as u64);
         put(self.ability_return as u64);

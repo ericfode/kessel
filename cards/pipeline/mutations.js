@@ -27,6 +27,13 @@ function mutants(entry) {
             if (value.optional !== true)
                 add([...path, 'optional'], 'optional-instead-of-mandatory', () => true);
         }
+        if (value.kind === 'disclose' && Array.isArray(value.aspects) && value.aspects.length) {
+            const names = ['vigilance', 'command', 'aggression', 'cunning', 'heroism', 'villainy'];
+            add([...path, 'aspects'], 'wrong-disclosed-aspect', aspects =>
+                [names[(names.indexOf(aspects[0]) + 1) % names.length], ...aspects.slice(1)]);
+            if (value.aspects.length > 1)
+                add([...path, 'aspects'], 'missing-disclosed-aspect', aspects => aspects.slice(1));
+        }
         if (value.kind === 'ready' || value.kind === 'exhaust')
             add([...path, 'kind'], 'reverse-readiness', kind => kind === 'ready' ? 'exhaust' : 'ready');
         if (value.kind === 'giveExperience')
