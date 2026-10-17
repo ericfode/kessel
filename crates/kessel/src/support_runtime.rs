@@ -16,12 +16,13 @@ impl Engine {
     pub(super) fn begin_native_attack(&self,s:&mut State,p:&crate::native_attack::Properties,optional:bool)->Result<(),String> {
         if s.support.pending {return Err("nested modified attack exceeds the admitted lifecycle".into());}
         let modifiers=p.modifiers()?;
-        if (modifiers.power!=0||modifiers.presence!=0) && s.support.len as usize==MAX_SUPPORT_GRANTS {return Err("modified attack lasting-effect capacity exceeded (32)".into());}
+        let grants=modifiers.power!=0||modifiers.presence!=0||modifiers.deals_combat_damage_first;
+        if grants && s.support.len as usize==MAX_SUPPORT_GRANTS {return Err("modified attack lasting-effect capacity exceeded (32)".into());}
         // Targeting and parent costs have completed. The early event applies its
         // captured literal modifiers before the defender prompt, and cancellation
         // retains them exactly like the existing Support grant lifecycle.
-        if modifiers.power!=0||modifiers.presence!=0 {
-            s.support.grants[s.support.len as usize]=SupportGrant {target:s.ability_target,donor:s.source,native_attack:true,power:modifiers.power,keywords:modifiers.keywords,presence:modifiers.presence,..SupportGrant::default()};
+        if grants {
+            s.support.grants[s.support.len as usize]=SupportGrant {target:s.ability_target,donor:s.source,native_attack:true,deals_combat_damage_first:modifiers.deals_combat_damage_first,power:modifiers.power,keywords:modifiers.keywords,presence:modifiers.presence,..SupportGrant::default()};
             s.support.len+=1;
         }
         s.ability_pc+=1;s.ability_succeeded=true;s.ability_result=1;
@@ -210,6 +211,7 @@ impl Engine {
                 "keywords":g.keywords,"presence":g.presence
             });
             if g.native_attack {value["kind"]=json!("modifiedAttack");value["power"]=json!(g.power);}
+            if g.deals_combat_damage_first {value["firstStrike"]=json!(true);}
             value
         }).collect::<Vec<_>>())
     }
@@ -241,7 +243,11 @@ impl Engine {
             .ok_or("Support grants require catalogue")?;
         for raw in grants {
             if !raw.as_object().is_some_and(|o| {
-                (o.len() == 5 || o.len()==7&&o.get("kind")==Some(&json!("modifiedAttack"))&&o.contains_key("power"))
+                (o.len() == 5
+                    || (o.len()==7||o.len()==8)
+                        && o.get("kind")==Some(&json!("modifiedAttack"))
+                        && o.contains_key("power")
+                        && (o.len()==7 || o.contains_key("firstStrike")))
                     && ["target", "donor", "programs", "keywords", "presence"]
                         .iter()
                         .all(|k| o.contains_key(*k))
@@ -322,9 +328,10 @@ impl Engine {
             }
             if native {
                 g.native_attack=true;g.power=raw["power"].as_i64().and_then(|n|i16::try_from(n).ok()).ok_or("invalid modified attack power")?;
+                g.deals_combat_damage_first=raw.get("firstStrike").map_or(Ok(false),|v|v.as_bool().ok_or("invalid modified attack firstStrike"))?;
                 if !self.in_arena(s,g.target)||s.card(g.target).owner!=s.card(g.donor).owner||g.len!=0 {return Err("modified attack grant requires friendly in-play recipient and no copied programs".into());}
-                let expected=crate::native_attack::Modifiers{power:g.power,keywords:g.keywords,presence:g.presence};
-                let valid=(expected.power!=0||expected.presence!=0)&&self.card_programs(s,g.donor).iter().any(|p|self.program(*p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::InitiateAttack{properties,..}) if properties.modifiers().ok().as_ref()==Some(&expected))));
+                let expected=crate::native_attack::Modifiers{power:g.power,keywords:g.keywords,presence:g.presence,deals_combat_damage_first:g.deals_combat_damage_first};
+                let valid=(expected.power!=0||expected.presence!=0||expected.deals_combat_damage_first)&&self.card_programs(s,g.donor).iter().any(|p|self.program(*p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::InitiateAttack{properties,..}) if properties.modifiers().ok().as_ref()==Some(&expected))));
                 if !valid {return Err("modified attack grant does not match its admitted physical donor".into());}
             }
             s.support.grants[s.support.len as usize] = g;

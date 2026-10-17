@@ -1100,7 +1100,11 @@ impl Engine {
         let attack = self.combat_damage(s, source, true);
         let target_unit = self.in_arena(s, target);
         let defend = if target_unit { self.combat_damage(s, target, false) } else { 0 };
-        if !s.trigger_context_is(TriggerContext::ShieldOrder)
+        // Sequential first-strike windows never generate the simultaneous
+        // two-shield replacement prompt.
+        let attacker_first = self.deals_combat_damage_first(s, source);
+        if !attacker_first
+            && !s.trigger_context_is(TriggerContext::ShieldOrder)
             && s.card(source).shield != 0
             && s.card(target).shield != 0
             && attack > 0
@@ -1119,12 +1123,30 @@ impl Engine {
             } else {
                 0
             };
-            if s.trigger_context_is(TriggerContext::ShieldOrder) && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
+            // Engine AttackFlow splits first-strike combat into two event windows:
+            // the attacker's damage (and its lethal defeat) resolves before the
+            // defender's damage event is generated. A Shield replaces that first
+            // damage event instead of defeating the defender, so it still deals
+            // damage in the second window. There is no simultaneous two-shield
+            // ordering prompt because the windows are sequential.
+            let first_window = attacker_first && !s.trigger_context_is(TriggerContext::ShieldOrder);
+            let mut defender_deals_damage = true;
+            if first_window {
+                let shielded = s.card(target).shield != 0;
+                self.damage(s, target, attack);
+                defender_deals_damage = shielded
+                    || !(s.card(target).damage > target_damage_before && s.card(target).damage >= self.hp(s, target));
+            } else if s.trigger_context_is(TriggerContext::ShieldOrder) && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
                 let (first,second)=if s.attack_shield_opponent_first { (target,source) } else { (source,target) };
                 let (first_token,second_token)=self.combat_shield_contexts(s,first,second);
                 self.remove_group_shield(s,first,first_token); self.remove_group_shield(s,second,second_token);
             } else {
                 self.damage(s, target, attack);
+                self.damage(s, source, defend);
+            }
+            if first_window && defender_deals_damage {
+                // The defender's window is generated only while the defender is
+                // still in play; its own defeat above already prevents this.
                 self.damage(s, source, defend);
             }
             if excess > 0 {

@@ -817,7 +817,7 @@ impl TargetResolver {
         if self
             .zone
             .as_deref()
-            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard"].contains(&z))
+            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand"].contains(&z))
         {
             return Err(format!("unsupported target zone {:?}", self.zone));
         }
@@ -939,6 +939,28 @@ pub enum Effect {
     },
     NoAction,
     ResourceCard { target: Target },
+    /// A reviewed ResourceCardSystem shape: move one card into a resource zone.
+    /// The reviewer admits only self or own-top-deck targets with the player's
+    /// own resource zone; the optional ready is the engine's contingent event.
+    ResourceCardSystem {
+        target: Target,
+        #[serde(rename = "targetPlayer")]
+        target_player: String,
+        #[serde(rename = "readyResource")]
+        ready_resource: bool,
+        #[serde(rename = "readyTiming")]
+        ready_timing: String,
+        #[serde(rename = "readinessTargets")]
+        readiness_targets: String,
+    },
+    /// Put a chosen card from a hand or discard pile on the bottom of its
+    /// owner's deck. Play-zone moves stay rejected until their cleanup windows
+    /// are reviewed.
+    MoveToBottomOfDeck { target: Target },
+    /// While attacking, this unit deals its combat damage before the defender.
+    /// Only the reviewed persistent self registration and the reviewed
+    /// until-end-of-attack participant grant are executable.
+    DealsCombatDamageFirst { target: Target, duration: String },
     ReturnToHand {
         target: Target,
     },
@@ -1061,7 +1083,10 @@ impl Effect {
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
             Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
-            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction => {}
+            | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
+            // The reviewed ResourceCardSystem moves one top-deck/self card and
+            // its raw target expression is never evaluated by the generic path.
+            | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
         }
     }
 }
@@ -1175,6 +1200,16 @@ pub struct Sides {
 
 fn contains_resource<T:Serialize>(v:&T)->bool {
     serde_json::to_value(v).map(|v|contains(&v,|v|v["kind"]=="resourceCard")).unwrap_or(true)
+}
+/// The reviewed ResourceCardSystem target domain: the acting player's own top
+/// deck card, or the source card itself (e.g. a defeated unit in its discard).
+pub(crate) fn resource_card_system_target(target:&Target)->bool {
+    match target {
+        Target::Name(n)=>n=="self",
+        Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="topDeckCard" && args.is_empty()
+            && matches!(receiver.original(),Expr::Ref{path} if path==&["player"])),
+        _=>false,
+    }
 }
 fn top_deck_marker(v:&Value)->bool { contains(v,|v|v.get("target").is_some_and(|t|t.as_str()==Some("ownTopDeck"))) }
 fn top_deck_resource_registration(a:&Ability)->bool {
@@ -1906,6 +1941,7 @@ impl Program {
                     Effect::LoseKeyword { target, duration, .. } if valid_target(target, duration) => Ok(()),
                     Effect::CardRestriction { target, duration, condition, .. } if valid_target(target, duration) && condition.is_none() => Ok(()),
                     Effect::CardRestriction { .. } => Err("constant card restrictions cannot carry an effect condition".into()),
+                    Effect::DealsCombatDamageFirst { target, duration } if valid_target(target, duration) => Ok(()),
                     Effect::Simultaneous { effects } if !effects.is_empty() => { for e in effects { validate_constant(e, selected)?; } Ok(()) }
                     _ => Err("unsupported constant modifier or recursive effective-stat/keyword dependency".into()),
                 }
@@ -2124,7 +2160,19 @@ impl Program {
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
             let death=ability.trigger=="whenDefeated" && ability.optional && ability.if_you_do.is_none() && matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op=="===" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["source","zoneName"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_str()==Some("discard")) && resource_self(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
             let force=ability.trigger=="whenDefeated" && ability.optional && matches!(&ability.effect,Effect::UseForce{target:Target::Name(n)} if n=="ownPlayer") && ability.if_you_do.as_ref().is_some_and(|n|resource_self(&n.effect));
-            if !header || !(event||death||force) {return Err("resourceCard requires bounded self event/death registration".into());}
+            // "Resource a card from your hand. If you do, resource the top card
+            // of your deck": one optional single hand selection whose resource
+            // event is the success condition of a reviewed top-deck resource
+            // continuation.
+            let selected_hand=ability.trigger=="whenDefeated" && !ability.optional
+                && matches!(&ability.effect,Effect::Conditional{on_true,..}
+                    if matches!(on_true.as_ref(),Effect::Select{target_resolver,effect}
+                        if target_resolver.owner=="self"&&target_resolver.card_type=="any"
+                            && target_resolver.zone.as_deref()==Some("hand")&&target_resolver.optional
+                            && !target_resolver.is_multiple()&&target_resolver.predicate.is_none()
+                            && matches!(effect.as_ref(),Effect::ResourceCard{target:Target::Name(n)} if n=="chosen")))
+                && ability.if_you_do.as_ref().is_some_and(|next|matches!(&next.effect,Effect::ResourceCardSystem{target,..} if crate::ability_ir::resource_card_system_target(target)));
+            if !header || !(event||death||force||selected_hand) {return Err("resourceCard requires bounded self event/death registration".into());}
         }
         if contains_force_presence(ability) {
             let header=depth==0 && ability.trigger=="constant" && !ability.optional && !ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolvers.is_empty() && ability.then.is_none() && ability.if_you_do.is_none() && matches!(&ability.condition,Some(Expr::Ref{path}) if path.iter().map(String::as_str).collect::<Vec<_>>()==["player","hasTheForce"]);
@@ -2634,7 +2682,36 @@ impl Program {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
                 list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
             }
-            Effect::ResourceCard {target} => {if !matches!(target,Target::Name(n) if n=="self"||n=="ownTopDeck") {return Err("resourceCard supports self or the reviewed own top-deck target only".into());} self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::ResourceCard {target} => {
+                let selected_hand_or_discard = matches!(target,Target::Name(n) if n=="chosen")
+                    && self.instructions.iter().rev().find_map(|i|if let Instruction::Select(r)=i {Some(r)}else{None})
+                        .is_some_and(|r|!r.is_multiple()&&matches!(r.zone.as_deref(),Some("hand"|"discard")));
+                if !matches!(target,Target::Name(n) if n=="self"||n=="ownTopDeck") && !selected_hand_or_discard {
+                    return Err("resourceCard supports self, the reviewed own top-deck target, or a single chosen card from a hand or discard pile only".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::ResourceCardSystem { target, target_player, ready_timing, readiness_targets, .. } => {
+                if target_player!="self" || ready_timing!="contingentAfterResourceEvent" || readiness_targets!="completeSystemTargetList" || !resource_card_system_target(target) {
+                    return Err("resourceCardSystem supports only the reviewed self/own-top-deck resource move with contingent readiness".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::MoveToBottomOfDeck { target } => {
+                if !matches!(target,Target::Name(n) if n=="chosen") {return Err("moveToBottomOfDeck supports only a chosen card from a hand or discard pile".into());}
+                let resolver=self.instructions.iter().rev().find_map(|i|if let Instruction::Select(r)=i {Some(r)}else{None});
+                if !resolver.is_some_and(|r|!r.is_multiple() && matches!(r.zone.as_deref(),Some("hand"|"discard"))) {return Err("moveToBottomOfDeck requires a single chosen card from a hand or discard pile".into());}
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::DealsCombatDamageFirst { target, duration } => {
+                if self.trigger!="constant" || duration!="persistent" || !matches!(target,Target::Name(n) if n=="self") {
+                    return Err("dealsCombatDamageFirst requires a persistent self constant registration".into());
+                }
+                if !self.condition.as_ref().is_some_and(|c|matches!(c.original(),Expr::Query{name,receiver,args} if name=="isAttacking"&&args.is_empty()&&matches!(receiver.original(),Expr::Ref{path} if path==&["source"]))) {
+                    return Err("dealsCombatDamageFirst requires the reviewed live isAttacking(source) condition".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::ReturnToHand { target } => { target.validate()?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}

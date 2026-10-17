@@ -2,7 +2,7 @@ use super::*;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
-// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 + phase restriction mask 1024 = 29568 bytes; Card remains 40 bytes.
+// State remains inline: registration chronology checkpoint 28528 + Disclose selection/padding 16 + first-strike support flags (32 x 2 = 64) + phase restriction mask (Card 36->40, 256 cards = 1024) = 29632 bytes; Card remains 40 bytes.
 use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
@@ -1819,7 +1819,7 @@ fn restricted_pools_must_hold_the_tokens_their_cards_create() {
     pool["cards"].as_array_mut().unwrap().retain(|c|c["setCode"]!="TOKEN_XWING");
     let err=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap();
     assert!(err.contains("creates TOKEN_XWING, which the pool omits"),"{err}");
-    pool["cards"].as_array_mut().unwrap().retain(|c|!["JTL_099","JTL_117","JTL_252","JTL_254"].contains(&c["setCode"].as_str().unwrap()));
+    pool["cards"].as_array_mut().unwrap().retain(|c|!["JTL_099","JTL_117","JTL_205","JTL_252","JTL_254"].contains(&c["setCode"].as_str().unwrap()));
     assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).is_ok());
 }
 #[test]
@@ -4028,3 +4028,6 @@ mod disclose_tests;
 
 #[path = "card_restriction_tests.rs"]
 mod card_restriction_tests;
+
+#[path="zone_statics_tests.rs"]
+mod zone_statics_tests;
