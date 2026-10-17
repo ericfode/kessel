@@ -5119,6 +5119,45 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 2,
+      "id": "7534349651",
+      "internalName": "imperial-defector",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_250",
+      "setCodes": [
+        {
+          "number": 250,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 250,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played: Look at an opponent's hand.",
+      "title": "Imperial Defector",
+      "traits": [
+        "imperial",
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 3,
       "id": "4169022992",
       "internalName": "zealous-soldier",
@@ -32251,6 +32290,49 @@
       "traits": [
         "force",
         "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "8986035098",
+      "internalName": "viper-probe-droid",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_239",
+      "setCodes": [
+        {
+          "number": 228,
+          "set": "SOR"
+        },
+        {
+          "number": 239,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 239,
+        "set": "SEC"
+      },
+      "subtitle": null,
+      "text": "When Played: Look at an opponent's hand.",
+      "title": "Viper Probe Droid",
+      "traits": [
+        "imperial",
+        "droid"
       ],
       "types": [
         "unit"
