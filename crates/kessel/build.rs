@@ -1,5 +1,8 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/card_restrictions.rs"]
+mod card_restrictions;
+#[allow(dead_code)]
 #[path = "src/pay_adjusted_resources.rs"]
 mod pay_adjusted_resources;
 #[allow(dead_code)]
@@ -163,6 +166,7 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")
         .map(PathBuf::from)

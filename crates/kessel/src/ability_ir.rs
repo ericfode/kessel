@@ -847,6 +847,8 @@ pub enum Cost {
     },
 }
 
+pub use crate::card_restrictions::RestrictionVerb;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Effect {
@@ -983,6 +985,14 @@ pub enum Effect {
         #[serde(rename = "useDisplayPrompt", default)]
         use_display_prompt: Option<bool>,
     },
+    /// Persistent live restriction or an action-phase restriction mark.
+    CardRestriction {
+        target: Target,
+        duration: String,
+        restriction: RestrictionVerb,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        condition: Option<Expr>,
+    },
     /// Look at opponent hand and optionally discard one filtered card from it.
     LookAtAndSelectCard {
         target: Expr,
@@ -1064,6 +1074,10 @@ impl Effect {
             }
             Self::DistributeHealing { amount, target_resolver, .. } => {
                 visit(amount); target_resolver.visit_expression_roots_mut(visit);
+            }
+            Self::CardRestriction { target, condition, .. } => {
+                target.visit_expression_roots_mut(visit);
+                if let Some(condition) = condition { visit(condition); }
             }
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
@@ -1807,7 +1821,7 @@ impl Program {
                 Effect::GainTrait{target:Target::Name(n),trait_name,duration}|Effect::LoseTrait{target:Target::Name(n),trait_name,duration}=>duration=="persistent" && context=="upgrade" && !selected && n=="parent" && !trait_name.is_empty() && trait_name.len()<=64,
                 Effect::GainKeyword {target:Target::Name(n),keyword,amount:Expr::Const{value},duration}=>duration=="persistent" && n==if selected {"chosen"}else if context=="upgrade" {"parent"}else{"self"} && ["grit","sentinel","restore","raid","overwhelm"].contains(&keyword.as_str()) && value.as_u64().is_some_and(|n|(1..=2).contains(&n)),
                 Effect::Simultaneous{effects}=>!effects.is_empty()&&effects.len()<=8&&effects.iter().all(|e|keywords(e,selected,context)),_=>false}}
-            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) && !crate::attached_constants::host_trait_aura(ability) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
+            if !keywords(&ability.effect,ability.target_resolver.is_some(),context) && !crate::card_restrictions::attached_constant(ability) && !crate::attached_constants::host_trait_aura(ability) || (context=="upgrade" && ability.target_resolver.is_some()) {return Err("attached context supports only persistent literal keyword grants".into());}
             if context=="host" {
                 fn parent_ref(e:&Expr)->bool {match e {Expr::Ref{path}=>path.get(1).is_some_and(|p|p=="parentCard"||p=="parentUnit"),Expr::Collection{receiver,args,..}|Expr::Query{receiver,args,..}=>parent_ref(receiver)||args.iter().any(parent_ref),Expr::Binary{left,right,..}=>parent_ref(left)||parent_ref(right),Expr::Unary{value,..}=>parent_ref(value),Expr::Conditional{condition,then,r#else}=>parent_ref(condition)||parent_ref(then)||parent_ref(r#else),Expr::Array{items}|Expr::Math{args:items,..}=>items.iter().any(parent_ref),Expr::ArenaList{receiver,predicate}|Expr::ArenaFilter{receiver,predicate}|Expr::ArenaSome{receiver,predicate}=>parent_ref(receiver)||parent_ref(predicate),Expr::ArenaLength{receiver}=>parent_ref(receiver),_=>false}}
                 if ability.condition.as_ref().is_some_and(parent_ref) {return Err("delegated host condition cannot read an upgrade parent getter".into());}
@@ -1943,6 +1957,8 @@ impl Program {
                     Effect::CopyKeywords {target,duration,domain} if valid_target(target,duration) && domain.iter().map(String::as_str).collect::<Vec<_>>()==COPY_KEYWORDS=>Ok(()),
                     Effect::GainKeyword { target, amount, duration, .. } if valid_target(target, duration) && !amount.depends_on_keywords() => Ok(()),
                     Effect::LoseKeyword { target, duration, .. } if valid_target(target, duration) => Ok(()),
+                    Effect::CardRestriction { target, duration, condition, .. } if valid_target(target, duration) && condition.is_none() => Ok(()),
+                    Effect::CardRestriction { .. } => Err("constant card restrictions cannot carry an effect condition".into()),
                     Effect::Simultaneous { effects } if !effects.is_empty() => { for e in effects { validate_constant(e, selected)?; } Ok(()) }
                     _ => Err("unsupported constant modifier or recursive effective-stat/keyword dependency".into()),
                 }
@@ -1951,7 +1967,18 @@ impl Program {
             fn modifies_keywords(e: &Effect) -> bool { match e { Effect::CopyKeywords{..}|Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => true, Effect::Simultaneous { effects } => effects.iter().any(modifies_keywords), _ => false } }
             if !crate::bounded_reductions::power_maximum_grant(ability) && modifies_keywords(&ability.effect) && (ability.condition.as_ref().is_some_and(Expr::depends_on_keywords) || ability.target_resolver.as_ref().and_then(|r| r.predicate.as_ref()).is_some_and(Expr::depends_on_keywords)) { return Err("constant keyword-dependent conditions would form evaluation cycles".into()); }
 
-            if !crate::bounded_reductions::power_maximum_grant(ability) && (ability
+            // Restriction queries never recurse into stat evaluation: power/HP reads
+            // only inspect stat and keyword scopes, so a live power condition on a
+            // persistent restriction has no evaluation cycle.
+            fn restriction_only(e: &Effect) -> bool {
+                match e {
+                    Effect::CardRestriction { .. } => true,
+                    Effect::Simultaneous { effects } => !effects.is_empty() && effects.iter().all(restriction_only),
+                    _ => false,
+                }
+            }
+            let restriction_constant = restriction_only(&ability.effect);
+            if !restriction_constant && !crate::bounded_reductions::power_maximum_grant(ability) && (ability
                 .condition
                 .as_ref()
                 .is_some_and(Expr::depends_on_stats)
@@ -1967,10 +1994,10 @@ impl Program {
             }
             if ability.target_resolver.as_ref().is_some_and(|r| {
                 r.optional || r.mode.is_some() || r.count.is_some()
-                    || !matches!(
+                    || !(matches!(
                         r.zone.as_deref(),
                         None | Some("arena") | Some("anyAttackable")
-                    )
+                    ) || (restriction_constant && matches!(r.zone.as_deref(), Some("base"))))
             }) {
                 return Err(
                     "constant target filter must be arena-only without optional choice".into(),
@@ -2394,19 +2421,41 @@ impl Program {
         if !matches!(target,Target::Name(name) if ["ownPlayer","enemyPlayer"].contains(&name.as_str())) {return Err("token creation requires a scalar player target".into());}
         match amount.original() {Expr::Const {value}=>value.as_u64().filter(|n|(1..=5).contains(n)).map(|n|n as usize).ok_or("token creation amount must be 1..5".into()),_=>Err("token creation requires a literal bounded amount".into())}
     }
+    /// Phase restriction marks only touch cards in the arena/base domain. Root
+    /// effects take ordinary bounded target references; arena-list snapshots reuse
+    /// receiver/predicate expression validation instead of scalar target rules.
+    fn validate_phase_restriction_target(target: &Target) -> Result<(), String> {
+        match target {
+            Target::ArenaList(list) => {
+                if list.controller_order.is_some() { return Err("ordered arena lists cannot be restricted for a phase".into()); }
+                list.receiver.validate()?;
+                list.predicate.validate()?;
+                Ok(())
+            }
+            _ => target.validate(),
+        }
+    }
     fn validate_phase_modifiers(&self, effects: &[Effect]) -> Result<(), String> {
         if effects.is_empty() || effects.len() > 8 { return Err("phase modifier list exceeds bounded capacity".into()); }
         let mut shared_target = None;
         for effect in effects {
             let (target, duration) = match effect {
                 Effect::ModifyStats {target, duration, ..} | Effect::GainKeyword {target, duration, ..} | Effect::LoseKeyword {target, duration, ..} => (target, duration),
+                Effect::CardRestriction {target, duration, restriction, condition} => {
+                    if condition.is_some() { return Err("phase modifier lists cannot gate a card restriction".into()); }
+                    if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup { return Err("doesNotReadyDuringRegroup requires a persistent constant".into()); }
+                    Self::validate_phase_restriction_target(target)?;
+                    (target, duration)
+                },
                 _ => return Err("phase modifier lists contain only primitive lasting modifiers".into()),
             };
             if duration != "phase" { return Err("phase modifier list requires phase duration".into()); }
             let encoded = serde_json::to_value(target).map_err(|e| e.to_string())?;
             if shared_target.as_ref().is_some_and(|prior| prior != &encoded) { return Err("phase modifier list must share one target".into()); }
             shared_target = Some(encoded);
-            let mut checker = self.clone(); checker.instructions.clear(); checker.compile_effect(effect, 0)?;
+            if !matches!(effect, Effect::CardRestriction { .. }) {
+                let mut checker = self.clone(); checker.instructions.clear(); checker.compile_effect(effect, 0)?;
+            }
         }
         Ok(())
     }
@@ -2479,13 +2528,20 @@ impl Program {
                     p.validate_phase_modifiers(effects)?;
                     if array && effects.iter().any(|e| match e { Effect::ModifyStats {power,hp,..} => target_dependent(power)||target_dependent(hp), Effect::GainKeyword {amount,..} => target_dependent(amount), _ => false }) { return Err("array-dependent phase modifier values are unsupported".into()); }
                     let mut records=0usize;
-                    for e in effects { let target=match e { Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..}=>target,_=>unreachable!() }; records+=multiplicity(target,targets,array)?; }
+                    for e in effects { let target=match e { Effect::ModifyStats {target,..}|Effect::GainKeyword {target,..}|Effect::LoseKeyword {target,..}|Effect::CardRestriction {target,..}=>target,_=>unreachable!() }; records+=multiplicity(target,targets,array)?; }
                     (records,false,true)
                 },
                 Effect::DiscardOwnHand {amount,target} => (Program::scalar_hand_amount(amount,target)?+1,false,false),
                 Effect::DiscardDeck {amount,target} => (Program::scalar_deck_amount(amount,target)?+1,false,false),
                 Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;(2,false,false)},
                 Effect::CreateTokenUnit {token_type,amount,target,..} => (Program::token_unit_amount(token_type,amount,target)?+1,false,true),
+                Effect::CardRestriction { target, duration, restriction, condition } => {
+                    if condition.is_some() { return Err("grouped card restrictions cannot carry action conditions".into()); }
+                    if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup { return Err("doesNotReadyDuringRegroup requires a persistent constant".into()); }
+                    if duration != "phase" { return Err("grouped card restrictions require phase duration".into()); }
+                    Program::validate_phase_restriction_target(target)?;
+                    (multiplicity(target,targets,array)?,false,false)
+                },
                 Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => (0,false,false),
                 primitive => {
@@ -2530,7 +2586,7 @@ impl Program {
             match e {
                 Effect::Damage {target:t,amount}|Effect::Heal {target:t,amount}|Effect::Draw {target:t,amount}|Effect::GiveShield {target:t,amount}|Effect::GiveExperience {target:t,amount}|Effect::ReadyResources {target:t,amount}|Effect::GainKeyword {target:t,amount,..}=>target(t)||target_dependent(amount),
                 Effect::ModifyStats {target:t,power,hp,..}=>target(t)||target_dependent(power)||target_dependent(hp),
-                Effect::Ready {target:t}|Effect::Exhaust {target:t}|Effect::Defeat {target:t}|Effect::ReturnToHand {target:t}|Effect::LoseKeyword {target:t,..}=>target(t),
+                Effect::Ready {target:t}|Effect::Exhaust {target:t}|Effect::Defeat {target:t}|Effect::ReturnToHand {target:t}|Effect::LoseKeyword {target:t,..}|Effect::CardRestriction {target:t,..}=>target(t),
                 _=>false,
             }
         }
@@ -2801,6 +2857,27 @@ impl Program {
                 }else{target.validate()?;} self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::Ready { target } | Effect::Exhaust { target } | Effect::Defeat { target } => { target.validate()?;self.instructions.push(Instruction::Apply(effect.clone())); }
+            Effect::CardRestriction { target, duration, restriction, condition } => {
+                if condition.is_some() {
+                    return Err("card restriction action conditions stay on the constant ability".into());
+                }
+                // advance() clears phase marks before regroup ready, so this verb only exists as a live constant.
+                if *restriction == RestrictionVerb::DoesNotReadyDuringRegroup && duration != "persistent" {
+                    return Err("doesNotReadyDuringRegroup only lives on a persistent constant".into());
+                }
+                let chosen = matches!(target, Target::Name(n) if n == "chosen");
+                let resolved = self.instructions.iter().any(|i| matches!(i, Instruction::Select(_)));
+                let constant_target = matches!(target, Target::Name(n) if ["self", "parent"].contains(&n.as_str()))
+                    || (chosen && resolved);
+                if self.trigger == "constant" && duration == "persistent" && depth == 0 && constant_target {
+                    self.instructions.push(Instruction::Apply(effect.clone()));
+                } else if self.trigger != "constant" && duration == "phase" && depth == 0 && (!chosen || resolved) {
+                    Self::validate_phase_restriction_target(target)?;
+                    self.instructions.push(Instruction::Apply(effect.clone()));
+                } else {
+                    return Err("card restrictions execute as persistent constants or a root phase mark".into());
+                }
+            }
         }
         Ok(())
     }
@@ -2929,6 +3006,9 @@ impl Catalogue {
                     return Err("piloting attached keyword requires persistent parent grants only".into());
                 }
 
+                if crate::card_restrictions::marker(&entry["abilities"]) && !crate::card_restrictions::source_entry(entry, &sides) {
+                    return Err("card restrictions require complete ordinary unit/event/upgrade metadata and bounded registrations".into());
+                }
                 if crate::advantage::marker(&entry["abilities"]) && !crate::advantage::source_entry(entry) {return Err("Advantage requires complete ordinary unit/event sources and bounded native token contracts".into());}
 
                 if sides.card.iter().any(crate::attached_constants::host_trait_aura)&&!crate::attached_constants::entry(entry) {return Err("host trait auras require the complete attached constant wrapper source contract".into());}
@@ -3102,7 +3182,7 @@ impl Catalogue {
                 fn parent_printed_title(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["source","parentCard","title"]) || match v {Value::Object(o)=>o.values().any(parent_printed_title),Value::Array(a)=>a.iter().any(parent_printed_title),_=>false}}
                 let attached_context=sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(|a|a.attached_context.is_some());
                 let parent_title=parent_printed_title(&entry["abilities"]);
-                if (attached_context || parent_title) && !crate::attached_constants::entry(entry) {
+                if (attached_context || parent_title) && !crate::attached_constants::entry(entry) && !crate::card_restrictions::attached_upgrade_entry(entry,&sides) {
                     if entry["baseClass"]!="UpgradeCard" || !exact_type("upgrade") || sides.card.len()!=1 || !sides.unit.is_empty() || !sides.leader.is_empty() || !entry["card"]["unique"].is_boolean() || !entry["piloting"].is_null() || ["pilotText","pilotBox","pilotingBox"].iter().any(|k|!entry["card"][k].is_null()) || entry["keywordValues"]!=serde_json::json!({}) || !entry["card"]["keywords"].as_array().is_some_and(|keywords|keywords.iter().all(|k|k.as_str().is_some_and(|k|CORE_KEYWORDS.contains(&k)))) {return Err("attached context or parent-title constant requires sole ordinary upgrade metadata".into());}
                 }
                 if contains_keyword_inventory(&entry["abilities"]) {
