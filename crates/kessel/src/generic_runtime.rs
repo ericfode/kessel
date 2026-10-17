@@ -691,6 +691,17 @@ impl Engine {
             catalogue.metadata.remove(&code);
             catalogue.rejected.insert(code, format!("creates {token}, which is not admitted"));
         }
+        // Catalogue entries emitted with aliasOf are alternate printings of an
+        // admitted card. Keep them in by_code for pool/trace lookup, but mark
+        // reprint_of so compiled_pool stays canonical-only.
+        for entry in value["cards"].as_array().ok_or("catalogue missing cards")? {
+            let code = entry["setCode"].as_str().unwrap_or("");
+            let Some(canonical) = entry["aliasOf"].as_str() else { continue };
+            if !by_code.contains_key(code) {
+                continue;
+            }
+            catalogue.reprint_of.insert(code.to_owned(), canonical.to_owned());
+        }
         // Reprint printings share one admitted programme. Clone a Definition per
         // alternate setCode so snapshots keep the printing named in pools/traces,
         // without expanding compiled_pool metadata export.
@@ -701,7 +712,12 @@ impl Engine {
             let programs = catalogue.cards.get(code).cloned().unwrap_or_default();
             for sc in set_codes {
                 let Some(alias) = reprint_set_code(sc) else { continue };
-                if alias == code || by_code.contains_key(&alias) {
+                // Never resurrect a printing that failed admission, and never
+                // replace a first-class catalogue entry (including aliasOf rows).
+                if alias == code
+                    || by_code.contains_key(&alias)
+                    || catalogue.rejected.contains_key(&alias)
+                {
                     continue;
                 }
                 if definitions.len() > u16::MAX as usize {
@@ -711,7 +727,6 @@ impl Engine {
                 // Metadata membership is what state validation consults; keep the
                 // printing visible without exporting it from compiled_pool.
                 catalogue.metadata.insert(alias.clone(), entry["card"].clone());
-                catalogue.rejected.remove(&alias);
                 catalogue.reprint_of.insert(alias.clone(), code.to_owned());
                 let mut def = definitions[id as usize].clone();
                 def.code = alias.clone();
