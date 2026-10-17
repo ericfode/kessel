@@ -1494,6 +1494,14 @@ impl Engine {
     ) -> bool {
         match e {
             Effect::Disclose{aspects,..}=>return !self.def(s,source).info.is("event")||self.can_disclose(s,s.card(source).owner,aspects),
+            // Card-effect payment is legal exactly when the source controller's
+            // ready resources cover the constant charge (the engine payment
+            // system's canAffect is its canPay check). Paying always consumes
+            // resources, so the change-required flag does not change legality.
+            Effect::PayAdjustedResources {..} => {
+                let Ok(amount)=crate::ability_ir::card_effect_payment(e) else {return false;};
+                return self.ready_resources(s,s.card(source).owner)>=amount as usize;
+            }
             Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
@@ -1874,7 +1882,7 @@ impl Engine {
         }
         if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
             s.phase_history.preflight_play(s.active)?;
-            self.spend(s, self.cost(s, source));
+            self.spend(s, s.active, self.cost(s, source));
             s.player_mut(s.active).hand.remove(source);
             s.player_mut(s.active).discard.push(source)?;
             s.phase_history.played(s.active,source)?;
@@ -1884,6 +1892,7 @@ impl Engine {
                 Cost::ExhaustSelf => s.card_mut(source).exhausted = true,
                 Cost::Resources { amount } => self.spend(
                     s,
+                    s.active,
                     self.eval(s, source, s.ability_target, amount)
                         .number()
                         .clamp(0, u16::MAX as i64) as u16,
@@ -2313,6 +2322,28 @@ impl Engine {
         if matches!(e, Effect::NoAction) {
             s.event_result=StepEventResult::for_state(s);
             return Ok((0, false));
+        }
+        if let Effect::PayAdjustedResources { target, .. } = e {
+            // The engine's CardEffectResourcePaymentSystem asks the adjuster
+            // pipeline and then exhausts the adjusted cost or nothing. In the
+            // admitted model no credit tokens or cost adjusters exist, so the
+            // constant is the charge; the payer is the source controller, not
+            // the active player, and the walk matches spend()'s front-of-zone
+            // exhaustion order. Paying nothing must not report success, or the
+            // "If you do" continuation would run after a failed charge.
+            if s.source==0 {return Err("payAdjustedResources requires an ability source".into());}
+            let amount=crate::ability_ir::card_effect_payment(e)?;
+            let seat=s.card(s.source).owner;
+            if self.effect_targets(s,target)!=vec![Eval::Player(seat)] {
+                return Err("payAdjustedResources payer is not the source controller".into());
+            }
+            if self.ready_resources(s,seat)<amount as usize {
+                s.event_result=StepEventResult::for_state(s);
+                return Ok((0,false));
+            }
+            self.spend(s,seat,amount);
+            s.event_result=StepEventResult::for_state(s);
+            return Ok((amount,true));
         }
         // These primitives execute only through their dedicated group handlers.
         if matches!(e,Effect::DiscardDeck {..}|Effect::DiscardOwnHand {..}|Effect::CreateTokenUnit {..}) {return Err("nonprimitive instruction reached executor".into());}
@@ -3129,3 +3160,7 @@ mod native_heal_weakness_tests;
 #[cfg(test)]
 #[path="advantage_tests.rs"]
 mod advantage_tests;
+
+#[cfg(test)]
+#[path="pay_adjusted_resources_tests.rs"]
+mod pay_adjusted_resources_tests;

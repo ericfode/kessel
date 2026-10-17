@@ -877,6 +877,22 @@ pub enum Effect {
         target: Target,
         amount: Expr,
     },
+    /// Card-effect resource payment ("You may pay N resources"): the source
+    /// controller exhausts N ready resources, and the continuation runs only if
+    /// the whole charge was available. Raw shape mirrors the compiler's
+    /// `payResources` lowering; no cost adjusters exist in the admitted model.
+    PayAdjustedResources {
+        target: Target,
+        amount: Expr,
+        #[serde(rename = "paymentType")]
+        payment_type: String,
+        #[serde(rename = "isCost")]
+        is_cost: bool,
+        #[serde(rename = "canCancelDuringPayment")]
+        can_cancel_during_payment: bool,
+        #[serde(rename = "allowCostAdjustments")]
+        allow_cost_adjustments: bool,
+    },
     NoAction,
     ResourceCard { target: Target },
     ReturnToHand {
@@ -960,7 +976,9 @@ impl Effect {
             Self::DiscardOwnHand { amount, target } | Self::DiscardDeck { amount, target }
             | Self::CreateTokenUnit { amount, target, .. } | Self::Damage { amount, target }
             | Self::Heal { amount, target } | Self::Draw { amount, target }
-            | Self::ReadyResources { amount, target } | Self::GiveShield { amount, target }
+            | Self::ReadyResources { amount, target }
+            | Self::PayAdjustedResources { amount, target, .. }
+            | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
@@ -1006,6 +1024,37 @@ fn scalar_upgrade_operation(effect:&Effect,discard:bool)->bool {
 }
 fn one() -> Expr {
     Expr::number(1)
+}
+
+/// Closed contract for the one resource payment the runtime models: a
+/// card-effect charge fixed at compile time, paid by the source controller, that
+/// cannot be cancelled and has no interactive adjustment. The compiler's
+/// `payResources` lowering sets exactly this metadata; `payUnadjustedResources`
+/// (an ability cost with a "for each resource paid" clause) is a different
+/// payment and stays rejected.
+pub(crate) fn card_effect_payment(effect: &Effect) -> Result<u16, String> {
+    let Effect::PayAdjustedResources { target, amount, payment_type, is_cost, can_cancel_during_payment, allow_cost_adjustments } = effect else {
+        return Err("not a card-effect resource payment".into());
+    };
+    if payment_type != "cardEffectPayment" {
+        return Err(format!("unsupported payAdjustedResources paymentType {payment_type}"));
+    }
+    if *is_cost {
+        return Err("payAdjustedResources ability-cost flag is a different payment".into());
+    }
+    if *can_cancel_during_payment {
+        return Err("payAdjustedResources cancellation during payment needs a payment prompt".into());
+    }
+    if !*allow_cost_adjustments {
+        return Err("payAdjustedResources without adjustment permission is a different payment".into());
+    }
+    if !matches!(target, Target::Name(name) if name == "ownPlayer") {
+        return Err("payAdjustedResources only pays the source controller".into());
+    }
+    match amount.original() {
+        Expr::Const { value } => value.as_u64().filter(|n| (1..=u16::MAX as u64).contains(n)).map(|n| n as u16).ok_or_else(|| "payAdjustedResources amount must be a constant from 1 to 65535".into()),
+        _ => Err("payAdjustedResources requires a constant amount".into()),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2292,7 +2341,7 @@ impl Program {
                 Effect::DiscardDeck {amount,target} => GroupRequirements::hand(Program::scalar_deck_amount(amount,target)?+1),
                 Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;GroupRequirements::hand(2)},
                 Effect::CreateTokenUnit {token_type,amount,target,..} => GroupRequirements::attachments(Program::token_unit_amount(token_type,amount,target)?+1),
-                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2455,6 +2504,10 @@ impl Program {
             Effect::ReadyResources {amount,target} => {
                 amount.validate_number()?;target.validate()?;
                 if matches!(target,Target::Name(name) if name=="bothPlayers") {return Err("multi-player resource ready requires verified event batching".into());}
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::PayAdjustedResources {..} => {
+                card_effect_payment(effect)?;
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=>{

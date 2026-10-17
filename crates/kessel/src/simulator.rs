@@ -683,7 +683,7 @@ impl Engine {
                         return Ok(t);
                     }
                     t.phase_history.preflight_play(seat)?;
-                    self.spend(&mut t, self.cost(s, id));
+                    self.spend(&mut t, seat, self.cost(s, id));
                     t.player_mut(seat).hand.remove(id);
                     t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
                     t.card_mut(id).set_hidden_qualified(true);
@@ -714,7 +714,7 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
+                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,seat,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
                     if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
                         let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
@@ -794,7 +794,7 @@ impl Engine {
                     self.cancel(&mut t);
                 } else {
                     if t.trigger_context_is(TriggerContext::Action) {
-                        self.spend(&mut t, 1);
+                        self.spend(&mut t, seat, 1);
                         let leader = t.player(seat).leader;
                         t.card_mut(leader).exhausted = true;
                     }
@@ -892,8 +892,12 @@ impl Engine {
     fn duplicates(&self, s: &State, id: CardId) -> usize {
         (1..s.next_id).filter(|c|s.card(*c).owner==s.card(id).owner && s.card(*c).def==s.card(id).def && (self.in_arena(s,*c)||self.attached_in_play(s,*c))).count()
     }
-    fn spend(&self, s: &mut State, mut amount: u16) {
-        let ids = s.player(s.active).resources;
+    /// Exhausts amount ready resources from the payer's resource zone in zone
+    /// order. The payer is explicit because card-effect payments charge the
+    /// ability source's controller, which can differ from the active player
+    /// while a trigger resolves.
+    fn spend(&self, s: &mut State, seat: Seat, mut amount: u16) {
+        let ids = s.player(seat).resources;
         for &id in ids.as_slice() {
             if amount > 0 && !s.card(id).exhausted {
                 s.card_mut(id).exhausted = true;
