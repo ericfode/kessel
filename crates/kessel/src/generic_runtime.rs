@@ -419,6 +419,11 @@ impl Engine {
         host!=0 && self.in_arena(s,host) && definition.is_some_and(|definition|self.upgrades(s,host).into_iter().any(|id|s.card(id).def==definition))
     }
 
+    pub(super) fn needs_modal_arena_order(&self)->bool {
+        self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|
+            catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader)
+                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize])))))
+    }
     pub(super) fn needs_force_state(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
     }
@@ -1800,7 +1805,7 @@ impl Engine {
                 Instruction::ModalChoice(menu) => {
                     let mut context = *s;
                     context.active = context.card(source).owner;
-                    return menu.branches.iter().any(|branch| self.instructions_can_affect(
+                    return menu.branches.iter().any(|branch| branch.always_legal || self.instructions_can_affect(
                         &context, source, target, p, branch.start, branch.end, require_change));
                 }
                 Instruction::Select(resolver) => {
@@ -1967,7 +1972,7 @@ impl Engine {
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 let mut context = *s;
                 context.active = context.card(s.source).owner;
-                return menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                return menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
                     &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false))
                     .enumerate().map(|(index, branch)| Action::button(branch.label.clone(), index)).collect();
             }
@@ -2137,6 +2142,9 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: u8) -> Result<(), String> {
+        if !s.arena_order_exact && crate::modal_arena_choices::requires_global_order(self.program(p)) {
+            return Err("modal global arena damage requires recorded arena order".into());
+        }
         s.disclose=DiscloseState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
@@ -2257,6 +2265,10 @@ impl Engine {
         }
     }
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
+        if s.ability_program != 0 && !s.arena_order_exact
+            && crate::modal_arena_choices::requires_global_order(self.program(s.ability_program - 1)) {
+            return Err("modal global arena damage requires recorded arena order".into());
+        }
         loop {
             if self.open_deaths(s,1)? {return Ok(());}
             let p = self.program(s.ability_program - 1);
@@ -2281,7 +2293,7 @@ impl Engine {
                 Instruction::ModalChoice(menu) => {
                     let mut context = *s;
                     context.active = context.card(s.source).owner;
-                    let legal: Vec<_> = menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                    let legal: Vec<_> = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
                         &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false)).collect();
                     match legal.as_slice() {
                         [] => {
@@ -3532,7 +3544,7 @@ impl Engine {
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 t.active = t.card(t.source).owner;
                 let index = a.arg.as_ref().and_then(Value::as_u64).ok_or("modal branch index missing")? as usize;
-                let branch = menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                let branch = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
                     &t, t.source, 0, t.ability_program - 1, branch.start, branch.end, false))
                     .nth(index).ok_or("modal branch index invalid")?;
                 t.ability_target = 0;

@@ -56,3 +56,4 @@ mod self_play_cost;
 mod self_play_cost_runtime;
 
 mod modal_choices;
+mod modal_arena_choices;

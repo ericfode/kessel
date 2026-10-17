@@ -1661,6 +1661,9 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("arenaUnitOrder").is_none() && self.needs_modal_arena_order() {
+            return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
+        }
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {

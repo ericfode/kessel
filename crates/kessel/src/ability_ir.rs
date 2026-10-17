@@ -3070,8 +3070,9 @@ impl Catalogue {
                 {
                     return Err("parent references require an ordinary attached upgrade".into());
                 }
-                let modal = crate::modal_choices::prepare(entry)?;
-                let mut entry_owned = modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone());
+                let modal_arena = crate::modal_arena_choices::prepare(entry)?;
+                let modal = if modal_arena.is_none() {crate::modal_choices::prepare(entry)?} else {None};
+                let mut entry_owned = if let Some(arena)=&modal_arena {arena.normalized.clone()} else {modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone())};
                 let piloting_keyword_grant = crate::piloting_attached::marker(&entry_owned["abilities"]);
                 if piloting_keyword_grant {
                     crate::piloting_attached::normalize(&mut entry_owned)?;
@@ -3413,7 +3414,7 @@ impl Catalogue {
                             return Err("ability program capacity exceeded".into());
                         }
                         dst.push(id as u16);
-                        let program=if let Some(modal)=&modal {modal.compile(ability)?} else {Program::compile(ability)?};
+                        let program=if let Some(arena)=&modal_arena {arena.compile(ability)?} else if let Some(modal)=&modal {modal.compile(ability)?} else {Program::compile(ability)?};
                         if entry["baseClass"]=="UpgradeCard" {
                             fn source_target(target:&Target)->bool {
                                 match target {
