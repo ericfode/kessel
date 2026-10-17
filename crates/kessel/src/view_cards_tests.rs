@@ -250,11 +250,65 @@ fn bazine_netal_optional_discard_draws_for_opponent() {
 }
 
 #[test]
+fn beguile_look_at_then_bounce_cluster_admits() {
+    let e = engine();
+    assert!(
+        e.by_code.contains_key("SEC_233"),
+        "SEC_233: {:?}",
+        e.rejected_cards().unwrap().get("SEC_233")
+    );
+}
+
+#[test]
+fn beguile_looks_at_hand_then_returns_cheap_enemy_unit() {
+    let e = engine();
+    let mut s = board(&e);
+    let hand_card = add(&e, &mut s, Seat::P2, "LOF_256");
+    s.players[1].hand.push(hand_card).unwrap();
+    let cheap = unit(&e, &mut s, Seat::P2, "ASH_034");
+    let expensive = unit(&e, &mut s, Seat::P2, "ASH_033");
+    let source = hand(&e, &mut s, "SEC_233");
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    assert!(prompt.players[0].discard.contains(source));
+    assert_eq!(prompt.decision, Decision::AbilityDisplay);
+    assert_eq!(
+        e.legal_actions(&prompt),
+        vec![Action::button("Done", "done")]
+    );
+    let select = e
+        .apply(&prompt, &Action::button("Done", "done"))
+        .unwrap();
+    assert_eq!(select.decision, Decision::AbilityTarget);
+    let actions = e.legal_actions(&select);
+    assert!(actions.iter().any(|a| a.id() == Some(cheap)));
+    assert!(!actions.iter().any(|a| a.id() == Some(expensive)));
+    let done = e.apply(&select, &e.card_action(&select, cheap)).unwrap();
+    assert!(done.players[1].hand.contains(cheap));
+    assert!(!e.in_arena(&done, cheap));
+    assert!(e.in_arena(&done, expensive));
+    assert!(done.players[1].hand.contains(hand_card));
+    assert_eq!(done.decision, Decision::Window);
+}
+
+#[test]
+fn beguile_empty_hand_still_offers_bounce() {
+    let e = engine();
+    let mut s = board(&e);
+    let cheap = unit(&e, &mut s, Seat::P2, "ASH_034");
+    let source = hand(&e, &mut s, "SEC_233");
+    let select = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    assert_ne!(select.decision, Decision::AbilityDisplay);
+    assert_eq!(select.decision, Decision::AbilityTarget);
+    let done = e.apply(&select, &e.card_action(&select, cheap)).unwrap();
+    assert!(done.players[1].hand.contains(cheap));
+}
+
+#[test]
 fn look_at_select_wrapped_and_play_shapes_stay_rejected() {
     let e = engine();
     // Mother Talzin: ifYouDo play-from-discard. Unmasking: ifYouDo wrapper.
-    // Tear This Ship: playCardSystem immediate. Beguile: then returnToHand.
-    for code in ["TS26_026", "TWI_223", "LAW_066", "SEC_233"] {
+    // Tear This Ship: playCardSystem immediate.
+    for code in ["TS26_026", "TWI_223", "LAW_066"] {
         assert!(
             !e.by_code.contains_key(code),
             "{code} must stay rejected"

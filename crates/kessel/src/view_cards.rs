@@ -3,6 +3,9 @@
 //! View-only `lookAt` (Viper Probe / Imperial Defector): nonempty hands pause on
 //! Done; empty hands generate no event.
 //!
+//! Beguile: the same view-only lookAt, then a mandatory bounce of an enemy
+//! non-leader unit that costs 6 or less (`returnToHand` via `then`).
+//!
 //! `lookAtAndSelectCard` + `discardSpecificCard` (Spark of Rebellion, Bodhi Rook,
 //! Jam Communications, Tip the Scale): look at opponent hand; when the reviewed
 //! filter selects at least one card and `canChooseFewer` is false, the chooser
@@ -12,7 +15,7 @@
 //! Optional discard then opponent draw (Remnant Lookouts / Bazine Netal): same
 //! look, but `canChooseFewer` is true and selecting runs
 //! `discardSpecificCard` then `draw(enemyPlayer, 1)`; Done looks without discard.
-use crate::ability_ir::{Ability, Effect, Expr, Sides, ViewSelectImmediate, ViewSelectStep};
+use crate::ability_ir::{Ability, Effect, Expr, Sides, Target, TargetResolver, ViewSelectImmediate, ViewSelectStep};
 use serde_json::{json, Value};
 
 fn opponent_hand(e: &Expr) -> bool {
@@ -194,8 +197,113 @@ fn plain_ability_header(a: &Ability) -> bool {
         && a.if_you_do.is_none()
 }
 
+/// Exact Beguile `then`: bounce one enemy non-leader unit with printed cost ≤ 6.
+fn reviewed_beguile_then(next: &Ability) -> bool {
+    if !(next.trigger.is_empty()
+        && !next.optional
+        && !next.requires_confirmation
+        && !next.coordinate
+        && next.gained_host.is_none()
+        && next.attached_context.is_none()
+        && next.hooks.is_empty()
+        && next.context_title.is_empty()
+        && next.costs.is_empty()
+        && next.target_resolvers.is_empty()
+        && next.condition.is_none()
+        && next.then.is_none()
+        && next.if_you_do.is_none()
+        && matches!(
+            &next.effect,
+            Effect::ReturnToHand {
+                target: Target::Name(n)
+            } if n == "chosen"
+        ))
+    {
+        return false;
+    }
+    let Some(r) = next.target_resolver.as_ref() else {
+        return false;
+    };
+    beguile_bounce_resolver(r)
+}
+
+fn beguile_bounce_resolver(r: &TargetResolver) -> bool {
+    if !(r.owner == "opponent"
+        && r.card_type == "nonLeaderUnit"
+        && r.zone.as_deref() == Some("anyAttackable")
+        && r.arena.is_none()
+        && !r.optional
+        && r.mode.is_none()
+        && r.count.is_none()
+        && r.prompt_title.is_none()
+        && r.prompt_title_parts.is_empty()
+        && !r.player_selection
+        && r.native.is_none())
+    {
+        return false;
+    }
+    let Some(p) = r.predicate.as_ref() else {
+        return false;
+    };
+    matches!(
+        p,
+        Expr::Binary {
+            op,
+            left,
+            right
+        } if op == "&&"
+            && matches!(
+                left.as_ref(),
+                Expr::Query {
+                    name,
+                    receiver,
+                    args
+                } if name == "isNonLeaderUnit"
+                    && args.is_empty()
+                    && matches!(
+                        receiver.as_ref(),
+                        Expr::Ref { path } if path.iter().map(String::as_str).eq(["card"])
+                    )
+            )
+            && matches!(
+                right.as_ref(),
+                Expr::Binary {
+                    op,
+                    left,
+                    right
+                } if op == "<="
+                    && matches!(
+                        left.as_ref(),
+                        Expr::Ref { path } if path.iter().map(String::as_str).eq(["card", "cost"])
+                    )
+                    && const_u64(right, 6)
+            )
+    )
+}
+
 pub(crate) fn look_at_ability(a: &Ability) -> bool {
-    a.trigger == "whenPlayed" && plain_ability_header(a) && reviewed_look_at(&a.effect)
+    if !reviewed_look_at(&a.effect) {
+        return false;
+    }
+    // Viper Probe / Imperial Defector: sole whenPlayed lookAt.
+    if a.trigger == "whenPlayed" && plain_ability_header(a) {
+        return true;
+    }
+    // Beguile: event lookAt, then reviewed ≤6 bounce.
+    a.trigger == "event"
+        && !a.optional
+        && !a.requires_confirmation
+        && !a.coordinate
+        && a.gained_host.is_none()
+        && a.attached_context.is_none()
+        && a.hooks.is_empty()
+        && a.context_title.is_empty()
+        && a.costs.is_empty()
+        && a.target_resolver.is_none()
+        && a.target_resolvers.is_empty()
+        && a.condition.is_none()
+        && a.if_you_do.is_none()
+        && a.then.as_deref().is_some_and(reviewed_beguile_then)
 }
 
 pub(crate) fn look_at_select_ability(a: &Ability) -> bool {
@@ -270,7 +378,7 @@ pub(crate) fn entry(e: &Value) -> bool {
     }
     let ability = marked[0];
     if look_at_ability(ability) {
-        return closed_unit_or_event(e, &sides, "whenPlayed");
+        return closed_unit_or_event(e, &sides, ability.trigger.as_str());
     }
     if look_at_select_ability(ability) {
         return closed_unit_or_event(e, &sides, ability.trigger.as_str());
