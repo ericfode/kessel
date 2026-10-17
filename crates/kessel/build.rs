@@ -39,6 +39,9 @@ mod deck_search;
 #[allow(dead_code)]
 #[path = "src/selected_player.rs"]
 mod selected_player;
+#[allow(dead_code)]
+#[path = "src/view_cards.rs"]
+mod view_cards;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};

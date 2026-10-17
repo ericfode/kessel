@@ -3803,3 +3803,5 @@ mod smuggle_runtime_tests;
 
 #[path = "selected_player_tests.rs"]
 mod selected_player_tests;
+#[path = "view_cards_tests.rs"]
+mod view_cards_tests;

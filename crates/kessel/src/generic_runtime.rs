@@ -1611,6 +1611,13 @@ impl Engine {
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
+            Effect::LookAt { target: view_target, .. } => {
+                let _ = require_change;
+                return matches!(
+                    self.eval(s, source, target, view_target),
+                    Eval::Array(cards) if !cards.is_empty()
+                );
+            }
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => return effects.iter().any(|e| self.effect_can_affect(s,source,target,e,require_change)),
             Effect::Select { target_resolver,effect } => return self.matching_targets(s,source,target_resolver).into_iter().any(|id| self.effect_can_affect(s,source,id,effect,require_change)),
             Effect::Conditional { condition,on_true,on_false } => return if self.eval(s,source,target,condition).truth() { self.effect_can_affect(s,source,target,on_true,require_change) } else { on_false.as_ref().is_some_and(|e| self.effect_can_affect(s,source,target,e,require_change)) },
@@ -1821,6 +1828,7 @@ impl Engine {
                 | Decision::AbilityNoEffect
                 | Decision::AbilityDistribute
                 | Decision::AbilityGroupShield | Decision::AbilityDiscard
+                | Decision::AbilityDisplay
         )
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
@@ -1831,6 +1839,9 @@ impl Engine {
                 let g=&s.event_group;
                 if g.discard_count>1 && g.picks.len==g.discard_count {out.push(Action::button("Done","done"));}
                 for &id in s.player(g.discard_owner).hand.as_slice() {if g.picks.len<g.discard_count || g.picks.ids[..g.picks.len as usize].contains(&id) {out.push(self.card_action(s,id));}}
+            }
+            Decision::AbilityDisplay => {
+                out.push(Action::button("Done", "done"));
             }
             Decision::DeathPlayer => {out.push(Action::button("You",0));out.push(Action::button("Opponent",1));}
             Decision::DeathOrder => {
@@ -2114,6 +2125,28 @@ impl Engine {
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
+                }
+                Instruction::Apply(Effect::LookAt { target, player, .. }) => {
+                    self.commit_program(s)?;
+                    let viewer = match self.eval(s, s.source, s.ability_target, player) {
+                        Eval::Player(seat) => seat,
+                        _ => return Err("lookAt viewer must be a player".into()),
+                    };
+                    let cards = match self.eval(s, s.source, s.ability_target, target) {
+                        Eval::Array(cards) => cards,
+                        _ => return Err("lookAt target must be a card list".into()),
+                    };
+                    if cards.is_empty() {
+                        s.ability_result = 0;
+                        s.ability_succeeded = false;
+                        s.ability_pc += 1;
+                    } else {
+                        s.active = viewer;
+                        s.decision = Decision::AbilityDisplay;
+                        s.ability_result = u16::try_from(cards.len())
+                            .map_err(|_| "lookAt display exceeds card count capacity")?;
+                        return Ok(());
+                    }
                 }
                 Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup{effect,..} => {
                     let named=instruction.is_named_group();
@@ -3156,6 +3189,15 @@ impl Engine {
                 } else {
                     self.run_program(&mut t)?;
                 }
+            }
+            Decision::AbilityDisplay => {
+                if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
+                    return Err("lookAt display requires Done".into());
+                }
+                t.active = t.card(t.source).owner;
+                t.ability_succeeded = t.ability_result > 0;
+                t.ability_pc += 1;
+                self.run_program(&mut t)?;
             }
             Decision::AbilityTarget => {
                 let p=self.program(s.ability_program-1);

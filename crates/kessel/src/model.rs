@@ -358,6 +358,8 @@ pub enum Decision {
     AbilityDistribute,
     AbilityGroupShield,
     AbilityDiscard,
+    /// View-only lookAt / reveal display acknowledgment (Done).
+    AbilityDisplay,
     DeathPlayer,
     DeathOrder,
     DeathBatch,

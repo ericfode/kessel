@@ -627,7 +627,7 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -952,7 +952,7 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;

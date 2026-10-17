@@ -948,6 +948,15 @@ pub enum Effect {
         #[serde(rename = "defaultTargetOverride")]
         default_target_override: serde_json::Value,
     },
+    /// View-only opponent-hand lookAt with explicit display acknowledgment.
+    LookAt {
+        target: Expr,
+        player: Expr,
+        #[serde(rename = "interactMode")]
+        interact_mode: String,
+        #[serde(rename = "useDisplayPrompt", default)]
+        use_display_prompt: Option<bool>,
+    },
 }
 impl Target {
     fn visit_expression_roots_mut(&mut self, visit: &mut impl FnMut(&mut Expr)) {
@@ -996,6 +1005,10 @@ impl Effect {
             Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
             | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
             | Self::SelectedPlayerSystem { .. } => {}
+            Self::LookAt { target, player, .. } => {
+                visit(target);
+                visit(player);
+            }
         }
     }
 }
@@ -2198,7 +2211,7 @@ impl Program {
                 Effect::DiscardDeck {amount,target} => (Program::scalar_deck_amount(amount,target)?+1,false,false),
                 Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;(2,false,false)},
                 Effect::CreateTokenUnit {token_type,amount,target,..} => (Program::token_unit_amount(token_type,amount,target)?+1,false,true),
-                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => (0,false,false),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2390,6 +2403,15 @@ impl Program {
                 )?;
                 self.compile_effect(&lowered, depth)?;
             }
+            Effect::LookAt { .. } => {
+                if depth != 0 || !crate::view_cards::reviewed_look_at(effect) {
+                    return Err(
+                        "lookAt supports only reviewed view-only opponent-hand display prompts"
+                            .into(),
+                    );
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::Damage{target:Target::ArenaList(list),amount:Expr::Const{value}}=>{
                 if depth!=0 || !(if list.controller_order.is_some() {["event","whenDefeated"].contains(&self.trigger.as_str())}else{["whenPlayed","onAttack","whenDefeated"].contains(&self.trigger.as_str())}) || !value.as_u64().is_some_and(|n|(1..=3).contains(&n)) {return Err("arena damage requires literal standalone unit damage1..3".into());}
                 if list.controller_order.is_some(){list.validate_ordered_ground()?;}else{list.validate_damage()?;}self.instructions.push(Instruction::Group(effect.clone()));
@@ -2546,6 +2568,7 @@ impl Catalogue {
                 // executable abilities; do not treat those leftovers as admitted phase history.
                 if crate::phase_history::marker(&entry["historyHelpers"])||crate::phase_history::marker(&entry["privatePrograms"]){return Err("unresolved phase history helpers require reviewed registration".into());}
                 if crate::phase_history::marker(&entry["abilities"])&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
+                if crate::view_cards::marker(&entry["abilities"])&&!crate::view_cards::entry(entry){return Err("view-only lookAt requires complete ordinary unit whenPlayed registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
                 if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard" {return Err("parent references require an ordinary attached upgrade".into());}
