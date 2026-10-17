@@ -662,6 +662,7 @@ impl Engine {
                     restore,
                     aspects,
                     smuggle,
+                    self_play_cost: crate::self_play_cost::extract(entry)?,
                     programs,
                     traits: entry["card"]["traits"]
                         .as_array()
@@ -4365,3 +4366,7 @@ mod advantage_tests;
 mod pay_adjusted_resources_tests;
 
 include!("disclose_runtime.rs");
+
+#[cfg(test)]
+#[path="self_play_cost_tests.rs"]
+mod self_play_cost_tests;

@@ -1,5 +1,8 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/self_play_cost.rs"]
+mod self_play_cost;
+#[allow(dead_code)]
 #[path = "src/card_restrictions.rs"]
 mod card_restrictions;
 #[allow(dead_code)]
@@ -179,6 +182,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/self_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");

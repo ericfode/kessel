@@ -44,6 +44,7 @@ pub struct Definition {
     aspects: [u8; 6],
     /// Present only for cards whose printed text yields a complete Smuggle cost.
     pub smuggle: Option<SmuggleCost>,
+    pub(crate) self_play_cost: Option<crate::self_play_cost::SelfPlayCost>,
     programs: CardPrograms,
     traits: Vec<String>,
 }
@@ -228,6 +229,7 @@ impl Engine {
                 restore,
                 aspects,
                 smuggle: None,
+                self_play_cost: None,
                 programs: CardPrograms::default(),
                 traits: vec![],
             });
@@ -380,7 +382,8 @@ impl Engine {
     }
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
         let d = self.def(s, id);
-        d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects)
+        (d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects))
+            .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id)))
     }
     fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
         let p = s.player(s.card(id).owner);

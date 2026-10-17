@@ -51,3 +51,6 @@ mod pay_adjusted_resources;
 pub mod card_restrictions;
 
 mod disclose;
+
+mod self_play_cost;
+mod self_play_cost_runtime;
