@@ -422,6 +422,11 @@ fn phase_history_defeated_family_keeps_unimplemented_projections_rejected() {
             rejected.get(code)
         );
     }
-    assert!(rejected.contains_key("TWI_186"));
+    // TWI_186 (San Hill) needs this family's `getDefeatedUnitsControlledByPlayer`
+    // count projection *and* the Exploit keyword; the integrated batch tree
+    // implements both, so the card admits and finally exercises the count
+    // consumer end-to-end. The lane-internal tree kept it rejected while
+    // Exploit was missing, so this assertion moved with the batch integration.
+    assert!(e.by_code.contains_key("TWI_186"), "TWI_186");
 }
 
