@@ -50,6 +50,9 @@ pub struct Definition {
     flags: u16,
     raid: u16,
     restore: u16,
+    /// Intrinsic printed `Exploit N` amount derived at admission with the pinned
+    /// engine's per-side regex. Zero means no intrinsic exploit instance.
+    exploit: u16,
     aspects: [u8; 6],
     programs: CardPrograms,
     traits: Vec<String>,
@@ -238,6 +241,10 @@ impl Engine {
                 flags,
                 raid,
                 restore,
+                // The legacy strict-pool loader never parses printed Exploit;
+                // its keyword-only units are reviewed explicitly below the
+                // catalogue interpreter.
+                exploit: 0,
                 aspects,
                 programs: CardPrograms::default(),
                 traits: vec![],
@@ -285,6 +292,34 @@ impl Engine {
             // traces predate global-order evidence and keep their old semantics.
             s.players.iter().flat_map(|p|p.ground.as_slice().iter().chain(p.space.as_slice())).copied().collect()
         }
+    }
+    /// Friendly arena units selectable by an intrinsic Exploit cost adjustment.
+    /// The pinned resolver is RelativePlayer.Self plus WildcardCardType.Unit,
+    /// which includes a deployed leader unit. The admitted state model has no
+    /// control change, so a player's arena lists are the controlled units; the
+    /// canonical ground-then-space order matches the rest of this simulator.
+    fn exploit_targets(&self, s:&State, seat:Seat) -> Vec<CardId> {
+        let p=s.player(seat);
+        p.ground.as_slice().iter().chain(p.space.as_slice()).copied()
+            .filter(|&id| self.def(s,id).info.is("unit")||self.def(s,id).info.is("leader"))
+            .collect()
+    }
+    /// `maxTargetCount = exploitKeywordAmount`, bounded by legal targets. Only
+    /// played units and events carry an executable adjuster in this runtime.
+    fn exploit_max_count(&self, s:&State, seat:Seat, id:CardId) -> u16 {
+        let d=self.def(s,id);
+        if d.exploit==0 || !(d.info.is("unit")||d.info.is("event")) {return 0;}
+        d.exploit.min(self.exploit_targets(s,seat).len() as u16)
+    }
+    /// `adjustAmountPerTarget` is 2 and `applyStaticDecrease` floors at zero, so
+    /// the affordable decrease is twice the number of selected units.
+    fn exploit_max_discount(&self, s:&State, seat:Seat, id:CardId) -> u16 {2*self.exploit_max_count(s,seat,id)}
+    /// Smallest selection count that leaves the play payable. The pay-mode
+    /// prompt forces at least one target once Exploit is chosen, while the
+    /// engine's `findMinimumTargetSetToPay` only requires enough targets to pay.
+    fn exploit_min_required(&self, s:&State, seat:Seat, id:CardId) -> u16 {
+        let deficit=(self.cost(s,id) as u32).saturating_sub(self.ready_resources(s,seat) as u32);
+        u16::try_from(deficit.div_ceil(2)).unwrap_or(u16::MAX).max(1)
     }
     fn load_arena_order(&self,s:&mut State,v:&Value)->Result<(),String> {
         if let Some(order)=v.get("arenaUnitOrder") {
@@ -474,7 +509,12 @@ impl Engine {
                     {
                         continue;
                     }
-                    if self.cost(s, id) as usize <= self.ready_resources(s, s.active) {
+                    // Exploit makes a card legal when the maximum friendly-unit
+                    // adjustment covers the remaining cost; without targets the
+                    // adjuster does not exist and this is the printed cost.
+                    if self.cost(s, id) as usize
+                        <= self.ready_resources(s, s.active) + self.exploit_max_discount(s, s.active, id) as usize
+                    {
                         out.push(self.card_action(s, id));
                     }
                 }
@@ -593,6 +633,34 @@ impl Engine {
             Decision::Support => {
                 out.push(Action::button("Pass", "passAbility"));
                 for id in self.support_targets(s) {out.push(self.card_action(s,id));}
+            }
+            Decision::ExploitChoice => {
+                // Engine TargetedCostAdjuster pay-mode menu: "Play without
+                // Exploit" is offered only when the unmodified cost is payable,
+                // "Trigger Exploit" whenever at least one friendly unit exists,
+                // and Cancel for an ordinary play action (card-effect plays,
+                // which this runtime does not execute, suppress it).
+                if self.cost(s, s.source) as usize <= self.ready_resources(s, s.active) {
+                    out.push(Action::button("Play without Exploit", "playWithoutExploit"));
+                }
+                if self.exploit_max_count(s, s.active, s.source) > 0
+                    && self.exploit_min_required(s, s.active, s.source) <= self.exploit_max_count(s, s.active, s.source)
+                {
+                    out.push(Action::button("Trigger Exploit", "triggerExploit"));
+                }
+                out.push(Action::button("Cancel", "cancel"));
+            }
+            Decision::ExploitTarget => {
+                let max = self.exploit_max_count(s, s.active, s.source);
+                let selected = s.exploit.selection.as_slice();
+                if s.exploit.selection.len as u16 >= self.exploit_min_required(s, s.active, s.source) {
+                    out.push(Action::button("Done", "done"));
+                }
+                for unit in self.exploit_targets(s, s.active) {
+                    if selected.contains(&unit) || (s.exploit.selection.len as u16) < max {
+                        out.push(self.card_action(s, unit));
+                    }
+                }
             }
             Decision::Ambush => {
                 out.push(Action::button("Trigger", "trigger"));
@@ -725,20 +793,17 @@ impl Engine {
                         self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                         return Ok(t);
                     }
-                    t.phase_history.preflight_play(seat)?;
-                    self.spend(&mut t, seat, self.cost(s, id));
-                    t.player_mut(seat).hand.remove(id);
-                    t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
-                    t.card_mut(id).set_hidden_qualified(true);
-                    self.add_arena(&mut t, id)?;
-                    t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
-                    t.source = id;
-                    t.set_trigger_context(TriggerContext::Enter);
-                    if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
-                        t.decision = Decision::Unique;
-                    } else {
-                        self.enter_triggers(&mut t)?;
+                    // Intrinsic Exploit changes the play cost before the unit
+                    // enters play. Offer the engine's pay-mode prompt whenever
+                    // the adjuster has a legal friendly target; otherwise play
+                    // normally at the printed cost plus aspect penalty.
+                    if self.exploit_max_count(&t, seat, id) > 0 {
+                        t.source = id;
+                        t.exploit = ExploitState::default();
+                        t.decision = Decision::ExploitChoice;
+                        return Ok(t);
                     }
+                    self.play_unit_from_hand(&mut t, seat, id, 0)?;
                 } else if t.player(seat).resources.contains(id) {
                     self.begin_smuggle_play(&mut t, seat, id)?;
                 } else {
@@ -924,6 +989,53 @@ impl Engine {
             Decision::Support => {
                 if arg=="passAbility" {self.process_triggers(&mut t)?;}else{self.begin_support_attack(&mut t,id)?;}
             }
+            Decision::ExploitChoice => {
+                match arg {
+                    // Declining still pays the printed cost (plus aspect
+                    // penalty); the engine's adjuster contributes nothing.
+                    "playWithoutExploit" => {
+                        if self.def(&t, t.source).info.is("event") {
+                            self.resume_exploit_program(&mut t)?;
+                        } else {
+                            let played=t.source;
+                            t.exploit=ExploitState::default();
+                            self.play_unit_from_hand(&mut t, seat, played, 0)?;
+                        }
+                    }
+                    "triggerExploit" => {
+                        t.exploit.selection=Selection::default();
+                        t.decision=Decision::ExploitTarget;
+                    }
+                    "cancel" => self.cancel(&mut t),
+                    _ => return Err("unknown Exploit pay-mode choice".into()),
+                }
+            }
+            Decision::ExploitTarget => {
+                let source=t.source;
+                if arg=="done" {
+                    let count=t.exploit.selection.len as u16;
+                    let units=t.exploit.selection.as_slice().to_vec();
+                    // All selected units are defeated by the ability-sourced
+                    // adjuster. Capture every registration before moving any
+                    // unit: the engine creates all contingent defeat events in
+                    // one window, so each sees the pre-handler snapshot.
+                    self.defeat_many(&mut t, &units)?;
+                    if self.def(&t, source).info.is("event") {
+                        self.resume_exploit_program(&mut t)?;
+                    } else {
+                        t.exploit=ExploitState::default();
+                        self.play_unit_from_hand(&mut t, seat, source, 2*count)?;
+                    }
+                } else {
+                    let unit=id;
+                    let max=self.exploit_max_count(&t, seat, source);
+                    let selected=t.exploit.selection.as_slice().contains(&unit);
+                    if !selected && t.exploit.selection.len as u16>=max {
+                        return Err("exploit selection exceeds maxTargetCount".into());
+                    }
+                    t.exploit.selection.toggle(unit)?;
+                }
+            }
             Decision::Ambush => {
                 if arg == "trigger" && self.has_attack_target(&t, t.source, true) {
                     t.after_attack_programs = t.pending_programs;
@@ -981,6 +1093,27 @@ impl Engine {
         }
         debug_assert_eq!(amount, 0);
     }
+    /// The ordinary unit play pipeline after an Exploit adjustment. The engine
+    /// pays the adjusted cost and then emits OnCardPlayed, so exhaustion, phase
+    /// history, arena placement, uniqueness and When Played registration stay in
+    /// one place for both the plain and the exploited path.
+    fn play_unit_from_hand(&self, s: &mut State, seat: Seat, id: CardId, discount: u16) -> Result<(), String> {
+        s.phase_history.preflight_play(seat)?;
+        self.spend(s, seat, self.cost(s, id).saturating_sub(discount));
+        s.player_mut(seat).hand.remove(id);
+        s.card_mut(id).exhausted = !self.self_static_ongoing(s,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
+        s.card_mut(id).set_hidden_qualified(true);
+        self.add_arena(s, id)?;
+        s.phase_history.entered(seat,id);s.phase_history.played(seat,id)?;
+        s.source = id;
+        s.set_trigger_context(TriggerContext::Enter);
+        if self.def(s, id).info.unique && self.duplicates(s, id) > 1 {
+            s.decision = Decision::Unique;
+        } else {
+            self.enter_triggers(s)?;
+        }
+        Ok(())
+    }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
@@ -1016,6 +1149,7 @@ impl Engine {
         s.maximum_capture=MaximumCapture::default();
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
+        s.exploit = ExploitState::default();
         s.event_group = EventGroupState::default();
         s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
         s.ability_result = 0;

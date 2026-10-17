@@ -11,9 +11,11 @@ pub const MAX_ZONE: usize = 64;
 // + phase unit-defeat counters (2 controllers x 2 counters x u16 = 8, padded)
 // + leader-deploy Plot window (PlotState: card/leader u16, pending u8,
 //   programs u16, stage u8 + padding = 8, plus the resolved-instance bitmask
-//   [u64; 4] = 32 that keeps one window from re-offering a resolved Plot).
+//   [u64; 4] = 32 that keeps one window from re-offering a resolved Plot)
+// + Exploit pay-mode selection/continuation (Selection 12 + resume/settled 2,
+//   padded to 16).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_872;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_888;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -502,6 +504,10 @@ pub enum Decision {
     /// Optional prompt for a Plot keyword ability that was chosen in the
     /// leader-deploy trigger window: Trigger plays, Pass returns to the window.
     PlotOptional,
+    /// Pay-mode prompt for an intrinsic Exploit play cost adjustment.
+    ExploitChoice,
+    /// Friendly-unit multi-select for an accepted Exploit adjustment.
+    ExploitTarget,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -510,6 +516,7 @@ pub struct Selection { pub ids: [CardId; 5], pub len: u8 }
 impl Selection {
     pub fn hash_ids(&self)->impl Iterator<Item=CardId>+'_ { self.ids[..if self.len>3 {5}else{3}].iter().copied() }
     pub fn one(id: CardId) -> Self { Self { ids: [id, 0, 0, 0, 0], len: u8::from(id != 0) } }
+    pub fn as_slice(&self) -> &[CardId] { &self.ids[..self.len as usize] }
     pub fn toggle(&mut self, id: CardId) -> Result<(), String> {
         if let Some(i) = self.ids[..self.len as usize].iter().position(|v| *v == id) {
             for j in i..self.len as usize - 1 { self.ids[j] = self.ids[j+1]; }
@@ -518,6 +525,20 @@ impl Selection {
         Ok(())
     }
 }
+
+/// Pinned-engine Exploit play-cost adjustment. `selection` retains the friendly
+/// units chosen at the play-cost prompt (capacity 5 covers the catalogue's
+/// maximum printed Exploit 4). `resume` records which continuation the event
+/// payment boundary interrupted, because the engine offers the adjuster after
+/// an event's early targets and before its cost is committed. `settled` marks
+/// that the pay-mode choice was already answered for the pending payment, so a
+/// resumed program instruction cannot offer the prompt twice.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ExploitState { pub selection: Selection, pub resume: u8, pub settled: bool }
+/// Resume the interrupted event program (`run_program`).
+pub const EXPLOIT_RESUME_PROGRAM: u8 = 0;
+/// Commit the suspended event cost, then end a program with no resolvable effect.
+pub const EXPLOIT_RESUME_END: u8 = 1;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct PreparedEvent {
     pub op: u16, pub target: CardId, pub amount: u16,
@@ -810,6 +831,8 @@ pub struct State {
     pub ability_target: CardId,
     pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
+    /// Intrinsic Exploit's play-cost prompt/selection, separate from ability targets.
+    pub exploit: ExploitState,
     pub event_group: EventGroupState,
     pub event_result: StepEventResult,
     pub last_known_source: CardId,
@@ -861,6 +884,7 @@ impl Default for State {
             ability_target: 0,
             maximum_capture:MaximumCapture::default(),
             ability_selection: Selection::default(),
+            exploit: ExploitState::default(),
             event_group: EventGroupState::default(),
             event_result:StepEventResult::default(),
             last_known_source:0,
@@ -1087,6 +1111,17 @@ impl State {
                 for &id in zone.as_slice() {
                     put(id as u64);
                 }
+            }
+        }
+        // Exploit prompt state is hash-relevant only while a play-cost choice is
+        // pending; default storage stays off the historical hash stream.
+        if self.exploit != ExploitState::default() {
+            put(0x4558504c4f4954);
+            put(self.exploit.resume as u64);
+            put(self.exploit.settled as u64);
+            put(self.exploit.selection.len as u64);
+            for &id in &self.exploit.selection.ids[..self.exploit.selection.len as usize] {
+                put(id as u64);
             }
         }
         h

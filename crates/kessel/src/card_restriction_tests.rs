@@ -51,11 +51,19 @@ fn card_restriction_family_admission_is_reviewed_and_shapes_stay_closed() {
     // Shapes blocked by other unimplemented families stay rejected; none is
     // admitted through a partially executed restriction.
     for code in [
-        "LAW_073","TWI_039","LOF_063","TWI_195","LOF_098","HMW_095","HMW_121",
+        "LAW_073","LOF_063","TWI_195","LOF_098","HMW_095","HMW_121",
         "SEC_137","TS26_031","SOR_186","SEC_037","ASH_035","SEC_012",
     ] {
         assert!(!e.by_code.contains_key(code), "{code} must stay explicitly rejected");
     }
+    // TWI_039 moved from this family's rejection list to the runtime when the
+    // intrinsic Exploit keyword was implemented; its phase-modifier restriction
+    // leaf is witnessed directly by the test below.
+    assert!(
+        e.by_code.contains_key("TWI_039"),
+        "TWI_039: {:?}",
+        e.rejected_cards().unwrap().get("TWI_039")
+    );
     // Every admitted card lowers its restriction into executable instructions.
     for code in admitted {
         let programs = &e.definitions[*e.by_code.get(code).unwrap() as usize].programs;
@@ -279,8 +287,9 @@ fn does_not_ready_during_regroup_consumer_uses_the_live_power_condition() {
 #[test]
 fn phase_modifier_window_applies_its_restriction_leaf_with_the_stats() {
     // One reviewed PhaseModifiers window carries stat and restriction leaves.
-    // No admitted card reaches this path yet (TWI_039 is owned by the Exploit
-    // family), so the runtime primitive is witnessed directly.
+    // TWI_039 is now admitted through the Exploit family, but this direct
+    // primitive witness keeps the restriction leaf independent of that card's
+    // play-cost prompt.
     let e = engine();
     let mut s = board(&e);
     let target = unit(&e, &mut s, Seat::P2, "ASH_030");

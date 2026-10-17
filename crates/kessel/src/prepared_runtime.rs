@@ -171,10 +171,21 @@ impl Engine {
             if !(-65535..=65535).contains(&power)||!(-65535..=65535).contains(&hp) {return Err("phase stat delta exceeds capacity".into());}
             (power,hp)
         } else {(0,0)};
-        for target in self.effect_targets(s,target) {
+        let destination=target;
+        for target in self.effect_targets(s,destination) {
             let Eval::Card(target)=target else { continue; };
             if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")) { continue; }
-            if !self.effect_can_affect(s,s.source,s.ability_target,e,false) { continue; }
+            // A "chosen" group is one event per selected card in the engine, so a
+            // selected card that left play before resolution cannot suppress the
+            // remaining events. The previous single outer-target check let an
+            // Exploit-defeated first target hide its surviving siblings.
+            // A "chosen" group is one event per selected card in the engine, so a
+            // selected card that left play before resolution cannot suppress the
+            // remaining events. The outer ability target would do exactly that
+            // when Exploit defeats the first selected card before the event
+            // effect resolves; check each chosen recipient instead.
+            let affect_target=if matches!(destination,Target::Name(n) if n=="chosen"){target}else{s.ability_target};
+            if !self.effect_can_affect(s,s.source,affect_target,e,false) { continue; }
             if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}) { continue; }
             let tokens=matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}|Effect::GiveAdvantage{..});
             for _ in 0..if tokens { amount } else { 1 } {
@@ -263,12 +274,15 @@ impl Engine {
                         s.active=s.event_group.initiator;
                         if matches!(choosers[index],crate::ability_ir::NamedChooser::Opponent) {
                             // Opponent pretarget always delays until original-player costs are paid.
-                            self.commit_program(s)?;s.active=s.event_group.initiator.other();
+                            if !self.commit_program(s,true)? { return Ok(false); }
+                            s.active=s.event_group.initiator.other();
                         }
                     }
                     if self.group_candidates(s,r,child,true).is_empty() {
                         // A missing pretarget delays the remaining named resolver chain until costs.
-                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {self.commit_program(s)?;}
+                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {
+                            if !self.commit_program(s,true)? { return Ok(false); }
+                        }
                         if matches!(self.program(s.ability_program-1).instructions[s.ability_pc as usize],Instruction::NamedChooserGroup{..}) {s.active=s.event_group.initiator;}
                         s.event_group.pc=*end as u16; continue;
                     }

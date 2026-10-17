@@ -12,10 +12,12 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     // counter and one u16 while-attacking counter per controller (8 bytes with
     // alignment) + the leader-deploy Plot window: PlotState card/leader u16 +
     // pending u8 + stage u8 + programs u16 + padding = 8, and its
-    // resolved-instance bitmask [u64; 4] = 32, for 29,872. Zero
-    // counters/masks/flags/grants and inactive plot windows stay off the hash
-    // stream, so the historical hashes below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29872);
+    // resolved-instance bitmask [u64; 4] = 32, plus the Exploit pay-mode
+    // selection/continuation (Selection 12 + resume/settled 2, padded to 16),
+    // for 29,888. Zero counters/masks/flags/grants, inactive plot windows and
+    // default exploit state stay off the hash stream, so the historical hashes
+    // below are unchanged.
+    assert_eq!(std::mem::size_of::<State>(),29888);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
