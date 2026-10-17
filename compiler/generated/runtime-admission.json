@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 788
+    "sourceIr": 790
   },
   "runtimeAdmittedCards": [
     {
@@ -3176,6 +3176,11 @@
       "setCode": "LOF_139"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "adi-gallia#stern-and-focused",
+      "setCode": "LOF_142"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "attuned-fyrnock",
       "setCode": "LOF_143"
@@ -5462,6 +5467,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
+      "setCode": "TWI_080"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "droid-commando",
       "setCode": "TWI_081"
     },
@@ -5896,7 +5906,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1177,
+  "runtimeAdmittedCount": 1179,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -9484,11 +9494,6 @@
       "setCode": "LOF_141"
     },
     {
-      "internalName": "adi-gallia#stern-and-focused",
-      "reason": "adi-gallia#stern-and-focused: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "LOF_142"
-    },
-    {
       "internalName": "jedi-knight",
       "reason": "jedi-knight: invalid ability IR: native selector resolution-time condition requires a separate skip/result contract",
       "setCode": "LOF_145"
@@ -12584,11 +12589,6 @@
       "setCode": "TWI_078"
     },
     {
-      "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
-      "reason": "poggle-the-lesser#archduke-of-the-stalgasin-hive: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "TWI_080"
-    },
-    {
       "internalName": "magnaguard-wing-leader",
       "reason": "magnaguard-wing-leader: native attacks require a complete sole ordinary unit/event registration",
       "setCode": "TWI_082"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1428,
+  "runtimeRejectedCount": 1426,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

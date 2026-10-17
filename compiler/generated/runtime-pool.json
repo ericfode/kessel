@@ -25824,6 +25824,47 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "4741025404",
+      "internalName": "adi-gallia#stern-and-focused",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LOF_142",
+      "setCodes": [
+        {
+          "number": 142,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 142,
+        "set": "LOF"
+      },
+      "subtitle": "Stern and Focused",
+      "text": "When an opponent plays an event: Deal 1 damage to that player's base.",
+      "title": "Adi Gallia",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 1,
       "id": "1433284352",
       "internalName": "attuned-fyrnock",
@@ -44068,6 +44109,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "9610332938",
+      "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TWI_080",
+      "setCodes": [
+        {
+          "number": 80,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 80,
+        "set": "TWI"
+      },
+      "subtitle": "Archduke of the Stalgasin Hive",
+      "text": "When you play another unit: You may exhaust this unit. If you do, create a Battle Droid token.",
+      "title": "Poggle the Lesser",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
