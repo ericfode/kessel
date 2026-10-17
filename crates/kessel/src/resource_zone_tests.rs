@@ -248,3 +248,63 @@ fn resource_departure_swap_only_applies_to_resources_the_ability_player_controls
     assert!(done.card(enemy_exhausted).exhausted, "foreign controller: no ready-state swap");
     assert_eq!(done.decision, Decision::Window);
 }
+
+#[test]
+fn resource_departure_swap_guards_on_the_ability_context_player() {
+    // Pinned `CardTargetSystem.leavesResourceZoneEventHandler` returns unless the
+    // resource's controller equals `context.player`. A Bounty program's context player
+    // is the collector (the opponent of the defeated unit's controller), and the
+    // admitted Bounty effect set has no resource-zone move, so this witnesses the
+    // runtime boundary with that synthetic program context rather than an admitted
+    // card: with the source-controller guard both directions below swap wrongly.
+    let e = engine();
+    let mut base = board(&e);
+    base.round = 5;
+    let source = unit(&e, &mut base, Seat::P1, "SHD_027");
+    let own_ready = resource(&e, &mut base, Seat::P1, false);
+    let own_exhausted = resource(&e, &mut base, Seat::P1, true);
+    let collector_ready = resource(&e, &mut base, Seat::P2, false);
+    let collector_exhausted = resource(&e, &mut base, Seat::P2, true);
+    let bounty = *e
+        .def(&base, source)
+        .programs
+        .card
+        .iter()
+        .find(|&&program| e.program(program).trigger == "bounty")
+        .unwrap();
+    let in_bounty_context = |s: State, target: CardId| {
+        let mut s = s;
+        s.source = source;
+        s.ability_target = target;
+        s.ability_program = bounty + 1; // running program index + 1
+        s
+    };
+    let move_effect = crate::ability_ir::Effect::ReturnToHand {
+        target: crate::ability_ir::Target::Name("chosen".into()),
+    };
+    // A ready resource in the collector's zone: the guard passes, and the readiness
+    // swap stays inside that same player's resource zone.
+    let mut collector = in_bounty_context(base, collector_ready);
+    assert_eq!(e.apply_effect(&mut collector, &move_effect).unwrap(), (1, true));
+    assert!(collector.player(Seat::P2).hand.contains(collector_ready));
+    assert!(collector.card(collector_ready).exhausted, "the departing resource is exhausted");
+    assert!(!collector.card(collector_exhausted).exhausted, "the collector's exhausted resource readied");
+    assert!(!collector.card(own_ready).exhausted, "the source controller's resources are untouched");
+    assert!(collector.card(own_exhausted).exhausted);
+    // A ready resource of the defeated unit's controller: not the context player, so
+    // the engine returns before swapping. The source-controller guard would have
+    // exchanged readiness with own_exhausted here.
+    let mut owner = in_bounty_context(base, own_ready);
+    assert_eq!(e.apply_effect(&mut owner, &move_effect).unwrap(), (1, true));
+    assert!(owner.player(Seat::P1).hand.contains(own_ready));
+    assert!(!owner.card(own_ready).exhausted, "no readiness swap outside the context player");
+    assert!(owner.card(own_exhausted).exhausted, "the source controller's exhausted resource stays exhausted");
+    // Ordinary context (no Bounty program running): the source controller is the
+    // ability player, so the reviewed family-D behavior is unchanged.
+    let mut ordinary = base;
+    ordinary.source = source;
+    ordinary.ability_target = own_ready;
+    assert_eq!(e.apply_effect(&mut ordinary, &move_effect).unwrap(), (1, true));
+    assert!(ordinary.card(own_ready).exhausted, "ordinary departure still exhausts the ready resource");
+    assert!(!ordinary.card(own_exhausted).exhausted, "ordinary departure still readies the first exhausted resource");
+}
