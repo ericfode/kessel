@@ -3820,3 +3820,6 @@ mod card_restriction_tests;
 
 #[path="disclose_runtime_tests.rs"]
 mod disclose_tests;
+
+#[path="modal_choice_tests.rs"]
+mod modal_choice_tests;

@@ -1783,6 +1783,12 @@ impl Engine {
                 Instruction::Commit => {}
                 Instruction::CaptureMaximum{aspect}=>{let mut captured=*s;if self.capture_maximum(&mut captured,source,aspect).is_err(){return false;}return self.instructions_can_affect(&captured,source,target,p,pc+1,end,require_change);}
 
+                Instruction::ModalChoice(menu) => {
+                    let mut context = *s;
+                    context.active = context.card(source).owner;
+                    return menu.branches.iter().any(|branch| self.instructions_can_affect(
+                        &context, source, target, p, branch.start, branch.end, require_change));
+                }
                 Instruction::Select(resolver) => {
                     let scope = self.program(p).select_end(pc).min(end);
                     if self.matching_targets(s, source, resolver).into_iter().any(
@@ -1862,6 +1868,9 @@ impl Engine {
     ) -> bool {
         if self.program(p).trigger=="event"&&self.program(p).instructions.first().is_some_and(|i|matches!(i,Instruction::Group(Effect::Simultaneous{effects}) if effects.len()==2&&matches!(&effects[0],Effect::Select{effect,..} if matches!(effect.as_ref(),Effect::Damage{..}))&&matches!(&effects[1],Effect::GainForce{..}))) {return true;}
         match self.program(p).instructions.first() {
+            // SelectTargetResolver does not forward inherited mustChangeGameState
+            // to its choice systems, including initial root feasibility.
+            Some(Instruction::ModalChoice(_)) => self.instructions_can_affect(s, source, 0, p, 0, usize::MAX, false),
             Some(Instruction::Select(r)) => !self
                 .program_targets(s, source, p, 0, r, require_change)
                 .is_empty(),
@@ -1939,6 +1948,16 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
+            let p = self.program(s.ability_program - 1);
+            if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
+                let mut context = *s;
+                context.active = context.card(s.source).owner;
+                return menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                    &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false))
+                    .enumerate().map(|(index, branch)| Action::button(branch.label.clone(), index)).collect();
+            }
+        }
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.disclose_actions(s);}
         let mut out = Vec::new();
         let source = s.source;
@@ -2244,6 +2263,28 @@ impl Engine {
                 Instruction::Commit => {
                     self.commit_program(s)?;
                     s.ability_pc += 1;
+                }
+                Instruction::ModalChoice(menu) => {
+                    let mut context = *s;
+                    context.active = context.card(s.source).owner;
+                    let legal: Vec<_> = menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                        &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false)).collect();
+                    match legal.as_slice() {
+                        [] => {
+                            s.ability_succeeded = false;
+                            s.ability_result = 0;
+                            s.ability_pc = menu.end as u8;
+                        }
+                        [branch] => { s.ability_pc = branch.start as u8; }
+                        _ => {
+                            s.active = match menu.chooser {
+                                crate::modal_choices::Chooser::Own => context.active,
+                                crate::modal_choices::Chooser::Opponent => context.active.other(),
+                            };
+                            s.decision = Decision::AbilityTarget;
+                            return Ok(());
+                        }
+                    }
                 }
                 Instruction::Select(r) => {
                     if self
@@ -3462,6 +3503,22 @@ impl Engine {
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.apply_disclose_action(s,a);}
         let mut t = *s;
+        if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
+            let p = self.program(s.ability_program - 1);
+            if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
+                t.active = t.card(t.source).owner;
+                let index = a.arg.as_ref().and_then(Value::as_u64).ok_or("modal branch index missing")? as usize;
+                let branch = menu.branches.iter().filter(|branch| self.instructions_can_affect(
+                    &t, t.source, 0, t.ability_program - 1, branch.start, branch.end, false))
+                    .nth(index).ok_or("modal branch index invalid")?;
+                t.ability_target = 0;
+                t.ability_selection = Selection::default();
+                t.ability_pc = branch.start as u8;
+                self.run_program(&mut t)?;
+                self.sweep_stat_defeats(&mut t)?;
+                return Ok(t);
+            }
+        }
         match s.decision {
             Decision::AbilityDiscard => {
                 let count=t.event_group.discard_count;

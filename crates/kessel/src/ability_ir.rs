@@ -1314,6 +1314,8 @@ pub enum Instruction {
     EndStep,
     Commit,
     Select(TargetResolver),
+    /// Closed target-resolver menu; branches reuse ordinary instructions.
+    ModalChoice(crate::modal_choices::Menu),
     CaptureMaximum {aspect:String},
     Conditional { condition: Expr, skip: usize },
     IfResult { skip: usize },
@@ -1777,7 +1779,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -2994,7 +2996,8 @@ impl Catalogue {
                 {
                     return Err("parent references require an ordinary attached upgrade".into());
                 }
-                let mut entry_owned = entry.clone();
+                let modal = crate::modal_choices::prepare(entry)?;
+                let mut entry_owned = modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone());
                 let piloting_keyword_grant = crate::piloting_attached::marker(&entry_owned["abilities"]);
                 if piloting_keyword_grant {
                     crate::piloting_attached::normalize(&mut entry_owned)?;
@@ -3319,7 +3322,7 @@ impl Catalogue {
                             return Err("ability program capacity exceeded".into());
                         }
                         dst.push(id as u16);
-                        let program=Program::compile(ability)?;
+                        let program=if let Some(modal)=&modal {modal.compile(ability)?} else {Program::compile(ability)?};
                         if entry["baseClass"]=="UpgradeCard" {
                             fn source_target(target:&Target)->bool {
                                 match target {

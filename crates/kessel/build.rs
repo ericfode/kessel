@@ -52,6 +52,10 @@ mod deck_search;
 #[allow(dead_code)]
 #[path = "src/selected_player.rs"]
 mod selected_player;
+
+#[allow(dead_code)]
+#[path = "src/modal_choices.rs"]
+mod modal_choices;
 #[allow(dead_code)]
 #[path = "src/discard_return.rs"]
 mod discard_return;
