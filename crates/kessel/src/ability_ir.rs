@@ -1699,7 +1699,8 @@ impl Program {
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
             let smuggle=crate::death_hooks::smuggle_play_registration(ability);
             let leader_deploy=crate::death_hooks::leader_deploy_base_registration(ability);
-            if !crate::death_hooks::registration(ability) && !smuggle && !leader_deploy {
+            let card_played=crate::death_hooks::card_played_registration(ability);
+            if !crate::death_hooks::registration(ability) && !smuggle && !leader_deploy && !card_played {
                 return Err(crate::death_hooks::reject_reason(ability));
             }
             let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
@@ -1709,6 +1710,8 @@ impl Program {
                 program.trigger="whenPlayedUsingSmuggle".into();
             } else if leader_deploy {
                 program.trigger="onLeaderDeployed".into();
+            } else if card_played {
+                program.trigger="onCardPlayed".into();
             } else if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(v) if matches!(v.alias,crate::death_hooks::AliasName::WhenPlayed))) {
                 program.trigger="eventHooks".into();
             }
@@ -2730,6 +2733,8 @@ impl Catalogue {
                         if !crate::death_hooks::smuggle_play_entry(entry,&sides) {return Err("smuggle when-played requires complete ordinary smuggle unit source metadata and registration".into());}
                     } else if hooks.iter().all(|a|crate::death_hooks::leader_deploy_base_registration(a)) {
                         if !crate::death_hooks::leader_deploy_base_entry(entry,&sides) {return Err("leader-deploy base watchers require exact reviewed base shape".into());}
+                    } else if hooks.iter().all(|a|crate::death_hooks::card_played_registration(a)) {
+                        if !crate::death_hooks::card_played_entry(entry,&sides) {return Err("onCardPlayed requires complete ordinary unit source metadata and bounded registrations".into());}
                     } else {
                         return Err(crate::death_hooks::reject_reason(hooks[0]));
                     }

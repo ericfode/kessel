@@ -38,6 +38,8 @@ pub enum EventName {
     Defeated,
     #[serde(rename = "onLeaderDeployed")]
     LeaderDeployed,
+    #[serde(rename = "onCardPlayed")]
+    CardPlayed,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
@@ -59,6 +61,18 @@ pub enum Predicate {
     },
     Ref {
         path: Vec<String>,
+    },
+    Const {
+        value: Value,
+    },
+    DataCall {
+        method: String,
+        receiver: Box<Predicate>,
+        args: Vec<Predicate>,
+        #[serde(rename = "optionalCall")]
+        optional_call: bool,
+        #[serde(rename = "optionalReceiver")]
+        optional_receiver: bool,
     },
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,6 +104,22 @@ struct Projection {
     non_token: bool,
     controller: Option<bool>,
     other: bool,
+}
+/// Reviewed OnCardPlayed watcher filter over the entering card.
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PlayProjection {
+    /// `cardTypeWhenInPlay === "basicUnit"` or `isUnit(cardTypeWhenInPlay)`.
+    pub unit: bool,
+    /// Friendly controller (`event.player === player`).
+    pub same_controller: bool,
+    /// Exclude the watcher (`event.card !== source`).
+    pub other: bool,
+    /// Optional printed aspect filter on the played card.
+    pub aspect: Option<String>,
+    /// Optional printed trait filter on the played card.
+    pub trait_name: Option<String>,
+    /// Optional printed cost upper bound (`event.card.cost <= N`).
+    pub max_cost: Option<u64>,
 }
 impl Predicate {
     fn path(&self, wanted: &[&str], binding: &mut Option<String>) -> bool {
@@ -184,6 +214,123 @@ impl Predicate {
                     && right.reference(&["player"])
         )
     }
+    fn const_str(&self, wanted: &str) -> bool {
+        matches!(self, Self::Const { value } if value.as_str() == Some(wanted))
+    }
+    fn play_unit_type(&self, binding: &mut Option<String>) -> bool {
+        match self {
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["cardTypeWhenInPlay"], binding)
+                    && right.const_str("basicUnit") =>
+            {
+                true
+            }
+            Self::EnumTypeTest { test, args }
+                if test == "isUnit"
+                    && args.len() == 1
+                    && args[0].path(&["cardTypeWhenInPlay"], binding) =>
+            {
+                true
+            }
+            _ => false,
+        }
+    }
+    fn play_data_call(
+        &self,
+        method: &str,
+        binding: &mut Option<String>,
+    ) -> Option<String> {
+        let Self::DataCall {
+            method: name,
+            receiver,
+            args,
+            optional_call: false,
+            optional_receiver: false,
+        } = self
+        else {
+            return None;
+        };
+        if name != method || args.len() != 1 || !receiver.path(&["card"], binding) {
+            return None;
+        }
+        match &args[0] {
+            Self::Const { value } => value.as_str().filter(|s| !s.is_empty() && s.len() <= 128).map(str::to_owned),
+            _ => None,
+        }
+    }
+    fn play_project(
+        &self,
+        out: &mut PlayProjection,
+        binding: &mut Option<String>,
+        depth: usize,
+    ) -> bool {
+        if depth > 8 {
+            return false;
+        }
+        match self {
+            Self::Binary { op, left, right } if op == "&&" => {
+                left.play_project(out, binding, depth + 1)
+                    && right.play_project(out, binding, depth + 1)
+            }
+            _ if self.play_unit_type(binding) && !out.unit => {
+                out.unit = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == "==="
+                    && left.path(&["player"], binding)
+                    && right.reference(&["player"])
+                    && !out.same_controller =>
+            {
+                out.same_controller = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == "!=="
+                    && left.path(&["card"], binding)
+                    && right.reference(&["source"])
+                    && !out.other =>
+            {
+                out.other = true;
+                true
+            }
+            Self::Binary { op, left, right }
+                if op == "<="
+                    && left.path(&["card", "cost"], binding)
+                    && out.max_cost.is_none() =>
+            {
+                if let Self::Const { value } = right.as_ref() {
+                    if let Some(n) = value.as_u64().filter(|n| (0..=20).contains(n)) {
+                        out.max_cost = Some(n);
+                        return true;
+                    }
+                }
+                false
+            }
+            _ => {
+                if out.aspect.is_none() {
+                    if let Some(aspect) = self.play_data_call("hasSomeAspect", binding) {
+                        out.aspect = Some(aspect);
+                        return true;
+                    }
+                }
+                if out.trait_name.is_none() {
+                    if let Some(trait_name) = self.play_data_call("hasSomeTrait", binding) {
+                        out.trait_name = Some(trait_name);
+                        return true;
+                    }
+                }
+                false
+            }
+        }
+    }
+    pub(crate) fn play_projection(&self) -> Option<PlayProjection> {
+        let mut p = PlayProjection::default();
+        self.play_project(&mut p, &mut None, 0)
+            .then_some(p)
+            .filter(|p| p.unit && p.same_controller)
+    }
 }
 fn plain_hook_header(a: &Ability) -> bool {
     a.trigger == "eventHooks"
@@ -211,7 +358,11 @@ pub(crate) fn registration(a: &Ability) -> bool {
     for hook in &a.hooks {
         match hook {
             Hook::Alias(v) if v.enabled && matches!(v.alias, AliasName::WhenPlayed) => plays += 1,
-            Hook::Event(v) if v.predicate.projection().is_some() => deaths += 1,
+            Hook::Event(v)
+                if matches!(v.event, EventName::Defeated) && v.predicate.projection().is_some() =>
+            {
+                deaths += 1
+            }
             _ => return false,
         }
     }
@@ -313,6 +464,35 @@ pub(crate) fn leader_deploy_base_registration(a: &Ability) -> bool {
         _ => false,
     }
 }
+/// Sole OnCardPlayed watcher: friendly unit play → self Experience, own-base heal, or phase Sentinel.
+pub(crate) fn card_played_registration(a: &Ability) -> bool {
+    if !plain_hook_header(a) || a.hooks.len() != 1 || a.target_resolver.is_some() {
+        return false;
+    }
+    match &a.hooks[0] {
+        Hook::Event(v)
+            if matches!(v.event, EventName::CardPlayed) && v.predicate.play_projection().is_some() => {}
+        _ => return false,
+    }
+    let one = |e: &Expr| matches!(e, Expr::Const { value } if value.as_u64() == Some(1));
+    match &a.effect {
+        Effect::GiveExperience {
+            target: Target::Name(t),
+            amount,
+        } => t == "self" && one(amount),
+        Effect::Heal {
+            target: Target::Name(t),
+            amount,
+        } => t == "ownBase" && one(amount),
+        Effect::GainKeyword {
+            target: Target::Name(t),
+            keyword,
+            amount,
+            duration,
+        } => t == "self" && keyword == "sentinel" && duration == "phase" && one(amount),
+        _ => false,
+    }
+}
 pub(crate) fn reject_reason(a: &Ability) -> String {
     for hook in &a.hooks {
         if let Hook::Unsupported(v) = hook {
@@ -327,6 +507,9 @@ pub(crate) fn reject_reason(a: &Ability) -> String {
         if let Hook::Event(v) = hook {
             if matches!(v.event, EventName::LeaderDeployed) {
                 return "leader-deploy requires exact reviewed base registration".into();
+            }
+            if matches!(v.event, EventName::CardPlayed) {
+                return "onCardPlayed requires exact reviewed unit registration".into();
             }
         }
     }
@@ -392,6 +575,14 @@ pub(crate) fn smuggle_play_entry(e: &Value, sides: &Sides) -> bool {
             .is_some_and(|k| k.iter().any(|v| v == "smuggle"))
         && sides.card.len() == 1
         && smuggle_play_registration(&sides.card[0])
+}
+pub(crate) fn card_played_entry(e: &Value, sides: &Sides) -> bool {
+    ordinary_unit_hook_source(e, sides)
+        && sides
+            .card
+            .iter()
+            .filter(|a| marker(&serde_json::to_value(a).expect("serializable ability")))
+            .all(card_played_registration)
 }
 pub(crate) fn leader_deploy_base_entry(e: &Value, sides: &Sides) -> bool {
     ["historyHelpers","privatePrograms","classMethods","privateClassConstants","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))

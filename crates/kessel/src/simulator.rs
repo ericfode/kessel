@@ -1143,7 +1143,7 @@ impl Engine {
         // unique copy's ongoing effects disabled. Resolution sees settled deaths.
         s.decision = Decision::Window;
         s.disabled_ongoing_source = unique_defeat.unwrap_or(0);
-        self.capture_enter_triggers(s);
+        self.capture_enter_triggers(s)?;
         s.disabled_ongoing_source = 0;
         if let Some(id) = unique_defeat {
             self.defeat(s, id)?;
@@ -1151,7 +1151,7 @@ impl Engine {
         self.sweep_stat_defeats(s)?;
         self.process_triggers(s)
     }
-    fn capture_enter_triggers(&self, s: &mut State) {
+    fn capture_enter_triggers(&self, s: &mut State) -> Result<(), String> {
         let flags = self.effective_flags(s, s.source);
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
             | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
@@ -1168,7 +1168,9 @@ impl Engine {
             } else {
                 self.queue_programs(s, &["whenPlayed"]);
             }
+            self.capture_card_played_watchers(s)?;
         }
+        Ok(())
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.trigger_context==4 {return self.process_deaths(s);}

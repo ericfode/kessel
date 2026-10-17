@@ -3441,7 +3441,7 @@ impl Engine {
         for owner in [Seat::P1,Seat::P2] {let sources:Vec<_>=s.player(owner).ground.as_slice().iter().chain(s.player(owner).space.as_slice()).copied().collect();for source in sources {
             for &program in self.card_programs(s,source) {
                 let p=self.program(program);
-                if !p.hooks.iter().any(|hook|matches!(hook,crate::death_hooks::Hook::Event(h) if h.predicate.matches(token,owner==s.card(id).owner,source==id))) {continue;}
+                if !p.hooks.iter().any(|hook|matches!(hook,crate::death_hooks::Hook::Event(h) if matches!(h.event,crate::death_hooks::EventName::Defeated)&&h.predicate.matches(token,owner==s.card(id).owner,source==id))) {continue;}
                 let n=s.death_pending.len as usize;
                 if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
                 s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,source,self.is_attacking(s,source)),source,program,player:owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,..DeathTrigger::default()};s.death_pending.len+=1;
@@ -3686,6 +3686,88 @@ impl Engine {
                 s.pending_programs |= 1 << i;
             }
         }
+    }
+    /// Capture reviewed OnCardPlayed arena watchers for the unit that just entered.
+    pub(super) fn capture_card_played_watchers(&self, s: &mut State) -> Result<(), String> {
+        if self.catalogue.is_none() {
+            return Ok(());
+        }
+        let played = s.source;
+        if !self.def(s, played).info.is("unit") {
+            return Ok(());
+        }
+        let played_owner = s.card(played).owner;
+        let cost = self.def(s, played).info.cost().max(0) as u64;
+        for owner in [Seat::P1, Seat::P2] {
+            let watchers: Vec<_> = s
+                .player(owner)
+                .ground
+                .as_slice()
+                .iter()
+                .chain(s.player(owner).space.as_slice())
+                .copied()
+                .collect();
+            for watcher in watchers {
+                if !self.in_arena(s, watcher) {
+                    continue;
+                }
+                for &program in self.card_programs(s, watcher) {
+                    let p = self.program(program);
+                    if p.trigger != "onCardPlayed" {
+                        continue;
+                    }
+                    let Some(proj) = p.hooks.iter().find_map(|hook| match hook {
+                        crate::death_hooks::Hook::Event(h)
+                            if matches!(h.event, crate::death_hooks::EventName::CardPlayed) =>
+                        {
+                            h.predicate.play_projection()
+                        }
+                        _ => None,
+                    }) else {
+                        continue;
+                    };
+                    if proj.same_controller != (owner == played_owner) {
+                        continue;
+                    }
+                    if proj.other && watcher == played {
+                        continue;
+                    }
+                    if let Some(max) = proj.max_cost {
+                        if cost > max {
+                            continue;
+                        }
+                    }
+                    if let Some(aspect) = &proj.aspect {
+                        if !self
+                            .def(s, played)
+                            .info
+                            .aspects()
+                            .iter()
+                            .any(|a| a == aspect)
+                        {
+                            continue;
+                        }
+                    }
+                    if let Some(trait_name) = &proj.trait_name {
+                        if !self.card_has_trait(s, played, trait_name) {
+                            continue;
+                        }
+                    }
+                    let n = s.death_pending.len as usize;
+                    if n == MAX_DEATH_TRIGGERS {
+                        return Err("onCardPlayed watcher capacity exceeded (64)".into());
+                    }
+                    s.death_pending.entries[n] = DeathTrigger {
+                        source: watcher,
+                        program,
+                        player: owner,
+                        ..DeathTrigger::default()
+                    };
+                    s.death_pending.len += 1;
+                }
+            }
+        }
+        Ok(())
     }
     fn ordered_triggers(&self, s: &State) -> Vec<Trigger> {
         let mut out: Vec<_> = vec![];

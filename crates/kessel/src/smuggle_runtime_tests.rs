@@ -243,14 +243,15 @@ fn smuggle_cassian_enters_ready_only_from_resources() {
 #[test]
 fn hook_unsupported_shapes_reject_with_event_name() {
     let e = engine();
-    let reason = e.rejected_cards().unwrap()["HMW_115"].clone();
+    // HMW_115 / SHD_096 / SOR_109 / LOF_096 are reviewed OnCardPlayed admissions.
     assert!(
-        reason.contains("unimplemented event hook onCardPlayed"),
-        "{reason}"
+        e.by_code.contains_key("HMW_115"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("HMW_115")
     );
     let reason = e.rejected_cards().unwrap()["LOF_142"].clone();
     assert!(
-        reason.contains("unimplemented event hook onCardPlayed"),
+        reason.contains("onCardPlayed") || reason.contains("unimplemented event hook"),
         "{reason}"
     );
     let reason = e.rejected_cards().unwrap()["ASH_204"].clone();

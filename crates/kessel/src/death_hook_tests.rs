@@ -711,3 +711,89 @@ fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() 
         }}
     }
 }
+
+#[test]
+fn card_played_hook_admission_maz_yularen_leia_and_force_sentinel() {
+    let e = engine();
+    for code in ["SHD_096", "SOR_109", "HMW_115", "LOF_096"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
+    // Opponent-event damage and optional exhaust+ifYouDo stay rejected.
+    for code in ["LOF_142", "TWI_080", "SHD_255"] {
+        assert!(!e.by_code.contains_key(code), "{code} must stay rejected");
+        let reason = e.rejected_cards().unwrap()[code].clone();
+        assert!(
+            reason.contains("onCardPlayed") || reason.contains("unimplemented event hook"),
+            "{code}: {reason}"
+        );
+    }
+}
+
+#[test]
+fn card_played_maz_gains_experience_on_other_friendly_unit_play() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let maz = unit(&e, &mut s, seat, "SHD_096");
+            assert_eq!(e.upgrades(&s, maz).len(), 0);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            assert!(e.in_arena(&done, played));
+            assert_eq!(e.upgrades(&done, maz).len(), 1);
+            assert_eq!(e.power(&done, maz, false), e.def(&done, maz).info.power.unwrap_or(0) as u16 + 1);
+            // Own play does not grant Experience.
+            let mut s = midgame(&e, seat);
+            let maz = hand_for(&e, &mut s, seat, "SHD_096");
+            let done = e.apply(&s, &e.card_action(&s, maz)).unwrap();
+            assert!(e.in_arena(&done, maz));
+            assert_eq!(e.upgrades(&done, maz).len(), 0);
+            // Enemy play does not grant Experience.
+            let mut s = midgame(&e, seat);
+            let maz = unit(&e, &mut s, seat, "SHD_096");
+            let enemy = hand_for(&e, &mut s, seat.other(), "ASH_034");
+            s.active = seat.other();
+            s.action_player = Some(seat.other());
+            let done = e.apply(&s, &e.card_action(&s, enemy)).unwrap();
+            assert_eq!(e.upgrades(&done, maz).len(), 0);
+        }
+    }
+}
+
+#[test]
+fn card_played_yularen_heals_on_command_unit_including_self() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let yularen = unit(&e, &mut s, Seat::P1, "SOR_109");
+        let base = s.players[0].base;
+        s.card_mut(base).damage = 3;
+        let command = hand(&e, &mut s, "SHD_096"); // command/heroism unit
+        let done = e.apply(&s, &e.card_action(&s, command)).unwrap();
+        assert_eq!(done.card(base).damage, 2);
+        assert!(e.in_arena(&done, yularen));
+        // Self-play also heals.
+        let mut s = midgame(&e, Seat::P1);
+        let base = s.players[0].base;
+        s.card_mut(base).damage = 2;
+        let yularen = hand(&e, &mut s, "SOR_109");
+        let done = e.apply(&s, &e.card_action(&s, yularen)).unwrap();
+        assert_eq!(done.card(base).damage, 1);
+    }
+}
+
+fn hand_for(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
+    let id = add(e, s, seat, code);
+    s.player_mut(seat).hand.push(id).unwrap();
+    for _ in 0..8 {
+        let resource = add(e, s, seat, "LOF_254");
+        s.player_mut(seat).resources.push(resource).unwrap();
+    }
+    id
+}
