@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 811
+    "sourceIr": 813
   },
   "runtimeAdmittedCards": [
     {
@@ -2204,6 +2204,11 @@
       "implementation": "dataOnly",
       "internalName": "contracted-jumpmaster",
       "setCode": "JTL_184"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "boba-fett#feared-bounty-hunter",
+      "setCode": "JTL_189"
     },
     {
       "implementation": "dataOnly",
@@ -4502,6 +4507,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "armed-to-the-teeth",
+      "setCode": "SHD_175"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "desperate-attack",
       "setCode": "SHD_179"
     },
@@ -6011,7 +6021,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1200,
+  "runtimeAdmittedCount": 1202,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8172,11 +8182,6 @@
       "internalName": "moff-gideon#i-know-everything",
       "reason": "moff-gideon#i-know-everything: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "JTL_188"
-    },
-    {
-      "internalName": "boba-fett#feared-bounty-hunter",
-      "reason": "boba-fett#feared-bounty-hunter: parent references require an ordinary attached upgrade",
-      "setCode": "JTL_189"
     },
     {
       "internalName": "invincible#naval-adversary",
@@ -11079,11 +11084,6 @@
       "setCode": "SHD_174"
     },
     {
-      "internalName": "armed-to-the-teeth",
-      "reason": "armed-to-the-teeth: attached aliases require complete ordinary upgrade metadata and matching printed stats",
-      "setCode": "SHD_175"
-    },
-    {
       "internalName": "death-mark",
       "reason": "death-mark: invalid ability IR: unknown variant `gainBounty`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SHD_176"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1405,
+  "runtimeRejectedCount": 1403,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

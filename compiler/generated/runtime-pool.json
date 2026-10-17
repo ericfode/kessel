@@ -17955,6 +17955,51 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "7700932371",
+      "internalName": "boba-fett#feared-bounty-hunter",
+      "keywords": [
+        "shielded",
+        "piloting"
+      ],
+      "pilotText": "Piloting [2 resources Cunning Villainy] \nWhen played as an upgrade: You may deal 1 damage to a unit. If attached unit is a Transport, you may deal 2 damage instead.",
+      "power": 5,
+      "rules": "Pilots are considered units while not in play. If you use a \"play a unit\" ability, you may only play a Pilot as a unit. If you use a \"play an upgrade\" ability, you may only play a Pilot as an upgrade. If you use a \"play a card\" ability, you may do either.\n",
+      "setCode": "JTL_189",
+      "setCodes": [
+        {
+          "number": 189,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 189,
+        "set": "JTL"
+      },
+      "subtitle": "Feared Bounty Hunter",
+      "text": "Shielded",
+      "title": "Boba Fett",
+      "traits": [
+        "underworld",
+        "bounty hunter",
+        "pilot"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": 3,
+      "upgradePower": 2
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning",
@@ -36512,6 +36557,46 @@
       "unique": false,
       "upgradeHp": null,
       "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "1938453783",
+      "internalName": "armed-to-the-teeth",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_175",
+      "setCodes": [
+        {
+          "number": 175,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 175,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Attached unit gains: “On Attack: Give another friendly unit +2/+0 for this phase.”\nSmuggle [4 resources Aggression] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Armed to the Teeth",
+      "traits": [
+        "supply",
+        "weapon"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 2
     },
     {
       "aspects": [
