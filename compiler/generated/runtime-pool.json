@@ -7902,6 +7902,46 @@
         "command",
         "heroism"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "6907771214",
+      "internalName": "leia-organa#these-are-my-friends",
+      "keywords": [],
+      "power": 2,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "HMW_115",
+      "setCodes": [
+        {
+          "number": 115,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 115,
+        "set": "HMW"
+      },
+      "subtitle": "These Are My Friends",
+      "text": "When you play another unit that costs 3 or less: Heal 1 damage from your base.",
+      "title": "Leia Organa",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -24685,6 +24725,49 @@
         "command",
         "heroism"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6059510270",
+      "internalName": "obiwan-kenobi#protective-padawan",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_096",
+      "setCodes": [
+        {
+          "number": 96,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 96,
+        "set": "LOF"
+      },
+      "subtitle": "Protective Padawan",
+      "text": "When you play a Force unit (including this one): This unit gains Sentinel for this phase. ",
+      "title": "Obi-Wan Kenobi",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -34623,6 +34706,45 @@
         "command",
         "heroism"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "9850906885",
+      "internalName": "maz-kanata#pirate-queen",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SHD_096",
+      "setCodes": [
+        {
+          "number": 96,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 96,
+        "set": "SHD"
+      },
+      "subtitle": "Pirate Queen",
+      "text": "When you play another unit: Give an Experience token to this unit.",
+      "title": "Maz Kanata",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -38672,6 +38794,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "0961039929",
+      "internalName": "colonel-yularen#isb-director",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_109",
+      "setCodes": [
+        {
+          "number": 109,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 109,
+        "set": "SOR"
+      },
+      "subtitle": "ISB Director",
+      "text": "When you play a [Command] unit (including this one): Heal 1 damage from your base.",
+      "title": "Colonel Yularen",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

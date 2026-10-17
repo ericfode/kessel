@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 784
+    "sourceIr": 788
   },
   "runtimeAdmittedCards": [
     {
@@ -994,6 +994,11 @@
       "implementation": "sourceIr",
       "internalName": "invasion-lander",
       "setCode": "HMW_111"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "leia-organa#these-are-my-friends",
+      "setCode": "HMW_115"
     },
     {
       "implementation": "dataOnly",
@@ -3037,6 +3042,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "obiwan-kenobi#protective-padawan",
+      "setCode": "LOF_096"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "eeth-koth#spiritual-warrior",
       "setCode": "LOF_097"
     },
@@ -4272,6 +4282,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "maz-kanata#pirate-queen",
+      "setCode": "SHD_096"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "freetown-backup",
       "setCode": "SHD_097"
     },
@@ -4774,6 +4789,11 @@
       "implementation": "sourceIr",
       "internalName": "vanguard-infantry",
       "setCode": "SOR_108"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "colonel-yularen#isb-director",
+      "setCode": "SOR_109"
     },
     {
       "implementation": "sourceIr",
@@ -5876,7 +5896,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1173,
+  "runtimeAdmittedCount": 1177,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6782,11 +6802,6 @@
       "internalName": "breach",
       "reason": "breach: compiler rejected \"breach\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":17,\"file\":\"game/cards/09_HMW/events/Breach.ts\",\"line\":19,\"message\":\"callback-statement:IfStatement\",\"pattern\":\"callback-statement:IfStatement\"}]",
       "setCode": "HMW_114"
-    },
-    {
-      "internalName": "leia-organa#these-are-my-friends",
-      "reason": "leia-organa#these-are-my-friends: unimplemented event hook onCardPlayed",
-      "setCode": "HMW_115"
     },
     {
       "internalName": "saw-gerrera#shadowlands-insurgent",
@@ -9355,7 +9370,7 @@
     },
     {
       "internalName": "eighth-brother#hunt-together",
-      "reason": "eighth-brother#hunt-together: unimplemented event hook onCardPlayed",
+      "reason": "eighth-brother#hunt-together: onCardPlayed requires exact reviewed unit registration",
       "setCode": "LOF_087"
     },
     {
@@ -9372,11 +9387,6 @@
       "internalName": "jedi-consular",
       "reason": "jedi-consular: invalid ability IR: unknown variant `playCardSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "LOF_094"
-    },
-    {
-      "internalName": "obiwan-kenobi#protective-padawan",
-      "reason": "obiwan-kenobi#protective-padawan: unimplemented event hook onCardPlayed",
-      "setCode": "LOF_096"
     },
     {
       "internalName": "leia-organa#extraordinary",
@@ -9475,7 +9485,7 @@
     },
     {
       "internalName": "adi-gallia#stern-and-focused",
-      "reason": "adi-gallia#stern-and-focused: unimplemented event hook onCardPlayed",
+      "reason": "adi-gallia#stern-and-focused: onCardPlayed requires exact reviewed unit registration",
       "setCode": "LOF_142"
     },
     {
@@ -9665,7 +9675,7 @@
     },
     {
       "internalName": "kylo-ren#i-know-your-story",
-      "reason": "kylo-ren#i-know-your-story: unimplemented event hook onCardPlayed",
+      "reason": "kylo-ren#i-know-your-story: onCardPlayed requires exact reviewed unit registration",
       "setCode": "LOF_229"
     },
     {
@@ -9690,7 +9700,7 @@
     },
     {
       "internalName": "luke-skywalker#a-heros-beginning",
-      "reason": "luke-skywalker#a-heros-beginning: unimplemented event hook onCardPlayed",
+      "reason": "luke-skywalker#a-heros-beginning: onCardPlayed requires exact reviewed unit registration",
       "setCode": "LOF_249"
     },
     {
@@ -9775,7 +9785,7 @@
     },
     {
       "internalName": "luthen-rael#dont-you-want-to-fight-for-real",
-      "reason": "luthen-rael#dont-you-want-to-fight-for-real: unimplemented event hook onCardDefeated",
+      "reason": "luthen-rael#dont-you-want-to-fight-for-real: defeat hooks require one bounded typed root registration",
       "setCode": "SEC_013"
     },
     {
@@ -10530,7 +10540,7 @@
     },
     {
       "internalName": "hondo-ohnaka#thats-good-business",
-      "reason": "hondo-ohnaka#thats-good-business: unimplemented event hook onCardPlayed",
+      "reason": "hondo-ohnaka#thats-good-business: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SHD_005"
     },
     {
@@ -10545,7 +10555,7 @@
     },
     {
       "internalName": "boba-fett#daimyo",
-      "reason": "boba-fett#daimyo: unimplemented event hook onCardPlayed",
+      "reason": "boba-fett#daimyo: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SHD_008"
     },
     {
@@ -10595,7 +10605,7 @@
     },
     {
       "internalName": "the-mandalorian#sworn-to-the-creed",
-      "reason": "the-mandalorian#sworn-to-the-creed: unimplemented event hook onCardPlayed",
+      "reason": "the-mandalorian#sworn-to-the-creed: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SHD_018"
     },
     {
@@ -10777,11 +10787,6 @@
       "internalName": "clone-deserter",
       "reason": "clone-deserter: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_095"
-    },
-    {
-      "internalName": "maz-kanata#pirate-queen",
-      "reason": "maz-kanata#pirate-queen: unimplemented event hook onCardPlayed",
-      "setCode": "SHD_096"
     },
     {
       "internalName": "echo#restored",
@@ -11330,7 +11335,7 @@
     },
     {
       "internalName": "lady-proxima#white-worm-matriarch",
-      "reason": "lady-proxima#white-worm-matriarch: unimplemented event hook onCardPlayed",
+      "reason": "lady-proxima#white-worm-matriarch: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SHD_255"
     },
     {
@@ -11649,11 +11654,6 @@
       "setCode": "SOR_107"
     },
     {
-      "internalName": "colonel-yularen#isb-director",
-      "reason": "colonel-yularen#isb-director: unimplemented event hook onCardPlayed",
-      "setCode": "SOR_109"
-    },
-    {
       "internalName": "frontline-shuttle",
       "reason": "frontline-shuttle: native attacks require a complete sole ordinary unit/event registration",
       "setCode": "SOR_110"
@@ -11770,7 +11770,7 @@
     },
     {
       "internalName": "fighters-for-freedom",
-      "reason": "fighters-for-freedom: unimplemented event hook onCardPlayed",
+      "reason": "fighters-for-freedom: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SOR_143"
     },
     {
@@ -11890,7 +11890,7 @@
     },
     {
       "internalName": "bossk#deadly-stalker",
-      "reason": "bossk#deadly-stalker: unimplemented event hook onCardPlayed",
+      "reason": "bossk#deadly-stalker: onCardPlayed requires exact reviewed unit registration",
       "setCode": "SOR_182"
     },
     {
@@ -12585,7 +12585,7 @@
     },
     {
       "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
-      "reason": "poggle-the-lesser#archduke-of-the-stalgasin-hive: unimplemented event hook onCardPlayed",
+      "reason": "poggle-the-lesser#archduke-of-the-stalgasin-hive: onCardPlayed requires exact reviewed unit registration",
       "setCode": "TWI_080"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1432,
+  "runtimeRejectedCount": 1428,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
