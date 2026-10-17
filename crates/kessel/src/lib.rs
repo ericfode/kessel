@@ -40,4 +40,6 @@ mod deck_search;
 
 mod selected_player;
 
+mod discard_return;
+
 mod view_cards;

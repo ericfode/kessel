@@ -1784,7 +1784,7 @@ impl Engine {
                     pc = scope;
                     continue;
                 }
-                Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } => break,
+                Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } => break,
                 Instruction::Apply(effect) | Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup {effect,..} => {
                     if self.effect_can_affect(s, source, target, effect, require_change) {
                         return true;
@@ -2242,6 +2242,24 @@ impl Engine {
                         *skip as u8
                     };
                 }
+                Instruction::IfDiscardedSharesAspect { skip } => {
+                    s.ability_pc = if s.ability_succeeded && self.discarded_shares_base_aspect(s) {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::IfDiscardedIsUnit { skip } => {
+                    s.ability_pc = if s.ability_succeeded && self.discarded_is_unit(s) {
+                        s.ability_pc + 1
+                    } else {
+                        *skip as u8
+                    };
+                }
+                Instruction::OptionalConfirm { .. } => {
+                    s.decision = Decision::AbilityOptional;
+                    return Ok(());
+                }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
                     self.commit_program(s)?;
@@ -2314,8 +2332,11 @@ impl Engine {
                     if !self.generate_group(s,effect)? { return Ok(()); }
                     if named { self.commit_program(s)?; self.allocate_named_tokens(s,effect)?; }
                     if !self.resolve_group(s,effect)? { return Ok(()); }
+                    // Reviewed discardDeck→return continuations read discarded card ids from
+                    // ability_selection (Selection capacity matches deck-discard amount 0..=5).
+                    let discarded=self.capture_discarded_selection(s,effect);
                     s.event_group=EventGroupState::default();
-                    s.ability_selection=Selection::default();
+                    s.ability_selection=discarded;
                     s.ability_pc+=1;
                 }
                 Instruction::Apply(effect) => {
@@ -2882,9 +2903,56 @@ impl Engine {
                 "chosenPlayer" if s.ability_target != 0 && self.def(s, s.ability_target).info.is("base") => {
                     vec![Eval::Player(s.card(s.ability_target).owner)]
                 }
+                "discardedCard" => s.ability_selection.ids[..s.ability_selection.len as usize]
+                    .first()
+                    .copied()
+                    .map(|id| vec![Eval::Card(id)])
+                    .unwrap_or_default(),
+                "oddCostDiscarded" => s.ability_selection.ids[..s.ability_selection.len as usize]
+                    .iter()
+                    .copied()
+                    .filter(|&id| {
+                        let cost = self.def(s, id).info.cost();
+                        cost >= 0 && cost % 2 == 1
+                    })
+                    .map(Eval::Card)
+                    .collect(),
                 _ => vec![],
             },
         }
+    }
+    fn capture_discarded_selection(&self, s: &State, effect: &Effect) -> Selection {
+        let ops = group_ops(effect);
+        let mut out = Selection::default();
+        for r in &s.event_group.records[..s.event_group.count as usize] {
+            if !matches!(&ops[r.op as usize], GroupOp::Leaf(Effect::DiscardDeck { .. })) {
+                continue;
+            }
+            if self.def(s, r.target).info.is("base") {
+                continue;
+            }
+            if out.len as usize >= out.ids.len() {
+                break;
+            }
+            out.ids[out.len as usize] = r.target;
+            out.len += 1;
+        }
+        out
+    }
+    fn discarded_shares_base_aspect(&self, s: &State) -> bool {
+        let Some(&card) = s.ability_selection.ids[..s.ability_selection.len as usize].first() else {
+            return false;
+        };
+        let owner = s.card(s.source).owner;
+        let base = s.player(owner).base;
+        let base_aspects = self.def(s, base).info.aspects();
+        let card_aspects = self.def(s, card).info.aspects();
+        card_aspects.iter().any(|a| base_aspects.iter().any(|b| b == a))
+    }
+    fn discarded_is_unit(&self, s: &State) -> bool {
+        s.ability_selection.ids[..s.ability_selection.len as usize]
+            .first()
+            .is_some_and(|&id| self.def(s, id).info.is("unit"))
     }
     fn create_token(&self, s: &mut State, target: CardId, experience: bool) -> Result<(), String> {
         let def = if experience {
@@ -3357,7 +3425,20 @@ impl Engine {
             }
             Decision::AbilityOptional => {
                 if a.arg.as_ref().and_then(Value::as_str) == Some("pass") {
-                    self.end_program(&mut t)?;
+                    if let Some(Instruction::OptionalConfirm { skip }) =
+                        self.program(t.ability_program - 1).instructions.get(t.ability_pc as usize)
+                    {
+                        t.ability_pc = *skip as u8;
+                        self.run_program(&mut t)?;
+                    } else {
+                        self.end_program(&mut t)?;
+                    }
+                } else if matches!(
+                    self.program(t.ability_program - 1).instructions.get(t.ability_pc as usize),
+                    Some(Instruction::OptionalConfirm { .. })
+                ) {
+                    t.ability_pc += 1;
+                    self.run_program(&mut t)?;
                 } else {
                     self.run_program(&mut t)?;
                 }

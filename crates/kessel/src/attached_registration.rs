@@ -299,19 +299,21 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     strip_display_fields(&mut p);
     normalize_zone_names(&mut p);
     normalize_registration_has_cost(&mut p);
+    crate::discard_return::normalize(&mut p);
     lower_pay_resources_system(&mut p)?;
     let mut a:Ability=serde_json::from_value(p).map_err(|e|format!("piloting program: {e}"))?;
     let pay_ready=piloting_pay_ready(&a);
+    let discard_odd=piloting_discard_odd_return(&a);
     if a.trigger!="whenPlayed"||a.gained_host.is_some()||a.attached_context.is_some()||a.coordinate
         ||!a.costs.is_empty()||!a.target_resolvers.is_empty()||a.attacker_must_survive
         ||a.then.is_some()||a.condition.is_some()
-        ||(!pay_ready&&a.if_you_do.is_some())
+        ||(!(pay_ready||discard_odd)&&a.if_you_do.is_some())
         ||!piloting_self_titles_ok(&a)
     {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield/defeat/pay-ready shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield/defeat/pay-ready/discard-return shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -381,6 +383,24 @@ fn resistance_trait_predicate(e:&Expr)->bool {
         && matches!(receiver.as_ref(),Expr::Ref{path} if path==&["card"])
         && args.len()==1&&matches!(&args[0],Expr::Const{value} if value.as_str()==Some("resistance")))
 }
+/// Boshek: discard 2 from deck; if you do, return each discarded card with odd printed cost.
+fn piloting_discard_odd_return(a:&Ability)->bool {
+    let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
+    !a.optional
+        && a.target_resolver.is_none()
+        && a.context_title.is_empty()
+        && matches!(&a.effect,Effect::DiscardDeck{target:Target::Name(n),amount}
+            if n=="ownPlayer"&&amount_two(amount))
+        && a.if_you_do.as_ref().is_some_and(|next|{
+            next.trigger.is_empty()&&!next.optional&&!next.requires_confirmation&&!next.coordinate
+                && next.costs.is_empty()&&next.context_title.is_empty()
+                && next.target_resolvers.is_empty()&&next.condition.is_none()
+                && next.then.is_none()&&next.if_you_do.is_none()
+                && next.if_you_do_condition.is_none()
+                && next.target_resolver.is_none()
+                && matches!(&next.effect,Effect::ReturnToHand{target:Target::Name(n)} if n=="oddCostDiscarded")
+        })
+}
 /// BB-8: optional pay 2 resources; if you do, ready a Resistance unit.
 fn piloting_pay_ready(a:&Ability)->bool {
     let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
@@ -420,6 +440,7 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
             && r.predicate.as_ref().is_some_and(host_arena_zone_predicate)
     };
     if piloting_pay_ready(a) {return true;}
+    if piloting_discard_odd_return(a) {return true;}
     match &a.effect {
         Effect::Heal{target:Target::Name(n),amount} if n=="chosen"&&amount_two(amount)
             && a.optional
@@ -633,7 +654,11 @@ fn self_programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
 pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let raw=&entry["abilities"];
     if internal(raw) {return Err("attachedHost is an internal program marker".into());}
-    if !marker(raw)&&!crate::attached_constants::marker(raw) {return serde_json::from_value(raw.clone()).map_err(|e|format!("invalid ability IR: {e}"));}
+    if !marker(raw)&&!crate::attached_constants::marker(raw) {
+        let mut abilities=raw.clone();
+        crate::discard_return::normalize(&mut abilities);
+        return serde_json::from_value(abilities).map_err(|e|format!("invalid ability IR: {e}"));
+    }
     if !raw.as_object().is_some_and(|o|o.len()==3&&["leader","unit","card"].iter().all(|k|o.contains_key(*k)))||!source_meta(entry) {
         return Err("attached aliases require complete ordinary upgrade metadata and matching printed stats".into());
     }

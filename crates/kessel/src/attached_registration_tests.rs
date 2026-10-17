@@ -911,3 +911,104 @@ fn will_defeat_shoot_down_optional_base_followup() {
     let done=e.apply(&follow,&e.card_action(&follow,enemy_base)).unwrap();
     assert_eq!(done.card(enemy_base).damage,before+2);
 }
+
+#[test]
+fn discard_return_admits_boshek_kuiil_krennic() {
+    let e=engine();
+    for code in ["JTL_215","SHD_041","SEC_090"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
+    // Trace still needs distributeHealingAmong.
+    assert!(!e.by_code.contains_key("JTL_066"),"Trace still rejected");
+}
+
+#[test]
+fn kuiil_returns_discarded_card_when_aspects_match() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let source=unit(&e,&mut s,Seat::P1,"SHD_041");
+    s.card_mut(source).exhausted=false;
+    // ASH_019 is vigilance; ASH_068 shares vigilance and will return.
+    let matching=add(&e,&mut s,Seat::P1,"ASH_068");
+    s.players[0].deck.push(matching).unwrap();
+    let before_hand=s.players[0].hand.len;
+    let mut done=attack(&e,s,source,s.players[1].base);
+    // Non-optional On Attack enters TriggerOrder; resolve the ability.
+    if done.decision==Decision::TriggerOrder {
+        let trigger=e.legal_actions(&done).into_iter()
+            .find(|a|a.label.contains("Discard")||a.label=="Trigger")
+            .unwrap_or_else(||panic!("missing Kuiil trigger: {:?}",e.legal_actions(&done)));
+        done=e.apply(&done,&trigger).unwrap();
+    }
+    assert!(done.players[0].hand.contains(matching),"matching aspect returns");
+    assert!(!done.players[0].discard.contains(matching));
+    assert_eq!(done.players[0].hand.len,before_hand+1);
+    assert_eq!(done.decision,Decision::Window);
+
+    // No shared aspect: discarded card stays in discard.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let source=unit(&e,&mut s,Seat::P1,"SHD_041");
+    s.card_mut(source).exhausted=false;
+    let mismatch=add(&e,&mut s,Seat::P1,"LOF_256"); // no aspects
+    s.players[0].deck.push(mismatch).unwrap();
+    let mut done=attack(&e,s,source,s.players[1].base);
+    if done.decision==Decision::TriggerOrder {
+        let trigger=e.legal_actions(&done).into_iter()
+            .find(|a|a.label.contains("Discard")||a.label=="Trigger")
+            .unwrap_or_else(||panic!("missing Kuiil trigger: {:?}",e.legal_actions(&done)));
+        done=e.apply(&done,&trigger).unwrap();
+    }
+    assert!(done.players[0].discard.contains(mismatch),"no shared aspect stays discarded");
+    assert!(!done.players[0].hand.contains(mismatch));
+}
+
+#[test]
+fn boshek_returns_odd_cost_discarded_while_attached() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let host=unit(&e,&mut s,Seat::P1,"TOKEN_XWING");
+    let pilot=attach(&e,&mut s,Seat::P1,"JTL_215",host);
+    // Deck top two: odd then even (discardDeck takes from the front).
+    let odd=add(&e,&mut s,Seat::P1,"ASH_068"); // cost 1
+    let even=add(&e,&mut s,Seat::P1,"ASH_040"); // cost 2
+    s.players[0].deck.push(odd).unwrap();
+    s.players[0].deck.push(even).unwrap();
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert!(s.players[0].hand.contains(odd),"odd cost returns");
+    assert!(s.players[0].discard.contains(even),"even cost stays discarded");
+    assert!(!s.players[0].hand.contains(even));
+    assert!(!s.players[0].discard.contains(odd));
+}
+
+#[test]
+fn krennic_optional_return_of_discarded_unit_on_defense() {
+    let e=engine();
+    let mut s=board(&e);s.round=5;s.active=Seat::P2;s.action_player=Some(Seat::P2);
+    let defender=unit(&e,&mut s,Seat::P1,"SEC_090");
+    let attacker=unit(&e,&mut s,Seat::P2,"LOF_254");
+    s.card_mut(attacker).exhausted=false;
+    let discarded=add(&e,&mut s,Seat::P1,"ASH_068");
+    s.players[0].deck.push(discarded).unwrap();
+    let prompt=attack(&e,s,attacker,defender);
+    assert_eq!(prompt.decision,Decision::AbilityOptional,"unit discard offers confirm");
+    assert!(prompt.players[0].discard.contains(discarded));
+    let done=e.apply(&prompt,&Action::button("Trigger","trigger")).unwrap();
+    assert!(done.players[0].hand.contains(discarded),"Trigger returns unit");
+    assert!(!done.players[0].discard.contains(discarded));
+
+    // Pass leaves the unit in discard.
+    let mut s=board(&e);s.round=5;s.active=Seat::P2;s.action_player=Some(Seat::P2);
+    let defender=unit(&e,&mut s,Seat::P1,"SEC_090");
+    let attacker=unit(&e,&mut s,Seat::P2,"LOF_254");
+    s.card_mut(attacker).exhausted=false;
+    let discarded=add(&e,&mut s,Seat::P1,"ASH_068");
+    s.players[0].deck.push(discarded).unwrap();
+    let prompt=attack(&e,s,attacker,defender);
+    let done=e.apply(&prompt,&Action::button("Pass","pass")).unwrap();
+    assert!(done.players[0].discard.contains(discarded));
+    assert!(!done.players[0].hand.contains(discarded));
+}

@@ -44,6 +44,9 @@ mod deck_search;
 #[path = "src/selected_player.rs"]
 mod selected_player;
 #[allow(dead_code)]
+#[path = "src/discard_return.rs"]
+mod discard_return;
+#[allow(dead_code)]
 #[path = "src/view_cards.rs"]
 mod view_cards;
 mod expression_codegen;
@@ -176,6 +179,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
     println!("cargo:rerun-if-changed=src/selected_player.rs");
+    println!("cargo:rerun-if-changed=src/discard_return.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");

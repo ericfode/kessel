@@ -664,6 +664,8 @@ impl Target {
                     "ownPlayer",
                     "enemyPlayer",
                     "bothPlayers",
+                    "discardedCard",
+                    "oddCostDiscarded",
                 ]
                 .contains(&s.as_str()) =>
             {
@@ -1281,6 +1283,12 @@ pub enum Instruction {
     IfResult { skip: usize },
     /// ifYouDo gated by reviewed resolvedEvents[0].willDefeat (and prior step success).
     IfWillDefeat { skip: usize },
+    /// ifYouDo gated by discarded card sharing an aspect with the acting player's base.
+    IfDiscardedSharesAspect { skip: usize },
+    /// ifYouDo gated by discarded card being a unit.
+    IfDiscardedIsUnit { skip: usize },
+    /// Mid-program optional confirm (Krennic discarded-unit return).
+    OptionalConfirm { skip: usize },
     Jump { to: usize },
     Apply(Effect),
     Group(Effect),
@@ -1683,6 +1691,11 @@ fn will_defeat_if_you_do_condition(v:&Value)->bool {
         && v["contextBinding"]["reference"]=="lexicalContextObject"
         && v["contextBinding"]["id"].as_str().is_some_and(|id|id.starts_with("callback:")&&id.len()<=64)
 }
+fn discard_return_if_you_do_condition(v:&Value)->Option<&'static str> {
+    if crate::discard_return::shares_base_aspect_condition(v) {return Some("aspect");}
+    if crate::discard_return::discarded_is_unit_condition(v) {return Some("unit");}
+    None
+}
 fn plain_result_child(a:&Ability)->bool {a.trigger.is_empty()&&!a.optional&&!a.coordinate&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.condition.is_none()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()}
 fn resolved_defeat_continuation(a:&Ability)->bool {
     let Some(next)=a.then.as_deref() else{return false;};
@@ -1728,7 +1741,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::Jump { .. } => {}
+                Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -2280,18 +2293,38 @@ impl Program {
         if let Some(next) = &ability.if_you_do {
             let start = self.instructions.len();
             let will_defeat = next.if_you_do_condition.as_ref().is_some_and(will_defeat_if_you_do_condition);
-            if next.if_you_do_condition.is_some() && !will_defeat {
+            let discard_gate = next.if_you_do_condition.as_ref().and_then(discard_return_if_you_do_condition);
+            if next.if_you_do_condition.is_some() && !will_defeat && discard_gate.is_none() {
                 return Err("ifYouDoCondition requires reviewed willDefeat eventResult".into());
             }
             if will_defeat {
                 self.instructions.push(Instruction::IfWillDefeat { skip: 0 });
+            } else if discard_gate == Some("aspect") {
+                self.instructions.push(Instruction::IfDiscardedSharesAspect { skip: 0 });
+            } else if discard_gate == Some("unit") {
+                self.instructions.push(Instruction::IfDiscardedIsUnit { skip: 0 });
             } else {
                 self.instructions.push(Instruction::IfResult { skip: 0 });
             }
             // Optional ifYouDo + selectCard lowers to an optional selector (Choose nothing),
             // matching the reviewed Vader / Shoot Down "you may" continuation.
+            // Krennic: optional return of the discarded unit uses OptionalConfirm.
             let mut next = (**next).clone();
+            let discarded_return = matches!(
+                &next.effect,
+                Effect::ReturnToHand { target: Target::Name(n) } if n == "discardedCard"
+            );
             if next.optional {
+                if discarded_return && discard_gate == Some("unit") {
+                    next.optional = false;
+                    let confirm_at = self.instructions.len();
+                    self.instructions.push(Instruction::OptionalConfirm { skip: 0 });
+                    self.compile_ability(&next, depth + 1)?;
+                    let end = self.instructions.len();
+                    self.instructions[confirm_at] = Instruction::OptionalConfirm { skip: end };
+                    self.instructions[start] = Instruction::IfDiscardedIsUnit { skip: end };
+                    return Ok(());
+                }
                 let Effect::Select { target_resolver, effect } = &next.effect else {
                     return Err(
                         "nested continuation costs, optional triggers and registrations are unsupported"
@@ -2318,14 +2351,15 @@ impl Program {
                 };
             }
             self.compile_ability(&next, depth + 1)?;
+            let end = self.instructions.len();
             if will_defeat {
-                self.instructions[start] = Instruction::IfWillDefeat {
-                    skip: self.instructions.len(),
-                };
+                self.instructions[start] = Instruction::IfWillDefeat { skip: end };
+            } else if discard_gate == Some("aspect") {
+                self.instructions[start] = Instruction::IfDiscardedSharesAspect { skip: end };
+            } else if discard_gate == Some("unit") {
+                self.instructions[start] = Instruction::IfDiscardedIsUnit { skip: end };
             } else {
-                self.instructions[start] = Instruction::IfResult {
-                    skip: self.instructions.len(),
-                };
+                self.instructions[start] = Instruction::IfResult { skip: end };
             }
         }
         Ok(())
@@ -2847,7 +2881,13 @@ impl Catalogue {
                 let basezone_relevant=entry["abilities"]["card"].as_array().is_some_and(|a|(entry["baseClass"]=="BaseCard"||entry["card"]["types"].as_array().is_some_and(|t|t.iter().any(|v|v=="base")))&&!a.is_empty()) || entry["abilities"]["leader"].as_array().is_some_and(|a|a.iter().any(|a|a["trigger"]=="constant"));
                 if basezone_relevant&&basezone_source_kind(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
-                let sides: Sides = crate::attached_registration::sides(entry)?;
+                let sides: Sides = {
+                    let mut abilities = entry["abilities"].clone();
+                    crate::discard_return::normalize(&mut abilities);
+                    let mut normalized = entry.clone();
+                    normalized["abilities"] = abilities;
+                    crate::attached_registration::sides(&normalized)?
+                };
                 if piloting_keyword_grant
                     && (sides.card.is_empty()
                         || sides.card.len() > 8
