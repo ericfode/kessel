@@ -1,5 +1,8 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/pay_adjusted_resources.rs"]
+mod pay_adjusted_resources;
+#[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
 
@@ -98,7 +101,7 @@ fn targets(t: &Target) -> Result<String, String> {
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
-    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
+    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }

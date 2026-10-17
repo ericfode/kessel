@@ -45,3 +45,5 @@ mod selected_player;
 mod discard_return;
 
 mod view_cards;
+
+mod pay_adjusted_resources;

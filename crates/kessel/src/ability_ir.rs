@@ -883,6 +883,22 @@ pub enum Effect {
         target: Target,
         amount: Expr,
     },
+    /// Card-effect resource payment ("You may pay N resources"): the source
+    /// controller exhausts N ready resources, and the continuation runs only if
+    /// the whole charge was available. Raw shape mirrors the compiler's
+    /// `payResources` lowering; no cost adjusters exist in the admitted model.
+    PayAdjustedResources {
+        target: Target,
+        amount: Expr,
+        #[serde(rename = "paymentType")]
+        payment_type: String,
+        #[serde(rename = "isCost")]
+        is_cost: bool,
+        #[serde(rename = "canCancelDuringPayment")]
+        can_cancel_during_payment: bool,
+        #[serde(rename = "allowCostAdjustments")]
+        allow_cost_adjustments: bool,
+    },
     NoAction,
     ResourceCard { target: Target },
     ReturnToHand {
@@ -1023,6 +1039,7 @@ impl Effect {
             | Self::CreateTokenUnit { amount, target, .. } | Self::Damage { amount, target }
             | Self::Heal { amount, target } | Self::Draw { amount, target }
             | Self::ReadyResources { amount, target } | Self::PayResources { amount, target }
+            | Self::PayAdjustedResources { amount, target, .. }
             | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
@@ -2469,7 +2486,7 @@ impl Program {
                 Effect::DiscardDeck {amount,target} => (Program::scalar_deck_amount(amount,target)?+1,false,false),
                 Effect::Draw {amount,target} => {Program::scalar_hand_amount(amount,target)?;(2,false,false)},
                 Effect::CreateTokenUnit {token_type,amount,target,..} => (Program::token_unit_amount(token_type,amount,target)?+1,false,true),
-                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => (0,false,false),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2654,6 +2671,10 @@ impl Program {
                 {
                     return Err("chosen-player resource ready amount must be literal 1..2".into());
                 }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::PayAdjustedResources { .. } => {
+                crate::pay_adjusted_resources::amount(effect)?;
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::PayResources {amount,target} => {
@@ -2850,6 +2871,7 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                crate::pay_adjusted_resources::validate_entry(entry)?;
                 for key in ["abilities", "attachCondition", "piloting"] { crate::deck_search::reject(&entry[key])?; }
                 // Upgrade grant/host refs use source.parent* or target "parent".
                 // Selector predicates on an upgrade candidate use card.parent* and must not

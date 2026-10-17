@@ -1643,6 +1643,10 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::PayAdjustedResources { .. } => {
+                let Ok(amount) = crate::pay_adjusted_resources::amount(e) else { return false; };
+                return source != 0 && self.ready_resources(s, s.card(source).owner) >= amount as usize;
+            }
             Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
@@ -3114,6 +3118,21 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if let Effect::PayAdjustedResources { target, .. } = e {
+            let amount = crate::pay_adjusted_resources::amount(e)?;
+            if s.source == 0 { return Err("payAdjustedResources requires an ability source".into()); }
+            let payer = s.card(s.source).owner;
+            if self.effect_targets(s, target) != vec![Eval::Player(payer)] {
+                return Err("payAdjustedResources payer is not the source controller".into());
+            }
+            // ResourceCost rejects an unaffordable whole charge. Preflight before
+            // reusing the existing unadjusted exhaustion primitive, which may pay
+            // partially. No admitted definition supplies card-effect adjusters.
+            if self.ready_resources(s, payer) < amount as usize { return Ok((0, false)); }
+            return self.apply_effect_inner(s, &Effect::PayResources {
+                target: target.clone(), amount: Expr::number(amount as i64),
+            });
+        }
         if let Effect::Defeat{target:Target::Expression(expression)}=e {
             if expression.attachment_defeat_filter().is_some() {
                 // One native target list is generated before any handler runs.
@@ -4285,3 +4304,7 @@ mod native_heal_weakness_tests;
 #[cfg(test)]
 #[path="advantage_tests.rs"]
 mod advantage_tests;
+
+#[cfg(test)]
+#[path = "pay_adjusted_resources_tests.rs"]
+mod pay_adjusted_resources_tests;
