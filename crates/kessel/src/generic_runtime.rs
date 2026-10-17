@@ -526,6 +526,19 @@ impl Engine {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
                         continue;
                     }
+                    if name=="bounty" {
+                        // Bounty is an ability-definition keyword: the compiler never
+                        // emits a keywordValue for it (compiler/build.js omits
+                        // ability-definition keywords), and provider metadata lists
+                        // mentions too (e.g. "If an enemy unit has a Bounty").
+                        // `Catalogue::load` already bound the printed own-line count to
+                        // the reviewed registrations, so a mention stays metadata-only
+                        // and a printed instance is executable here.
+                        if crate::bounty::printed_count(entry)==0 { continue; }
+                        if info.is("leader") || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].trigger=="bounty").count()!=1 {return Err("printed Bounty requires exactly one reviewed unit-side registration".into());}
+                        flags |= BOUNTY;
+                        continue;
+                    }
                     if !crate::ability_ir::CORE_KEYWORDS.contains(&name) { return Err(format!("unimplemented runtime keyword {name}")); }
                     // Provider metadata includes keyword mentions in abilities.
                     // Only the compiler's engine-matching printed-text parse
@@ -991,6 +1004,13 @@ impl Engine {
             .any(|(_, e)| matches!(e, Effect::DealsCombatDamageFirst { target: Target::Name(n), duration } if n == "self" && duration == "persistent"))
     }
     pub(super) fn has_keyword(&self, s: &State, target: CardId, keyword: &str) -> bool {
+        // Printed Bounty is an ability-definition keyword instance: it answers keyword
+        // queries (e.g. "If an enemy unit has a Bounty") but is not part of the
+        // numeric/flag inventory. No supported effect grants or removes it, so the
+        // reviewed definition flag is the whole answer.
+        if keyword == "bounty" {
+            return self.def(s, target).flags & BOUNTY != 0;
+        }
         let Some(index) = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| *k == keyword) else { return false; };
         if s.card(target).lost_keyword_mask() & (1 << index) != 0 { return false; }
         let effects = self.constant_effects_matching(s, target, ConstantScope::Keyword(Some(keyword)));
@@ -1720,19 +1740,23 @@ impl Engine {
             _ => self.instructions_can_affect(s, source, 0, p, 0, usize::MAX, require_change),
         }
     }
-    pub(super) fn program_menu_title(&self, s: &State, source: CardId, p: u16) -> String {
+    /// The registration's displayed title, resolved for the current context. The
+    /// effect-availability suffix is a separate decision (`program_menu_title`).
+    pub(super) fn program_title(&self, s: &State, source: CardId, p: u16) -> String {
         let program = self.program(p);
-        let title = if program.context_title.is_empty() { program.title.clone() } else {
-            program.context_title.iter().map(|fragment| match self.eval(s, source, s.ability_target, fragment) {
-                Eval::Text(value) => value,
-                Eval::Number(value) => value.to_string(),
-                Eval::Bool(value) => value.to_string(),
-                Eval::Null => "null".into(),
-                _ => "[object Object]".into(),
-            }).collect::<String>()
-        };
+        if program.context_title.is_empty() { return program.title.clone(); }
+        program.context_title.iter().map(|fragment| match self.eval(s, source, s.ability_target, fragment) {
+            Eval::Text(value) => value,
+            Eval::Number(value) => value.to_string(),
+            Eval::Bool(value) => value.to_string(),
+            Eval::Null => "null".into(),
+            _ => "[object Object]".into(),
+        }).collect::<String>()
+    }
+    pub(super) fn program_menu_title(&self, s: &State, source: CardId, p: u16) -> String {
+        let title = self.program_title(s, source, p);
         if self.trigger_has_effect(s, source, p) {
-            title.clone()
+            title
         } else {
             format!("(No effect) {title}")
         }
@@ -1875,7 +1899,10 @@ impl Engine {
     }
     /// New work chooses a named continuation; only suspended state stores its
     /// historical numeric representation. Legacy raw return decoding stays in end_program.
-    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+    /// Reset the per-ability fields and bind the continuation. Shared by ordinary
+    /// registrations and the two keyword-owned defeat flows so their phase order
+    /// (fields, prompt, effect gate, execution) cannot drift apart.
+    fn start_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) {
         s.disclose=DiscloseState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
@@ -1884,11 +1911,30 @@ impl Engine {
         s.ability_selection=Selection::default();
         s.event_group=EventGroupState::default();
         s.event_result=StepEventResult::default();
-        if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;}
+        // Defeat registrations keep the pre-handler LKI snapshot captured for them.
+        if !matches!(self.program(p).trigger.as_str(),"whenDefeated"|"bounty") {s.last_known_source=0;s.last_known_power=0;}
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = return_to.raw();
         s.ability_committed = return_to != ProgramContinuation::Finish;
+    }
+    /// A Bounty registration is always offered: the engine sets
+    /// `canResolveWithoutLegalTargets` and overrides `hasAnyLegalEffects` to true, so
+    /// an optional bounty prompts even without a legal target and a mandatory one
+    /// resolves (collecting the bounty) even when its effect cannot change state.
+    fn begin_bounty_program(&self, s: &mut State, p: u16) -> Result<(), String> {
+        self.start_program(s, p, ProgramContinuation::Deaths);
+        if self.program(p).optional {
+            s.decision = Decision::AbilityOptional;
+            return Ok(());
+        }
+        if !self.program_has_effect_mode(s, s.source, p, false) {
+            return self.end_program(s);
+        }
+        self.run_program(s)
+    }
+    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        self.start_program(s, p, return_to);
         if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
@@ -2067,8 +2113,22 @@ impl Engine {
             }
         }
     }
-    fn effect_targets(&self, s: &State, target: &Target) -> Vec<Eval> {
+    /// The engine's ability context player (`AbilityContext.player`). Ordinary
+    /// abilities resolve relative to their source card's controller. A Bounty
+    /// registration is controlled by the opponent of the defeated unit's controller
+    /// (`RelativePlayer.Opponent`), and while that program runs `ability_program`
+    /// identifies it, so "own"/"enemy" effect targets follow the collector without
+    /// storing a second player in `State`.
+    pub(super) fn context_owner(&self, s: &State) -> Seat {
         let owner = s.card(s.source).owner;
+        if s.ability_program != 0 && self.program(s.ability_program - 1).trigger == "bounty" {
+            owner.other()
+        } else {
+            owner
+        }
+    }
+    fn effect_targets(&self, s: &State, target: &Target) -> Vec<Eval> {
+        let owner = self.context_owner(s);
         match target {
             Target::ArenaList(list)=>{
                 let seat=match self.eval(s,s.source,s.ability_target,&list.receiver) {Eval::Player(seat)=>Some(seat),_=>None};
@@ -2166,12 +2226,14 @@ impl Engine {
     }
     fn resource_top_deck_eligible(&self,s:&State,id:CardId)->bool {
         if id==0||!s.card(id).present||s.source==0{return false;}
-        let owner=s.card(s.source).owner;let info=&self.def(s,id).info;
+        // The deck is the context player's, not the source card's controller's: a
+        // Bounty collects for the opponent of the defeated unit's controller.
+        let owner=self.context_owner(s);let info=&self.def(s,id).info;
         s.card(id).owner==owner&&s.player(owner).deck.as_slice().first()==Some(&id)&&!info.is("leader")&&!info.is("token")&&(info.is("unit")||info.is("event")||info.is("upgrade"))
     }
     fn resource_top_deck(&self,s:&mut State,id:CardId)->Result<u16,String> {
         if !self.resource_top_deck_eligible(s,id){return Ok(0);}
-        let owner=s.card(s.source).owner;
+        let owner=s.card(id).owner;
         if s.player(owner).resources.len as usize>=crate::model::MAX_ZONE{return Err("resource zone capacity exceeded".into());}
         // Preserve the ability source. The target vector captured this physical
         // deck-front identity before this single event handler mutates zones.
@@ -2720,7 +2782,17 @@ impl Engine {
                 if a.arg.as_ref().and_then(Value::as_str) == Some("pass") {
                     self.end_program(&mut t)?;
                 } else {
-                    self.run_program(&mut t)?;
+                    // An optional Bounty is offered even when its effect currently
+                    // cannot change state; resolving it collects the bounty with no
+                    // further effect instead of entering an empty selector.
+                    let p = t.ability_program - 1;
+                    if self.program(p).trigger == "bounty"
+                        && !self.program_has_effect_mode(&t, t.source, p, false)
+                    {
+                        self.end_program(&mut t)?;
+                    } else {
+                        self.run_program(&mut t)?;
+                    }
                 }
             }
             Decision::AbilityTarget => {
@@ -2801,6 +2873,19 @@ impl Engine {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
             s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.len+=1;
+        }
+        // A printed Bounty registers on the same defeat event (`OnCardDefeated:
+        // preResolve` in the pinned UnitProperties listener) but is controlled by the
+        // opponent of the source's controller, so it enters the same window under the
+        // collector's player bucket. The registration is not optional-gated: the
+        // engine's BountyAbility always has a legal effect (collecting), so the window
+        // must offer it even when the effect cannot change state.
+        for &program in self.card_programs(s,id) {
+            if self.program(program).trigger!="bounty" {continue;}
+            let n=s.death_pending.len as usize;
+            if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
+            s.death_pending.entries[n]=DeathTrigger {last_known_power:context.last_known_power,grantor:0,source:id,program,player:s.card(id).owner.other(),after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:T_BOUNTY};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -2971,7 +3056,10 @@ impl Engine {
     }
     fn death_title(&self,s:&State,e:DeathTrigger,static_title:bool)->String {
         let c=self.captured_trigger_context(s,e);
-        if e.keyword!=0 {let title=self.trigger_title(&c,e.keyword);if !static_title&&!self.trigger_effect(&c,e.keyword) {format!("(No effect) {title}")}else{title}}
+        // A Bounty registration always has a legal effect (collecting), so it never
+        // takes the "(No effect)" prefix that unavailable keyword/effect entries use.
+        if e.keyword==T_BOUNTY {if static_title {self.program(e.program).title.clone()}else{self.program_title(&c,e.source,e.program)}}
+        else if e.keyword!=0 {let title=self.trigger_title(&c,e.keyword);if !static_title&&!self.trigger_effect(&c,e.keyword) {format!("(No effect) {title}")}else{title}}
         else if static_title {self.program(e.program).title.clone()}else{self.program_menu_title(&c,e.source,e.program)}
     }
     fn same_death_group(&self,s:&State,a:DeathTrigger,b:DeathTrigger)->bool {
@@ -2988,6 +3076,9 @@ impl Engine {
         groups
     }
     fn death_has_effect(&self,s:&State,e:DeathTrigger)->bool {
+        // `BountyAbility.hasAnyLegalEffects()` is true and
+        // `canResolveWithoutLegalTargets` is set, so collecting is always available.
+        if e.keyword==T_BOUNTY {return true;}
         let context=self.captured_trigger_context(s,e);
         if e.keyword!=0 {self.trigger_effect(&context,e.keyword)}else{self.trigger_has_effect(&context,e.source,e.program)}
     }
@@ -2998,7 +3089,9 @@ impl Engine {
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
         let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
-        if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
+        if e.keyword==T_BOUNTY {self.begin_bounty_program(s,e.program)}
+        else if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}
+        else {self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
         loop {
