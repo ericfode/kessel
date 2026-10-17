@@ -284,7 +284,7 @@ fn modal_manufactured_soldiers_choose_before_payment_then_create_exact_exhausted
         assert_eq!(done.next_id, next + count);
         assert_eq!(
             e.ready_resources(&done, Seat::P1),
-            e.ready_resources(&s, Seat::P1) - e.cost(&s, source)
+            e.ready_resources(&s, Seat::P1) - usize::from(e.cost(&s, source))
         );
         for id in next..done.next_id {
             assert_eq!(e.def(&done, id).code, token);
