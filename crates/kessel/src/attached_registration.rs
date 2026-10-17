@@ -7,9 +7,11 @@
 //! the physical host while the pilot is attached.
 //!
 //! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber /
-//! Boba Fett / Mandalorian) keeps the program on the pilot and fires WhenPlayed only while
-//! attached. Reviewed Pilots may also carry one unit-side WhenPlayed companion that fires
-//! only while unattached (Mandalorian exhaust up to 2 ground).
+//! Boba Fett / Mandalorian / Iden) keeps the program on the pilot and fires only while
+//! attached. Reviewed shapes are WhenPlayed, or self-attach `onUpgradeAttached`
+//! (`event.upgradeCard === source`) normalized to the same whenPlayed-while-attached path
+//! (Iden parent Shield). Reviewed Pilots may also carry one unit-side WhenPlayed companion
+//! that fires only while unattached (Mandalorian exhaust up to 2 ground).
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -206,10 +208,26 @@ fn piloting_self_titles_ok(a:&Ability)->bool {
     a.context_title.is_empty()
         || parent_trait_scaled_title_parts(&a.context_title,"transport",2,1)
 }
-/// WhenPlayed body on the pilot while attached; may read `source.parentCard` for host filters.
+/// Exact self-attach watcher: this upgrade is the one that just attached.
+fn self_upgrade_attached_hooks(hooks:&Value)->bool {
+    *hooks==json!([{
+        "event":"onUpgradeAttached",
+        "predicate":{
+            "kind":"binary","op":"===",
+            "left":{"kind":"ref","path":["event","upgradeCard"]},
+            "right":{"kind":"ref","path":["source"]}
+        }
+    }])
+}
+fn parent_card_ref(e:&Expr)->bool {
+    matches!(e,Expr::Ref{path} if path==&["source","parentCard"])
+}
+/// WhenPlayed / self-attach body on the pilot while attached; may read `source.parentCard`
+/// for host filters or (Iden) give Shield directly to the host.
 fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
     if p["title"]!=title {return Err("piloting registration requires matching ability title".into());}
-    // Effects that install onto the host belong on attachedAbilityRegistration.
+    // Named "parent" grants belong on attachedAbilityRegistration. Expression
+    // `source.parentCard` Shield is the reviewed Iden self-attach shape.
     if parent_effect_target(&p) {
         return Err("pilotingRegistration WhenPlayed cannot grant parent-targeted effects".into());
     }
@@ -229,7 +247,7 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust/shield shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -329,6 +347,12 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
         Effect::Exhaust{target:Target::Name(n)} if n=="chosen"
             && !a.optional
             && a.target_resolver.as_ref().is_some_and(host_arena_enemy_resolver) => true,
+        // Iden: Give Shield 1 to the attached host when this upgrade attaches.
+        Effect::GiveShield{target:Target::Expression(e),amount} if amount_one(amount)
+            && parent_card_ref(e)
+            && !a.optional
+            && a.target_resolver.is_none()
+            && a.context_title.is_empty() => true,
         _ => false,
     }
 }
@@ -485,9 +509,12 @@ fn self_programs(v:&Value,entry:&Value)->Result<Vec<Ability>,String> {
     let mut p=g.registration.program;
     let trigger=p["trigger"].as_str().ok_or("piloting registration missing trigger")?.to_owned();
     let hooks=p["hooks"].clone();
-    if trigger!="eventHooks"||hooks!=json!([{"alias":"whenPlayed","enabled":true}]) {
-        return Err("pilotingRegistration admits only WhenPlayed eventHooks".into());
+    let when_played=hooks==json!([{"alias":"whenPlayed","enabled":true}]);
+    let self_attach=self_upgrade_attached_hooks(&hooks);
+    if trigger!="eventHooks"||!(when_played||self_attach) {
+        return Err("pilotingRegistration admits only WhenPlayed or self-attach onUpgradeAttached".into());
     }
+    // Self-attach (`upgradeCard === source`) is the attach-time WhenPlayed for pilots.
     p["trigger"]=json!("whenPlayed");
     Ok(vec![compile_self_when_played(p,&w.title)?])
 }
@@ -563,8 +590,9 @@ pub(crate) fn piloting_host_entry(entry:&Value)->bool {
         })
         && sides(entry).is_ok()
 }
-/// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract.
-/// May include one reviewed unit-side WhenPlayed exhaust companion (Mandalorian).
+/// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract
+/// (including Iden self-attach Shield). May include one reviewed unit-side WhenPlayed
+/// exhaust companion (Mandalorian).
 pub(crate) fn piloting_self_entry(entry:&Value)->bool {
     plain_pilot(entry)
         && entry["abilities"]["card"].as_array().is_some_and(|card|{

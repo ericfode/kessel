@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","JTL_210","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_036","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","JTL_210","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -419,6 +419,60 @@ fn piloting_self_rejects_non_when_played_and_companions() {
         }
         assert!(!admitted(bad),"{path}");
     }
+}
+
+#[test]
+fn piloting_self_iden_gives_host_shield_when_attached() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_036"),"{:?}",e.rejected_cards().unwrap().get("JTL_036"));
+    assert!(e.by_code.contains_key("TOKEN_SHIELD"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        assert_eq!(e.upgrades(&s,host).iter().filter(|&&id|e.def(&s,id).code=="TOKEN_SHIELD").count(),0);
+        let pilot=attach(&e,&mut s,seat,"JTL_036",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::Window,"{seat:?} auto-resolves");
+        assert_eq!(e.upgrades(&s,host).iter().filter(|&&id|e.def(&s,id).code=="TOKEN_SHIELD").count(),1,"{seat:?} host shield");
+        assert!(e.upgrades(&s,host).contains(&pilot),"{seat:?} pilot still attached");
+    }
+    // Played as a unit: attach watcher must not fire (Shielded is intrinsic separately).
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_036");
+    let before=e.upgrades(&s,pilot).len();
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::Window);
+    assert_eq!(e.upgrades(&s,pilot).len(),before,"unit play does not run attach Shield");
+}
+
+#[test]
+fn piloting_self_iden_rejects_partial_attach_and_shield_shapes() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_036").unwrap().clone();
+    let admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_036");
+    assert!(admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_self_entry(&original));
+    // Watcher must be self-attach, not an unrelated upgrade attach.
+    let mut other_attach=original.clone();
+    other_attach["abilities"]["card"][0]["effect"]["registration"]["program"]["hooks"]=json!([{
+        "event":"onUpgradeAttached",
+        "predicate":{"kind":"binary","op":"===",
+            "left":{"kind":"ref","path":["event","parentCard"]},
+            "right":{"kind":"ref","path":["source","parentCard"]}}
+    }]);
+    assert!(!admitted(other_attach),"non-self attach predicate");
+    // Amount drift.
+    let mut amount=original.clone();
+    amount["abilities"]["card"][0]["effect"]["registration"]["program"]["effect"]["amount"]["value"]=json!(2);
+    assert!(!admitted(amount),"shield amount");
+    // Named parent grant belongs on attachedAbilityRegistration, not Expression rewrite.
+    let mut named_parent=original.clone();
+    named_parent["abilities"]["card"][0]["effect"]["registration"]["program"]["effect"]["target"]=json!("parent");
+    assert!(!admitted(named_parent),"named parent target");
+    // Optional would change the attach contract.
+    let mut optional=original.clone();
+    optional["abilities"]["card"][0]["effect"]["registration"]["program"]["optional"]=json!(true);
+    assert!(!admitted(optional),"optional");
 }
 
 #[test]
