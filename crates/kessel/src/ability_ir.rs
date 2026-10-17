@@ -3086,7 +3086,11 @@ impl Catalogue {
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = {
                     let mut abilities = entry["abilities"].clone();
-                    crate::self_play_cost::normalize(entry, &mut abilities)?;
+                    if crate::attachment_play_cost::extract(entry)?.is_some() {
+                        crate::attachment_play_cost::normalize(entry, &mut abilities)?;
+                    } else {
+                        crate::self_play_cost::normalize(entry, &mut abilities)?;
+                    }
                     crate::discard_return::normalize(&mut abilities);
                     let mut normalized = entry.clone();
                     normalized["abilities"] = abilities;

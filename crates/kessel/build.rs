@@ -1,5 +1,11 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/attachment_play_cost.rs"]
+mod attachment_play_cost;
+#[allow(dead_code)]
+#[path = "src/credits.rs"]
+mod credits;
+#[allow(dead_code)]
 #[path = "src/self_play_cost.rs"]
 mod self_play_cost;
 #[allow(dead_code)]
@@ -184,6 +190,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/modal_arena_choices.rs");
     println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
+    println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")
@@ -195,6 +202,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/self_play_cost.rs");
+    println!("cargo:rerun-if-changed=src/attachment_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");

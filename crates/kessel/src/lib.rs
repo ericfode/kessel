@@ -57,3 +57,10 @@ mod self_play_cost_runtime;
 
 mod modal_choices;
 mod modal_arena_choices;
+
+mod attachment_play_cost;
+
+mod credits;
+#[cfg(test)]
+#[path = "credit_payment_tests.rs"]
+mod credit_payment_tests;

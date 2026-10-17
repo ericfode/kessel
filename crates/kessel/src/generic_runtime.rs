@@ -660,6 +660,7 @@ impl Engine {
                 {
                     return Err("unit is missing arena".into());
                 }
+                let attachment_play_cost=crate::attachment_play_cost::extract(entry)?;
                 Ok(Definition {
                     code: code.clone(),
                     info,
@@ -668,7 +669,8 @@ impl Engine {
                     restore,
                     aspects,
                     smuggle,
-                    self_play_cost: crate::self_play_cost::extract(entry)?,
+                    self_play_cost: if attachment_play_cost.is_some() {None}else{crate::self_play_cost::extract(entry)?},
+                    attachment_play_cost,
                     programs,
                     traits: entry["card"]["traits"]
                         .as_array()

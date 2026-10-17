@@ -45,6 +45,7 @@ pub struct Definition {
     /// Present only for cards whose printed text yields a complete Smuggle cost.
     pub smuggle: Option<SmuggleCost>,
     pub(crate) self_play_cost: Option<crate::self_play_cost::SelfPlayCost>,
+    pub(crate) attachment_play_cost: Option<crate::attachment_play_cost::AttachmentPlayCost>,
     programs: CardPrograms,
     traits: Vec<String>,
 }
@@ -230,6 +231,7 @@ impl Engine {
                 aspects,
                 smuggle: None,
                 self_play_cost: None,
+                attachment_play_cost: None,
                 programs: CardPrograms::default(),
                 traits: vec![],
             });
@@ -369,6 +371,37 @@ impl Engine {
             self.def(s,*parent).info.is("unit") || (self.def(s,*parent).info.is("leader") && s.card(*parent).deployed)
         }).filter(|parent|self.def(s,id).programs.attach_condition.as_ref().map_or(true,|e|self.attachment_condition(s,id,*parent,e))).collect()
     }
+    /// Exact price for one physical legal host. Keep target-dependent prices
+    /// separate from cost(), which has no selected attachment host.
+    fn upgrade_play_cost(&self,s:&State,upgrade:CardId,host:CardId)->Option<u16> {
+        if upgrade==0 || !s.card(upgrade).present || !self.def(s,upgrade).info.is("upgrade") {return None;}
+        let owner=s.card(upgrade).owner;
+        if owner!=s.active || !self.upgrade_targets(s,upgrade).contains(&host) {return None;}
+        if s.player(owner).resources.contains(upgrade) {
+            // No reviewed host-dependent source has Smuggle. Preserve the
+            // existing resource-play amount for other admitted upgrades.
+            return if self.def(s,upgrade).attachment_play_cost.is_none() {self.smuggle_cost(s,upgrade)}else{None};
+        }
+        if !s.player(owner).hand.contains(upgrade) {return None;}
+        let total=self.cost(s,upgrade);
+        Some(self.def(s,upgrade).attachment_play_cost.map_or(total,|rule| {
+            let qualifies=rule.qualifies(self.def(s,host).info.unique,|name|self.card_has_trait(s,host,name));
+            rule.apply(total,qualifies)
+        }))
+    }
+    /// Payment capability boundary: this admitted path uses ready resources.
+    /// Future payment methods must retain `host` across any yielding prompt and
+    /// revalidate the same physical choice instead of selecting another host.
+    fn can_pay_upgrade_cost(&self,s:&State,upgrade:CardId,_host:CardId,cost:u16)->bool {
+        s.card(upgrade).owner==s.active && cost as usize<=self.ready_resources(s,s.active)
+    }
+    /// Availability is existential over ordinary legal hosts; the prompt and
+    /// final payment use the same live per-host calculation.
+    fn upgrade_play_targets(&self,s:&State,upgrade:CardId)->Vec<CardId> {
+        self.upgrade_targets(s,upgrade).into_iter().filter(|host|
+            self.upgrade_play_cost(s,upgrade,*host).is_some_and(|cost|self.can_pay_upgrade_cost(s,upgrade,*host,cost))
+        ).collect()
+    }
     fn card_action(&self, s: &State, id: CardId) -> Action {
         Action::card(id, &self.def(s, id).info.internal_name)
     }
@@ -501,7 +534,10 @@ impl Engine {
                     }
                 }
                 for &id in p.hand.as_slice() {
-                    if self.def(s,id).info.is("upgrade") && self.upgrade_targets(s,id).is_empty() {continue;}
+                    if self.def(s,id).info.is("upgrade") {
+                        if !self.upgrade_play_targets(s,id).is_empty() {out.push(self.card_action(s,id));}
+                        continue;
+                    }
                     if self.catalogue.is_some()
                         && self.def(s, id).info.is("event")
                         && self.available_programs(s, id, "event").is_empty()
@@ -616,7 +652,7 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 out.push(Action::button("Cancel","cancel"));
-                for id in self.upgrade_targets(s,s.source) {out.push(self.card_action(s,id));}
+                for id in self.upgrade_play_targets(s,s.source) {out.push(self.card_action(s,id));}
             }
             Decision::Unique => {
                 if self.def(s,s.source).info.is("upgrade") {
@@ -808,13 +844,16 @@ impl Engine {
                 if arg=="cancel" {self.cancel(&mut t);}else{
                     let upgrade=t.source;
                     let from_resources=t.player(seat).resources.contains(upgrade);
+                    // `id` is the chosen host, not an arbitrary qualifying unit.
+                    // A future yielding payment stage must retain this identity.
+                    let cost=self.upgrade_play_cost(s,upgrade,id).ok_or("illegal attachment play context")?;
+                    if !self.can_pay_upgrade_cost(s,upgrade,id,cost) {return Err("chosen attachment host is unaffordable".into());}
                     t.phase_history.preflight_play(seat)?;
                     if from_resources {
-                        let cost=self.smuggle_cost(s,upgrade).ok_or("smuggle cost missing")?;
                         self.spend_resource_play(&mut t,cost,upgrade);
                         t.player_mut(seat).resources.remove(upgrade);
                     } else {
-                        self.spend(&mut t,self.cost(s,upgrade));
+                        self.spend(&mut t,cost);
                         t.player_mut(seat).hand.remove(upgrade);
                     }
                     self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.trigger_context=1;

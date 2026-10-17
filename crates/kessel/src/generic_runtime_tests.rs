@@ -3842,3 +3842,6 @@ mod native_attack_composition_tests;
 
 #[path="self_play_cost_event_tests.rs"]
 mod self_play_cost_event_tests;
+
+#[path="attachment_play_cost_tests.rs"]
+mod attachment_play_cost_tests;

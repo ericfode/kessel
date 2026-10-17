@@ -107,7 +107,7 @@ fn self_play_event_complete_sources_keep_their_executable_event() {
         );
     }
     for code in [
-        "ASH_262", "ASH_263", "JTL_101", "LAW_129", "SEC_122", "TS26_047",
+        "JTL_101", "SEC_122", "TS26_047",
     ] {
         assert!(!e.by_code.contains_key(code), "incomplete companion {code}");
     }
