@@ -7,7 +7,9 @@
 //! the physical host while the pilot is attached.
 //!
 //! `pilotingRegistration` / `addPilotingAbility` (Astromech / Victor Two / Backstabber /
-//! Boba Fett) keeps the program on the pilot and fires WhenPlayed only while attached.
+//! Boba Fett / Mandalorian) keeps the program on the pilot and fires WhenPlayed only while
+//! attached. Reviewed Pilots may also carry one unit-side WhenPlayed companion that fires
+//! only while unattached (Mandalorian exhaust up to 2 ground).
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -227,7 +229,7 @@ fn compile_self_when_played(mut p:Value,title:&str)->Result<Ability,String> {
         return Err("pilotingRegistration admits only standalone WhenPlayed without costs/continuations".into());
     }
     if !piloting_self_effect_ok(&a) {
-        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage shapes".into());
+        return Err("pilotingRegistration WhenPlayed requires reviewed heal/experience/token/damage/exhaust shapes".into());
     }
     a.piloting_ability=true;
     Ok(a)
@@ -250,6 +252,37 @@ fn piloting_prompt_ok(parts:&[Expr])->bool {
         || static_prompt_parts(parts)
         || parent_trait_scaled_title_parts(parts,"transport",2,1)
 }
+/// Same-arena filter used by Mandalorian: candidate zone equals the attached host arena.
+fn host_arena_zone_predicate(e:&Expr)->bool {
+    matches!(e,Expr::Binary{op,left,right} if op=="==="
+        && matches!(left.as_ref(),Expr::Ref{path} if path==&["card","zoneName"])
+        && matches!(right.as_ref(),Expr::Ref{path} if path==&["source","parentCard","zoneName"]))
+}
+/// Unit-side WhenPlayed companion: optional exhaust up to 2 ground units.
+pub(crate) fn unit_ground_exhaust_companion(v:&Value)->bool {
+    if v["trigger"]!="whenPlayed"||v["costs"]!=json!([])||host_marker(v)||self_marker(v)||crate::attached_constants::marker(v) {
+        return false;
+    }
+    let Ok(a)=serde_json::from_value::<Ability>(v.clone()) else {return false;};
+    !a.optional&&!a.requires_confirmation&&!a.coordinate&&a.attached_context.is_none()
+        &&a.gained_host.is_none()&&!a.attached_host&&!a.piloting_ability&&a.context_title.is_empty()
+        &&a.condition.is_none()&&a.target_resolvers.is_empty()&&a.then.is_none()&&a.if_you_do.is_none()
+        && matches!(&a.effect,Effect::Exhaust{target:Target::Name(n)} if n=="chosen")
+        && a.target_resolver.as_ref().is_some_and(|r|{
+            r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("arena")
+                &&r.arena.as_deref()==Some("ground")&&r.optional&&r.mode.as_deref()==Some("upTo")
+                &&r.predicate.is_none()&&r.prompt_title.is_none()&&r.prompt_title_parts.is_empty()
+                && matches!(&r.count,Some(Expr::Const{value}) if value.as_u64()==Some(2))
+        })
+}
+fn compile_unit_ground_exhaust(v:&Value)->Result<Ability,String> {
+    if !unit_ground_exhaust_companion(v) {
+        return Err("piloting unit companion requires optional exhaust up to 2 ground units".into());
+    }
+    let mut a:Ability=serde_json::from_value(v.clone()).map_err(|e|format!("piloting unit companion: {e}"))?;
+    a.pilot_unit_ability=true;
+    Ok(a)
+}
 fn piloting_self_effect_ok(a:&Ability)->bool {
     let amount_one=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(1));
     let amount_two=|e:&Expr| matches!(e,Expr::Const{value} if value.as_u64()==Some(2));
@@ -258,6 +291,13 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
             &&!r.optional&&r.arena.is_none()&&r.count.is_none()&&r.mode.is_none()
             &&r.predicate.is_none()&&r.prompt_title.is_none()
             && piloting_prompt_ok(&r.prompt_title_parts)
+    };
+    let host_arena_enemy_resolver=|r:&crate::ability_ir::TargetResolver|{
+        r.owner=="opponent"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")
+            &&!r.optional&&r.arena.is_none()&&r.count.is_none()
+            && r.mode.as_deref().is_none_or(|m|m=="single")
+            &&r.prompt_title.is_none()&&piloting_prompt_ok(&r.prompt_title_parts)
+            && r.predicate.as_ref().is_some_and(host_arena_zone_predicate)
     };
     match &a.effect {
         Effect::Heal{target:Target::Name(n),amount} if n=="chosen"&&amount_two(amount)
@@ -285,6 +325,10 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
             && a.optional
             && parent_trait_scaled_title_parts(&a.context_title,"transport",2,1)
             && a.target_resolver.as_ref().is_some_and(plain_unit_resolver) => true,
+        // Mandalorian: exhaust one enemy unit in the attached host's arena.
+        Effect::Exhaust{target:Target::Name(n)} if n=="chosen"
+            && !a.optional
+            && a.target_resolver.as_ref().is_some_and(host_arena_enemy_resolver) => true,
         _ => false,
     }
 }
@@ -461,6 +505,7 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     let mut saw_host=false;
     let mut saw_enemy_damaged_companion=false;
     let mut saw_enemy_damaged_host=false;
+    let mut saw_unit_exhaust_companion=false;
     for a in card {
         if self_marker(a) {
             if saw_host {return Err("pilotingRegistration cannot mix with attachedAbilityRegistration".into());}
@@ -477,6 +522,13 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
                 return Err("piloting attached registration does not admit companion constants".into());
             }
             out.card.push(crate::attached_constants::ability(a)?);
+        } else if plain_pilot(entry) && unit_ground_exhaust_companion(a) {
+            if saw_host {return Err("piloting unit exhaust companion cannot mix with attachedAbilityRegistration".into());}
+            if saw_unit_exhaust_companion {
+                return Err("piloting unit exhaust companion admits at most one registration".into());
+            }
+            saw_unit_exhaust_companion=true;
+            out.card.push(compile_unit_ground_exhaust(a)?);
         } else {
             if plain_pilot(entry) {
                 // IG-88: unit-side mirror of the constant host enemy-damaged aura.
@@ -494,6 +546,9 @@ pub(crate) fn sides(entry:&Value)->Result<Sides,String> {
     if saw_enemy_damaged_companion&&!saw_enemy_damaged_host {
         return Err("enemy-damaged companion requires matching piloting constant host grant".into());
     }
+    if saw_unit_exhaust_companion&&!saw_self {
+        return Err("piloting unit exhaust companion requires matching pilotingRegistration WhenPlayed".into());
+    }
     if out.card.len()>8 {return Err("attached registration count exceeds bound".into());}
     Ok(out)
 }
@@ -509,8 +564,13 @@ pub(crate) fn piloting_host_entry(entry:&Value)->bool {
         && sides(entry).is_ok()
 }
 /// Exact reviewed Pilot + pilotingRegistration WhenPlayed-while-attached contract.
+/// May include one reviewed unit-side WhenPlayed exhaust companion (Mandalorian).
 pub(crate) fn piloting_self_entry(entry:&Value)->bool {
     plain_pilot(entry)
-        && entry["abilities"]["card"].as_array().is_some_and(|card|!card.is_empty()&&card.iter().all(self_marker))
+        && entry["abilities"]["card"].as_array().is_some_and(|card|{
+            !card.is_empty()
+                && card.iter().any(self_marker)
+                && card.iter().all(|a|self_marker(a)||unit_ground_exhaust_companion(a))
+        })
         && sides(entry).is_ok()
 }

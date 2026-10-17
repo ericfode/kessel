@@ -3736,6 +3736,10 @@ impl Engine {
             if p.piloting_ability && !self.attached_in_play(s, s.source) {
                 continue;
             }
+            // Reviewed Pilot unit-side WhenPlayed (Mandalorian) does not fire while attached.
+            if p.pilot_unit_ability && self.attached_in_play(s, s.source) {
+                continue;
+            }
             if triggers.iter().any(|t| p.trigger == *t)
                 && (!p.coordinate || self.coordinate_active(s,s.source))
                 && p.condition

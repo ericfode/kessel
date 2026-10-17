@@ -1089,6 +1089,9 @@ pub struct Ability {
     /// Set only by the pilotingRegistration loader: WhenPlayed fires only while attached.
     #[serde(skip)]
     pub piloting_ability: bool,
+    /// Set only for reviewed Pilot unit-side WhenPlayed companions: fires only while unattached.
+    #[serde(skip)]
+    pub pilot_unit_ability: bool,
 
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub hooks: Vec<crate::death_hooks::Hook>,
@@ -1286,6 +1289,8 @@ pub struct Program {
     pub attached_host: bool,
     #[serde(default, skip_serializing_if="std::ops::Not::not")]
     pub piloting_ability: bool,
+    #[serde(default, skip_serializing_if="std::ops::Not::not")]
+    pub pilot_unit_ability: bool,
 
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub hooks: Vec<crate::death_hooks::Hook>,
@@ -1927,6 +1932,7 @@ impl Program {
         let mut p = Self {
             attached_host: ability.attached_host,
             piloting_ability: ability.piloting_ability,
+            pilot_unit_ability: ability.pilot_unit_ability,
 
             hooks: ability.hooks.clone(),
             gained_host: ability.gained_host,

@@ -11,7 +11,7 @@ fn attach(e:&Engine,s:&mut State,owner:Seat,code:&str,host:CardId)->CardId {
 #[test]
 fn attached_alias_admission_census_and_preserved_rejections() {
     let e=engine();
-    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","SHD_175"] {
+    for code in ["ASH_134","ASH_210","JTL_073","SEC_039","TS26_052","TWI_169","TWI_218","IC27_085","SHD_104","JTL_035","JTL_046","JTL_057","JTL_084","JTL_086","JTL_141","JTL_189","JTL_210","SHD_175"] {
         assert!(e.by_code.contains_key(code),"{code}: {:?}",e.rejected_cards().unwrap().get(code));
     }
     for code in ["LOF_138","ASH_180","ASH_227","HMW_070","LAW_141","LAW_225","JTL_227","SHD_053","TS26_035","TWI_068","TWI_120","TWI_121","JTL_066","JTL_142"] {
@@ -453,6 +453,111 @@ fn piloting_self_boba_damages_by_host_transport_trait() {
     fire_attached_when_played(&e,&mut s,pilot);
     assert_eq!(s.decision,Decision::Window);
     assert_eq!(s.card(victim).damage,0);
+}
+
+#[test]
+fn piloting_self_mandalorian_exhausts_enemy_in_host_arena_when_attached() {
+    let e=engine();
+    assert!(e.by_code.contains_key("JTL_210"),"{:?}",e.rejected_cards().unwrap().get("JTL_210"));
+    for seat in [Seat::P1,Seat::P2] {
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        // Ground host: only ground enemies in the same arena are legal.
+        let host=unit(&e,&mut s,seat,"LOF_254");
+        let enemy_ground=unit(&e,&mut s,seat.other(),"LOF_256");
+        let enemy_space=unit(&e,&mut s,seat.other(),"TOKEN_XWING");
+        let ally=unit(&e,&mut s,seat,"LOF_256");
+        let pilot=attach(&e,&mut s,seat,"JTL_210",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?} attached");
+        assert_eq!(s.source,pilot);
+        let actions=e.legal_actions(&s);
+        assert!(actions.iter().any(|a|a.id()==Some(enemy_ground)),"{seat:?} ground enemy");
+        assert!(!actions.iter().any(|a|a.id()==Some(enemy_space)||a.id()==Some(ally)||a.id()==Some(host)),"{seat:?} arena/owner filter");
+        let done=e.apply(&s,&e.card_action(&s,enemy_ground)).unwrap();
+        assert!(done.card(enemy_ground).exhausted,"{seat:?} exhausted");
+
+        // Space host: ground enemy is excluded.
+        let mut s=board(&e);s.round=5;s.active=seat;s.action_player=Some(seat);
+        let host=unit(&e,&mut s,seat,"TOKEN_XWING");
+        let enemy_ground=unit(&e,&mut s,seat.other(),"LOF_256");
+        let enemy_space=unit(&e,&mut s,seat.other(),"TOKEN_TIE_FIGHTER");
+        let pilot=attach(&e,&mut s,seat,"JTL_210",host);
+        fire_attached_when_played(&e,&mut s,pilot);
+        assert_eq!(s.decision,Decision::AbilityTarget,"{seat:?} space host");
+        let actions=e.legal_actions(&s);
+        assert!(actions.iter().any(|a|a.id()==Some(enemy_space)),"{seat:?} space enemy");
+        assert!(!actions.iter().any(|a|a.id()==Some(enemy_ground)),"{seat:?} excludes other arena");
+    }
+}
+
+#[test]
+fn piloting_self_mandalorian_unit_companion_fires_only_as_unit() {
+    let e=engine();
+    // As a unit: exhaust up to 2 ground units (multi-select + Done).
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let pilot=unit(&e,&mut s,Seat::P1,"JTL_210");
+    let g1=unit(&e,&mut s,Seat::P2,"LOF_256");
+    let g2=unit(&e,&mut s,Seat::P2,"LOF_254");
+    let space=unit(&e,&mut s,Seat::P2,"TOKEN_XWING");
+    s.source=pilot;s.trigger_context=1;s.decision=Decision::Window;
+    e.queue_programs(&mut s,&["whenPlayed"]);
+    e.process_all_triggers(&mut s).unwrap();
+    assert_eq!(s.decision,Decision::AbilityTarget);
+    let actions=e.legal_actions(&s);
+    assert!(actions.iter().any(|a|a.id()==Some(g1)));
+    assert!(actions.iter().any(|a|a.id()==Some(g2)));
+    assert!(!actions.iter().any(|a|a.id()==Some(space)),"space excluded from ground upTo");
+    let picked=e.apply(&s,&e.card_action(&s,g1)).unwrap();
+    assert_eq!(picked.decision,Decision::AbilityTarget,"upTo waits for Done");
+    assert!(!picked.card(g1).exhausted,"not exhausted until Done");
+    let done=named_button(&e,&picked,"Done");
+    assert!(done.card(g1).exhausted);
+    // While attached, unit companion must not fire; only host-arena exhaust does.
+    let mut s=board(&e);s.round=5;s.active=Seat::P1;s.action_player=Some(Seat::P1);
+    let host=unit(&e,&mut s,Seat::P1,"LOF_254");
+    let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");
+    let pilot=attach(&e,&mut s,Seat::P1,"JTL_210",host);
+    fire_attached_when_played(&e,&mut s,pilot);
+    assert_eq!(s.decision,Decision::AbilityTarget);
+    assert_eq!(s.source,pilot);
+    let actions=e.legal_actions(&s);
+    assert!(actions.iter().any(|a|a.id()==Some(enemy)));
+    assert!(!actions.iter().any(|a|a.id()==Some(host)),"unit upTo must not replace host-arena exhaust");
+}
+
+#[test]
+fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
+    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="JTL_210").unwrap().clone();
+    let catalogue_admitted=|e:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]})).unwrap().cards.contains_key("JTL_210");
+    let engine_admitted=|e:Value|{
+        let mut full=catalog.clone();
+        let cards=full["cards"].as_array_mut().unwrap();
+        let slot=cards.iter_mut().find(|c|c["setCode"]=="JTL_210").unwrap();
+        *slot=e;
+        Engine::from_catalogue_value(&full).unwrap().by_code.contains_key("JTL_210")
+    };
+    assert!(catalogue_admitted(original.clone()));
+    assert!(engine_admitted(original.clone()));
+    assert!(crate::attached_registration::piloting_self_entry(&original));
+    // Drop the pilotingRegistration: unit companion alone is not a piloting_self entry,
+    // and the printed piloting keyword stays unimplemented without a reviewed path.
+    let mut unit_only=original.clone();
+    unit_only["abilities"]["card"]=json!([original["abilities"]["card"][0].clone()]);
+    assert!(!crate::attached_registration::piloting_self_entry(&unit_only));
+    assert!(!engine_admitted(unit_only),"companion without pilotingRegistration");
+    // Widen arena filter away from host parentCard zone.
+    let mut bad_pred=original.clone();
+    bad_pred["abilities"]["card"][1]["effect"]["registration"]["program"]["targetResolver"]["predicate"]=json!({
+        "kind":"binary","op":"===",
+        "left":{"kind":"ref","path":["card","zoneName"]},
+        "right":{"kind":"const","value":"groundArena"}
+    });
+    assert!(!catalogue_admitted(bad_pred),"static arena instead of host arena");
+    // Extra keyword breaks plain_pilot.
+    let mut bad_kw=original.clone();
+    bad_kw["card"]["keywords"]=json!(["piloting","ambush"]);
+    assert!(!catalogue_admitted(bad_kw),"extra keyword");
 }
 
 #[test]
