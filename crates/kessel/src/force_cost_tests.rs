@@ -99,7 +99,7 @@ fn force_cost_raw_contract_duplicate_and_atomic_payment_boundaries() {
     s = begin_action(&e, &s, source);
     s.ability_target = target; s.player_mut(Seat::P1).force_held = false;
     let before = s;
-    assert!(e.commit_program(&mut s, true).unwrap_err().contains("Force cost"));
+    assert!(e.commit_program(&mut s).unwrap_err().contains("Force cost"));
     assert_eq!(s, before); // failed Force payment cannot exhaust the source first.
 }
 

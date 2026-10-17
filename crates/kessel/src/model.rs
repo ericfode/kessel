@@ -12,8 +12,8 @@ pub const MAX_ZONE: usize = 64;
 // + leader-deploy Plot window (PlotState: card/leader u16, pending u8,
 //   programs u16, stage u8 + padding = 8, plus the resolved-instance bitmask
 //   [u64; 4] = 32 that keeps one window from re-offering a resolved Plot)
-// + Exploit pay-mode selection/continuation (Selection 12 + resume/settled 2,
-//   padded to 16).
+// + the inline Exploit pay-mode selection (Selection 12 + 4 alignment
+//   padding = 16 in this layout).
 #[cfg(test)]
 pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_888;
 pub type CardId = u16;
@@ -528,17 +528,11 @@ impl Selection {
 
 /// Pinned-engine Exploit play-cost adjustment. `selection` retains the friendly
 /// units chosen at the play-cost prompt (capacity 5 covers the catalogue's
-/// maximum printed Exploit 4). `resume` records which continuation the event
-/// payment boundary interrupted, because the engine offers the adjuster after
-/// an event's early targets and before its cost is committed. `settled` marks
-/// that the pay-mode choice was already answered for the pending payment, so a
-/// resumed program instruction cannot offer the prompt twice.
+/// maximum printed Exploit 4). The engine resolves this prompt before an
+/// event's early targets and before any program instruction runs, so no
+/// continuation needs to be stored here.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct ExploitState { pub selection: Selection, pub resume: u8, pub settled: bool }
-/// Resume the interrupted event program (`run_program`).
-pub const EXPLOIT_RESUME_PROGRAM: u8 = 0;
-/// Commit the suspended event cost, then end a program with no resolvable effect.
-pub const EXPLOIT_RESUME_END: u8 = 1;
+pub struct ExploitState { pub selection: Selection }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct PreparedEvent {
     pub op: u16, pub target: CardId, pub amount: u16,
@@ -1117,8 +1111,6 @@ impl State {
         // pending; default storage stays off the historical hash stream.
         if self.exploit != ExploitState::default() {
             put(0x4558504c4f4954);
-            put(self.exploit.resume as u64);
-            put(self.exploit.settled as u64);
             put(self.exploit.selection.len as u64);
             for &id in &self.exploit.selection.ids[..self.exploit.selection.len as usize] {
                 put(id as u64);
