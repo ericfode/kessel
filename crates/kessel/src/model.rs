@@ -4,9 +4,9 @@ use serde_json::{json, Value};
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
 // Exact budget: 28,208 + native attack grants 64 + registration chronology 256
-// + Disclose selection and alignment 16.
+// + Disclose selection and alignment 16 + phase restriction mask (Card 36→40, 256 cards).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_544;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_568;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -308,6 +308,8 @@ pub struct Card {
     pub phase_keyword_values: [u16; 2],
     pub phase_keyword_presence: u8,
     pub phase_lost_keywords: u8,
+    /// Action-phase prevent mask. Zero stays off the historical hash stream.
+    pub phase_restrictions: u8,
     /// Current phase play/deploy/create qualification, independent of live Hidden.
     pub hidden_state: u8,
     pub exhausted: bool,
@@ -850,6 +852,10 @@ impl State {
             if c.hidden_state&24!=0 {put(0x535550);put((c.hidden_state&24) as u64);}
             put(c.phase_lost_keywords as u64);
             put(c.phase_keyword_presence as u64);
+            if c.phase_restrictions != 0 {
+                put(0x43525354);
+                put(c.phase_restrictions as u64);
+            }
             if self.hidden_history_exact {
                 let in_arena=hidden_arena_members[idx];
                 // Identity history outside the arena is inert in the admitted no-reentry domain.

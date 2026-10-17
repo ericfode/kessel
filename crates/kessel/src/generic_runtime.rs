@@ -1,6 +1,6 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
 use super::*;
-use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, Target, TargetResolver};
+use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVerb, Target, TargetResolver};
 use crate::ability_ir::activation_contract::{base_zone_source, Source};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
@@ -52,7 +52,7 @@ struct DrawResult {
 enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
 
 #[derive(Clone, Copy)]
-enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), #[cfg(test)] All }
+enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), Restriction, #[cfg(test)] All }
 impl ConstantScope<'_> {
     fn accepts(self,e:&Effect)->bool {match (self,e) {
         (Self::Traits(filter),Effect::GainTrait{trait_name,..}|Effect::LoseTrait{trait_name,..})=>filter.is_none_or(|t|t==trait_name),
@@ -62,6 +62,7 @@ impl ConstantScope<'_> {
         (Self::AmbushBase,Effect::ConstantEffectRegistration(r))=>matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase)),
         (Self::Keyword(filter),Effect::CopyKeywords{..})=>filter.is_none_or(|name|crate::ability_ir::COPY_KEYWORDS.contains(&name)),
         (Self::Keyword(filter),Effect::GainKeyword{keyword,..}|Effect::LoseKeyword{keyword,..})=>filter.is_none_or(|name|name==keyword),
+        (Self::Restriction,Effect::CardRestriction{..})=>true,
         #[cfg(test)] (Self::All,_)=>true,
         _=>false,
     }}
@@ -501,7 +502,7 @@ impl Engine {
                     for &p in &programs.card {
                         let program=&catalogue.programs[p as usize];
                         if !["constant","whenPlayed"].contains(&program.trigger.as_str()) && !((program.gained_host==Some(true)&&crate::ability_ir::gained_host_upgrade_kind(entry).is_some())||program.attached_host) {return Err("upgrade trigger requires dedicated framework event support".into());}
-                        if program.trigger=="constant" && program.attached_context.as_deref()!=Some("host") && !crate::ability_ir::parent_defense_upgrade_entry(entry) && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..})=>n!="parent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
+                        if program.trigger=="constant" && program.attached_context.as_deref()!=Some("host") && !crate::ability_ir::parent_defense_upgrade_entry(entry) && program.instructions.iter().any(|i|match i {Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..})=>n!="parent",Instruction::Apply(Effect::CardRestriction {target:Target::Name(n),duration,condition:None,..})=>n!="parent"||duration!="persistent",Instruction::EndStep=>false,_=>true}) {return Err("upgrade constants require attached keyword grants".into());}
                     }
                     for field in ["upgradePower","upgradeHp"] {if !entry["card"][field].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)) {return Err("upgrade printed stats must be bounded integers".into());}}
                 } else if !info.is("unit") && !info.is("leader") {
@@ -833,8 +834,13 @@ impl Engine {
     }
     #[cfg(test)]
     fn constant_effects<'a>(&'a self,s:&State,target:CardId,keywords:bool)->Vec<(CardId,&'a Effect)> {self.constant_effects_matching(s,target,if keywords {ConstantScope::Keyword(None)}else{ConstantScope::All})}
+    pub(super) fn card_restricted(&self, s: &State, id: CardId, verb: RestrictionVerb) -> bool {
+        id != 0 && s.card(id).present && (s.card(id).phase_restrictions & verb.bit() != 0 || self.constant_effects_matching(s, id, ConstantScope::Restriction).iter().any(|(_, effect)| matches!(effect, Effect::CardRestriction { restriction, duration, condition: None, .. } if *restriction == verb && duration == "persistent")))
+    }
     fn constant_effects_matching<'a>(&'a self, s: &State, target: CardId, scope: ConstantScope<'_>) -> Vec<(CardId, &'a Effect)> {
-        if self.catalogue.is_none() || (!self.in_arena(s,target) && !matches!(scope,ConstantScope::Traits(_))) {return vec![];}
+        // Bases sit outside the arena, but a live "can't be healed" still names them.
+        let restriction_base = matches!(scope, ConstantScope::Restriction) && self.def(s, target).info.is("base");
+        if self.catalogue.is_none() || (!self.in_arena(s,target) && !matches!(scope,ConstantScope::Traits(_)) && !restriction_base) {return vec![];}
         let mut effects = vec![];
         for source in 1..s.next_id {
             // Most allocated cards have no constant registration. Inspect the
@@ -871,7 +877,7 @@ impl Engine {
                         None
                     }
                 });
-                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..}) if n=="parent"));
+                let parent_target=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::GainKeyword {target:Target::Name(n),..}|Effect::GainTrait{target:Target::Name(n),..}|Effect::LoseTrait{target:Target::Name(n),..}|Effect::CardRestriction{target:Target::Name(n),..}) if n=="parent"));
                 let friendly_ambush=program.instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::ConstantEffectRegistration(r)) if matches!(r.native(),Ok(crate::static_ongoing::NativeModifier::FriendlyAmbushBase))));
                 let native_trait=program.instructions.iter().find_map(|i|match i {Instruction::Apply(Effect::ConstantEffectRegistration(r))=>match r.native(){Ok(crate::static_ongoing::NativeModifier::Traits(rule))=>Some(rule),_=>None},_=>None});
                 if resolver.map_or(if let Some(rule)=native_trait {!self.native_trait_target(s,effect_source,target,rule)}else if friendly_ambush {s.card(source).owner!=s.card(target).owner}else if parent_target {s.card(source).parent!=target}else{effect_source != target}, |r| {
@@ -1509,6 +1515,13 @@ impl Engine {
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => return effects.iter().any(|e| self.effect_can_affect(s,source,target,e,require_change)),
             Effect::Select { target_resolver,effect } => return self.matching_targets(s,source,target_resolver).into_iter().any(|id| self.effect_can_affect(s,source,id,effect,require_change)),
             Effect::Conditional { condition,on_true,on_false } => return if self.eval(s,source,target,condition).truth() { self.effect_can_affect(s,source,target,on_true,require_change) } else { on_false.as_ref().is_some_and(|e| self.effect_can_affect(s,source,target,e,require_change)) },
+            Effect::CardRestriction { duration, condition, target: restriction_target, .. } => {
+                if condition.is_some() || duration != "phase" { return false; }
+                let mut context = *s;
+                context.source = source;
+                context.ability_target = target;
+                return self.effect_targets(&context, restriction_target).into_iter().any(|value| matches!(value, Eval::Card(id) if id != 0 && (self.in_arena(s, id) || self.def(s, id).info.is("base"))));
+            }
             _ => {},
         }
         let mut context = *s;
@@ -1545,9 +1558,9 @@ impl Engine {
                         Effect::Damage { .. } => (unit || base) && (!require_change || amount > 0),
                         Effect::Heal { .. } => {
                             (unit || base)
-                                && (!require_change || (amount > 0 && s.card(id).damage > 0))
+                                && (!require_change || (amount > 0 && s.card(id).damage > 0 && !self.card_restricted(s, id, RestrictionVerb::BeHealed)))
                         }
-                        Effect::Ready { .. } => self.exhaustible_card(s,id) && (!require_change || s.card(id).exhausted),
+                        Effect::Ready { .. } => self.exhaustible_card(s,id) && !self.card_restricted(s, id, RestrictionVerb::Ready) && (!require_change || s.card(id).exhausted),
                         Effect::Exhaust { .. } => {
                             self.exhaustible_card(s,id) && (!require_change || !s.card(id).exhausted)
                         }
@@ -2194,12 +2207,29 @@ impl Engine {
         for (target,id) in targets.iter().zip(tokens) {let previous=if xp{work.card(*target).experience}else{work.card(*target).shield};work.card_mut(id).next_token=previous;if xp{work.card_mut(*target).experience=id;}else{work.card_mut(*target).shield=id;}self.attach(&mut work,id,*target);}
         self.check_stat_capacity(&work)?;self.finish_effect_window(&mut work)?;*s=work;Ok((targets.len() as u16,true))
     }
-    fn heal_card(&self, s: &mut State, id: CardId, amount: u16) -> u16 {
+    /// Phase-duration restrictions are live card marks rather than prepared
+    /// events: idempotent, capacity-free and restricted to the arena/base domain.
+    pub(super) fn mark_phase_restriction(&self, s: &mut State, target: &Target, restriction: RestrictionVerb) -> u16 {
+        let bit = restriction.bit();
+        let mut marked = 0u16;
+        for dest in self.effect_targets(s, target) {
+            if let Eval::Card(id) = dest {
+                if id != 0 && (self.in_arena(s, id) || self.def(s, id).info.is("base")) && s.card(id).phase_restrictions & bit == 0 {
+                    s.card_mut(id).phase_restrictions |= bit;
+                    marked += 1;
+                }
+            }
+        }
+        marked
+    }
+    pub(super) fn heal_card(&self, s: &mut State, id: CardId, amount: u16) -> u16 {
+        if self.card_restricted(s, id, RestrictionVerb::BeHealed) { return 0; }
         let healed = amount.min(s.card(id).damage);
         s.card_mut(id).damage -= healed;
         healed
     }
     fn set_card_exhausted(&self, s: &mut State, id: CardId, exhausted: bool) -> u16 {
+        if !exhausted && self.card_restricted(s, id, RestrictionVerb::Ready) { return 0; }
         let changed = s.card(id).exhausted != exhausted;
         s.card_mut(id).exhausted = exhausted;
         u16::from(changed)
@@ -2344,6 +2374,11 @@ impl Engine {
             self.spend(s,seat,amount);
             s.event_result=StepEventResult::for_state(s);
             return Ok((amount,true));
+        }
+        if let Effect::CardRestriction { target, duration, restriction, condition } = e {
+            if condition.is_some() || duration != "phase" { return Ok((0, false)); }
+            let marked = self.mark_phase_restriction(s, target, *restriction);
+            return Ok((marked, marked > 0));
         }
         // These primitives execute only through their dedicated group handlers.
         if matches!(e,Effect::DiscardDeck {..}|Effect::DiscardOwnHand {..}|Effect::CreateTokenUnit {..}) {return Err("nonprimitive instruction reached executor".into());}
@@ -2614,7 +2649,7 @@ impl Engine {
                     let id = cid(pair[0].as_str().ok_or("distribution target missing")?)?;
                     let heal = (pair[1].as_u64().ok_or("distribution amount missing")? as u16)
                         .min(t.card(id).damage);
-                    t.card_mut(id).damage -= heal;
+                    let heal = self.heal_card(&mut t, id, heal);
                     t.ability_result = heal;
                     t.ability_succeeded = heal > 0;
                 }

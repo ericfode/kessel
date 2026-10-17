@@ -5,7 +5,10 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     fn copy<T: Copy>() {}
     copy::<State>();
     let mut s=State::default();
-    assert_eq!(std::mem::size_of::<State>(),28544);
+    // 28,544 + one u8 phase-restriction mask per inline Card (36 -> 40 bytes
+    // across MAX_CARDS=256) = 29,568. Zero masks stay off the hash stream, so the
+    // historical default/observed hashes below are unchanged.
+    assert_eq!(std::mem::size_of::<State>(),29568);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();

@@ -505,7 +505,7 @@ fn native_attack_immutable_copy_hash_capacity_and_forged_import_boundaries() {
 }
 #[test]
 fn native_attack_inline_layout_budget_preserves_card_size() {
-    assert_eq!(std::mem::size_of::<Card>(), 36);
+    assert_eq!(std::mem::size_of::<Card>(), 40);
     eprintln!(
         "native attack State={} SupportState={} SupportGrant={} ResolutionContext={}",
         std::mem::size_of::<State>(),
