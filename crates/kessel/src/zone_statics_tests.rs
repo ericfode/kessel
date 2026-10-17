@@ -557,12 +557,22 @@ fn zone_statics_first_strike_reads_surviving_grit_power_after_first_damage() {
             let attacker = unit(&e, &mut s, seat, "SHD_234");
             let defender = unit(&e, &mut s, seat.other(), "ASH_074");
             assert_eq!(e.power(&s, defender, false), 1);
+            let mut resilient = s;
+            resilient.card_mut(attacker).phase_hp = 2;
             let done = settle(&e, attack(&e, &mut s, attacker, defender));
             assert!(e.in_arena(&done, defender));
             assert_eq!(done.card(defender).damage, 2);
             assert_eq!(e.power(&done, defender, false), 3);
             assert!(!e.in_arena(&done, attacker));
-            assert_eq!(done.card(attacker).damage, 3);
+            assert!(done.player(seat).discard.contains(attacker));
+            assert_eq!(done.card(attacker).damage, 0, "leaving play clears damage");
+
+            // Keep a second attacker alive so the exact return damage remains
+            // observable after resolution, independently of discard cleanup.
+            let survived = settle(&e, attack(&e, &mut resilient, attacker, defender));
+            assert!(e.in_arena(&survived, attacker));
+            assert_eq!(survived.card(attacker).damage, 3);
+            assert_eq!(survived.card(defender).damage, 2);
         }
     }
 }
