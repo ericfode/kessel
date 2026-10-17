@@ -100,7 +100,7 @@ class Unsupported extends Error {
     }
 }
 function fail(ctx, node, pattern, message) { throw new Unsupported(ctx, node, pattern, message); }
-const {isSpecializedFence}=require('./unsupported-recovery');
+const {isSpecializedFence,recoversToContract}=require('./unsupported-recovery');
 function unwrap(node) {
     if (!node) throw new Error('Missing AST node in card definition');
     while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) || ts.isNonNullExpression(node) || ts.isSatisfiesExpression(node)) node = node.expression;
@@ -1107,7 +1107,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
                 let v=unwrap(obj.props.get(stat));
                 while(ts.isIdentifier(v)&&obj.ctx.constants.has(v.text))v=unwrap(readConstant(v.text,obj.ctx));
                 if(ts.isArrowFunction(v)||ts.isFunctionExpression(v))fail(ctx,v,'function-valued-stat-modifier');
-                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
+                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;if(!recoversToContract(error,['live-stat-arena-capture']))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
                 else if(duration === 'persistent') { const n=literal(v,obj.ctx); if(!Number.isSafeInteger(n))fail(ctx,v,'noninteger-stat-modifier'); out[stat]=constant(n); }
                 else out[stat]=expr(v,obj.ctx);
             }
@@ -1521,7 +1521,7 @@ function unshadowedEnum(node,ctx,root) {
     for(let a=node.parent;a;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'syntax-alias-enum-binding');
     if(ctx.scope.has(root)||ctx.constants.has(root))fail(ctx,node,'syntax-alias-enum-binding');
 }
-function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
+function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;if(!recoversToContract(error,['non-path-reference','unimplemented-context-field:game']))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
 function legacyConstantAbility(input, context, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const playerCost=playerCostConstant(obj,{ts,unwrap,expr,literal,target,fail,object,access,displayText});if(playerCost)return playerCost;
@@ -1568,6 +1568,27 @@ function legacyConstantAbility(input, context, validatedObject = null) {
 // These are grant templates owned by an upgrade definition. At declaration,
 // runtime captures each physical grantor and binds the body to its host.
 // Keep this provenance separate from attachedContext used by live constants.
+function looksLikeGainedHostCohort(input,ctx) {
+    try {
+        const raw=unwrap(input);
+        // Factory / saved-binding mutations are not plain objects — keep closed.
+        if(!ts.isObjectLiteralExpression(raw))return true;
+        const obj=object(raw,ctx),keys=new Set(obj.props.keys());
+        // Discard cohort (and mutations that keep discardCardsFromOwnHand).
+        if(keys.has('immediateEffect')&&!keys.has('targetResolver')) {
+            const effect=unwrap(obj.props.get('immediateEffect'));
+            if(!ts.isCallExpression(effect)||effect.questionDotToken)return false;
+            return access(effect.expression,ctx).at(-1)==='discardCardsFromOwnHand';
+        }
+        // Heal / phase cohort always set optional:true with a cardCondition resolver.
+        if(!keys.has('targetResolver')||!keys.has('optional'))return false;
+        const resolver=object(unwrap(obj.props.get('targetResolver')),ctx);
+        return resolver.props.has('cardCondition')&&resolver.props.has('immediateEffect');
+    } catch(error) {
+        if(!(error instanceof Unsupported))throw error;
+        return false;
+    }
+}
 function gainedHostOnAttack(input,ctx,setup,call) {
     const reject=()=>fail(ctx,call,'registrar:addGainOnAttackAbilityTargetingAttached');
     const raw=unwrap(input);
@@ -1645,7 +1666,7 @@ function gainedHostSourceShape(out) {
         same(a,{...base,optional:true,targetResolver:{owner:'any',type:'any',zone:'anyAttackable',predicate:{kind:'binary',op:'&&',left:other,right:{kind:'query',name:'isUnit',receiver:reference('card'),args:[]}}},effect:{kind:'modifyStats',target:'chosen',duration:'phase',power:constant(3),hp:constant(0)},gainedHost:true})&&same(out.attachCondition,{kind:'unary',op:'!',value:attach('vehicle')}) ||
         same(a,{...base,effect:{kind:'discardOwnHand',amount:constant(1),target:'ownPlayer'},gainedHost:true})&&!out.attachCondition;
 }
-function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;if(isSpecializedFence(error))throw error;return attachedConstantContract(input,context,host,contractApi());}}
+function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;if(!recoversToContract(error,['attached-constant-installed-keyword-only']))throw error;return attachedConstantContract(input,context,host,contractApi());}}
 function legacyAttachedConstantAbility(input,context,host) {
     const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
     for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
@@ -2133,7 +2154,15 @@ function compileSource(text, file, enums = {}, options = {}) {
                 }
                 else if(registration==='addGainOnAttackAbilityTargetingAttached') {
                     try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
-                    catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));}
+                    catch(error){
+                        if(!(error instanceof Unsupported))throw error;
+                        // Cohort heal/phase/discard sources that fail validation stay
+                        // closed. Non-cohort attached on-attack grants (e.g. giveExperience)
+                        // recover through piloting registration.
+                        if(looksLikeGainedHostCohort(call.arguments[0],local))throw error;
+                        if(!recoversToContract(error,['registrar:addGainOnAttackAbilityTargetingAttached']))throw error;
+                        out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));
+                    }
                 }
                 else if (registration === 'addCoordinateAbility') {
                     const leaderCoordinate=out.baseClass==='LeaderUnitCard'&&['setupLeaderSideAbilities','setupLeaderUnitSideAbilities'].includes(name);

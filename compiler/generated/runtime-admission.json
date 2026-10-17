@@ -1,13 +1,13 @@
 {
-  "catalogueHash": "41a0224e54a60c7c0aa80637c1e1d13cabea9e8f1866b68efd395b2bc7580e75",
-  "dataOnlyConvertedCount": 384,
+  "catalogueHash": "fc2bc469be015ff28572e4194e26a1f784d7dec9e8eaf7b6941b415bba042f18",
+  "dataOnlyConvertedCount": 447,
   "gameConformance": "not assessed by this report",
-  "irConvertedCount": 2284,
-  "knownCards": 2461,
+  "irConvertedCount": 2461,
+  "knownCards": 2605,
   "runtimeAdmittedBreakdown": {
-    "dataOnly": 384,
+    "dataOnly": 447,
     "nativeAdapters": 5,
-    "sourceIr": 751
+    "sourceIr": 818
   },
   "runtimeAdmittedCards": [
     {
@@ -327,6 +327,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "consortium-starviper",
+      "setCode": "ASH_122"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "lang#arrogant-mercenary",
       "setCode": "ASH_123"
     },
@@ -404,6 +409,11 @@
       "implementation": "dataOnly",
       "internalName": "praetorian-elite",
       "setCode": "ASH_145"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "inspired-recruit",
+      "setCode": "ASH_152"
     },
     {
       "implementation": "sourceIr",
@@ -669,6 +679,11 @@
       "implementation": "dataOnly",
       "internalName": "rebel-infiltrators",
       "setCode": "ASH_256"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "grassroots-resistance",
+      "setCode": "ASH_258"
     },
     {
       "implementation": "sourceIr",
@@ -1237,6 +1252,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "luke-skywalker#dreaming-farmboy",
+      "setCode": "HMW_208"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "sol#compassionate-guardian",
       "setCode": "HMW_210"
     },
@@ -1314,6 +1334,11 @@
       "implementation": "sourceIr",
       "internalName": "exploit-confidence",
       "setCode": "HMW_238"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "pounce",
+      "setCode": "HMW_239"
     },
     {
       "implementation": "sourceIr",
@@ -1466,6 +1491,11 @@
       "setCode": "IBH_013"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "bright-hope#narrow-escape",
+      "setCode": "IBH_014"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "tauntaun-mount",
       "setCode": "IBH_015"
@@ -1476,6 +1506,11 @@
       "setCode": "IBH_016"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "rogue-squadron-speeder",
+      "setCode": "IBH_017"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "go-for-the-legs",
       "setCode": "IBH_018"
@@ -1484,6 +1519,11 @@
       "implementation": "sourceIr",
       "internalName": "c3po#oh-dear-oh-dear",
       "setCode": "IBH_019"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "luke-skywalker#do-you-read-me",
+      "setCode": "IBH_020"
     },
     {
       "implementation": "sourceIr",
@@ -1501,9 +1541,129 @@
       "setCode": "IBH_023"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "rebellion-ywing",
+      "setCode": "IBH_024"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "bright-hope#narrow-escape",
+      "setCode": "IBH_026"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "ion-cannon",
+      "setCode": "IBH_027"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tauntaun-mount",
+      "setCode": "IBH_028"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "trench-defender",
+      "setCode": "IBH_029"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "improvised-detonation",
+      "setCode": "IBH_030"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "millennium-falcon#bucket-of-bolts",
+      "setCode": "IBH_031"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "rebellion-ywing",
+      "setCode": "IBH_032"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "gr75-medium-transport",
+      "setCode": "IBH_033"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "rogue-squadron-speeder",
+      "setCode": "IBH_034"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "evacuation-escort",
+      "setCode": "IBH_035"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "general-rieekan#stalwart-tactician",
+      "setCode": "IBH_036"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "hoth-trooper",
       "setCode": "IBH_037"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "hoth-trooper",
+      "setCode": "IBH_038"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "gr75-medium-transport",
+      "setCode": "IBH_040"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "c3po#oh-dear-oh-dear",
+      "setCode": "IBH_041"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "echo-coordinator",
+      "setCode": "IBH_043"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "evacuation-escort",
+      "setCode": "IBH_044"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "go-for-the-legs",
+      "setCode": "IBH_045"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "chewbacca#rrruuuurrr",
+      "setCode": "IBH_046"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "echo-coordinator",
+      "setCode": "IBH_047"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "hoth-trooper",
+      "setCode": "IBH_048"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "r2d2#known-to-make-mistakes",
+      "setCode": "IBH_049"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "trench-defender",
+      "setCode": "IBH_050"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tauntaun-mount",
+      "setCode": "IBH_051"
     },
     {
       "implementation": "sourceIr",
@@ -1542,6 +1702,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "admiral-piett#in-command-now",
+      "setCode": "IBH_060"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "were-in-trouble",
       "setCode": "IBH_061"
     },
@@ -1562,8 +1727,23 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "admiral-piett#in-command-now",
+      "setCode": "IBH_065"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "too-strong-for-blasters",
       "setCode": "IBH_066"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "ground-assault-atat",
+      "setCode": "IBH_067"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "general-veers#leading-the-assault",
+      "setCode": "IBH_068"
     },
     {
       "implementation": "dataOnly",
@@ -1574,6 +1754,21 @@
       "implementation": "dataOnly",
       "internalName": "blizzard-force-atst",
       "setCode": "IBH_070"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "target-the-main-generator",
+      "setCode": "IBH_071"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "avenger#hunting-the-rebels",
+      "setCode": "IBH_072"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "first-legion-trooper",
+      "setCode": "IBH_073"
     },
     {
       "implementation": "sourceIr",
@@ -1592,6 +1787,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "snowtrooper",
+      "setCode": "IBH_077"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "surface-assault-bomber",
       "setCode": "IBH_078"
     },
@@ -1601,14 +1801,124 @@
       "setCode": "IBH_079"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "snowtrooper-vanguard",
+      "setCode": "IBH_080"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "scouting-tie-fighter",
+      "setCode": "IBH_081"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "admiral-ozzel#as-clumsy-as-he-is-stupid",
       "setCode": "IBH_082"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "eweb-gunner",
+      "setCode": "IBH_083"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "lambda-shuttle",
+      "setCode": "IBH_084"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "admiral-ozzel#as-clumsy-as-he-is-stupid",
+      "setCode": "IBH_085"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "were-in-trouble",
+      "setCode": "IBH_086"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "snowtrooper",
+      "setCode": "IBH_087"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "general-veers#leading-the-assault",
+      "setCode": "IBH_088"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "blizzard-force-atst",
+      "setCode": "IBH_089"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "lambda-shuttle",
+      "setCode": "IBH_090"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "too-strong-for-blasters",
+      "setCode": "IBH_091"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "hoth-lieutenant",
+      "setCode": "IBH_092"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "surface-assault-bomber",
+      "setCode": "IBH_093"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "surface-assault-bomber",
+      "setCode": "IBH_094"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "you-have-failed-me",
       "setCode": "IBH_095"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "snowtrooper-vanguard",
+      "setCode": "IBH_096"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "scouting-tie-fighter",
+      "setCode": "IBH_097"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "death-squadron-star-destroyer",
+      "setCode": "IBH_098"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "blizzard-one#veers-at-the-helm",
+      "setCode": "IBH_099"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "imperial-deck-officer",
+      "setCode": "IBH_100"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "first-legion-trooper",
+      "setCode": "IBH_101"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "i-want-proof-not-leads",
+      "setCode": "IBH_102"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "blizzard-force-atst",
+      "setCode": "IBH_103"
     },
     {
       "implementation": "sourceIr",
@@ -1629,6 +1939,11 @@
       "implementation": "dataOnly",
       "internalName": "kcm-mining-facility",
       "setCode": "IC27_011"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "mos-eisley",
+      "setCode": "IC27_012"
     },
     {
       "implementation": "sourceIr",
@@ -1787,8 +2102,23 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "city-in-the-clouds",
+      "setCode": "JTL_019"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "shield-generator-complex",
+      "setCode": "JTL_020"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "resistance-headquarters",
       "setCode": "JTL_022"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "theed-palace",
+      "setCode": "JTL_023"
     },
     {
       "implementation": "dataOnly",
@@ -1807,8 +2137,18 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "mos-eisley",
+      "setCode": "JTL_030"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "lake-country",
       "setCode": "JTL_031"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "onyx-squadron-brute",
+      "setCode": "JTL_033"
     },
     {
       "implementation": "sourceIr",
@@ -1966,6 +2306,11 @@
       "setCode": "JTL_090"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "phoenix-squadron-awing",
+      "setCode": "JTL_095"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "veteran-fleet-officer",
       "setCode": "JTL_099"
@@ -2034,6 +2379,11 @@
       "implementation": "sourceIr",
       "internalName": "special-forces-tie-fighter",
       "setCode": "JTL_135"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "prototype-tie-advanced",
+      "setCode": "JTL_136"
     },
     {
       "implementation": "sourceIr",
@@ -2176,6 +2526,11 @@
       "setCode": "JTL_239"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "rogueclass-starfighter",
+      "setCode": "JTL_241"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "quasar-tie-carrier",
       "setCode": "JTL_243"
@@ -2184,6 +2539,11 @@
       "implementation": "sourceIr",
       "internalName": "resistance-xwing",
       "setCode": "JTL_247"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "dilapidated-ski-speeder",
+      "setCode": "JTL_248"
     },
     {
       "implementation": "dataOnly",
@@ -2204,6 +2564,11 @@
       "implementation": "sourceIr",
       "internalName": "dedicated-wingmen",
       "setCode": "JTL_254"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "swarming-vulture-droid",
+      "setCode": "JTL_256"
     },
     {
       "implementation": "sourceIr",
@@ -2421,6 +2786,11 @@
       "setCode": "LAW_108"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "leias-disguise",
+      "setCode": "LAW_111"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "alkenzi-patroller",
       "setCode": "LAW_114"
@@ -2504,6 +2874,11 @@
       "implementation": "sourceIr",
       "internalName": "jaunty-light-freighter",
       "setCode": "LAW_147"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "fulcrum",
+      "setCode": "LAW_150"
     },
     {
       "implementation": "sourceIr",
@@ -2941,6 +3316,11 @@
       "setCode": "LOF_081"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "captain-enoch#captain-of-the-guard",
+      "setCode": "LOF_083"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "knight-of-ren",
       "setCode": "LOF_084"
@@ -3139,6 +3519,11 @@
       "implementation": "dataOnly",
       "internalName": "witch-of-the-mist",
       "setCode": "LOF_154"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "drk1-probe-droid",
+      "setCode": "LOF_155"
     },
     {
       "implementation": "dataOnly",
@@ -3366,6 +3751,11 @@
       "setCode": "LOF_234"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "hk87-assassin-droid",
+      "setCode": "LOF_235"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "army-of-the-dead",
       "setCode": "LOF_236"
@@ -3379,6 +3769,11 @@
       "implementation": "sourceIr",
       "internalName": "darth-revans-lightsabers",
       "setCode": "LOF_238"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "consumed-by-the-dark-side",
+      "setCode": "LOF_239"
     },
     {
       "implementation": "sourceIr",
@@ -3414,6 +3809,11 @@
       "implementation": "dataOnly",
       "internalName": "gungan-warrior",
       "setCode": "LOF_247"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "medical-frigate",
+      "setCode": "LOF_250"
     },
     {
       "implementation": "dataOnly",
@@ -3534,6 +3934,11 @@
       "implementation": "sourceIr",
       "internalName": "zam-wesell#inconspicuous-assassin",
       "setCode": "SEC_029"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "death-trooper",
+      "setCode": "SEC_030"
     },
     {
       "implementation": "sourceIr",
@@ -3882,6 +4287,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "awing",
+      "setCode": "SEC_213"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "skyhopper-canyon-runner",
       "setCode": "SEC_214"
     },
@@ -4032,6 +4442,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "death-trooper",
+      "setCode": "SHD_030"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "lom-pyke#dealer-in-truths",
       "setCode": "SHD_032"
     },
@@ -4139,6 +4554,16 @@
       "implementation": "sourceIr",
       "internalName": "cargo-juggernaut",
       "setCode": "SHD_066"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "foundling",
+      "setCode": "SHD_069"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "resilient",
+      "setCode": "SHD_070"
     },
     {
       "implementation": "sourceIr",
@@ -4292,8 +4717,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "hunting-nexu",
+      "setCode": "SHD_168"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "clan-challengers",
       "setCode": "SHD_169"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "daring-raid",
+      "setCode": "SHD_178"
     },
     {
       "implementation": "sourceIr",
@@ -4314,6 +4749,11 @@
       "implementation": "sourceIr",
       "internalName": "zuckuss#bounty-hunter-for-hire",
       "setCode": "SHD_190"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "grogu#irresistible",
+      "setCode": "SHD_196"
     },
     {
       "implementation": "dataOnly",
@@ -4422,6 +4862,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "street-gang-recruiter",
+      "setCode": "SHD_260"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "confiscate",
       "setCode": "SHD_262"
     },
@@ -4457,6 +4902,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "echo-base",
+      "setCode": "SOR_024"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "catacombs-of-cadera",
       "setCode": "SOR_026"
     },
@@ -4472,8 +4922,18 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "chopper-base",
+      "setCode": "SOR_030"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "scout-bike-pursuer",
       "setCode": "SOR_032"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "death-trooper",
+      "setCode": "SOR_033"
     },
     {
       "implementation": "sourceIr",
@@ -4489,6 +4949,11 @@
       "implementation": "sourceIr",
       "internalName": "count-dooku#darth-tyranus",
       "setCode": "SOR_038"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "atat-suppressor",
+      "setCode": "SOR_039"
     },
     {
       "implementation": "sourceIr",
@@ -4561,9 +5026,29 @@
       "setCode": "SOR_065"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "system-patrol-craft",
+      "setCode": "SOR_066"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "rugged-survivors",
       "setCode": "SOR_067"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "cargo-juggernaut",
+      "setCode": "SOR_068"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "resilient",
+      "setCode": "SOR_069"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "devotion",
+      "setCode": "SOR_070"
     },
     {
       "implementation": "sourceIr",
@@ -4577,6 +5062,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "repair",
+      "setCode": "SOR_074"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "make-an-opening",
       "setCode": "SOR_076"
     },
@@ -4587,8 +5077,23 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "vanquish",
+      "setCode": "SOR_078"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "admiral-piett#captain-of-the-executor",
       "setCode": "SOR_079"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "general-tagge#concerned-commander",
+      "setCode": "SOR_080"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "seasoned-shoretrooper",
+      "setCode": "SOR_081"
     },
     {
       "implementation": "sourceIr",
@@ -4647,8 +5152,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "patrolling-vwing",
+      "setCode": "SOR_111"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "consortium-starviper",
       "setCode": "SOR_112"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "homestead-militia",
+      "setCode": "SOR_113"
     },
     {
       "implementation": "sourceIr",
@@ -4661,9 +5176,34 @@
       "setCode": "SOR_116"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "mercenary-company",
+      "setCode": "SOR_117"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "97th-legion#keeping-the-peace-on-sullust",
       "setCode": "SOR_118"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "academy-training",
+      "setCode": "SOR_120"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tactical-advantage",
+      "setCode": "SOR_124"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "resupply",
+      "setCode": "SOR_126"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "death-star-stormtrooper",
+      "setCode": "SOR_128"
     },
     {
       "implementation": "sourceIr",
@@ -4742,8 +5282,23 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "disabling-fang-fighter",
+      "setCode": "SOR_162"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "star-wing-scout",
       "setCode": "SOR_163"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "wampa",
+      "setCode": "SOR_164"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "occupier-siege-tank",
+      "setCode": "SOR_165"
     },
     {
       "implementation": "sourceIr",
@@ -4754,6 +5309,11 @@
       "implementation": "sourceIr",
       "internalName": "keep-fighting",
       "setCode": "SOR_169"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "open-fire",
+      "setCode": "SOR_172"
     },
     {
       "implementation": "sourceIr",
@@ -4842,8 +5402,28 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "surprise-strike",
+      "setCode": "SOR_220"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "waylay",
+      "setCode": "SOR_222"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "tieln-fighter",
+      "setCode": "SOR_225"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "admiral-motti#brazen-and-scornful",
       "setCode": "SOR_226"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "cell-block-guard",
+      "setCode": "SOR_229"
     },
     {
       "implementation": "sourceIr",
@@ -4859,6 +5439,16 @@
       "implementation": "dataOnly",
       "internalName": "atst",
       "setCode": "SOR_232"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "alliance-xwing",
+      "setCode": "SOR_237"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "rebel-pathfinder",
+      "setCode": "SOR_239"
     },
     {
       "implementation": "sourceIr",
@@ -4881,9 +5471,24 @@
       "setCode": "SOR_244"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "underworld-thug",
+      "setCode": "SOR_247"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "frontier-atrt",
       "setCode": "SOR_249"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "corellian-freighter",
+      "setCode": "SOR_250"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "confiscate",
+      "setCode": "SOR_251"
     },
     {
       "implementation": "nativeAdapter",
@@ -4987,6 +5592,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "abandoned-the-order",
+      "setCode": "TS26_037"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "obiwan-kenobi#steadfast-knight",
       "setCode": "TS26_040"
     },
@@ -5024,6 +5634,11 @@
       "implementation": "sourceIr",
       "internalName": "general-grievous#crush-them",
       "setCode": "TS26_050"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "sith-traditions",
+      "setCode": "TS26_052"
     },
     {
       "implementation": "sourceIr",
@@ -5109,6 +5724,11 @@
       "implementation": "dataOnly",
       "internalName": "tipoca-city",
       "setCode": "TWI_024"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "kcm-mining-facility",
+      "setCode": "TWI_026"
     },
     {
       "implementation": "dataOnly",
@@ -5204,6 +5824,11 @@
       "implementation": "dataOnly",
       "internalName": "warrior-drone",
       "setCode": "TWI_057"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "padawan-starfighter",
+      "setCode": "TWI_058"
     },
     {
       "implementation": "sourceIr",
@@ -5422,6 +6047,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "savage-opress#monster",
+      "setCode": "TWI_137"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "selfdestruct",
       "setCode": "TWI_140"
     },
@@ -5621,6 +6251,11 @@
       "setCode": "TWI_209"
     },
     {
+      "implementation": "dataOnly",
+      "internalName": "hidden-sharpshooter",
+      "setCode": "TWI_214"
+    },
+    {
       "implementation": "sourceIr",
       "internalName": "droid-cohort",
       "setCode": "TWI_218"
@@ -5652,6 +6287,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "super-battle-droid",
+      "setCode": "TWI_230"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "dwarf-spider-droid",
       "setCode": "TWI_231"
     },
@@ -5677,6 +6317,11 @@
     },
     {
       "implementation": "dataOnly",
+      "internalName": "phase-i-clone-trooper",
+      "setCode": "TWI_241"
+    },
+    {
+      "implementation": "dataOnly",
       "internalName": "phase-ii-clone-trooper",
       "setCode": "TWI_242"
     },
@@ -5684,6 +6329,11 @@
       "implementation": "sourceIr",
       "internalName": "republic-commando",
       "setCode": "TWI_243"
+    },
+    {
+      "implementation": "dataOnly",
+      "internalName": "eta2-light-interceptor",
+      "setCode": "TWI_244"
     },
     {
       "implementation": "dataOnly",
@@ -5711,7 +6361,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1140,
+  "runtimeAdmittedCount": 1270,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -5925,7 +6575,7 @@
     },
     {
       "internalName": "arcana-star-map#path-to-peridea",
-      "reason": "arcana-star-map#path-to-peridea: compiler rejected \"arcana-star-map#path-to-peridea\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/08_ASH/upgrades/ArcanaStarMap.ts\",\"line\":14,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "arcana-star-map#path-to-peridea: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "ASH_084"
     },
     {
@@ -6020,7 +6670,7 @@
     },
     {
       "internalName": "the-darksaber#icon-of-leadership",
-      "reason": "the-darksaber#icon-of-leadership: compiler rejected \"the-darksaber#icon-of-leadership\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":20,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/08_ASH/upgrades/TheDarksaberIconOfLeadership.ts\",\"line\":28,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "the-darksaber#icon-of-leadership: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "ASH_135"
     },
     {
@@ -6180,7 +6830,7 @@
     },
     {
       "internalName": "executor#final-destruction-of-the-alliance",
-      "reason": "executor#final-destruction-of-the-alliance: compiler rejected \"executor#final-destruction-of-the-alliance\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":58,\"file\":\"game/cards/08_ASH/units/ExecutorFinalDestructionOfTheAlliance.ts\",\"line\":17,\"message\":\"target.controller.getArenaUnits({ otherThan: target }).flatMap((x) => x.upgrades)\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "executor#final-destruction-of-the-alliance: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "ASH_197"
     },
     {
@@ -6829,11 +7479,6 @@
       "setCode": "HMW_206"
     },
     {
-      "internalName": "luke-skywalker#dreaming-farmboy",
-      "reason": "luke-skywalker#dreaming-farmboy: compiler rejected \"luke-skywalker#dreaming-farmboy\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/09_HMW/units/LukeSkywalkerDreamingFarmboy.ts\",\"line\":21,\"message\":\"unimplemented-context-field:game\",\"pattern\":\"unimplemented-context-field:game\"}]",
-      "setCode": "HMW_208"
-    },
-    {
       "internalName": "corona-squadron-xwing",
       "reason": "corona-squadron-xwing: invalid ability IR: unknown variant `selectedPlayerSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "HMW_209"
@@ -6977,6 +7622,26 @@
       "internalName": "ive-found-them",
       "reason": "ive-found-them: compiler rejected \"ive-found-them\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/06_IBH/events/IveFoundThem.ts\",\"line\":35,\"message\":\"view-deck-saved-binding-requires-construction-frame\",\"pattern\":\"view-deck-saved-binding-requires-construction-frame\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_IBH/events/IveFoundThem.ts\",\"line\":28,\"message\":\"Unused binding hasUnits may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
       "setCode": "IBH_009"
+    },
+    {
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "reason": "han-solo#scruffylooking-nerf-herder: only phase stat modifications execute",
+      "setCode": "IBH_010"
+    },
+    {
+      "internalName": "ive-found-them",
+      "reason": "ive-found-them: compiler rejected \"ive-found-them\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/06_IBH/events/IveFoundThem.ts\",\"line\":35,\"message\":\"view-deck-saved-binding-requires-construction-frame\",\"pattern\":\"view-deck-saved-binding-requires-construction-frame\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":34,\"file\":\"game/cards/06_IBH/events/IveFoundThem.ts\",\"line\":28,\"message\":\"Unused binding hasUnits may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
+      "setCode": "IBH_025"
+    },
+    {
+      "internalName": "ill-cover-for-you",
+      "reason": "ill-cover-for-you: invalid ability IR: unknown field `numCardsFunc`, expected one of `kind`, `mode`, `chooser`, `resultBinding`, `defaults`, `contextBinding`, `choosingPlayerOverride`, `delayOpponentBeforeCosts`, `cardTypes`, `zones`, `controller`, `predicate`, `optional`, `canChooseNoCards`, `promptTitleParts`, `resolverName`, `condition`, `mustChangeGameState`",
+      "setCode": "IBH_039"
+    },
+    {
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "reason": "han-solo#scruffylooking-nerf-herder: only phase stat modifications execute",
+      "setCode": "IBH_042"
     },
     {
       "internalName": "watch-this",
@@ -7525,7 +8190,7 @@
     },
     {
       "internalName": "targeting-computer",
-      "reason": "targeting-computer: compiler rejected \"targeting-computer\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/04_JTL/upgrades/TargetingComputer.ts\",\"line\":14,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "targeting-computer: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "JTL_171"
     },
     {
@@ -7750,7 +8415,7 @@
     },
     {
       "internalName": "superheavy-ion-cannon",
-      "reason": "superheavy-ion-cannon: compiler rejected \"superheavy-ion-cannon\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/04_JTL/upgrades/SuperheavyIonCannon.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "superheavy-ion-cannon: attached program: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "JTL_227"
     },
     {
@@ -7834,18 +8499,13 @@
       "setCode": "JTL_255"
     },
     {
-      "internalName": "swarming-vulture-droid",
-      "reason": "swarming-vulture-droid: compiler rejected \"swarming-vulture-droid\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":45,\"file\":\"game/cards/04_JTL/units/SwarmingVultureDroid.ts\",\"line\":18,\"message\":\"live-stat-arena-capture\",\"pattern\":\"live-stat-arena-capture\"}]",
-      "setCode": "JTL_256"
-    },
-    {
       "internalName": "retrofitted-airspeeder",
       "reason": "retrofitted-airspeeder: invalid ability IR: unknown variant `attackPermission`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "JTL_259"
     },
     {
       "internalName": "death-star-plans",
-      "reason": "death-star-plans: compiler rejected \"death-star-plans\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/04_JTL/upgrades/DeathStarPlans.ts\",\"line\":43,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "death-star-plans: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "JTL_260"
     },
     {
@@ -8204,11 +8864,6 @@
       "setCode": "LAW_110"
     },
     {
-      "internalName": "leias-disguise",
-      "reason": "leias-disguise: compiler rejected \"leias-disguise\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/07_LAW/upgrades/LeiasDisguise.ts\",\"line\":18,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
-      "setCode": "LAW_111"
-    },
-    {
       "internalName": "boonta-eve-flagbearer",
       "reason": "boonta-eve-flagbearer: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "LAW_112"
@@ -8245,7 +8900,7 @@
     },
     {
       "internalName": "watchful",
-      "reason": "watchful: compiler rejected \"watchful\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/Watchful.ts\",\"line\":16,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "watchful: attached program: unknown variant `playerResolverSystemBinding`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LAW_125"
     },
     {
@@ -8312,11 +8967,6 @@
       "internalName": "rey#skywalker",
       "reason": "rey#skywalker: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_149"
-    },
-    {
-      "internalName": "fulcrum",
-      "reason": "fulcrum: compiler rejected \"fulcrum\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":18,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/07_LAW/upgrades/Fulcrum.ts\",\"line\":23,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
-      "setCode": "LAW_150"
     },
     {
       "internalName": "getaway-freighter",
@@ -8515,7 +9165,7 @@
     },
     {
       "internalName": "hans-golden-dice",
-      "reason": "hans-golden-dice: compiler rejected \"hans-golden-dice\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_LAW/upgrades/HansGoldenDice.ts\",\"line\":15,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "hans-golden-dice: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "LAW_225"
     },
     {
@@ -8790,7 +9440,7 @@
     },
     {
       "internalName": "jedi-trials",
-      "reason": "jedi-trials: compiler rejected \"jedi-trials\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/JediTrials.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "jedi-trials: companion registration: unknown variant `attachedModifierRegistration`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "LOF_052"
     },
     {
@@ -8800,7 +9450,7 @@
     },
     {
       "internalName": "size-matters-not",
-      "reason": "size-matters-not: compiler rejected \"size-matters-not\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/05_LOF/upgrades/SizeMattersNot.ts\",\"line\":22,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "size-matters-not: companion registration: unknown variant `boundCallback`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_056"
     },
     {
@@ -8864,11 +9514,6 @@
       "setCode": "LOF_082"
     },
     {
-      "internalName": "captain-enoch#captain-of-the-guard",
-      "reason": "captain-enoch#captain-of-the-guard: compiler rejected \"captain-enoch#captain-of-the-guard\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/05_LOF/units/CaptainEnochCaptainOfTheGuard.ts\",\"line\":19,\"message\":\"target.controller.discardZone.cards.filter((x) => x.isUnit() && x.hasSomeTrait(Trait.Trooper))\",\"pattern\":\"non-path-reference\"}]",
-      "setCode": "LOF_083"
-    },
-    {
       "internalName": "praetorian-guard",
       "reason": "praetorian-guard: compiler rejected \"praetorian-guard\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":38,\"file\":\"game/cards/05_LOF/units/PraetorianGuard.ts\",\"line\":16,\"message\":\"constant-stat-dependency\",\"pattern\":\"constant-stat-dependency\"}]",
       "setCode": "LOF_085"
@@ -8885,7 +9530,7 @@
     },
     {
       "internalName": "inquisitors-lightsaber",
-      "reason": "inquisitors-lightsaber: compiler rejected \"inquisitors-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":59,\"file\":\"game/cards/05_LOF/upgrades/InquisitorsLightsaber.ts\",\"line\":18,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "inquisitors-lightsaber: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "LOF_090"
     },
     {
@@ -8985,7 +9630,7 @@
     },
     {
       "internalName": "sith-holocron",
-      "reason": "sith-holocron: compiler rejected \"sith-holocron\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/SithHolocron.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "sith-holocron: only phase stat modifications execute",
       "setCode": "LOF_138"
     },
     {
@@ -9075,7 +9720,7 @@
     },
     {
       "internalName": "corrupted-saber",
-      "reason": "corrupted-saber: compiler rejected \"corrupted-saber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/05_LOF/upgrades/CorruptedSaber.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "corrupted-saber: attached registration: unknown field `gainCondition`, expected `type` or `program`",
       "setCode": "LOF_187"
     },
     {
@@ -9330,7 +9975,7 @@
     },
     {
       "internalName": "condemn",
-      "reason": "condemn: compiler rejected \"condemn\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":21,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"},{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":25,\"file\":\"game/cards/06_SEC/upgrades/Condemn.ts\",\"line\":19,\"message\":\"Unused binding aspects may contain unconverted behavior\",\"pattern\":\"unused-source-binding\"}]",
+      "reason": "condemn: attached registration: unknown field `gainCondition`, expected `type` or `program`",
       "setCode": "SEC_038"
     },
     {
@@ -9375,7 +10020,7 @@
     },
     {
       "internalName": "exiled-from-the-force",
-      "reason": "exiled-from-the-force: compiler rejected \"exiled-from-the-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/06_SEC/upgrades/ExiledFromTheForce.ts\",\"line\":20,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "exiled-from-the-force: attached trait modifier: unknown field `effects`, expected one of `kind`, `scope`, `effectType`, `target`, `duration`, `valueMode`, `value`",
       "setCode": "SEC_054"
     },
     {
@@ -9565,7 +10210,7 @@
     },
     {
       "internalName": "orn-free-taa#political-power-broker",
-      "reason": "orn-free-taa#political-power-broker: compiler rejected \"orn-free-taa#political-power-broker\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":24,\"file\":\"game/cards/06_SEC/units/OrnFreeTaaPoliticalPowerBroker.ts\",\"line\":20,\"message\":\"context.player.discard?.filter((x: IPlayableCard) => x.hasSomeTrait(Trait.Law))\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "orn-free-taa#political-power-broker: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
       "setCode": "SEC_112"
     },
     {
@@ -9855,7 +10500,7 @@
     },
     {
       "internalName": "stolen-starpath-unit",
-      "reason": "stolen-starpath-unit: compiler rejected \"stolen-starpath-unit\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/StolenStarpathUnit.ts\",\"line\":15,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "stolen-starpath-unit: compiler rejected \"stolen-starpath-unit\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/06_SEC/upgrades/StolenStarpathUnit.ts\",\"line\":31,\"message\":\"context.player.opponent.hand.filter((x) => x.title === thenContext.select)\",\"pattern\":\"non-path-reference\"}]",
       "setCode": "SEC_210"
     },
     {
@@ -10020,7 +10665,7 @@
     },
     {
       "internalName": "clandestine-connections",
-      "reason": "clandestine-connections: compiler rejected \"clandestine-connections\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/06_SEC/upgrades/ClandestineConnections.ts\",\"line\":16,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "clandestine-connections: attached program: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SEC_264"
     },
     {
@@ -10090,7 +10735,7 @@
     },
     {
       "internalName": "doctor-aphra#rapacious-archaeologist",
-      "reason": "doctor-aphra#rapacious-archaeologist: compiler rejected \"doctor-aphra#rapacious-archaeologist\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/02_SHD/leaders/DoctorAphraRapaciousArchaeologist.ts\",\"line\":30,\"message\":\"new Set(\\n                context.player.getCardsInZone(ZoneName.Discard).filter((card) => card.hasCost())\\n                    .map((card) => card.cost)\\n            )\",\"pattern\":\"non-path-reference\"}]",
+      "reason": "doctor-aphra#rapacious-archaeologist: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "SHD_015"
     },
     {
@@ -10169,6 +10814,11 @@
       "setCode": "SHD_054"
     },
     {
+      "internalName": "rickety-quadjumper",
+      "reason": "rickety-quadjumper: invalid ability IR: unknown variant `reveal`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "setCode": "SHD_057"
+    },
+    {
       "internalName": "val#loyal-to-the-end",
       "reason": "val#loyal-to-the-end: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_058"
@@ -10194,18 +10844,13 @@
       "setCode": "SHD_068"
     },
     {
-      "internalName": "foundling",
-      "reason": "foundling: compiler rejected \"foundling\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/02_SHD/upgrades/Foundling.ts\",\"line\":16,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
-      "setCode": "SHD_069"
-    },
-    {
       "internalName": "top-target",
       "reason": "top-target: invalid ability IR: unknown variant `gainBounty`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_071"
     },
     {
       "internalName": "imprisoned",
-      "reason": "imprisoned: compiler rejected \"imprisoned\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/02_SHD/upgrades/Imprisoned.ts\",\"line\":16,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "imprisoned: attached trait modifier: missing field `scope`",
       "setCode": "SHD_072"
     },
     {
@@ -10299,6 +10944,11 @@
       "setCode": "SHD_102"
     },
     {
+      "internalName": "inspiring-mentor",
+      "reason": "inspiring-mentor: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "setCode": "SHD_104"
+    },
+    {
       "internalName": "spark-of-hope",
       "reason": "spark-of-hope: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "SHD_105"
@@ -10385,7 +11035,7 @@
     },
     {
       "internalName": "the-darksaber",
-      "reason": "the-darksaber: compiler rejected \"the-darksaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/TheDarksaber.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "the-darksaber: arena scalar query requires exact reviewed complete source shape",
       "setCode": "SHD_126"
     },
     {
@@ -10394,9 +11044,19 @@
       "setCode": "SHD_127"
     },
     {
+      "internalName": "outflank",
+      "reason": "outflank: native attacks require a complete sole ordinary unit/event registration",
+      "setCode": "SHD_128"
+    },
+    {
       "internalName": "timely-intervention",
       "reason": "timely-intervention: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_129"
+    },
+    {
+      "internalName": "take-captive",
+      "reason": "take-captive: invalid ability IR: missing field `effect`",
+      "setCode": "SHD_131"
     },
     {
       "internalName": "choose-sides",
@@ -10545,7 +11205,7 @@
     },
     {
       "internalName": "armed-to-the-teeth",
-      "reason": "armed-to-the-teeth: compiler rejected \"armed-to-the-teeth\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/ArmedToTheTeeth.ts\",\"line\":15,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "armed-to-the-teeth: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "SHD_175"
     },
     {
@@ -10555,7 +11215,7 @@
     },
     {
       "internalName": "vambrace-flamethrower",
-      "reason": "vambrace-flamethrower: compiler rejected \"vambrace-flamethrower\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/02_SHD/upgrades/VambraceFlamethrower.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "vambrace-flamethrower: attached program: unknown variant `registrationSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SHD_177"
     },
     {
@@ -10855,7 +11515,7 @@
     },
     {
       "internalName": "chirrut-imwe#one-with-the-force",
-      "reason": "chirrut-imwe#one-with-the-force: compiler rejected \"chirrut-imwe#one-with-the-force\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":37,\"file\":\"game/cards/01_SOR/leaders/ChirrutImweOneWithTheForce.ts\",\"line\":31,\"message\":\"unimplemented-context-field:game\",\"pattern\":\"unimplemented-context-field:game\"}]",
+      "reason": "chirrut-imwe#one-with-the-force: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "SOR_004"
     },
     {
@@ -10980,7 +11640,7 @@
     },
     {
       "internalName": "jedi-lightsaber",
-      "reason": "jedi-lightsaber: compiler rejected \"jedi-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/JediLightsaber.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "jedi-lightsaber: attached registration: unknown field `gainCondition`, expected `type` or `program`",
       "setCode": "SOR_054"
     },
     {
@@ -10999,19 +11659,29 @@
       "setCode": "SOR_058"
     },
     {
+      "internalName": "guardian-of-the-whills",
+      "reason": "guardian-of-the-whills: compiler rejected \"guardian-of-the-whills\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/units/GuardianOfTheWhills.ts\",\"line\":25,\"message\":\"private-program-assertion\",\"pattern\":\"private-program-assertion\"}]",
+      "setCode": "SOR_061"
+    },
+    {
       "internalName": "regional-governor",
       "reason": "regional-governor: invalid ability IR: unknown variant `resolveTargetSelection`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_062"
     },
     {
       "internalName": "entrenched",
-      "reason": "entrenched: compiler rejected \"entrenched\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/01_SOR/upgrades/Entrenched.ts\",\"line\":14,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
+      "reason": "entrenched: attached constants support only static persistent parent trait leaves",
       "setCode": "SOR_072"
     },
     {
       "internalName": "it-binds-all-things",
       "reason": "it-binds-all-things: invalid ability IR: unknown variant `eventResult`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_075"
+    },
+    {
+      "internalName": "superlaser-technician",
+      "reason": "superlaser-technician: invalid ability IR: unknown variant `resourceCardSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "setCode": "SOR_083"
     },
     {
       "internalName": "grand-moff-tarkin#death-star-overseer",
@@ -11124,6 +11794,11 @@
       "setCode": "SOR_123"
     },
     {
+      "internalName": "prepare-for-takeoff",
+      "reason": "prepare-for-takeoff: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
+      "setCode": "SOR_125"
+    },
+    {
       "internalName": "strike-true",
       "reason": "strike-true: invalid ability IR: missing field `effect`",
       "setCode": "SOR_127"
@@ -11150,7 +11825,7 @@
     },
     {
       "internalName": "fallen-lightsaber",
-      "reason": "fallen-lightsaber: compiler rejected \"fallen-lightsaber\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/FallenLightsaber.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "fallen-lightsaber: attached registration: unknown field `gainCondition`, expected `type` or `program`",
       "setCode": "SOR_137"
     },
     {
@@ -11252,6 +11927,11 @@
       "internalName": "forced-surrender",
       "reason": "forced-surrender: compiler rejected \"forced-surrender\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":29,\"file\":\"game/cards/01_SOR/events/ForcedSurrender.ts\",\"line\":28,\"message\":\"hand-discard-player-target\",\"pattern\":\"hand-discard-player-target\"}]",
       "setCode": "SOR_175"
+    },
+    {
+      "internalName": "isb-agent",
+      "reason": "isb-agent: invalid ability IR: unknown variant `reveal`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "setCode": "SOR_176"
     },
     {
       "internalName": "bib-fortuna#jabbas-majordomo",
@@ -11365,8 +12045,18 @@
     },
     {
       "internalName": "smuggling-compartment",
-      "reason": "smuggling-compartment: compiler rejected \"smuggling-compartment\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/01_SOR/upgrades/SmugglingCompartment.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "smuggling-compartment: attached program: unknown variant `selectedPlayerSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_214"
+    },
+    {
+      "internalName": "snapshot-reflexes",
+      "reason": "snapshot-reflexes: native attacks require a complete sole ordinary unit/event registration",
+      "setCode": "SOR_215"
+    },
+    {
+      "internalName": "shoot-first",
+      "reason": "shoot-first: native attacks require a complete sole ordinary unit/event registration",
+      "setCode": "SOR_217"
     },
     {
       "internalName": "sneak-attack",
@@ -11389,6 +12079,21 @@
       "setCode": "SOR_224"
     },
     {
+      "internalName": "snowtrooper-lieutenant",
+      "reason": "snowtrooper-lieutenant: native attacks require a complete sole ordinary unit/event registration",
+      "setCode": "SOR_227"
+    },
+    {
+      "internalName": "viper-probe-droid",
+      "reason": "viper-probe-droid: invalid ability IR: unknown variant `lookAt`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "setCode": "SOR_228"
+    },
+    {
+      "internalName": "i-am-your-father",
+      "reason": "i-am-your-father: invalid ability IR: missing field `effect`",
+      "setCode": "SOR_233"
+    },
+    {
       "internalName": "maximum-firepower",
       "reason": "maximum-firepower: invalid ability IR: missing field `effect`",
       "setCode": "SOR_234"
@@ -11397,6 +12102,16 @@
       "internalName": "galactic-ambition",
       "reason": "galactic-ambition: invalid ability IR: unknown variant `playCardSystem`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_235"
+    },
+    {
+      "internalName": "r2d2#ignoring-protocol",
+      "reason": "r2d2#ignoring-protocol: invalid ability IR: unknown variant `lookMoveDeckCards`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
+      "setCode": "SOR_236"
+    },
+    {
+      "internalName": "c3po#protocol-droid",
+      "reason": "c3po#protocol-droid: compiler rejected \"c3po#protocol-droid\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":33,\"file\":\"game/cards/01_SOR/units/C-3POProtocolDroid.ts\",\"line\":34,\"message\":\"choice-external-capture-stage\",\"pattern\":\"choice-external-capture-stage\"}]",
+      "setCode": "SOR_238"
     },
     {
       "internalName": "fleet-lieutenant",
@@ -11412,6 +12127,11 @@
       "internalName": "youre-my-only-hope",
       "reason": "youre-my-only-hope: invalid ability IR: unknown variant `lookAtOptions`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "SOR_246"
+    },
+    {
+      "internalName": "volunteer-soldier",
+      "reason": "volunteer-soldier: invalid ability IR: unknown variant `boundCallback`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "setCode": "SOR_248"
     },
     {
       "internalName": "restock",
@@ -11564,11 +12284,6 @@
       "setCode": "TS26_036"
     },
     {
-      "internalName": "abandoned-the-order",
-      "reason": "abandoned-the-order: compiler rejected \"abandoned-the-order\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":55,\"file\":\"game/cards/07_TS26/upgrades/AbandonedTheOrder.ts\",\"line\":17,\"message\":\"attached-constant-installed-keyword-only\",\"pattern\":\"attached-constant-installed-keyword-only\"}]",
-      "setCode": "TS26_037"
-    },
-    {
       "internalName": "dookus-solar-sailer#beautiful-and-expensive",
       "reason": "dookus-solar-sailer#beautiful-and-expensive: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "TS26_038"
@@ -11597,11 +12312,6 @@
       "internalName": "lom-pyke#making-a-withdrawal",
       "reason": "lom-pyke#making-a-withdrawal: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_051"
-    },
-    {
-      "internalName": "sith-traditions",
-      "reason": "sith-traditions: compiler rejected \"sith-traditions\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/07_TS26/upgrades/SithTraditions.ts\",\"line\":17,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
-      "setCode": "TS26_052"
     },
     {
       "internalName": "wartime-mercenaries",
@@ -11804,6 +12514,11 @@
       "setCode": "TWI_025"
     },
     {
+      "internalName": "rune-haako#scheming-second",
+      "reason": "rune-haako#scheming-second: phase history requires complete ordinary unit/event source metadata and registration",
+      "setCode": "TWI_031"
+    },
+    {
       "internalName": "general-grievous#trophy-collector",
       "reason": "general-grievous#trophy-collector: invalid ability IR: unknown variant `costAdjuster`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`",
       "setCode": "TWI_034"
@@ -11827,6 +12542,11 @@
       "internalName": "a-fine-addition",
       "reason": "a-fine-addition: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "TWI_040"
+    },
+    {
+      "internalName": "lethal-crackdown",
+      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "setCode": "TWI_041"
     },
     {
       "internalName": "barriss-offee#unassuming-apprentice",
@@ -11980,7 +12700,7 @@
     },
     {
       "internalName": "generals-blade",
-      "reason": "generals-blade: compiler rejected \"generals-blade\": [{\"code\":\"UNSUPPORTED_SOURCE\",\"column\":9,\"file\":\"game/cards/03_TWI/upgrades/GeneralsBlade.ts\",\"line\":18,\"message\":\"registrar:addGainOnAttackAbilityTargetingAttached\",\"pattern\":\"registrar:addGainOnAttackAbilityTargetingAttached\"}]",
+      "reason": "generals-blade: attached registration: unknown field `gainCondition`, expected `type` or `program`",
       "setCode": "TWI_121"
     },
     {
@@ -12319,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1321,
+  "runtimeRejectedCount": 1335,
   "schema": "omni-rs-catalogue-report-v1",
-  "sourceAstConvertedCount": 1900
+  "sourceAstConvertedCount": 2014
 }
