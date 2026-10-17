@@ -300,6 +300,83 @@ fn reviewed_force_entry(entry:&Value)->bool {
     entry["sourceHash"]=="3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6" && entry["baseClass"]=="TokenCard" && entry["card"]==metadata && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["keywordValues"]==serde_json::json!({}) && entry["attachCondition"].is_null()
 }
 
+/// One printed side of an intrinsic numeric Exploit keyword, parsed exactly as
+/// `KeywordHelpers.parseNumericKeywordValueIfEnabled` does with
+/// `/(?:^|(?:\n))Exploit ([\d]+)/g`: only a line-initial occurrence counts, a
+/// second own-line occurrence on the same side is an engine initialization
+/// error, and the parse continues after the captured digits. This is a
+/// source-derived printed value, not a heuristic: provider keyword metadata
+/// mentions a keyword in mid-line ability text ("gains Exploit 1") without
+/// creating an intrinsic instance, and such a side contributes zero.
+fn printed_exploit_side(text: &str) -> Result<u16, String> {
+    let bytes = text.as_bytes();
+    let mut hits = 0u16;
+    let mut total = 0u32;
+    let mut index = 0usize;
+    while index < bytes.len() {
+        let line_initial = index == 0 || bytes[index - 1] == b'\n';
+        if line_initial && bytes[index..].starts_with(b"Exploit ") {
+            let start = index + "Exploit ".len();
+            let mut end = start;
+            while end < bytes.len() && bytes[end].is_ascii_digit() { end += 1; }
+            if end > start {
+                hits = hits.checked_add(1).ok_or("printed Exploit occurrence count overflow")?;
+                if hits > 1 {
+                    return Err("multiple printed Exploit values on one printed side are unsupported".into());
+                }
+                let value: u32 = text[start..end]
+                    .parse()
+                    .map_err(|_| "printed Exploit amount exceeds bounded capacity")?;
+                total = total.checked_add(value).ok_or("printed Exploit total exceeds bounded capacity")?;
+                index = end;
+                continue;
+            }
+        }
+        index += 1;
+    }
+    Ok(total as u16)
+}
+
+/// Sum the intrinsic Exploit instances over the printed sides the pinned engine
+/// parses for numeric keywords: a leader's `deployBox` and `text`, or a
+/// non-leader's `text` only. Numeric instances are summed by `dedupeKeywords`,
+/// so two sides can each contribute one amount. Values above the bounded
+/// keyword capacity stay explicit rejections.
+fn printed_exploit_total(info: &CardInfo) -> Result<u16, String> {
+    let sides: [Option<&str>; 2] = if info.is("leader") {
+        [info.deploy_box.as_deref(), info.text.as_deref()]
+    } else {
+        [None, info.text.as_deref()]
+    };
+    let mut total = 0u32;
+    for side in sides.into_iter().flatten() {
+        total = total
+            .checked_add(u32::from(printed_exploit_side(side)?))
+            .ok_or("printed Exploit total exceeds bounded capacity")?;
+    }
+    if total > 1000 { return Err("printed Exploit amount exceeds bounded keyword capacity".into()); }
+    Ok(total as u16)
+}
+
+/// Distributed healing needs its prompted amount re-applied after an event cost
+/// is committed, but the Exploit payment boundary suspends before the event's
+/// commit continuation. Admission keeps that combination explicit rather than
+/// resuming the wrong continuation.
+fn effect_contains_distribute_healing(effect: &Effect) -> bool {
+    match effect {
+        Effect::DistributeHealing { .. } => true,
+        Effect::Sequence { effects } | Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => {
+            effects.iter().any(effect_contains_distribute_healing)
+        }
+        Effect::Conditional { on_true, on_false, .. } => {
+            effect_contains_distribute_healing(on_true)
+                || on_false.as_ref().is_some_and(|e| effect_contains_distribute_healing(e))
+        }
+        Effect::Select { effect, .. } => effect_contains_distribute_healing(effect),
+        _ => false,
+    }
+}
+
 impl Engine {
     // Player.getInPlayCards: controller-owned arena cards plus the player's BaseZone.
     // Credits and Fortify cannot occur in the admitted state model.
@@ -520,10 +597,48 @@ impl Engine {
                 let mut flags = 0;
                 let mut raid = 0;
                 let mut restore = 0;
+                let mut exploit = 0;
                 for keyword in entry["card"]["keywords"].as_array().into_iter().flatten() {
                     let name = keyword.as_str().ok_or("invalid keyword")?;
                     if name=="coordinate" {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
+                        continue;
+                    }
+                    if name == "exploit" {
+                        // Numeric Exploit is not lowered into keywordValues, so
+                        // the intrinsic amount comes from the printed text with
+                        // the pinned engine's own per-side parse. Zero is a
+                        // valid outcome: provider keyword metadata also lists
+                        // mid-line mentions, which create no intrinsic instance.
+                        let amount = printed_exploit_total(&info)?;
+                        if entry["keywordValues"].get(name).is_some_and(|v| v.as_u64() != Some(amount as u64)) {
+                            return Err("printed Exploit differs from catalogue keyword value".into());
+                        }
+                        if amount > 0 {
+                            // An upgrade pays after its attach target is chosen;
+                            // the current runtime has no exploit payment hook in
+                            // that continuation. The catalogue has no such card.
+                            if info.is("upgrade") {
+                                return Err("Exploit upgrades require the attach-before-payment boundary".into());
+                            }
+                            // Distributed healing resumes its own prompted
+                            // continuation after commit; the Exploit boundary
+                            // has no such resumable state. The two exploit
+                            // events in the catalogue do not use it.
+                            let distributes = programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|&id| {
+                                catalogue.programs[id as usize].instructions.iter().any(|instruction| match instruction {
+                                    Instruction::Apply(effect)
+                                    | Instruction::Group(effect)
+                                    | Instruction::NamedGroup(effect)
+                                    | Instruction::NamedChooserGroup { effect, .. } => effect_contains_distribute_healing(effect),
+                                    _ => false,
+                                })
+                            });
+                            if info.is("event") && distributes {
+                                return Err("Exploit events with distributed healing require a payment-boundary continuation".into());
+                            }
+                        }
+                        exploit = amount;
                         continue;
                     }
                     if !crate::ability_ir::CORE_KEYWORDS.contains(&name) { return Err(format!("unimplemented runtime keyword {name}")); }
@@ -592,6 +707,7 @@ impl Engine {
                     flags,
                     raid,
                     restore,
+                    exploit,
                     aspects,
                     programs,
                     traits: entry["card"]["traits"]
@@ -1877,6 +1993,8 @@ impl Engine {
     /// historical numeric representation. Legacy raw return decoding stays in end_program.
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
         s.disclose=DiscloseState::default();
+        // A new program cannot inherit a play-cost prompt from an earlier action.
+        s.exploit = ExploitState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -1909,29 +2027,61 @@ impl Engine {
         }
         if !self.program_has_effect(s, s.source, p) {
             if self.program(p).trigger == "event" {
-                self.commit_program(s)?;
+                if !self.commit_program(s, true)? {
+                    s.exploit.resume = EXPLOIT_RESUME_END;
+                    return Ok(());
+                }
             }
             return self.end_program(s);
         }
         self.run_program(s)
     }
-    fn commit_program(&self, s: &mut State) -> Result<(), String> {
+    /// Pay the ability's costs at the pinned engine's payment boundary and return
+    /// `true` when committed. Returns `false` when an intrinsic Exploit adjustment
+    /// suspended this payment to present its pay-mode choice; the caller must
+    /// return without continuing the program. `offer_exploit` is false only for
+    /// the continuation that settles an already-presented choice.
+    ///
+    /// Exploit is offered here rather than at the click because the engine runs
+    /// PlayCardAction's early target resolvers first, then the resource cost
+    /// adjusters; the card enters play only after payment. The defeat triggers
+    /// register in the play event's window and resolve after its effect (the
+    /// `after_pc = event_end` capture below). Keeping the card in hand until the
+    /// choice settles preserves that order and makes Cancel free.
+    fn commit_program(&self, s: &mut State, offer_exploit: bool) -> Result<bool, String> {
         if s.ability_committed {
-            return Ok(());
+            return Ok(true);
         }
         let source = s.source;
+        let event_in_hand = self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source);
+        if offer_exploit
+            && !s.exploit.settled
+            && event_in_hand
+            && self.exploit_max_count(s, s.active, source) > 0
+        {
+            // Present the pay-mode menu; `settled` survives the resumed
+            // instruction so the prompt cannot be offered twice.
+            s.exploit = ExploitState { settled: true, ..ExploitState::default() };
+            s.decision = Decision::ExploitChoice;
+            return Ok(false);
+        }
         // Mandatory Force payment must still be possible after targeting. Check
         // before mutating any other cost, so a failed payment stays atomic.
         if self.program(s.ability_program - 1).costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. }))
             && !self.can_pay_force_cost(s, source) {
             return Err("Force cost requires exact held Force identity".into());
         }
-        if self.def(s, source).info.is("event") && s.player(s.active).hand.contains(source) {
+        if event_in_hand {
+            // The adjuster decreases the resource cost by 2 per defeated unit,
+            // floored at zero; the defeats themselves happened when the choice
+            // settled (or none for "Play without Exploit").
+            let discount = if s.exploit.settled { 2 * s.exploit.selection.len as u16 } else { 0 };
             s.phase_history.preflight_play(s.active)?;
-            self.spend(s, s.active, self.cost(s, source));
+            self.spend(s, s.active, self.cost(s, source).saturating_sub(discount));
             s.player_mut(s.active).hand.remove(source);
             s.player_mut(s.active).discard.push(source)?;
             s.phase_history.played(s.active,source)?;
+            s.exploit = ExploitState::default();
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -1947,7 +2097,28 @@ impl Engine {
             }
         }
         s.ability_committed = true;
-        Ok(())
+        Ok(true)
+    }
+    /// Resume the cost-adjustment continuation the Exploit pay-mode prompt
+    /// interrupted. A normal program re-executes its interrupted instruction; a
+    /// no-resolvable-effect event commits and ends, opening the captured cost
+    /// defeat window at the program end exactly as `run_program` would.
+    pub(super) fn resume_exploit_program(&self, s: &mut State) -> Result<(), String> {
+        match s.exploit.resume {
+            EXPLOIT_RESUME_END => {
+                if !self.commit_program(s, false)? { return Ok(()); }
+                if s.ability_program != 0 && s.source != 0 {
+                    let end = self.program(s.ability_program - 1).event_end;
+                    // The ordinary end-of-program check in `run_program` cannot
+                    // run because the no-effect path already knows the program
+                    // ends here; make this program's deferred cost triggers ready.
+                    s.ability_pc = end;
+                    if self.open_deaths(s, DeathContinuation::Finish)? { return Ok(()); }
+                }
+                self.end_program(s)
+            }
+            _ => self.run_program(s),
+        }
     }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
         s.disclose=DiscloseState::default();
@@ -1981,7 +2152,7 @@ impl Engine {
                 Instruction::EndStep => {s.ability_pc+=1;}
                 Instruction::CaptureMaximum{aspect}=>{self.capture_maximum(s,s.source,aspect)?;s.ability_pc+=1;}
                 Instruction::Commit => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s, true)? { return Ok(()); }
                     s.ability_pc += 1;
                 }
                 Instruction::Select(r) => {
@@ -2020,7 +2191,7 @@ impl Engine {
                 }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s, true)? { return Ok(()); }
                     if self.native_attack_eligible(s,s.source,s.ability_target,properties) {
                         self.begin_native_attack(s,properties,p.optional)?;
                         return Ok(());
@@ -2028,7 +2199,8 @@ impl Engine {
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
                 }
                 Instruction::Apply(Effect::Disclose{aspects,..})=>{
-                    self.commit_program(s)?;s.ability_result=0;s.ability_succeeded=false;
+                    if !self.commit_program(s, true)? { return Ok(()); }
+                    s.ability_result=0;s.ability_succeeded=false;
                     let player=s.card(s.source).owner;s.disclose=DiscloseState{player,selected:Selection::default()};s.active=player;
                     if self.can_disclose(s,player,aspects) {s.decision=Decision::DiscloseSelect;return Ok(());}
                     if p.trigger!="event" {s.decision=Decision::DisclosePause;return Ok(());}
@@ -2040,7 +2212,7 @@ impl Engine {
                 }
                 Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup{effect,..} => {
                     let named=instruction.is_named_group();
-                    if !named { self.commit_program(s)?; }
+                    if !named && !self.commit_program(s, true)? { return Ok(()); }
                     if !s.event_group.active {
                         s.ability_succeeded=false;
                         s.event_group.active=true; s.event_group.initiator=s.active;
@@ -2050,14 +2222,17 @@ impl Engine {
                     // Replacement prompts retain their own actor until resolve_group consumes them.
                     if matches!(instruction,Instruction::NamedChooserGroup{..}) && !s.event_group.replacement_done {s.active=s.event_group.initiator;}
                     if !self.generate_group(s,effect)? { return Ok(()); }
-                    if named { self.commit_program(s)?; self.allocate_named_tokens(s,effect)?; }
+                    if named {
+                        if !self.commit_program(s, true)? { return Ok(()); }
+                        self.allocate_named_tokens(s,effect)?;
+                    }
                     if !self.resolve_group(s,effect)? { return Ok(()); }
                     s.event_group=EventGroupState::default();
                     s.ability_selection=Selection::default();
                     s.ability_pc+=1;
                 }
                 Instruction::Apply(effect) => {
-                    self.commit_program(s)?;
+                    if !self.commit_program(s, true)? { return Ok(()); }
                     let (amount, resolved) = self.apply_effect(s, effect)?;
                     s.ability_result = amount;
                     s.ability_succeeded = resolved;
@@ -2711,9 +2886,13 @@ impl Engine {
             Decision::AbilityNoEffect => {
                 if a.label == "Cancel" {
                     self.cancel(&mut t);
-                } else {
-                    self.commit_program(&mut t)?;
+                } else if self.commit_program(&mut t, true)? {
                     self.end_program(&mut t)?;
+                } else {
+                    // The no-effect event still pays its adjusted cost; resume
+                    // by committing and ending once the pay-mode choice settles.
+                    t.exploit.resume = EXPLOIT_RESUME_END;
+                    return Ok(t);
                 }
             }
             Decision::AbilityOptional => {
@@ -2752,7 +2931,12 @@ impl Engine {
                 }
             }
             Decision::AbilityDistribute => {
-                self.commit_program(&mut t)?;
+                // Admission rejects Exploit events whose programs distribute
+                // healing: this continuation is not re-enterable after the
+                // pay-mode prompt, so the suspension cannot be resumed here.
+                if !self.commit_program(&mut t, true)? {
+                    return Err("Exploit payment boundary reached a distributed-healing continuation".into());
+                }
                 t.event_result=StepEventResult::for_state(&t);
                 t.ability_result = 0;
                 t.ability_succeeded = false;
@@ -3315,3 +3499,7 @@ mod advantage_tests;
 #[cfg(test)]
 #[path="pay_adjusted_resources_tests.rs"]
 mod pay_adjusted_resources_tests;
+
+#[cfg(test)]
+#[path="exploit_tests.rs"]
+mod exploit_tests;

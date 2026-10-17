@@ -127,13 +127,13 @@ fn lower(p: &Program) -> Result<String, String> {
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
-            Instruction::Commit=>"self.commit_program(s)?;s.ability_pc+=1;".into(),
+            Instruction::Commit=>"if !self.commit_program(s,true)? {return Ok(true);}s.ability_pc+=1;".into(),
             Instruction::Select(_)=>format!("let Instruction::Select(r)=&p.instructions[{pc}] else {{return Err(\"AOT selection identity mismatch\".into())}};if self.program_targets(s,s.source,s.ability_program-1,{pc},r,true).is_empty() {{s.ability_target=0;s.ability_selection=Selection::default();s.ability_pc+=1;}} else {{s.decision=Decision::AbilityTarget;return Ok(true);}}"),
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
             Instruction::Apply(Effect::DistributeHealing{..})=>"s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),
-            Instruction::Apply(e)=>format!("self.commit_program(s)?;{}s.ability_pc+=1;",primitive(e)?),
+            Instruction::Apply(e)=>format!("if !self.commit_program(s,true)? {{return Ok(true);}}{}s.ability_pc+=1;",primitive(e)?),
             _=>return Err("instruction control/expression requires interpreter".into()),
         };
         body.push_str(&format!("{pc}=>{{{step}}},\n"));
