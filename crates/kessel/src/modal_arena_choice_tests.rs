@@ -262,12 +262,30 @@ fn modal_arena_persecutor_actual_play_targets_after_unit_payment_and_pass_keeps_
         dirty.ability_result = 77;
         dirty.ability_succeeded = true;
         dirty.event_result.damage_dealt = 7;
+        let prepared = e.program(dirty.ability_program - 1);
+        let Instruction::ModalChoice(menu) = &prepared.instructions[dirty.ability_pc as usize]
+        else {
+            panic!("expected prepared modal menu");
+        };
+        let pass = menu
+            .branches
+            .iter()
+            .find(|branch| branch.label == "Pass")
+            .unwrap();
+        let Instruction::Apply(leaf) = &prepared.instructions[pass.start] else {
+            panic!("expected Pass leaf");
+        };
+        assert!(matches!(leaf, Effect::NoAction));
+        let mut leaf_state = dirty;
+        assert_eq!(e.apply_effect(&mut leaf_state, leaf).unwrap(), (0, false));
+        // The shared neutral-leaf wrapper publishes no event identity.
+        assert_eq!(leaf_state.event_result, StepEventResult::default());
         let done = choice(&e, &dirty, "Pass");
         assert_eq!(done.ability_result, 0);
         assert!(!done.ability_succeeded);
         assert_eq!(done.event_result.damage_dealt, 0);
         assert_eq!(done.event_result.defeated_units, [0, 0]);
-        assert_eq!(done.event_result.source, source);
+        assert_eq!(done.event_result, StepEventResult::default());
         assert_eq!(done.card(source).damage, 0);
     }
 }
@@ -466,20 +484,40 @@ fn modal_arena_import_guard_uses_selected_pool_and_execution_rejects_missing_glo
         .run_program(&mut s)
         .unwrap_err()
         .contains("recorded arena order"));
+    let mut selected = e.compiled_pool().unwrap();
+    selected["cards"].as_array_mut().unwrap().retain(|card| {
+        let code = card["setCode"].as_str().unwrap();
+        ["ASH_019", "SOR_014", "IBH_053", "LOF_254"].contains(&code) || code.starts_with("TOKEN_")
+    });
     let strict = Engine::from_compiled_pool_bytes(
-        include_bytes!("../data/pool.json"),
+        &serde_json::to_vec(&selected).unwrap(),
         include_bytes!("../../../compiler/generated/catalog.json"),
     )
     .unwrap();
     let strict_state = arena_board(&strict, Seat::P1);
     let mut strict_snapshot = strict.snapshot(&strict_state);
-    strict_snapshot
-        .as_object_mut()
+    assert!(!strict.needs_modal_arena_order());
+    assert!(strict
+        .catalogue
+        .as_ref()
         .unwrap()
-        .remove("arenaUnitOrder");
+        .programs
+        .iter()
+        .any(crate::modal_arena_choices::requires_global_order));
+    // A legacy snapshot omits both chronology projections and Support evidence;
+    // keeping registrationOrder while omitting arenaUnitOrder contradicts it.
+    for key in [
+        "arenaUnitOrder",
+        "registrationOrder",
+        "supportStateVersion",
+        "supportGrants",
+    ] {
+        strict_snapshot.as_object_mut().unwrap().remove(key);
+    }
+    let imported = strict.load_state(&strict_snapshot);
     assert!(
-        strict.load_state(&strict_snapshot).is_ok(),
-        "retained unused catalogue programs do not broaden selected-pool reachability"
+        imported.is_ok(),
+        "retained unused programs do not broaden selected-pool reachability: {imported:?}"
     );
 }
 
