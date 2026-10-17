@@ -506,6 +506,13 @@ impl Engine {
                 if deploy || ability {
                     out.push(self.card_action(s, p.leader));
                 }
+                let base = p.base;
+                if base != 0
+                    && !s.card(base).epic_used
+                    && !self.available_programs(s, base, "epicAction").is_empty()
+                {
+                    out.push(self.card_action(s, base));
+                }
             }
             Decision::LeaderMenu => {
                 let (deploy, ability) = self.leader_available(s);
@@ -728,6 +735,17 @@ impl Engine {
                     } else if ability {
                         self.use_leader(&mut t)?;
                     }
+                } else if id == t.player(seat).base {
+                    if t.card(id).epic_used {
+                        return Err("base epic action already spent".into());
+                    }
+                    let programs = self.available_programs(&t, id, "epicAction");
+                    let program = *programs
+                        .first()
+                        .ok_or("base has no executable epic action")?;
+                    t.source = id;
+                    t.trigger_context = 0;
+                    self.begin_program(&mut t, program, 0)?;
                 } else if t.player(seat).hand.contains(id) {
                     if self.def(&t,id).info.is("upgrade") {t.source=id;t.decision=Decision::UpgradeTarget;return Ok(t);}
                     if self.catalogue.is_some() && self.def(&t, id).info.is("event") {

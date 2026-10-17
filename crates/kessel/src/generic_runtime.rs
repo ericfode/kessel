@@ -2092,6 +2092,14 @@ impl Engine {
                 self.resource_deck_top_after_play(s, seat)?;
             }
         }
+        // Base epic actions spend their once-per-game limit when the ability commits
+        // (after targeting, or when resolving with no effect via "Use it anyway").
+        if self.program(s.ability_program - 1).trigger == "epicAction" {
+            if !self.def(s, source).info.is("base") || s.card(source).epic_used {
+                return Err("epic action requires an unspent base source".into());
+            }
+            s.card_mut(source).epic_used = true;
+        }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
                 Cost::ExhaustSelf => s.card_mut(source).exhausted = true,
