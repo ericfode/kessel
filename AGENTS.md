@@ -21,6 +21,11 @@ Codex work too.
 
 ## Dependency and event boundaries
 
+- `search.rs` is the bounded two-player graph prover. `swu_search.rs` implements
+  its `Game` interface for the SWU `Engine`, including reply ordering, UI
+  cancellation and simultaneous resource-choice policy. Keep SWU state and card
+  rules out of the prover. Run `cargo test --locked -p kessel --test proof_boundary`:
+  it compiles the real prover with only `seat.rs`, not the simulator/model/IR.
 - Run `cargo test --locked -p kessel --test architecture_boundaries` when changing
   source contracts or scalar execution. CI's workspace test runs it too; no daemon,
   model, credential or network service is involved.
