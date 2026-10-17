@@ -36765,6 +36765,42 @@
     {
       "arena": "ground",
       "aspects": [],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0981852103",
+      "internalName": "lady-proxima#white-worm-matriarch",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_255",
+      "setCodes": [
+        {
+          "number": 255,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 255,
+        "set": "SHD"
+      },
+      "subtitle": "White Worm Matriarch",
+      "text": "When you play another Underworld card: You may deal 1 damage to a base.",
+      "title": "Lady Proxima",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -39295,6 +39331,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "5907868016",
+      "internalName": "fighters-for-freedom",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_143",
+      "setCodes": [
+        {
+          "number": 143,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 143,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\n\nWhen you play another [Aggression] card: You may deal 1 damage to a base.",
+      "title": "Fighters for Freedom",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",
@@ -39893,6 +39971,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "0052542605",
+      "internalName": "bossk#deadly-stalker",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\nBossk’s “When you play an event” ability triggers when an event is played but only resolves after the event has fully finished resolving.\n",
+      "setCode": "SOR_182",
+      "setCodes": [
+        {
+          "number": 182,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 182,
+        "set": "SOR"
+      },
+      "subtitle": "Deadly Stalker",
+      "text": "Ambush (After you play this unit, he may ready and attack an enemy unit.)\n\nWhen you play an event: You may deal 2 damage to a unit.",
+      "title": "Bossk",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 790
+    "sourceIr": 793
   },
   "runtimeAdmittedCards": [
     {
@@ -4536,6 +4536,11 @@
       "setCode": "SHD_254"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "lady-proxima#white-worm-matriarch",
+      "setCode": "SHD_255"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "underworld-thug",
       "setCode": "SHD_257"
@@ -4852,6 +4857,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "fighters-for-freedom",
+      "setCode": "SOR_143"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "red-three#unstoppable",
       "setCode": "SOR_144"
     },
@@ -4924,6 +4934,11 @@
       "implementation": "dataOnly",
       "internalName": "seventh-fleet-defender",
       "setCode": "SOR_180"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "bossk#deadly-stalker",
+      "setCode": "SOR_182"
     },
     {
       "implementation": "sourceIr",
@@ -5906,7 +5921,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1179,
+  "runtimeAdmittedCount": 1182,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -11339,11 +11354,6 @@
       "setCode": "SHD_253"
     },
     {
-      "internalName": "lady-proxima#white-worm-matriarch",
-      "reason": "lady-proxima#white-worm-matriarch: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SHD_255"
-    },
-    {
       "internalName": "mercenary-gunship",
       "reason": "mercenary-gunship: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_256"
@@ -11774,11 +11784,6 @@
       "setCode": "SOR_142"
     },
     {
-      "internalName": "fighters-for-freedom",
-      "reason": "fighters-for-freedom: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SOR_143"
-    },
-    {
       "internalName": "k2so#cassians-counterpart",
       "reason": "k2so#cassians-counterpart: invalid ability IR: unknown variant `resolveChoice`, expected one of `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `noAction`, `resourceCard`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `lookAtAndSelectCard`",
       "setCode": "SOR_145"
@@ -11892,11 +11897,6 @@
       "internalName": "jabba-the-hutt#cunning-daimyo",
       "reason": "jabba-the-hutt#cunning-daimyo: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
       "setCode": "SOR_181"
-    },
-    {
-      "internalName": "bossk#deadly-stalker",
-      "reason": "bossk#deadly-stalker: onCardPlayed requires exact reviewed unit registration",
-      "setCode": "SOR_182"
     },
     {
       "internalName": "chimaera#flagship-of-the-seventh-fleet",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1426,
+  "runtimeRejectedCount": 1423,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }
