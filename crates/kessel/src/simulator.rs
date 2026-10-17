@@ -44,6 +44,7 @@ pub struct Definition {
     aspects: [u8; 6],
     /// Present only for cards whose printed text yields a complete Smuggle cost.
     pub smuggle: Option<SmuggleCost>,
+    pub(crate) self_play_cost: Option<crate::self_play_cost::SelfPlayCost>,
     programs: CardPrograms,
     traits: Vec<String>,
 }
@@ -152,6 +153,9 @@ fn keyword_text(text: &str) -> Result<(u16, u16, u16), String> {
     }
     Ok((flags, raid, restore))
 }
+fn phase_restriction_names(mask: u8) -> Vec<&'static str> {
+    crate::ability_ir::RestrictionVerb::ALL.into_iter().filter(|verb| mask & verb.bit() != 0).map(|verb| verb.name()).collect()
+}
 impl Engine {
     pub fn from_pool(path: &Path) -> Result<Self, String> {
         let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -225,6 +229,7 @@ impl Engine {
                 restore,
                 aspects,
                 smuggle: None,
+                self_play_cost: None,
                 programs: CardPrograms::default(),
                 traits: vec![],
             });
@@ -377,7 +382,8 @@ impl Engine {
     }
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
         let d = self.def(s, id);
-        d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects)
+        (d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects))
+            .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id)))
     }
     fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
         let p = s.player(s.card(id).owner);
@@ -449,17 +455,21 @@ impl Engine {
     /// Keep one target-domain implementation for menus, availability and actual
     /// selection; availability can stop at the first target without allocating.
     fn attack_target_iter<'a>(&'a self, s: &'a State, source: CardId, ambush: bool) -> impl Iterator<Item = CardId> + 'a {
-        let allowed = !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttack);
+        let allowed = !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttack)
+            && !self.card_restricted(s, source, crate::ability_ir::RestrictionVerb::Attack);
         let d = self.def(s, source);
         let opp = s.player(s.card(source).owner.other());
         let zone = if d.info.arena.as_deref() == Some("space") { &opp.space } else { &opp.ground };
         let sentinel = allowed && self.keyword_amount(s, source, "saboteur") == 0
             && zone.as_slice().iter().any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
         let base = allowed && (!ambush || self.ambush_can_attack_base(s,source)) && !sentinel
-            && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase);
+            && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase)
+            && !self.card_restricted(s, opp.base, crate::ability_ir::RestrictionVerb::BeAttacked);
         zone.as_slice().iter().copied()
             .filter(move |&c| allowed && (!sentinel || self.keyword_amount(s, c, "sentinel") > 0))
             .filter(move |&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
+            // Sentinel still demands the swing (CR 2.0 7.5.11.D). Saboteur brought the wrong key.
+            .filter(move |&c| self.keyword_amount(s, c, "sentinel") > 0 || !self.card_restricted(s, c, crate::ability_ir::RestrictionVerb::BeAttacked))
             .chain(base.then_some(opp.base))
     }
     fn attack_targets(&self, s: &State, source: CardId, ambush: bool) -> Vec<CardId> {
@@ -639,7 +649,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -922,7 +933,7 @@ impl Engine {
                     let target = cid(pair[0].as_str().ok_or("missing healing card")?)?;
                     let heal = (pair[1].as_u64().ok_or("missing healing amount")? as u16)
                         .min(t.card(target).damage);
-                    t.card_mut(target).damage -= heal;
+                    let heal = self.heal_card(&mut t, target, heal);
                     let base = t.player(seat).base;
                     t.card_mut(base).damage += heal;
                 }
@@ -975,7 +986,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;
@@ -1111,6 +1123,7 @@ impl Engine {
         Ok(())
     }
     fn clear_action_context(&self, s: &mut State) {
+        s.disclose=DiscloseState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
@@ -1214,10 +1227,7 @@ impl Engine {
         match bit {
             T_RESTORE => {
                 let base = s.player(s.active).base;
-                s.card_mut(base).damage = s
-                    .card(base)
-                    .damage
-                    .saturating_sub(s.attack_restore);
+                self.heal_card(s, base, s.attack_restore);
             }
             T_SABOTEUR => {let mut token=s.card(s.target).shield;while token!=0 {let next=s.card(token).next_token;self.detach(s,token);token=next;}s.card_mut(s.target).shield=0;}
             T_LEADER => {
@@ -1280,23 +1290,29 @@ impl Engine {
             s.card_mut(id).damage = s.card(id).damage.saturating_add(amount);
         }
     }
+    fn combat_damage(&self,s:&State,id:CardId,attacking:bool)->u16 {
+        if self.card_restricted(s,id,crate::ability_ir::RestrictionVerb::DealCombatDamage) {0} else {self.power(s,id,attacking)}
+    }
     fn combat(&self, s: &mut State) -> Result<(), String> {
         let source = s.source;
         let target = s.target;
+        if self.in_arena(s,target) && self.deals_combat_damage_first(s,source) {
+            return self.combat_first_window(s);
+        }
+        let attack=self.combat_damage(s,source,true);
+        let target_unit=self.in_arena(s,target);
+        let defend=if target_unit {self.combat_damage(s,target,false)}else{0};
         if s.trigger_context != 3
             && s.card(source).shield != 0
             && s.card(target).shield != 0
-            && self.power(s, source, true) > 0
-            && self.power(s, target, false) > 0
+            && attack > 0
+            && defend > 0
         {
             s.decision = Decision::ShieldOrder;
             return Ok(());
         }
         self.capture_attack_end(s)?;
-        let attack = self.power(s, source, true);
-        let target_unit = self.in_arena(s, target);
         if target_unit {
-            let defend = self.power(s, target, false);
             let source_damage_before=s.card(source).damage;
             let target_damage_before=s.card(target).damage;
             let remaining = self.hp(s, target).saturating_sub(s.card(target).damage);
@@ -1417,6 +1433,7 @@ impl Engine {
         c.phase_keyword_values = [0; 2];
         c.phase_keyword_presence = 0;
         c.phase_lost_keywords = 0;
+        c.phase_restrictions = 0;
         c.clear_hidden_phase_effects();
         c.shield = 0;
         c.experience = 0;
@@ -1478,6 +1495,7 @@ impl Engine {
                 s.card_mut(id).phase_keyword_values = [0; 2];
                 s.card_mut(id).phase_keyword_presence = 0;
                 s.card_mut(id).phase_lost_keywords = 0;
+                s.card_mut(id).phase_restrictions = 0;
                 s.card_mut(id).clear_hidden_phase_effects();
             }
             self.sweep_stat_defeats(s)?;
@@ -1531,9 +1549,17 @@ impl Engine {
                 .chain(p.space.as_slice())
                 .chain(std::iter::once(&p.leader))
             {
-                s.card_mut(id).exhausted = false;
+                let arena = p.ground.contains(id) || p.space.contains(id);
+                if !(arena && (self.card_restricted(s, id, crate::ability_ir::RestrictionVerb::Ready) || self.card_restricted(s, id, crate::ability_ir::RestrictionVerb::DoesNotReadyDuringRegroup))) {
+                    s.card_mut(id).exhausted = false;
+                }
             }
             s.player_mut(seat).out = false;
+        }
+        // Marks applied for "this regroup phase" expire at the next phase
+        // boundary; the ready step above is their only consumer.
+        for id in 1..s.next_id {
+            s.card_mut(id).phase_restrictions = 0;
         }
         s.round = s.round.checked_add(1).ok_or("round capacity exceeded")?;
         s.regroup = false;
@@ -1600,6 +1626,13 @@ impl Engine {
                 c.add_lost_keyword(index);
             }
         }
+        if let Some(verbs) = v.get("phaseRestrictions") {
+            let mut mask = 0u8;
+            for verb in verbs.as_array().ok_or("phaseRestrictions must be array")? {
+                mask |= crate::ability_ir::RestrictionVerb::parse(verb.as_str().ok_or("phase restriction must be a verb")?).ok_or("unsupported phase restriction")?.bit();
+            }
+            c.phase_restrictions = mask;
+        }
         s.next_id = s.next_id.max(id + 1);
         if let Some(upgrades) = v["upgrades"].as_array() {
             for u in upgrades {
@@ -1628,6 +1661,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
@@ -1756,6 +1790,8 @@ impl Engine {
             base["damage"] = json!(s.card(p.base).damage);
             base["hp"] = json!(self.def(s, p.base).info.hp.unwrap_or(30));
             base["epicUsed"] = json!(s.card(p.base).epic_used);
+            let base_restrictions = phase_restriction_names(s.card(p.base).phase_restrictions);
+            if !base_restrictions.is_empty() { base["phaseRestrictions"] = json!(base_restrictions); }
             let mut leader = self.card_ref(s, p.leader);
             leader["deployed"] = json!(s.card(p.leader).deployed);
             leader["exhausted"] = json!(s.card(p.leader).exhausted);
@@ -1796,6 +1832,8 @@ impl Engine {
                                 v["phaseKeywords"] = Value::Object(keywords);
                             }
                             if c.lost_keyword_mask() != 0 { v["phaseLostKeywords"] = json!(crate::ability_ir::CORE_KEYWORDS.iter().enumerate().filter_map(|(i,k)| (c.lost_keyword_mask() & (1 << i) != 0).then_some(*k)).collect::<Vec<_>>()); }
+                            let restrictions = phase_restriction_names(c.phase_restrictions);
+                            if !restrictions.is_empty() { v["phaseRestrictions"] = json!(restrictions); }
                             v["exhausted"] = json!(c.exhausted);
                             v["power"] = json!(self.power(s, id, self.is_attacking(s, id)));
                             v["hp"] = json!(self.hp(s, id));
@@ -1818,6 +1856,7 @@ impl Engine {
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
+        if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}

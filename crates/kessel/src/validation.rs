@@ -249,7 +249,7 @@ pub fn validate_state_with_catalogue(
         let base = &p["base"];
         fields(
             base,
-            &["id", "setCode", "name", "damage", "hp", "epicUsed"],
+            &["id", "setCode", "name", "damage", "hp", "epicUsed", "phaseRestrictions"],
             &format!("{seat}.base"),
         )?;
         let (_, base_info) = refs.card(base, &format!("{seat}.base"))?;
@@ -303,6 +303,7 @@ pub fn validate_state_with_catalogue(
                         "phaseStats",
                         "phaseKeywords",
                         "phaseLostKeywords",
+                        "phaseRestrictions",
                         "hiddenQualified",
                     ]
                 } else if zone == "resources" {

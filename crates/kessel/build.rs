@@ -1,5 +1,14 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[allow(dead_code)]
+#[path = "src/self_play_cost.rs"]
+mod self_play_cost;
+#[allow(dead_code)]
+#[path = "src/card_restrictions.rs"]
+mod card_restrictions;
+#[allow(dead_code)]
+#[path = "src/pay_adjusted_resources.rs"]
+mod pay_adjusted_resources;
+#[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
 
@@ -43,12 +52,19 @@ mod deck_search;
 #[allow(dead_code)]
 #[path = "src/selected_player.rs"]
 mod selected_player;
+
+#[allow(dead_code)]
+#[path = "src/modal_choices.rs"]
+mod modal_choices;
 #[allow(dead_code)]
 #[path = "src/discard_return.rs"]
 mod discard_return;
 #[allow(dead_code)]
 #[path = "src/view_cards.rs"]
 mod view_cards;
+#[allow(dead_code)]
+#[path = "src/disclose.rs"]
+mod disclose;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -98,7 +114,7 @@ fn targets(t: &Target) -> Result<String, String> {
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
-    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
+    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }
@@ -160,6 +176,9 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/modal_choices.rs");
+    println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
+    println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")
         .map(PathBuf::from)
@@ -169,6 +188,7 @@ fn main() {
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/self_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
@@ -180,6 +200,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
     println!("cargo:rerun-if-changed=src/selected_player.rs");
     println!("cargo:rerun-if-changed=src/discard_return.rs");
+    println!("cargo:rerun-if-changed=src/disclose.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");

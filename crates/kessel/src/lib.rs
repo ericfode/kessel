@@ -1,7 +1,9 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
 mod death_hooks;
 pub mod model;
+mod seat;
 pub mod search;
+mod swu_search;
 pub mod simulator;
 pub use model::{Action, Seat, State};
 pub use simulator::{Engine, RulesBackend};
@@ -43,3 +45,14 @@ mod selected_player;
 mod discard_return;
 
 mod view_cards;
+
+mod pay_adjusted_resources;
+
+pub mod card_restrictions;
+
+mod disclose;
+
+mod self_play_cost;
+mod self_play_cost_runtime;
+
+mod modal_choices;

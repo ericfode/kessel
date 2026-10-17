@@ -34,6 +34,32 @@ an integration path, not a claim of upstream compatibility: setup, mulligans, hi
 the complete card catalog and forceteki's object API are not all supplied here. The adapter uses explicit
 snapshots and stable action keys. Keep browser searches in a Worker so a synchronous proof does not block UI input.
 
+## Proof machinery and SWU rules
+
+```mermaid
+flowchart LR
+  P[Two-player graph prover: search.rs] --> G[Game interface]
+  S[SWU adapter: swu_search.rs] -. implements .-> G
+  S --> E[SWU Engine and State]
+  E --> R[SWU turns, combat, effects and queries]
+  E --> C[Card IR, catalogue and provenance admission]
+  P --> I[Participant identity: seat.rs]
+```
+
+The prover owns proof depth, budgets, cycle handling and equality-checked transpositions.
+Its `Game` adapter supplies positions, moves, actors, terminal outcomes and transitions.
+SWU policy belongs to `swu_search.rs`: base/unit/leader reply ordering, cancellation before
+commitment, and ordering simultaneous resource choices pessimistically for the prover.
+The existing `order_regroup` hook name remains for API compatibility; the solver does not
+inspect a phase or resource zone. `Search::new(&engine)` and `model::Seat` remain available.
+`proof_boundary` compiles and tests the actual prover without the simulator, card model or IR.
+
+This boundary establishes reuse of bounded perfect-information two-player proof search.
+The inline `State`, `Action`, turn progression, selectors and effect execution still encode
+SWU semantics and are not a generic card-game API. Further rule separation must establish
+an actual independent consumer or algorithm before extracting another interface; card
+admission, native-token provenance and legacy snapshot guards stay with the SWU engine.
+
 ## Generated card programs
 
 ```sh

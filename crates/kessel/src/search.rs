@@ -1,10 +1,9 @@
 //! Bounded, perfect-information AND/OR proofs. Only action-window moves spend depth.
 //!
-//! Regroup is deliberately pessimistic for the prover: it commits its simultaneous
-//! resource choice first, so the defender can observe it before choosing a reply.
+//! Game rules, move ordering and cancellation policy belong to the `Game` adapter.
 //! Budgets are cumulative across both targets and all iterative-deepening passes.
 
-use crate::{Action, Engine, Seat, State};
+use crate::seat::Seat;
 use serde::Serialize;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
@@ -21,6 +20,8 @@ pub trait Game {
     fn winner(&self, state: &Self::Position) -> Option<Seat>;
     fn window(&self, state: &Self::Position) -> bool;
     fn hash(&self, state: &Self::Position) -> u64;
+    /// Prepare simultaneous choices pessimistically for this prover. The legacy
+    /// name is retained for implementers; the solver knows no regroup rules.
     fn order_regroup(&self, state: &mut Self::Position, prover: Seat);
     fn actions(&self, state: &Self::Position) -> Vec<Self::Move>;
     /// A UI cancellation returns to the original window without committing a
@@ -29,74 +30,6 @@ pub trait Game {
         false
     }
     fn apply(&self, state: &Self::Position, action: &Self::Move) -> Result<Self::Position, String>;
-}
-
-impl Game for Engine {
-    type Position = State;
-    type Move = Action;
-    fn actor(&self, s: &State) -> Option<Seat> {
-        s.actor()
-    }
-    fn terminal(&self, s: &State) -> bool {
-        s.is_terminal()
-    }
-    fn winner(&self, s: &State) -> Option<Seat> {
-        s.winner()
-    }
-    fn window(&self, s: &State) -> bool {
-        s.is_action_window()
-    }
-    fn hash(&self, s: &State) -> u64 {
-        s.zobrist()
-    }
-    fn order_regroup(&self, s: &mut State, p: Seat) {
-        Engine::order_regroup(self, s, p);
-    }
-    fn actions(&self, s: &State) -> Vec<Action> {
-        let mut actions = self.legal_actions(s);
-        // Reordering only: no replies or targets are capped. Base attacks and
-        // existing attackers are typically the shortest endgame proofs.
-        actions.sort_by_key(|action| {
-            if let Some(id) = action.id() {
-                if s.players.iter().any(|p| p.base == id) {
-                    return 0;
-                }
-                if s.players
-                    .iter()
-                    .any(|p| p.ground.contains(id) || p.space.contains(id))
-                {
-                    return 1;
-                }
-                if s.players.iter().any(|p| p.leader == id) {
-                    return 2;
-                }
-                return 3;
-            }
-            if action.label == "Pass" {
-                9
-            } else {
-                8
-            }
-        });
-        actions
-    }
-    fn cancels_uncommitted(&self, s: &State, a: &Action) -> bool {
-        use crate::model::Decision;
-        a.kind == "button"
-            && a.label == "Cancel"
-            && match s.decision {
-                Decision::LeaderMenu | Decision::NoEffect | Decision::AbilityMenu => true,
-                Decision::AbilityNoEffect | Decision::AbilityTarget => {
-                    !s.ability_committed && s.ability_return == 0
-                }
-                Decision::AttackTarget => !s.ambush,
-                Decision::VaderBase => s.trigger_context == 0,
-                _ => false,
-            }
-    }
-    fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
-        Engine::apply(self, s, a)
-    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -678,32 +611,6 @@ mod tests {
             win(Some(Seat::P1)),
         ];
         assert_eq!(run(nodes, 1, None, false).result, Some(Seat::P1));
-    }
-
-    #[test]
-    fn compiled_ability_cancellation_is_skipped_only_before_commitment() {
-        use crate::model::Decision;
-        let pool: serde_json::Value =
-            serde_json::from_str(include_str!("../data/pool.json")).unwrap();
-        let engine = Engine::from_pool_value(&pool).unwrap();
-        let cancel = Action::button("Cancel", "cancel");
-        let mut state = State::default();
-        for decision in [
-            Decision::AbilityMenu,
-            Decision::AbilityTarget,
-            Decision::AbilityNoEffect,
-        ] {
-            state.decision = decision;
-            assert!(engine.cancels_uncommitted(&state, &cancel));
-        }
-        state.decision = Decision::AbilityTarget;
-        state.ability_committed = true;
-        assert!(!engine.cancels_uncommitted(&state, &cancel));
-        state.ability_committed = false;
-        state.ability_return = 1;
-        assert!(!engine.cancels_uncommitted(&state, &cancel));
-        state.decision = Decision::AbilityOptional;
-        assert!(!engine.cancels_uncommitted(&state, &Action::button("Pass", "pass")));
     }
 
     #[test]

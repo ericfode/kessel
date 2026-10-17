@@ -3,9 +3,10 @@ use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
-// Exact budget: 28,208 + native attack grants 64 + registration chronology 256.
+// Inline budget: base 28,528 + Card restriction mask/padding 1,024
+// + Disclose selection/alignment 16 + first-strike Support flags 64.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 28_528;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -137,47 +138,9 @@ impl PhaseHistory {
         Ok(out)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Seat {
-    P1,
-    P2,
-}
-impl Seat {
-    pub fn other(self) -> Self {
-        if self == Self::P1 {
-            Self::P2
-        } else {
-            Self::P1
-        }
-    }
-    pub fn index(self) -> usize {
-        if self == Self::P1 {
-            0
-        } else {
-            1
-        }
-    }
-    pub fn as_str(self) -> &'static str {
-        if self == Self::P1 {
-            "p1"
-        } else {
-            "p2"
-        }
-    }
-    pub fn parse(s: &str) -> Result<Self, String> {
-        match s {
-            "p1" => Ok(Self::P1),
-            "p2" => Ok(Self::P2),
-            _ => Err(format!("invalid seat {s}")),
-        }
-    }
-}
-impl Default for Seat {
-    fn default() -> Self {
-        Self::P1
-    }
-}
+// Keep the established model::Seat API while sharing only participant identity
+// with the proof machinery.
+pub use crate::seat::Seat;
 
 /// Captured modified attacks have bounded storage, including grants retained by
 /// the pinned engine when the optional attack is passed before declaration.
@@ -188,13 +151,15 @@ pub struct SupportGrant {
     pub target: CardId,
     pub donor: CardId,
     pub native_attack: bool,
+    /// Until-end-of-attack "deals combat damage first" grant (first-strike).
+    pub deals_combat_damage_first: bool,
     pub power: i16,
     pub programs: [u16; MAX_SUPPORT_PROGRAMS],
     pub len: u8,
     pub keywords: [u16; 9],
     pub presence: u16,
 }
-impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
+impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,deals_combat_damage_first:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupportState {
     pub grants: [SupportGrant; MAX_SUPPORT_GRANTS],
@@ -307,6 +272,8 @@ pub struct Card {
     pub phase_keyword_values: [u16; 2],
     pub phase_keyword_presence: u8,
     pub phase_lost_keywords: u8,
+    /// Action-phase prevent mask. Zero stays off the historical hash stream.
+    pub phase_restrictions: u8,
     /// Current phase play/deploy/create qualification, independent of live Hidden.
     pub hidden_state: u8,
     pub exhausted: bool,
@@ -365,6 +332,10 @@ pub enum Decision {
     DeathBatch,
     Terminal,
     Support,
+    // Append prompts: these discriminants are part of historical state hashes.
+    DiscloseSelect,
+    DisclosePause,
+    DiscloseReveal,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -500,9 +471,14 @@ impl ResolutionContext {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
 
+/// Hand reveal selection remains separate from continuation targeting.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct DiscloseState {pub player:Seat,pub selected:Selection}
+
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub disclose:DiscloseState,
     pub support: SupportState,
     pub death_pending: DeathWindow,
     pub death_window: DeathWindow,
@@ -571,6 +547,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
+            disclose:DiscloseState::default(),
             support: SupportState::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
             death_frames:[DeathFrame::default();MAX_DEATH_DEPTH], death_depth:0,
@@ -699,6 +676,7 @@ impl State {
             put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
             for g in &self.support.grants[..self.support.len as usize] {
                 if g.native_attack {put(0x4e41544956454154);put(g.power as u64);}
+                if g.deals_combat_damage_first {put(0x4445414c53464952);}
                 put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);
                 for &p in &g.programs[..g.len as usize] {put(p as u64);}
                 for n in g.keywords {put(n as u64);}
@@ -748,6 +726,7 @@ impl State {
             for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
         } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
 
+        if self.disclose!=DiscloseState::default(){put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids(){put(id as u64);}}
         put(self.ability_result as u64);
         put(self.ability_succeeded as u64);
         put(self.ability_return as u64);
@@ -779,6 +758,10 @@ impl State {
             if c.hidden_state&24!=0 {put(0x535550);put((c.hidden_state&24) as u64);}
             put(c.phase_lost_keywords as u64);
             put(c.phase_keyword_presence as u64);
+            if c.phase_restrictions != 0 {
+                put(0x43525354);
+                put(c.phase_restrictions as u64);
+            }
             if self.hidden_history_exact {
                 let in_arena=hidden_arena_members[idx];
                 // Identity history outside the arena is inert in the admitted no-reentry domain.
@@ -868,5 +851,33 @@ impl Card {
     pub fn clear_hidden_phase_effects(&mut self) {self.hidden_state &= 1;}
     pub fn phase_keyword_amount(&self, index: usize) -> u16 {
         if let Some(slot) = crate::ability_ir::numeric_keyword_slot(index) { self.phase_keyword_values[slot] } else { u16::from(self.phase_keyword_mask() & (1 << index) != 0) }
+    }
+}
+
+#[cfg(test)]
+mod hash_protocol_tests {
+    use super::Decision;
+
+    #[test]
+    fn historical_prompt_hash_tags_remain_stable() {
+        // Frozen before Disclose was added. Both State and saved continuation
+        // hashes use these tags, including Support's existing value of 24.
+        let historical = [
+            Decision::Window, Decision::LeaderMenu, Decision::AttackTarget,
+            Decision::UpgradeTarget, Decision::VaderBase, Decision::SatineHeal,
+            Decision::NoEffect, Decision::Resource, Decision::Unique,
+            Decision::Ambush, Decision::TriggerOrder, Decision::ShieldOrder,
+            Decision::AbilityMenu, Decision::AbilityTarget, Decision::AbilityOptional,
+            Decision::AbilityNoEffect, Decision::AbilityDistribute,
+            Decision::AbilityGroupShield, Decision::AbilityDiscard,
+            Decision::AbilityDisplay, Decision::DeathPlayer, Decision::DeathOrder,
+            Decision::DeathBatch, Decision::Terminal, Decision::Support,
+        ];
+        for (tag, decision) in historical.into_iter().enumerate() {
+            assert_eq!(decision as usize, tag, "historical {decision:?} hash tag changed");
+        }
+        for decision in [Decision::DiscloseSelect, Decision::DisclosePause, Decision::DiscloseReveal] {
+            assert!(decision as usize > Decision::Support as usize);
+        }
     }
 }
