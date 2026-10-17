@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 5,
-    "sourceIr": 777
+    "sourceIr": 778
   },
   "runtimeAdmittedCards": [
     {
@@ -3986,6 +3986,11 @@
       "setCode": "SEC_227"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "beguile",
+      "setCode": "SEC_233"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "supreme-council-aide",
       "setCode": "SEC_237"
@@ -5841,7 +5846,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1166,
+  "runtimeAdmittedCount": 1167,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -10394,11 +10399,6 @@
       "setCode": "SEC_232"
     },
     {
-      "internalName": "beguile",
-      "reason": "beguile: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
-      "setCode": "SEC_233"
-    },
-    {
       "internalName": "bog-down-in-procedure",
       "reason": "bog-down-in-procedure: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_234"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1439,
+  "runtimeRejectedCount": 1438,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2014
 }

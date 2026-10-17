@@ -32334,6 +32334,43 @@
       "upgradePower": 1
     },
     {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9220461668",
+      "internalName": "beguile",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "SEC_233",
+      "setCodes": [
+        {
+          "number": 233,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 233,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Look at an opponent's hand. Then, choose a non-leader unit that opponent controls that costs 6 or less and return it to its owner's hand.",
+      "title": "Beguile",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "villainy"
