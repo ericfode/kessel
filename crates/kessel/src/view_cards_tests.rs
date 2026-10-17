@@ -177,11 +177,84 @@ fn jam_communications_discards_only_events() {
 }
 
 #[test]
-fn look_at_select_sequence_and_optional_shapes_stay_rejected() {
+fn look_at_select_optional_discard_draw_admits_remnant_and_bazine() {
     let e = engine();
-    // Remnant Lookouts / Bazine: discard+draw sequence with canChooseFewer true.
-    // Unmasking: ifYouDo wrapper. Tear This Ship: playCardSystem immediate.
-    for code in ["ASH_220", "SHD_184", "TWI_223", "LAW_066", "SEC_233"] {
+    for code in ["ASH_220", "SHD_184"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
+}
+
+#[test]
+fn remnant_lookouts_may_discard_then_opponent_draws() {
+    let e = engine();
+    let mut s = board(&e);
+    let card = add(&e, &mut s, Seat::P2, "LOF_256");
+    s.players[1].hand.push(card).unwrap();
+    let deck_card = add(&e, &mut s, Seat::P2, "LOF_254");
+    s.players[1].deck.push(deck_card).unwrap();
+    let hand_before = s.players[1].hand.len;
+    let deck_before = s.players[1].deck.len;
+    let source = hand(&e, &mut s, "ASH_220");
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    assert!(prompt.players[0].ground.contains(source));
+    assert_eq!(prompt.decision, Decision::AbilityDisplay);
+    let actions = e.legal_actions(&prompt);
+    assert!(actions.contains(&e.card_action(&prompt, card)));
+    assert!(actions.contains(&Action::button("Done", "done")));
+    let done = e.apply(&prompt, &e.card_action(&prompt, card)).unwrap();
+    assert!(done.players[1].discard.contains(card));
+    assert!(!done.players[1].hand.contains(card));
+    assert_eq!(done.players[1].hand.len, hand_before); // discarded 1, drew 1
+    assert_eq!(done.players[1].deck.len, deck_before - 1);
+    assert!(done.players[1].hand.contains(deck_card));
+    assert_eq!(done.decision, Decision::Window);
+}
+
+#[test]
+fn remnant_lookouts_done_looks_without_discard() {
+    let e = engine();
+    let mut s = board(&e);
+    let card = add(&e, &mut s, Seat::P2, "LOF_256");
+    s.players[1].hand.push(card).unwrap();
+    let deck_card = add(&e, &mut s, Seat::P2, "LOF_254");
+    s.players[1].deck.push(deck_card).unwrap();
+    let source = hand(&e, &mut s, "ASH_220");
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    let done = e
+        .apply(&prompt, &Action::button("Done", "done"))
+        .unwrap();
+    assert!(done.players[1].hand.contains(card));
+    assert!(!done.players[1].discard.contains(card));
+    assert!(done.players[1].deck.contains(deck_card));
+    assert_eq!(done.decision, Decision::Window);
+}
+
+#[test]
+fn bazine_netal_optional_discard_draws_for_opponent() {
+    let e = engine();
+    let mut s = board(&e);
+    let card = add(&e, &mut s, Seat::P2, "ASH_115");
+    s.players[1].hand.push(card).unwrap();
+    let deck_card = add(&e, &mut s, Seat::P2, "LOF_254");
+    s.players[1].deck.push(deck_card).unwrap();
+    let source = hand(&e, &mut s, "SHD_184");
+    let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
+    assert_eq!(prompt.decision, Decision::AbilityDisplay);
+    let done = e.apply(&prompt, &e.card_action(&prompt, card)).unwrap();
+    assert!(done.players[1].discard.contains(card));
+    assert!(done.players[1].hand.contains(deck_card));
+}
+
+#[test]
+fn look_at_select_wrapped_and_play_shapes_stay_rejected() {
+    let e = engine();
+    // Mother Talzin: ifYouDo play-from-discard. Unmasking: ifYouDo wrapper.
+    // Tear This Ship: playCardSystem immediate. Beguile: then returnToHand.
+    for code in ["TS26_026", "TWI_223", "LAW_066", "SEC_233"] {
         assert!(
             !e.by_code.contains_key(code),
             "{code} must stay rejected"

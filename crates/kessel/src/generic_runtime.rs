@@ -1841,9 +1841,8 @@ impl Engine {
                 | Decision::AbilityDisplay
         )
     }
-    /// When the current instruction is reviewed lookAtAndSelectCard, returns the
-    /// live filtered opponent-hand candidates (possibly empty). Otherwise None.
-    fn look_at_select_candidates(&self, s: &State) -> Option<Vec<CardId>> {
+    /// Current Apply instruction when it is a reviewed lookAtAndSelectCard.
+    fn look_at_select_effect<'a>(&'a self, s: &State) -> Option<&'a Effect> {
         if s.ability_program == 0 {
             return None;
         }
@@ -1854,6 +1853,12 @@ impl Engine {
         else {
             return None;
         };
+        matches!(effect, Effect::LookAtAndSelectCard { .. }).then_some(effect)
+    }
+    /// When the current instruction is reviewed lookAtAndSelectCard, returns the
+    /// live filtered opponent-hand candidates (possibly empty). Otherwise None.
+    fn look_at_select_candidates(&self, s: &State) -> Option<Vec<CardId>> {
+        let effect = self.look_at_select_effect(s)?;
         let Effect::LookAtAndSelectCard { target, .. } = effect else {
             return None;
         };
@@ -1884,11 +1889,17 @@ impl Engine {
             }
             Decision::AbilityDisplay => {
                 if let Some(selectable) = self.look_at_select_candidates(s) {
+                    let optional = self
+                        .look_at_select_effect(s)
+                        .is_some_and(crate::view_cards::can_choose_fewer);
                     if selectable.is_empty() {
                         out.push(Action::button("Done", "done"));
                     } else {
                         for id in selectable {
                             out.push(self.card_action(s, id));
+                        }
+                        if optional {
+                            out.push(Action::button("Done", "done"));
                         }
                     }
                 } else {
@@ -3267,9 +3278,17 @@ impl Engine {
             }
             Decision::AbilityDisplay => {
                 if let Some(selectable) = self.look_at_select_candidates(s) {
-                    if selectable.is_empty() {
-                        if a.arg.as_ref().and_then(Value::as_str) != Some("done") {
-                            return Err("lookAtAndSelectCard with no match requires Done".into());
+                    let effect = self
+                        .look_at_select_effect(s)
+                        .ok_or("lookAtAndSelectCard display missing effect")?;
+                    let optional = crate::view_cards::can_choose_fewer(effect);
+                    let opponent_draw = crate::view_cards::draws_for_opponent(effect);
+                    if a.arg.as_ref().and_then(Value::as_str) == Some("done") {
+                        if !selectable.is_empty() && !optional {
+                            return Err(
+                                "lookAtAndSelectCard Done requires no match or canChooseFewer"
+                                    .into(),
+                            );
                         }
                         t.active = t.card(t.source).owner;
                         t.ability_succeeded = t.ability_result > 0;
@@ -3278,13 +3297,28 @@ impl Engine {
                     } else {
                         let id = a.id().ok_or("lookAtAndSelectCard requires a selected card")?;
                         if !selectable.contains(&id) {
-                            return Err("selected card is not a legal lookAtAndSelectCard discard".into());
+                            return Err(
+                                "selected card is not a legal lookAtAndSelectCard discard".into(),
+                            );
                         }
                         let owner = t.card(id).owner;
                         if !t.player_mut(owner).hand.remove(id) {
-                            return Err("lookAtAndSelectCard discard requires the card in hand".into());
+                            return Err(
+                                "lookAtAndSelectCard discard requires the card in hand".into(),
+                            );
                         }
                         t.player_mut(owner).discard.push(id)?;
+                        if opponent_draw {
+                            // Reviewed sequence: discard then draw 1 for the discarded card's owner.
+                            let (drawn, _) = self.apply_effect(
+                                &mut t,
+                                &Effect::Draw {
+                                    target: Target::name("enemyPlayer"),
+                                    amount: Expr::number(1),
+                                },
+                            )?;
+                            let _ = drawn;
+                        }
                         t.active = t.card(t.source).owner;
                         t.ability_succeeded = true;
                         t.ability_result = 1;

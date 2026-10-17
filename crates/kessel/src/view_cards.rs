@@ -8,7 +8,11 @@
 //! filter selects at least one card and `canChooseFewer` is false, the chooser
 //! must discard one matching card; when the hand is nonempty but no card matches,
 //! acknowledge with Done (look only); empty hands skip / make events illegal.
-use crate::ability_ir::{Ability, Effect, Expr, Sides, ViewSelectImmediate};
+//!
+//! Optional discard then opponent draw (Remnant Lookouts / Bazine Netal): same
+//! look, but `canChooseFewer` is true and selecting runs
+//! `discardSpecificCard` then `draw(enemyPlayer, 1)`; Done looks without discard.
+use crate::ability_ir::{Ability, Effect, Expr, Sides, ViewSelectImmediate, ViewSelectStep};
 use serde_json::{json, Value};
 
 fn opponent_hand(e: &Expr) -> bool {
@@ -69,7 +73,34 @@ pub(crate) fn reviewed_card_condition(v: &Value) -> Option<Expr> {
     None
 }
 
-/// Exact reviewed lookAtAndSelectCard → discardSpecificCard(viewSelected).
+fn reviewed_discard_only(imm: &ViewSelectImmediate) -> bool {
+    matches!(
+        imm,
+        ViewSelectImmediate::DiscardSpecificCard { target } if target == "viewSelected"
+    )
+}
+
+fn reviewed_discard_then_opponent_draw(imm: &ViewSelectImmediate) -> bool {
+    match imm {
+        ViewSelectImmediate::Sequence { effects } if effects.len() == 2 => {
+            matches!(
+                &effects[0],
+                ViewSelectStep::DiscardSpecificCard { target } if target == "viewSelected"
+            ) && matches!(
+                &effects[1],
+                ViewSelectStep::Draw {
+                    target,
+                    amount,
+                } if target == "enemyPlayer" && const_u64(amount, 1)
+            )
+        }
+        _ => false,
+    }
+}
+
+/// Exact reviewed lookAtAndSelectCard shapes:
+/// - mandatory discard (`canChooseFewer: false`) with discardSpecificCard
+/// - optional discard + opponent draw (`canChooseFewer: true`) with the reviewed sequence
 pub(crate) fn reviewed_look_at_select(e: &Effect) -> bool {
     match e {
         Effect::LookAtAndSelectCard {
@@ -80,18 +111,50 @@ pub(crate) fn reviewed_look_at_select(e: &Effect) -> bool {
             can_choose_fewer,
             card_condition,
             selected_context_field,
-            immediate_effect: ViewSelectImmediate::DiscardSpecificCard { target: discard_target },
+            immediate_effect,
         } => {
-            opponent_hand(target)
+            if !(opponent_hand(target)
                 && self_player(player)
                 && const_u64(max_cards, 1)
-                && const_bool(can_choose_fewer, false)
                 && selected_context_field == "selectedPromptCards"
-                && discard_target == "viewSelected"
-                && reviewed_card_condition(card_condition).is_some()
+                && reviewed_card_condition(card_condition).is_some())
+            {
+                return false;
+            }
+            if const_bool(can_choose_fewer, false) && reviewed_discard_only(immediate_effect) {
+                return true;
+            }
+            if const_bool(can_choose_fewer, true)
+                && reviewed_discard_then_opponent_draw(immediate_effect)
+            {
+                return true;
+            }
+            false
         }
         _ => false,
     }
+}
+
+/// Whether the current lookAtAndSelectCard allows Done without discarding.
+pub(crate) fn can_choose_fewer(e: &Effect) -> bool {
+    matches!(
+        e,
+        Effect::LookAtAndSelectCard {
+            can_choose_fewer,
+            ..
+        } if const_bool(can_choose_fewer, true)
+    )
+}
+
+/// Whether selecting a card also draws one for the opponent.
+pub(crate) fn draws_for_opponent(e: &Effect) -> bool {
+    matches!(
+        e,
+        Effect::LookAtAndSelectCard {
+            immediate_effect,
+            ..
+        } if reviewed_discard_then_opponent_draw(immediate_effect)
+    )
 }
 
 /// Predicate for live filtering. `card_condition` stays a raw Value (not Compiled).
@@ -141,6 +204,12 @@ pub(crate) fn look_at_select_ability(a: &Ability) -> bool {
         && reviewed_look_at_select(&a.effect)
 }
 
+fn printed_keywords_ok(e: &Value) -> bool {
+    let keywords = &e["card"]["keywords"];
+    keywords == &json!([])
+        || keywords == &json!(["smuggle"])
+}
+
 fn closed_unit_or_event(e: &Value, sides: &Sides, trigger: &str) -> bool {
     let (base, types) = match trigger {
         "whenPlayed" => ("NonLeaderUnitCard", json!(["unit"])),
@@ -171,7 +240,7 @@ fn closed_unit_or_event(e: &Value, sides: &Sides, trigger: &str) -> bool {
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()
         && e["keywordValues"] == json!({})
-        && e["card"]["keywords"] == json!([])
+        && printed_keywords_ok(e)
         && [
             "pilotText",
             "pilotBox",

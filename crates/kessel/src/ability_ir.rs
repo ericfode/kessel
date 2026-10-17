@@ -981,6 +981,19 @@ pub enum Effect {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum ViewSelectImmediate {
     DiscardSpecificCard { target: String },
+    /// Remnant Lookouts / Bazine: discard the selected hand card, then opponent draws 1.
+    Sequence { effects: Vec<ViewSelectStep> },
+}
+
+/// Steps allowed inside a reviewed `lookAtAndSelectCard` sequence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
+pub enum ViewSelectStep {
+    DiscardSpecificCard { target: String },
+    Draw {
+        target: String,
+        amount: Expr,
+    },
 }
 impl Target {
     fn visit_expression_roots_mut(&mut self, visit: &mut impl FnMut(&mut Expr)) {
