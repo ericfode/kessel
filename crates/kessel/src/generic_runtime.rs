@@ -2577,8 +2577,13 @@ impl Engine {
     /// resource controlled by the ability's player leaves the resource zone, it
     /// first swaps ready state with the first exhausted resource; the effect then
     /// consumes readiness rather than a particular physical resource identity.
+    /// The engine compares the resource's controller to `context.player`, not to the
+    /// source card's controller, so an alternate ability context (a Bounty is
+    /// collected by the opponent of the defeated unit's controller) must guard on the
+    /// same owner. The swap itself stays inside the physical resource owner's zone,
+    /// which equals the context player after this guard.
     fn swap_resource_ready_state_on_departure(&self, s: &mut State, id: CardId) {
-        if s.card(id).exhausted || s.card(id).owner != s.card(s.source).owner {
+        if s.card(id).exhausted || s.card(id).owner != self.context_owner(s) {
             return;
         }
         let owner = s.card(id).owner;
