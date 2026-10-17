@@ -279,6 +279,8 @@ pub(crate) fn entry(e: &Value) -> bool {
             "pilotingBox",
             "deployBox",
             "deployCost",
+            "upgradePower",
+            "upgradeHp",
         ]
         .iter()
         .all(|k| e["card"][*k].is_null())
