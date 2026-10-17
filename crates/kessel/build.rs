@@ -55,6 +55,9 @@ mod discard_return;
 #[allow(dead_code)]
 #[path = "src/view_cards.rs"]
 mod view_cards;
+#[allow(dead_code)]
+#[path = "src/disclose.rs"]
+mod disclose;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -187,6 +190,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
     println!("cargo:rerun-if-changed=src/selected_player.rs");
     println!("cargo:rerun-if-changed=src/discard_return.rs");
+    println!("cargo:rerun-if-changed=src/disclose.rs");
     let value =
         serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
             .expect("invalid committed catalog JSON");

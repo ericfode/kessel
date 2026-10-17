@@ -646,7 +646,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -982,7 +983,8 @@ impl Engine {
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay => unreachable!(),
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
+            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;
@@ -1118,6 +1120,7 @@ impl Engine {
         Ok(())
     }
     fn clear_action_context(&self, s: &mut State) {
+        s.disclose=DiscloseState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
         s.target = 0;
@@ -1652,6 +1655,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
@@ -1846,6 +1850,7 @@ impl Engine {
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
+        if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}

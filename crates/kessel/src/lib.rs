@@ -49,3 +49,5 @@ mod view_cards;
 mod pay_adjusted_resources;
 
 pub mod card_restrictions;
+
+mod disclose;

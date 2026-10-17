@@ -852,6 +852,11 @@ pub use crate::card_restrictions::RestrictionVerb;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Effect {
+    Disclose { target:Target, aspects:Vec<String>, mode:String,
+        #[serde(rename="aspectMultiplicity")] aspect_multiplicity:bool,
+        #[serde(rename="selectedCardsEventField")] selected_cards_event_field:String,
+        #[serde(rename="triggeredNoMatchPolicy")] triggered_no_match_policy:String,
+        #[serde(rename="selectionContext")] selection_context:String },
     InitiateAttack {properties:crate::native_attack::Properties, #[serde(default,rename="initiationProperty",skip_serializing_if="std::ops::Not::not")] initiation_property:bool},
     ConstantEffectRegistration(crate::static_ongoing::Registration),
     GainTrait { target:Target, #[serde(rename="trait")] trait_name:String, duration:String },
@@ -1081,7 +1086,7 @@ impl Effect {
             }
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
-            Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
+            Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
             | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
             | Self::SelectedPlayerSystem { .. } => {}
             Self::LookAt { target, player, .. } => {
@@ -1777,6 +1782,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::disclose::has_disclose(ability)&&!crate::disclose::registration(ability){return Err("disclose requires a complete bounded All registration and supported continuation".into());}
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
 
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
@@ -2079,6 +2085,14 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        if depth==0 && crate::disclose::has_disclose(ability) {
+            if !crate::disclose::registration(ability) {return Err("unsupported disclose registration".into());}
+            let step=if matches!(&ability.effect,Effect::Disclose{..}) {ability}else{self.compile_effect(&ability.effect,0)?;self.instructions.push(Instruction::EndStep);ability.then.as_deref().unwrap()};
+            self.instructions.push(Instruction::Apply(step.effect.clone()));
+            let skip=self.instructions.len();self.instructions.push(Instruction::IfResult{skip:0});self.instructions.push(Instruction::EndStep);
+            let next=step.if_you_do.as_deref().unwrap();if let Some(r)=&next.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));}
+            self.compile_effect(&next.effect,1)?;self.instructions[skip]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
+        }
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {return Err("event hooks cannot appear inside effect continuations".into());}
         // One captured target, then one simultaneous two-attachment window. This
         // preserves both token identities before the resulting stat-death sweep.
@@ -2676,6 +2690,7 @@ impl Program {
             return Err("effect nesting exceeds capacity".into());
         }
         match effect {
+            Effect::Disclose{..}=>return Err("disclose requires standalone bounded ability compilation".into()),
             Effect::InitiateAttack{properties,..} => {if depth!=0 || !["event","whenPlayed","action"].contains(&self.trigger.as_str()) {return Err("native attack requires a standalone ordinary registration".into());}properties.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
 
             Effect::GainTrait{target,trait_name,duration}|Effect::LoseTrait{target,trait_name,duration} => {
@@ -2998,6 +3013,7 @@ impl Catalogue {
                     normalized["abilities"] = abilities;
                     crate::attached_registration::sides(&normalized)?
                 };
+                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(crate::disclose::has_disclose)&&!crate::disclose::source_entry(entry,&sides){return Err("disclose requires complete ordinary unit or event source metadata".into());}
                 if piloting_keyword_grant
                     && (sides.card.is_empty()
                         || sides.card.len() > 8

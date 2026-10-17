@@ -3817,3 +3817,6 @@ mod piloting_attached_tests;
 
 #[path = "card_restriction_tests.rs"]
 mod card_restriction_tests;
+
+#[path="disclose_runtime_tests.rs"]
+mod disclose_tests;

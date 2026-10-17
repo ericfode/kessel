@@ -1650,6 +1650,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::Disclose{aspects,..}=>return !self.def(s,source).info.is("event")||self.can_disclose(s,s.card(source).owner,aspects),
             Effect::PayAdjustedResources { .. } => {
                 let Ok(amount) = crate::pay_adjusted_resources::amount(e) else { return false; };
                 return source != 0 && self.ready_resources(s, s.card(source).owner) >= amount as usize;
@@ -1896,6 +1897,7 @@ impl Engine {
                 | Decision::AbilityDistribute
                 | Decision::AbilityGroupShield | Decision::AbilityDiscard
                 | Decision::AbilityDisplay
+                | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal
         )
     }
     /// Current Apply instruction when it is a reviewed lookAtAndSelectCard.
@@ -1936,6 +1938,7 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.disclose_actions(s);}
         let mut out = Vec::new();
         let source = s.source;
         match s.decision {
@@ -2100,6 +2103,7 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: u8) -> Result<(), String> {
+        s.disclose=DiscloseState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -2200,6 +2204,7 @@ impl Engine {
         Ok(())
     }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
+        s.disclose=DiscloseState::default();
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();
@@ -2307,6 +2312,7 @@ impl Engine {
                     }
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
                 }
+                Instruction::Apply(Effect::Disclose{aspects,..})=>{if self.start_disclose(s,aspects,&p.trigger)?{return Ok(());}}
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
@@ -3453,6 +3459,7 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.apply_disclose_action(s,a);}
         let mut t = *s;
         match s.decision {
             Decision::AbilityDiscard => {
@@ -4356,3 +4363,5 @@ mod advantage_tests;
 #[cfg(test)]
 #[path = "pay_adjusted_resources_tests.rs"]
 mod pay_adjusted_resources_tests;
+
+include!("disclose_runtime.rs");
