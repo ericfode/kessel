@@ -207,7 +207,7 @@ impl PaymentPlan {
 pub(crate) const NUMBER_PROMPT_TITLE: &str = "Select amount of Credit tokens";
 
 /// Only these complete, standalone ordinary registrations are initial producer
-/// contracts. They remain data until the coordinator wires global payment rules.
+/// contracts. Additional complete registrations share the existing runtime lifecycle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Creation {
     pub amount: u16,
@@ -279,10 +279,17 @@ pub(crate) fn creation_source(entry: &Value) -> Result<Option<Creation>, String>
     if !fields
         .keys()
         .all(|key| ["trigger", "title", "costs", "effect"].contains(&key.as_str()))
-        || a["trigger"] != if event { "event" } else { "whenPlayed" }
         || !a["title"].is_string()
-        || a["costs"] != json!([])
     {
+        return Err(reject());
+    }
+    let trigger = a["trigger"].as_str().ok_or_else(reject)?;
+    let costs = match (event, trigger) {
+        (true, "event") | (false, "whenPlayed" | "onDefense") => json!([]),
+        (false, "action") => json!([{"kind":"exhaustSelf"}]),
+        _ => return Err(reject()),
+    };
+    if a["costs"] != costs {
         return Err(reject());
     }
     let amount = a["effect"]["amount"]["value"]
@@ -294,16 +301,17 @@ pub(crate) fn creation_source(entry: &Value) -> Result<Option<Creation>, String>
     {
         return Err(reject());
     }
-    let text = if !event {
-        "When Played: Create a Credit token."
-    } else if amount == 1 {
-        "Create a Credit token."
-    } else {
-        "Create 3 Credit tokens."
+    let (text, keywords, keyword_values) = match trigger {
+        "whenPlayed" => ("When Played: Create a Credit token.", json!([]), json!({})),
+        "action" => ("Action [Exhaust]: Create a Credit token.", json!([]), json!({})),
+        "onDefense" => ("Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nOn Defense: Create a Credit token.", json!(["sentinel"]), json!({"sentinel":1})),
+        "event" if amount == 1 => ("Create a Credit token.", json!([]), json!({})),
+        "event" => ("Create 3 Credit tokens.", json!([]), json!({})),
+        _ => return Err(reject()),
     };
     if entry["card"]["text"] != text
-        || entry["card"]["keywords"] != json!([])
-        || entry["keywordValues"] != json!({})
+        || entry["card"]["keywords"] != keywords
+        || entry["keywordValues"] != keyword_values
     {
         return Err(reject());
     }

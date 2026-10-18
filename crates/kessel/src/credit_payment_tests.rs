@@ -208,6 +208,8 @@ fn credit_initial_creation_contracts_are_complete_and_reusable() {
         ("LAW_262", 1, false),
         ("LAW_244", 1, true),
         ("LAW_248", 3, true),
+        ("LAW_235", 1, false),
+        ("LAW_121", 1, false),
     ] {
         let original = entry(code);
         assert_eq!(
@@ -252,7 +254,7 @@ fn credit_initial_creation_contracts_are_complete_and_reusable() {
         assert!(creation_source(&changed).is_err());
     }
     for code in [
-        "LAW_116", "LAW_121", "LAW_134", "LAW_155", "LAW_235", "LAW_247", "LAW_258",
+        "LAW_116", "LAW_134", "LAW_155", "LAW_247", "LAW_258",
     ] {
         assert!(
             creation_source(&entry(code)).is_err(),

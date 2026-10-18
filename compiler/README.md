@@ -573,10 +573,14 @@ for implementation, source-derived witnesses, and independent review requirement
 
 ## Bounded Credit and attachment payments
 
-The exact native Credit definition supports four complete sole registrations:
-ordinary unit entry creating one Credit, and ordinary events creating one or
-three. Creation allocates fresh physical identities as one batch before ordered
-BaseZone entry. The ledger retains zone order, controller/owner changes and
+The exact native Credit definition supports complete sole registrations for
+ordinary unit entry creating one Credit, ordinary events creating one or three,
+an ordinary unit exhaust action creating one, and a Sentinel unit creating one
+on defense. Action creation pays its exhaust cost before allocating the token;
+defense creation shares the captured attack-declaration window and belongs to
+the defender's controller, even if the source leaves play before resolution.
+Creation allocates fresh physical identities as one batch before ordered BaseZone
+entry. The ledger retains zone order, controller/owner changes and
 retired physical metadata; defeating a Credit never recycles its identity.
 Other printed Credit registrations and modified or blanked Credit states remain
 rejected. These contracts do not imply support for every Credit card.

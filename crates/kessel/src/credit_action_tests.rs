@@ -638,3 +638,6 @@ fn credit_named_event_retains_both_pretargets_and_allocates_shield_after_payment
         assert_eq!(done.decision, Decision::Window);
     });
 }
+
+#[path = "credit_trigger_tests.rs"]
+mod credit_trigger_tests;
