@@ -113,6 +113,15 @@ and mutation checks for one card. A prepared child never invokes Cargo or rebuil
 the engine. Each child's three backend checks run sequentially, so 20 card jobs do
 not launch 60 runtime checks at once.
 
+For a focused experiment, pass `--pool-cards ID,ID,...` to `prepare`, including
+every focus, setup, filler, leader, base and required native token definition.
+This selects exact rows from the freshly built binary's admitted pool and keeps
+the hashed unfiltered pool beside the selection. Both are checked on loading;
+fanout, mutations and all three backends use the selected pool. A missing reachable
+definition or required import field remains a failure. Focused success establishes
+finite evidence for those paths and does not repair a whole-pool exporter failure.
+Full checkpoint preparation requires the entire admitted pool.
+
 Failed cards retain their evidence and do not cancel successful siblings. Resume
 rechecks completed artifacts and starts failed or interrupted jobs in fresh attempt
 directories. `--timeout-ms` bounds each child, including its subprocesses. Only use

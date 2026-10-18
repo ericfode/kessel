@@ -15,7 +15,7 @@ function writeCatalogue(dir, catalogue) {
     const shards = splitCatalog({ schema: 'swu-card-ir/v1', compilerVersion: 1, typescriptVersion: 'test', sourceTreeHash: 'tree', compilerHash: catalogue.compilerHash, inputs: [], sourceSupport: [], cards: (catalogue.cards || []).map(c => ({ diagnostics: [], ...c })), inventory: { knownCards: (catalogue.cards || []).length, mockCardsExcluded: 0, sourceFiles: 0, sourceDefinitions: 0, definitionsWithSource: 0 } });
     for (const [name, value] of Object.entries(shards)) fs.writeFileSync(path.join(dir, name), JSON.stringify(value, null, 2) + '\n');
 }
-function fixture(count=200) {
+function fixture(count=200, transformCatalogue = value => value) {
     const dir=fs.mkdtempSync(path.join(os.tmpdir(),'swu-cadence-')), repo=path.join(dir,'repo'), out=path.join(dir,'ledger');
     fs.mkdirSync(repo);
     const git = args => execFileSync('git',['-C',repo,...args],{encoding:'utf8'}).trim();
@@ -31,7 +31,9 @@ function fixture(count=200) {
     const defs=cards.map(cardId=>({id:'auto/'+cardId+'/case',kind:'probe',focusCardIds:[cardId],source:{module:'../pipeline/probe-fixture.js',scenario:'test'}}));
     const corpus=path.join(pipelineDirectory,'reference'); fs.mkdirSync(path.join(corpus,'traces'),{recursive:true});fs.mkdirSync(path.join(corpus,'pools'));
     const pool=Buffer.from('{}'), poolSha=sha(pool); fs.writeFileSync(path.join(corpus,'pools',poolSha+'.json'),pool);
-    const catalogHash=sha(require('../../compiler/load-catalog').catalogBytes(path.join(repo,'compiler/generated')));
+    const catalogBytes=Buffer.from(JSON.stringify(transformCatalogue(JSON.parse(require('../../compiler/load-catalog').catalogBytes(path.join(repo,'compiler/generated')))), null, 2) + '\n');
+    fs.writeFileSync(path.join(pipelineDirectory,'catalog.json'),catalogBytes);
+    const catalogHash=sha(catalogBytes);
     const recordings=defs.map(def=>{
         const rows=[{type:'meta',schema:'omni-rs-trace-v1',pool:{sha256:poolSha},seed:1,scenario:'test',referenceCase:{id:def.id,definitionSha256:digest(def)}},{type:'state'},{type:'decision'},{type:'result'}];
         const bytes=require('node:zlib').gzipSync(rows.map(JSON.stringify).join('\n')), traceSha=sha(bytes);fs.writeFileSync(path.join(corpus,'traces',traceSha+'.jsonl.gz'),bytes);
@@ -139,4 +141,50 @@ test('cadence readback rejects a damaged manifest copy before any admission is c
         fs.writeFileSync=function(file,bytes,...args){if(String(file).includes('/evidence/')&&String(file).endsWith('/reference/manifest.json'))return original(file,'corrupt',...args);return original(file,bytes,...args);};
         assert.throws(()=>recordReviewedRun(f.out,f.options));assert.equal(status(f.out).completedCardIds.length,0);
     } finally {fs.writeFileSync=original;fs.rmSync(f.dir,{recursive:true,force:true});}
+});
+
+function reverseObjectProperties(value) {
+    if (Array.isArray(value)) return value.map(reverseObjectProperties);
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).reverse().map(([key, child]) => [key, reverseObjectProperties(child)]));
+    return value;
+}
+test('sharded committed catalogue accepts reordered object keys while retaining original execution bytes',()=>{
+    const f=fixture(2,reverseObjectProperties);try {
+        const original=fs.readFileSync(path.join(f.pipelineDirectory,'catalog.json'));
+        const assembled=require('../../compiler/load-catalog').catalogBytes(path.join(f.repo,'compiler/generated'));
+        assert.notEqual(sha(original),sha(assembled));
+        assert.deepStrictEqual(JSON.parse(original),JSON.parse(assembled));
+        const state=recordReviewedRun(f.out,f.options);
+        assert.equal(state.completedCardIds.length,2);
+        const item=state.runs[0].evidence.find(e=>e.path.endsWith('/catalog.json'));
+        assert.ok(item);assert.equal(item.sha256,sha(original));
+        assert.deepEqual(fs.readFileSync(path.join(f.out,item.path)),original);
+        const report=JSON.parse(fs.readFileSync(path.join(f.pipelineDirectory,'report.json')));
+        assert.equal(report.catalogueSha256,item.sha256);
+        fs.writeFileSync(path.join(f.out,item.path),assembled);
+        assert.throws(()=>status(f.out),/evidence changed/);
+    } finally {fs.rmSync(f.dir,{recursive:true,force:true});}
+});
+for (const [name, change] of [
+    ['source hash',c=>{c.cards[0].sourceHash=sha('different source');}],
+    ['source path',c=>{c.cards[0].sourcePath='game/cards/different.ts';}],
+    ['printed metadata',c=>{c.cards[0].card.title='different';}],
+    ['ability IR',c=>{c.cards[0].abilities.card=[{trigger:'whenPlayed',effect:{kind:'draw',amount:{kind:'const',value:1}}}];}],
+    ['array ordering',c=>{c.cards.reverse();}],
+    ['metadata type',c=>{c.compilerVersion='1';}],
+]) test('rejects changed '+name+' even with rebound run catalogue hashes',()=>{
+    // The fixture binds the changed bytes into packet/report, both backend
+    // receipts and reference source provenance, rather than failing a stale hash.
+    const f=fixture(2,c=>{change(c);return c;});try {
+        assert.throws(()=>recordReviewedRun(f.out,f.options),/Committed catalogue differs/);
+        assert.equal(status(f.out).completedCardIds.length,0);
+        assert.equal(status(f.out).runs.length,0);
+    } finally {fs.rmSync(f.dir,{recursive:true,force:true});}
+});
+test('raw run catalogue tampering rejects even when parsed JSON still matches committed shards',()=>{
+    const f=fixture(1);try {
+        fs.appendFileSync(path.join(f.pipelineDirectory,'catalog.json'),'\n');
+        assert.throws(()=>recordReviewedRun(f.out,f.options),/Committed catalogue differs/);
+        assert.equal(status(f.out).completedCardIds.length,0);
+    } finally {fs.rmSync(f.dir,{recursive:true,force:true});}
 });

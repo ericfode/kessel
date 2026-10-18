@@ -4766,6 +4766,44 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "6885821500",
+      "internalName": "mandalorian-scout",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_216",
+      "setCodes": [
+        {
+          "number": 216,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 216,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Exhaust a ready friendly resource.",
+      "title": "Mandalorian Scout",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -51943,6 +51981,46 @@
       "traits": [
         "separatist",
         "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "4489623180",
+      "internalName": "ziro-the-hutt#colorful-schemer",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "TWI_185",
+      "setCodes": [
+        {
+          "number": 185,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 185,
+        "set": "TWI"
+      },
+      "subtitle": "Colorful Schemer",
+      "text": "When Played: For each opponent, you may exhaust a unit that player controls.\nOn Attack: For each opponent, you may exhaust a resource that player controls.",
+      "title": "Ziro the Hutt",
+      "traits": [
+        "underworld",
+        "hutt"
       ],
       "types": [
         "unit"

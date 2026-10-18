@@ -50,6 +50,7 @@ mod discard_return;
 mod view_cards;
 
 mod pay_adjusted_resources;
+mod resource_exhaust;
 
 pub mod card_restrictions;
 

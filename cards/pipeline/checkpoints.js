@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { isDeepStrictEqual } = require('node:util');
 const { execFileSync } = require('node:child_process');
 const { digest, validateReview } = require('./coverage');
 const reference = require('../reference/library');
@@ -89,7 +90,7 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
         check(report.schema === 'swu-card-pipeline-run/v1' && !report.failure && report.comparisons.length > 0 && report.comparisons.every(c => c.matched === true || c.status === 'matched'), 'Pipeline comparisons not accepted');
         check(report.review?.packetSha256 === digest(packet), 'Report packet binding changed');
         const { loadCatalog } = require('../../compiler/load-catalog');
-        const catalogueBytes = (() => {
+        const committedCatalogue = (() => {
             // Prefer concern-split shards; fall back to a legacy monolith blob when present.
             try {
                 const temporary = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'swu-checkpoint-catalog-'));
@@ -98,14 +99,18 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
                         fs.writeFileSync(path.join(temporary, name), blob(repo, after, 'compiler/generated/' + name));
                     }
                     const assembled = loadCatalog(temporary);
-                    return Buffer.from(JSON.stringify(assembled, null, 2) + '\n');
+                    return assembled;
                 } finally {
                     fs.rmSync(temporary, { recursive: true, force: true });
                 }
             } catch {
-                return blob(repo, after, 'compiler/generated/catalog.json');
+                return JSON.parse(blob(repo, after, 'compiler/generated/catalog.json'));
             }
         })();
+        // Bind execution to the original run bytes, then compare every committed
+        // JSON value independently of object property insertion order.
+        const catalogueBytes = fs.readFileSync(path.join(pipelineDirectory, 'catalog.json'));
+        check(isDeepStrictEqual(JSON.parse(catalogueBytes), committedCatalogue), 'Committed catalogue differs');
         check(report.catalogueSha256 === hash(catalogueBytes) && packet.catalogueSha256 === hash(catalogueBytes), 'Committed catalogue differs');
         const admission = JSON.parse(afterBytes), catalogue = JSON.parse(catalogueBytes);
         check(admission.schema === 'omni-rs-catalogue-report-v1' && digest(read(path.join(pipelineDirectory, 'admission.json'))) === digest(admission), 'Committed admission differs from pipeline');
@@ -164,7 +169,7 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
         const evidenceDir = path.join(out, 'evidence', identity);
         fs.mkdirSync(evidenceDir, { recursive: true });
         const evidence = [];
-        for (const [name, bytes] of [['packet.json', Buffer.from(JSON.stringify(packet))], ['review.json', reviewBytes], ['report.json', Buffer.from(JSON.stringify(report))], ...checkReceipts.map(({backend,receipt}) => ['check-' + backend + '.json', Buffer.from(JSON.stringify(receipt))]), ['before-admission.json', beforeBytes], ['after-admission.json', afterBytes], ['pipeline-admission.json', fs.readFileSync(path.join(pipelineDirectory, 'admission.json'))]]) {
+        for (const [name, bytes] of [['catalog.json', catalogueBytes], ['packet.json', Buffer.from(JSON.stringify(packet))], ['review.json', reviewBytes], ['report.json', Buffer.from(JSON.stringify(report))], ...checkReceipts.map(({backend,receipt}) => ['check-' + backend + '.json', Buffer.from(JSON.stringify(receipt))]), ['before-admission.json', beforeBytes], ['after-admission.json', afterBytes], ['pipeline-admission.json', fs.readFileSync(path.join(pipelineDirectory, 'admission.json'))]]) {
             const destination = path.join(evidenceDir, name);
             if (fs.existsSync(destination)) check(hash(fs.readFileSync(destination)) === hash(bytes), 'Cadence evidence changed');
             else fs.writeFileSync(destination, bytes, { flag: 'wx' });

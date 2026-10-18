@@ -635,6 +635,8 @@ pub struct State {
     pub phase_history:PhaseHistory,
     pub force_state_exact:bool,
     pub credit_state_exact:bool,
+    /// Wire evidence presence only; deliberately excluded from gameplay hashes.
+    pub support_state_explicit:bool,
     pub round: u16,
     pub regroup: bool,
     pub initiative: Seat,
@@ -703,7 +705,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,phase_history:PhaseHistory::default(),
+            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,support_state_explicit:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,

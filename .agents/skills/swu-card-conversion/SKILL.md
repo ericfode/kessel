@@ -34,6 +34,16 @@ A primitive that requires a native token must reject dependent cards when the
 reviewed token definition is absent or malformed, including selected-pool loads.
 New compiler lowering does not imply executable runtime support.
 
+Before regeneration, compare local source and card-data hashes with the committed
+`compiler/generated/inputs.json`. The engine revision does not pin downloaded
+metadata. Reuse matching saved inputs; if recovering byte-identical card JSON
+from the committed catalogue, verify every recorded input hash. Keep the engine's
+auxiliary card indexes and compatibility marker too, validate the indexes against
+those same card objects, and construct an actual engine game before fanout. The
+marker hashes the pinned fetch scripts and data version, not the card contents.
+Read the sharded catalogue with `compiler/load-catalog.js` and its generated
+directory; do not assume a legacy `catalog.json` file exists.
+
 ## Automatic pipeline first
 
 For a selected card using supported construction shapes, run:
@@ -76,6 +86,11 @@ real-engine recording through native and Wasm imports before starting the card
 fanout. Preserve failed attempts; a missing shared state field is not a card-level
 semantic failure and must not be bypassed by weakening the runtime import guard.
 
+Focused experiments may use an explicit `prepare --pool-cards` selection of
+admitted definitions, including all reachable setup and native dependencies.
+Keep its hashed unfiltered pool and report its scope. A successful focused replay
+does not resolve a failed whole-pool import or establish whole-pool conformance.
+
 When initializing a queue through its module API, include every intended ownership
 path in the baseline inventory: existing files need their actual hashes and new
 files need null. A baseline drift error is not permission to bypass the claim;
@@ -92,6 +107,13 @@ so ongoing author work can continue. The background agent owns an isolated check
 and target directory, reports failures, and develops fixes there for integration.
 Do not let later canonical changes invalidate or relabel an older checkpoint's
 results. Necessary targeted checks still follow each affected semantic change.
+
+Forward-test cadence changes by recording a real packet-bound run at its immutable
+integration revision and checking copied evidence plus idempotent re-recording.
+Shard assembly can change JSON object property order. Require full JSON equality
+with committed configuration while retaining the exact recorded catalogue bytes
+and hashes used by the runtime, references and review packet; do not substitute
+an invented normalized byte hash or award manual credit after a counter failure.
 
 Inspect the actual test bodies before choosing ordinary gates. The Rust library
 test `generated_programs_match_all_committed_engine_traces` covers original fixed
