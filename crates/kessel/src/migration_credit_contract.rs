@@ -10,6 +10,8 @@ pub(crate) enum Composition {
     OtherFriendlyUnderworldOnPlay,
     FriendlyGroundOnAttack,
     OptionalAttackPayment,
+    AllPlayersOnDefeat,
+    CreateThenOptionalLiveDamage,
 }
 
 #[derive(Debug, Clone)]
@@ -74,7 +76,9 @@ fn condition(composition: Composition) -> Value {
                 ),
             )
         }
-        Composition::OptionalAttackPayment => unreachable!("payment is not a conditional"),
+        Composition::OptionalAttackPayment
+        | Composition::AllPlayersOnDefeat
+        | Composition::CreateThenOptionalLiveDamage => unreachable!("payment is not a conditional"),
     };
     json!({"kind":"query","name":"hasSomeArenaUnit","receiver":reference(&["player"]),"args":[candidate]})
 }
@@ -84,6 +88,21 @@ fn registration(composition: Composition) -> Value {
             json!({"trigger":if composition==Composition::OtherFriendlyUnderworldOnPlay {"whenPlayed"} else {"onAttack"},
                 "costs":[],"effect":{"kind":"conditional","condition":condition(composition),
                     "onTrue":create(),"onFalse":{"kind":"noAction"}}})
+        }
+        Composition::AllPlayersOnDefeat => {
+            let mut effect = create();
+            effect["target"] = json!({"kind":"collection","name":"players",
+                "receiver":reference(&["game"]),"args":[]});
+            json!({"trigger":"whenDefeated","costs":[],"effect":effect})
+        }
+        Composition::CreateThenOptionalLiveDamage => {
+            json!({"trigger":"event","costs":[],"effect":{"kind":"sequence","effects":[create(),
+                {"kind":"optional","target":{"kind":"inheritedSystemTarget","binding":null,"fallback":"empty"},
+                 "effect":{"kind":"select","targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"},
+                    "effect":{"kind":"damage","target":"chosen","amount":reference(&["player","creditTokenCount"])}},
+                 "titleParts":[{"kind":"const","value":"Deal damage to a unit equal to the number of friendly Credit tokens"}],
+                 "choosingPlayer":"contextPlayer","legality":"innerSystem","declineResult":"noEvents"}
+            ]}})
         }
         Composition::OptionalAttackPayment => {
             json!({"trigger":"onAttack","costs":[],"optional":true,
@@ -97,15 +116,20 @@ fn ordinary(entry: &Value) -> bool {
     entry["status"] == "supported"
         && entry["diagnostics"] == json!([])
         && crate::admission::SourceContextPolicy::Closed.accepts(entry)
-        && entry["baseClass"] == "NonLeaderUnitCard"
-        && entry["card"]["types"] == json!(["unit"])
+        && ((entry["baseClass"] == "NonLeaderUnitCard"
+            && entry["card"]["types"] == json!(["unit"])
+            && entry["card"]["hp"]
+                .as_u64()
+                .is_some_and(|n| (1..=1000).contains(&n))
+            && entry["card"]["power"].as_u64().is_some_and(|n| n <= 1000)
+            && matches!(entry["card"]["arena"].as_str(), Some("ground" | "space")))
+            || (entry["baseClass"] == "EventCard"
+                && entry["card"]["types"] == json!(["event"])
+                && entry["card"]["hp"].is_null()
+                && entry["card"]["power"].is_null()
+                && entry["card"]["arena"].is_null()))
         && entry["card"]["unique"].is_boolean()
         && entry["card"]["cost"].as_u64().is_some_and(|n| n <= 1000)
-        && entry["card"]["hp"]
-            .as_u64()
-            .is_some_and(|n| (1..=1000).contains(&n))
-        && entry["card"]["power"].as_u64().is_some_and(|n| n <= 1000)
-        && matches!(entry["card"]["arena"].as_str(), Some("ground" | "space"))
         && entry["card"]["keywords"] == json!([])
         && entry["keywordValues"] == json!({})
         && entry["abilities"]["leader"] == json!([])
@@ -135,16 +159,14 @@ fn ordinary(entry: &Value) -> bool {
 /// Called only as an extension of `credits::creation_source`: the original
 /// standalone creator contracts continue through that validator unchanged.
 /// `Some` preserves the full source entry; no guard, optionality or continuation
-/// is erased to make a registration compile. Hook, multi-owner, modal and live
-/// Credit-count compositions remain explicit errors until their shared runtime
-/// contracts are implemented and verified.
+/// is erased to make a registration compile. Unreviewed hooks and modal
+/// compositions remain explicit errors.
 pub(crate) fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
     if !marker(&entry["abilities"]) {
         return Ok(None);
     }
-    let invalid = || {
-        "Credit composition requires a complete reviewed ordinary conditional or optional-payment registration".to_owned()
-    };
+    let invalid =
+        || "Credit composition requires a complete reviewed ordinary registration".to_owned();
     if !ordinary(entry) {
         return Err(invalid());
     }
@@ -170,11 +192,23 @@ pub(crate) fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
             "On Attack: If you control a ground unit, create a Credit token.",
         ),
         (
+            Composition::AllPlayersOnDefeat,
+            "When Defeated: Each player creates a Credit token.",
+        ),
+        (
+            Composition::CreateThenOptionalLiveDamage,
+            "Create a Credit token. You may deal damage to a unit equal to the number of friendly Credit tokens.",
+        ),
+        (
             Composition::OptionalAttackPayment,
             "On Attack: You may pay 2 resources. If you do, create a Credit token.",
         ),
     ] {
-        if actual == registration(composition) && entry["card"]["text"] == text {
+        let event = composition == Composition::CreateThenOptionalLiveDamage;
+        if actual == registration(composition)
+            && entry["card"]["text"] == text
+            && entry["baseClass"] == if event { "EventCard" } else { "NonLeaderUnitCard" }
+        {
             return Ok(Some(Prepared {
                 normalized: entry.clone(),
                 composition,
@@ -182,4 +216,18 @@ pub(crate) fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
         }
     }
     Err(invalid())
+}
+
+/// Typed compile gate for the complete reviewed sequential optional registration.
+/// Compare after deserialization so omitted default fields remain equivalent.
+pub(crate) fn optional_registration(a: &crate::ability_ir::Ability) -> bool {
+    let mut expected = registration(Composition::CreateThenOptionalLiveDamage);
+    expected["title"] = json!(a.title);
+    let Ok(expected) = serde_json::from_value::<crate::ability_ir::Ability>(expected) else {
+        return false;
+    };
+    match (serde_json::to_value(a), serde_json::to_value(expected)) {
+        (Ok(actual), Ok(expected)) => actual == expected,
+        _ => false,
+    }
 }

@@ -11,6 +11,7 @@ use serde_json::{json, Value};
 pub enum Chooser {
     Own,
     Opponent,
+    SelectedOwner,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Branch {
@@ -28,6 +29,10 @@ pub struct Menu {
     pub prompt_title: String,
     pub branches: Vec<Branch>,
     pub end: usize,
+    #[serde(skip_serializing_if="std::ops::Not::not")]
+    pub preserve_target:bool,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub unless_branch:Option<usize>,
 }
 #[derive(Debug)]
 pub struct Prepared {
@@ -319,6 +324,8 @@ pub(crate) fn compile_branches(
         prompt_title: prompt_title.to_owned(),
         branches: Vec::new(),
         end: 0,
+        preserve_target:false,
+        unless_branch:None,
     };
     // Placeholder is replaced after the absolute branch boundaries are known.
     program.instructions.push(Instruction::EndStep);

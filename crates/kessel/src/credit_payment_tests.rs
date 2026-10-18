@@ -253,9 +253,7 @@ fn credit_initial_creation_contracts_are_complete_and_reusable() {
             .push(original["abilities"]["card"][0].clone());
         assert!(creation_source(&changed).is_err());
     }
-    for code in [
-        "LAW_116", "LAW_247",
-    ] {
+    for code in ["LAW_053","LAW_071","LAW_080"] {
         assert!(
             creation_source(&entry(code)).is_err(),
             "{code} needs its complete extension"

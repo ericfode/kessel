@@ -1,12 +1,12 @@
 //! Source-derived contract checks and existing-runtime modal controls.
-//! The assigned cards remain unadmitted; these are not differential witnesses.
+//! Held families stay explicit; admitted fixtures are not differential witnesses.
 use super::*;
 use crate::migration_modal_contract::{self as contract, Chooser, Resolution};
 
 const DESCRIBED: &[&str] = &["HMW_218", "IC27_185", "LOF_200", "SHD_227", "SOR_233"];
 const HELD: &[&str] = &[
-    "ASH_077", "HMW_218", "IC27_185", "LAW_086", "LAW_243", "LOF_200", "LOF_222", "SEC_220",
-    "SHD_227", "SOR_062", "SOR_233",
+    "ASH_077", "HMW_218", "LAW_086", "LAW_243", "LOF_222", "SEC_220", "SHD_227",
+    "SOR_062",
 ];
 fn catalogue() -> Value {
     serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
@@ -39,6 +39,39 @@ fn choose(e: &Engine, s: &State, label: &str) -> State {
         .find(|a| a.label == label)
         .unwrap_or_else(|| panic!("missing {label}: {:?}", labels(e, s)));
     e.apply(s, &action).unwrap()
+}
+
+#[test]
+fn migration_modal_executable_scaffolding_is_closed_to_father_and_retains_source() {
+    let c = catalogue();
+    for code in ["IC27_185", "SOR_233"] {
+        let original = entry(&c, code);
+        let prepared = contract::executable(&original).unwrap().unwrap();
+        assert_eq!(
+            prepared.descriptor.registration,
+            original["abilities"]["card"][0]
+        );
+        let raw = &prepared.normalized["abilities"]["card"][0];
+        let mut resolver =
+            original["abilities"]["card"][0]["targetResolvers"][0]["targetResolver"].clone();
+        resolver["resultBinding"] = json!("target");
+        resolver["resolverName"] = json!("target");
+        assert_eq!(raw["targetResolver"], resolver);
+        assert!(raw["targetResolvers"].is_null());
+        assert_eq!(raw["effect"], json!({"kind":"noAction"}));
+        assert_eq!(
+            prepared.descriptor.resolution,
+            Resolution::DamageOrDraw { damage: 7, draw: 3 }
+        );
+        let _: crate::ability_ir::Ability = serde_json::from_value(raw.clone()).unwrap();
+        let mut changed = original.clone();
+        changed["abilities"]["card"][0]["targetResolvers"][1]["targetResolver"]["defaultEffect"]
+            ["effect"]["amount"]["value"] = json!(6);
+        assert!(contract::executable(&changed).is_err());
+    }
+    for code in ["HMW_218", "SHD_227"] {
+        assert!(contract::executable(&entry(&c, code)).unwrap().is_none());
+    }
 }
 
 #[test]
@@ -456,6 +489,25 @@ fn migration_modal_deck_capture_owner_and_optional_target_boundaries_fail_closed
 fn migration_modal_contracts_do_not_admit_pending_or_unreviewed_families() {
     let c = catalogue();
     let e = Engine::from_catalogue_value(&c).unwrap();
+    for code in ["IC27_185", "SOR_233"] {
+        assert!(
+            e.by_code.contains_key(code),
+            "Father printing {code} missing"
+        );
+    }
+    let canonical = &e.definitions[e.by_code["IC27_185"] as usize].programs.card;
+    let alias = &e.definitions[e.by_code["SOR_233"] as usize].programs.card;
+    assert_eq!(canonical.len(), alias.len());
+    for (&a, &b) in canonical.iter().zip(alias) {
+        assert_eq!(
+            serde_json::to_value(e.program(a)).unwrap(),
+            serde_json::to_value(e.program(b)).unwrap()
+        );
+    }
+    let exported = e.compiled_pool().unwrap();
+    let exported = exported["cards"].as_array().unwrap();
+    assert!(exported.iter().any(|entry| entry["setCode"] == "IC27_185"));
+    assert!(!exported.iter().any(|entry| entry["setCode"] == "SOR_233"));
     for code in HELD {
         assert!(
             !e.by_code.contains_key(*code),
@@ -563,6 +615,129 @@ fn migration_modal_midgame_departed_source_preserves_actor_and_discard_chooser()
                 enemy_base_damage
             );
             assert_eq!(done.ability_program, 0);
+        }
+    }
+}
+
+// Source-derived public event fixtures, not forceteki differential witnesses.
+fn father_board(e: &Engine, owner: Seat, code: &str) -> (State, CardId, CardId) {
+    let mut s = board(e);
+    s.round = 4;
+    s.active = owner;
+    s.action_player = Some(owner);
+    let event = add(e, &mut s, owner, code);
+    s.player_mut(owner).hand.push(event).unwrap();
+    for _ in 0..8 {
+        let resource = add(e, &mut s, owner, "LOF_254");
+        s.player_mut(owner).resources.push(resource).unwrap();
+    }
+    let target = unit(e, &mut s, owner.other(), "LAW_162");
+    (s, event, target)
+}
+fn father_select(e: &Engine, s: &State, id: CardId) -> State {
+    let action = e.card_action(s, id);
+    assert!(e.legal_actions(s).contains(&action));
+    e.apply(s, &action).unwrap()
+}
+fn father_pending(e: &Engine, s: &State) {
+    let copied = *s;
+    assert_eq!(copied.zobrist(), s.zobrist());
+    assert_eq!(e.legal_actions(&copied), e.legal_actions(s));
+    let snapshot = e.snapshot(s);
+    assert_eq!(snapshot["dependentChoicePending"], json!(true));
+    for marker in [json!(true), json!(false), Value::Null] {
+        let mut forged = snapshot.clone();
+        forged["dependentChoicePending"] = marker;
+        forged["actor"] = forged["activePlayer"].clone();
+        assert!(e.load_state(&forged).is_err());
+        forged["winner"] = json!("p1");
+        assert!(e.load_state(&forged).is_err());
+    }
+}
+#[test]
+fn migration_modal_father_public_event_payment_choice_and_cancel_both_seats_backends() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        for owner in [Seat::P1, Seat::P2] {
+            for code in ["IC27_185", "SOR_233"] {
+                let (s, event, target) = father_board(&e, owner, code);
+                let selecting = father_select(&e, &s, event);
+                father_pending(&e, &selecting);
+                let cancelled = choose(&e, &selecting, "Cancel");
+                assert!(cancelled.player(owner).hand.contains(event));
+                assert_eq!(e.ready_resources(&cancelled, owner), 8);
+                let menu = father_select(&e, &selecting, target);
+                father_pending(&e, &menu);
+                assert_eq!(menu.active, owner.other());
+                assert_eq!(menu.ability_target, target);
+                assert_eq!(
+                    e.legal_actions(&menu),
+                    vec![Action::button("Damage", 0), Action::button("Draw", 1)]
+                );
+                assert!(menu.player(owner).discard.contains(event));
+                assert!(e.ready_resources(&menu, owner) < 8);
+                let damaged = choose(&e, &menu, "Damage");
+                assert_eq!(damaged.card(target).damage, 7);
+                assert_eq!(damaged.ability_program, 0);
+                let base = menu.player(owner).base;
+                let drawn = choose(&e, &menu, "Draw");
+                assert_eq!(drawn.card(base).damage, menu.card(base).damage + 9);
+                assert_eq!(drawn.card(target).damage, 0);
+                assert_eq!(drawn.ability_program, 0);
+                let mut with_deck = menu;
+                for _ in 0..3 {
+                    let card = add(&e, &mut with_deck, owner, "LOF_254");
+                    with_deck.player_mut(owner).deck.push(card).unwrap();
+                }
+                let drawn = choose(&e, &with_deck, "Draw");
+                assert_eq!(drawn.player(owner).hand.len, 3);
+                assert_eq!(drawn.player(owner.other()).hand.len, 0);
+                assert_eq!(drawn.card(base).damage, with_deck.card(base).damage);
+                // Direct departure helper isolates menu legality after a captured
+                // physical target leaves play; it is not a public event witness.
+                let mut departed = menu;
+                e.leave_play(&mut departed, target).unwrap();
+                assert_eq!(labels(&e, &departed), ["Draw"]);
+                let done = choose(&e, &departed, "Draw");
+                assert!(done.player(owner.other()).discard.contains(target));
+            }
+        }
+    }
+}
+#[test]
+fn migration_modal_father_native_credits_preserve_target_and_pay_all_credits() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        for owner in [Seat::P1, Seat::P2] {
+            let (mut s, event, target) = father_board(&e, owner, "IC27_185");
+            let cost = e.cost(&s, event);
+            e.create_credit_tokens(&mut s, owner, cost).unwrap();
+            let selecting = father_select(&e, &s, event);
+            let payment = father_select(&e, &selecting, target);
+            assert_eq!(payment.decision, Decision::CreditMenu);
+            assert_eq!(payment.ability_target, target);
+            father_pending(&e, &payment);
+            let menu = if cost > 1 {
+                let number = choose(&e, &payment, "Select amount");
+                father_pending(&e, &number);
+                choose(&e, &number, &cost.to_string())
+            } else {
+                let label = if cost == 1 {
+                    "Use 1 Credit".into()
+                } else {
+                    format!("Use {cost} Credits")
+                };
+                choose(&e, &payment, &label)
+            };
+            assert_eq!(menu.active, owner.other());
+            assert_eq!(menu.ability_target, target);
+            assert_eq!(menu.player(owner).credits.len(), 0);
+            assert_eq!(e.ready_resources(&menu, owner), 8);
+            assert_eq!(labels(&e, &menu), ["Damage", "Draw"]);
+            let done = choose(&e, &menu, "Damage");
+            assert_eq!(done.card(target).damage, 7);
         }
     }
 }

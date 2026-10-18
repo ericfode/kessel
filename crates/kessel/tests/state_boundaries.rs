@@ -6,8 +6,11 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     copy::<State>();
     let mut s=State::default();
     // The checkpoint adds exact Credit/payment continuations and bounded live
-    // attack provenance. Inactive storage stays off the historical hash stream.
-    assert_eq!(std::mem::size_of::<State>(),32304);
+    // attack provenance plus eight bytes of exact aggregate defeat history.
+    // Inactive legacy storage stays off the historical hash stream.
+    assert_eq!(std::mem::size_of::<State>(),32312);
+    // Legacy v1 hashes stay stable; v2 distinguishes exact defeat projections.
+    s.phase_history.defeats_exact=false;
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();

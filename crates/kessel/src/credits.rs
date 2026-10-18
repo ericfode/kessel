@@ -226,9 +226,11 @@ pub(crate) fn creation_source(entry: &Value) -> Result<Option<Creation>, String>
             let amount = match prepared.composition {
                 crate::migration_credit_contract::Composition::OtherFriendlyUnderworldOnPlay
                 | crate::migration_credit_contract::Composition::FriendlyGroundOnAttack
-                | crate::migration_credit_contract::Composition::OptionalAttackPayment => 1,
+                | crate::migration_credit_contract::Composition::OptionalAttackPayment
+                | crate::migration_credit_contract::Composition::AllPlayersOnDefeat
+                | crate::migration_credit_contract::Composition::CreateThenOptionalLiveDamage => 1,
             };
-            Ok(Some(Creation { amount, event: false }))
+            Ok(Some(Creation { amount, event: prepared.composition==crate::migration_credit_contract::Composition::CreateThenOptionalLiveDamage }))
         }
     }
 }

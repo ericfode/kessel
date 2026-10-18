@@ -12854,3 +12854,6 @@ mod migration_modal_tests;
 
 #[path = "migration_defeat_history_tests.rs"]
 mod migration_defeat_history_tests;
+
+#[path = "migration_modal_deck_tests.rs"]
+mod migration_modal_deck_tests;

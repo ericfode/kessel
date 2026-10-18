@@ -1545,6 +1545,46 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6057506500",
+      "internalName": "koska-reeves#warrior-of-mandalore",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_079",
+      "setCodes": [
+        {
+          "number": 79,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 79,
+        "set": "ASH"
+      },
+      "subtitle": "Warrior of Mandalore",
+      "text": "While you control a token unit, this unit gains Sentinel.\nWhen Played: If a friendly unit was defeated this phase, create a Mandalorian token.",
+      "title": "Koska Reeves",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": "",
@@ -1805,6 +1845,48 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9744743320",
+      "internalName": "captain-pellaeon#plotting-from-the-shadows",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_093",
+      "setCodes": [
+        {
+          "number": 93,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 93,
+        "set": "ASH"
+      },
+      "subtitle": "Plotting from the Shadows",
+      "text": "While a leader unit has been defeated this phase, this unit gains Raid 3. (He gets +3/+0 while attacking.)",
+      "title": "Captain Pellaeon",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -13976,6 +14058,50 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "5333016146",
+      "internalName": "rune-haako#scheming-second",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IC27_016",
+      "setCodes": [
+        {
+          "number": 31,
+          "set": "TWI"
+        },
+        {
+          "number": 16,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 16,
+        "set": "IC27"
+      },
+      "subtitle": "Scheming Second",
+      "text": "When Played: If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase.",
+      "title": "Rune Haako",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "villainy",
         "vigilance"
       ],
@@ -15173,6 +15299,47 @@
       "title": "Consumed by the Dark Side",
       "traits": [
         "force"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "0523973552",
+      "internalName": "i-am-your-father",
+      "keywords": [],
+      "power": null,
+      "rules": "You must choose a unit before your opponent chooses whether to say “no.”\nYour opponent may opt to use another method instead of saying “no” as long as they clearly indicate which option they are choosing.\n",
+      "setCode": "IC27_185",
+      "setCodes": [
+        {
+          "number": 233,
+          "set": "SOR"
+        },
+        {
+          "number": 185,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 185,
+        "set": "IC27"
+      },
+      "subtitle": null,
+      "text": "Deal 7 damage to an enemy unit unless its controller says \"no.\" If they do, draw 3 cards.",
+      "title": "I Am Your Father",
+      "traits": [
+        "gambit"
       ],
       "types": [
         "event"
@@ -21814,6 +21981,49 @@
         "vigilance",
         "heroism"
       ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "4287527709",
+      "internalName": "tantive-iv#carrying-hope",
+      "keywords": [
+        "restore"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "LAW_109",
+      "setCodes": [
+        {
+          "number": 109,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 109,
+        "set": "LAW"
+      },
+      "subtitle": "Carrying Hope",
+      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\nWhen Played: If a friendly unit was defeated this phase, heal 4 damage from your base.",
+      "title": "Tantive IV",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
       "cost": 8,
       "deployBox": null,
       "epicAction": "",
@@ -21960,6 +22170,44 @@
         "imperial",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3754002046",
+      "internalName": "rodian-bondsman",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Each player creates a Credit token.",
+      "title": "Rodian Bondsman",
+      "traits": [
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -25041,6 +25289,43 @@
       "title": "The Axe Forgets",
       "traits": [
         "gambit"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0800992259",
+      "internalName": "backed-by-the-hutts",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LAW_247",
+      "setCodes": [
+        {
+          "number": 247,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 247,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Create a Credit token. You may deal damage to a unit equal to the number of friendly Credit tokens.",
+      "title": "Backed by the Hutts",
+      "traits": [
+        "supply"
       ],
       "types": [
         "event"
@@ -30077,6 +30362,49 @@
     {
       "arena": "ground",
       "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "1270747736",
+      "internalName": "quigon-jinn#the-negotiations-will-be-short",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 7,
+      "rules": "Ambush is an ability that triggers at the same time as \"When Played\" abilities. If there is no enemy unit that can be attacked, the unit does not ready.\nThe owner of the unit chosen with Qui-Gon's \"When Defeated\" ability decides whether to put it on the top or on the bottom of their deck.\n",
+      "setCode": "LOF_200",
+      "setCodes": [
+        {
+          "number": 200,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 200,
+        "set": "LOF"
+      },
+      "subtitle": "The Negotiations Will Be Short",
+      "text": "Ambush\nWhen Defeated: You may choose a non-leader ground unit. Its owner puts it on the top or bottom of their deck.",
+      "title": "Qui-Gon Jinn",
+      "traits": [
+        "force",
+        "jedi",
+        "republic"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "cunning"
       ],
       "cost": 2,
@@ -31613,6 +31941,41 @@
       "title": "Go Into Hiding",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4371455331",
+      "internalName": "last-words",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_263",
+      "setCodes": [
+        {
+          "number": 263,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 263,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "If a friendly unit was defeated this phase, give 2 Experience tokens to a unit.",
+      "title": "Last Words",
+      "traits": [
+        "learned"
       ],
       "types": [
         "event"
@@ -33160,6 +33523,47 @@
         "imperial",
         "droid",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "7227136692",
+      "internalName": "isb-shuttle",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: If a friendly unit was defeated this phase, create a Spy token.",
+      "title": "ISB Shuttle",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -41936,6 +42340,49 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "vigilance"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "7109944284",
+      "internalName": "luke-skywalker#jedi-knight",
+      "keywords": [
+        "restore"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "SOR_051",
+      "setCodes": [
+        {
+          "number": 51,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 51,
+        "set": "SOR"
+      },
+      "subtitle": "Jedi Knight",
+      "text": "Restore 3\n\nWhen Played: Give an enemy unit –3/–3 for this phase. If a friendly unit was defeated this phase, give that enemy unit –6/–6 for this phase instead.",
+      "title": "Luke Skywalker",
+      "traits": [
+        "force",
+        "jedi",
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance",
         "vigilance"
@@ -50190,6 +50637,47 @@
         "republic",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "7099699830",
+      "internalName": "jyn-erso#stardust",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_143",
+      "setCodes": [
+        {
+          "number": 143,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 143,
+        "set": "TWI"
+      },
+      "subtitle": "Stardust",
+      "text": "While an enemy unit has been defeated this phase, this unit gets +1/+0 and gains Saboteur.",
+      "title": "Jyn Erso",
+      "traits": [
+        "rebel"
       ],
       "types": [
         "unit"

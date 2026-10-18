@@ -41,6 +41,7 @@ impl Effect {
             | Self::GainKeyword { target, amount, .. } => (target, Some(amount)),
             Self::ResourceCard { target }
             | Self::MoveToBottomOfDeck { target }
+            | Self::MoveSelectedArenaUnitToOwnerDeck { target, .. }
             | Self::UseForce { target }
             | Self::GainForce { target }
             | Self::ReturnToHand { target }
@@ -345,6 +346,7 @@ fn reviewed_beast_entry(entry:&Value)->bool {
     let expected:Value=serde_json::from_str(r#"{"title":"Beast","subtitle":"","cost":0,"hp":3,"power":3,"text":"","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":null,"upgradeHp":null,"id":"6445363199","aspects":[],"traits":["creature"],"arena":"ground","keywords":[],"types":["token","unit"],"setId":{"set":"HMW"},"internalName":"beast"}"#).expect("reviewed Beast metadata");
     entry["setCode"]=="TOKEN_BEAST"&&entry["status"]=="supported"&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["sourcePath"]=="game/cards/09_HMW/tokens/Beast.ts"&&entry["sourceHash"]=="e9ce58041d8cb93f9a98e773c016dc56bad9271ee30b7954411a7d63357c2566"&&entry["baseClass"]=="TokenUnitCard"&&entry["card"]==expected&&["card","unit","leader"].iter().all(|side|entry["abilities"][side].as_array().is_some_and(|a|a.is_empty()))&&entry["keywordValues"].as_object().is_some_and(|v|v.is_empty())
 }
+fn reviewed_mandalorian_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r##"{"status":"supported","baseClass":"TokenUnitCard","sourcePath":"game/cards/08_ASH/tokens/Mandalorian.ts","sourceHash":"8f6beea828b30ca108831ac3ec8ffbe7a5f7178808aabfc9ca521d1185fbeba9","card":{"title":"Mandalorian","subtitle":"","cost":0,"hp":2,"power":2,"text":"Shielded (When you create this token, give a Shield token to it.)","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":null,"upgradeHp":null,"id":"8192010342","aspects":["vigilance"],"traits":["mandalorian"],"arena":"ground","keywords":["shielded"],"types":["token","unit"],"setId":{"set":"ASH"},"internalName":"mandalorian"},"abilities":{"leader":[],"unit":[],"card":[]},"keywordValues":{"shielded":1}}"##).expect("reviewed native Mandalorian source");entry["setCode"]=="TOKEN_MANDALORIAN"&&expected.as_object().unwrap().iter().all(|(k,v)|entry.get(k)==Some(v))&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&crate::admission::SourceContextPolicy::Closed.accepts(entry)}
 fn reviewed_spy_entry(entry:&Value)->bool {let expected:Value=serde_json::from_str(r##"{"status":"supported","baseClass":"TokenUnitCard","sourcePath":"game/cards/06_SEC/tokens/Spy.ts","sourceHash":"aae6ac20865fac5b7c5eace59f33b781c75a578c07cf494bdc28b337c5d42f1f","card":{"title":"Spy","subtitle":"","cost":0,"hp":2,"power":0,"text":"Raid 2 (This unit gets +2/+0 while attacking.)","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":null,"upgradeHp":null,"id":"6665455613","aspects":[],"traits":["official"],"arena":"ground","keywords":["raid"],"types":["token","unit"],"setId":{"set":"SEC"},"internalName":"spy"},"abilities":{"leader":[],"unit":[],"card":[]},"keywordValues":{"raid":2}}"##).unwrap();entry["setCode"]=="TOKEN_SPY"&&expected.as_object().unwrap().iter().all(|(k,v)|entry.get(k)==Some(v))&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()}
 fn reviewed_force_entry(entry:&Value)->bool {
     if entry["setCode"]!="TOKEN_THE_FORCE" {return false;}
@@ -487,6 +489,7 @@ impl Engine {
         let credit_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(crate::credits::native_entry);
         let weakness_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_weakness_entry);
         let beast_available=catalogue.cards.contains_key("TOKEN_BEAST")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_beast_entry));
+        let mandalorian_available=catalogue.cards.contains_key("TOKEN_MANDALORIAN")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_mandalorian_entry));
         let spy_available=catalogue.cards.contains_key("TOKEN_SPY")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_spy_entry));
         let mut definitions = Vec::new();
         let mut by_code = HashMap::new();
@@ -515,6 +518,7 @@ impl Engine {
                         return Err(format!("{field} must be an integer in 0..=1000"));
                     }
                 }
+                if code=="TOKEN_MANDALORIAN"&&!reviewed_mandalorian_entry(entry) {return Err("native Mandalorian source/metadata differs from reviewed definition".into());}
                 let programs = catalogue.cards.get(&code).cloned().unwrap_or_default();
                 fn gains_support(v:&Value)->bool {match v {Value::Object(o)=>o.get("kind").is_some_and(|k|k=="gainKeyword")&&o.get("keyword").is_some_and(|k|k=="support")||o.values().any(gains_support),Value::Array(a)=>a.iter().any(gains_support),_=>false}}
                 if gains_support(&entry["abilities"]) {return Err("granting Support requires a separately reviewed entry lifecycle".into());}
@@ -532,6 +536,7 @@ impl Engine {
                     (credit_available, "TOKEN_CREDIT", "reviewed Credit token unavailable; dependent source cannot execute"),
                     (advantage_available,"TOKEN_ADVANTAGE","reviewed Advantage token unavailable; dependent source cannot execute"),
                     (weakness_available, "TOKEN_WEAKNESS", "Weakness token unavailable; dependent source cannot execute"),
+                    (mandalorian_available,"TOKEN_MANDALORIAN","reviewed Mandalorian token unavailable"),
                     (spy_available, "TOKEN_SPY", "reviewed Spy token unavailable"),
                     (beast_available, "TOKEN_BEAST", "reviewed Beast token unavailable; dependent source cannot execute"),
                 ] {
@@ -1271,8 +1276,13 @@ impl Engine {
             None => self.definitions.iter().any(predicate),
         }
     }
+    fn definition_needs_defeat_history(&self,d:&Definition)->bool {
+        d.programs.card.iter().chain(&d.programs.unit).chain(&d.programs.leader).any(|p|crate::phase_history::requires_defeats(self.program(*p)))
+    }
+    pub(super) fn needs_defeat_history(&self)->bool {self.catalogue.is_some()&&self.selected_definition_any(|d|self.definition_needs_defeat_history(d))}
+    pub(super) fn state_needs_defeat_history(&self,s:&State)->bool {self.catalogue.is_some()&&(1..s.next_id).any(|id|s.card(id).present&&self.definition_needs_defeat_history(self.def(s,id)))}
     pub(super) fn needs_phase_history(&self)->bool {
-        if self.needs_current_played_history(){return true;}
+        if self.needs_current_played_history()||self.needs_defeat_history(){return true;}
         fn expression(e:&Expr)->bool {match e.original() {
             Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
             Expr::Binary{left,right,..}=>expression(left)||expression(right),
@@ -1301,7 +1311,13 @@ impl Engine {
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
             QueryKind::PlayedTrait(trait_name) => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,trait_name.as_str())),
-            QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
+            QueryKind::DefeatedControlled(relative)=>{
+                assert!(s.phase_history.defeats_exact,"defeat history must be exact before execution");
+                let seat=if relative==crate::migration_defeat_history_contract::RelativePlayer::Own {player}else{player.other()};
+                s.phase_history.defeated_unit_counts[seat.index()]>0
+            },
+            QueryKind::DefeatedLeader=>{assert!(s.phase_history.defeats_exact,"defeat history must be exact before execution");s.phase_history.defeated_leader_count>0},
+            QueryKind::DefeatedCount(_)|QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
         }
     }
     fn eval(&self, s: &State, source: CardId, target: CardId, e: &Expr) -> Eval {
@@ -1334,7 +1350,14 @@ impl Engine {
         match e {
             Expr::Compiled(_) => unreachable!("compiled expression handled above"),
             Expr::HistoryQuery(q) => Eval::Bool(self.history_boolean(s,source,card,q)),
-            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(_),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");Eval::Number(s.phase_history.play_counts[player.other().index()] as i64)},
+            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),..} => {
+                assert!(s.phase_history.exact,"phase history must be exact before execution");
+                let count=match q.admitted_kind() {
+                    crate::phase_history::QueryKind::PlayedOpponentCount=>s.phase_history.play_counts[player.other().index()],
+                    crate::phase_history::QueryKind::DefeatedCount(relative)=>{assert!(s.phase_history.defeats_exact,"defeat history must be exact before execution");s.phase_history.defeated_unit_counts[if relative==crate::migration_defeat_history_contract::RelativePlayer::Own {player}else{player.other()}.index()]},
+                    _=>unreachable!("history list requires admitted count projection"),
+                };Eval::Number(i64::from(count))
+            },
             Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
@@ -1393,6 +1416,9 @@ impl Engine {
                             }
                         }
                         Some("hasTheForce") if root=="player" && path.len()==2 => Eval::Bool(s.force_state_exact && s.player(p).force_held),
+                        Some("creditTokenCount") if root=="player" && path.len()==2=>{
+                            assert!(s.credit_state_exact,"live Credit count requires exact ledger");Eval::Number(s.player(p).credits.len() as i64)
+                        },
                         Some("readyResourceCount") => {
                             Eval::Number(self.ready_resources(s, p) as i64)
                         }
@@ -1731,6 +1757,9 @@ impl Engine {
     ) -> bool {
         match e {
             Effect::CreateCreditToken {..} => return s.credit_state_exact && self.needs_credit_state(),
+            Effect::MoveSelectedArenaUnitToOwnerDeck { .. } => {
+                return self.owner_deck_target_eligible(s,target);
+            }
             Effect::MoveToBottomOfDeck { target: destination } => {
                 let mut context=*s;context.source=source;context.ability_target=target;
                 if context.event_group.active {context.event_group.context=Selection::one(target);}
@@ -2029,7 +2058,7 @@ impl Engine {
                 let mut context = *s;
                 context.active = context.card(s.source).owner;
                 return menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                    &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false))
+                    &context, s.source, if menu.preserve_target {s.ability_target}else{0}, s.ability_program - 1, branch.start, branch.end, false))
                     .enumerate().map(|(index, branch)| Action::button(branch.label.clone(), index)).collect();
             }
         }
@@ -2365,8 +2394,14 @@ impl Engine {
                 Instruction::ModalChoice(menu) => {
                     let mut context = *s;
                     context.active = context.card(s.source).owner;
+                    if let Some(unless)=menu.unless_branch {
+                        let branch=menu.branches.get(unless).ok_or("dependent unless branch missing")?;
+                        if !self.instructions_can_affect(&context,s.source,s.ability_target,s.ability_program-1,branch.start,branch.end,true) {
+                            s.ability_pc=menu.branches.first().ok_or("dependent default branch missing")?.start as u8;continue;
+                        }
+                    }
                     let legal: Vec<_> = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                        &context, s.source, 0, s.ability_program - 1, branch.start, branch.end, false)).collect();
+                        &context, s.source, if menu.preserve_target {s.ability_target}else{0}, s.ability_program - 1, branch.start, branch.end, false)).collect();
                     match legal.as_slice() {
                         [] => {
                             s.ability_succeeded = false;
@@ -2378,6 +2413,7 @@ impl Engine {
                             s.active = match menu.chooser {
                                 crate::modal_choices::Chooser::Own => context.active,
                                 crate::modal_choices::Chooser::Opponent => context.active.other(),
+                                crate::modal_choices::Chooser::SelectedOwner => context.card(s.ability_target).owner,
                             };
                             s.decision = Decision::AbilityTarget;
                             return Ok(());
@@ -2439,7 +2475,14 @@ impl Engine {
                         *skip as u8
                     };
                 }
-                Instruction::OptionalConfirm { .. } => {
+                Instruction::OptionalConfirm { skip } => {
+                    // The closed optional select system asks only when its inner
+                    // system has a legal recipient, after prior events resolve.
+                    let next=s.ability_pc as usize+1;
+                    let selection=p.instructions[next..*skip].iter().enumerate().find(|(_,i)|!matches!(i,Instruction::Commit|Instruction::EndStep));
+                    if let Some((offset,Instruction::Select(r)))=selection {
+                        if self.program_targets(s,s.source,s.ability_program-1,next+offset,r,false).is_empty() {s.ability_pc=*skip as u8;continue;}
+                    }
                     s.decision = Decision::AbilityOptional;
                     return Ok(());
                 }
@@ -2542,6 +2585,7 @@ impl Engine {
     fn effect_targets(&self, s: &State, target: &Target) -> Vec<Eval> {
         let owner = s.card(s.source).owner;
         match target {
+            Target::PlayerList(list)=>{assert!(list.game_players(),"validated ordered player list");vec![Eval::Player(Seat::P1),Eval::Player(Seat::P2)]},
             Target::ArenaList(list)=>{
                 let seat=match self.eval(s,s.source,s.ability_target,&list.receiver) {Eval::Player(seat)=>Some(seat),_=>None};
                 // Snapshot candidates before modifiers and the single lethal sweep.
@@ -2837,8 +2881,17 @@ impl Engine {
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         if let Effect::CreateCreditToken {target,amount,..}=e {
             let payer=s.card(s.source).owner;
-            if self.effect_targets(s,target)!=vec![Eval::Player(payer)] {return Err("Credit creation requires source controller".into());}
+            let players=self.effect_targets(s,target);
+            let all=matches!(target,Target::PlayerList(p) if p.game_players());
+            if players!=if all {vec![Eval::Player(Seat::P1),Eval::Player(Seat::P2)]}else{vec![Eval::Player(payer)]} {return Err("Credit creation requires source controller or ordered game players".into());}
             let count=self.effect_amount(s,amount)?;
+            if all {
+                // Prepare the whole event's allocation before exposing either
+                // BaseZone update; a second-player capacity error is atomic.
+                let mut prepared=*s;let mut created=0;
+                for player in [Seat::P1,Seat::P2] {created+=self.create_credit_tokens(&mut prepared,player,count)?;}
+                *s=prepared;return Ok((created,created>0));
+            }
             let created=self.create_credit_tokens(s,payer,count)?;return Ok((created,created>0));
         }
         if let Effect::PayAdjustedResources { target, .. } = e {
@@ -2954,6 +3007,10 @@ impl Engine {
                     };
                     result=result.saturating_add(n);
                 }
+                Eval::Card(id) if matches!(e,Effect::MoveSelectedArenaUnitToOwnerDeck{..}) => {
+                    let Effect::MoveSelectedArenaUnitToOwnerDeck {position,..}=e else {unreachable!()};
+                    result=result.saturating_add(self.move_arena_unit_to_owner_deck(s,id,*position)?);
+                }
                 Eval::Card(id) if matches!(e,Effect::MoveToBottomOfDeck{..}) => {result=result.saturating_add(self.move_to_bottom_of_deck(s,id)?);}
                 Eval::Player(player) if matches!(e,Effect::UseForce{..}|Effect::GainForce{..})=> {
                     if !s.force_state_exact || s.player(player).force_id==0 || self.force_def.is_none() {return Err("Force requires exact identity and reviewed native definition".into());}
@@ -3061,9 +3118,10 @@ impl Engine {
                             result += 1;
                         }
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {
+                            let fact=self.prepare_unit_defeat(s,id)?;
                             if in_arena {events.defeated_units[s.card(id).owner.index()]+=1;}
                             if !s.event_group.resolving {self.capture_explicit_death(s,id)?;}
-                            self.leave_play(s,id)?;
+                            self.finish_physical_defeat(s,id,fact)?;
                             result += 1;
                         }
                         Effect::GiveWeakness{..} if in_arena => {
@@ -3114,10 +3172,9 @@ impl Engine {
                 t.active = t.card(t.source).owner;
                 let index = a.arg.as_ref().and_then(Value::as_u64).ok_or("modal branch index missing")? as usize;
                 let branch = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                    &t, t.source, 0, t.ability_program - 1, branch.start, branch.end, false))
+                    &t, t.source, if menu.preserve_target {t.ability_target}else{0}, t.ability_program - 1, branch.start, branch.end, false))
                     .nth(index).ok_or("modal branch index invalid")?;
-                t.ability_target = 0;
-                t.ability_selection = Selection::default();
+                if !menu.preserve_target {t.ability_target = 0;t.ability_selection = Selection::default();}
                 t.ability_pc = branch.start as u8;
                 self.run_program(&mut t)?;
                 self.sweep_stat_defeats(&mut t)?;
