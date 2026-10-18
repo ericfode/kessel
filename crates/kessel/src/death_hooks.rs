@@ -40,6 +40,8 @@ pub enum EventName {
     LeaderDeployed,
     #[serde(rename = "onCardPlayed")]
     CardPlayed,
+    #[serde(rename = "onPhaseStarted")]
+    PhaseStarted,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
@@ -1150,6 +1152,9 @@ pub(crate) fn reject_reason(a: &Ability) -> String {
             }
             if matches!(v.event, EventName::CardPlayed) {
                 return "onCardPlayed requires exact reviewed unit registration".into();
+            }
+            if matches!(v.event, EventName::PhaseStarted) {
+                return "onPhaseStarted requires the complete bounded regroup-start unit registration".into();
             }
         }
     }

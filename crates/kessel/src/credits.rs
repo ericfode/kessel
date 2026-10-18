@@ -217,6 +217,9 @@ pub(crate) fn creation_source(entry: &Value) -> Result<Option<Creation>, String>
     match standalone_creation_source(entry) {
         Ok(original) => Ok(original),
         Err(original_error) => {
+            if crate::regroup_hooks::entry(entry) {
+                return Ok(Some(Creation { amount: 1, event: false }));
+            }
             let Some(prepared) = crate::migration_credit_contract::prepare(entry)? else {
                 return Err(original_error);
             };

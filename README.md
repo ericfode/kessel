@@ -73,6 +73,11 @@ registry fingerprint; pending naming prompts cannot be imported as action window
 ledger holds up to 64 simultaneous locks and fails explicitly at capacity. Phase-long
 named restrictions and named cost increases remain unsupported.
 
+Fireball, Contracted Hunter and The Max Rebo Band resolve their regroup-start abilities
+before drawing, resourcing or readying. Their shared trigger window preserves captured
+owners and initiative ordering. Pending regroup-start snapshots cannot be imported;
+other phase-hook shapes remain explicit rejections.
+
 ## What lives in Holocron and the arena
 
 Recording new reference games plays bots through the forceteki engine with Holocron's game

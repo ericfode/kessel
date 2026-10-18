@@ -507,6 +507,20 @@ and conditional attack-end captures remain rejected. Conversion is not a claim
 of runtime admission or gameplay verification. Focused Rust assertions exercise
 the admitted subset; differential parity for these additions remains unverified.
 
+Three closed ordinary-unit regroup-start forms also execute: mandatory self
+damage 1, self defeat, or own Credit creation 1. Their sole phase predicate must
+be exactly `onPhaseStarted` with `event.phase === "regroup"`; complete source,
+printed metadata and native Credit provenance remain required. Action-phase
+expiry and resulting defeat windows settle before capture. All eligible hooks
+are captured once in registration order, the initiative player chooses owner
+order, and child defeat windows finish before the next hook. The draw-two,
+resource and ready steps follow the complete window. A terminal outcome stops
+later phase steps. This reuses the bounded 64-entry, eight-level trigger storage;
+overflow fails explicitly. Pending snapshots emit `regroupStartPending` and
+cannot be imported, even with a forged actor or terminal winner. Other phase
+predicates, attached/leader hooks and composition with extra abilities remain
+rejected.
+
 Damage-modification grants use the same pinned registration contract with the
 recipient as ability source and the grantor retained separately. Explicit ordinary
 activation limits use the shared strict limit parser. `unresolvedContinuation`

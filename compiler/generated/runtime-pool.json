@@ -19225,6 +19225,49 @@
         "cunning",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4240570958",
+      "internalName": "fireball#an-explosion-with-wings",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 3,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "JTL_198",
+      "setCodes": [
+        {
+          "number": 198,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 198,
+        "set": "JTL"
+      },
+      "subtitle": "An Explosion With Wings",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhen the regroup phase starts: Deal 1 damage to this unit.",
+      "title": "Fireball",
+      "traits": [
+        "resistance",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -19589,6 +19632,47 @@
       "unique": true,
       "upgradeHp": 2,
       "upgradePower": 1
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7489502985",
+      "internalName": "contracted-hunter",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "JTL_216",
+      "setCodes": [
+        {
+          "number": 216,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 216,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhen the regroup phase starts: Defeat this unit.",
+      "title": "Contracted Hunter",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "arena": "space",
@@ -21300,6 +21384,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6040947512",
+      "internalName": "the-max-rebo-band#jatzwailers",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "LAW"
+      },
+      "subtitle": "Jatz-Wailers",
+      "text": "When the regroup phase starts: Create a Credit token.",
+      "title": "The Max Rebo Band",
+      "traits": [
+        "underworld",
+        "musician"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

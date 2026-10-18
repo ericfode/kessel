@@ -64,7 +64,7 @@ struct PhaseStatDelta {
     hp: i64,
 }
 
-struct DrawResult {
+pub(super) struct DrawResult {
     drawn: u16,
     resolved: bool,
 }
@@ -2841,7 +2841,7 @@ impl Engine {
         s.card_mut(base).damage = s.card(base).damage.saturating_add(amount).min(hp);
     }
 
-    fn draw_cards(&self, s: &mut State, seat: Seat, amount: u16) -> Result<DrawResult, String> {
+    pub(super) fn draw_cards(&self, s: &mut State, seat: Seat, amount: u16) -> Result<DrawResult, String> {
         let mut drawn = 0u16;
         for _ in 0..amount {
             if let Some(id) = s.player_mut(seat).deck.pop_front() {
@@ -3522,6 +3522,36 @@ impl Engine {
         for source in sources {let n=s.death_pending.len as usize;s.death_pending.entries[n]=DeathTrigger{source,program,player:s.card(source).owner,..DeathTrigger::default()};s.death_pending.len+=1;}
         Ok(())
     }
+    /// Capture the one reviewed phase event before any handler can remove a
+    /// sibling source. The shared trigger window owns ordering, departed-source
+    /// programs and child defeat windows; it resumes the draw step exactly once.
+    pub(super) fn capture_regroup_start(&self,s:&mut State)->Result<(),String> {
+        if self.catalogue.is_none() {return Ok(());}
+        let mut entries=Vec::new();
+        for owner in [Seat::P1,Seat::P2] {
+            for &source in s.player(owner).ground.as_slice().iter().chain(s.player(owner).space.as_slice()) {
+                for &program in self.card_programs(s,source) {
+                    if self.program(program).trigger=="onRegroupStarted" {
+                        entries.push(DeathTrigger {source,program,player:owner,..DeathTrigger::default()});
+                    }
+                }
+            }
+        }
+        if entries.is_empty() {return Ok(());}
+        if s.death_depth!=0 || s.death_pending.len!=0 || s.event_group!=EventGroupState::default() {
+            return Err("regroup-start capture requires a settled phase-expiry window".into());
+        }
+        if entries.len()>MAX_DEATH_TRIGGERS {return Err("regroup-start trigger capacity exceeded (64)".into());}
+        // Validate chronology before touching the pending window. Hook-bearing
+        // definitions already make this evidence mandatory on snapshot import.
+        if !s.registration_order.exact || entries.iter().any(|e|s.registration_order.position(e.source).is_none()) {
+            return Err("regroup-start capture requires exact registrationOrder".into());
+        }
+        entries.sort_by_key(|e|s.registration_order.position(e.source).unwrap());
+        s.death_pending.entries[..entries.len()].copy_from_slice(&entries);
+        s.death_pending.len=entries.len() as u8;
+        Ok(())
+    }
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
     /// New frames accept a known continuation; persisted raw frames still decode on resumption.
     pub(super) fn open_deaths(&self,s:&mut State,resume:DeathContinuation)->Result<bool,String> {
@@ -3540,7 +3570,7 @@ impl Engine {
             w.entries[w.len as usize]=*e;w.len+=1;
         }
         // Engine active player is the action's player, even during opponent-owned nested triggers.
-        s.death_window.initiator=if n==0 {if resume==DeathContinuation::PhaseExpiry {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
+        s.death_window.initiator=if n==0 {if matches!(resume,DeathContinuation::PhaseExpiry|DeathContinuation::RegroupDraw) {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
         s.ability_program=0;s.pending_programs=0;s.pending_triggers=0;s.event_group=EventGroupState::default();
         self.process_deaths(s)?;Ok(true)
     }
@@ -3692,6 +3722,7 @@ impl Engine {
                     Some(DeathContinuation::NativeAttackAfterEarlyEffects)=>self.native_attack_after_early_effects(s),
                     Some(DeathContinuation::CombatAfterFirstDamage)=>self.combat_after_first_window(s),
                     Some(DeathContinuation::ResourcePayment)=>self.resume_resource_payment(s),
+                    Some(DeathContinuation::RegroupDraw)=>self.draw_for_regroup(s),
                     None=>Err("invalid defeat continuation".into()),
                 };
             }

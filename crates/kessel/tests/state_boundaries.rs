@@ -27,7 +27,7 @@ fn numeric_views_do_not_reinterpret_unknown_or_empty_boundaries() {
     for raw in 0..=u8::MAX {
         assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=4).then_some(raw));
         assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=2).then_some(raw));
-        assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=9).contains(&raw).then_some(raw));
+        assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=10).contains(&raw).then_some(raw));
     }
     assert_eq!(DeathFrame::default().continuation(),None);
     let mut s=State::default();s.trigger_context=255;

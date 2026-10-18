@@ -165,7 +165,7 @@
       "internalName": "source-boundary-1",
       "status": "supported"
     },
-    "runtimeRejection": "static self ongoing contracts require complete ordinary nonleader unit metadata and one registration"
+    "runtimeRejection": "static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations"
   },
   {
     "name": "lexical-selector",
