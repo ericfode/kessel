@@ -342,6 +342,30 @@ fn reviewed_experience_entry(entry:&Value)->bool {
  entry["setCode"]=="TOKEN_EXPERIENCE"&&entry["sourcePath"]=="game/cards/01_SOR/tokens/Experience.ts"&&entry["status"]=="unsupported"&&entry["baseClass"]=="TokenUpgradeCard"&&entry["sourceHash"]=="fccf00d13061bfc15447101a0dc82fc360f9b5d2e28a9da678684e8c93bc9d67"&&entry["card"]==expected&&entry["attachCondition"].is_null()&&entry["piloting"].is_null()&&entry["keywordValues"]==serde_json::json!({})&&entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]})
 }
 
+/// Creation uses this exact native identity, not an arbitrary empty token unit
+/// that happens to occupy the Clone Trooper code in a supplied catalogue.
+fn reviewed_clone_trooper_entry(entry: &Value) -> bool {
+    let expected = json!({
+        "title":"Clone Trooper","subtitle":"","cost":0,"hp":2,"power":2,"text":"",
+        "deployBox":null,"epicAction":null,"unique":false,"rules":null,
+        "upgradePower":null,"upgradeHp":null,"id":"3941784506",
+        "aspects":["heroism"],"traits":["republic","clone","trooper"],"arena":"ground",
+        "keywords":[],"types":["token","unit"],"setId":{"set":"TWI"},"internalName":"clone-trooper"
+    });
+    entry["setCode"] == "TOKEN_CLONE_TROOPER"
+        && entry["status"] == "supported"
+        && entry["diagnostics"] == json!([])
+        && entry["baseClass"] == "TokenUnitCard"
+        && entry["sourcePath"] == "game/cards/03_TWI/tokens/CloneTrooper.ts"
+        && entry["sourceHash"] == "b64ec46d8624c3db5bce94d160e4e25ac53caf83c5e3390cb290880f23c008f6"
+        && entry["card"] == expected
+        && entry["abilities"] == json!({"leader":[],"unit":[],"card":[]})
+        && entry["keywordValues"] == json!({})
+        && entry["attachCondition"].is_null()
+        && entry["piloting"].is_null()
+        && crate::admission::SourceContextPolicy::Closed.accepts(entry)
+}
+
 
 fn reviewed_beast_entry(entry:&Value)->bool {
     let expected:Value=serde_json::from_str(r#"{"title":"Beast","subtitle":"","cost":0,"hp":3,"power":3,"text":"","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":null,"upgradeHp":null,"id":"6445363199","aspects":[],"traits":["creature"],"arena":"ground","keywords":[],"types":["token","unit"],"setId":{"set":"HMW"},"internalName":"beast"}"#).expect("reviewed Beast metadata");
@@ -492,6 +516,7 @@ impl Engine {
         let beast_available=catalogue.cards.contains_key("TOKEN_BEAST")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_beast_entry));
         let mandalorian_available=catalogue.cards.contains_key("TOKEN_MANDALORIAN")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_mandalorian_entry));
         let spy_available=catalogue.cards.contains_key("TOKEN_SPY")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_spy_entry));
+        let clone_available=catalogue.cards.contains_key("TOKEN_CLONE_TROOPER")&&value["cards"].as_array().is_some_and(|cards|cards.iter().any(reviewed_clone_trooper_entry));
         let mut definitions = Vec::new();
         let mut by_code = HashMap::new();
         let mut shield_def = None;
@@ -520,6 +545,7 @@ impl Engine {
                     }
                 }
                 if code=="TOKEN_MANDALORIAN"&&!reviewed_mandalorian_entry(entry) {return Err("native Mandalorian source/metadata differs from reviewed definition".into());}
+                if code=="TOKEN_CLONE_TROOPER"&&!reviewed_clone_trooper_entry(entry) {return Err("native Clone Trooper source/metadata differs from reviewed definition".into());}
                 let programs = catalogue.cards.get(&code).cloned().unwrap_or_default();
                 fn gains_support(v:&Value)->bool {match v {Value::Object(o)=>o.get("kind").is_some_and(|k|k=="gainKeyword")&&o.get("keyword").is_some_and(|k|k=="support")||o.values().any(gains_support),Value::Array(a)=>a.iter().any(gains_support),_=>false}}
                 if gains_support(&entry["abilities"]) {return Err("granting Support requires a separately reviewed entry lifecycle".into());}
@@ -540,6 +566,7 @@ impl Engine {
                     (mandalorian_available,"TOKEN_MANDALORIAN","reviewed Mandalorian token unavailable"),
                     (spy_available, "TOKEN_SPY", "reviewed Spy token unavailable"),
                     (beast_available, "TOKEN_BEAST", "reviewed Beast token unavailable; dependent source cannot execute"),
+                    (clone_available, "TOKEN_CLONE_TROOPER", "reviewed Clone Trooper token unavailable; dependent source cannot execute"),
                 ] {
                     if !available && card_needs_token(&programs, &requirements, token) {
                         return Err(reason.into());

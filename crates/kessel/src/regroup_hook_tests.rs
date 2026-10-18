@@ -99,7 +99,7 @@ fn regroup_hook_complete_source_closure_and_typed_registration() {
         assert!(crate::regroup_hooks::entry(&reordered));
     }
     for code in [
-        "ASH_159", "LOF_055", "TS26_023", "TWI_067", "LAW_073", "HMW_004", "LOF_019", "SHD_015",
+        "LAW_073", "HMW_004", "LOF_019", "SHD_015",
     ] {
         assert!(
             !crate::regroup_hooks::entry(&source(code)),
@@ -107,6 +107,9 @@ fn regroup_hook_complete_source_closure_and_typed_registration() {
         );
     }
 }
+
+#[path = "regroup_followup_tests.rs"]
+mod regroup_followup_tests;
 
 #[test]
 fn regroup_hook_rejects_hidden_metadata_hooks_and_registration_changes() {
