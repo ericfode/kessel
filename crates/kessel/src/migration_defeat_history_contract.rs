@@ -220,7 +220,7 @@ pub fn contract(e: &Value) -> Result<Option<Contract>, String> {
         return Ok(None);
     }
     if e["status"] != "supported"
-        || !crate::static_ongoing::closed_source_helpers(e)
+        || !crate::admission::closed_source_helpers(e)
         || !e["piloting"].is_null()
         || !e["attachCondition"].is_null()
         || ![

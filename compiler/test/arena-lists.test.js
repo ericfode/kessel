@@ -15,7 +15,7 @@ function compile(body) {
 }
 function ready(target) { return `registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready(${target})});`; }
 function supported(body) { const c=compile(body); assert.equal(c.status,'supported',JSON.stringify(c.diagnostics)); return c.abilities.card[0]; }
-function rejected(body, pattern) { const c=compile(body); if(c.status==='supported')return; assert.equal(c.status,'unsupported',body); if(pattern) assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics)); return c; }
+function rejected(body, pattern) { const c=compile(body); assert.equal(c.status,'unsupported',body); if(pattern) assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics)); return c; }
 function refs(value) { const paths=[]; const walk=v=>{if(!v||typeof v!=='object')return;if(v.kind==='ref')paths.push(v.path.join('.'));Object.values(v).forEach(walk);};walk(value);return paths; }
 test('arena lists preserve global and controller-fixed receivers, and stable filters',()=>{
     for(const [source,receiver] of [['ctx.game',['game']],['ctx.player',['player']],['ctx.player.opponent',['opponent']],['ctx.source.controller',['player']],['ctx.source.controller.opponent',['opponent']]]) {
@@ -45,32 +45,93 @@ test('readonly aliases retain lexical source and outer target through candidate 
     assert.deepEqual(aliasShadow.effect.target.predicate.right,ref('source'));
     assert.deepEqual(shadow.effect.amount,ref('source','damage'));assert.deepEqual(shadow.effect.target.predicate.left,ref('card','damage'));
 });
-test('list grammar rejects unknown filters, mutation, receivers and callback shapes',()=>{
-    for(const filter of ['{controller:ctx.player}','{type:"unit"}','{owner:ctx.player}','{unknown:true}','{condition:()=>true}','{condition:(unit,index)=>index===0}','{condition:true}','{condition:unit=>{unit.damage++;return true;}}']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits(${filter})})`));
-    for(const receiver of ['ctx.target.controller','ctx.player.base','ctx.source','ctx.game.players']) rejected(ready(`ctx=>({target:${receiver}.getArenaUnits()})`),'arena-query-receiver');
-    for(const method of ['filter','some']) for(const args of ['', 'true','(unit,index)=>index===0','unit=>true,ctx']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits().${method}(${args})})`));
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits({}, {})})`),'arena-query-arity');
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits?.()})`),'optional-arena-list');
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits()${'.filter(unit=>true)'.repeat(25)}})`),'arena-list-bound');
+function nodes(value,kind) {if(!value||typeof value!=='object')return [];return [...(value.kind===kind?[value]:[]),...Object.values(value).flatMap(v=>nodes(v,kind))];}
+function factory(target) {
+    const effect=supported(ready(`ctx=>({target:${target}})`)).effect;
+    assert.equal(effect.kind,'systemPropertiesFactory');assert.equal(effect.invocationPolicy,'eachNativePropertyGeneration');
+    const capture=effect.captures.at(-1);assert.equal(capture.evaluateAt,'propertyFactoryInvocation');
+    assert.deepEqual(effect.effect.target,ref('systemFactoryCaptures',capture.name));
+    return {effect,value:capture.value,context:effect.parameters[0].root};
+}
+test('list grammar rejects unknown fields, mutation, invalid calls and callbacks',()=>{
+    for(const filter of ['{controller:ctx.player}','{type:"unit"}','{owner:ctx.player}','{unknown:true}','{condition:(unit,index)=>index===0}','{condition:true}','{condition:unit=>{unit.damage++;return true;}}']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits(${filter})})`));
+    for(const method of ['filter','some']) for(const args of ['', 'true','unit=>true,ctx']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits().${method}(${args})})`));
+    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits({}, {})})`),'arena-query-contract-arity');
+    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits?.()})`),'arena-query-contract-arity');
 });
-test('arbitrary collection operations and list scalar/array confusion fail closed',()=>{
-    for(const suffix of ['.map(unit=>unit)','.find(unit=>true)','.every(unit=>true)','.includes(ctx.source)','.concat(ctx.player.getArenaUnits())','.slice(0,1)']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits()${suffix}})`));
-    for(const amount of ['ctx=>ctx.game.getArenaUnits()','ctx=>ctx.game.getArenaUnits()+1','ctx=>ctx.game.getArenaUnits().filter(unit=>true)']) rejected(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage({amount:${amount}})});`);
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits()+1})`),'arena-list-scalar');
-    rejected(ready(`ctx=>({target:[ctx.game.getArenaUnits()]})`),'arena-list-scalar');
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits()[0]})`));
+test('general list contracts retain dynamic receivers, callback indexes and complete chains',()=>{
+    const empty=factory('ctx.game.getArenaUnits({condition:()=>true})').value;
+    assert.deepEqual(empty.filter.condition,{kind:'queryCallback',parameters:[],body:{kind:'const',value:true}});
+    for(const path of [['target','controller'],['player','base'],['source'],['game','players']]) {
+        const f=factory(`ctx.${path.join('.')}.getArenaUnits()`);
+        assert.equal(f.value.kind,'scopedArenaUnitsQuery');assert.equal(f.value.controller,'receiverIdentity');
+        assert.deepEqual(f.value.receiver,ref(f.context,...path));assert.equal(f.value.order,'groundThenSpacePhysicalOrder');
+    }
+    for(const method of ['filter','some']) {
+        const value=factory(`ctx.game.getArenaUnits().${method}((unit,index)=>index===0)`).value;
+        assert.equal(value.kind,'constructionCollectionCall');assert.equal(value.method,method);
+        const callback=value.args[0];assert.deepEqual(callback.parameters.map(p=>p.role),['collectionElement','collectionIndex']);
+        assert.deepEqual(callback.body,{kind:'binary',op:'===',left:ref(callback.parameters[1].root),right:{kind:'const',value:0}});
+    }
+    const chain=factory(`ctx.game.getArenaUnits()${'.filter(unit=>true)'.repeat(25)}`).value;
+    assert.equal(nodes(chain,'constructionCollectionCall').length,25);assert.equal(nodes(chain,'scopedArenaUnitsQuery').length,1);
 });
-test('candidate capture, array-selected outer targets, cycles and unsupported predicate roots reject',()=>{
+test('collection operations retain their method, arguments and uncoerced results',()=>{
+    for(const [suffix,method]of [['.map(unit=>unit)','map'],['.find(unit=>true)','find'],['.every(unit=>true)','every'],['.includes(ctx.source)','includes'],['.concat(ctx.player.getArenaUnits())','concat'],['.slice(0,1)','slice']]) {
+        const f=factory(`ctx.game.getArenaUnits()${suffix}`),value=f.value;
+        assert.equal(value.kind,method==='map'?'collection':'constructionCollectionCall');assert.equal(value.method||value.name,method);
+        assert.equal(value.receiver.kind,'scopedArenaUnitsQuery');
+        if(method==='map')assert.deepEqual(value.args,[ref('card')]);
+        if(['find','every'].includes(method))assert.deepEqual(value.args[0].body,{kind:'const',value:true});
+        if(method==='includes')assert.deepEqual(value.args,[ref(f.context,'source')]);
+        if(method==='concat')assert.deepEqual(value.args,[{kind:'attackArenaList',receiver:ref(f.context,'player'),filter:{}}]);
+        if(method==='slice')assert.deepEqual(value.args,[{kind:'const',value:0},{kind:'const',value:1}]);
+    }
+    for(const [amount,kind]of [['ctx=>ctx.game.getArenaUnits()','dataCall'],['ctx=>ctx.game.getArenaUnits()+1','binary'],['ctx=>ctx.game.getArenaUnits().filter(unit=>true)','pureCollectionCall']]) {
+        const value=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.damage({amount:${amount}})});`).effect.amount;
+        assert.equal(value.kind,'nativeDamageRecipientAmount');assert.equal(value.evaluateAt,'addAbilityDamagePropertiesToEachEvent');
+        assert.deepEqual(value.arguments,['actualEventRecipient']);assert.equal(value.callback.body.value.kind,kind);
+        assert.equal(nodes(value.callback.body,'dataCall')[0].method,'getArenaUnits');
+        assert.deepEqual(nodes(value.callback.body,'dataCall')[0].receiver.root,[value.callback.parameters[0].slot]);
+        if(kind==='binary'){assert.equal(value.callback.body.value.op,'+');assert.deepEqual(value.callback.body.value.right,{kind:'const',value:1});}
+    }
+    const added=factory('ctx.game.getArenaUnits()+1').value;
+    assert.equal(added.kind,'binary');assert.equal(added.op,'+');assert.equal(added.left.kind,'scopedArenaUnitsQuery');assert.deepEqual(added.right,{kind:'const',value:1});
+    const indexed=factory('ctx.game.getArenaUnits()[0]').value;assert.equal(indexed.kind,'queryMember');assert.deepEqual(indexed.index,{kind:'const',value:0});
+    rejected(ready(`ctx=>({target:[ctx.game.getArenaUnits()]})`),'system-factory-constructor-call');
+});
+test('nested candidate captures retain lexical identities and malformed cycles reject',()=>{
     const selector=p=>`registrar.addWhenPlayedAbility({targetResolver:{cardTypeFilter:'unit',cardCondition:(outer,ctx)=>${p},immediateEffect:AbilityHelper.immediateEffects.ready()}});`;
-    rejected(selector(`ctx.player.getArenaUnits().some(inner=>inner!==outer)`),'arena-query-card-capture');
-    rejected(selector(`{const saved=outer;return ctx.player.getArenaUnits().some(inner=>inner!==saved);}`),'arena-query-card-capture');
-    rejected(ready(`ctx=>({target:ctx.game.getArenaUnits({condition:unit=>ctx.game.getArenaUnits().some(other=>other!==unit)})})`),'arena-query-card-capture');
-    for(const predicate of ['unit=>ctx.target[0].power<unit.power','unit=>ctx.event.card===unit','unit=>ctx.attack.attacker===unit','unit=>unit.upgrades.some(upgrade=>upgrade.isUnit())','unit=>ctx.player.getArenaUnits().length>0']) rejected(ready(`ctx=>({target:ctx.game.getArenaUnits().filter(${predicate})})`));
+    const direct=supported(selector('ctx.player.getArenaUnits().some(inner=>inner!==outer)')).targetResolver.predicate;
+    assert.equal(direct.kind,'queryCollectionCall');
+    assert.deepEqual(direct.args[0].body,{kind:'binary',op:'!==',left:ref(direct.args[0].parameters[0].root),right:ref('card')});
+    const saved=supported(selector('{const saved=outer;return ctx.player.getArenaUnits().some(inner=>inner!==saved);}')).targetResolver.predicate;
+    assert.equal(saved.kind,'pureCallback');const savedBinding=saved.body.statements[0].bindings[0];
+    assert.deepEqual(savedBinding.value,{kind:'dataPath',root:[saved.parameters[0].slot],steps:[]});
+    const inner=saved.body.statements[1].value.args[0];
+    assert.deepEqual(inner.body.value,{kind:'binary',op:'!==',left:{kind:'dataPath',root:[inner.parameters[0].slot],steps:[]},right:{kind:'dataPath',root:[savedBinding.slot],steps:[]}});
+    const nested=factory('ctx.game.getArenaUnits({condition:unit=>ctx.game.getArenaUnits().some(other=>other!==unit)})').value.filter.condition;
+    const callback=nested.body.args[0];assert.notEqual(callback.parameters[0].root,nested.parameters[0].root);
+    assert.deepEqual(callback.body,{kind:'binary',op:'!==',left:ref(callback.parameters[0].root),right:ref(nested.parameters[0].root)});
+    for(const [predicate,path]of [['unit=>ctx.event.card===unit',['event','card']],['unit=>ctx.attack.attacker===unit',['attack','attacker']]]) {
+        const f=factory(`ctx.game.getArenaUnits().filter(${predicate})`),callback=f.value.args[0];
+        assert.deepEqual(callback.body,{kind:'binary',op:'===',left:ref(f.context,...path),right:ref(callback.parameters[0].root)});
+    }
+    const indexed=factory('ctx.game.getArenaUnits().filter(unit=>ctx.target[0].power<unit.power)');
+    assert.deepEqual(indexed.value.args[0].body.left,{kind:'constructionMember',receiver:ref(indexed.context,'target',0),property:'power',optional:false,continuesOptionalChain:false});
+    const upgrades=factory('ctx.game.getArenaUnits().filter(unit=>unit.upgrades.some(upgrade=>upgrade.isUnit()))').value.args[0];
+    assert.deepEqual(upgrades.body.receiver,ref(upgrades.parameters[0].root,'upgrades'));
+    assert.deepEqual(upgrades.body.args[0].body,{kind:'query',name:'isUnit',receiver:ref(upgrades.body.args[0].parameters[0].root),args:[]});
+    const counted=factory('ctx.game.getArenaUnits().filter(unit=>ctx.player.getArenaUnits().length>0)');
+    assert.equal(counted.value.args[0].body.left.property,'length');assert.deepEqual(counted.value.args[0].body.left.receiver,{kind:'attackArenaList',receiver:ref(counted.context,'player'),filter:{}});
     for(const locals of ['const a=a;','const a=b;const b=a;']) rejected(ready(`ctx=>{${locals}return {target:a};}`));
-    rejected(ready(`ctx=>{let all=ctx.game.getArenaUnits();return {target:all};}`),'mutable-callback-local');
+    const mutable=supported(ready('ctx=>{let all=ctx.game.getArenaUnits();return {target:all};}')).effect;
+    assert.equal(mutable.kind,'systemPropertiesProgram');const statements=mutable.callback.body.statements,binding=statements[0].bindings[0];
+    assert.equal(binding.mutable,true);assert.equal(binding.evaluateAt,'declaration');assert.equal(binding.value.method,'getArenaUnits');
+    assert.deepEqual(statements[1].value.effect.target,{kind:'dataPath',root:[binding.slot],steps:[]});
 });
 
-// Complete pinned sources: 28 planned, seven incidental source-only gains, ten blockers.
+// Complete pinned source hashes and their source-lowering contracts; runtime admission is separate.
 const actualSources = [
     [
         "ASH_064",
@@ -106,7 +167,7 @@ const actualSources = [
         "HMW_080",
         "game/cards/09_HMW/units/FambaaShieldTeam.ts",
         "e649cbf19cf64772b71c36aeffb2babf0b6f1561a7ac473a3048994c86da0f3d",
-        null
+        "unsupported-query:isShield"
     ],
     [
         "HMW_111",
@@ -115,7 +176,7 @@ const actualSources = [
         null
     ],
     [
-        "IC27_028",
+        "IBH_072",
         "game/cards/06_IBH/units/AvengerHuntingTheRebels.ts",
         "8f3c6fdf1fd6187af59986d4c3a7f55080679ff974692952dc0fc7d0d3b5e7fe",
         null
@@ -142,13 +203,13 @@ const actualSources = [
         "LAW_169",
         "game/cards/07_LAW/events/PayrollHeist.ts",
         "190d81b71195d716388b104517b7035656c745a7d3e407a6857145650a00229d",
-        null
+        "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility"
     ],
     [
         "LOF_033",
         "game/cards/05_LOF/units/NamelessTerror.ts",
         "65c0973f956a446d4671cb528ff2a6b9fddb1a8f8a9f3634660f12724de1d0f8",
-        null
+        "unsupported-modifier:AbilityHelper.ongoingEffects.loseTrait"
     ],
     [
         "LOF_045",
@@ -190,10 +251,10 @@ const actualSources = [
         "LOF_211",
         "game/cards/05_LOF/units/DookuItIsTooLate.ts",
         "25f915b4a9b78a9fd119d824b5bac298f7d1997256336a504d3b1b01a1a36d76",
-        null
+        "unsupported-modifier:AbilityHelper.ongoingEffects.cardCannot"
     ],
     [
-        "IC27_182",
+        "LOF_235",
         "game/cards/05_LOF/units/HK87AssassinDroid.ts",
         "add5c3778a8b5f07bbff3f3ea9bbce937a17d94d6c0838f642def3497a25c21c",
         null
@@ -244,7 +305,7 @@ const actualSources = [
         "SHD_208",
         "game/cards/02_SHD/events/FinalShowdown.ts",
         "0d5c46a613015c2e17c7e520414745b13118deba7d1d265ee1e7dba24c92a374",
-        null
+        "immediateEffect:delayedPlayerEffect"
     ],
     [
         "SHD_233",
@@ -310,7 +371,7 @@ const actualSources = [
         "TWI_103",
         "game/cards/03_TWI/events/PyrrhicAssault.ts",
         "49102e157508ae8c543834a9f61e451c6562199f0bb943653b68ed811babd69c",
-        null
+        "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility"
     ],
     [
         "TWI_126",
@@ -322,7 +383,7 @@ const actualSources = [
         "TWI_129",
         "game/cards/03_TWI/events/InDefenseOfKamino.ts",
         "0cf421ef6fc8ab581491faccca5f7e469cb1d92556d50e64f71ff182046b86c2",
-        null
+        "unsupported-modifier:AbilityHelper.ongoingEffects.gainAbility"
     ],
     [
         "TWI_150",
@@ -343,25 +404,35 @@ const actualSources = [
         null
     ]
 ];
-test('all 45 full pinned sources match hashes and compile supported',()=>{
-    let supportedCount=0;
-    for(const [setCode,file,sourceHash,blocker] of actualSources) {
-        const sourcePath=path.join(root,file),source=fs.readFileSync(sourcePath,'utf8');
-        assert.equal(hash(source),sourceHash,setCode+' source drift');
-        const c=compileSource(source,sourcePath,enums);
-        assert.equal(c.status,blocker?'unsupported':'supported',setCode+JSON.stringify(c.diagnostics));
-        if(blocker) assert.ok(c.diagnostics.some(d=>d.pattern===blocker),setCode+JSON.stringify(c.diagnostics));
-        else {supportedCount++;assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');if(setCode==='IC27_182'){const target=c.abilities.card[0].effect.target;assert.equal(target.kind,'arenaList');assert.deepEqual(target.receiver,{kind:'ref',path:['game']});assert.equal(target.controllerOrder,'playerFirst');assert.equal(c.abilities.card[0].effect.amount.value,2);}}
+test('all 45 full pinned sources match hashes and retain precise complete source contracts',()=>{
+    const expanded={HMW_080:['query','name','hasAttachedNativeToken'],LAW_169:['gainAbility',null,null],LOF_033:['ongoingContract','effectType','loseTrait'],LOF_211:['cardRestriction',null,null],SHD_208:['delayedEffect','effectType','player'],TWI_103:['gainAbility',null,null],TWI_129:['gainAbility',null,null]};
+    for(const [setCode,file,sourceHash,formerBlocker] of actualSources) {
+        const sourcePath=path.join(root,file),source=fs.readFileSync(sourcePath,'utf8');assert.equal(hash(source),sourceHash,setCode+' source drift');
+        const c=compileSource(source,sourcePath,enums);assert.equal(c.status,'supported',setCode+JSON.stringify(c.diagnostics));
+        assert.ok(Object.values(c.abilities).some(side=>side.length),setCode+' missing complete ability');
+        if(formerBlocker){
+            const [kind,key,value]=expanded[setCode],contract=nodes(c.abilities,kind).find(n=>!key||n[key]===value);assert.ok(contract,setCode+JSON.stringify(c.abilities));
+            if(setCode==='HMW_080')assert.deepEqual(contract,{kind:'query',name:'hasAttachedNativeToken',receiver:ref('card'),args:[{kind:'const',value:'shield'}]});
+            if(kind==='gainAbility'){
+                assert.equal(contract.duration,'phase');assert.equal(contract.sourceBinding,'recipient');assert.equal(contract.gainAbilitySourceBinding,'grantor');assert.deepEqual(contract.target.receiver,ref('player'));
+                const program=contract.registration.program;assert.equal(contract.registration.type,'triggered');
+                const [hook,effect]=setCode==='LAW_169'?['onAttack',{kind:'createCreditToken',target:'ownPlayer',amount:{kind:'const',value:1},destination:'base',creationTiming:'eventUpdate'}]:setCode==='TWI_103'?['whenDefeated',{kind:'damage',target:'chosen',amount:{kind:'const',value:2}}]:['whenDefeated',{kind:'createTokenUnit',tokenType:'cloneTrooper',amount:{kind:'const',value:1},target:'ownPlayer',entersReady:false}];
+                assert.deepEqual(program.hooks,[{alias:hook,enabled:true}]);assert.deepEqual(program.effect,effect);
+            }
+            if(setCode==='LOF_033')assert.partialDeepStrictEqual(contract,{duration:'phase',target:{kind:'arenaList',receiver:ref('opponent')},valueMode:'static',value:{kind:'const',value:'force'}});
+            if(setCode==='LOF_211'){assert.equal(contract.restriction,'beAttacked');assert.equal(contract.duration,'phase');assert.deepEqual(contract.target.receiver,ref('player'));assert.deepEqual(contract.target.predicate.right.args,[{kind:'const',value:'hidden'}]);}
+            if(setCode==='SHD_208'){assert.equal(contract.contextPolicy,'retainApplicationContextAndAddTriggerEvents');assert.equal(contract.hooks[0].event,'onPhaseStarted');assert.deepEqual(contract.hooks[0].predicate.right,{kind:'const',value:'regroup'});assert.partialDeepStrictEqual(contract.effect,{kind:'endGameSystem',result:'lose',target:'ownPlayer'});}
+        }
+        if(setCode==='LOF_235'){const target=c.abilities.card[0].effect.target;assert.equal(target.kind,'arenaList');assert.deepEqual(target.receiver,ref('game'));assert.equal(target.controllerOrder,'playerFirst');assert.equal(c.abilities.card[0].effect.amount.value,2);}
     }
-    assert.equal(supportedCount,45);
 });
 
 test("four additional generic source-only gains retain full source identities",()=>{
-    const sources=[["JTL_217", "game/cards/04_JTL/units/DeathSpaceSkirmisher.ts", "ae8e4acb0ddb8613a37d52aaa504de8ed96abd3174bb7e316e70f21cdcb90b98"], ["SEC_014", "game/cards/06_SEC/leaders/SlyMooreCipherInTheDark.ts", "0a2a30e721f4646995428e662724233577c9718b1d374440ee5e2fcd236c15fe"], ["IC27_108", "game/cards/03_TWI/units/SavageOpressMonster.ts", "6ab2d2128e79311328d13c0bd8f27df93483baf14c3804a48b9fbd4aa72424cc"], ["TWI_194", "game/cards/03_TWI/units/AhsokaTanoAlwaysReadyForTrouble.ts", "4df31d40dc641ac824a829817fd9ad564872bd4824ffee69bd78108a95fcb5c2"]];
+    const sources=[["JTL_217", "game/cards/04_JTL/units/DeathSpaceSkirmisher.ts", "ae8e4acb0ddb8613a37d52aaa504de8ed96abd3174bb7e316e70f21cdcb90b98"], ["SEC_014", "game/cards/06_SEC/leaders/SlyMooreCipherInTheDark.ts", "0a2a30e721f4646995428e662724233577c9718b1d374440ee5e2fcd236c15fe"], ["TWI_137", "game/cards/03_TWI/units/SavageOpressMonster.ts", "6ab2d2128e79311328d13c0bd8f27df93483baf14c3804a48b9fbd4aa72424cc"], ["TWI_194", "game/cards/03_TWI/units/AhsokaTanoAlwaysReadyForTrouble.ts", "4df31d40dc641ac824a829817fd9ad564872bd4824ffee69bd78108a95fcb5c2"]];
     for(const [id,file,expectedHash] of sources){const p=path.join(root,file),source=fs.readFileSync(p,"utf8");assert.equal(hash(source),expectedHash,id);const c=compileSource(source,p,enums);assert.equal(c.status,"supported",id+JSON.stringify(c.diagnostics));}
 });
 
-test('arena snapshots cannot move from setup or an outer factory to a later callback',()=>{
+test('setup snapshots reject while continuation programs retain earlier callback values',()=>{
     for(const setup of [
         `const units=this.controller.getArenaUnits();registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready({target:units})});`,
         `const units=this.controller.getArenaUnits();const saved=units;registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready(ctx=>({target:saved}))});`,
@@ -370,11 +441,24 @@ test('arena snapshots cannot move from setup or an outer factory to a later call
         `const exists=this.controller.getArenaUnits().some(unit=>unit.damage>0)?2:0;registrar.addWhenPlayedAbility({condition:ctx=>exists>0,immediateEffect:AbilityHelper.immediateEffects.draw()});`,
         `const exists=this.controller.hasSomeArenaUnit();registrar.addWhenPlayedAbility({condition:ctx=>exists,immediateEffect:AbilityHelper.immediateEffects.draw()});`,
     ]) rejected(setup,'arena-query-snapshot-capture');
-    for(const binding of ['const owner=this.controller;', 'const owner=this.controller;const saved=owner;']) rejected(`${binding}registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready(ctx=>({target:${binding.includes('saved')?'saved':'owner'}.getArenaUnits()}))});`,'arena-controller-snapshot-capture');
-    rejected(ready(`{target:this.controller.getArenaUnits()}`),'arena-query-evaluation-stage');
-    rejected(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const units=ctx.player.getArenaUnits();return {immediateEffect:AbilityHelper.immediateEffects.damage(other=>({amount:1,target:units}))};}});`,'arena-query-snapshot-capture');
-    rejected(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const n=ctx.player.getArenaUnits().length;const saved=n+1;return {immediateEffect:AbilityHelper.immediateEffects.damage(other=>({amount:saved,target:other.source}))};}});`,'arena-query-snapshot-capture');
-    rejected(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const units=ctx.player.getArenaUnits();return {immediateEffect:AbilityHelper.immediateEffects.sequential([AbilityHelper.immediateEffects.defeat({target:units}),AbilityHelper.immediateEffects.ready({target:units})])};}});`,'continuation-factory-value-lifetime');
+    for(const binding of ['const owner=this.controller;', 'const owner=this.controller;const saved=owner;']) rejected(`${binding}registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.ready(ctx=>({target:${binding.includes('saved')?'saved':'owner'}.getArenaUnits()}))});`,'arena-query-snapshot-capture');
+    rejected(ready(`{target:this.controller.getArenaUnits()}`),'query-contract-evaluation-stage');
+    // A later callback keeps the earlier value's storage slot; it must not
+    // substitute its own context or repeat the arena query during resolution.
+    const later=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const units=ctx.player.getArenaUnits();return {immediateEffect:AbilityHelper.immediateEffects.damage(other=>({amount:1,target:units}))};}});`).then;
+    assert.equal(later.kind,'abilityFactoryProgram');let statements=later.callback.body.statements,binding=statements[0].bindings[0];
+    assert.equal(binding.evaluateAt,'declaration');assert.equal(binding.value.method,'getArenaUnits');
+    assert.deepEqual(statements.at(-1).value.ability.effect.target,{kind:'dataPath',root:[binding.slot],steps:[]});
+    const arithmetic=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const n=ctx.player.getArenaUnits().length;const saved=n+1;return {immediateEffect:AbilityHelper.immediateEffects.damage(other=>({amount:saved,target:other.source}))};}});`).then;
+    assert.equal(arithmetic.kind,'abilityFactoryProgram');statements=arithmetic.callback.body.statements;
+    assert.deepEqual(statements[1].bindings[0].value.left,{kind:'dataPath',root:[statements[0].bindings[0].slot],steps:[]});
+    assert.deepEqual(statements.at(-1).value.ability.effect.amount,{kind:'dataPath',root:[statements[1].bindings[0].slot],steps:[]});
+    const sequence=supported(`registrar.addWhenPlayedAbility({immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const units=ctx.player.getArenaUnits();return {immediateEffect:AbilityHelper.immediateEffects.sequential([AbilityHelper.immediateEffects.defeat({target:units}),AbilityHelper.immediateEffects.ready({target:units})])};}});`).then;
+    assert.equal(sequence.kind,'abilityFactoryProgram');statements=sequence.callback.body.statements;binding=statements[0].bindings[0];
+    assert.equal(binding.value.method,'getArenaUnits');assert.equal(binding.evaluateAt,'declaration');assert.equal(nodes(sequence,'dataCall').filter(n=>n.method==='getArenaUnits').length,1);
+    const effects=statements.at(-1).value.ability.effect.effects;assert.deepEqual(effects.map(e=>e.kind),['defeat','ready']);
+    assert.deepEqual(effects.map(e=>e.target),[0,1].map(()=>({kind:'dataPath',root:[binding.slot],steps:[]})));
+
 });
 test('same executing helper or condition keeps snapshot locals and identity aliases',()=>{
     const a=supported(ready(`ctx=>{const player=ctx.player;const units=player.getArenaUnits();const saved=units;return {target:saved};}`));
@@ -383,7 +467,7 @@ test('same executing helper or condition keeps snapshot locals and identity alia
     assert.equal(count.condition.left.left.name,'arenaUnitCount');
     const nested=supported(ready(`ctx=>{const owner=ctx.player;return {target:owner.getArenaUnits().filter(unit=>unit.controller===owner)};}`));
     assert.deepEqual(nested.effect.target.predicate.right,ref('player'));
-    // The synchronous predicate shares evaluation time, but nested count IR is
-    // still outside this bounded predicate grammar and is explicitly rejected.
-    rejected(ready(`ctx=>{const n=ctx.player.getArenaUnits().length;return {target:ctx.game.getArenaUnits().filter(unit=>unit.damage<n)};}`),'arena-predicate-query');
+    const captured=supported(ready(`ctx=>{const n=ctx.player.getArenaUnits().length;return {target:ctx.game.getArenaUnits().filter(unit=>unit.damage<n)};}`)).effect;
+    assert.equal(captured.kind,'systemPropertiesFactory');assert.deepEqual(captured.captures.map(c=>[c.role,c.evaluateAt,c.order]),[['readonlyDeclaration','propertyFactoryInvocation',0],['staticProperty','propertyFactoryInvocation',1]]);
+    assert.deepEqual(captured.captures[1].value.args[0].body.right,ref('systemFactoryCaptures',captured.captures[0].name));
 });

@@ -2,7 +2,7 @@ use kessel::ability_ir::{Ability, Catalogue, Program};
 use serde_json::{json, Value};
 
 fn entry() -> Value {
-    let catalog: Value = serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog: Value = serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     catalog["cards"].as_array().unwrap().iter().find(|c| c["setCode"] == "TWI_084").unwrap().clone()
 }
 fn attack() -> Value { entry()["abilities"]["card"][1].clone() }

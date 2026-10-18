@@ -146,7 +146,12 @@ function literal(node, ctx) {
     if (node.kind === ts.SyntaxKind.NullKeyword) return null;
     if (ts.isPropertyAccessExpression(node)) {
         const name = node.getText(ctx.source);
-        if (Object.hasOwn(ctx.enums, name)) return ctx.enums[name];
+        if (Object.hasOwn(ctx.enums, name)) {
+            // A wider contract fallback must not turn a lexical binding into
+            // the imported enum that happens to have the same spelling.
+            unshadowedEnum(node, ctx, name.split('.')[0]);
+            return ctx.enums[name];
+        }
     }
     if (ts.isIdentifier(node) && ctx.constants?.has(node.text)) { const initializer=readConstant(node.text,ctx); return literal(initializer,constantContext(initializer,ctx)); }
     fail(ctx, node, 'nonconstant-value', node.getText(ctx.source));
@@ -159,8 +164,8 @@ function titleHelper(node, ctx) {
         try{node.arguments.forEach(a=>literal(a,ctx));}
         catch(error){
             if(!(error instanceof Unsupported))throw error;
-            // Dynamic title fragments may defer. Static fence failures (negative
-            // resource counts, unknown fields) must not become textFormatter IR.
+            // Dynamic title fragments may defer; lexical identity failures
+            // must still stop before constructing formatter IR.
             if(isSpecializedFence(error)&&error.diagnostic.pattern!=='nonconstant-value')throw error;
             return null;
         }
@@ -224,6 +229,7 @@ function titleHelper(node, ctx) {
 // rendered as placeholders; their expressions are deliberately never evaluated.
 function displayText(node, ctx) {
     node = unwrap(node);
+    if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) fail(ctx,node,'callable-display-title');
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
     if (ts.isTemplateExpression(node)) return node.head.text + node.templateSpans.map((span) => {
         let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){
@@ -318,7 +324,7 @@ function capturesArenaSnapshot(node, ctx, seen = new Set(), controllerOnly = fal
     node = unwrap(node);
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) return false;
     if (!controllerOnly && ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text==='Set') return true;
-    if (!controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text==='upgrades') return true;
+    if (!controllerOnly && ts.isPropertyAccessExpression(node) && ['upgrades','resources','controller'].includes(node.name.text)) return true;
     if (controllerOnly && ts.isPropertyAccessExpression(node) && node.name.text === 'controller') return true;
     if (!controllerOnly && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && (['countUniqueAspects','countUniqueKeywords','getOtherPlayer','hasSomeCard','getArenaUnits','getArenaUpgrades','getInPlayCards','getPlayers','getTopCardOfDeck','hasSomeArenaCard','hasSomeArenaUpgrade','hasSomeArenaUnit','isTraitInPlay','isAspectInPlay','isKeywordInPlay','controlsCardWithTrait','controlsLeaderUnitOrUpgradeWithTitle','getLeaderCards','getConstantAbilities','getActionAbilities','getTriggeredAbilities'].includes(node.expression.name.text) || ctx.arenaDamageHelpers?.has(node.expression.name.text) || ctx.reductionHelpers?.has(node.expression.name.text))) return true;
     if (ts.isIdentifier(node) && ctx.constants.has(node.text) && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) {
@@ -1096,6 +1102,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
         while (ts.isIdentifier(value) && ctx.constants.has(value.text)) value = unwrap(readConstant(value.text, ctx));
         const dynamic = ts.isArrowFunction(value) || ts.isFunctionExpression(value);
         if (kind === 'modifyStats') {
+            if (dynamic && ['phase','attack'].includes(duration)) return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
             const lowered = dynamic ? lambda(value,{...ctx,liveStats:true},['modifierTarget','context']) : {node:value,ctx};
             const obj = object(lowered.node,lowered.ctx);
             // Every modifier field is semantic; descriptive-property exemptions
@@ -1107,13 +1114,10 @@ function modifierEffects(input, ctx, duration, targetValue) {
                 let v=unwrap(obj.props.get(stat));
                 while(ts.isIdentifier(v)&&obj.ctx.constants.has(v.text))v=unwrap(readConstant(v.text,obj.ctx));
                 if(ts.isArrowFunction(v)||ts.isFunctionExpression(v))fail(ctx,v,'function-valued-stat-modifier');
-                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;if(!recoversToContract(error,['live-stat-arena-capture']))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
+                if(dynamic) {out[stat]=expr(v,obj.ctx);try{liveStatBounds(out[stat],obj.ctx,v);}catch(error){if(!(error instanceof Unsupported))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}}
                 else if(duration === 'persistent') { const n=literal(v,obj.ctx); if(!Number.isSafeInteger(n))fail(ctx,v,'noninteger-stat-modifier'); out[stat]=constant(n); }
                 else out[stat]=expr(v,obj.ctx);
             }
-            // Phase/attack dynamic modifiers may still widen into an ongoing
-            // contract after live bounds succeed — never before the fence runs.
-            if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
             return [out];
         }
         if (kind === 'loseKeyword') {
@@ -1121,7 +1125,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(!list.length||list.length>8||list.some(k=>!MODIFIER_KEYWORDS.has(k)))fail(ctx,value,'unsupported-modifier-keyword');
             return list.map(keyword=>({kind,target:targetValue,duration,keyword}));
         }
-        try {
+        if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
         const lowered=dynamic?lambda(value,{...ctx,legacyKeywordValue:true},['card','context']):{node:value,ctx};
         let keyword,amount=constant(1);
         if(ts.isObjectLiteralExpression(lowered.node)) {
@@ -1134,9 +1138,7 @@ function modifierEffects(input, ctx, duration, targetValue) {
             if(['raid','restore'].includes(keyword)!==obj.props.has('amount'))fail(ctx,value,'invalid-keyword-amount');
         } else {keyword=literal(lowered.node,lowered.ctx);if(['raid','restore'].includes(keyword))fail(ctx,value,'missing-numeric-keyword-amount');}
         if(!MODIFIER_KEYWORDS.has(keyword))fail(ctx,value,'unsupported-modifier-keyword');
-        if(dynamic&&['phase','attack'].includes(duration))return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];
         return [{kind,target:targetValue,duration,keyword,amount}];
-        }catch(error){if(!(error instanceof Unsupported)||isSpecializedFence(error)||!dynamic||!['phase','attack'].includes(duration))throw error;return [ongoingContract(call,{...ctx,explicitOngoingContract:true},duration,targetValue,ongoingApi())];}
     });
     if(effects.length>8)fail(ctx,raw,'modifier-list-bound');
     if(['phase','attack'].includes(duration)&&ts.isArrayLiteralExpression(raw))return {kind:duration==='phase'?'phaseModifiers':'attackModifiers',effects};
@@ -1331,8 +1333,8 @@ function effect(input, context, defaultTarget = 'self') {
                 result.amount=value;
             } catch(error) {
                 if(!(error instanceof Unsupported))throw error;
-                // damage-recipient-callback-shape is the exact remainingHp-1
-                // fence. Do not widen it into a pureCallback amount contract.
+                // A different numeric callback needs the existing complete
+                // recipient callback contract; invariant failures stay closed.
                 if(isSpecializedFence(error))throw error;
                 result.amount=nativeDamageRecipientAmount(amount,amountContext,{...privateApi(),target});
             }
@@ -1700,7 +1702,7 @@ function attachedKeywordAbility(input, context) {
     result.effect.target = 'parent';
     const keyword = result.effect.keyword;
     const amount = result.effect.amount;
-    if (amount.kind !== 'const' || !Number.isSafeInteger(amount.value) || amount.value < 0 || amount.value > 5) fail(obj.ctx, obj.node, 'attached-keyword-amount-bound');
+    if (!amount || amount.kind !== 'const' || !Number.isSafeInteger(amount.value) || amount.value < 0 || amount.value > 5) fail(obj.ctx, obj.node, 'attached-keyword-amount-bound');
     result.title = `Give ${keyword[0].toUpperCase() + keyword.slice(1)}${['raid', 'restore'].includes(keyword) ? ' ' + amount.value : ''} to the attached unit`;
     return result;
 }
@@ -1796,6 +1798,11 @@ function legacyAbility(input, context, trigger = null, validatedObject = null) {
         // legacy representation would lose its value lifetime needs a binding.
         try{return ability(input,{...context,explicitAbilityFactory:true},trigger);}catch(error) {
             if(!(error instanceof Unsupported)||!['continuation-factory-target-lifetime','continuation-factory-event-lifetime','continuation-factory-value-lifetime','target-resolver-outer-target-capture','named-continuation-targeting-or-cost'].includes(error.diagnostic.pattern))throw error;
+            // Arena snapshot declarations need the existing program fallback's
+            // one-shot bindings; lambda substitution duplicates their queries.
+            if(ts.isBlock(rawFactory.body)&&rawFactory.body.statements.some(statement=>
+                ts.isVariableStatement(statement)&&statement.declarationList.declarations.some(
+                    declaration=>declaration.initializer&&ts.isCallExpression(unwrap(declaration.initializer))&&capturesArenaSnapshot(declaration.initializer,context))))throw error;
             if(rawFactory.parameters.length>1)fail(context,rawFactory,'continuation-factory-arity');
             const depth=(context.abilityBindingDepth||0)+1,root='abilityBinding'+depth;
             const child={...context,namedTargets:error.diagnostic.pattern==='named-continuation-targeting-or-cost'?null:context.namedTargets,explicitAbilityFactory:false,abilityBindingDepth:depth,typedCallbackRoots:new Set([...(context.typedCallbackRoots||[]),root]),typedCallbackRoles:new Map([...(context.typedCallbackRoles||[]),[root,'continuationContext']])};
@@ -2000,6 +2007,41 @@ function loadEnums(sourceRoot) {
     }
     return out;
 }
+// Validate lexical identities before a wider source-only fallback can erase the
+// spelling that established them. These are source bindings, not runtime gates.
+function setupBindings(member, ctx) {
+    const names=member.parameters.map(p=>p.name.text);
+    if(member.modifiers?.some(m=>m.kind===ts.SyntaxKind.StaticKeyword)||new Set(names).size!==names.length)fail(ctx,member,'unsupported-setup-parameter-binding');
+    const returnsFunction=node=>{
+        node=unwrap(node);
+        if(ts.isArrowFunction(node)||ts.isFunctionExpression(node))return true;
+        if(ts.isConditionalExpression(node))return returnsFunction(node.whenTrue)||returnsFunction(node.whenFalse);
+        if(ts.isBinaryExpression(node))return returnsFunction(node.left)||returnsFunction(node.right);
+        return false;
+    };
+    const visit=node=>{
+        if(ts.isPropertyAccessExpression(node)&&Object.hasOwn(ctx.enums,node.getText(ctx.source)))unshadowedEnum(node,ctx,node.getText(ctx.source).split('.')[0]);
+        if(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)) {
+            const property=node.expression;
+            if(ts.isIdentifier(property.expression)&&property.expression.text===names[0]&&(node.questionDotToken||property.questionDotToken))fail(ctx,node,'optional-registrar-call');
+            const namespace=property.expression;
+            if(ts.isPropertyAccessExpression(namespace)&&['immediateEffects','ongoingEffects','costs'].includes(namespace.name.text)&&ts.isIdentifier(namespace.expression)&&['AbilityHelper','abilityHelper'].includes(namespace.expression.text)) {
+                const root=namespace.expression.text;
+                if(root!==names[1])fail(ctx,namespace,'setup-helper-binding');
+                for(let ancestor=node.parent;ancestor&&ancestor!==member;ancestor=ancestor.parent)if(ancestor.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(ancestor)&&ancestor.statements.some(s=>ts.isVariableStatement(s)&&s.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,namespace,'setup-helper-binding');
+            }
+        }
+        if(ts.isPropertyAssignment(node)&&node.name.getText(ctx.source)==='cardCondition') {
+            const callback=unwrap(node.initializer);
+            if(ts.isArrowFunction(callback)||ts.isFunctionExpression(callback)) {
+                const results=ts.isBlock(callback.body)?callback.body.statements.filter(ts.isReturnStatement).map(s=>s.expression).filter(Boolean):[callback.body];
+                if(results.some(returnsFunction))fail(ctx,node,'function-valued-card-condition');
+            }
+        }
+        ts.forEachChild(node,visit);
+    };
+    if(member.body)visit(member.body);
+}
 function compileSource(text, file, enums = {}, options = {}) {
     const exclusion=sourceExclusion(file,hash(text));if(exclusion)return exclusion;
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
@@ -2113,6 +2155,10 @@ function compileSource(text, file, enums = {}, options = {}) {
             diagnostics.push(new Unsupported(ctx,member,'unsupported-setup-parameter-binding').diagnostic);
             continue;
         }
+        try { setupBindings(member,ctx); } catch(error) {
+            if(!(error instanceof Unsupported))throw error;
+            diagnostics.push(error.diagnostic);continue;
+        }
         const local = { ...ctx, constants: new Map(), pendingRegistration:cls.members.some(m=>{let found=false;const visit=n=>{if(ts.isPropertyAccessExpression(n)&&REGISTRATIONS.has(n.name.text))found=true;ts.forEachChild(n,visit);};visit(m);return found;}) };
         for (const statement of member.body?.statements ?? []) {
             try {
@@ -2153,6 +2199,8 @@ function compileSource(text, file, enums = {}, options = {}) {
                     try{out.abilities.card.push(attachedConstantAbility(call.arguments[0],local,registration==='addGainConstantAbilityTargetingAttached'));}catch(error){if(!(error instanceof Unsupported)||!local.pendingRegistration)throw error;const raw=object(call.arguments[0],local);if(registration==='addGainConstantAbilityTargetingAttached')fail(local,call,'pending-gained-constant');knownProperties(raw,['title','condition','matchTarget','ongoingEffect']);out.abilities.card.push({trigger:'constant',title:raw.props.has('title')?displayText(raw.props.get('title'),raw.ctx):'',costs:[],effect:{kind:'attachedModifierRegistration',target:'parent',targetController:'any',targetZone:'anyAttackable',targetTypes:['unit','base'],requiresGrantorInPlay:true,modifier:modifierEffects(raw.props.get('ongoingEffect'),raw.ctx,'persistent','parent'),...(raw.props.has('condition')?{condition:expr(raw.props.get('condition'),raw.ctx)}:{}),...(raw.props.has('matchTarget')?{matchTarget:expr(raw.props.get('matchTarget'),raw.ctx,['card','context'])}:{})}});}
                 }
                 else if(registration==='addGainOnAttackAbilityTargetingAttached') {
+                    const properties=unwrap(call.arguments[0]);
+                    if(ts.isArrowFunction(properties)||ts.isFunctionExpression(properties))fail(local,properties,'attached-registration-properties-must-be-object');
                     try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
                     catch(error){
                         if(!(error instanceof Unsupported))throw error;

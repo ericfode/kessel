@@ -232,7 +232,7 @@ fn normalize_deck_bindings(raw: &mut Value) -> Result<(), String> {
 
 fn ordinary_source(entry: &Value, unit: bool) -> bool {
     entry["status"] == "supported"
-        && crate::static_ongoing::closed_source_context(entry)
+        && crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["baseClass"]
             == if unit {
                 "NonLeaderUnitCard"

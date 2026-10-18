@@ -85,7 +85,7 @@ pub(crate) fn prepare(entry: &Value) -> Result<Option<Value>, String> {
         .as_object_mut()
         .ok_or_else(invalid)?
         .remove("stateWatchers");
-    let plain = crate::static_ongoing::closed_source_context(&closed)
+    let plain = crate::admission::SourceContextPolicy::Closed.accepts(&closed)
         && entry["status"] == "supported"
         && entry["baseClass"] == "EventCard"
         && entry["card"]["types"] == json!(["event"])

@@ -19,14 +19,7 @@ pub enum Owner {
     #[serde(rename = "recipientController")]
     RecipientController,
 }
-pub fn marker(v: &Value) -> bool {
-    v["kind"] == "giveAdvantage"
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "giveAdvantage") }
 pub fn validate_amount(amount: &Expr) -> Result<(), String> {
     // One bounded native creation batch. Dynamic values other than the exact
     // live opposing unit count need a separate expression/timing contract.
@@ -43,16 +36,9 @@ pub fn validate_amount(amount: &Expr) -> Result<(), String> {
     )
 }
 pub fn source_entry(entry: &Value) -> bool {
-    let class = entry["baseClass"].as_str();
-    crate::static_ongoing::closed_source_helpers(entry)
+    crate::admission::closed_source_helpers(entry)
         && crate::attack_history::declarations(entry)
-        && matches!(class, Some("NonLeaderUnitCard" | "EventCard"))
-        && entry["card"]["types"]
-            == serde_json::json!([if class == Some("EventCard") {
-                "event"
-            } else {
-                "unit"
-            }])
+        && crate::admission::OrdinarySource::from_entry(entry).is_some()
         && entry["card"]["unique"].is_boolean()
         && entry["abilities"]["leader"] == serde_json::json!([])
         && entry["abilities"]["unit"] == serde_json::json!([])

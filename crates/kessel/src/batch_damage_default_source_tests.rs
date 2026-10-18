@@ -2,7 +2,7 @@ use super::*;
 use serde_json::{json, Value};
 
 fn engine() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = s.next_id;
@@ -51,7 +51,7 @@ const SHOT: &str = "Deal damage equal to his power to an enemy ground unit";
 
 #[test]
 fn batch_crosshair_complete_actions_use_existing_ir() {
-    let catalogue: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalogue: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry = catalogue["cards"].as_array().unwrap().iter().find(|e| e["setCode"] == "SHD_087").unwrap();
     assert_eq!(entry["status"], "supported");
     assert_eq!(entry["baseClass"], "NonLeaderUnitCard");

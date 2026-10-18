@@ -105,7 +105,7 @@ fn force_cost_raw_contract_duplicate_and_atomic_payment_boundaries() {
 
 #[test]
 fn force_cost_native_dependency_and_snapshot_history_are_required() {
-    let original: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let mut missing = original.clone();
     missing["cards"].as_array_mut().unwrap().retain(|v|v["setCode"]!="TOKEN_THE_FORCE");
     let e = Engine::from_catalogue_value(&missing).unwrap();

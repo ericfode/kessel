@@ -96,7 +96,7 @@ fn registration(composition: Composition) -> Value {
 fn ordinary(entry: &Value) -> bool {
     entry["status"] == "supported"
         && entry["diagnostics"] == json!([])
-        && crate::static_ongoing::closed_source_context(entry)
+        && crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["baseClass"] == "NonLeaderUnitCard"
         && entry["card"]["types"] == json!(["unit"])
         && entry["card"]["unique"].is_boolean()

@@ -1,5 +1,5 @@
-# Kessel is private, so every minute here is paid: push to main and pull requests only (one run per PR push),
-# superseded PR runs cancelled, a time limit on every job.
+# Push to main and pull requests only (one run per PR push), superseded PR runs cancelled, a time limit on every job.
+# Standard runners are free for this public repository. See .github/CI.md for scope and cache policy.
 name: CI
 
 on:
@@ -28,9 +28,22 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Select checks (unknown inputs run everything)
+        id: scope
+        run: node .github/scripts/ci-scope.js
+      # Cache dependencies, not workspace binaries/test results. The action keys on rustc, Cargo inputs,
+      # profile environment and job identity; only main publishes reusable caches for future PRs.
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        if: steps.scope.outputs.run != 'false'
+        with:
+          key: native-tests-opt2
+          cache-bin: false
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       # The generated catalog and every pool are committed, so the crates need no submodule. The tests build every
       # crate and binary, so a separate release build (thin LTO, about a minute) adds no coverage.
       - name: Test (strict, compiled and reference conformance)
+        if: steps.scope.outputs.run != 'false'
         run: cargo test --locked --workspace
 
   node:
@@ -41,13 +54,22 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Select checks (unknown inputs run everything)
+        id: scope
+        run: node .github/scripts/ci-scope.js
       - uses: actions/setup-node@v7
+        if: steps.scope.outputs.run != 'false'
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           package-manager-cache: false
+      - name: CI selection safeguards
+        run: node --test .github/scripts/ci-scope.test.js
       - name: Card catalog, planner and tool tests (no network, no forceteki)
+        if: steps.scope.outputs.run != 'false'
         run: npm test
       - name: Reference corpus hashes and inventory
+        if: steps.scope.outputs.run != 'false'
         run: npm run cards:reference -- verify
 
   cards:
@@ -57,38 +79,55 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: recursive
           persist-credentials: false
+          fetch-depth: 2
+      - name: Select checks (unknown inputs run everything)
+        id: scope
+        run: node .github/scripts/ci-scope.js
+      - name: Check out the pinned engine
+        if: steps.scope.outputs.run != 'false'
+        run: git submodule update --init --recursive
       - uses: actions/setup-node@v7
+        if: steps.scope.outputs.run != 'false'
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           package-manager-cache: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        if: steps.scope.outputs.run != 'false'
+        with:
+          key: native-admission-release
+          cache-bin: false
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - name: Engine commit
+        if: steps.scope.outputs.run != 'false'
         id: engine
         run: echo "rev=$(git rev-parse HEAD:forceteki)" >> "$GITHUB_OUTPUT"
       # the engine's packages, build and card data, once per engine pin (card data comes from a live API, so a hit
       # also keeps its outages out of the run)
       - uses: actions/cache@v5
+        if: steps.scope.outputs.run != 'false'
         id: engine-cache
         with:
           path: |
             forceteki/node_modules
             forceteki/build
             forceteki/test/json
-          key: engine-${{ steps.engine.outputs.rev }}-v2
+          key: engine-${{ steps.engine.outputs.rev }}-v1
       - name: Install the pinned engine parser and fetch card metadata
-        if: steps.engine-cache.outputs.cache-hit != 'true'
+        if: steps.scope.outputs.run != 'false' && steps.engine-cache.outputs.cache-hit != 'true'
         run: |
           npm --prefix forceteki ci --ignore-scripts
           npm --prefix forceteki run get-cards
       - name: Build the pinned engine (one Weakness test loads it)
-        if: steps.engine-cache.outputs.cache-hit != 'true'
+        if: steps.scope.outputs.run != 'false' && steps.engine-cache.outputs.cache-hit != 'true'
         env:
           NODE_OPTIONS: --max-old-space-size=4096
         run: npm --prefix forceteki run build
       - name: Fail if committed generated files are stale
+        if: steps.scope.outputs.run != 'false'
         run: npm run cards:check
       - name: Compiler and card tests
+        if: steps.scope.outputs.run != 'false'
         run: npm run cards:test
 
   wasm:
@@ -99,26 +138,55 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Select checks (unknown inputs run everything)
+        id: scope
+        run: node .github/scripts/ci-scope.js
       - uses: actions/setup-node@v7
+        if: steps.scope.outputs.run != 'false'
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           package-manager-cache: false
-      # wasm-bindgen-cli is compiled from source into target/wasm-tools; keep it between runs (its version is in Cargo.lock)
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        if: steps.scope.outputs.run != 'false'
+        with:
+          key: wasm-release
+          cache-bin: false
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: Identify the pinned Wasm CLI
+        if: steps.scope.outputs.run != 'false'
+        id: wasm-cli
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const source = fs.readFileSync('crates/kessel-wasm/build.js', 'utf8');
+          const version = source.match(/const bindgenVersion = '([0-9]+\.[0-9]+\.[0-9]+)';/)[1];
+          const manifest = fs.readFileSync('crates/kessel-wasm/Cargo.toml', 'utf8');
+          if (!manifest.includes(`wasm-bindgen = "=${version}"`)) throw new Error('Wasm CLI/library pins differ');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          NODE
+      # Unrelated Cargo.lock changes must not recompile wasm-bindgen-cli. build.js also verifies its version.
       - uses: actions/cache@v5
+        if: steps.scope.outputs.run != 'false'
         with:
           path: target/wasm-tools
-          key: wasm-tools-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          key: wasm-tools-${{ runner.os }}-${{ runner.arch }}-${{ steps.wasm-cli.outputs.version }}-v1
+          # Seed the new key from the old cache when available; build.js checks the executable version.
+          restore-keys: wasm-tools-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Build, test and pack the same programs in WebAssembly
+        if: steps.scope.outputs.run != 'false'
         run: |
           npm run wasm:build -- --install-tools
           npm run wasm:test
           npm run wasm:pack
           npm run wasm:pack:check
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.scope.outputs.run != 'false'
         with:
           name: kessel-wasm-${{ github.run_id }}
           path: |
             crates/kessel-wasm/pkg/distribution/*.tgz
             crates/kessel-wasm/pkg/distribution/receipt.json
           if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0

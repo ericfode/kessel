@@ -1,4 +1,5 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod admission;
 mod death_hooks;
 pub mod model;
 mod seat;
@@ -12,6 +13,7 @@ mod bounded_reductions;
 pub mod static_ongoing;
 pub mod phase_history;
 mod live_power_maximum;
+pub mod catalogue_io;
 pub mod check;
 pub mod validation;
 pub mod cards;
@@ -74,3 +76,5 @@ mod migration_modal_contract;
 mod migration_attack_contract;
 
 mod migration_defeat_history_contract;
+#[cfg(test)]
+mod admission_tests;

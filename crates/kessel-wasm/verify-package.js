@@ -84,7 +84,7 @@ function main() {
         fs.renameSync(path.join(temp, 'package'), path.join(scope, 'wasm'));
         fs.writeFileSync(path.join(temp, 'position.json'), JSON.stringify(lastState(path.join(root, 'crates/kessel/tests/fixtures/heuristic-vs-heuristic-1.jsonl.gz'))));
         fs.writeFileSync(path.join(temp, 'expanded-position.json'), JSON.stringify(lastState(path.join(root, 'crates/kessel/tests/compiled-fixtures/effect-interactions-4001.jsonl.gz'))));
-        fs.copyFileSync(path.join(root, 'compiler/generated/catalog.json'), path.join(temp, 'catalog.json'));
+        fs.writeFileSync(path.join(temp, 'catalog.json'), require('../../compiler/load-catalog').catalogJsonText(path.join(root, 'compiler/generated')));
         fs.copyFileSync(path.join(root, 'crates/kessel/tests/compiled-fixtures/pool.json'), path.join(temp, 'expanded-pool.json'));
         fs.writeFileSync(path.join(temp, 'verify.cjs'), `(${verifyPackage.toString()})().catch(error => { console.error(error); process.exitCode = 1; });\n`);
         const check = spawnSync(process.execPath, ['verify.cjs'], { cwd: temp, encoding: 'utf8' });

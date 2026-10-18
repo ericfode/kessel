@@ -3,7 +3,7 @@ use super::*;
 use crate::ability_ir::{Ability, Catalogue, Program};
 fn entry(code: &str) -> Value {
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     c["cards"]
         .as_array()
         .unwrap()
@@ -475,7 +475,7 @@ fn death_hook_registration_cross_arena_source_order_uses_entry_not_stable_ids() 
                 vec![shuttle, twins]
             }
         );
-        assert!(e.open_deaths(&mut s, 3).unwrap());
+        assert!(e.open_deaths(&mut s, DeathContinuation::Finish).unwrap());
         assert_eq!(s.decision, Decision::DeathOrder);
         let labels = e
             .legal_actions(&s)
@@ -699,7 +699,7 @@ fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() 
             let captured=s.death_pending.entries[..s.death_pending.len as usize].iter().map(|t|(t.source,t.grantor)).collect::<Vec<_>>();
             let expected=if grant_first {vec![(host,grantor),(observer,0)]}else{vec![(observer,0),(host,grantor)]};
             assert_eq!(captured,expected,"{backend:?}/{seat:?}/{grant_first}");
-            assert!(e.open_deaths(&mut s,3).unwrap());
+            assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap());
             for _ in 0..12 {
                 if !e.is_ability_decision(s.decision) {break;}
                 let actions=e.legal_actions(&s);assert!(!actions.is_empty());s=e.apply(&s,&actions[0]).unwrap();

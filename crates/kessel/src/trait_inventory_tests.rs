@@ -138,7 +138,7 @@ fn trait_inventory_persistent_leaves_reject_event_mutation_and_dependency_scopes
 }
 #[test]
 fn trait_inventory_native_wrappers_reject_unknown_fields_wrong_roles_and_trait_cycles() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["HMW_134","LAW_212"] {
         let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         for mode in ["unknown","source","target","callback","leader","self-cycle"] {
@@ -181,7 +181,7 @@ fn trait_inventory_foreign_control_imports_remain_explicitly_rejected() {
 }
 #[test]
 fn trait_inventory_rejects_source_contexts_and_copying_leader_union_into_support() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["HMW_134","LAW_212","HMW_208"] {
         let entry=original["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         for key in ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"] {

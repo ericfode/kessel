@@ -5,7 +5,7 @@ const {
   classifyWeaknessUpgrade,
   planWeaknessUpgrade,
 } = require("../pipeline/weakness-upgrade-probes");
-const catalogue = require("../../compiler/generated/catalog.json");
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = () =>
   structuredClone(catalogue.cards.find((e) => e.setCode === "HMW_097"));
 test("ordinary optional scalar Weakness upgrade has bounded real constructions", () => {

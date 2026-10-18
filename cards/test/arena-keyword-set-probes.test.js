@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const p=require('../pipeline/arena-keyword-set-probes');
-const catalogue=JSON.parse(fs.readFileSync(process.env.SWU_DIAGNOSTIC_CATALOGUE??path.resolve(__dirname,'../../compiler/generated/catalog.json')));
+const catalogue=(process.env.SWU_DIAGNOSTIC_CATALOGUE ? require('../../compiler/load-catalog').loadCatalog(process.env.SWU_DIAGNOSTIC_CATALOGUE) : require('../../compiler/load-catalog').loadCatalog());
 const entries=['JTL_077','LOF_152','TWI_250','LOF_045'].map(id=>catalogue.cards.find(e=>e.setCode===id));
 const clone=structuredClone;
 test('four full source registrations retain grouped versus independent event semantics',()=>{

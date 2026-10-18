@@ -77,7 +77,7 @@ test('clones retain prompts and catalogue; invalid inputs and proofs do not muta
 test('browser ESM package initializes from bytes and runs the same retained-state search', async () => {
     const module = await import(pathToFileURL(path.join(__dirname, 'pkg/web/kessel_wasm.js')).href);
     await module.default({ module_or_path: fs.readFileSync(path.join(__dirname, 'pkg/web/kessel_wasm_bg.wasm')) });
-    const catalogue = fs.readFileSync(path.join(__dirname, '../../compiler/generated/catalog.json'), 'utf8');
+    const catalogue = require('../../compiler/load-catalog').catalogJsonText(path.join(__dirname, '../../compiler/generated'));
     const engine = module.WasmEngine.fromCatalogue(catalogue, pool);
     const last = sample.filter((r) => r.type === 'state').at(-1).state;
     const game = engine.loadState(JSON.stringify(last));

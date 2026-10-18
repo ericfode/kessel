@@ -163,7 +163,7 @@ fn smuggle_aspect_penalty_uses_smuggle_aspects_not_play_aspects() {
 #[test]
 fn smuggle_additional_cost_text_fails_admission() {
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let mut c = original.clone();
     let entry = c["cards"]
         .as_array_mut()

@@ -5746,6 +5746,76 @@
     },
     {
       "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "4709457092",
+      "internalName": "faith-in-the-empire",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "ASH_262",
+      "setCodes": [
+        {
+          "number": 262,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 262,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "This upgrade costs 1 resource less to play on an Imperial unit.",
+      "title": "Faith in the Empire",
+      "traits": [
+        "imperial"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 2,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "6045776127",
+      "internalName": "the-way-of-the-mandalor",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_263",
+      "setCodes": [
+        {
+          "number": 263,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 263,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "This upgrade costs 1 resource less to play on a Mandalorian unit.",
+      "title": "The Way of the Mand'alor",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 2
+    },
+    {
+      "aspects": [],
       "cost": 1,
       "deployBox": null,
       "epicAction": "",
@@ -9835,6 +9905,44 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2811497947",
+      "internalName": "aggrocrab",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "HMW_184",
+      "setCodes": [
+        {
+          "number": 184,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 184,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "While you have the initiative, this unit costs 1 resource less to play.",
+      "title": "Aggrocrab",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression"
@@ -11782,6 +11890,43 @@
       "unique": false,
       "upgradeHp": 2,
       "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3139780185",
+      "internalName": "familiar-strategem",
+      "keywords": [],
+      "power": null,
+      "rules": "If you play Familiar Strategem, you must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "HMW_266",
+      "setCodes": [
+        {
+          "number": 266,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 266,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. If it shares a Trait with another friendly unit, it gets +2/+0 for this attack.",
+      "title": "Familiar Strategem",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "arena": "ground",
@@ -18870,6 +19015,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "1356826899",
+      "internalName": "home-one#on-my-mark",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 7,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n",
+      "setCode": "JTL_204",
+      "setCodes": [
+        {
+          "number": 204,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 204,
+        "set": "JTL"
+      },
+      "subtitle": "On My Mark",
+      "text": "If an opponent controls 3 or more space units, this unit costs 3 resources less to play.\nAmbush",
+      "title": "Home One",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "cunning",
         "heroism"
@@ -21863,6 +22051,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8705682181",
+      "internalName": "canto-bight-security",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 3,
+      "rules": "“On Defense” abilities trigger at the same time as “On Attack” abilities.\n",
+      "setCode": "LAW_121",
+      "setCodes": [
+        {
+          "number": 121,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 121,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nOn Defense: Create a Credit token.",
+      "title": "Canto Bight Security",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -22064,6 +22292,43 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "5102721039",
+      "internalName": "mastery",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LAW_129",
+      "setCodes": [
+        {
+          "number": 129,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 129,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "This upgrade costs 1 resource less to play on a <uq> unit.",
+      "title": "Mastery",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 3,
+      "upgradePower": 3
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -22168,6 +22433,46 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "2210391815",
+      "internalName": "bib-fortuna#die-wanna-wanga",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LAW_134",
+      "setCodes": [
+        {
+          "number": 134,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 134,
+        "set": "LAW"
+      },
+      "subtitle": "Die Wanna Wanga?",
+      "text": "When Played: If you control another Underworld unit, create a Credit token.",
+      "title": "Bib Fortuna",
+      "traits": [
+        "underworld",
+        "twi'lek"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -22687,6 +22992,83 @@
       "traits": [
         "rebel",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3545978399",
+      "internalName": "getaway-freighter",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_155",
+      "setCodes": [
+        {
+          "number": 155,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 155,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "On Attack: If you control a ground unit, create a Credit token.",
+      "title": "Getaway Freighter",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "5613037149",
+      "internalName": "target-tagger",
+      "keywords": [],
+      "power": 3,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "LAW_157",
+      "setCodes": [
+        {
+          "number": 157,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 157,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: You may attack with a unit. If it's a Bounty Hunter, it gets +2/+0 for this attack.",
+      "title": "Target Tagger",
+      "traits": [
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -23823,6 +24205,45 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6225072830",
+      "internalName": "commence-the-festivities",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\nIf there are multiple opponents, the controlling player chooses which one will be “an opponent.”\n",
+      "setCode": "LAW_202",
+      "setCodes": [
+        {
+          "number": 202,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 202,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Attack with a unit. It gains Saboteur for this attack. If you control fewer resources than an opponent, it gets +2/+0 for this attack.",
+      "title": "Commence the Festivities",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -24324,6 +24745,45 @@
       "deployBox": null,
       "epicAction": "",
       "hp": 3,
+      "id": "6136678864",
+      "internalName": "champions-kt9-podracer",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_232",
+      "setCodes": [
+        {
+          "number": 232,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 232,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: Create a Credit token.",
+      "title": "Champion's KT9 Podracer",
+      "traits": [
+        "vehicle",
+        "speeder"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
       "id": "6715387845",
       "internalName": "kage-elite",
       "keywords": [
@@ -24353,6 +24813,44 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "3293298610",
+      "internalName": "lady-proxima#wheres-the-money",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_235",
+      "setCodes": [
+        {
+          "number": 235,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 235,
+        "set": "LAW"
+      },
+      "subtitle": "Where's the Money?",
+      "text": "Action [Exhaust]: Create a Credit token.",
+      "title": "Lady Proxima",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -24481,6 +24979,43 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "7477598198",
+      "internalName": "unmarked-credits",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LAW_244",
+      "setCodes": [
+        {
+          "number": 244,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 244,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Create a Credit token.",
+      "title": "Unmarked Credits",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -24506,6 +25041,43 @@
       "title": "The Axe Forgets",
       "traits": [
         "gambit"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3232608976",
+      "internalName": "windfall",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LAW_248",
+      "setCodes": [
+        {
+          "number": 248,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 248,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "Create 3 Credit tokens.",
+      "title": "Windfall",
+      "traits": [
+        "supply"
       ],
       "types": [
         "event"
@@ -24796,6 +25368,42 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6530952637",
+      "internalName": "criminal-contact",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LAW_258",
+      "setCodes": [
+        {
+          "number": 258,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 258,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "On Attack: You may pay 2 resources. If you do, create a Credit token.",
+      "title": "Criminal Contact",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [],
       "cost": 3,
@@ -24903,6 +25511,42 @@
       "subtitle": "",
       "text": "When Played: You may return an Underworld card from your discard pile to your hand.",
       "title": "Street Gang Recruiter",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "6438727942",
+      "internalName": "bank-job-fugitives",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_262",
+      "setCodes": [
+        {
+          "number": 262,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 262,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "When Played: Create a Credit token.",
+      "title": "Bank Job Fugitives",
       "traits": [
         "underworld"
       ],
@@ -35284,6 +35928,43 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "5521821831",
+      "internalName": "charged-with-espionage",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_230",
+      "setCodes": [
+        {
+          "number": 230,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 230,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "You may disclose CunningCunning (reveal cards from your hand with these aspect icons among them). If you do, look at an opponent's hand and discard a unit from it.",
+      "title": "Charged with Espionage",
+      "traits": [
+        "law"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -35309,6 +35990,43 @@
       "title": "Beguile",
       "traits": [
         "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0889609495",
+      "internalName": "undercover-operation",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "SEC_236",
+      "setCodes": [
+        {
+          "number": 236,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 236,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Ready a unit that was played this phase. If it costs 3 or less, create a Spy token.",
+      "title": "Undercover Operation",
+      "traits": [
+        "tactic"
       ],
       "types": [
         "event"
@@ -37977,6 +38695,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "9757839764",
+      "internalName": "adelphi-patrol-wing",
+      "keywords": [],
+      "power": 4,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "SHD_101",
+      "setCodes": [
+        {
+          "number": 101,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 101,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "When Played: You may attack with a unit. If you have the initiative, it gets +2/+0 for this attack.",
+      "title": "Adelphi Patrol Wing",
+      "traits": [
+        "new republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -39622,6 +40381,49 @@
       "traits": [
         "underworld",
         "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "9097690846",
+      "internalName": "snowtrooper-lieutenant",
+      "keywords": [],
+      "power": 2,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "SHD_236",
+      "setCodes": [
+        {
+          "number": 227,
+          "set": "SOR"
+        },
+        {
+          "number": 236,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 236,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": "When Played: You may attack with a unit. If it's an Imperial unit, it gets +2/+0 for this attack.",
+      "title": "Snowtrooper Lieutenant",
+      "traits": [
+        "imperial",
+        "trooper"
       ],
       "types": [
         "unit"
@@ -43090,6 +43892,45 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "9210902604",
+      "internalName": "precision-fire",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": null,
+      "rules": "You must attack with a unit, if able. Units must be ready in order to attack.\n",
+      "setCode": "SOR_168",
+      "setCodes": [
+        {
+          "number": 168,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 168,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Attack with a unit. It gains Saboteur for this attack. If it's a TROOPER, it also gets +2/+0 for this attack. (Ignore Sentinel and defeat the defender's Shields.)",
+      "title": "Precision Fire",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -44252,6 +45093,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "3038238423",
+      "internalName": "fleet-lieutenant",
+      "keywords": [],
+      "power": 3,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "SOR_240",
+      "setCodes": [
+        {
+          "number": 240,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 240,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "When Played: You may attack with a unit. If it's a Rebel unit, it gets +2/+0 for this attack.",
+      "title": "Fleet Lieutenant",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "heroism"
@@ -44573,6 +45453,34 @@
       "types": [
         "token",
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8015500527",
+      "internalName": "credit",
+      "keywords": [],
+      "power": null,
+      "rules": "You may defeat Credit tokens while paying resources to play cards or use abilities.\n",
+      "setCode": "TOKEN_CREDIT",
+      "setId": {
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "While paying resources, you may defeat this token. If you do, pay 1 resource less.",
+      "title": "Credit",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "token"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -45886,6 +46794,43 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4650054790",
+      "internalName": "take-action",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TS26_071",
+      "setCodes": [
+        {
+          "number": 71,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 71,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "This event costs 1 resource less to play for each friendly leader unit.\nDeal 3 damage to a unit.",
+      "title": "Take Action",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": "",
@@ -46039,6 +46984,43 @@
       "unique": false,
       "upgradeHp": 1,
       "upgradePower": 2
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "0706465142",
+      "internalName": "reveal-intentions",
+      "keywords": [],
+      "power": null,
+      "rules": "Player order begins with the player to the active player's left and continues clockwise.\n",
+      "setCode": "TS26_080",
+      "setCodes": [
+        {
+          "number": 80,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 80,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "Each player reveals their hand.\nIn player order, each player discards a card from the hand of the player to their right. Then, each player draws a card.",
+      "title": "Reveal Intentions",
+      "traits": [
+        "gambit"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "aspects": [
@@ -48193,6 +49175,49 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 11,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "6238512843",
+      "internalName": "republic-defense-carrier",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "TWI_098",
+      "setCodes": [
+        {
+          "number": 98,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 98,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "This unit costs 1 resource less to play for each unit controlled by the opponent who controls the most units.\nSentinel (Units in this arena can't attack your non-Sentinel units or your base.)",
+      "title": "Republic Defense Carrier",
+      "traits": [
+        "republic",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -50407,6 +51432,47 @@
         "cunning",
         "heroism"
       ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "2443835595",
+      "internalName": "republic-attack-pod",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "TWI_197",
+      "setCodes": [
+        {
+          "number": 197,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 197,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "If you control 3 or more units, this unit costs 1 resource less to play.",
+      "title": "Republic Attack Pod",
+      "traits": [
+        "republic",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 7,
       "deployBox": null,
       "epicAction": null,
@@ -50823,6 +51889,43 @@
       "title": "In Pursuit",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "0959549331",
+      "internalName": "unmasking-the-conspiracy",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_223",
+      "setCodes": [
+        {
+          "number": 223,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 223,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Discard a card from your hand. If you do, look at an opponent's hand and discard a card from it.",
+      "title": "Unmasking the Conspiracy",
+      "traits": [
+        "gambit"
       ],
       "types": [
         "event"
@@ -51471,6 +52574,48 @@
         "republic",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4111616117",
+      "internalName": "volunteer-soldier",
+      "keywords": [
+        "raid"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "TWI_254",
+      "setCodes": [
+        {
+          "number": 248,
+          "set": "SOR"
+        },
+        {
+          "number": 254,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 254,
+        "set": "TWI"
+      },
+      "subtitle": null,
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\n\nIf you control a TROOPER unit, this unit costs [1 resource] less to play.",
+      "title": "Volunteer Soldier",
+      "traits": [
+        "trooper"
       ],
       "types": [
         "unit"

@@ -109,7 +109,7 @@ impl Engine {
         if request.from_resources {
             self.spend_resource_play(s, remaining, request.source);
         } else {
-            self.spend(s, remaining);
+            self.spend(s, request.payer, remaining);
         }
         s.active = request.actor;
         s.resource_payment.stage = PaymentStage::Paid;
@@ -181,7 +181,7 @@ impl Engine {
             s.event_group = EventGroupState::default();
             s.resource_payment.group_saved = true;
         }
-        self.open_deaths(s, 9)
+        self.open_deaths(s, DeathContinuation::ResourcePayment)
     }
     pub(super) fn resume_resource_payment(&self, s: &mut State) -> Result<(), String> {
         let request = s.resource_payment;

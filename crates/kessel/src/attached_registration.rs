@@ -35,6 +35,78 @@ struct Grant {
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct Registration { r#type:String, program:Value }
 
+/// Shared physical-parent scope for triggered aliases and constant wrappers.
+/// Source/controller rebinding is a separate contract: the grantor stays the
+/// upgrade even when a registration executes with its host as source.
+pub(crate) struct ParentScope<'a> {
+    pub target: &'a str,
+    pub controller: &'a str,
+    pub types: &'a [String],
+    pub zone: &'a str,
+    pub requires_grantor: bool,
+}
+impl ParentScope<'_> {
+    pub(crate) fn accepts(&self) -> bool {
+        self.target == "parent" && self.controller == "any"
+            && self.types == ["unit", "base"] && self.zone == "anyAttackable"
+            && self.requires_grantor
+    }
+}
+
+/// Metadata shared by whole-upgrade contracts. Legacy delegated contexts have
+/// historically checked fewer printed fields; that remains an explicit policy.
+#[derive(Clone, Copy)]
+pub(crate) enum UpgradeMetadata { Complete, LegacyContext }
+impl UpgradeMetadata {
+    pub(crate) fn accepts(self, entry: &Value) -> bool {
+        entry["baseClass"] == "UpgradeCard" && entry["card"]["types"] == json!(["upgrade"])
+            && entry["piloting"].is_null() && entry["keywordValues"] == json!({})
+            && ["pilotText", "pilotBox", "pilotingBox"].iter().all(|key|entry["card"][*key].is_null())
+            && match self {
+                Self::LegacyContext => true,
+                Self::Complete => ["deployBox", "deployCost"].iter().all(|key|entry["card"][*key].is_null())
+                    && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "")
+                    && [("power", "upgradePower"), ("hp", "upgradeHp")].iter().all(|(printed, derived)|
+                        entry["card"][*printed] == entry["card"][*derived]
+                            && entry["card"][*printed].as_i64().is_some_and(|n|(-1000..=1000).contains(&n))),
+            }
+    }
+}
+pub(crate) fn complete_single_upgrade(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::Complete.accepts(entry) && sides.card.len() == 1
+        && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["keywords"] == json!([])
+}
+pub(crate) fn delegated_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::LegacyContext.accepts(entry) && sides.card.len() == 1
+        && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["unique"].is_boolean()
+        && entry["card"]["keywords"].as_array().is_some_and(|keywords|
+            keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
+}
+/// One persistent attached-unit restriction registration, optionally beside one
+/// ordinary play/attack/defense registration. The restriction is a live
+/// parent-targeted constant, so the host identity and its lifecycle stay the
+/// upgrade's physical attachment rather than a new event registration.
+pub(crate) fn attached_restriction_constant(a: &Ability) -> bool {
+    a.trigger == "constant" && a.attached_context.as_deref() == Some("upgrade") && a.condition.is_none()
+        && a.target_resolver.is_none() && a.target_resolvers.is_empty() && a.then.is_none() && a.if_you_do.is_none()
+        && a.costs.is_empty() && !a.optional && !a.coordinate && !a.requires_confirmation && a.context_title.is_empty()
+        && matches!(&a.effect, crate::ability_ir::Effect::CardRestriction {
+            target: crate::ability_ir::Target::Name(n), duration, condition: None, ..
+        } if n == "parent" && duration == "persistent")
+}
+pub(crate) fn attached_restriction_upgrade_metadata(entry: &Value, sides: &Sides) -> bool {
+    UpgradeMetadata::LegacyContext.accepts(entry) && sides.leader.is_empty() && sides.unit.is_empty()
+        && entry["card"]["unique"].is_boolean()
+        && entry["card"]["keywords"].as_array().is_some_and(|keywords|
+            keywords.iter().all(|k|k.as_str().is_some_and(|k|crate::ability_ir::CORE_KEYWORDS.contains(&k))))
+        && sides.card.len() == 2
+        && sides.card.iter().filter(|a|attached_restriction_constant(a)).count() == 1
+        && sides.card.iter().filter(|a|!attached_restriction_constant(a)).all(|a|
+            ["whenPlayed", "whenDefeated", "onAttack", "onDefense"].contains(&a.trigger.as_str()))
+}
+
 fn host_marker(v:&Value)->bool {
     v["kind"]=="attachedAbilityRegistration" || match v {
         Value::Object(o)=>o.values().any(host_marker),Value::Array(a)=>a.iter().any(host_marker),_=>false
@@ -95,9 +167,6 @@ fn defeat_text_override(e:&Value)->bool {
         "statementIndex":0
     }])
 }
-fn empty_context(e:&Value,key:&str)->bool {
-    e[key].is_null()||e[key]==json!([])
-}
 // The pending compiler preserves the zone object getter; the portable evaluator
 // exposes its name directly. Only physical card roots receive this equivalence.
 fn normalize_zone_names(v:&mut Value) {
@@ -111,19 +180,18 @@ fn normalize_zone_names(v:&mut Value) {
     match v {Value::Object(o)=>for child in o.values_mut(){normalize_zone_names(child)},Value::Array(a)=>for child in a {normalize_zone_names(child)},_=>{}}
 }
 pub(crate) fn plain_upgrade(e:&Value)->bool {
-    let setup_ok=empty_context(e,"setupValidationOverrides")||defeat_text_override(e);
-    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride"].iter().any(|k|!empty_context(e,k))||!setup_ok {return false;}
-    e["baseClass"]=="UpgradeCard"&&e["card"]["types"]==json!(["upgrade"])
-    && e["card"]["unique"].is_boolean() && e["keywordValues"]==json!({})
-    && mention_keywords(e) && e["piloting"].is_null()
-    && ["pilotText","pilotBox","pilotingBox","deployBox","deployCost"].iter().all(|k|e["card"][*k].is_null())
-    && (e["card"]["epicAction"].is_null()||e["card"]["epicAction"]=="")
-    && [("power","upgradePower"),("hp","upgradeHp")].iter().all(|(a,b)|e["card"][*a]==e["card"][*b]&&e["card"][*a].as_i64().is_some_and(|n|(-1000..=1000).contains(&n)))
-    && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
+    // The reviewed override affects validation text only; all other context is closed.
+    let mut context=e.clone();
+    if defeat_text_override(e) {context["setupValidationOverrides"]=Value::Null;}
+    crate::admission::SourceContextPolicy::Closed.accepts(&context)
+        && UpgradeMetadata::Complete.accepts(e)
+        && e["card"]["unique"].is_boolean() && mention_keywords(e)
+        && e["abilities"]["leader"]==json!([])&&e["abilities"]["unit"]==json!([])
 }
+
 /// Reviewed NonLeader Pilot that grants a host ability while attached via Piloting.
 fn plain_pilot(e:&Value)->bool {
-    if ["stateWatchers","historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().any(|k|!empty_context(e,k)) {return false;}
+    if !crate::admission::SourceContextPolicy::Closed.accepts(e) {return false;}
     if e["baseClass"]!="NonLeaderUnitCard"||e["card"]["types"]!=json!(["unit"])
         ||!e["card"]["unique"].is_boolean()||!e["attachCondition"].is_null()||!e["piloting"].is_null()
         ||e["card"]["pilotText"].as_str().is_none_or(|t|t.trim().is_empty()||t.len()>512)
@@ -546,10 +614,12 @@ fn piloting_self_effect_ok(a:&Ability)->bool {
     }
 }
 fn upgrade_grant(g:&Grant)->bool {
-    g.registration_mode=="upgrade"&&g.target=="parent"&&g.target_controller=="any"
-        &&g.source_binding=="attachedHost"&&g.controller_binding=="hostController"
-        &&g.requires_grantor_in_play&&!g.requires_attachable&&g.source_mode=="upgrade"
-        &&g.target_zone=="anyAttackable"&&g.target_types==["unit","base"]&&g.registration.r#type=="triggered"
+    let scope=ParentScope { target:&g.target, controller:&g.target_controller,
+        types:&g.target_types, zone:&g.target_zone, requires_grantor:g.requires_grantor_in_play };
+    g.registration_mode=="upgrade" && scope.accepts()
+        && crate::attached_constants::AttachmentContext::Host.matches_source_binding(&g.source_binding)
+        && g.controller_binding=="hostController" && !g.requires_attachable
+        && g.source_mode=="upgrade" && g.registration.r#type=="triggered"
 }
 fn piloting_grant(g:&Grant)->bool {
     g.registration_mode=="piloting"&&g.target=="parent"&&g.target_controller=="any"

@@ -36,18 +36,18 @@ test('bare and object keyword labels match real helper without dropping numeric 
         assert.match(oracle(`TextHelper.keyword(${input})`,'production'),/^\{keyword:/);
     }
 });
-test('unsupported helper arguments reject whole cards rather than hiding executable expressions',()=>{
-    for(const call of ['resource()','resource(1,2)','resource(-1)','resource(1.5)','resource(ctx.source.damage)','keyword()','keyword("unknown")','keyword(KeywordName.Raid,1)','keyword({keyword:KeywordName.Raid,amount:-1})','keyword({keyword:KeywordName.Raid,amount:ctx.source.damage})','keyword({keyword:KeywordName.Raid,extra:1})','keyword({amount:1})']) {
-        const card=compile('${TextHelper.'+call+'}',true);
-        assert.equal(card.status,'unsupported',call);
+test('title helpers retain formatter values and reject malformed arity, records and unbound references',()=>{
+    for(const [call,pattern] of [['resource()','text-program-formatter-arity'],['resource(1,2)','text-program-formatter-arity'],['resource(ctx.source.damage)','unbound-reference:ctx'],['keyword()','text-program-formatter-arity'],['keyword(KeywordName.Raid,1)','text-program-formatter-arity'],['keyword({keyword:KeywordName.Raid,amount:-1})','expression:ObjectLiteralExpression'],['keyword({keyword:KeywordName.Raid,amount:ctx.source.damage})','expression:ObjectLiteralExpression'],['keyword({keyword:KeywordName.Raid,extra:1})','expression:ObjectLiteralExpression'],['keyword({amount:1})','expression:ObjectLiteralExpression']]) {
+        const card=compile('${TextHelper.'+call+'}',true);assert.equal(card.status,'unsupported',call);assert.ok(card.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(card.diagnostics));
+    }
+    for(const [call,formatter,value] of [['resource(-1)','resource',{kind:'unary',op:'-',value:{kind:'const',value:1}}],['resource(1.5)','resource',{kind:'const',value:1.5}],['keyword("unknown")','keyword',{kind:'const',value:'unknown'}]]) {
+        const card=compile('${TextHelper.'+call+'}',true);assert.equal(card.status,'supported');assert.equal(card.abilities.card[0].title,'Pay [value]');assert.deepEqual(card.abilities.card[0].contextTitle,[{kind:'const',value:'Pay '},{kind:'textFormatter',formatter,value,environment:'test',resourcePlural:'amountNotStrictlyOne',keyword:'capitalizeNameAndOptionalAmountProperty',trait:'titleCaseEachSpaceSeparatedWord',aspect:'capitalize',evaluateAt:'stringExpressionEvaluation'},{kind:'const',value:' to '},{kind:'ref',path:['source','title']},{kind:'const',value:''}]);
     }
 });
-test('real card title helpers reveal remaining mechanic blockers without admitting partial cards',()=>{
+test('real title-helper sources retain payment, damage provenance and unless-choice contracts',()=>{
     const fs=require('node:fs');
-    for(const file of ['07_LAW/units/DoggedPursuers.ts','01_SOR/units/MiningGuildTieFighter.ts','09_HMW/events/VolleyFire.ts','02_SHD/events/LookTheOtherWay.ts']) {
-        const relative='game/cards/'+file;
-        const card=compileSource(fs.readFileSync(path.join(engine,'server',relative),'utf8'),relative,enums);
-        assert.equal(card.status,'supported',file+JSON.stringify(card.diagnostics));
-        assert.ok(!card.diagnostics.some(d=>d.pattern==='unsupported-title-helper'),JSON.stringify(card.diagnostics));
-    }
+    const lower=file=>{const relative='game/cards/'+file;const card=compileSource(fs.readFileSync(path.join(engine,'server',relative),'utf8'),relative,enums);assert.equal(card.status,'supported',JSON.stringify(card.diagnostics));return card.abilities.card[0];};
+    for(const [file,amount,nextKind] of [['07_LAW/units/DoggedPursuers.ts',1,'damage'],['01_SOR/units/MiningGuildTieFighter.ts',2,'draw']]){const a=lower(file);assert.equal(a.optional,true);assert.deepEqual(a.effect,{kind:'payAdjustedResources',target:'ownPlayer',amount:{kind:'const',value:amount},paymentType:'cardEffectPayment',isCost:false,canCancelDuringPayment:false,allowCostAdjustments:true});assert.equal(a.ifYouDo.effect.kind,nextKind);}
+    const volley=lower('09_HMW/events/VolleyFire.ts'),damage=volley.targetResolvers[1].effect;assert.equal(volley.targetResolvers[1].dependsOn,'friendlyUnit');assert.equal(damage.kind,'damagePropertiesFactory');assert.equal(damage.parameters[0].role,'systemContext');assert.equal(damage.body.kind,'damageFromCard');assert.deepEqual(damage.body.source,{kind:'ref',path:[damage.parameters[0].root,'targets','friendlyUnit']});assert.deepEqual(damage.body.amount.left.receiver,damage.body.source);assert.equal(damage.body.sourceCard,'sourceOrContextSourceAtEventCreation');
+    const choice=lower('02_SHD/events/LookTheOtherWay.ts').targetResolvers[1];assert.equal(choice.dependsOn,'targetUnit');assert.equal(choice.targetResolver.kind,'choiceSelection');assert.equal(choice.targetResolver.mode,'selectUnless');assert.equal(choice.targetResolver.defaultEffect.effect.kind,'exhaust');assert.equal(choice.targetResolver.unlessEffect.effect.system,'payResources');assert.equal(choice.targetResolver.unlessEffect.effect.properties.target.slot,'targetUnit');assert.deepEqual(choice.targetResolver.unlessEffect.effect.properties.target.path,['controller']);assert.deepEqual(choice.targetResolver.unlessEffect.effect.properties.amount,{kind:'const',value:2});assert.deepEqual(choice.effect,{kind:'resolveChoice',resultBinding:'opponentsChoice'});
 });

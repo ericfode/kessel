@@ -353,7 +353,7 @@ fn zone_statics_ima_gun_di_resources_selected_hand_card_then_top_deck() {
         // "If you have fewer resources than an opponent" holds, so the defeated
         // unit's mandatory trigger offers its optional hand selection.
         e.defeat(&mut s, ima).unwrap();
-        assert!(e.open_deaths(&mut s, 3).unwrap());
+        assert!(e.open_deaths(&mut s, DeathContinuation::Finish).unwrap());
         assert_eq!(s.decision, Decision::AbilityTarget);
         let ids: Vec<_> = e.legal_actions(&s).iter().filter_map(Action::id).collect();
         assert_eq!(ids, vec![hand_card]);
@@ -379,7 +379,7 @@ fn zone_statics_ima_gun_di_resources_selected_hand_card_then_top_deck() {
     let own_resource = add(&e, &mut s, Seat::P1, "LOF_254");
     s.player_mut(Seat::P1).resources.push(own_resource).unwrap();
     e.defeat(&mut s, ima).unwrap();
-    e.open_deaths(&mut s, 3).unwrap();
+    e.open_deaths(&mut s, DeathContinuation::Finish).unwrap();
     let done = settle(&e, s);
     assert!(done.player(Seat::P1).hand.contains(hand_card));
     assert!(done.player(Seat::P1).deck.contains(top));
@@ -394,7 +394,7 @@ fn zone_statics_superlaser_technician_resources_itself_ready_from_discard() {
         let technician = unit(&e, &mut s, Seat::P1, "SHD_085");
         let resources = s.player(Seat::P1).resources.len;
         e.defeat(&mut s, technician).unwrap();
-        assert!(e.open_deaths(&mut s, 3).unwrap());
+        assert!(e.open_deaths(&mut s, DeathContinuation::Finish).unwrap());
         assert_eq!(s.decision, Decision::AbilityOptional);
         let triggered = named_button(&e, &s, "Trigger");
         let done = settle(&e, triggered);
@@ -423,7 +423,7 @@ fn zone_statics_reviewed_shapes_compile_and_unreviewed_shapes_stay_rejected() {
         ("SOR_198", "card"),
     ] {
         let catalog: Value =
-            serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json"))
+            serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
                 .unwrap();
         let entry = catalog["cards"]
             .as_array()
@@ -657,7 +657,7 @@ fn zone_statics_resource_optional_decline_does_not_resource_top_deck() {
         .push(enemy_resource)
         .unwrap();
     e.defeat(&mut s, ima).unwrap();
-    assert!(e.open_deaths(&mut s, 3).unwrap());
+    assert!(e.open_deaths(&mut s, DeathContinuation::Finish).unwrap());
     assert_eq!(s.decision, Decision::AbilityTarget);
     let done = settle(&e, named_button(&e, &s, "Choose nothing"));
     assert!(done.player(Seat::P1).hand.contains(hand_card));
@@ -686,8 +686,8 @@ fn zone_statics_complete_cards_and_imported_continuations_fail_closed() {
         snapshot[field] = json!(9);
         assert!(e.load_state(&snapshot).is_err(), "{field}");
     }
-    let mut invalid = s;
-    assert!(e.open_deaths(&mut invalid, 9).is_err());
+    let invalid = s;
+    assert!(DeathContinuation::from_raw(9).is_none());
     assert_eq!(invalid, s);
 }
 
@@ -778,7 +778,8 @@ fn zone_statics_betrayed_trust_surviving_grit_defender_deals_no_return_damage() 
 #[test]
 fn zone_statics_full_catalogue_rejects_unimplemented_source_context() {
     let catalogue: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     let focus = [
         "ASH_202", "SHD_234", "SOR_198", "SOR_217", "HMW_044", "SHD_085", "JTL_205", "LAW_174",
     ];

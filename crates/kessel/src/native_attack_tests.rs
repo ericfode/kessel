@@ -309,7 +309,7 @@ fn native_attack_direct_source_condition_families_and_suspend_on_attack_trigger(
 #[test]
 fn native_attack_raw_contracts_reject_unknowns_late_callbacks_and_partial_sources() {
     let catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let original = catalog["cards"]
         .as_array()
         .unwrap()
@@ -553,7 +553,7 @@ fn native_attack_early_keyword_window_settles_stat_deaths_before_defender_prompt
     // Synthetic dependency diagnostic: a live HP registration whose predicate
     // reads Grit. This is separate from the 14 actual-card behavioral fixtures.
     let mut catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let donor = catalog["cards"]
         .as_array_mut()
         .unwrap()

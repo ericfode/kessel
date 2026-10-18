@@ -65,7 +65,7 @@ fn nc_roundtrip(e: &Engine, s: &State) {
 }
 fn nc_source(code: &str) -> Value {
     let catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     catalog["cards"]
         .as_array()
         .unwrap()
@@ -417,7 +417,7 @@ fn native_composition_whole_metadata_headers_and_other_continuations_stay_closed
 #[test]
 fn native_composition_follow_me_requires_reviewed_advantage_in_selected_pool() {
     let e = engine();
-    let catalogue = include_bytes!("../../../compiler/generated/catalog.json");
+    let catalogue = include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));
     let pool = e.compiled_pool().unwrap();
     let mut complete = pool.clone();
     complete["cards"].as_array_mut().unwrap().retain(|c| {

@@ -5,7 +5,7 @@ const {
   classifyResourceSelf,
   planResourceSelfProbes,
 } = require("../pipeline/resource-self-probes");
-const catalogue = require("../../compiler/generated/catalog.json");
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = (id) =>
   structuredClone(catalogue.cards.find((e) => e.setCode === id));
 test("three exact printed resource source shapes carry finite interaction gaps", () => {

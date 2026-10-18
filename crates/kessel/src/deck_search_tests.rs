@@ -3,7 +3,7 @@ use crate::ability_ir::Catalogue;
 use serde_json::json;
 
 fn catalogue() -> Value {
-    serde_json::from_str(include_str!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn entry(code: &str) -> Value {
     catalogue()["cards"]
@@ -183,4 +183,26 @@ fn deck_search_entire_card_stays_rejected_including_nested_and_raw_metadata_muta
         &json!({"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}})
     )
     .is_ok());
+}
+
+#[test]
+fn deck_search_execution_boundaries_keep_completion_precedence_and_reject_every_scope() {
+    let mut raw = recruit();
+    for (count, final_shuffle, boundary) in [
+        (1, false, "deck-search display/selection/completion continuations are unimplemented"),
+        (2, false, "deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented"),
+        (1, true, "deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented"),
+        (2, true, "deck search requests a final shuffle; exact RNG snapshot or chance semantics are unimplemented"),
+    ] {
+        raw["searchCount"]["value"] = json!(count);
+        raw["shuffleWhenDone"]["value"] = json!(final_shuffle);
+        let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
+        assert_eq!(parsed.blocker().unwrap(), boundary);
+        assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", boundary));
+    }
+    raw["searchWholeDeck"]["value"] = json!(true);
+    raw.as_object_mut().unwrap().remove("searchCount");
+    let parsed: Search = serde_json::from_value(raw.clone()).unwrap();
+    assert_eq!(parsed.blocker().unwrap(), "whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented");
+    assert_eq!(reject(&raw).unwrap_err(), format!("unimplemented deck-search contract: {}", "whole-deck search always shuffles; exact RNG snapshot or chance semantics are unimplemented"));
 }

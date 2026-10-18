@@ -9,7 +9,7 @@ use std::sync::OnceLock;
 fn committed_catalogue() -> &'static serde_json::Value {
     static CATALOG: OnceLock<serde_json::Value> = OnceLock::new();
     CATALOG.get_or_init(|| {
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json"))
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
             .expect("committed compiler catalogue")
     })
 }
@@ -39,7 +39,7 @@ fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
 fn board(e: &Engine) -> State {
     let mut s = State::default();
     // This builder creates a fresh position with an explicitly empty Credit ledger.
-    s.credit_state_exact=e.needs_credit_state();
+    s.credit_state_exact = e.needs_credit_state();
     s.hidden_history_exact = true;
     s.force_state_exact = true;
     for (seat, leader) in [(Seat::P1, "SOR_014"), (Seat::P2, "IBH_053")] {
@@ -110,7 +110,7 @@ fn optional_payment_ability(effect: serde_json::Value) -> serde_json::Value {
 #[test]
 fn payment_contract_accepts_only_the_lowered_compiler_shape() {
     let effect = effect(1);
-    assert_eq!(crate::pay_adjusted_resources::amount(&effect).unwrap(), 1);
+    assert_eq!(crate::ability_ir::card_effect_payment(&effect).unwrap(), 1);
     let ability: Ability = serde_json::from_value(optional_payment_ability(lowered(2))).unwrap();
     let program = Program::compile(&ability).unwrap();
     assert!(matches!(
@@ -156,7 +156,7 @@ fn payment_contract_accepts_only_the_lowered_compiler_shape() {
         }
         let effect: Effect = serde_json::from_value(value).unwrap();
         assert!(
-            crate::pay_adjusted_resources::amount(&effect).is_err(),
+            crate::ability_ir::card_effect_payment(&effect).is_err(),
             "{mutate} must not satisfy the payment contract"
         );
         let ability: Ability = serde_json::from_value(optional_payment_ability(
@@ -279,7 +279,8 @@ fn optional_when_played_payment_charges_then_runs_its_if_you_do() {
     let own = resources(&e, &mut s, Seat::P1, &[false, false]);
     let p = program(&e, &s, source, "whenPlayed");
     s.source = source;
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
     let actions = e.legal_actions(&s);
     assert!(actions.contains(&Action::button("Trigger", "trigger")));
@@ -308,7 +309,8 @@ fn optional_payment_prompt_needs_an_affordable_charge() {
     resources(&e, &mut s, Seat::P1, &[false]);
     let p = program(&e, &s, source, "whenPlayed");
     s.source = source;
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
 
     // With no ready resource the ability has no legal effect, so it stays a
@@ -318,7 +320,8 @@ fn optional_payment_prompt_needs_an_affordable_charge() {
     let poor_own = resources(&e, &mut poor, Seat::P1, &[true]);
     let p = program(&e, &poor, poor_source, "whenPlayed");
     poor.source = poor_source;
-    e.begin_program(&mut poor, p, 0).unwrap();
+    e.begin_program(&mut poor, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(poor.decision, Decision::AbilityNoEffect);
     let actions = e.legal_actions(&poor);
     assert!(actions.iter().any(|a| a.label == "Cancel"));
@@ -338,7 +341,8 @@ fn payment_failure_after_the_prompt_skips_the_if_you_do_continuation() {
     let drawn = deck_card(&e, &mut s, Seat::P1);
     let p = program(&e, &s, source, "onAttack");
     s.source = source;
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
     // The charge becomes unpayable between the prompt and its resolution, e.g. a
     // replacement or later trigger consuming the resource. The payment must then
@@ -362,7 +366,8 @@ fn two_resource_payment_charges_and_draws_on_attack() {
     let drawn = deck_card(&e, &mut s, Seat::P1);
     let p = program(&e, &s, source, "onAttack");
     s.source = source;
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
     let done = e.apply(&s, &Action::button("Trigger", "trigger")).unwrap();
     assert!(done.card(own[0]).exhausted);
@@ -383,7 +388,8 @@ fn attack_payment_scenario(e: &Engine) -> State {
     deck_card(e, &mut s, Seat::P1);
     let p = program(e, &s, source, "onAttack");
     s.source = source;
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
     e.apply(&s, &Action::button("Trigger", "trigger")).unwrap()
 }
@@ -455,7 +461,7 @@ fn payment_source_metadata_rejects_incompatible_card_types_and_classes() {
 fn trigger_payment(e: &Engine, s: &mut State, source: CardId, trigger: &str) -> State {
     let p = program(e, s, source, trigger);
     s.source = source;
-    e.begin_program(s, p, 0).unwrap();
+    e.begin_program(s, p, ProgramContinuation::Finish).unwrap();
     assert_eq!(s.decision, Decision::AbilityOptional);
     e.apply(s, &Action::button("Trigger", "trigger")).unwrap()
 }

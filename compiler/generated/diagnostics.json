@@ -1,0 +1,560 @@
+{
+  "schema": "swu-card-diagnostics/v1",
+  "compilerHash": "5869e54f633df3188ea490931dd5797894694f5af211c45c890194bbe6cca640",
+  "sourceTreeHash": "5ad2d48640000b1c25d8e701a0f63966537ef40a52d44cbd24d598fd74d12497",
+  "cards": [
+    {
+      "setCode": "HMW_250",
+      "diagnostics": [
+        {
+          "code": "QUARANTINED",
+          "pattern": "quarantined-source",
+          "file": "game/cards/09_HMW/units/ImperialCavalry.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "IC27_099",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/0454689845.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_108",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/3261127126.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_159",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/3287404938.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_172",
+      "diagnostics": [
+        {
+          "code": "QUARANTINED",
+          "pattern": "quarantined-source",
+          "file": "game/cards/04_JTL/upgrades/TwinLaserTurret.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_196",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/7420426716.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_236",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/3356393152.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_246",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/8930110877.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "JTL_255",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/4164902248.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_036",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/3796991604.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_070",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/0024944513.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_100",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/8826807979.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_123",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/2877797132.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_176",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/2785395871.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_226",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/6015383018.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SEC_246",
+      "diagnostics": [
+        {
+          "code": "QUARANTINED",
+          "pattern": "quarantined-source",
+          "file": "game/cards/06_SEC/events/ContemptForCulture.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_036",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/4783554451.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_065",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/1982478444.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_074",
+      "diagnostics": [
+        {
+          "code": "QUARANTINED",
+          "pattern": "quarantined-source",
+          "file": "game/cards/02_SHD/upgrades/VambraceGrappleshot.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_089",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/8552719712.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_111",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/5171970586.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_119",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/9483244696.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SHD_149",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/6037778228.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "SOR_121",
+      "diagnostics": [
+        {
+          "code": "QUARANTINED",
+          "pattern": "quarantined-source",
+          "file": "game/cards/01_SOR/upgrades/HardpointHeavyBlaster.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Excluded from conversion by explicit user instruction"
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_ADVANTAGE",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "expected-one-card-class",
+          "file": "game/cards/08_ASH/tokens/Advantage.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Found 2 classes"
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_CREDIT",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "custom-inheritance:TokenCard",
+          "file": "game/cards/07_LAW/tokens/CreditToken.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Inherited custom behavior requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:isCreditToken",
+          "file": "game/cards/07_LAW/tokens/CreditToken.ts",
+          "line": 15,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:takeControl",
+          "file": "game/cards/07_LAW/tokens/CreditToken.ts",
+          "line": 19,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_EXPERIENCE",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:isExperience",
+          "file": "game/cards/01_SOR/tokens/Experience.ts",
+          "line": 12,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-member:GetAccessor",
+          "file": "game/cards/01_SOR/tokens/Experience.ts",
+          "line": 16,
+          "column": 1,
+          "message": "Additional class behavior requires conversion"
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_SHIELD",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-state:highPriorityRemoval",
+          "file": "game/cards/01_SOR/tokens/Shield.ts",
+          "line": 10,
+          "column": 1,
+          "message": "Class-local persistent state requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-member:Constructor",
+          "file": "game/cards/01_SOR/tokens/Shield.ts",
+          "line": 19,
+          "column": 1,
+          "message": "Additional class behavior requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:isShield",
+          "file": "game/cards/01_SOR/tokens/Shield.ts",
+          "line": 29,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-member:GetAccessor",
+          "file": "game/cards/01_SOR/tokens/Shield.ts",
+          "line": 33,
+          "column": 1,
+          "message": "Additional class behavior requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "registrar:addDamageModificationAbility",
+          "message": "registrar:addDamageModificationAbility",
+          "file": "game/cards/01_SOR/tokens/Shield.ts",
+          "line": 38,
+          "column": 9
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_THE_FORCE",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "custom-inheritance:TokenCard",
+          "file": "game/cards/05_LOF/tokens/ForceToken.ts",
+          "line": 1,
+          "column": 1,
+          "message": "Inherited custom behavior requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:isForceToken",
+          "file": "game/cards/05_LOF/tokens/ForceToken.ts",
+          "line": 11,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        }
+      ]
+    },
+    {
+      "setCode": "TOKEN_WEAKNESS",
+      "diagnostics": [
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "method:isWeakness",
+          "file": "game/cards/09_HMW/tokens/Weakness.ts",
+          "line": 12,
+          "column": 1,
+          "message": "Additional class method requires conversion"
+        },
+        {
+          "code": "UNSUPPORTED_SOURCE",
+          "pattern": "class-member:GetAccessor",
+          "file": "game/cards/09_HMW/tokens/Weakness.ts",
+          "line": 16,
+          "column": 1,
+          "message": "Additional class behavior requires conversion"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_037",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/5084084838.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_087",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/9283787549.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_117",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/5243634234.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_118",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/2554988743.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_136",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/8201333805.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_182",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/6623894685.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    },
+    {
+      "setCode": "TWI_233",
+      "diagnostics": [
+        {
+          "code": "MISSING_IMPLEMENTATION",
+          "pattern": "no-source-for-rules-text",
+          "file": "data/Card/6772128891.json",
+          "line": 1,
+          "column": 1,
+          "message": "No source implementation and card is not a plain base or supported keyword-only unit"
+        }
+      ]
+    }
+  ]
+}

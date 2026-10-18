@@ -140,7 +140,7 @@ fn piloting_attached_unit_play_skips_parent_trait_conditions() {
 #[test]
 fn piloting_attached_keyword_rejects_partial_shapes() {
     let catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let original = catalog["cards"]
         .as_array()
         .unwrap()

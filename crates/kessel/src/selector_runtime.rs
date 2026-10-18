@@ -66,21 +66,13 @@ impl Engine {
             let p = s.player(seat);
             for zone in &zones {
                 let mut candidates = Vec::new();
-                if matches!(
-                    zone,
-                    SelectorZone::AnyArena
-                        | SelectorZone::AnyAttackable
-                        | SelectorZone::GroundArena
-                ) {
+                if zone.includes_ground() {
                     candidates.extend_from_slice(p.ground.as_slice());
                 }
-                if matches!(
-                    zone,
-                    SelectorZone::AnyArena | SelectorZone::AnyAttackable | SelectorZone::SpaceArena
-                ) {
+                if zone.includes_space() {
                     candidates.extend_from_slice(p.space.as_slice());
                 }
-                if matches!(zone, SelectorZone::AnyAttackable | SelectorZone::Base) {
+                if zone.includes_base() {
                     candidates.push(p.base);
                     if p.leader != 0 && !s.card(p.leader).deployed {
                         candidates.push(p.leader);

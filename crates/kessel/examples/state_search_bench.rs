@@ -185,7 +185,7 @@ fn main() -> Result<(), String> {
         30,
         false,
     )?;
-    let catalogue = std::fs::read(root.join("../../compiler/generated/catalog.json"))
+    let catalogue = kessel::catalogue_io::load_catalogue_bytes(&root.join("../../compiler/generated"))
         .map_err(|e| e.to_string())?;
     let compiled = Engine::from_compiled_pool_bytes(
         &std::fs::read(root.join("tests/compiled-fixtures/pool.json"))

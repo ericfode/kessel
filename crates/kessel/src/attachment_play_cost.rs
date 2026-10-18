@@ -76,7 +76,7 @@ pub(crate) fn extract(entry: &Value) -> Result<Option<AttachmentPlayCost>, Strin
     if !cost_marker(&entry["abilities"]) || !(upgrade || attachment_marker(&entry["abilities"])) {
         return Ok(None);
     }
-    let plain = crate::static_ongoing::closed_source_context(entry)
+    let plain = crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["status"] == "supported"
         && entry["baseClass"] == "UpgradeCard"
         && entry["card"]["types"] == json!(["upgrade"])

@@ -1,0 +1,736 @@
+[
+  {
+    "name": "phase-callback",
+    "contract": "ongoingContract",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-0',internalName:'source-boundary-0'}}setupCardAbilities(registrar,AbilityHelper){registrar.addActionAbility({title:\"Phase\",immediateEffect:AbilityHelper.immediateEffects.forThisPhaseCardEffect({effect:AbilityHelper.ongoingEffects.modifyStats((card,ctx)=>({power:ctx.player.readyResourceCount,hp:0}))})});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "947acdd6b26dc7b6b98307502e515570a689c4b9e25ae8b2511206b9f0688a0e",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Phase",
+            "costs": [],
+            "effect": {
+              "kind": "ongoingContract",
+              "scope": "card",
+              "effectType": "modifyStats",
+              "target": "self",
+              "duration": "phase",
+              "valueMode": "dynamic",
+              "value": {
+                "kind": "ongoingValueFactory",
+                "callback": {
+                  "kind": "pureCallback",
+                  "parameters": [
+                    {
+                      "slot": "data:callback:354:0",
+                      "argument": "targetCard",
+                      "bindingPattern": {
+                        "name": "card"
+                      }
+                    },
+                    {
+                      "slot": "data:callback:354:1",
+                      "argument": "ongoingContext",
+                      "bindingPattern": {
+                        "name": "ctx"
+                      }
+                    }
+                  ],
+                  "body": {
+                    "kind": "pureReturn",
+                    "value": {
+                      "kind": "dataRecord",
+                      "fields": {
+                        "power": {
+                          "kind": "dataPath",
+                          "root": [
+                            "data:callback:354:1"
+                          ],
+                          "steps": [
+                            {
+                              "key": "player",
+                              "optional": false
+                            },
+                            {
+                              "key": "readyResourceCount",
+                              "optional": false
+                            }
+                          ]
+                        },
+                        "hp": {
+                          "kind": "const",
+                          "value": 0
+                        }
+                      }
+                    }
+                  },
+                  "capture": "lexicalReferences",
+                  "invokeAt": "nativeCallbackInvocation"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-0",
+      "internalName": "source-boundary-0",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `ongoingContract`"
+  },
+  {
+    "name": "live-constant",
+    "contract": "constantEffectRegistration",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-1',internalName:'source-boundary-1'}}setupCardAbilities(registrar,AbilityHelper){registrar.addConstantAbility({condition:ctx=>ctx.source.getPower()>2,ongoingEffect:AbilityHelper.ongoingEffects.cannotAttack()});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "0a79e15d83ac6213545ca81d3eb81295b5660ee2e019cc0d988c402aadcef743",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "constant",
+            "title": "",
+            "costs": [],
+            "effect": {
+              "kind": "constantEffectRegistration",
+              "properties": {
+                "condition": {
+                  "kind": "attackCallback",
+                  "parameters": [
+                    {
+                      "root": "attackBinding1_0",
+                      "role": "ongoingContext"
+                    }
+                  ],
+                  "body": {
+                    "kind": "binary",
+                    "op": ">",
+                    "left": {
+                      "kind": "ongoingQuery",
+                      "name": "getPower",
+                      "receiver": {
+                        "kind": "ref",
+                        "path": [
+                          "attackBinding1_0",
+                          "source"
+                        ]
+                      },
+                      "args": [],
+                      "optionalReceiver": false,
+                      "optionalCall": false,
+                      "continuesOptionalChain": false
+                    },
+                    "right": {
+                      "kind": "const",
+                      "value": 2
+                    }
+                  }
+                }
+              },
+              "modifier": {
+                "kind": "ongoingContract",
+                "scope": "card",
+                "effectType": "cannotAttack",
+                "target": "constantMatch",
+                "duration": "persistent",
+                "valueMode": "static",
+                "value": {
+                  "kind": "undefined"
+                }
+              },
+              "duration": "persistent",
+              "context": "refreshFromSourceController",
+              "scopeDefaults": "pinnedOngoingCardOrPlayerEffect",
+              "dependencyPolicy": "liveFixedPointRequired"
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-1",
+      "internalName": "source-boundary-1",
+      "status": "supported"
+    },
+    "runtimeRejection": "static self ongoing contracts require complete ordinary nonleader unit metadata and one registration"
+  },
+  {
+    "name": "lexical-selector",
+    "contract": "systemPropertiesFactory",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-2',internalName:'source-boundary-2'}}setupCardAbilities(registrar,AbilityHelper){registrar.addActionAbility({title:\"Select\",immediateEffect:AbilityHelper.immediateEffects.selectCard(ctx=>({cardTypeFilter:\"unit\",cardCondition:card=>card!==ctx.target,immediateEffect:AbilityHelper.immediateEffects.heal({amount:1})}))});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "71f29c55a70155f3dd68ea370e9307a394f479bc8b13eba0146b4cea2f400743",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Select",
+            "costs": [],
+            "effect": {
+              "kind": "systemPropertiesFactory",
+              "parameters": [
+                {
+                  "root": "attackBinding1_0",
+                  "role": "systemPropertiesContext"
+                }
+              ],
+              "captures": [],
+              "constructionOrder": "readonlyDeclarationsThenObjectLeftToRight",
+              "captureIdentity": "valueOrPhysicalObjectReference",
+              "invocationPolicy": "eachNativePropertyGeneration",
+              "effect": {
+                "kind": "select",
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "unit",
+                  "zone": "anyAttackable",
+                  "predicate": {
+                    "kind": "binary",
+                    "op": "!==",
+                    "left": {
+                      "kind": "ref",
+                      "path": [
+                        "card"
+                      ]
+                    },
+                    "right": {
+                      "kind": "ref",
+                      "path": [
+                        "attackBinding1_0",
+                        "target"
+                      ]
+                    }
+                  }
+                },
+                "effect": {
+                  "kind": "heal",
+                  "target": "chosen",
+                  "amount": {
+                    "kind": "const",
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-2",
+      "internalName": "source-boundary-2",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `systemPropertiesFactory`"
+  },
+  {
+    "name": "continuation-context",
+    "contract": "abilityFactory",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-3',internalName:'source-boundary-3'}}setupCardAbilities(registrar,AbilityHelper){registrar.addWhenPlayedAbility({title:\"Ready\",targetResolver:{cardTypeFilter:\"unit\",immediateEffect:AbilityHelper.immediateEffects.ready()},ifYouDo:previous=>({title:\"Heal\",targetResolver:{cardTypeFilter:\"base\",immediateEffect:AbilityHelper.immediateEffects.heal({amount:previous.target.cost})}})});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "4d73a0057e76d062d8083b9ca84dfed4827f15ffd216223b6de6082abf523e96",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Ready",
+            "costs": [],
+            "targetResolver": {
+              "owner": "any",
+              "type": "unit",
+              "zone": "anyAttackable"
+            },
+            "effect": {
+              "kind": "ready",
+              "target": "chosen"
+            },
+            "ifYouDo": {
+              "kind": "abilityFactory",
+              "parameters": [
+                {
+                  "root": "abilityBinding1",
+                  "role": "continuationContext"
+                }
+              ],
+              "body": {
+                "title": "Heal",
+                "costs": [],
+                "targetResolver": {
+                  "owner": "any",
+                  "type": "base",
+                  "zone": "anyAttackable"
+                },
+                "effect": {
+                  "kind": "heal",
+                  "target": "chosen",
+                  "amount": {
+                    "kind": "ref",
+                    "path": [
+                      "abilityBinding1",
+                      "target",
+                      "cost"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-3",
+      "internalName": "source-boundary-3",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown field `body`"
+  },
+  {
+    "name": "token-event-creation",
+    "contract": "createTokenUnitSystem",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-4',internalName:'source-boundary-4'}}setupCardAbilities(registrar,AbilityHelper){registrar.addActionAbility({title:\"Tokens\",immediateEffect:AbilityHelper.immediateEffects.createBattleDroid(ctx=>({amount:0}))});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "af10ac21df0a4d31871caf37991fe9a262682ea6ebc6e7ac9a40352fcb437857",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Tokens",
+            "costs": [],
+            "effect": {
+              "kind": "createTokenUnitSystem",
+              "tokenType": "battleDroid",
+              "amount": {
+                "kind": "const",
+                "value": 0
+              },
+              "controllers": "ownPlayer",
+              "entersReady": false,
+              "creationTiming": "eventUpdate",
+              "entryTiming": "contingentEvents"
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-4",
+      "internalName": "source-boundary-4",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `createTokenUnitSystem`"
+  },
+  {
+    "name": "filtered-random-discard",
+    "contract": "discardHandSystem",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-5',internalName:'source-boundary-5'}}setupCardAbilities(registrar,AbilityHelper){registrar.addActionAbility({title:\"Discard\",immediateEffect:AbilityHelper.immediateEffects.discardCardsFromOwnHand(ctx=>({random:true,cardTypeFilter:\"unit\"}))});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "cb417f1dd1d3a9509d1a6d9fd493ebe587fef80fa78c88c22abaa8cbdb139ea2",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Discard",
+            "costs": [],
+            "effect": {
+              "kind": "discardHandSystem",
+              "target": "enemyPlayer",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              },
+              "random": true,
+              "cardTypeFilter": "unit",
+              "cardCondition": {
+                "kind": "const",
+                "value": true
+              },
+              "wrapperChoosingPlayer": "self",
+              "actualChooser": "affectedPlayer",
+              "availabilityFilter": "cardConditionAndCardType",
+              "generationFilter": "cardConditionOnly",
+              "assertAmountNonNegative": true,
+              "amountClamp": "availableFilteredHand",
+              "zeroAmount": "noEvents",
+              "autoSingleTarget": "allAvailableWhenAmountAtLeastAvailableCount",
+              "randomSource": "gameRandomGenerator",
+              "events": [
+                "discardSpecificCardPerChosenCard",
+                "overallDiscardPerNonemptyPlayer"
+              ],
+              "overallEventCondition": "alwaysTrue",
+              "mustFullyResolveRequiresFullAmount": true
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-5",
+      "internalName": "source-boundary-5",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `discardHandSystem`"
+  },
+  {
+    "name": "selected-player",
+    "contract": "playerSelection",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-6',internalName:'source-boundary-6'}}setupCardAbilities(registrar,AbilityHelper){registrar.addWhenPlayedAbility({title:\"Resource\",targetResolver:{mode:\"player\",immediateEffect:AbilityHelper.immediateEffects.readyResources({amount:1})}});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "d7b390dcd80a6413d71068852daa13add2ed8adf71d6f1acdc38350bbd32aaac",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Resource",
+            "costs": [],
+            "targetResolver": {
+              "kind": "playerSelection",
+              "mode": "player",
+              "chooser": "self",
+              "resultBinding": "selectedPlayer",
+              "defaults": "pinnedTargetResolver",
+              "contextBinding": "target",
+              "choosingPlayerOverride": "contextOverrideFirst",
+              "delayOpponentBeforeCosts": true
+            },
+            "effect": {
+              "kind": "selectedPlayerSystem",
+              "system": "readyResources",
+              "target": {
+                "kind": "ref",
+                "path": [
+                  "selectedPlayer"
+                ]
+              },
+              "properties": {
+                "amount": {
+                  "kind": "const",
+                  "value": 1
+                }
+              },
+              "defaults": "pinnedSystem",
+              "defaultTargetOverride": {
+                "kind": "ref",
+                "path": [
+                  "selectedPlayer"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-6",
+      "internalName": "source-boundary-6",
+      "status": "supported"
+    },
+    "runtimeAdmission": "bounded selected-player readyResources"
+  },
+  {
+    "name": "game-arena-query",
+    "contract": "scopedArenaSomeQuery",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-7',internalName:'source-boundary-7'}}setupCardAbilities(registrar,AbilityHelper){registrar.addActionAbility({title:\"Arena\",condition:ctx=>ctx.game.hasSomeArenaUnit(),immediateEffect:AbilityHelper.immediateEffects.draw()});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "0b955d8019126bf0687c43ecdd1c1c11506697d71bcef3d961002474bc68cac8",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "action",
+            "title": "Arena",
+            "costs": [],
+            "condition": {
+              "kind": "scopedArenaSomeQuery",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "game"
+                ]
+              },
+              "filter": {},
+              "type": "unit",
+              "controller": "any",
+              "order": "groundThenSpacePhysicalOrder",
+              "fieldCombination": "and",
+              "attributeArrayCombination": "or",
+              "predicateOrder": [
+                "aspect",
+                "keyword",
+                "trait",
+                "type",
+                "otherThan",
+                "condition"
+              ],
+              "evaluation": "expressionEvaluation"
+            },
+            "effect": {
+              "kind": "draw",
+              "target": "ownPlayer",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-7",
+      "internalName": "source-boundary-7",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `scopedArenaSomeQuery`"
+  },
+  {
+    "name": "event-result-context",
+    "contract": "eventResult",
+    "file": "source-boundary.ts",
+    "source": "export default class SourceBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'source-boundary-8',internalName:'source-boundary-8'}}setupCardAbilities(registrar,AbilityHelper){registrar.addWhenPlayedAbility({title:\"Discard\",immediateEffect:AbilityHelper.immediateEffects.discardCardsFromOwnHand(ctx=>({target:ctx.player})),ifYouDo:ctx=>({title:\"Experience\",targetResolver:{cardTypeFilter:\"unit\",cardCondition:card=>card.title===ctx.events[0].card.title,immediateEffect:AbilityHelper.immediateEffects.giveExperience({amount:2})}})});}}",
+    "compiled": {
+      "sourcePath": "source-boundary.ts",
+      "sourceHash": "63d06071763997fff2ed3652605a32dd666ed1add63cbd0e4f334956ca6261a2",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Discard",
+            "costs": [],
+            "effect": {
+              "kind": "discardOwnHand",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              },
+              "target": "ownPlayer"
+            },
+            "ifYouDo": {
+              "title": "Experience",
+              "costs": [],
+              "targetResolver": {
+                "owner": "any",
+                "type": "unit",
+                "zone": "anyAttackable",
+                "predicate": {
+                  "kind": "binary",
+                  "op": "===",
+                  "left": {
+                    "kind": "ref",
+                    "path": [
+                      "card",
+                      "title"
+                    ]
+                  },
+                  "right": {
+                    "kind": "eventResult",
+                    "contextBinding": {
+                      "id": "callback:348:0",
+                      "role": "ifYouDo",
+                      "bindAt": "callbackInvocation",
+                      "readAt": "expressionEvaluation",
+                      "reference": "lexicalContextObject"
+                    },
+                    "collection": "events",
+                    "eventIndex": 0,
+                    "path": [
+                      "card",
+                      "title"
+                    ],
+                    "optionalAccess": []
+                  }
+                }
+              },
+              "effect": {
+                "kind": "giveExperience",
+                "target": "chosen",
+                "amount": {
+                  "kind": "const",
+                  "value": 2
+                }
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "SourceBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "source-boundary-8",
+      "internalName": "source-boundary-8",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown variant `eventResult`"
+  },
+  {
+    "name": "factory-local-snapshot",
+    "contract": "abilityFactoryProgram",
+    "file": "factory-boundary.ts",
+    "source": "export default class FactoryBoundary extends NonLeaderUnitCard {getImplementationId(){return{id:'factory-boundary',internalName:'factory-boundary'}}setupCardAbilities(registrar,AbilityHelper){registrar.addWhenPlayedAbility({title:'Draw',immediateEffect:AbilityHelper.immediateEffects.draw(),then:ctx=>{const units=ctx.player.getArenaUnits();return {immediateEffect:AbilityHelper.immediateEffects.sequential([AbilityHelper.immediateEffects.defeat({target:units}),AbilityHelper.immediateEffects.ready({target:units})])};}});}}",
+    "compiled": {
+      "sourcePath": "factory-boundary.ts",
+      "sourceHash": "95b195e8cd5b77471d22364b68b6fdd7d99d29a2bb630cd86e63165f1a95dfc0",
+      "abilities": {
+        "leader": [],
+        "unit": [],
+        "card": [
+          {
+            "trigger": "whenPlayed",
+            "title": "Draw",
+            "costs": [],
+            "effect": {
+              "kind": "draw",
+              "target": "ownPlayer",
+              "amount": {
+                "kind": "const",
+                "value": 1
+              }
+            },
+            "then": {
+              "kind": "abilityFactoryProgram",
+              "callback": {
+                "kind": "pureCallback",
+                "parameters": [
+                  {
+                    "slot": "data:callback:296:0",
+                    "argument": "continuationContext",
+                    "bindingPattern": {
+                      "name": "ctx"
+                    }
+                  }
+                ],
+                "body": {
+                  "kind": "pureBlock",
+                  "statements": [
+                    {
+                      "kind": "pureBindings",
+                      "bindings": [
+                        {
+                          "slot": "data:local:308",
+                          "mutable": false,
+                          "value": {
+                            "kind": "dataCall",
+                            "method": "getArenaUnits",
+                            "receiver": {
+                              "kind": "dataPath",
+                              "root": [
+                                "data:callback:296:0"
+                              ],
+                              "steps": [
+                                {
+                                  "key": "player",
+                                  "optional": false
+                                }
+                              ]
+                            },
+                            "args": [],
+                            "optionalCall": false,
+                            "optionalReceiver": false
+                          },
+                          "bindingPattern": {
+                            "name": "units"
+                          },
+                          "evaluateAt": "declaration"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "pureReturn",
+                      "value": {
+                        "kind": "validatedAbility",
+                        "ability": {
+                          "title": "",
+                          "costs": [],
+                          "effect": {
+                            "kind": "sequence",
+                            "effects": [
+                              {
+                                "kind": "defeat",
+                                "target": {
+                                  "kind": "dataPath",
+                                  "root": [
+                                    "data:local:308"
+                                  ],
+                                  "steps": []
+                                }
+                              },
+                              {
+                                "kind": "ready",
+                                "target": {
+                                  "kind": "dataPath",
+                                  "root": [
+                                    "data:local:308"
+                                  ],
+                                  "steps": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "capture": "lexicalReferences",
+                "invokeAt": "nativeCallbackInvocation"
+              },
+              "evaluation": "nativeAbilityFactoryInvocation"
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "className": "FactoryBoundary",
+      "baseClass": "NonLeaderUnitCard",
+      "id": "factory-boundary",
+      "internalName": "factory-boundary",
+      "status": "supported"
+    },
+    "runtimeRejection": "unknown field `callback`"
+  }
+]

@@ -3,7 +3,7 @@
 use super::*;
 
 fn event_catalogue() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn event_engine(backend: RulesBackend) -> Engine {
     let mut e = Engine::from_catalogue_value(&event_catalogue()).unwrap();

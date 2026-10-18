@@ -1,5 +1,6 @@
 {
   "name": "kessel",
+  "license": "MIT",
   "version": "0.1.0",
   "private": true,
   "description": "Kessel: a deterministic Rust simulator and endgame prover for Star Wars Unlimited, its WebAssembly build, and the compiler that turns forceteki card definitions into the rules IR it runs",

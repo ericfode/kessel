@@ -13,7 +13,8 @@ fn query(code: &str) -> Query {
         }
     }
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     let entry = c["cards"]
         .as_array()
         .unwrap()
@@ -151,7 +152,8 @@ fn phase_history_caretaker_uses_played_by_snapshot_and_live_force_trait() {
             s.action_player = Some(Seat::P1);
             s.source = matron;
             let p = e.available_programs(&s, matron, "action")[0];
-            e.begin_program(&mut s, p, 0).unwrap();
+            e.begin_program(&mut s, p, ProgramContinuation::Finish)
+                .unwrap();
             if s.decision == Decision::AbilityNoEffect {
                 let action = e
                     .legal_actions(&s)
@@ -337,7 +339,8 @@ fn phase_history_import_hash_copy_reset_and_overflow_are_explicit() {
 #[test]
 fn phase_history_admits_complete_cards_and_rejects_unknown_filter_scope() {
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     let e = engine();
     // Sole history registrations plus General Hux (trait-played action with a
     // reviewed ordinary companion aura).
@@ -431,17 +434,21 @@ fn phase_history_admits_complete_cards_and_rejects_unknown_filter_scope() {
         .as_array_mut()
         .unwrap()
         .push(history);
-    let loaded = crate::ability_ir::Catalogue::load(
-        &json!({"schema":"swu-card-ir/v1","cards":[hux]}),
-    )
-    .unwrap();
+    let loaded =
+        crate::ability_ir::Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[hux]}))
+            .unwrap();
     assert!(!loaded.cards.contains_key("JTL_134"));
 }
 
 #[test]
 fn phase_history_hux_draws_for_friendly_first_order_play_not_enemy_or_other_trait() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
-        for prior in ["none", "enemy-first-order", "friendly-force", "friendly-first-order"] {
+        for prior in [
+            "none",
+            "enemy-first-order",
+            "friendly-force",
+            "friendly-first-order",
+        ] {
             let mut e = engine();
             e.set_rules_backend(backend).unwrap();
             let mut s = board(&e);
@@ -466,7 +473,8 @@ fn phase_history_hux_draws_for_friendly_first_order_play_not_enemy_or_other_trai
             s.action_player = Some(Seat::P1);
             s.source = hux;
             let p = e.available_programs(&s, hux, "action")[0];
-            e.begin_program(&mut s, p, 0).unwrap();
+            e.begin_program(&mut s, p, ProgramContinuation::Finish)
+                .unwrap();
             if s.decision == Decision::AbilityNoEffect {
                 let action = e
                     .legal_actions(&s)
@@ -516,7 +524,7 @@ fn phase_history_departed_token_identity_and_legacy_selected_pool_roundtrip() {
     // fabricated from its current arena or from newly observed events.
     let legacy = Engine::from_compiled_pool_bytes(
         include_bytes!("../data/pool.json"),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     )
     .unwrap();
     let mut s = board(&legacy);

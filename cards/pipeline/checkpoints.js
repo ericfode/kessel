@@ -88,7 +88,24 @@ function recordReviewedRun(out, { pipelineDirectory, beforeCommit, integrationCo
         const report = read(path.join(pipelineDirectory, 'report.json'));
         check(report.schema === 'swu-card-pipeline-run/v1' && !report.failure && report.comparisons.length > 0 && report.comparisons.every(c => c.matched === true || c.status === 'matched'), 'Pipeline comparisons not accepted');
         check(report.review?.packetSha256 === digest(packet), 'Report packet binding changed');
-        const catalogueBytes = blob(repo, after, 'compiler/generated/catalog.json');
+        const { loadCatalog } = require('../../compiler/load-catalog');
+        const catalogueBytes = (() => {
+            // Prefer concern-split shards; fall back to a legacy monolith blob when present.
+            try {
+                const temporary = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'swu-checkpoint-catalog-'));
+                try {
+                    for (const name of ['manifest.json', 'cards.json', 'inputs.json', 'diagnostics.json']) {
+                        fs.writeFileSync(path.join(temporary, name), blob(repo, after, 'compiler/generated/' + name));
+                    }
+                    const assembled = loadCatalog(temporary);
+                    return Buffer.from(JSON.stringify(assembled, null, 2) + '\n');
+                } finally {
+                    fs.rmSync(temporary, { recursive: true, force: true });
+                }
+            } catch {
+                return blob(repo, after, 'compiler/generated/catalog.json');
+            }
+        })();
         check(report.catalogueSha256 === hash(catalogueBytes) && packet.catalogueSha256 === hash(catalogueBytes), 'Committed catalogue differs');
         const admission = JSON.parse(afterBytes), catalogue = JSON.parse(catalogueBytes);
         check(admission.schema === 'omni-rs-catalogue-report-v1' && digest(read(path.join(pipelineDirectory, 'admission.json'))) === digest(admission), 'Committed admission differs from pipeline');

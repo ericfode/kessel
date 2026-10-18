@@ -250,7 +250,7 @@ fn standalone_creation_source(entry: &Value) -> Result<Option<Creation>, String>
     let event = entry["baseClass"] == "EventCard";
     if entry["status"] != "supported"
         || entry["diagnostics"] != json!([])
-        || !crate::static_ongoing::closed_source_context(entry)
+        || !crate::admission::SourceContextPolicy::Closed.accepts(entry)
         || !(event || entry["baseClass"] == "NonLeaderUnitCard")
         || entry["card"]["types"] != json!([if event { "event" } else { "unit" }])
         || !entry["card"]["unique"].is_boolean()
@@ -341,7 +341,7 @@ fn standalone_creation_source(entry: &Value) -> Result<Option<Creation>, String>
 /// source context. This recognizes provenance; it does not imply admission.
 pub(crate) fn native_entry(entry: &Value) -> bool {
     let expected = json!({"title":"Credit","subtitle":"","cost":0,"hp":null,"power":null,"text":"While paying resources, you may defeat this token. If you do, pay 1 resource less.","deployBox":null,"epicAction":"","unique":false,"rules":"You may defeat Credit tokens while paying resources to play cards or use abilities.\n","upgradePower":null,"upgradeHp":null,"id":"8015500527","aspects":[],"traits":["supply"],"keywords":[],"types":["token"],"setId":{"set":"LAW"},"internalName":"credit"});
-    crate::static_ongoing::closed_source_context(entry)
+    crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["setCode"] == "TOKEN_CREDIT"
         && entry["id"] == "8015500527"
         && entry["internalName"] == "credit"

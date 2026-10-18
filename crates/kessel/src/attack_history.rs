@@ -31,7 +31,7 @@ pub fn validate(test:&str,attack:&AttackContextPath,watcher:&str,binding:&str)->
     if test!="defenderWasDefeated" || watcher!="cardsDefeatedThisPhase" || binding.is_empty() || binding.len()>128 {return Err("unsupported attack defeat history helper".into());}
     attack.validate()
 }
-pub fn contains(v:&Value)->bool {v["kind"]=="historyAttackCheck" || match v {Value::Array(a)=>a.iter().any(contains),Value::Object(o)=>o.values().any(contains),_=>false}}
+pub fn contains(v:&Value)->bool { crate::ability_ir::contains(v,|v|v["kind"]=="historyAttackCheck") }
 /// Every history read must resolve to the declared pinned watcher instance.
 pub fn declarations(entry:&Value)->bool {
     fn bindings(v:&Value,out:&mut Vec<String>) {if v["kind"]=="historyAttackCheck" {if let Some(b)=v["binding"].as_str(){if !out.iter().any(|s|s==b){out.push(b.into());}}}match v{Value::Array(a)=>for v in a {bindings(v,out)},Value::Object(o)=>for v in o.values(){bindings(v,out)},_=>{}}}

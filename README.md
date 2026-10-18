@@ -81,8 +81,19 @@ to a Kessel commit, for the referee's Rust simulations.
 ## Card data
 
 Official card data is not fetched by the build of the crates, but the committed generated
-files contain it: `compiler/generated/catalog.json` and `runtime-pool.json`, the reference pools in
+files contain it: the concern-split catalogue under `compiler/generated/` (`manifest.json`,
+`cards.json`, `diagnostics.json`, `inputs.json`) and `runtime-pool.json`, the reference pools in
 `cards/reference/fixtures/pools/`, `crates/kessel/tests/compiled-fixtures/pool.json` and
 `crates/kessel/data/pool.json` carry card titles, stats and rules text derived from forceteki's
-`get-cards` download. Keep the repository private, or move these to build-time generation,
-before publishing it.
+`get-cards` download. They are here so the simulator can be checked against the engine; they belong to
+the card game's owners (see License and credits).
+
+## License and credits
+
+The code is MIT licensed (`LICENSE`). This is an unofficial fan project. It is not made, endorsed or supported by Fantasy Flight Games, Asmodee, Disney or
+Lucasfilm. Star Wars: Unlimited and its card names, card text and art belong to their owners.
+
+- The card compiler reads [forceteki](https://github.com/SWU-Karabast/forceteki)'s card code (MIT, `LICENSE.forceteki`),
+  and the committed catalog, pools and fixtures are built from it.
+- The card titles, stats and rules text in those files come from the official card database through forceteki's
+  `get-cards` download (see Card data above).

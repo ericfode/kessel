@@ -43,7 +43,7 @@ fn attached_trait_leia_disguise_play_uses_upgrade_player_and_current_parent_titl
 fn attached_trait_leia_disguise_wrong_or_missing_parent_has_no_shield_and_no_dereference() {
     let e=engine();let mut s=board(&e);let host=unit(&e,&mut s,Seat::P1,"LOF_254");let upgrade=hand(&e,&mut s,"LAW_111");
     let prompt=e.apply(&s,&e.card_action(&s,upgrade)).unwrap();let done=e.apply(&prompt,&e.card_action(&prompt,host)).unwrap();assert_eq!(done.decision,Decision::Window);assert_eq!(done.card(host).shield,0);assert!(e.card_has_trait(&done,host,"underworld"));
-    let mut missing=done;e.leave_play_primary(&mut missing,upgrade).unwrap();let program=e.def(&missing,upgrade).programs.card.iter().copied().find(|&p|e.program(p).trigger=="whenPlayed").unwrap();missing.source=upgrade;e.begin_program(&mut missing,program,0).unwrap();assert_eq!(missing.card(host).shield,0);assert!(!e.card_has_trait(&missing,host,"underworld"));
+    let mut missing=done;e.leave_play_primary(&mut missing,upgrade).unwrap();let program=e.def(&missing,upgrade).programs.card.iter().copied().find(|&p|e.program(p).trigger=="whenPlayed").unwrap();missing.source=upgrade;e.begin_program(&mut missing,program,ProgramContinuation::Finish).unwrap();assert_eq!(missing.card(host).shield,0);assert!(!e.card_has_trait(&missing,host,"underworld"));
 }
 #[test]
 fn attached_trait_fulcrum_grants_rebel_and_host_relative_aura_excluding_host() {
@@ -80,7 +80,7 @@ fn attached_trait_fulcrum_live_gained_rebels_and_stat_death_after_grantor_remova
 
 #[test]
 fn attached_trait_raw_wrapper_binding_modifier_and_host_aura_fields_fail_closed() {
-    let catalog:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["SHD_069","LAW_150"] {
         let original=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
         let admitted=|v:Value|crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[v]})).unwrap().cards.contains_key(code);assert!(admitted(original.clone()));
@@ -95,4 +95,69 @@ fn attached_trait_raw_wrapper_binding_modifier_and_host_aura_fields_fail_closed(
             let mut bad=original.clone();bad["abilities"]["card"][1]["effect"]["program"]["effect"]["properties"]["matchTarget"]["body"]["left"]["right"]["op"]=json!("!==");assert!(!admitted(bad));
         }
     }
+}
+
+#[test]
+fn attached_contract_shared_parent_scope_preserves_wrapper_diagnostics_and_source_roles() {
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    for (code,constant) in [("ASH_210",false),("SHD_069",true)] {
+        let entry=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]==code).unwrap();
+        let expected=if constant {"attached constant requires exact parent/controller/presence contract"}
+            else {"attached registration requires exact ordinary upgrade/host/controller contract"};
+        for (field,value) in [("target",json!("self")),("targetController",json!("self")),("targetTypes",json!(["unit"])),
+            ("targetTypes",json!(["base","unit"])),("targetZone",json!("arena")),("requiresGrantorInPlay",json!(false))] {
+            let mut bad=entry.clone();bad["abilities"]["card"][0]["effect"][field]=value;
+            assert_eq!(crate::attached_registration::sides(&bad).unwrap_err(),expected,"{code}:{field}");
+        }
+        let mut bad=entry.clone();
+        bad["abilities"]["card"][0]["effect"]["sourceBinding"]=json!(if constant {"attachedHost"} else {"upgrade"});
+        assert!(crate::attached_registration::sides(&bad).is_err(),"source/grantor roles must not collapse");
+    }
+}
+
+#[test]
+fn attached_contract_complete_and_legacy_metadata_keep_distinct_printed_boundaries() {
+    use crate::attached_registration::{delegated_upgrade_metadata,complete_single_upgrade,plain_upgrade};
+    let catalog:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    let entry=catalog["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SHD_069").unwrap();
+    let sides=crate::attached_registration::sides(entry).unwrap();
+    assert!(plain_upgrade(entry));assert!(complete_single_upgrade(entry,&sides));assert!(delegated_upgrade_metadata(entry,&sides));
+    for (field,value) in [("upgradePower",json!(999)),("deployBox",json!("unused legacy field")),("epicAction",json!("unused legacy field"))] {
+        let mut changed=entry.clone();changed["card"][field]=value;
+        assert!(!plain_upgrade(&changed),"{field}");
+        assert!(!complete_single_upgrade(&changed,&sides),"{field}");
+        assert!(delegated_upgrade_metadata(&changed,&sides),"legacy policy must stay unchanged: {field}");
+    }
+    let mut changed=entry.clone();changed["card"]["power"]=json!(-1000);changed["card"]["upgradePower"]=json!(-1000);
+    assert!(plain_upgrade(&changed));assert!(complete_single_upgrade(&changed,&sides));
+    changed["card"]["power"]=json!(-1001);changed["card"]["upgradePower"]=json!(-1001);
+    assert!(!plain_upgrade(&changed));assert!(!complete_single_upgrade(&changed,&sides));
+    let mut changed=entry.clone();changed["stateWatchers"]=json!({});
+    assert!(!plain_upgrade(&changed));
+    assert!(complete_single_upgrade(&changed,&sides),"gained envelope leaves source helpers to the complete-source gate");
+}
+
+#[test]
+fn attached_contract_alias_context_errors_remain_ordered_and_aura_policy_is_explicit() {
+    use crate::ability_ir::{Ability,Expr};
+    use crate::attached_constants::validate_context;
+    let keyword=|context:&str,target:&str|serde_json::from_value::<Ability>(json!({"title":"contract witness","trigger":"constant",
+        "attachedContext":context,"effect":{"kind":"gainKeyword","target":target,"keyword":"raid","amount":{"kind":"const","value":1},"duration":"persistent"}})).unwrap();
+    for (context,target) in [("upgrade","parent"),("host","self")] {
+        let a=keyword(context,target);assert!(validate_context(&a).is_ok());
+        let mut bad=a.clone();bad.optional=true;bad.effect=crate::ability_ir::Effect::NoAction;
+        assert_eq!(validate_context(&bad).unwrap_err(),"attached contexts require bounded constant keyword registrations");
+        let wrong=keyword(context,if target=="parent" {"self"} else {"parent"});
+        assert_eq!(validate_context(&wrong).unwrap_err(),"attached context supports only persistent literal keyword grants");
+    }
+    let mut a=keyword("host","self");
+    a.condition=Some(Expr::Ref {path:vec!["source".into(),"parentCard".into()]});
+    assert_eq!(validate_context(&a).unwrap_err(),"delegated host condition cannot read an upgrade parent getter");
+    let mut a=keyword("host","chosen");
+    a.target_resolver=Some(serde_json::from_value(json!({"owner":"self","type":"unit","zone":"arena","promptTitleParts":[{"kind":"const","value":"retained legacy field"}],"predicate":{
+        "kind":"binary","op":"&&","left":{"kind":"binary","op":"!==","left":{"kind":"ref","path":["card"]},"right":{"kind":"ref","path":["source"]}},
+        "right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}}})).unwrap());
+    assert!(validate_context(&a).is_ok(),"legacy keyword policy does not reject prompt fragments at this stage");
+    a.target_resolver.as_mut().unwrap().owner="any".into();
+    assert_eq!(validate_context(&a).unwrap_err(),"delegated host aura requires other friendly arena units by host identity and controller");
 }

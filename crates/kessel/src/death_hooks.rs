@@ -489,21 +489,9 @@ impl Predicate {
     }
 }
 fn plain_hook_header(a: &Ability) -> bool {
-    a.trigger == "eventHooks"
-        && !a.hooks.is_empty()
-        && a.hooks.len() <= 2
-        && !a.optional
-        && !a.requires_confirmation
-        && !a.coordinate
-        && a.gained_host.is_none()
-        && a.attached_context.is_none()
-        && !a.attacker_must_survive
-        && a.costs.is_empty()
-        && a.context_title.is_empty()
-        && a.target_resolvers.is_empty()
-        && a.condition.is_none()
-        && a.then.is_none()
-        && a.if_you_do.is_none()
+    a.trigger == "eventHooks" && !a.hooks.is_empty() && a.hooks.len() <= 2
+        && crate::admission::plain_registration(a)
+        && a.attached_context.is_none() && !a.attacker_must_survive
 }
 pub(crate) fn registration(a: &Ability) -> bool {
     if !plain_hook_header(a) {
@@ -1186,7 +1174,7 @@ pub(crate) fn marker(v: &Value) -> bool {
         }
 }
 fn ordinary_unit_hook_source(e: &Value, sides: &Sides) -> bool {
-    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
+    crate::admission::SourceContextPolicy::LegacyEmptyWatchers.accepts(e)
         && e["baseClass"] == "NonLeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["unit"])
         && e["card"]["unique"].is_boolean()
@@ -1194,9 +1182,6 @@ fn ordinary_unit_hook_source(e: &Value, sides: &Sides) -> bool {
         && sides.unit.is_empty()
         && !sides.card.is_empty()
         && sides.card.len() <= 8
-        && (e["stateWatchers"].is_null()
-            || e["stateWatchers"] == serde_json::json!([])
-            || e["stateWatchers"] == serde_json::json!({}))
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()
         && [
@@ -1229,7 +1214,7 @@ pub(crate) fn smuggle_play_entry(e: &Value, sides: &Sides) -> bool {
         && smuggle_play_registration(&sides.card[0])
 }
 fn ordinary_leader_hook_source(e: &Value, sides: &Sides) -> bool {
-    ["historyHelpers","privatePrograms","classMethods","privateClassConstants","inheritedSource","deploymentOverride","setupValidationOverrides"].iter().all(|k|e[*k].is_null()||e[*k].as_array().is_some_and(Vec::is_empty))
+    crate::admission::SourceContextPolicy::LegacyEmptyWatchers.accepts(e)
         && e["baseClass"] == "LeaderUnitCard"
         && e["card"]["types"] == serde_json::json!(["leader"])
         && e["card"]["unique"] == true
@@ -1310,5 +1295,5 @@ pub(crate) fn leader_deploy_base_entry(e: &Value, sides: &Sides) -> bool {
         && sides.unit.is_empty()
         && sides.card.len() == 1
         && leader_deploy_base_registration(&sides.card[0])
-        && crate::ability_ir::basezone_source_kind(e) == Some(false)
+        && crate::ability_ir::activation_contract::base_zone_source(e) == Some(crate::ability_ir::activation_contract::Source::Base)
 }

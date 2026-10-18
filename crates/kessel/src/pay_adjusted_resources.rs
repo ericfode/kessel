@@ -89,7 +89,7 @@ pub(crate) fn validate_entry(entry: &Value) -> Result<(), String> {
                 && sides.card.len() <= 8
                 && sides.card.iter().all(ordinary_context)
         });
-    if !crate::static_ongoing::closed_source_context(entry)
+    if !crate::admission::SourceContextPolicy::Closed.accepts(entry)
         || entry["baseClass"] != "NonLeaderUnitCard"
         || entry["card"]["types"] != json!(["unit"])
         || !matches!(entry["card"]["arena"].as_str(), Some("ground" | "space"))

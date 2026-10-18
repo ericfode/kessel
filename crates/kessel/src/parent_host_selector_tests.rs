@@ -16,11 +16,18 @@ fn program_for(e: &Engine, s: &State, source: CardId, trigger: &str) -> u16 {
         .expect(trigger)
 }
 
-fn run_optional_defeat(e: &Engine, mut s: State, source: CardId, trigger: &str, chosen: CardId) -> State {
+fn run_optional_defeat(
+    e: &Engine,
+    mut s: State,
+    source: CardId,
+    trigger: &str,
+    chosen: CardId,
+) -> State {
     s.source = source;
     s.active = s.card(source).owner;
     let program = program_for(e, &s, source, trigger);
-    e.begin_program(&mut s, program, 0).unwrap();
+    e.begin_program(&mut s, program, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityTarget);
     let actions = e.legal_actions(&s);
     assert!(
@@ -62,7 +69,8 @@ fn wild_space_wanderer_defeats_only_upgrades_attached_to_bases() {
         s.source = wanderer;
         s.active = seat;
         let program = program_for(&e, &s, wanderer, "whenPlayed");
-        e.begin_program(&mut s, program, 0).unwrap();
+        e.begin_program(&mut s, program, ProgramContinuation::Finish)
+            .unwrap();
         assert_eq!(s.decision, Decision::AbilityTarget);
         let actions = e.legal_actions(&s);
         assert!(actions.iter().any(|a| a.id() == Some(on_base)));
@@ -94,7 +102,8 @@ fn overcharged_transport_defeats_only_space_host_upgrades() {
             prompt.source = transport;
             prompt.active = seat;
             let program = program_for(&e, &prompt, transport, trigger);
-            e.begin_program(&mut prompt, program, 0).unwrap();
+            e.begin_program(&mut prompt, program, ProgramContinuation::Finish)
+                .unwrap();
             assert_eq!(prompt.decision, Decision::AbilityTarget, "{trigger}");
             let actions = e.legal_actions(&prompt);
             assert!(
@@ -132,7 +141,8 @@ fn card_parent_paths_validate_while_source_parent_still_requires_upgrade_class()
     assert!(is_base.validate().is_ok());
 
     let catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     let mut entry = catalog["cards"]
         .as_array()
         .unwrap()

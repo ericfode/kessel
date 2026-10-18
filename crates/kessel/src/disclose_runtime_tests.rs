@@ -1,7 +1,4 @@
 use super::*;
-fn committed_catalogue() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
-}
 fn disclose_test_engine(required: &[&str], trigger: &str, leaf: Value) -> Engine {
     let mut c: Value = committed_catalogue().clone();
     let row = c["cards"]
@@ -49,7 +46,8 @@ fn disclose_all_multiset_toggle_limit_acknowledgement_and_copy_hash() {
         s.player_mut(seat).deck.push(draw).unwrap();
         s.source = source;
         let p = e.card_programs(&s, source)[0];
-        e.begin_program(&mut s, p, 0).unwrap();
+        e.begin_program(&mut s, p, ProgramContinuation::Finish)
+            .unwrap();
         assert_eq!(s.decision, Decision::DiscloseSelect);
         assert!(e
             .legal_actions(&s)
@@ -109,7 +107,8 @@ fn disclose_all_double_icons_single_card_autocompletes_without_done() {
         s.players[0].hand.push(donor).unwrap();
         s.source = source;
         let program = e.card_programs(&s, source)[0];
-        e.begin_program(&mut s, program, 0).unwrap();
+        e.begin_program(&mut s, program, ProgramContinuation::Finish)
+            .unwrap();
         let out = e.apply(&s, &e.card_action(&s, donor)).unwrap();
         assert_eq!(out.decision, Decision::DiscloseReveal);
         assert_eq!(out.disclose.selected, Selection::one(donor));
@@ -129,7 +128,8 @@ fn disclose_all_impossible_trigger_masks_and_decline_never_runs_continuation() {
     s.ability_succeeded = true;
     s.ability_result = 42;
     let program = e.card_programs(&s, source)[0];
-    e.begin_program(&mut s, program, 0).unwrap();
+    e.begin_program(&mut s, program, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::DisclosePause);
     assert_eq!(e.legal_actions(&s), vec![Action::button("Skip", "done")]);
     let out = e.apply(&s, &Action::button("Skip", "done")).unwrap();
@@ -146,7 +146,8 @@ fn disclose_all_impossible_trigger_masks_and_decline_never_runs_continuation() {
     s.players[0].deck.push(draw).unwrap();
     s.source = source;
     let program = e.card_programs(&s, source)[0];
-    e.begin_program(&mut s, program, 0).unwrap();
+    e.begin_program(&mut s, program, ProgramContinuation::Finish)
+        .unwrap();
     let out = e.apply(&s, &Action::button("Cancel", "cancel")).unwrap();
     assert!(out.players[0].hand.contains(donor));
     assert!(!out.players[0].hand.contains(draw));
@@ -174,7 +175,8 @@ fn disclose_all_event_impossible_uses_normal_confirmation_without_masking() {
     s.players[0].deck.push(draw).unwrap();
     s.source = event;
     let program = e.card_programs(&s, event)[0];
-    e.begin_program(&mut s, program, 0).unwrap();
+    e.begin_program(&mut s, program, ProgramContinuation::Finish)
+        .unwrap();
     assert_eq!(s.decision, Decision::AbilityNoEffect);
     let actions = e.legal_actions(&s);
     let use_it = actions.into_iter().find(|a| a.label != "Cancel").unwrap();
@@ -541,7 +543,8 @@ fn disclose_pending_snapshot_and_invalid_clicks_fail_closed() {
     }
     s.source = source;
     let p = e.card_programs(&s, source)[0];
-    e.begin_program(&mut s, p, 0).unwrap();
+    e.begin_program(&mut s, p, ProgramContinuation::Finish)
+        .unwrap();
     let snapshot = e.snapshot(&s);
     assert_eq!(snapshot["disclosePending"], json!(true));
     assert!(e
@@ -579,7 +582,7 @@ fn disclose_pending_snapshot_and_invalid_clicks_fail_closed() {
 #[test]
 fn disclose_spy_dependency_rejects_absent_or_malformed_native_token() {
     for malformed in [false, true] {
-        let mut catalogue = committed_catalogue();
+        let mut catalogue = committed_catalogue().clone();
         let rows = catalogue["cards"].as_array_mut().unwrap();
         if malformed {
             rows.iter_mut()
@@ -617,7 +620,8 @@ fn disclose_real_spies_preserve_native_traits_readiness_and_physical_identity() 
         s.players[0].hand.push(donor).unwrap();
         s.source = source;
         let program = e.card_programs(&s, source)[0];
-        e.begin_program(&mut s, program, 0).unwrap();
+        e.begin_program(&mut s, program, ProgramContinuation::Finish)
+            .unwrap();
         let reveal = e.apply(&s, &e.card_action(&s, donor)).unwrap();
         assert_eq!(reveal.decision, Decision::DiscloseReveal);
         let next = reveal.next_id;

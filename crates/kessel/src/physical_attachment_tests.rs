@@ -3,13 +3,13 @@ use super::*;
 use serde_json::{json, Value};
 
 fn engine() -> Engine {
-    Engine::from_catalogue_bytes(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 // No currently catalogued ordinary upgrade has the Resistance trait. These
 // explicitly synthetic raw-catalog variants exercise the physical query branch
 // without claiming an unsupported pilot is a playable ordinary upgrade.
 fn synthetic_upgrade_engine(traits: &[&str], title: Option<&str>) -> Engine {
-    let mut catalogue: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let mut catalogue: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     let entry = catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|e| e["setCode"] == "HMW_235").unwrap();
     entry["card"]["traits"] = json!(traits);
     if let Some(title) = title { entry["card"]["title"] = json!(title); }
@@ -308,7 +308,7 @@ fn physical_attachment_leaf_arguments_and_fambaa_metadata_fail_closed() {
     extra["includeHand"] = json!(true);
     assert!(serde_json::from_value::<crate::ability_ir::Expr>(extra).is_err());
 
-    let original: Value = serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for mutation in ["event-class", "mixed-type", "unique", "keyword", "intrinsic-keyword", "extra-side", "pilot", "attach", "optional", "cost", "onAttack", "two-shields", "experience", "opponent", "controller-order", "extra-registration"] {
         let mut catalogue = original.clone();
         let entry = catalogue["cards"].as_array_mut().unwrap().iter_mut().find(|e| e["setCode"] == "HMW_080").unwrap();

@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict');
 const { classifyForcePresence, planForcePresenceProbes } = require('../pipeline/force-presence-probes');
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const entry = id => structuredClone(catalogue.cards.find(e => e.setCode === id));
 test('four full source constant shapes have actual lifecycle plans and explicit gaps', () => {
     for (const id of ['LOF_050','LOF_196','LOF_231','LOF_237']) {

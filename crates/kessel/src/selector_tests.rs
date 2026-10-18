@@ -9,7 +9,7 @@ fn constant(value: &str) -> Value {
 }
 fn source_entry(code: &str) -> Value {
     let c: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     c["cards"]
         .as_array()
         .unwrap()
@@ -445,7 +445,7 @@ fn selector_complete_cards_are_admitted_and_compound_contracts_still_reject() {
 #[test]
 fn selector_expanded_source_metadata_and_selected_pool_token_dependencies_fail_closed() {
     let original: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["SEC_188", "SOR_183"] {
         for (field, value) in [
             ("baseClass", json!("LeaderUnitCard")),
@@ -478,7 +478,7 @@ fn selector_expanded_source_metadata_and_selected_pool_token_dependencies_fail_c
     });
     assert!(Engine::from_compiled_pool_bytes(
         &serde_json::to_vec(&pool).unwrap(),
-        include_bytes!("../../../compiler/generated/catalog.json")
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))
     )
     .err()
     .unwrap()
@@ -486,4 +486,32 @@ fn selector_expanded_source_metadata_and_selected_pool_token_dependencies_fail_c
     let mut bad = source_entry("HMW_197")["abilities"]["card"][0].clone();
     bad["effect"] = json!({"kind":"simultaneous","effects":[bad["effect"].clone(),{"kind":"damage","amount":{"kind":"const","value":1},"target":"chosen"}]});
     assert!(Program::compile(&serde_json::from_value::<Ability>(bad).unwrap()).is_err());
+}
+
+#[test]
+fn selector_literal_zone_capabilities_keep_seat_zone_and_repeated_inventory_order() {
+    let e = engine();
+    let space_code = e.definitions.iter().find(|d| d.info.is("unit") && !d.info.is("leader") && d.info.arena.as_deref() == Some("space")).unwrap().code.clone();
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = seat_board(&e, seat);
+        let source = unit(&e, &mut s, seat, "LOF_256");
+        let own_space = unit(&e, &mut s, seat, &space_code);
+        let opposing_ground = unit(&e, &mut s, seat.other(), "LOF_256");
+        let opposing_space = unit(&e, &mut s, seat.other(), &space_code);
+        let own_event = add(&e, &mut s, seat, "SOR_041");
+        let opposing_event = add(&e, &mut s, seat.other(), "SOR_041");
+        s.player_mut(seat).discard.push(own_event).unwrap();
+        s.player_mut(seat.other()).discard.push(opposing_event).unwrap();
+        let mut raw = native(
+            json!({"kind":"array","items":[constant("unit"),constant("base"),constant("event"),constant("leader")]}),
+            json!({"kind":"array","items":[constant("spaceArena"),constant("groundArena"),constant("spaceArena"),constant("base"),constant("discard")]}),
+            "any",
+        );
+        raw["chooser"] = json!("opponent");
+        let resolver: TargetResolver = serde_json::from_value(raw).unwrap();
+        assert_eq!(e.matching_targets(&s, source, &resolver), vec![
+            own_space, source, own_space, s.player(seat).base, s.player(seat).leader, own_event,
+            opposing_space, opposing_ground, opposing_space, s.player(seat.other()).base, s.player(seat.other()).leader, opposing_event,
+        ]);
+    }
 }

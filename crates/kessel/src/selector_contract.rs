@@ -129,6 +129,158 @@ pub enum SelectorZone {
     Base,
     Discard,
 }
+impl SelectorZone {
+    /// Ordered inventory partitions, not an unordered union. The caller retains
+    /// the literal zone list, including repeated zones, and visits seats first.
+    pub fn includes_ground(self) -> bool {
+        matches!(
+            self,
+            Self::AnyArena | Self::AnyAttackable | Self::GroundArena
+        )
+    }
+    pub fn includes_space(self) -> bool {
+        matches!(
+            self,
+            Self::AnyArena | Self::AnyAttackable | Self::SpaceArena
+        )
+    }
+    pub fn includes_base(self) -> bool {
+        matches!(self, Self::AnyAttackable | Self::Base)
+    }
+}
+
+/// Native selectors currently execute only in ordinary card-side contexts.
+/// This does not grant attached, leader, gained, or history candidate scopes.
+fn ordinary_source_sides(sides: &super::Sides) -> bool {
+    sides.unit.is_empty()
+        && sides.leader.is_empty()
+        && sides.card.iter().all(|a| {
+            ["event", "action", "whenPlayed", "onAttack", "whenDefeated"]
+                .contains(&a.trigger.as_str())
+        })
+}
+
+/// Shared shape only: callers retain their own owner, optionality, predicate,
+/// prompt, and timing requirements. `single` is deliberately not equivalent to
+/// an omitted mode at these reviewed named-selector boundaries.
+pub(super) fn scalar_arena_unit(resolver: &TargetResolver) -> bool {
+    resolver.card_type == "unit"
+        && resolver.mode.is_none()
+        && resolver.count.is_none()
+        && matches!(resolver.zone.as_deref(), Some("arena" | "anyAttackable"))
+        && resolver
+            .arena
+            .as_deref()
+            .is_none_or(|a| ["ground", "space"].contains(&a))
+}
+
+pub(super) fn own_named_binding(name: &str, chooser: &str) -> bool {
+    !name.is_empty()
+        && name != "target"
+        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        && chooser == "self"
+}
+
+fn reference(expr: &Expr, expected: &[&str]) -> bool {
+    matches!(expr.original(), Expr::Ref { path } if path.iter().map(String::as_str).eq(expected.iter().copied()))
+}
+fn literal_value(expr: &Expr, expected: &Value) -> bool {
+    matches!(expr.original(), Expr::Const { value } if value == expected)
+}
+fn unary(expr: &Expr, operator: &str, value: impl FnOnce(&Expr) -> bool) -> bool {
+    matches!(expr.original(), Expr::Unary { op, value: inner } if op == operator && value(inner))
+}
+fn binary(
+    expr: &Expr,
+    operator: &str,
+    left_matches: impl FnOnce(&Expr) -> bool,
+    right_matches: impl FnOnce(&Expr) -> bool,
+) -> bool {
+    matches!(expr.original(), Expr::Binary { op, left, right } if op == operator && left_matches(left) && right_matches(right))
+}
+fn candidate_is_unit(expr: &Expr) -> bool {
+    matches!(expr.original(), Expr::Query { name, receiver, args } if name == "isUnit" && reference(receiver, &["card"]) && args.is_empty())
+}
+fn other_than_source(expr: &Expr) -> bool {
+    binary(
+        expr,
+        "!==",
+        |e| reference(e, &["card"]),
+        |e| reference(e, &["source"]),
+    )
+}
+fn nullable_other_than_source(expr: &Expr) -> bool {
+    binary(
+        expr,
+        "||",
+        |e| unary(e, "!", |e| reference(e, &["source"])),
+        other_than_source,
+    )
+}
+fn arena_list(expr: &Expr, owner: &str, predicate_matches: impl FnOnce(&Expr) -> bool) -> bool {
+    matches!(expr.original(), Expr::ArenaList { receiver, predicate } if reference(receiver, &[owner]) && predicate_matches(predicate))
+}
+fn named_target(target: &super::Target, name: &str) -> bool {
+    matches!(target, super::Target::Name(actual) if actual == name)
+}
+
+/// The three reviewed arena-query registrations share explicit physical-card,
+/// source, and player binders. This replaces serialization-based ability matching;
+/// the separate raw whole-source fingerprint remains a provenance boundary.
+pub(super) fn reviewed_arena_query_ability(ability: &super::Ability) -> bool {
+    use super::{Cost, Effect};
+    if !ability.hooks.is_empty()
+        || ability.gained_host.is_some()
+        || ability.attached_context.is_some()
+        || !ability.target_resolvers.is_empty()
+        || ability.attacker_must_survive
+        || ability.coordinate
+        || !ability.context_title.is_empty()
+        || ability.requires_confirmation
+        || ability.then.is_some()
+        || ability.if_you_do.is_some()
+    {
+        return false;
+    }
+    match ability.trigger.as_str() {
+        "constant" => {
+            !ability.optional && ability.costs.is_empty() && ability.target_resolver.is_none()
+                && matches!(&ability.effect, Effect::GainKeyword { target, duration, keyword, amount }
+                    if named_target(target, "self") && duration == "persistent" && keyword == "ambush" && literal_value(amount, &Value::from(1)))
+                && ability.condition.as_ref().is_some_and(|e| {
+                    matches!(e.original(), Expr::ArenaSome { receiver, predicate }
+                        if arena_list(receiver, "player", |e| binary(e, "&&", |e| literal_value(e, &Value::Bool(true)), nullable_other_than_source))
+                            && unary(predicate, "!", |e| reference(e, &["card", "unique"])))
+                })
+        }
+        "whenPlayed" => {
+            ability.optional && ability.costs.is_empty() && ability.condition.is_none()
+                && ability.target_resolver.as_ref().is_some_and(|r|
+                    super::RecipeSelector::one("any", "unit", "anyAttackable").matches(r)
+                        && r.predicate.is_none() && r.prompt_title_parts.is_empty() && r.native.is_none())
+                && matches!(&ability.effect, Effect::Conditional { condition, on_true, on_false }
+                    if binary(condition, ">", |e| matches!(e.original(), Expr::ArenaLength { receiver }
+                        if matches!(receiver.original(), Expr::ArenaFilter { receiver, predicate }
+                            if arena_list(receiver, "player", |e| super::emitted_arena_scope(e, "spaceArena")) && other_than_source(predicate))),
+                        |e| literal_value(e, &Value::from(0)))
+                    && matches!(on_true.as_ref(), Effect::Exhaust { target } if named_target(target, "chosen"))
+                    && matches!(on_false.as_deref(), Some(Effect::NoAction)))
+        }
+        "action" => {
+            !ability.optional && ability.target_resolver.is_none() && ability.condition.is_none()
+                && matches!(ability.costs.as_slice(), [Cost::ExhaustSelf, Cost::Resources { amount }] if literal_value(amount, &Value::from(1)))
+                && matches!(&ability.effect, Effect::Conditional { condition, on_true, on_false }
+                    if binary(condition, ">=", |e| matches!(e.original(), Expr::ArenaLength { receiver }
+                        if arena_list(receiver, "game", |e| binary(e, "&&", |e| literal_value(e, &Value::Bool(true)),
+                            |e| binary(e, "&&", candidate_is_unit, |e| reference(e, &["card", "exhausted"]))))),
+                        |e| literal_value(e, &Value::from(4)))
+                    && matches!(on_true.as_ref(), Effect::CreateTokenUnit { token_type, amount, target, enters_ready }
+                        if token_type == "spy" && literal_value(amount, &Value::from(1)) && named_target(target, "ownPlayer") && !enters_ready)
+                    && matches!(on_false.as_deref(), Some(Effect::NoAction)))
+        }
+        _ => false,
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SelectorController {
@@ -327,51 +479,25 @@ impl NativeCardSelection {
         // has printed stats. Typed control-flow refinement is a separate contract.
         if let Some(predicate) = &self.predicate {
             fn unit_read(e: &Expr) -> bool {
-                match e {
-                    Expr::Ref { path } => {
-                        path.first()
-                            .is_some_and(|s| ["selectionCandidate", "target"].contains(&s.as_str()))
-                            && path.iter().skip(1).any(|s| {
-                                ["power", "hp", "remainingHp", "damage", "exhausted"]
-                                    .contains(&s.as_str())
-                            })
+                e.any(|e| match e {
+                    Expr::Compiled(_) | Expr::Collection { .. } => Some(false),
+                    Expr::Ref { path } => Some(
+                        path.first().is_some_and(|s| {
+                            ["selectionCandidate", "target"].contains(&s.as_str())
+                        }) && path.iter().skip(1).any(|s| {
+                            ["power", "hp", "remainingHp", "damage", "exhausted"]
+                                .contains(&s.as_str())
+                        }),
+                    ),
+                    Expr::Query { name, receiver, .. }
+                        if ["getPower", "getHp"].contains(&name.as_str())
+                            && matches!(receiver.as_ref(), Expr::Ref { path }
+                                if path.first().is_some_and(|s| ["selectionCandidate", "target"].contains(&s.as_str()))) =>
+                    {
+                        Some(true)
                     }
-                    Expr::Query {
-                        name,
-                        receiver,
-                        args,
-                    } => {
-                        (["getPower", "getHp"].contains(&name.as_str())
-                            && matches!(receiver.as_ref(),Expr::Ref{path} if path.first().is_some_and(|s|["selectionCandidate","target"].contains(&s.as_str()))))
-                            || unit_read(receiver)
-                            || args.iter().any(unit_read)
-                    }
-                    Expr::Binary { left, right, .. } => unit_read(left) || unit_read(right),
-                    Expr::Unary { value, .. } => unit_read(value),
-                    Expr::Array { items } | Expr::Math { args: items, .. } => {
-                        items.iter().any(unit_read)
-                    }
-                    Expr::Conditional {
-                        condition,
-                        then,
-                        r#else,
-                    } => unit_read(condition) || unit_read(then) || unit_read(r#else),
-                    Expr::NativeTokenPredicate { receiver, .. }
-                    | Expr::ArenaLength { receiver } => unit_read(receiver),
-                    Expr::ArenaList {
-                        receiver,
-                        predicate,
-                    }
-                    | Expr::ArenaFilter {
-                        receiver,
-                        predicate,
-                    }
-                    | Expr::ArenaSome {
-                        receiver,
-                        predicate,
-                    } => unit_read(receiver) || unit_read(predicate),
-                    _ => false,
-                }
+                    _ => None,
+                })
             }
             let non_unit = [
                 CardTypeFilter::Base,
@@ -428,46 +554,11 @@ impl NativeCardSelection {
     }
 }
 fn captures_outer_candidate(e: &Expr) -> bool {
-    match e {
-        Expr::Ref { path } => path.first().is_some_and(|s| {
-            ["selectionCandidate", "target", "targets", "namedTargets"].contains(&s.as_str())
-        }),
-        Expr::Binary { left, right, .. } => {
-            captures_outer_candidate(left) || captures_outer_candidate(right)
-        }
-        Expr::Unary { value, .. } => captures_outer_candidate(value),
-        Expr::Query { receiver, args, .. } => {
-            captures_outer_candidate(receiver) || args.iter().any(captures_outer_candidate)
-        }
-        Expr::Array { items } | Expr::Math { args: items, .. } => {
-            items.iter().any(captures_outer_candidate)
-        }
-        Expr::Conditional {
-            condition,
-            then,
-            r#else,
-        } => {
-            captures_outer_candidate(condition)
-                || captures_outer_candidate(then)
-                || captures_outer_candidate(r#else)
-        }
-        Expr::ArenaList {
-            receiver,
-            predicate,
-        }
-        | Expr::ArenaFilter {
-            receiver,
-            predicate,
-        }
-        | Expr::ArenaSome {
-            receiver,
-            predicate,
-        } => captures_outer_candidate(receiver) || captures_outer_candidate(predicate),
-        Expr::NativeTokenPredicate { receiver, .. } | Expr::ArenaLength { receiver } => {
-            captures_outer_candidate(receiver)
-        }
-        _ => false,
-    }
+    e.any(|e|match e {
+        Expr::Collection{..}|Expr::Compiled(_)=>Some(false),
+        Expr::Ref{path}=>Some(path.first().is_some_and(|s|["selectionCandidate","target","targets","namedTargets"].contains(&s.as_str()))),
+        _=>None,
+    })
 }
 fn bind_candidate(expr: &mut Expr, root_binding: bool) -> Result<(), String> {
     match expr {
@@ -546,8 +637,14 @@ fn bind_candidate(expr: &mut Expr, root_binding: bool) -> Result<(), String> {
             }
             bind_candidate(receiver, root_binding)?;
         }
-        Expr::Collection {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::HistoryAttackCheck {..} => {
-            return Err("native selector requires a separately reviewed collection/history candidate scope".into());
+        Expr::Collection { .. }
+        | Expr::HistoryQuery(_)
+        | Expr::DataMember { .. }
+        | Expr::HistoryAttackCheck { .. } => {
+            return Err(
+                "native selector requires a separately reviewed collection/history candidate scope"
+                    .into(),
+            );
         }
         Expr::Const { .. } => {}
         Expr::Compiled(_) => {
@@ -688,33 +785,12 @@ pub fn expanded_selector_marker(value: &Value) -> bool {
         }
 }
 pub fn native_source_entry(entry: &Value, sides: &super::Sides) -> bool {
-    let ordinary = match entry["baseClass"].as_str() {
-        Some("NonLeaderUnitCard") => entry["card"]["types"] == serde_json::json!(["unit"]),
-        Some("EventCard") => entry["card"]["types"] == serde_json::json!(["event"]),
-        _ => false,
-    };
-    ordinary
-        && sides.unit.is_empty()
-        && sides.leader.is_empty()
-        && sides.card.iter().all(|a| {
-            ["event", "action", "whenPlayed", "onAttack", "whenDefeated"]
-                .contains(&a.trigger.as_str())
-        })
+    crate::admission::OrdinarySource::from_entry(entry).is_some()
+        && ordinary_source_sides(sides)
         && entry["card"]["unique"].is_boolean()
         && entry["attachCondition"].is_null()
         && entry["piloting"].is_null()
-        && [
-            "stateWatchers",
-            "historyHelpers",
-            "privatePrograms",
-            "classMethods",
-            "inheritedSource",
-            "privateClassConstants",
-            "deploymentOverride",
-            "setupValidationOverrides",
-        ]
-        .iter()
-        .all(|k| entry[*k].is_null() || entry[*k].as_array().is_some_and(Vec::is_empty))
+        && crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && [
             "pilotText",
             "pilotBox",
@@ -728,3 +804,7 @@ pub fn native_source_entry(entry: &Value, sides: &super::Sides) -> bool {
         .all(|k| entry["card"][*k].is_null())
         && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "")
 }
+
+#[cfg(test)]
+#[path = "selector_contract_tests.rs"]
+mod tests;

@@ -72,7 +72,7 @@ pub fn prepare(entry: &Value) -> Result<Option<Prepared>, String> {
         .first()
         .and_then(|raw| raw["targetResolver"]["choices"]["entries"][0]["effect"]["kind"].as_str())
         == Some("damage");
-    if !crate::static_ongoing::closed_source_context(entry)
+    if !crate::admission::SourceContextPolicy::Closed.accepts(entry)
         || entry["baseClass"] != "NonLeaderUnitCard"
         || entry["card"]["types"] != json!(["unit"])
         || !entry["card"]["unique"].is_boolean()

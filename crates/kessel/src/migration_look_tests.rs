@@ -5,7 +5,7 @@ use super::*;
 use crate::migration_look_contract::{self as contract, Kind};
 
 fn look_catalogue() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn look_row(catalogue: &Value, code: &str) -> Value {
     catalogue["cards"]

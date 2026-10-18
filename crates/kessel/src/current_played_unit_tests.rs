@@ -3,7 +3,7 @@ use super::*;
 use crate::current_played_unit as contract;
 
 fn catalogue() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn source(c: &Value) -> &Value {
     c["cards"]
@@ -239,7 +239,7 @@ fn current_played_unit_requires_both_histories_before_any_execution_mutation() {
         let program = e.card_programs(&s, event)[0];
         let before = s;
         assert!(e
-            .begin_program(&mut s, program, 0)
+            .begin_program(&mut s, program, ProgramContinuation::Finish)
             .unwrap_err()
             .contains("exact phase and Hidden history"));
         assert_eq!(s, before);
@@ -388,7 +388,8 @@ fn current_played_unit_attachment_mode_is_not_an_arena_unit_incarnation() {
         !e.current_played_unit_matches(&s, pilot),
         "plain re-entry after attachment cannot reuse earlier play"
     );
-    e.leave_play_primary_to_discard(&mut s,pilot,false).unwrap();
+    e.leave_play_primary_to_discard(&mut s, pilot, false)
+        .unwrap();
     s.player_mut(Seat::P1).hand.push(pilot).unwrap();
     fund(&e, &mut s, Seat::P1);
     s = play(&e, &s, pilot);

@@ -38,7 +38,7 @@ fn native_heal_weakness_actual_bossk_attack_uses_any_physical_token_upgrade_and_
 
 #[test]
 fn native_heal_weakness_exact_group_and_complete_side_boundaries_reject() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();let entry=original["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="HMW_015").unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();let entry=original["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="HMW_015").unwrap();
     let reject=|entry:Value|{let c=crate::ability_ir::Catalogue::load(&json!({"schema":original["schema"],"cards":[entry]})).unwrap();assert!(c.rejected.contains_key("HMW_015"));};
     let mut bad=entry.clone();bad["abilities"]["unit"]=json!([]);reject(bad);
     let mut bad=entry.clone();bad["abilities"]["leader"][0]["effect"]["effects"].as_array_mut().unwrap().swap(0,1);reject(bad);

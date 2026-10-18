@@ -263,7 +263,7 @@ pub(crate) fn prepare(entry: &Value) -> Result<Prepared, String> {
         || entry["keywordValues"] != json!({})
         || !entry["piloting"].is_null()
         || !entry["attachCondition"].is_null()
-        || !crate::static_ongoing::closed_source_context(entry)
+        || !crate::admission::SourceContextPolicy::Closed.accepts(entry)
         || !keys(sides, &["leader", "unit", "card"])
         || sides["leader"] != json!([])
         || sides["unit"] != json!([])

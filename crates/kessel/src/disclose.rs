@@ -150,7 +150,7 @@ pub(crate) fn source_entry(entry: &Value, sides: &Sides) -> bool {
     };
     (unit || event)
         && stats
-        && crate::static_ongoing::closed_source_context(entry)
+        && crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && sides.leader.is_empty()
         && sides.unit.is_empty()
         && entry["card"]["unique"].is_boolean()

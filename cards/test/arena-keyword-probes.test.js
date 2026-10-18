@@ -1,5 +1,5 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),{classifyArenaKeyword,planArenaKeywordProbes}=require('../pipeline/arena-keyword-probes'),catalogue=require('../../compiler/generated/catalog.json');
+const test=require('node:test'),assert=require('node:assert/strict'),{classifyArenaKeyword,planArenaKeywordProbes}=require('../pipeline/arena-keyword-probes'),catalogue=require('../../compiler/load-catalog').loadCatalog();
 const entry=id=>structuredClone(catalogue.cards.find(e=>e.setCode===id));
 test('current source trio gets explicit positive and finite-gap constructions',()=>{for(const id of ['SOR_154','TS26_016','LOF_209']){const p=planArenaKeywordProbes(entry(id),{catalogue});assert.ok(p.cases.length>=3);assert.ok(p.uncovered.some(o=>o.id.endsWith('source-review')));assert.ok(p.cases.some(c=>c.probe.empty));assert.ok(p.cases.some(c=>c.probe.leaderCode));}});
 test('extra registrar cost optional condition selector and continuation reject',()=>{for(const change of [a=>a.costs=[{kind:'exhaustSelf'}],a=>a.optional=false,a=>a.condition={kind:'const',value:true},a=>a.targetResolver={owner:'self'},a=>a.ifYouDo={effect:{kind:'noAction'}},a=>a.unmodeled=true]){const e=entry('SOR_154');change(e.abilities.card[0]);assert.equal(classifyArenaKeyword(e),null);}});

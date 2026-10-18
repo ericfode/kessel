@@ -10,7 +10,7 @@ const PRINTINGS: [&str; 8] = [
 
 fn ma_entry(code: &str) -> Value {
     let catalog: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     catalog["cards"]
         .as_array()
         .unwrap()

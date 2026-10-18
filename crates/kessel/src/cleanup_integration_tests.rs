@@ -253,13 +253,13 @@ fn token_requirements_preserve_selected_pool_diagnostics() {
         let mut pool = full.clone();
         pool["cards"].as_array_mut().unwrap().retain(|card| card["setCode"] != token);
         let error = Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),
-            include_bytes!("../../../compiler/generated/catalog.json")).err().unwrap();
+            include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).err().unwrap();
         assert_eq!(error, expected);
     }
     let mut pool = full;
     pool["cards"].as_array_mut().unwrap().retain(|card| !["TOKEN_WEAKNESS", "TOKEN_THE_FORCE", "TOKEN_EXPERIENCE"].contains(&card["setCode"].as_str().unwrap()));
     let error = Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),
-        include_bytes!("../../../compiler/generated/catalog.json")).err().unwrap();
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).err().unwrap();
     assert_eq!(error, "pool containing GiveWeakness cards must include reviewed TOKEN_WEAKNESS");
 }
 

@@ -6,7 +6,7 @@ use crate::credits::{
 use serde_json::{json, Value};
 
 fn catalog() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn entry(code: &str) -> Value {
     catalog()["cards"]

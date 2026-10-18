@@ -5,7 +5,7 @@ fn midgame(e:&Engine,seat:Seat)->State {let mut s=board(e);s.round=6;s.active=se
 fn resources(e:&Engine,s:&mut State,seat:Seat,n:usize) {for _ in 0..n {let id=add(e,s,seat,"LOF_256");s.player_mut(seat).resources.push(id).unwrap();}}
 fn exact_roundtrip(e:&Engine,s:&State)->State {let v=e.snapshot(s);let copy=e.load_state(&v).unwrap();assert_eq!(e.snapshot(&copy),v);assert_eq!(e.legal_actions(&copy),e.legal_actions(s));assert_eq!(copy.zobrist(),s.zobrist());copy}
 fn button(e:&Engine,s:&State,label:&str)->Action {e.legal_actions(s).into_iter().find(|a|a.label==label).unwrap_or_else(||panic!("missing {label}: {:?}",e.legal_actions(s)))}
-fn title_engine(code:&str,title:&str)->Engine {let mut c:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["card"]["title"]=json!(title);Engine::from_catalogue_value(&c).unwrap()}
+fn title_engine(code:&str,title:&str)->Engine {let mut c:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap()["card"]["title"]=json!(title);Engine::from_catalogue_value(&c).unwrap()}
 
 #[test]
 fn title_consumers_firespray_paid_entry_reads_live_jango_and_controlled_enemy_host_upgrade() {
@@ -80,7 +80,7 @@ fn title_consumers_shuttle_death_uses_live_title_and_can_grant_enemy_experience(
 
 #[test]
 fn title_consumers_full_source_and_registration_mutations_remain_rejected() {
-    let original:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+    let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     for code in ["JTL_147","SEC_027","SOR_184"] {for mutation in ["pilot","type","side","condition","then","optional","token-amount"] {
         let mut c=original.clone();let entry=c["cards"].as_array_mut().unwrap().iter_mut().find(|e|e["setCode"]==code).unwrap();
         let index=if code=="JTL_147" {1}else{0};let a=&mut entry["abilities"]["card"][index];

@@ -4,7 +4,7 @@ const test = require('node:test'),
 const { coverage, digest, validateReview } = require('../pipeline/coverage');
 const { mutants } = require('../pipeline/mutations');
 // The pipeline CLI's option test moved with the CLI to Holocron (lab/kessel-reference/test/load.test.js).
-const catalogue = require('../../compiler/generated/catalog.json');
+const catalogue = require('../../compiler/load-catalog').loadCatalog();
 const hash = 'a'.repeat(64),
     trace = 'b'.repeat(64),
     pool = 'c'.repeat(64);

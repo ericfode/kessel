@@ -302,6 +302,36 @@ fn attached_ready_restriction_blocks_ready_effects_and_regroup_ready() {
 }
 
 #[test]
+fn does_not_ready_during_regroup_consumer_uses_the_live_power_condition() {
+    let e = engine();
+    // JTL_182 Rampart: 3/3, "This unit doesn't ready during the regroup phase
+    // unless its power is 4 or more." The constant restriction is live, so the
+    // regroup ready step must consult the current power.
+    let mut s = board(&e);
+    let rampart = unit(&e, &mut s, Seat::P1, "JTL_182");
+    assert_eq!(e.power(&s, rampart, false), 3);
+    assert!(e.card_restricted(&s, rampart, RestrictionVerb::DoesNotReadyDuringRegroup));
+    s.card_mut(rampart).exhausted = true;
+    e.end_regroup(&mut s).unwrap();
+    assert!(
+        s.card(rampart).exhausted,
+        "power 3 Rampart must not ready during regroup"
+    );
+    // A live power bonus to 4 lifts the restriction, so the same consumer readies it.
+    let mut s = board(&e);
+    let rampart = unit(&e, &mut s, Seat::P1, "JTL_182");
+    s.card_mut(rampart).phase_power = 1;
+    assert_eq!(e.power(&s, rampart, false), 4);
+    assert!(!e.card_restricted(&s, rampart, RestrictionVerb::DoesNotReadyDuringRegroup));
+    s.card_mut(rampart).exhausted = true;
+    e.end_regroup(&mut s).unwrap();
+    assert!(
+        !s.card(rampart).exhausted,
+        "power 4 Rampart must ready during regroup"
+    );
+}
+
+#[test]
 fn phase_modifier_window_applies_its_restriction_leaf_with_the_stats() {
     // One reviewed PhaseModifiers window carries stat and restriction leaves.
     // No admitted card reaches this path yet (TWI_039 is owned by the Exploit
@@ -460,7 +490,8 @@ fn raw_restriction_shapes_fail_closed_with_explicit_reasons() {
 
 fn restriction_source(code: &str) -> Value {
     let catalogue: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     catalogue["cards"]
         .as_array()
         .unwrap()

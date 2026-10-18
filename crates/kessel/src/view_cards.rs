@@ -362,7 +362,7 @@ fn closed_unit_or_event(e: &Value, sides: &Sides, trigger: &str) -> bool {
         .iter()
         .all(|k| e["card"][*k].is_null())
         && (e["card"]["epicAction"].is_null() || e["card"]["epicAction"] == "")
-        && crate::static_ongoing::closed_source_context(e)
+        && crate::admission::SourceContextPolicy::Closed.accepts(e)
 }
 
 pub(crate) fn entry(e: &Value) -> bool {

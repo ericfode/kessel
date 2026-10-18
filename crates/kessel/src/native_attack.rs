@@ -272,15 +272,7 @@ pub(crate) fn ability(a: &Ability) -> bool {
                 && r.prompt_title_parts.is_empty()
         })
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    match v {
-        Value::Object(o) => {
-            o.get("kind").is_some_and(|k| k == "initiateAttack") || o.values().any(marker)
-        }
-        Value::Array(a) => a.iter().any(marker),
-        _ => false,
-    }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v.as_object().is_some_and(|o|o.get("kind").is_some_and(|k|k=="initiateAttack"))) }
 pub(crate) fn entry(e: &Value) -> bool {
     // Keep late compositions under the reviewed complete ordinary header.
     // Its early-only validation clone returns here with no late entries.
@@ -303,7 +295,7 @@ pub(crate) fn entry(e: &Value) -> bool {
     if leader_composition(e, &s) {
         return true;
     }
-    crate::static_ongoing::closed_source_context(e)
+    crate::admission::SourceContextPolicy::Closed.accepts(e)
         && s.card.len() == 1
         && s.leader.is_empty()
         && s.unit.is_empty()
@@ -371,7 +363,7 @@ fn advantage_continuation(a: &Ability) -> bool {
 /// existing physical leader's side switch. Only the two reviewed static shapes
 /// are composed; neither arbitrary leaders nor attack-end attacks are admitted.
 fn leader_composition(e: &Value, s: &Sides) -> bool {
-    if !crate::static_ongoing::closed_source_context(e)
+    if !crate::admission::SourceContextPolicy::Closed.accepts(e)
         || e["baseClass"] != "LeaderUnitCard"
         || e["card"]["types"] != json!(["leader"])
         || e["card"]["unique"] != true

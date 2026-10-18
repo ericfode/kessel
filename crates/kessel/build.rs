@@ -1,4 +1,6 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
+#[path = "src/admission.rs"]
+mod admission;
 #[allow(dead_code)]
 #[path = "src/attachment_play_cost.rs"]
 mod attachment_play_cost;
@@ -87,6 +89,8 @@ mod disclose;
 #[allow(dead_code)]
 #[path="src/current_played_unit.rs"]
 mod current_played_unit;
+#[path = "src/catalogue_io.rs"]
+mod catalogue_io;
 mod expression_codegen;
 fn expression_backend(_bytes: &[u8]) -> Option<usize> { None }
 use ability_ir::{Catalogue, Effect, Expr, Instruction, Program, Target};
@@ -155,25 +159,18 @@ fn primitive(e: &Effect) -> Result<String, String> {
         let hp = number(hp)?;
         let targets = targets(target)?;
         return Ok(format!(
-            r#"let power={power};let hp={hp};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{let next_power=s.card(id).phase_power as i64+power;let next_hp=s.card(id).phase_hp as i64+hp;if !(-65535..=65535).contains(&next_power)||!(-65535..=65535).contains(&next_hp) {{return Err("phase stat capacity exceeded".into());}}let composed_power=self.def(s,id).info.power.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+if self.keyword_amount(s,id,"grit")>0 {{s.card(id).damage as i64}} else {{0}}+next_power;let composed_hp=self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+next_hp;if composed_power>65535||composed_hp>65535 {{return Err("computed phase stats exceed capacity".into());}}s.card_mut(id).phase_power=next_power as i32;s.card_mut(id).phase_hp=next_hp as i32;result+=1;}}}}}}if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}}s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
+            r#"let delta=PhaseStatDelta{{power:{power},hp:{hp}}};let mut result=0u16;for target in {targets} {{if let Eval::Card(id)=target {{if id!=0 && self.in_arena(s,id) {{self.modify_phase_stats(s,id,delta)?;result+=1;}}}}}}self.finish_scalar_effect(s)?;s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0;"#
         ));
     }
-    let (kind, target, amount) = match e {
-        Effect::Draw { target, amount } => ("draw", target, number(amount)?),
-        Effect::Damage { target, amount } => ("damage", target, number(amount)?),
-        Effect::Heal { target, amount } => ("heal", target, number(amount)?),
-        Effect::Ready { target } => ("ready", target, "1i64".into()),
-        Effect::Exhaust { target } => ("exhaust", target, "1i64".into()),
+    // Damage/Defeat/Ready/Exhaust return through apply_effect above.
+    let (target, amount, operation) = match e {
+        Effect::Draw { target, amount } => (target, number(amount)?,
+            r#"if let Eval::Player(seat)=target {let draw=self.draw_cards(s,seat,amount)?;result=result.saturating_add(draw.drawn);resolved|=draw.resolved;}"#),
+        Effect::Heal { target, amount } => (target, number(amount)?,
+            r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#),
         _ => return Err("effect operation requires interpreter".into()),
     };
-    let operation=match kind {
-        "draw"=>r#"if let Eval::Player(seat)=target { resolved |= amount>0; for _ in 0..amount { if let Some(id)=s.player_mut(seat).deck.pop_front() { s.player_mut(seat).hand.push(id)?; result=result.saturating_add(1); } else if !s.event_group.resolving {let base=s.player(seat).base;let hp=self.def(s,base).info.hp.unwrap_or(30) as u16;s.card_mut(base).damage=s.card(base).damage.saturating_add(3).min(hp);} }}"#,
-        "damage"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {resolved |= amount>0 && s.card(id).shield!=0;let before=s.card(id).damage;self.damage(s,id,amount);result=result.saturating_add(s.card(id).damage.saturating_sub(before));}}"#,
-        "heal"=>r#"if let Eval::Card(id)=target {if id!=0 && (self.in_arena(s,id)||self.def(s,id).info.is("base")) {result=result.saturating_add(self.heal_card(s,id,amount));}}"#,
-        "ready"=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,false);}}",
-        _=>"if let Eval::Card(id)=target {if id!=0 && self.in_arena(s,id) {result+=self.set_card_exhausted(s,id,true);}}",
-    };
-    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} if !s.event_group.resolving {{self.sweep_stat_defeats(s)?;self.check_win(s);}} s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
+    Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} self.finish_scalar_effect(s)?; s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
 fn lower(p: &Program) -> Result<String, String> {
     if p.trigger == "constant" {
@@ -213,13 +210,19 @@ fn main() {
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("../../compiler/generated/catalog.json")
+                .join("../../compiler/generated")
         });
     println!("cargo:rerun-if-changed={}", catalog.display());
+    if catalog.is_dir() {
+        for name in ["manifest.json", "cards.json", "inputs.json", "diagnostics.json"] {
+            println!("cargo:rerun-if-changed={}", catalog.join(name).display());
+        }
+    }
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/current_played_unit.rs");
     println!("cargo:rerun-if-changed=src/self_play_cost.rs");
     println!("cargo:rerun-if-changed=src/attachment_play_cost.rs");
+    println!("cargo:rerun-if-changed=src/admission.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
     println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
@@ -232,9 +235,14 @@ fn main() {
     println!("cargo:rerun-if-changed=src/selected_player.rs");
     println!("cargo:rerun-if-changed=src/discard_return.rs");
     println!("cargo:rerun-if-changed=src/disclose.rs");
-    let value =
-        serde_json::from_slice(&fs::read(catalog).expect("committed ability catalog missing"))
-            .expect("invalid committed catalog JSON");
+    println!("cargo:rerun-if-changed=src/catalogue_io.rs");
+    let value = catalogue_io::load_catalogue_value(&catalog).expect("committed ability catalog missing");
+    // Compile fixtures against the same authoritative shards without committing
+    // a duplicate monolith or making tests depend on a process-local loader path.
+    fs::write(
+        PathBuf::from(env::var("OUT_DIR").unwrap()).join("catalogue.json"),
+        serde_json::to_vec(&value).expect("serialize assembled catalogue"),
+    ).expect("write assembled catalogue fixture");
     let c = Catalogue::load(&value).expect("invalid catalog schema");
     let mut roots = Vec::new();
     for mut program in c.programs.iter().cloned() {

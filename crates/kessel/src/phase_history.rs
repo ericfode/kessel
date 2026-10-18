@@ -194,14 +194,7 @@ impl Query {
         }
     }
 }
-pub(crate) fn marker(v: &Value) -> bool {
-    v["kind"] == "historyQuery"
-        || match v {
-            Value::Object(o) => o.values().any(marker),
-            Value::Array(a) => a.iter().any(marker),
-            _ => false,
-        }
-}
+pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "historyQuery") }
 pub(crate) fn ability(a: &Ability) -> bool {
     if a.coordinate
         || a.requires_confirmation

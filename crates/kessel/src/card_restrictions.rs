@@ -93,7 +93,7 @@ pub(crate) fn attached_constant(a: &Ability) -> bool {
 /// checks every effect and resolver after this source guard passes.
 pub(crate) fn source_entry(entry: &Value, sides: &Sides) -> bool {
     if !marker(&entry["abilities"])
-        || !crate::static_ongoing::closed_source_context(entry)
+        || !crate::admission::SourceContextPolicy::Closed.accepts(entry)
         || !sides.leader.is_empty()
         || !sides.unit.is_empty()
         || !(1..=2).contains(&sides.card.len())

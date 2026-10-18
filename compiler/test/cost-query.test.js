@@ -36,24 +36,25 @@ test('pinned engine hasCost follows WithCost ancestry, including leaders and tok
         }
     }
 });
-test('full pinned sources convert the hasCost cohort including former mechanic blockers',()=>{
+test('full pinned sources retain hasCost predicates and explicit modal, selection, capture and deployment contracts',()=>{
     const entries=[
-        '09_HMW/units/DookusSolarSailerDroidArmyPortent.ts',
-        '09_HMW/units/SandcrawlerSalesTeam.ts',
-        '09_HMW/units/FrenziedTriFighters.ts',
-        '06_IBH/events/WatchThis.ts',
-        '06_SEC/units/InnerRimCoalition.ts',
-        '07_TS26/upgrades/Underestimated.ts',
-        '08_ASH/units/TraskWalker.ts',
-        '02_SHD/events/EvidenceOfTheCrime.ts',
-        '03_TWI/units/OsiSobeckWardenOfTheCitadel.ts',
-        '04_JTL/leaders/AdmiralTrenchChkchkchkchk.ts',
+        ['09_HMW/units/DookusSolarSailerDroidArmyPortent.ts',null],
+        ['09_HMW/units/SandcrawlerSalesTeam.ts',null],
+        ['09_HMW/units/FrenziedTriFighters.ts',null],
+        ['06_IBH/events/WatchThis.ts',null],
+        ['06_SEC/units/InnerRimCoalition.ts',null],
+        ['07_TS26/upgrades/Underestimated.ts',null],
+        ['08_ASH/units/TraskWalker.ts','chooseModalEffects'],
+        ['02_SHD/events/EvidenceOfTheCrime.ts','attachUpgradeWithController'],
+        ['03_TWI/units/OsiSobeckWardenOfTheCitadel.ts','capture'],
+        ['04_JTL/leaders/AdmiralTrenchChkchkchkchk.ts','leaderDeploymentOverride'],
     ];
-    for(const file of entries){
+    for(const [file,mechanic] of entries){
         const relative='game/cards/'+file;
         const card=compileSource(fs.readFileSync(path.join(engine,'server',relative),'utf8'),relative,enums);
         assert.equal(card.status,'supported',file+':'+JSON.stringify(card.diagnostics));
         assert.ok(!card.diagnostics.some(d=>d.pattern==='unsupported-query:hasCost'));
+        if(mechanic){const nodes=[];const visit=v=>{if(!v||typeof v!=='object')return;if(v.kind===mechanic)nodes.push(v);Object.values(v).forEach(visit);};visit(card);assert.ok(nodes.length>0,mechanic);if(mechanic==='chooseModalEffects'){assert.equal(nodes[0].choices.length,2);assert.deepEqual(nodes[0].amountOfChoices,{kind:'const',value:1});assert.equal(nodes[0].choices[0].effect.kind,'simultaneous');assert.deepEqual(nodes[0].choices[1].effect,{kind:'returnToHand',target:'chosen'});}if(mechanic==='capture')assert.deepEqual(nodes[0],{kind:'capture',target:'chosen',captor:{kind:'ref',path:['source']},fromOutOfPlay:false,targetType:'nonLeaderUnit'});if(mechanic==='attachUpgradeWithController'){assert.equal(nodes[0].upgrade.slot,'upgrade');assert.equal(nodes[0].target.slot,'unit');assert.equal(nodes[0].upgrade.identity,'physicalValueOrSelectedList');assert.equal(nodes[0].attachmentIdentity,'physicalUpgradeAndHost');assert.equal(nodes[0].eventRechecksCanAttach,true);assert.deepEqual(nodes[0].newController,{kind:'const',value:'self'});}if(mechanic==='leaderDeploymentOverride'){assert.equal(nodes[0].evaluation,'leaderConstructorAfterSuper');assert.equal(nodes[0].merge,'spreadLastOverDefaultDeployAction');assert.deepEqual(nodes[0].properties.costs,[{kind:'exhaustSelf'},{kind:'resources',amount:{kind:'const',value:3}}]);assert.equal(nodes[0].properties.limit.factory,'unlimited');assert.equal(nodes[0].properties.limit.allocation,'eachSourceExpressionEvaluation');}}
     }
 });
 

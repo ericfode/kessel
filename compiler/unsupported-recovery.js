@@ -1,20 +1,37 @@
 'use strict';
-// Query/ongoing/property-factory contracts fill vocabulary gaps. They must not
-// erase a specialized fence that already rejected the shape.
-//
-// Only vocabulary-gap diagnostics may recover into a contract. Field/arity/
-// capture/shape fences stay closed — including unsupported-field:*, which the
-// specialized helpers raise for unknown properties.
-//
-// Intentional narrow-path misses recover at their call sites (attached constant,
-// gained-host → piloting, live-stat → ongoing, constant → contract), not here.
+// Narrow legacy parsers and complete source contracts share diagnostic names.
+// A miss such as non-path-reference, a callback statement or an unsupported
+// legacy field must still reach the existing query/program/factory validator.
+// Those validators preserve lexical captures and reject their own unknown
+// fields; classifying every legacy miss as terminal bypasses that validation.
+// Only invariant violations that cannot become valid in a wider representation
+// stop recovery here. Snapshot timing remains owned by the construction frames
+// and lexical checks at their original call sites.
+const invariantFailures=new Set([
+    'syntax-alias-enum-binding',
+    'unsupported-setup-parameter-binding',
+    'setup-helper-binding',
+    'optional-registrar-call',
+    'non-synchronous-implementation-identity',
+    'non-synchronous-setup-method',
+    'non-synchronous-callback',
+    'unsupported-callback-parameter-binding',
+    'callable-display-title',
+    'function-valued-card-condition',
+    'attached-registration-properties-must-be-object',
+    'attached-keyword-amount-bound',
+    'title-helper-amount',
+    'title-helper-string',
+    'incomplete-stat-modifier',
+    'function-valued-stat-modifier',
+    'noninteger-stat-modifier',
+    'live-stat-expression-bound',
+    'live-stat-value-bound',
+]);
 function isSpecializedFence(error) {
     if(!error||!error.diagnostic)return false;
     const pattern=error.diagnostic.pattern||'';
-    if(pattern.startsWith('unsupported-query:')||pattern.startsWith('expression:'))return false;
-    if(pattern==='arena-query-receiver')return false;
-    if(pattern==='constant-without-effect'||pattern==='expected-declarative-object')return false;
-    return pattern.length>0;
+    return invariantFailures.has(pattern)||pattern.startsWith('unsupported-stat-modifier-field:');
 }
 function recoversToContract(error,patterns) {
     if(!error||!error.diagnostic)return false;

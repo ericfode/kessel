@@ -42,7 +42,7 @@ impl Engine {
         self.defeat_many(s, &dead)?;
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s, 8)? {
+        if self.open_deaths(s, DeathContinuation::CombatAfterFirstDamage)? {
             return Ok(());
         }
         self.combat_after_first_window(s)
@@ -81,7 +81,7 @@ impl Engine {
         self.defeat_many(s, &dead)?;
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s, 5)? {
+        if self.open_deaths(s, DeathContinuation::CombatAfterDamage)? {
             return Ok(());
         }
         self.combat_after_damage(s)

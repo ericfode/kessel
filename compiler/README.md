@@ -14,6 +14,14 @@ require an operation the Rust runtime has not implemented. The runtime must
 validate all its abilities, keywords, types, targeting, and state before admitting
 it. The current catalog is not an all-card implementation of SWU.
 
+Compiler tests distinguish rejected source from retained contracts requiring an
+unimplemented executor. Assert the retained node's identity, captures and timing
+when lowering succeeds; do not infer runtime admission from `status: supported`.
+`compiler/test/source-only-contracts.test.js` checks exact source-derived fixtures
+shared with Rust's `source_only_contracts` integration test, which requires an
+admitted control envelope and a specific runtime rejection for each contract.
+
+
 ## Run locally
 
 Use Node 22 and the normal repository setup. The parser uses the TypeScript
@@ -38,8 +46,13 @@ directory contains `Card/*.json` plus `_mockCardNames.json`.
 
 ## Generated artifacts
 
-- `generated/catalog.json` contains every nonmock card's full metadata, compiled
-  abilities, keyword values, required capabilities, and source/data hashes.
+- Concern-split catalogue shards under `generated/`:
+  - `manifest.json` — schema versions, hashes, inventory, unmatched sources
+  - `cards.json` — every nonmock card's metadata, IR, keyword values, capabilities, hashes
+  - `diagnostics.json` — unsupported-card diagnostics (merged onto cards when loading)
+  - `inputs.json` — source/data provenance inventory
+  Loaders in `compiler/load-catalog.js` and `kessel::catalogue_io` assemble these into
+  the unified `swu-card-ir/v1` object. A legacy monolith file is still accepted.
 - `generated/coverage.json` separates `sourceAstConverted` from `dataOnlyConverted`
   (plain bases and fully parsed keyword-only units with no source class, plus plain stat-only upgrades using the pinned generic `UpgradeCard` fallback), and lists
   all converted IDs, every blocked card, and blockers
@@ -91,9 +104,12 @@ traits; unknown helpers and unsupported dynamic expressions are rejected.
 Phase stat modifiers capture bounded signed power/HP values when applied and
 expire together at phase end. Constant stat modifiers support static self and
 aura bonuses with bounded conditions and target filters. Arena count/existence
-queries preserve their outer target separately from each queried card. General
-live-stat calculations and stat-dependent constant conditions remain rejected;
-the two pure stat-count callbacks described below have bounded native leaves.
+queries preserve their outer target separately from each queried card. Bounded
+live constant stat expressions can read the affected card's damage, supported
+resource/hand counts and filtered arena unit counts, with checked arithmetic.
+The closed native stat-count callbacks described below are also admitted.
+Effective-stat dependencies and stat-dependent constant conditions remain rejected;
+source lowering alone does not establish runtime admission.
 
 Bounded arena lists, filtering, existence and length queries also support three
 complete source shapes: conditional Ambush from another friendly nonunique unit,
@@ -211,8 +227,10 @@ and X-Wing tokens, one to five at a time, for either player, with explicit ready
 entry. Token allocation precedes entry, and tokens leaving play stay out of
 ordinary hands and discard piles. Scalar hand-discard effects let the affected
 player choose their own cards. Their inherited default target is the opponent;
-the helper's name does not imply a friendly target. Player selectors remain
-rejected until their selected-player context can be preserved.
+the helper's name does not imply a friendly target. Source lowering preserves
+player selection and selected-player default targets (including named bindings);
+these represented selection contracts still require runtime choice, capture and
+continuation semantics and remain rejected by the Rust loader.
 
 Force token state records each player's persistent token ID and whether it is
 held. Gain, spend, and regain reuse that identity without allocating a card; the
@@ -510,8 +528,8 @@ and other history callbacks remain rejected.
 ## Runtime admission and conformance
 
 ```sh
-target/debug/kessel catalogue compiler/generated/catalog.json --out-pool compiler/generated/runtime-pool.json
-target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated/catalog.json --pool compiler/generated/runtime-pool.json
+target/debug/kessel catalogue compiler/generated --out-pool compiler/generated/runtime-pool.json
+target/debug/kessel check traces.jsonl.gz --catalogue compiler/generated --pool compiler/generated/runtime-pool.json
 # in Holocron, next to this checkout (records forceteki games):
 node bots/omni/rs/make-compiled-fixtures.js --pool ../kessel/compiler/generated/runtime-pool.json --out replays/compiled-card-fixtures
 ```

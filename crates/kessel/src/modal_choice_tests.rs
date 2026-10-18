@@ -12,14 +12,16 @@ fn start(e: &Engine, s: &mut State, source: CardId) {
     s.active = s.card(source).owner;
     s.source = source;
     let program = e.def(s, source).programs.card[0];
-    e.begin_program(s, program, 0).unwrap();
+    e.begin_program(s, program, ProgramContinuation::Finish)
+        .unwrap();
 }
 fn labels(e: &Engine, s: &State) -> Vec<String> {
     e.legal_actions(s).into_iter().map(|a| a.label).collect()
 }
 fn catalog_entry(code: &str) -> Value {
     let value: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     value["cards"]
         .as_array()
         .unwrap()
@@ -42,8 +44,8 @@ fn modal_choices_admit_complete_closed_sources_and_reject_other_families() {
         );
     }
     for code in [
-        "SHD_191", "SEC_193", "SEC_220", "LAW_080", "LAW_086", "LAW_101",
-        "JTL_131", "HMW_054", "HMW_188", "ASH_045", "ASH_257",
+        "SHD_191", "SEC_193", "SEC_220", "LAW_080", "LAW_086", "LAW_101", "JTL_131", "HMW_054",
+        "HMW_188", "ASH_045", "ASH_257",
     ] {
         assert!(
             !e.by_code.contains_key(code),

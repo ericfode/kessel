@@ -36,11 +36,12 @@ fn start(e: &Engine, s: &mut State, source: CardId, trigger: &str) {
     s.source = source;
     s.active = s.card(source).owner;
     let id = program(e, s, source, trigger);
-    e.begin_program(s, id, 0).unwrap();
+    e.begin_program(s, id, ProgramContinuation::Finish).unwrap();
 }
 fn entry(code: &str) -> Value {
     let catalogue: Value =
-        serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap();
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
     catalogue["cards"]
         .as_array()
         .unwrap()
@@ -473,12 +474,13 @@ fn modal_arena_import_guard_uses_selected_pool_and_execution_rejects_missing_glo
     s.arena_order_exact = false;
     let before = s.zobrist();
     assert!(e
-        .begin_program(&mut s, id, 0)
+        .begin_program(&mut s, id, ProgramContinuation::Finish)
         .unwrap_err()
         .contains("recorded arena order"));
     assert_eq!(s.zobrist(), before, "guard precedes ability field mutation");
     s.arena_order_exact = true;
-    e.begin_program(&mut s, id, 0).unwrap();
+    e.begin_program(&mut s, id, ProgramContinuation::Finish)
+        .unwrap();
     s.arena_order_exact = false;
     assert!(e
         .run_program(&mut s)
@@ -491,7 +493,7 @@ fn modal_arena_import_guard_uses_selected_pool_and_execution_rejects_missing_glo
     });
     let strict = Engine::from_compiled_pool_bytes(
         &serde_json::to_vec(&selected).unwrap(),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     )
     .unwrap();
     let strict_state = arena_board(&strict, Seat::P1);
@@ -531,7 +533,7 @@ fn modal_arena_import_guard_uses_selected_pool_and_execution_rejects_missing_glo
     selected["cards"].as_array_mut().unwrap().push(persecutor);
     let modal_only = Engine::from_compiled_pool_bytes(
         &serde_json::to_vec(&selected).unwrap(),
-        include_bytes!("../../../compiler/generated/catalog.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
     )
     .unwrap();
     assert!(!modal_only.needs_registration_order());

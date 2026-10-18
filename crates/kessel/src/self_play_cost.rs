@@ -181,7 +181,7 @@ pub(crate) fn extract(entry: &Value) -> Result<Option<SelfPlayCost>, String> {
     if let Some(rule) = event_rule(entry) {
         return Ok(Some(rule));
     }
-    let plain = crate::static_ongoing::closed_source_context(entry)
+    let plain = crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["status"] == "supported"
         && entry["baseClass"] == "NonLeaderUnitCard"
         && entry["card"]["types"] == json!(["unit"])
@@ -243,7 +243,7 @@ pub(crate) fn extract(entry: &Value) -> Result<Option<SelfPlayCost>, String> {
 
 /// Only these complete ordinary event sources can retain an executable sibling.
 fn event_rule(entry: &Value) -> Option<SelfPlayCost> {
-    let plain = crate::static_ongoing::closed_source_context(entry)
+    let plain = crate::admission::SourceContextPolicy::Closed.accepts(entry)
         && entry["status"] == "supported"
         && entry["baseClass"] == "EventCard"
         && entry["card"]["types"] == json!(["event"])

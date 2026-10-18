@@ -77,10 +77,11 @@ impl Engine {
         }
         s.ability_pc+=1;s.ability_succeeded=true;s.ability_result=1;
         s.support.context=ResolutionContext::capture(s);s.support.pending=true;s.support.native_attack=true;s.support.optional_attack=optional;
-        s.source=s.ability_target;s.target=0;s.ability_program=0;s.ability_target=0;s.ability_pc=0;
-        s.pending_programs=0;s.pending_triggers=0;s.after_attack_programs=0;s.after_attack_triggers=0;s.trigger_context=0;s.ambush=false;
-        s.decision=Decision::AttackTarget;self.check_stat_capacity(s)?;self.sweep_stat_defeats(s)?;
-        if self.open_deaths(s,7)? {return Ok(());}
+        let attacker=s.ability_target;
+        s.ability_program=0;s.ability_target=0;s.ability_pc=0;
+        self.enter_granted_attack_window(s,attacker)?;
+        self.sweep_stat_defeats(s)?;
+        if self.open_deaths(s,DeathContinuation::NativeAttackAfterEarlyEffects)? {return Ok(());}
         self.native_attack_after_early_effects(s)
     }
     pub(super) fn native_attack_after_early_effects(&self,s:&mut State)->Result<(),String> {
@@ -169,6 +170,12 @@ impl Engine {
         s.support.pending = true;
         s.support.grants[s.support.len as usize] = grant;
         s.support.len += 1;
+        self.enter_granted_attack_window(s, attacker)
+    }
+    /// Both lifecycles capture the outer context first. Modified attacks alone
+    /// clear the ability cursor and sweep early-effect deaths; Support retains
+    /// its trigger cursor for process_triggers on resume.
+    fn enter_granted_attack_window(&self, s: &mut State, attacker: CardId) -> Result<(), String> {
         s.source = attacker;
         s.target = 0;
         s.pending_programs = 0;

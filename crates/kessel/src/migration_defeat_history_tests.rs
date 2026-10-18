@@ -10,7 +10,7 @@ const CANDIDATES: [&str; 9] = [
     "TWI_143",
 ];
 fn catalog() -> Value {
-    serde_json::from_slice(include_bytes!("../../../compiler/generated/catalog.json")).unwrap()
+    serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()
 }
 fn entry(code: &str) -> Value {
     catalog()["cards"]
@@ -552,7 +552,7 @@ fn migration_defeat_history_actual_removed_play_source_keeps_its_friendly_projec
 #[ignore = "requires integration-owned exact defeat-history runtime and Sion captured-return support"]
 fn migration_defeat_history_selected_pool_requires_native_tokens_and_history_version() {
     let e = engine();
-    let bytes = include_bytes!("../../../compiler/generated/catalog.json");
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));
     for (code, token) in [
         ("ASH_079", "TOKEN_MANDALORIAN"),
         ("SEC_083", "TOKEN_SPY"),

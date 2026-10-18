@@ -9,6 +9,7 @@ const path = require('path');
 const { SCHEMA, VERSION, hash, compileSource, loadEnums, ts } = require('./compiler');
 const { parseKeywords } = require('./keywords');
 const { isPlainUpgrade } = require('./plain-upgrade');
+const { splitCatalog, loadCatalog } = require('./load-catalog');
 
 const repository = path.resolve(__dirname, '..');
 const codeFor = (card) => card.setId?.number == null ? `TOKEN_${card.internalName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}` : `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
@@ -173,7 +174,8 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     definitions.sort((a, b) => a.setCode.localeCompare(b.setCode));
     for (const source of sources) if (!sourceUsed.has(source.id)) unmatchedSources.push({ sourcePath: source.sourcePath, sourceHash: source.sourceHash, role: 'source-without-card-data', id: source.id, internalName: source.internalName, status: source.status, diagnostics: source.diagnostics });
     inputs.sort((a, b) => a.file.localeCompare(b.file));
-    const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
+    // Hash compiler implementation only — generated output and tests must not feedback into provenance.
+    const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep) && !f.startsWith('test' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
     const inputHash = hash(JSON.stringify(inputs));
     const compilerHash = hash(JSON.stringify(compilerFiles));
     return { schema: SCHEMA, compilerVersion: VERSION, typescriptVersion: ts.version, sourceTreeHash: inputHash, compilerHash, inputs, sourceSupport: unmatchedSources, cards: definitions, inventory: { knownCards: definitions.length, mockCardsExcluded: mockCount, sourceFiles: files(sourceDir, '.ts').length, sourceDefinitions: sources.length, definitionsWithSource: sourceUsed.size } };
@@ -197,7 +199,7 @@ function coverage(catalog) {
     return { schema: 'swu-card-compiler-coverage/v1', sourceTreeHash: catalog.sourceTreeHash, compilerHash: catalog.compilerHash, ...catalog.inventory, converted: converted.length, sourceAstConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath !== null).length, dataOnlyConverted: catalog.cards.filter((card) => card.status === 'supported' && card.sourcePath === null).length, unconverted: unsupported.length, runtimeReady: null, runtimeReadyNote: 'Source compilation is independent of runtime capability validation. The Rust importer validates each operation before accepting a card; this report does not claim executable coverage.', convertedCards: converted, blockers: [...patterns.values()].sort((a, b) => b.cards.length - a.cards.length || a.pattern.localeCompare(b.pattern)), unsupportedCards: unsupported };
 }
 function reportMarkdown(report) {
-    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented in [catalog.json](catalog.json).', ''].join('\n');
+    return ['# Card source conversion coverage', '', `Known card definitions: **${report.knownCards}**. IR-converted definitions: **${report.converted}** (${report.sourceAstConverted} from source AST; ${report.dataOnlyConverted} metadata-only plain cards). Explicitly blocked definitions: **${report.unconverted}**. Excluded test mocks: ${report.mockCardsExcluded}.`, '', 'These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.', '', '| Unsupported source pattern | Affected cards | Occurrences |', '|---|---:|---:|', ...report.blockers.map((b) => `| ${b.pattern.replaceAll('|', '\\|')} | ${b.cards.length} | ${b.occurrences} |`), '', 'Full card-by-card diagnostics and converted IDs are in [coverage.json](coverage.json). Every discovered card is represented across the concern-split catalogue shards (`manifest.json`, `cards.json`, `diagnostics.json`, `inputs.json`).', ''].join('\n');
 }
 function args(argv) {
     const options = { source: path.join(repository, 'forceteki/server'), cards: path.join(repository, 'forceteki/test/json'), out: path.join(__dirname, 'generated'), check: false, strict: false };
@@ -210,22 +212,54 @@ function args(argv) {
     }
     return options;
 }
+function catalogOutputs(catalog, report) {
+    const shards = splitCatalog(catalog);
+    const outputs = {};
+    for (const [name, value] of Object.entries(shards)) outputs[name] = JSON.stringify(value, null, 2) + '\n';
+    outputs['coverage.json'] = JSON.stringify(report, null, 2) + '\n';
+    outputs['coverage.md'] = reportMarkdown(report);
+    return outputs;
+}
+
 function main() {
     const options = args(process.argv.slice(2));
     const catalog = compileCatalog(options);
     const report = coverage(catalog);
-    const outputs = { 'catalog.json': JSON.stringify(catalog, null, 2) + '\n', 'coverage.json': JSON.stringify(report, null, 2) + '\n', 'coverage.md': reportMarkdown(report) };
+    const outputs = catalogOutputs(catalog, report);
+    // Round-trip guard: shards must rebuild the exact in-memory catalogue.
+    const assembled = (() => {
+        const temporary = fs.mkdtempSync(path.join(require('os').tmpdir(), 'swu-catalog-assemble-'));
+        try {
+            for (const [name, content] of Object.entries(outputs)) {
+                if (!name.endsWith('.json') || name.startsWith('coverage')) continue;
+                fs.writeFileSync(path.join(temporary, name), content);
+            }
+            return loadCatalog(temporary);
+        } finally {
+            fs.rmSync(temporary, { recursive: true, force: true });
+        }
+    })();
+    // Field order on card objects may differ (diagnostics is reattached last); values must match.
+    const { canonical } = require('../cards/inventory');
+    if (JSON.stringify(canonical(assembled)) !== JSON.stringify(canonical(catalog))) {
+        throw new Error('Concern-split catalogue shards do not round-trip to the unified catalogue');
+    }
     if (options.check) {
         for (const [name, content] of Object.entries(outputs)) {
             const file = path.join(options.out, name);
             if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== content) throw new Error(`Stale generated card compiler artifact: ${file}; run node compiler/build.js`);
         }
+        if (fs.existsSync(path.join(options.out, 'catalog.json'))) {
+            throw new Error(`Legacy monolith still present: ${path.join(options.out, 'catalog.json')}; run node compiler/build.js`);
+        }
     } else {
         fs.mkdirSync(options.out, { recursive: true });
         for (const [name, content] of Object.entries(outputs)) fs.writeFileSync(path.join(options.out, name), content);
+        const legacy = path.join(options.out, 'catalog.json');
+        if (fs.existsSync(legacy)) fs.unlinkSync(legacy);
     }
-    console.log(JSON.stringify({ known: report.knownCards, converted: report.converted, unconverted: report.unconverted, runtimeReady: report.runtimeReady, sourceFiles: report.sourceFiles, sourceHash: report.sourceTreeHash, compilerHash: report.compilerHash, checked: options.check }));
+    console.log(JSON.stringify({ known: report.knownCards, converted: report.converted, unconverted: report.unconverted, runtimeReady: report.runtimeReady, sourceFiles: report.sourceFiles, sourceHash: report.sourceTreeHash, compilerHash: report.compilerHash, checked: options.check, layout: 'concern-split' }));
     if (options.strict && report.unconverted) { console.error(`Strict conversion incomplete: ${report.unconverted} cards have explicit blockers`); process.exitCode = 2; }
 }
 if (require.main === module) { try { main(); } catch (error) { console.error(error.stack || String(error)); process.exitCode = 1; } }
-module.exports = { compileCatalog, coverage, requiredCapabilities, keywordValues, codeFor, alternateCodesFor, args };
+module.exports = { compileCatalog, coverage, requiredCapabilities, keywordValues, codeFor, alternateCodesFor, args, catalogOutputs, splitCatalog, loadCatalog };
