@@ -2,6 +2,30 @@
 #[path = "src/admission.rs"]
 mod admission;
 #[allow(dead_code)]
+#[path = "src/attachment_play_cost.rs"]
+mod attachment_play_cost;
+#[allow(dead_code)]
+#[path = "src/credits.rs"]
+mod credits;
+#[allow(dead_code)]
+#[path = "src/migration_credit_contract.rs"]
+mod migration_credit_contract;
+#[allow(dead_code)]
+#[path = "src/migration_look_contract.rs"]
+mod migration_look_contract;
+#[allow(dead_code)]
+#[path = "src/self_play_cost.rs"]
+mod self_play_cost;
+#[allow(dead_code)]
+#[path = "src/card_restrictions.rs"]
+mod card_restrictions;
+#[allow(dead_code)]
+#[path = "src/pay_adjusted_resources.rs"]
+mod pay_adjusted_resources;
+#[allow(dead_code)]
+#[path = "src/migration_attack_contract.rs"]
+mod migration_attack_contract;
+#[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
 
@@ -29,6 +53,10 @@ mod attack_history;
 #[path = "src/attached_registration.rs"]
 mod attached_registration;
 
+#[allow(dead_code)]
+#[path = "src/piloting_attached.rs"]
+mod piloting_attached;
+
 #[path="src/advantage.rs"]
 mod advantage;
 
@@ -38,6 +66,29 @@ mod attached_constants;
 
 #[path = "src/deck_search.rs"]
 mod deck_search;
+#[allow(dead_code)]
+#[path = "src/selected_player.rs"]
+mod selected_player;
+
+#[allow(dead_code)]
+#[path = "src/modal_choices.rs"]
+mod modal_choices;
+
+#[allow(dead_code)]
+#[path = "src/modal_arena_choices.rs"]
+mod modal_arena_choices;
+#[allow(dead_code)]
+#[path = "src/discard_return.rs"]
+mod discard_return;
+#[allow(dead_code)]
+#[path = "src/view_cards.rs"]
+mod view_cards;
+#[allow(dead_code)]
+#[path = "src/disclose.rs"]
+mod disclose;
+#[allow(dead_code)]
+#[path="src/current_played_unit.rs"]
+mod current_played_unit;
 #[path = "src/catalogue_io.rs"]
 mod catalogue_io;
 mod expression_codegen;
@@ -83,12 +134,14 @@ fn targets(t: &Target) -> Result<String, String> {
         "ownPlayer" => "vec![Eval::Player(s.card(s.source).owner)]",
         "enemyPlayer" => "vec![Eval::Player(s.card(s.source).owner.other())]",
         "bothPlayers" => "vec![Eval::Player(Seat::P1), Eval::Player(Seat::P2)]",
+        "chosenPlayer" => "if s.ability_target!=0 && self.def(s,s.ability_target).info.is(\"base\") {vec![Eval::Player(s.card(s.ability_target).owner)]}else{vec![]}",
         _ => return Err(format!("target {n} requires interpreter")),
     }
     .into())
 }
 fn primitive(e: &Effect) -> Result<String, String> {
-    if matches!(e,Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
+    if matches!(e,Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated payment identity mismatch\".into())};if !self.run_adjusted_resource_payment(s,effect)? {return Ok(true);}".into());}
+    if matches!(e,Effect::CreateCreditToken{..}|Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }
@@ -127,13 +180,14 @@ fn lower(p: &Program) -> Result<String, String> {
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
-            Instruction::Commit=>"self.commit_program(s)?;s.ability_pc+=1;".into(),
+            Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
             Instruction::Select(_)=>format!("let Instruction::Select(r)=&p.instructions[{pc}] else {{return Err(\"AOT selection identity mismatch\".into())}};if self.program_targets(s,s.source,s.ability_program-1,{pc},r,true).is_empty() {{s.ability_target=0;s.ability_selection=Selection::default();s.ability_pc+=1;}} else {{s.decision=Decision::AbilityTarget;return Ok(true);}}"),
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
-            Instruction::Apply(Effect::DistributeHealing{..})=>"s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
+            Instruction::Apply(Effect::DistributeHealing{..})=>"if !self.commit_program(s)? {return Ok(true);}s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
+            Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),
-            Instruction::Apply(e)=>format!("self.commit_program(s)?;{}s.ability_pc+=1;",primitive(e)?),
+            Instruction::Apply(e)=>format!("if !self.commit_program(s)? {{return Ok(true);}}{}s.ability_pc+=1;",primitive(e)?),
             _=>return Err("instruction control/expression requires interpreter".into()),
         };
         body.push_str(&format!("{pc}=>{{{step}}},\n"));
@@ -142,6 +196,15 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/modal_choices.rs");
+    println!("cargo:rerun-if-changed=src/modal_arena_choices.rs");
+    println!("cargo:rerun-if-changed=src/native_attack.rs");
+    println!("cargo:rerun-if-changed=src/migration_attack_contract.rs");
+    println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
+    println!("cargo:rerun-if-changed=src/credits.rs");
+    println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
+    println!("cargo:rerun-if-changed=src/migration_look_contract.rs");
+    println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")
         .map(PathBuf::from)
@@ -156,8 +219,12 @@ fn main() {
         }
     }
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
+    println!("cargo:rerun-if-changed=src/current_played_unit.rs");
+    println!("cargo:rerun-if-changed=src/self_play_cost.rs");
+    println!("cargo:rerun-if-changed=src/attachment_play_cost.rs");
     println!("cargo:rerun-if-changed=src/admission.rs");
     println!("cargo:rerun-if-changed=src/attached_registration.rs");
+    println!("cargo:rerun-if-changed=src/piloting_attached.rs");
     println!("cargo:rerun-if-changed=src/attached_constants.rs");
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
@@ -165,6 +232,9 @@ fn main() {
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
+    println!("cargo:rerun-if-changed=src/selected_player.rs");
+    println!("cargo:rerun-if-changed=src/discard_return.rs");
+    println!("cargo:rerun-if-changed=src/disclose.rs");
     println!("cargo:rerun-if-changed=src/catalogue_io.rs");
     let value = catalogue_io::load_catalogue_value(&catalog).expect("committed ability catalog missing");
     // Compile fixtures against the same authoritative shards without committing

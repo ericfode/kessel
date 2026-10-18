@@ -84,29 +84,19 @@ pub enum Length {
     #[serde(rename = "length")]
     Length,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QueryKind {
     EnteredCard,
     EnteredOtherFriendly,
-    PlayedForce,
+    /// Friendly card played this phase with an exact printed trait (Force, First Order, …).
+    PlayedTrait(String),
     PlayedOpponentCount,
 }
 impl Query {
-    /// O(1) projection after kind() has validated the complete immutable filter.
+    /// Projection after kind() has validated the complete immutable filter.
     pub(crate) fn admitted_kind(&self) -> QueryKind {
-        match (&self.watcher, &self.operation) {
-            (Watcher::Entered, Operation::SomeEntered) => {
-                let Argument::DataLambda { body, .. } = &self.args[0];
-                if matches!(body,Filter::Binary{op,..} if op=="&&") {
-                    QueryKind::EnteredOtherFriendly
-                } else {
-                    QueryKind::EnteredCard
-                }
-            }
-            (Watcher::Played, Operation::SomePlayed) => QueryKind::PlayedForce,
-            (Watcher::Played, Operation::PlayedList) => QueryKind::PlayedOpponentCount,
-            _ => unreachable!("history projection was validated at admission"),
-        }
+        self.kind()
+            .expect("history projection was validated at admission")
     }
     pub fn kind(&self) -> Result<QueryKind, String> {
         let invalid = || "unsupported phase history watcher/filter projection".to_string();
@@ -150,6 +140,32 @@ impl Query {
         let reference = |name: &str| json!({"kind":"ref","path":[name]});
         let binary = |op: &str, left: Value, right: Value| json!({"kind":"binary","op":op,"left":left,"right":right});
         let friendly = binary("===", path("playedBy"), reference("player"));
+        let played_trait = |body: &Value| -> Option<String> {
+            if body.get("kind") != Some(&json!("binary")) || body.get("op") != Some(&json!("&&")) {
+                return None;
+            }
+            if body.get("left") != Some(&friendly) {
+                return None;
+            }
+            let right = body.get("right")?;
+            if right.get("kind") != Some(&json!("dataCall"))
+                || right.get("method") != Some(&json!("hasSomeTrait"))
+                || right.get("receiver") != Some(&path("card"))
+                || right.get("optionalCall") != Some(&json!(false))
+                || right.get("optionalReceiver") != Some(&json!(false))
+            {
+                return None;
+            }
+            let args = right.get("args")?.as_array()?;
+            if args.len() != 1 || args[0].get("kind") != Some(&json!("const")) {
+                return None;
+            }
+            let trait_name = args[0].get("value")?.as_str()?;
+            if trait_name.is_empty() || trait_name.len() > 128 {
+                return None;
+            }
+            Some(trait_name.to_owned())
+        };
         match (&self.watcher, &self.operation) {
             (Watcher::Entered, Operation::SomeEntered)
                 if body == binary("===", path("card"), reference("card")) =>
@@ -166,16 +182,9 @@ impl Query {
             {
                 Ok(QueryKind::EnteredOtherFriendly)
             }
-            (Watcher::Played, Operation::SomePlayed)
-                if body
-                    == binary(
-                        "&&",
-                        friendly,
-                        json!({"kind":"dataCall","method":"hasSomeTrait","receiver":path("card"),"args":[{"kind":"const","value":"force"}],"optionalCall":false,"optionalReceiver":false}),
-                    ) =>
-            {
-                Ok(QueryKind::PlayedForce)
-            }
+            (Watcher::Played, Operation::SomePlayed) => played_trait(&body)
+                .map(QueryKind::PlayedTrait)
+                .ok_or_else(invalid),
             (Watcher::Played, Operation::PlayedList)
                 if body == binary("===", path("playedBy"), reference("opponent")) =>
             {
@@ -223,7 +232,7 @@ pub(crate) fn ability(a: &Ability) -> bool {
                         && a.target_resolver.is_none()
                         && draw(on_true)
                 }
-                Ok(QueryKind::PlayedForce) => {
+                Ok(QueryKind::PlayedTrait(_)) => {
                     a.trigger == "action"
                         && !a.optional
                         && matches!(a.costs.as_slice(), [Cost::ExhaustSelf])
@@ -258,15 +267,24 @@ pub(crate) fn entry(e: &Value) -> bool {
     };
     let event = e["baseClass"] == "EventCard" && e["card"]["types"] == json!(["event"]);
     let unit = e["baseClass"] == "NonLeaderUnitCard" && e["card"]["types"] == json!(["unit"]);
+    // Exactly one history-bearing registration must match a bounded projection.
+    // Ordinary companion abilities on the same card-side are validated elsewhere.
+    let history = s
+        .card
+        .iter()
+        .filter(|a| marker(&serde_json::to_value(a).unwrap_or(Value::Null)))
+        .collect::<Vec<_>>();
     (event || unit)
-        && s.card.len() == 1
+        && !s.card.is_empty()
+        && s.card.len() <= 8
         && s.leader.is_empty()
         && s.unit.is_empty()
-        && ability(&s.card[0])
+        && history.len() == 1
+        && ability(history[0])
         && (if event {
-            s.card[0].trigger == "event"
+            history[0].trigger == "event"
         } else {
-            ["whenPlayed", "action"].contains(&s.card[0].trigger.as_str())
+            ["whenPlayed", "action"].contains(&history[0].trigger.as_str())
         })
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()

@@ -100,6 +100,7 @@ class Unsupported extends Error {
     }
 }
 function fail(ctx, node, pattern, message) { throw new Unsupported(ctx, node, pattern, message); }
+const {isSpecializedFence,recoversToContract}=require('./unsupported-recovery');
 function unwrap(node) {
     if (!node) throw new Error('Missing AST node in card definition');
     while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) || ts.isNonNullExpression(node) || ts.isSatisfiesExpression(node)) node = node.expression;
@@ -159,7 +160,16 @@ function titleHelper(node, ctx) {
     node=unwrap(node);
     if(ctx.constantTemplateSource&&ts.isCallExpression(node)&&node.expression.getText(ctx.source)==='KeywordHelpers.keywordDescription'){if(node.arguments.length!==1)fail(ctx,node,'keyword-description-arity');const keyword=literal(node.arguments[0],ctx);if(typeof keyword!=='string')fail(ctx,node,'keyword-description-value');return keyword.charAt(0).toUpperCase()+keyword.slice(1);}
     const text=node.getText(ctx.source);
-    if(ctx.pureProgram&&ts.isCallExpression(node)&&/^TextHelper\.(keyword|resource|Restore|Raid|Exploit|aspect|trait|aspectList)$/.test(node.expression.getText(ctx.source))){try{node.arguments.forEach(a=>literal(a,ctx));}catch(error){if(!(error instanceof Unsupported))throw error;return null;}}
+    if(ctx.pureProgram&&ts.isCallExpression(node)&&/^TextHelper\.(keyword|resource|Restore|Raid|Exploit|aspect|trait|aspectList)$/.test(node.expression.getText(ctx.source))){
+        try{node.arguments.forEach(a=>literal(a,ctx));}
+        catch(error){
+            if(!(error instanceof Unsupported))throw error;
+            // Dynamic title fragments may defer; lexical identity failures
+            // must still stop before constructing formatter IR.
+            if(isSpecializedFence(error)&&error.diagnostic.pattern!=='nonconstant-value')throw error;
+            return null;
+        }
+    }
     if(ts.isPropertyAccessExpression(node)&&text.startsWith('TextHelper.')) {
         const trait=/^TextHelper\.Trait\.([A-Za-z]+)$/.exec(text);
         if(trait) {
@@ -222,7 +232,10 @@ function displayText(node, ctx) {
     if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) fail(ctx,node,'callable-display-title');
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
     if (ts.isTemplateExpression(node)) return node.head.text + node.templateSpans.map((span) => {
-        let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){if(!(error instanceof Unsupported)||!textProgramExpression(span.expression,ctx,{ts,unwrap,expr,fail,unshadowedEnum}))throw error;helper=null;}
+        let helper;try{helper=titleHelper(span.expression,ctx);}catch(error){
+            if(!(error instanceof Unsupported)||isSpecializedFence(error)||!textProgramExpression(span.expression,ctx,{ts,unwrap,expr,fail,unshadowedEnum}))throw error;
+            helper=null;
+        }
         return (helper ?? '[value]')+span.literal.text;
     }).join('');
     return 'Resolve ability';
@@ -231,7 +244,7 @@ function displayText(node, ctx) {
 // Its expressions remain pure IR and are evaluated in the current ability context.
 function contextTitle(input, context) {
     const constructed=context.constructionValues?.get(unwrap(input));if(constructed)return [constructed];
-    let lowered;try{lowered=lambda(input,context);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(input,context,privateApi(),['contextTitleContext']);if(!callback)throw error;return [{kind:'contextTitleProgram',callback,evaluation:'nativeContextTitleInvocation'}];}
+    let lowered;try{lowered=lambda(input,context);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;const callback=privatePrograms.compileCallback(input,context,privateApi(),['contextTitleContext']);if(!callback)throw error;return [{kind:'contextTitleProgram',callback,evaluation:'nativeContextTitleInvocation'}];}
     const {node,ctx}=lowered;
     const part=(n)=>{
         n=unwrap(n);
@@ -243,7 +256,10 @@ function contextTitle(input, context) {
             return reference(...receiver.path,'title');
         }
         if(ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.QuestionQuestionToken)return {kind:'binary',op:'??',left:part(n.left),right:part(n.right)};
-        let helper;try{helper=titleHelper(n,ctx);}catch(error){if(!(error instanceof Unsupported))throw error;const text=textProgramExpression(n,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(text)return text;throw error;}
+        let helper;try{helper=titleHelper(n,ctx);}catch(error){
+            if(!(error instanceof Unsupported)||isSpecializedFence(error))throw error;
+            const text=textProgramExpression(n,ctx,{ts,unwrap,expr,fail,unshadowedEnum});if(text)return text;throw error;
+        }
         if(helper!==null)return constant(helper);
         return expr(n,ctx);
     };
@@ -574,6 +590,7 @@ function singletonArenaMembership(node, ctx) {
 function expr(input, context, params = ['context']) {
     try{return legacyExpr(input,context,params);}catch(error){
         if(!(error instanceof Unsupported))throw error;
+        if(isSpecializedFence(error))throw error;
         const fn=unwrap(input);if((ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&ts.isBlock(fn.body))return privatePrograms.compileCallback(fn,context,privateApi(),params);
         if(context.liveStats||context.legacyKeywordValue||context.constructionFactorySuppressed&&!context.pendingSystemConstruction)throw error;
         const {node,ctx}=lambda(input,context,params);
@@ -591,6 +608,7 @@ function legacyExpr(input, context, params = ['context']) {
     try{lowered=lambda(input,context,params);}catch(error){
         const fn=unwrap(input);
         if(!(error instanceof Unsupported)||(!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))||!ts.isBlock(fn.body))throw error;
+        if(isSpecializedFence(error))throw error;
         return privatePrograms.compileCallback(fn,context,privateApi(),params);
     }
     let { node, ctx } = lowered;
@@ -1203,7 +1221,7 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'hand-discard-player-target');
         return { kind:'discardOwnHand', amount:constant(amount), target:playerTarget };
-        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
+        }catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     if (kind === 'discardFromDeck') {
         try {
@@ -1216,7 +1234,7 @@ function effect(input, context, defaultTarget = 'self') {
         const playerTarget = target(obj.props.get('target'), obj.ctx, 'enemyPlayer');
         if (!['ownPlayer', 'enemyPlayer'].includes(playerTarget)) fail(obj.ctx, obj.props.get('target') || node, 'deck-discard-player-target');
         return { kind:'discardDeck', amount:constant(amount), target:playerTarget };
-        }catch(error){if(!(error instanceof Unsupported))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
+        }catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;return playerDiscardSystem(kind,obj,playerResourceApi);}
     }
     const tokenTypes = { createBattleDroid:'battleDroid', createCloneTrooper:'cloneTrooper', createXWing:'xwing', createTieFighter:'tieFighter', createSpy:'spy', createBeast:'beast', createMandalorian:'mandalorian' };
     if (Object.hasOwn(tokenTypes, kind)) {
@@ -1315,6 +1333,9 @@ function effect(input, context, defaultTarget = 'self') {
                 result.amount=value;
             } catch(error) {
                 if(!(error instanceof Unsupported))throw error;
+                // A different numeric callback needs the existing complete
+                // recipient callback contract; invariant failures stay closed.
+                if(isSpecializedFence(error))throw error;
                 result.amount=nativeDamageRecipientAmount(amount,amountContext,{...privateApi(),target});
             }
         }else {
@@ -1502,7 +1523,7 @@ function unshadowedEnum(node,ctx,root) {
     for(let a=node.parent;a;a=a.parent)if(a.parameters?.some(p=>ts.isIdentifier(p.name)&&p.name.text===root)||ts.isBlock(a)&&a.statements.some(st=>ts.isVariableStatement(st)&&st.declarationList.declarations.some(d=>ts.isIdentifier(d.name)&&d.name.text===root)))fail(ctx,node,'syntax-alias-enum-binding');
     if(ctx.scope.has(root)||ctx.constants.has(root))fail(ctx,node,'syntax-alias-enum-binding');
 }
-function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
+function constantAbility(input,context,validatedObject=null){try{const result=legacyConstantAbility(input,context,validatedObject);const hasContract=v=>v&&typeof v==='object'&&(v.kind==='ongoingContract'||Object.values(v).some(hasContract));return hasContract(result.effect)?constantContract(input,context,contractApi(),validatedObject):result;}catch(error){if(!(error instanceof Unsupported))throw error;if(!recoversToContract(error,['non-path-reference','unimplemented-context-field:game']))throw error;return constantContract(input,context,contractApi(),validatedObject);}}
 function legacyConstantAbility(input, context, validatedObject = null) {
     const obj = validatedObject || object(input, context);
     const playerCost=playerCostConstant(obj,{ts,unwrap,expr,literal,target,fail,object,access,displayText});if(playerCost)return playerCost;
@@ -1626,7 +1647,7 @@ function gainedHostSourceShape(out) {
         same(a,{...base,optional:true,targetResolver:{owner:'any',type:'any',zone:'anyAttackable',predicate:{kind:'binary',op:'&&',left:other,right:{kind:'query',name:'isUnit',receiver:reference('card'),args:[]}}},effect:{kind:'modifyStats',target:'chosen',duration:'phase',power:constant(3),hp:constant(0)},gainedHost:true})&&same(out.attachCondition,{kind:'unary',op:'!',value:attach('vehicle')}) ||
         same(a,{...base,effect:{kind:'discardOwnHand',amount:constant(1),target:'ownPlayer'},gainedHost:true})&&!out.attachCondition;
 }
-function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;return attachedConstantContract(input,context,host,contractApi());}}
+function attachedConstantAbility(input,context,host){try{return legacyAttachedConstantAbility(input,context,host);}catch(error){if(!(error instanceof Unsupported)||context.pendingRegistration&&!host)throw error;if(!recoversToContract(error,['attached-constant-installed-keyword-only']))throw error;return attachedConstantContract(input,context,host,contractApi());}}
 function legacyAttachedConstantAbility(input,context,host) {
     const obj=object(input,context);const allowed=host?['title','condition','matchTarget','ongoingEffect']:['title','condition','ongoingEffect'];
     for(const [key,value]of obj.props)if(!allowed.includes(key))fail(obj.ctx,value,'unsupported-attached-constant-field:'+key);
@@ -1745,7 +1766,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if(!validatedObject){const privateAbility=privatePrograms.abilityCall(input,context,privateApi());if(privateAbility)return privateAbility;}
     const fn=unwrap(input);
     if(!validatedObject&&!context.abilityProgramAttempt&&(ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&(ts.isBlock(fn.body)||privateAbilityValues.isCall(fn.body,context,privateApi()))){
-        try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
+        try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
     }
     return legacyAbility(input,context,trigger,validatedObject);
 }
@@ -1953,6 +1974,7 @@ function loadEnums(sourceRoot) {
     enumFiles.push(path.join(sourceRoot,'game/IDamageOrDefeatSource.ts'));
     enumFiles.push(path.join(sourceRoot,'game/gameSystems/DiscloseAspectsSystem.ts'));
     for (const file of enumFiles) {
+        if(!fs.existsSync(file))continue;
         const sf = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
         function walk(n) {
             if (ts.isEnumDeclaration(n)) for (const member of n.members) {
@@ -2159,7 +2181,14 @@ function compileSource(text, file, enums = {}, options = {}) {
                     const properties=unwrap(call.arguments[0]);
                     if(ts.isArrowFunction(properties)||ts.isFunctionExpression(properties))fail(local,properties,'attached-registration-properties-must-be-object');
                     try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
-                    catch(error){if(!(error instanceof Unsupported))throw error;out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));}
+                    catch(error){
+                        if(!(error instanceof Unsupported))throw error;
+                        // The full attached registration preserves noncanonical
+                        // headers, operands and lexical captures as source-only IR.
+                        // Its validator retains the original malformed-field guards.
+                        if(!recoversToContract(error,['registrar:addGainOnAttackAbilityTargetingAttached']))throw error;
+                        out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));
+                    }
                 }
                 else if (registration === 'addCoordinateAbility') {
                     const leaderCoordinate=out.baseClass==='LeaderUnitCard'&&['setupLeaderSideAbilities','setupLeaderUnitSideAbilities'].includes(name);

@@ -464,7 +464,7 @@
       "internalName": "source-boundary-6",
       "status": "supported"
     },
-    "runtimeRejection": "unknown variant `selectedPlayerSystem`"
+    "runtimeAdmission": "bounded selected-player readyResources"
   },
   {
     "name": "game-arena-query",

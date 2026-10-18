@@ -55,6 +55,7 @@ fn state_is_inline_copy_and_hash_covers_prompts_and_deck_order() {
     // Event/LKI adds1456 bytes; maximum captures add112 in this combined
     // layout (72 payload bytes plus40 padding across suspended contexts).
     // Keep the exact Copy-state budget tight; phase history adds136 bytes and attack context adds40.
+    assert!(EXPECTED_INLINE_STATE_BYTES <= 32_768,"inline state budget exceeded");
     assert!(std::mem::size_of::<State>() <= EXPECTED_INLINE_STATE_BYTES, "inline state bytes: {}", std::mem::size_of::<State>());
     eprintln!("inline state bytes: {}; card bytes: {}", std::mem::size_of::<State>(), std::mem::size_of::<Card>());
     let e = engine();
@@ -407,7 +408,7 @@ fn ambush_resumes_captured_ordinary_wp_after_mutual_death_and_with_living_source
         let mut s=captured_wp_board(&e,seat);let source=unit(&e,&mut s,seat,"LAW_078");s.card_mut(source).exhausted=true;
         let victim=unit(&e,&mut s,seat.other(),if lethal {"ASH_190"}else{"LOF_254"});
         let host=unit(&e,&mut s,seat.other(),"LOF_254");let upgrade=add(&e,&mut s,seat.other(),"HMW_235");e.attach(&mut s,upgrade,host);
-        s.source=source;e.capture_enter_triggers(&mut s);e.process_triggers(&mut s).unwrap();s=button(&e,s,"Ambush");s=button(&e,s,"Trigger");s=click(&e,s,victim);
+        s.source=source;e.capture_enter_triggers(&mut s).unwrap();e.process_triggers(&mut s).unwrap();s=button(&e,s,"Ambush");s=button(&e,s,"Trigger");s=click(&e,s,victim);
         assert_eq!(e.in_arena(&s,source),!lethal);assert!(!e.in_arena(&s,victim));assert_eq!(s.active,seat);assert_eq!(s.decision,Decision::AbilityOptional);assert_eq!(s.source,source);assert_eq!(s.after_attack_programs,0);assert_eq!(s.after_attack_triggers,0);
         s=button(&e,s,"Trigger");assert_eq!(s.decision,Decision::AbilityTarget);assert!(e.legal_actions(&s).iter().any(|a|a.id()==Some(upgrade)));
         s=click(&e,s,upgrade);assert!(s.player(seat.other()).discard.contains(upgrade));assert_eq!(s.card(upgrade).parent,0);assert_eq!(e.in_arena(&s,source),!lethal);assert_eq!(s.active,seat.other());assert_eq!(s.decision,Decision::Window);
@@ -416,7 +417,7 @@ fn ambush_resumes_captured_ordinary_wp_after_mutual_death_and_with_living_source
 #[test]
 fn ambush_dead_source_without_effective_captured_wp_finishes_action() {
     let e=captured_wp_engine();for seat in [Seat::P1,Seat::P2] {
-        let mut s=captured_wp_board(&e,seat);let source=unit(&e,&mut s,seat,"LAW_078");let victim=unit(&e,&mut s,seat.other(),"ASH_190");s.source=source;s.card_mut(source).exhausted=true;e.capture_enter_triggers(&mut s);e.process_triggers(&mut s).unwrap();s=button(&e,s,"Ambush");s=button(&e,s,"Trigger");s=click(&e,s,victim);assert!(!e.in_arena(&s,source));assert_eq!(s.decision,Decision::Window);assert_eq!(s.active,seat.other());assert_eq!(s.pending_programs,0);assert_eq!(s.after_attack_programs,0);
+        let mut s=captured_wp_board(&e,seat);let source=unit(&e,&mut s,seat,"LAW_078");let victim=unit(&e,&mut s,seat.other(),"ASH_190");s.source=source;s.card_mut(source).exhausted=true;e.capture_enter_triggers(&mut s).unwrap();e.process_triggers(&mut s).unwrap();s=button(&e,s,"Ambush");s=button(&e,s,"Trigger");s=click(&e,s,victim);assert!(!e.in_arena(&s,source));assert_eq!(s.decision,Decision::Window);assert_eq!(s.active,seat.other());assert_eq!(s.pending_programs,0);assert_eq!(s.after_attack_programs,0);
     }
 }
 #[test]

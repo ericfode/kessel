@@ -6,7 +6,57 @@ use crate::ability_ir::{Effect, Instruction, Program};
 
 impl Engine {
     pub(super) fn native_attack_power(&self,s:&State,target:CardId)->i64 {
-        s.support.grants[..s.support.len as usize].iter().filter(|g|g.target==target).map(|g|g.power as i64).sum()
+        s.support.grants[..s.support.len as usize].iter().filter(|g|g.target==target).map(|g|g.power as i64 + self.conditional_attack_power(s,g)).sum()
+    }
+    fn conditional_attack_matches(&self, s:&State, attacker:CardId, condition:&crate::migration_attack_contract::Condition)->bool {
+        use crate::migration_attack_contract::Condition;
+        // Admitted positions do not represent control changes, so the
+        // selected attacker's owner is the captured attacking/context player.
+        let player=s.card(attacker).owner;
+        match condition {
+            Condition::AttackerHasTrait(name)=>self.card_has_trait(s,attacker,name),
+            Condition::InitiatingPlayerHasInitiative=>s.initiative==player,
+            Condition::InitiatingPlayerHasFewerResources=>s.player(player).resources.len<s.player(player.other()).resources.len,
+            Condition::SharesTraitWithOtherFriendlyUnit=>{
+                let traits=self.card_traits(s,attacker);
+                let p=s.player(player);
+                p.ground.as_slice().iter().chain(p.space.as_slice()).copied().any(|other|
+                    other!=attacker && traits.iter().any(|name|self.card_has_trait(s,other,name)))
+            }
+        }
+    }
+    fn conditional_attack_power(&self,s:&State,g:&SupportGrant)->i64 {
+        if g.conditional_mask==0 {return 0;}
+        let Instruction::Apply(Effect::InitiateAttack{properties,..})=&self.program(g.conditional_program-1).instructions[g.conditional_pc as usize] else {
+            unreachable!("conditional grant must retain its admitted initiation instruction")
+        };
+        properties.conditional_power().expect("validated conditional attack descriptors").iter().enumerate()
+            .filter(|(i,e)|g.conditional_mask&(1<<i)!=0 && self.conditional_attack_matches(s,g.target,&e.condition))
+            .map(|(_,e)|i64::from(e.power)).sum()
+    }
+    pub(super) fn install_conditional_attack(&self,s:&mut State)->Result<(),String> {
+        if !s.support.pending || !s.support.native_attack {return Ok(());}
+        let context=s.support.context;
+        let pc=context.ability_pc.checked_sub(1).ok_or("modified attack continuation missing")?;
+        let Instruction::Apply(Effect::InitiateAttack{properties,..})=&self.program(context.ability_program-1).instructions[pc as usize] else {
+            return Err("modified attack initiation provenance missing".into());
+        };
+        let entries=properties.conditional_power()?;
+        let mut mask=0u8;
+        for (i,entry) in entries.iter().enumerate() {
+            // A failed initial gate is never installed, even if a declaration
+            // trigger later makes the live condition true.
+            if self.conditional_attack_matches(s,s.source,&entry.condition) {mask|=1<<i;}
+        }
+        if mask==0 {return Ok(());}
+        if s.support.len as usize==MAX_SUPPORT_GRANTS {return Err("modified attack lasting-effect capacity exceeded (32)".into());}
+        s.support.grants[s.support.len as usize]=SupportGrant {
+            target:s.source,donor:context.source,native_attack:true,
+            conditional_program:context.ability_program,conditional_pc:pc,conditional_mask:mask,
+            ..SupportGrant::default()
+        };
+        s.support.len+=1;
+        self.check_stat_capacity(s)
     }
     pub(super) fn native_attack_eligible(&self,s:&State,source:CardId,target:CardId,p:&crate::native_attack::Properties)->bool {
         target!=0 && self.in_arena(s,target) && s.card(target).owner==s.card(source).owner
@@ -211,6 +261,9 @@ impl Engine {
                 "keywords":g.keywords,"presence":g.presence
             });
             if g.native_attack {value["kind"]=json!("modifiedAttack");value["power"]=json!(g.power);}
+            // Conditional grants only exist inside a pending attack. Export
+            // provenance for inspection; the action-window importer rejects it.
+            if g.conditional_mask!=0 {value["conditionalAttack"]=json!({"program":g.conditional_program,"pc":g.conditional_pc,"installed":g.conditional_mask});}
             if g.deals_combat_damage_first {value["firstStrike"]=json!(true);}
             value
         }).collect::<Vec<_>>())

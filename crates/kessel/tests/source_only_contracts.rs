@@ -1,9 +1,9 @@
 //! Compiler-only contracts preserve source semantics without widening execution.
-use kessel::ability_ir::{Catalogue, SCHEMA};
+use kessel::ability_ir::{Catalogue, Effect, Instruction, Target, SCHEMA};
 use serde_json::{json, Value};
 
 #[test]
-fn retained_source_contracts_remain_explicit_runtime_rejections() {
+fn retained_source_contracts_preserve_execution_boundaries() {
     let fixtures: Vec<Value> = serde_json::from_str(include_str!("fixtures/source-only-contracts.json")).unwrap();
     for fixture in fixtures {
         let mut entry = fixture["compiled"].clone();
@@ -26,7 +26,18 @@ fn retained_source_contracts_remain_explicit_runtime_rejections() {
             let sibling = Catalogue::load(&json!({"schema":SCHEMA,"cards":[sibling]})).unwrap();
             assert!(sibling.cards.contains_key("PROBE_001"), "constant sibling: {:?}", sibling.rejected);
         }
-        let catalogue = Catalogue::load(&json!({"schema":SCHEMA,"cards":[entry]})).unwrap();
+        let catalogue = Catalogue::load(&json!({"schema":SCHEMA,"cards":[entry.clone()]})).unwrap();
+        if fixture["runtimeAdmission"].is_string() {
+            // The checkpoint implements this exact selected-player scalar family;
+            // its complete source remains intact and larger amounts stay held.
+            let programs=&catalogue.cards["PROBE_001"];
+            assert!(catalogue.programs[programs.card[0] as usize].instructions.iter().any(|i|
+                matches!(i,Instruction::Apply(Effect::ReadyResources {target:Target::Name(n),..}) if n=="chosenPlayer")));
+            entry["abilities"]["card"][0]["effect"]["properties"]["amount"]["value"]=json!(3);
+            let rejected=Catalogue::load(&json!({"schema":SCHEMA,"cards":[entry]})).unwrap();
+            assert!(!rejected.cards.contains_key("PROBE_001"));
+            continue;
+        }
         assert!(!catalogue.cards.contains_key("PROBE_001"), "{}", fixture["name"]);
         let reason = &catalogue.rejected["PROBE_001"];
         assert!(reason.contains(fixture["runtimeRejection"].as_str().unwrap()),

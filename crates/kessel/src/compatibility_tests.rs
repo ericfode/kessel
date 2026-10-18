@@ -28,6 +28,7 @@ fn board(e: &Engine) -> State {
     let mut s = State::default();
     s.hidden_history_exact = true;
     s.force_state_exact = true;
+    s.credit_state_exact = e.needs_credit_state();
     for (seat, code) in [(Seat::P1, "SOR_014"), (Seat::P2, "IBH_053")] {
         let base = add(e, &mut s, seat, "ASH_019");
         let leader = add(e, &mut s, seat, code);
@@ -113,6 +114,7 @@ fn compatibility_snapshot_preserves_exact_evidence_and_unknown_legacy_history() 
     let restored = e.load_state(&snapshot).unwrap();
     assert_eq!(e.snapshot(&restored), snapshot);
     assert_eq!(restored.zobrist(), s.zobrist());
+    assert_eq!(snapshot.get("creditStateVersion").is_some(), e.needs_credit_state());
     for name in [
         "forceStateVersion",
         "hiddenHistoryVersion",
@@ -123,6 +125,7 @@ fn compatibility_snapshot_preserves_exact_evidence_and_unknown_legacy_history() 
         assert!(snapshot.get(name).is_some(), "missing {name}");
     }
     s.force_state_exact = false;
+    s.credit_state_exact = false;
     s.hidden_history_exact = false;
     s.phase_history.exact = false;
     s.registration_order.exact = false;
@@ -131,6 +134,7 @@ fn compatibility_snapshot_preserves_exact_evidence_and_unknown_legacy_history() 
     let mut restored = e.load_state(&snapshot).unwrap();
     for name in [
         "forceStateVersion",
+        "creditStateVersion",
         "hiddenHistoryVersion",
         "phaseHistory",
         "registrationOrder",
@@ -159,9 +163,11 @@ fn compatibility_required_evidence_and_pending_support_still_fail_closed() {
         ("phaseHistory","selected pool requires explicit phaseHistory version"),
         ("registrationOrder","defeat-hook/granted-death sources require explicit registrationOrder including future cards in selected pool"),
         ("forceStateVersion","selected pool requires explicit Force state version"),
+        ("creditStateVersion","selected pool requires explicit Credit state version"),
     ] {
         let mut bad=snapshot.clone();bad.as_object_mut().unwrap().remove(field);
         if field=="forceStateVersion" {for seat in ["p1","p2"] {bad["players"][seat].as_object_mut().unwrap().remove("forceToken");}}
+        if field=="creditStateVersion" {for seat in ["p1","p2"] {bad["players"][seat].as_object_mut().unwrap().remove("credits");bad["players"][seat].as_object_mut().unwrap().remove("retiredCredits");}}
         assert_eq!(e.load_state(&bad).unwrap_err(),diagnostic,"{field}");
     }
     for field in ["hiddenHistoryVersion", "forceStateVersion"] {

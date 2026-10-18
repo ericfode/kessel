@@ -3,8 +3,8 @@
   "irSchema": "swu-card-ir/v1",
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
-  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
-  "compilerHash": "d188828527e6459ea9c7b2673e4746960923f9d0904c190026e6d454b45a548e",
+  "sourceTreeHash": "bd11e0fed492efebf92f84abdd50dada9ea4d331d4c9c61879985a2c4bd3cef6",
+  "compilerHash": "410a4bcba825aa5c86cdc1f655ade233de519dc8bfef497c227ea67e0d92157e",
   "sourceSupport": [
     {
       "role": "staged-native-token-lifecycle",
@@ -1751,7 +1751,7 @@
     }
   ],
   "inventory": {
-    "knownCards": 2458,
+    "knownCards": 2605,
     "mockCardsExcluded": 21,
     "sourceFiles": 2074,
     "sourceDefinitions": 2071,

@@ -177,6 +177,23 @@ physical donor. They use the interpreter fallback in Auto mode. General attack
 factories, attack-end/on-attack initiation, exhausted-attacker permissions,
 defender modifiers, altered damage, and unverified continuations remain rejected.
 
+Two closed leader compositions reuse this machinery: a front-side native attack
+action with physical resource/exhaustion costs, and a deployed other-friendly
+Grit or Overwhelm aura. The Grit composition filters Heroism units. A bounded
+ordinary event can also follow initiation with a fresh three-Advantage selection.
+Its `ifYouDo` tests resolution of the initiating event: cancelling the later
+defender picker still runs the continuation, while cancelling before initiation
+or creating no initiation event skips it. Attack/death triggers finish before
+the fresh recipient prompt. Other leader and continuation shapes stay rejected.
+
+Closed arena-choice sources reuse the same menu interpreter for opponent arena
+exhaustion on death and uniform three-damage arena batches on play or attack.
+An explicitly legal Pass remains available without an effective event and
+publishes a false result with no event payload. Global damage batches require
+recorded global arena order at import and execution; existing registration
+chronology guards still apply. Unrelated selected pools retain their legacy
+snapshot compatibility without inferring missing order.
+
 
 Bounded physical-card inventories support `some`, `every`, `filter`, `map`, and
 `includes`, retaining order, duplicates, empty-array truthiness, and physical
@@ -274,7 +291,8 @@ Physical `hasExperience`, `hasShield`, and `hasWeakness` predicates require thei
 reviewed native definitions in the selected pool, even when no token is created.
 Bounded scalar leader actions and optional unit-side attacks can give Weakness;
 the complete two-sided source, costs, target filters, and continuations remain
-admission boundaries. Credit remains a staged lifecycle contract. Advantage remains compiler-unsupported
+admission boundaries. The bounded Credit lifecycle and payments described below
+execute through the shared runtime. Advantage remains compiler-unsupported
 because its pinned source contains two classes, while an exact native adapter
 executes its complete reviewed lifecycle; native admission is counted separately
 from source conversion.
@@ -498,6 +516,15 @@ checks event resolution/replacement status, rather than a numerical result.
 unresolvable display flag. Its default branch is automatic when the unless system
 cannot fully or partially resolve. These remain pending executor operations.
 
+The complete ready/conditional-Spy event registration can project current unit
+play from existing exact phase-played IDs and current-incarnation qualification.
+Both histories are required: an old played bit after departure/placement is
+insufficient, as is qualification from deployment or token creation. The target
+may belong to either player; Spy creation belongs to the event player and is
+independent of whether readying changed the target. General captured event lists
+and other history callbacks remain rejected.
+
+
 ## Runtime admission and conformance
 
 ```sh
@@ -510,6 +537,32 @@ node bots/omni/rs/make-compiled-fixtures.js --pool ../kessel/compiler/generated/
 `catalogue` emits a deterministic admission report, including named rejection
 reasons. `check`, `prove`, and `bench` accept `--catalogue` and an optional matching
 pool. Omitting the catalog retains the original strict pool behavior.
+
+Closed whole-source contracts also admit bounded card restrictions, adjusted
+resource payments, Disclose continuations, self-play cost reductions, modal
+choices, first-strike combat and selected hand/discard resource or bottom-deck
+moves. These validators check the complete source registration and metadata;
+the presence of an IR node alone does not admit its containing card. Unsupported
+companions and unreviewed source contexts remain rejected.
+Self-play reductions read their validated live unit/leader counts when calculating the total
+play cost, including aspect penalties, and floor the result at zero. First-strike
+combat settles the attacker's damage and death triggers before calculating a
+surviving defender's return power. Modal choices preserve the chooser and resume
+the selected branch through the ordinary program interpreter.
+
+Closed ordinary-unit cost contracts also support initiative, another friendly
+Trooper, at least three other friendly units, at least three opposing space
+units, and the opposing arena unit count. These read the source controller's live
+state; an incoming unit never qualifies as its own other unit. Intrinsic Raid,
+Sentinel and Ambush remain independent of the extracted cost registration.
+
+Three closed ordinary-event cost contracts retain their executable event after
+extracting the cost registration: friendly arena leader units reduce an up-to-three
+Experience event or targeted Damage 3 event, and friendly Rebel units/leaders reduce a Draw 2 event. The
+Rebel inventory uses live traits and counts the undeployed leader once; attached
+ordinary Pilots retain upgrade mode and do not count as units. Leader-upgrade
+modes remain outside admission. These reductions apply to the source's play cost,
+not ability costs or card-effect resource payments.
 
 The fixture generator records real engine games across four bot pairings plus
 explicit effect/continuation decks, and preserves the exact pool beside them.
@@ -542,13 +595,56 @@ summary` and `generated/runtime-admission.json`, rather than historical batch to
 Follow the [conversion skill](../.agents/skills/swu-card-conversion/SKILL.md)
 for implementation, source-derived witnesses, and independent review requirements.
 
+## Bounded Credit and attachment payments
+
+The exact native Credit definition supports complete sole registrations for
+ordinary unit entry creating one Credit, ordinary events creating one or three,
+an ordinary unit exhaust action creating one, and a Sentinel unit creating one
+on defense. Action creation pays its exhaust cost before allocating the token;
+defense creation shares the captured attack-declaration window and belongs to
+the defender's controller, even if the source leaves play before resolution.
+Creation allocates fresh physical identities as one batch before ordered BaseZone
+entry. The ledger retains zone order, controller/owner changes and
+retired physical metadata; defeating a Credit never recycles its identity.
+Three further closed ordinary-unit compositions retain their full conditions and
+continuations: another friendly Underworld unit on entry, a friendly ground unit
+on attack, and optional adjusted payment of two resources on attack before
+creation. They share the original native dependency and payment lifecycle.
+Other printed Credit registrations and modified or blanked Credit states remain
+rejected. These contracts do not imply support for every Credit card.
+
+The shared resource-cost boundary applies Credits after ordinary reductions and
+aspect penalties for normal play, Smuggle, action costs and adjusted card-effect
+payments. It preserves mandatory minimums, amount selection, skip and inherited
+cancellation rules. Earlier costs settle before later payment stages. A prompt
+retains its evaluated cost, physical source and chosen attachment host. Paying
+entirely with Credits still resolves a zero-amount resource event, so the
+payment's success continuation can run. Unadjusted resource effects retain their
+separate semantics. A cost that becomes unavailable during a child window fails
+explicitly when recovery is unsupported.
+
+Stable selected-pool snapshots require `creditStateVersion: 1` and explicit live
+`credits` and canonical `retiredCredits` references for both players, including
+empty lists. Legacy snapshots cannot establish unknown Credit evidence. Native
+state copies retain pending payment and child-window continuations; JSON export
+marks those frames and action-window import rejects them.
+
+Three complete upgrade contracts reduce the price by one when the physical
+attachment target is Imperial, Mandalorian or unique. Target availability and
+payment use that particular host, including a zero floor. Target-free printed
+cost queries remain undiscounted, and Smuggle retains its printed alternative
+cost. Broader player cost modifiers, captured attachment lists and unsupported
+companion registrations remain rejected.
+
 ## Bounded controlled-title and physical-attachment queries
 
 `hasControlledInPlayTitle(player, literalTitle)` tests exact printed title equality
 across controlled arena cards (including upgrades on opposing hosts), the player's
 base and undeployed leader, and held Force. Force-title programs require the
-reviewed native definition and explicit Force state. Credits, Fortify and printed
-attribute overrides remain outside runtime admission. Title-dependent source
+reviewed native definition and explicit Force state. Live Credits participate in
+controlled in-play title and trait queries through their BaseZone ledger; retired
+Credit identities do not. Fortify and printed attribute overrides remain outside
+runtime admission. Title-dependent source
 registrations require complete ordinary-unit metadata. Reviewed consumers are
 persistent self constants with the query condition, mandatory entry self-ready,
 optional On Attack one-damage unit selection, and optional death Experience
@@ -714,7 +810,7 @@ when no explicit target was supplied. Advantage grants preserve creator identity
 recipient-controller ownership and one batched creation event. Advantage
 distribution instead retains a separate creation event per recipient and its
 aggregate result. Phase player-cost effects preserve one lasting-effect
-application with expiry at phase end. Only the bounded Advantage grant contracts described above execute in Rust;
+application with expiry at phase end. The bounded Advantage grants and Credit contracts described above execute in Rust;
 other resource/token forms still need runtime implementation and native token
 contracts. Catalog conversion alone does not admit them for play, and executed
 source-engine verification remains pending.
@@ -727,7 +823,9 @@ and uses the original complete system target list. Broader complete top-deck
 programs use `resourceCardSystem`, keeping existing runtime-facing programs
 unchanged. Self aspect-penalty registrations reuse the typed cost-adjuster schema.
 Callable ability costs remain `costFactory` programs evaluated on each engine
-`getCosts` call. All of these extensions remain compiler-only.
+`getCosts` call. These lowerings do not by themselves establish runtime admission;
+closed ordinary resource-entry forms have the bounded runtime support described
+above.
 
 
 ## Further compiler-only contracts
@@ -752,11 +850,14 @@ plays. Object-shaped simultaneous/sequential systems retain their resolution mod
 View/selection, reveal and deck movement remain distinct pending operations.
 
 Disclose preserves aspect multiplicity, target-player selection context, disclosed
-card event data and the triggered no-match masking protocol. Delayed systems
+card event data and the triggered no-match masking protocol. Rust admits closed
+ordinary-unit/event Disclose forms with supported `ifYouDo` continuations.
+Delayed systems
 retain application context, named event predicates, matched targets, duration and
 application limits. Optional and random aggregate systems retain child target
 binding and native-default fallback; random selection keeps its cached result and
-rollback-confirmation requirement. None of these nodes supplies a Rust executor.
+rollback-confirmation requirement. Delayed and random aggregate nodes do not
+supply a Rust executor.
 
 The two supported shared BaseCard definitions are compiled from their pinned
 source, with inherited registration and source provenance retained. Subclass
@@ -831,3 +932,30 @@ hooks or granted death registrations; legacy imports never infer that evidence.
 The inline State grows by 256 bytes (the 260-byte sequence absorbs existing
 padding). Rust source-derived fixtures cover these boundaries; parity
 for these additions has not been checked by executing the source engine.
+
+
+## Bounded hand-observation compositions
+
+Complete ordinary events can discard one own-hand card before an optional
+opponent-hand discard, Disclose two Cunning before a mandatory unit-card discard,
+or perform two opposite-owner hand selections followed by both players drawing.
+Each selection retains its original hand owner, chooser, predicate and success
+boundary. Optional selection uses `Take nothing`; mandatory selection with no
+match uses `Done`. Empty hands do not invent a display event. Pending displays
+export `viewSelectionPending` and cannot be reloaded as action windows, including
+when actor or winner fields are changed.
+
+Complete ordinary attack registrations can add literal conditional power after
+selection of the defender. A true initial applicability gate installs a live
+condition for the attack; a false gate installs nothing. The reviewed predicates
+read the selected attacker's traits, initiative, total resource counts, or traits
+shared with another friendly unit in either arena. Later trait/resource changes
+can deactivate and reactivate installed effects. Bounded grants retain their
+physical donor and initiation program, contribute to state hashing, and are
+removed on recipient departure or attack cleanup. Pending attacks cannot be
+imported as action windows. Early unconditional effects keep their existing
+cancellation and snapshot behavior.
+
+Dependent modal choices and defeat-history source contracts remain inspection
+descriptors without runtime admission. Defeat history still requires exact
+captured controller/type projections and versioned storage.

@@ -99,7 +99,7 @@ fn attachment_engine(backend:RulesBackend,synthetic:bool)->Engine {
         // and keep one unique attachment for the non-unique removal fixture.
         for entry in catalogue["cards"].as_array_mut().unwrap() {
             if entry["setCode"]=="HMW_235" {entry["card"]["title"]=json!("Shield");}
-            if entry["setCode"]=="SOR_120" {entry["card"]["unique"]=json!(true);}
+            if entry["setCode"]=="IC27_093" {entry["card"]["unique"]=json!(true);}
         }
     }
     let mut e=Engine::from_catalogue_value(&catalogue).unwrap();
@@ -130,7 +130,7 @@ fn collection_query_piercing_shot_removes_every_native_shield_before_damage_in_a
 fn collection_query_extracted_nonunique_defeat_snapshots_order_then_sweeps_parent_once() {
     for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
         let mut e=attachment_engine(backend,true);let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_256");let host=unit(&e,&mut s,Seat::P2,"LOF_256");
-        let first=add(&e,&mut s,Seat::P2,"HMW_235");e.attach(&mut s,first,host);let unique=add(&e,&mut s,Seat::P2,"SOR_120");e.attach(&mut s,unique,host);let second=add(&e,&mut s,Seat::P2,"SHD_070");e.attach(&mut s,second,host);e.create_token(&mut s,host,true).unwrap();let xp=s.card(host).experience;e.create_token(&mut s,host,false).unwrap();let shield=s.card(host).shield;
+        let first=add(&e,&mut s,Seat::P2,"HMW_235");e.attach(&mut s,first,host);let unique=add(&e,&mut s,Seat::P2,"IC27_093");e.attach(&mut s,unique,host);let second=add(&e,&mut s,Seat::P2,"IC27_052");e.attach(&mut s,second,host);e.create_token(&mut s,host,true).unwrap();let xp=s.card(host).experience;e.create_token(&mut s,host,false).unwrap();let shield=s.card(host).shield;
         let before_damage=s;s.card_mut(host).damage=e.hp(&s,host)-1;
         // SEC149's Plot keyword remains unsupported: use its complete unchanged
         // When Played registration on a diagnostic ordinary-unit host only.

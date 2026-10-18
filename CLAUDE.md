@@ -7,7 +7,8 @@ This file guides Claude Code (and Codex, through `AGENTS.md`) when working in th
 Kessel is a deterministic Rust rules simulator and endgame prover for an explicit subset of Star
 Wars Unlimited. The same core is compiled to WebAssembly, and a card compiler lowers forceteki
 TypeScript card definitions into the data-only ability IR that the simulator runs. Every
-supported card is checked against complete games recorded from the forceteki engine. Unsupported
+admitted card must pass runtime capability validation; recorded games check a subset against the
+forceteki engine. Runtime admission alone does not establish differential conformance. Unsupported
 cards are rejected with a reason and never approximated. `README.md` has the layout and commands.
 
 It was `bot/omni-rs` (with `bot/omni-wasm`, `bot/card-compiler` and `bot/cards`) in

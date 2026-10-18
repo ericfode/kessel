@@ -165,12 +165,13 @@ pub fn validate_state_with_catalogue(
             "arenaUnitOrder", "registrationOrder",
             "hiddenHistoryVersion", "phaseHistory",
             "supportStateVersion", "supportGrants", "supportAttackPending",
-            "forceStateVersion",
+            "forceStateVersion", "creditStateVersion",
         ],
         "state",
     )?;
     let history = match v.get("hiddenHistoryVersion") {None=>false,Some(n) if n.as_u64()==Some(1)=>true,_=>return Err("unsupported hiddenHistoryVersion".into())};
     let force_exact = match v.get("forceStateVersion") {None=>false,Some(n) if n.as_u64()==Some(1)=>true,_=>return Err("unsupported forceStateVersion".into())};
+    let credit_exact = match v.get("creditStateVersion") {None=>false,Some(n) if n.as_u64()==Some(1)=>true,_=>return Err("unsupported creditStateVersion".into())};
     let next = number(v, "nextCardId", (MAX_CARDS - 1) as u64, "state")?;
     if number(v, "round", u16::MAX as u64, "state")? == 0 {
         return Err("state.round must be positive".into());
@@ -221,7 +222,7 @@ pub fn validate_state_with_catalogue(
                 "ground",
                 "space",
                 "out",
-                "forceToken",
+                "forceToken", "credits", "retiredCredits",
             ],
             seat,
         )?;
@@ -234,6 +235,28 @@ pub fn validate_state_with_catalogue(
             if refs.seen.insert(id.to_owned(),format!("{seat}.forceToken")).is_some(){return Err("duplicate Force identity".into());}
             if held && !catalogue.contains_key("TOKEN_THE_FORCE"){return Err("held Force requires selected native definition".into());}
         } else if p.get("forceToken").is_some(){return Err("Force identity requires forceStateVersion".into());}
+        if credit_exact {
+            for name in ["credits", "retiredCredits"] {
+                let list = p[name].as_array().ok_or("versioned Credit state requires live and retired Credit lists")?;
+                if list.len() >= MAX_CARDS {return Err("Credit identity capacity exceeded".into());}
+                let mut previous_retired = 0u64;
+                for (i, token) in list.iter().enumerate() {
+                    let at = format!("{seat}.{name}[{i}]");
+                    fields(token, &["id", "setCode", "name"], &at)?;
+                    let (id, info) = refs.card(token, &at)?;
+                    if token["setCode"] != "TOKEN_CREDIT" || info["types"] != serde_json::json!(["token"]) || info["internalName"] != "credit" {
+                        return Err("Credit identity requires the selected native Credit definition".into());
+                    }
+                    if name == "retiredCredits" {
+                        let physical = id[1..].parse::<u64>().map_err(|_| "invalid retired Credit identity")? + 1;
+                        if physical <= previous_retired {return Err("retired Credit references must have canonical ascending identity order".into());}
+                        previous_retired = physical;
+                    }
+                }
+            }
+        } else if p.get("credits").is_some() || p.get("retiredCredits").is_some() {
+            return Err("Credit identities require creditStateVersion".into());
+        }
         let out = boolean(p, "out", seat)?;
         if !terminal && v["actor"] == *seat && out {
             return Err(format!("{seat} cannot act after leaving the phase"));
@@ -381,7 +404,9 @@ pub fn validate_state_with_catalogue(
                             &format!("{at}.upgrades"),
                         )?;
                         let (_, info) = refs.card(u, &format!("{at}.upgrades"))?;
-                        if !has_type(info,"upgrade") {return Err(format!("{at}: attachment must be an upgrade"));}
+                        if !has_type(info,"upgrade") && !crate::piloting_attached::metadata_is_pilot_attachment(info) {
+                            return Err(format!("{at}: attachment must be an upgrade"));
+                        }
                         let token=boolean(u,"token","upgrade")?;
                         if token {
                             if !matches!(u["setCode"].as_str(),Some("TOKEN_SHIELD"|"TOKEN_EXPERIENCE"|"TOKEN_WEAKNESS"|"TOKEN_ADVANTAGE")) || !has_type(info,"token") {return Err(format!("{at}: only Shield, Experience, Weakness and Advantage tokens are supported"));}

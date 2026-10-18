@@ -112,7 +112,7 @@ jobs:
             forceteki/node_modules
             forceteki/build
             forceteki/test/json
-          key: engine-${{ steps.engine.outputs.rev }}-v1
+          key: engine-${{ steps.engine.outputs.rev }}-v2
       - name: Install the pinned engine parser and fetch card metadata
         if: steps.scope.outputs.run != 'false' && steps.engine-cache.outputs.cache-hit != 'true'
         run: |
@@ -123,12 +123,35 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
         run: npm --prefix forceteki run build
+      # The card API can reorder relation arrays between requests. Preserve the
+      # exact fetched input bytes even if the catalogue staleness check fails.
+      - name: Save the prepared engine metadata
+        if: steps.scope.outputs.run != 'false' && steps.engine-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            forceteki/node_modules
+            forceteki/build
+            forceteki/test/json
+          key: engine-${{ steps.engine.outputs.rev }}-v2
       - name: Fail if committed generated files are stale
         if: steps.scope.outputs.run != 'false'
         run: npm run cards:check
       - name: Compiler and card tests
         if: steps.scope.outputs.run != 'false'
         run: npm run cards:test
+      - name: Capture compiler inputs after a failure
+        if: failure() && steps.scope.outputs.run != 'false'
+        run: node compiler/build.js --out "$RUNNER_TEMP/kessel-compiler-diagnostic"
+      - name: Upload compiler input diagnostics
+        if: failure() && steps.scope.outputs.run != 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: kessel-compiler-inputs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/kessel-compiler-diagnostic/
+            forceteki/test/json/
+          retention-days: 7
 
   wasm:
     name: WebAssembly build and tests

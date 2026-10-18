@@ -1,45 +1,319 @@
 use super::*;
-fn engine()->Engine{Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()}
-fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId{let id=s.next_id;s.next_id+=1;*s.card_mut(id)=Card{present:true,def:*e.by_code.get(code).unwrap_or_else(||panic!("{code}: {:?}",e.rejected_cards().unwrap().get(code))),owner:seat,..Card::default()};id}
-fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId{let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
-fn board(e:&Engine,seat:Seat)->State{let mut s=State::default();s.force_state_exact=true;s.hidden_history_exact=true;s.active=seat;for player in[Seat::P1,Seat::P2]{let base=add(e,&mut s,player,"ASH_019");let leader=add(e,&mut s,player,if player==seat{"LOF_006"}else{"SOR_014"});s.player_mut(player).base=base;s.player_mut(player).leader=leader;s.player_mut(player).force_id=s.next_id;s.next_id+=1;}for _ in 0..2{let resource=add(e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(resource).unwrap();}s}
-fn front(e:&Engine,s:&mut State,seat:Seat){s.active=seat;s.source=s.player(seat).leader;let p=e.def(s,s.source).programs.leader[0];e.begin_program(s,p,ProgramContinuation::Finish).unwrap();}
-#[test]fn maximum_snapshot_sole_recipient_is_automatic_and_ties_prompt_after_payment(){
- let e=engine();assert!(e.by_code.contains_key("LOF_006"),"{:?}",e.rejected_cards().unwrap().get("LOF_006"));
- for seat in[Seat::P1,Seat::P2]{let mut s=board(&e,seat);let low=unit(&e,&mut s,seat,"ASH_141");let high=unit(&e,&mut s,seat,"ASH_096");let enemy=unit(&e,&mut s,seat.other(),"ASH_096");s.card_mut(enemy).phase_power=20;let nonaspect=unit(&e,&mut s,seat,"IBH_014");let leader=s.player(seat).leader;front(&e,&mut s,seat);assert_eq!(e.token_count(&s,s.card(high).experience),1);assert_eq!(s.card(low).experience,0);assert_eq!(s.card(enemy).experience,0);assert_eq!(s.card(nonaspect).experience,0);assert!(s.card(leader).exhausted);assert_eq!(e.ready_resources(&s,seat),1);
- let mut s=board(&e,seat);let a=unit(&e,&mut s,seat,"ASH_096");let b=unit(&e,&mut s,seat,"ASH_141");s.card_mut(b).phase_power=1;front(&e,&mut s,seat);assert_eq!(s.decision,Decision::AbilityTarget);assert_eq!(s.maximum_capture,MaximumCapture{power:3,sole:a,count:2});assert_eq!(e.ready_resources(&s,seat),1);assert!(s.card(s.player(seat).leader).exhausted);let actions=e.legal_actions(&s);assert!(actions.contains(&e.card_action(&s,a)));assert!(actions.contains(&e.card_action(&s,b)));assert!(actions.iter().all(|a|a.kind!="button"));let next=s.next_id;let done=e.apply(&s,&e.card_action(&s,b)).unwrap();assert_eq!(done.card(next).parent,b);assert_eq!(done.card(next).owner,seat);assert_eq!(done.maximum_capture,MaximumCapture::default());
- }
+fn engine() -> Engine {
+    Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+        .unwrap()
 }
-#[test]fn maximum_snapshot_tie_scalar_survives_live_candidate_changes_and_copied_state(){
- let e=engine();let mut s=board(&e,Seat::P1);let a=unit(&e,&mut s,Seat::P1,"ASH_096");let b=unit(&e,&mut s,Seat::P1,"ASH_096");front(&e,&mut s,Seat::P1);let hash=s.zobrist();let copy=s;assert_eq!(copy.zobrist(),hash);let capture=s.maximum_capture;
- // Diagnostic changes between prompt views distinguish captured maximum from a fresh maximum query.
- s.card_mut(a).phase_power=5;let c=unit(&e,&mut s,Seat::P1,"ASH_096");let actions=e.legal_actions(&s);assert!(!actions.contains(&e.card_action(&s,a)));assert!(actions.contains(&e.card_action(&s,b)));assert!(actions.contains(&e.card_action(&s,c)));assert_eq!(s.maximum_capture,capture);let context=ResolutionContext::capture(&s);s.maximum_capture=MaximumCapture::default();context.restore(&mut s);assert_eq!(s.maximum_capture,capture);assert_ne!(s.zobrist(),hash);
- for field in[0,1,2]{let mut altered=copy;match field{0=>altered.maximum_capture.power+=1,1=>altered.maximum_capture.sole+=1,_=>altered.maximum_capture.count+=1};assert_ne!(copy.zobrist(),altered.zobrist());}
+fn add(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
+    let id = s.next_id;
+    s.next_id += 1;
+    *s.card_mut(id) = Card {
+        present: true,
+        def: *e
+            .by_code
+            .get(code)
+            .unwrap_or_else(|| panic!("{code}: {:?}", e.rejected_cards().unwrap().get(code))),
+        owner: seat,
+        ..Card::default()
+    };
+    id
 }
-#[test]fn maximum_snapshot_recomputes_after_resource_payment_and_reads_attack_raid(){
- let mut e=engine();let mut s=board(&e,Seat::P1);let scaled=unit(&e,&mut s,Seat::P1,"ASH_096");let fixed=unit(&e,&mut s,Seat::P1,"ASH_096");s.card_mut(fixed).phase_power=2;
- // Synthetic runtime diagnostic: inject a ready-resource power dependency directly; this source shape remains unadmitted. It makes preflight-vs-postpayment capture timing observable.
- let ability:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"constant","title":"Synthetic ready resource power","effect":{"kind":"modifyStats","target":"self","duration":"persistent","power":{"kind":"const","value":0},"hp":{"kind":"const","value":0}}})).unwrap();let id=e.catalogue.as_ref().unwrap().programs.len() as u16;let mut program=crate::ability_ir::Program::compile(&ability).unwrap();for instruction in &mut program.instructions{if let Instruction::Apply(Effect::ModifyStats{power,..})=instruction{*power=Expr::Ref{path:vec!["player".into(),"readyResourceCount".into()]};}}e.catalogue.as_mut().unwrap().programs.push(program);e.definitions[s.card(scaled).def as usize].programs.card.push(id);
- // Same printed card gives both units this aura; separate fixed's definition to an equal-power Villainy card.
- let own_def=e.definitions[s.card(fixed).def as usize].clone();let fixed_index=e.definitions.len() as u16;e.definitions.push(own_def);e.definitions[fixed_index as usize].programs.card.clear();s.card_mut(fixed).def=fixed_index;
- assert_eq!(e.evaluated_power(&s,scaled),5);assert_eq!(e.evaluated_power(&s,fixed),5);front(&e,&mut s,Seat::P1);assert_ne!(s.decision,Decision::AbilityTarget);assert_eq!(e.token_count(&s,s.card(fixed).experience),1);assert_eq!(s.card(scaled).experience,0);
- let mut s=board(&e,Seat::P1);let source=s.players[0].leader;s.card_mut(source).deployed=true;e.add_arena(&mut s,source).unwrap();s.card_mut(source).add_phase_keyword(6);s.card_mut(source).phase_keyword_values[0]=3;let other=unit(&e,&mut s,Seat::P1,"ASH_096");s.source=source;s.attack_source=source;s.attack_defender=s.players[1].base;s.trigger_context=2;let p=e.def(&s,source).programs.unit[0];e.begin_program(&mut s,p,ProgramContinuation::Triggers).unwrap();assert_eq!(e.token_count(&s,s.card(source).experience),1);assert_eq!(s.card(other).experience,0);
+fn unit(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
+    let id = add(e, s, seat, code);
+    e.add_arena(s, id).unwrap();
+    id
 }
-#[test]fn maximum_snapshot_empty_domain_confirmation_zero_power_and_raw_rejections(){
- let e=engine();let mut s=board(&e,Seat::P1);front(&e,&mut s,Seat::P1);assert_eq!(s.decision,Decision::AbilityNoEffect);assert_eq!(e.ready_resources(&s,Seat::P1),2);assert!(!s.card(s.players[0].leader).exhausted);
- let mut s=board(&e,Seat::P1);let zero=unit(&e,&mut s,Seat::P1,"LOF_131");s.card_mut(zero).phase_power=-1;front(&e,&mut s,Seat::P1);assert_eq!(e.token_count(&s,s.card(zero).experience),1);
- let original:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();for(field,value)in[("optional",json!(true)),("trigger",json!("whenPlayed")),("then",json!({"effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}})),("targetResolver",json!({"owner":"any","type":"unit","zone":"arena"}))]{let mut c=original.clone();let card=c["cards"].as_array_mut().unwrap().iter_mut().find(|c|c["setCode"]=="LOF_006").unwrap();card["abilities"]["unit"][0][field]=value;assert!(!Engine::from_catalogue_value(&c).unwrap().by_code.contains_key("LOF_006"),"{field}");}
- let bad:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"event","title":"Invalid raw snapshot","targetResolver":{"type":"unit","predicate":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","power"]},"right":{"kind":"ref","path":["snapshot","power"]}}},"effect":{"kind":"giveExperience","target":"chosen"}})).unwrap();assert!(crate::ability_ir::Program::compile(&bad).unwrap_err().contains("capture references"));
- eprintln!("maximum snapshot State bytes={} Card bytes={}",std::mem::size_of::<State>(),std::mem::size_of::<Card>());
+fn board(e: &Engine, seat: Seat) -> State {
+    let mut s = State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact = e.needs_credit_state();
+    s.force_state_exact = true;
+    s.hidden_history_exact = true;
+    s.active = seat;
+    for player in [Seat::P1, Seat::P2] {
+        let base = add(e, &mut s, player, "ASH_019");
+        let leader = add(
+            e,
+            &mut s,
+            player,
+            if player == seat { "LOF_006" } else { "SOR_014" },
+        );
+        s.player_mut(player).base = base;
+        s.player_mut(player).leader = leader;
+        s.player_mut(player).force_id = s.next_id;
+        s.next_id += 1;
+    }
+    for _ in 0..2 {
+        let resource = add(e, &mut s, seat, "LOF_254");
+        s.player_mut(seat).resources.push(resource).unwrap();
+    }
+    s
+}
+fn front(e: &Engine, s: &mut State, seat: Seat) {
+    s.active = seat;
+    s.source = s.player(seat).leader;
+    let p = e.def(s, s.source).programs.leader[0];
+    e.begin_program(s, p, ProgramContinuation::Finish).unwrap();
+}
+#[test]
+fn maximum_snapshot_sole_recipient_is_automatic_and_ties_prompt_after_payment() {
+    let e = engine();
+    assert!(
+        e.by_code.contains_key("LOF_006"),
+        "{:?}",
+        e.rejected_cards().unwrap().get("LOF_006")
+    );
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e, seat);
+        let low = unit(&e, &mut s, seat, "ASH_141");
+        let high = unit(&e, &mut s, seat, "ASH_096");
+        let enemy = unit(&e, &mut s, seat.other(), "ASH_096");
+        s.card_mut(enemy).phase_power = 20;
+        let nonaspect = unit(&e, &mut s, seat, "IC27_080");
+        let leader = s.player(seat).leader;
+        front(&e, &mut s, seat);
+        assert_eq!(e.token_count(&s, s.card(high).experience), 1);
+        assert_eq!(s.card(low).experience, 0);
+        assert_eq!(s.card(enemy).experience, 0);
+        assert_eq!(s.card(nonaspect).experience, 0);
+        assert!(s.card(leader).exhausted);
+        assert_eq!(e.ready_resources(&s, seat), 1);
+        let mut s = board(&e, seat);
+        let a = unit(&e, &mut s, seat, "ASH_096");
+        let b = unit(&e, &mut s, seat, "ASH_141");
+        s.card_mut(b).phase_power = 1;
+        front(&e, &mut s, seat);
+        assert_eq!(s.decision, Decision::AbilityTarget);
+        assert_eq!(
+            s.maximum_capture,
+            MaximumCapture {
+                power: 3,
+                sole: a,
+                count: 2
+            }
+        );
+        assert_eq!(e.ready_resources(&s, seat), 1);
+        assert!(s.card(s.player(seat).leader).exhausted);
+        let actions = e.legal_actions(&s);
+        assert!(actions.contains(&e.card_action(&s, a)));
+        assert!(actions.contains(&e.card_action(&s, b)));
+        assert!(actions.iter().all(|a| a.kind != "button"));
+        let next = s.next_id;
+        let done = e.apply(&s, &e.card_action(&s, b)).unwrap();
+        assert_eq!(done.card(next).parent, b);
+        assert_eq!(done.card(next).owner, seat);
+        assert_eq!(done.maximum_capture, MaximumCapture::default());
+    }
+}
+#[test]
+fn maximum_snapshot_tie_scalar_survives_live_candidate_changes_and_copied_state() {
+    let e = engine();
+    let mut s = board(&e, Seat::P1);
+    let a = unit(&e, &mut s, Seat::P1, "ASH_096");
+    let b = unit(&e, &mut s, Seat::P1, "ASH_096");
+    front(&e, &mut s, Seat::P1);
+    let hash = s.zobrist();
+    let copy = s;
+    assert_eq!(copy.zobrist(), hash);
+    let capture = s.maximum_capture;
+    // Diagnostic changes between prompt views distinguish captured maximum from a fresh maximum query.
+    s.card_mut(a).phase_power = 5;
+    let c = unit(&e, &mut s, Seat::P1, "ASH_096");
+    let actions = e.legal_actions(&s);
+    assert!(!actions.contains(&e.card_action(&s, a)));
+    assert!(actions.contains(&e.card_action(&s, b)));
+    assert!(actions.contains(&e.card_action(&s, c)));
+    assert_eq!(s.maximum_capture, capture);
+    let context = ResolutionContext::capture(&s);
+    s.maximum_capture = MaximumCapture::default();
+    context.restore(&mut s);
+    assert_eq!(s.maximum_capture, capture);
+    assert_ne!(s.zobrist(), hash);
+    for field in [0, 1, 2] {
+        let mut altered = copy;
+        match field {
+            0 => altered.maximum_capture.power += 1,
+            1 => altered.maximum_capture.sole += 1,
+            _ => altered.maximum_capture.count += 1,
+        };
+        assert_ne!(copy.zobrist(), altered.zobrist());
+    }
+}
+#[test]
+fn maximum_snapshot_recomputes_after_resource_payment_and_reads_attack_raid() {
+    let mut e = engine();
+    let mut s = board(&e, Seat::P1);
+    let scaled = unit(&e, &mut s, Seat::P1, "ASH_096");
+    let fixed = unit(&e, &mut s, Seat::P1, "ASH_096");
+    s.card_mut(fixed).phase_power = 2;
+    // Synthetic runtime diagnostic: inject a ready-resource power dependency directly; this source shape remains unadmitted. It makes preflight-vs-postpayment capture timing observable.
+    let ability:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"constant","title":"Synthetic ready resource power","effect":{"kind":"modifyStats","target":"self","duration":"persistent","power":{"kind":"const","value":0},"hp":{"kind":"const","value":0}}})).unwrap();
+    let id = e.catalogue.as_ref().unwrap().programs.len() as u16;
+    let mut program = crate::ability_ir::Program::compile(&ability).unwrap();
+    for instruction in &mut program.instructions {
+        if let Instruction::Apply(Effect::ModifyStats { power, .. }) = instruction {
+            *power = Expr::Ref {
+                path: vec!["player".into(), "readyResourceCount".into()],
+            };
+        }
+    }
+    e.catalogue.as_mut().unwrap().programs.push(program);
+    e.definitions[s.card(scaled).def as usize]
+        .programs
+        .card
+        .push(id);
+    // Same printed card gives both units this aura; separate fixed's definition to an equal-power Villainy card.
+    let own_def = e.definitions[s.card(fixed).def as usize].clone();
+    let fixed_index = e.definitions.len() as u16;
+    e.definitions.push(own_def);
+    e.definitions[fixed_index as usize].programs.card.clear();
+    s.card_mut(fixed).def = fixed_index;
+    assert_eq!(e.evaluated_power(&s, scaled), 5);
+    assert_eq!(e.evaluated_power(&s, fixed), 5);
+    front(&e, &mut s, Seat::P1);
+    assert_ne!(s.decision, Decision::AbilityTarget);
+    assert_eq!(e.token_count(&s, s.card(fixed).experience), 1);
+    assert_eq!(s.card(scaled).experience, 0);
+    let mut s = board(&e, Seat::P1);
+    let source = s.players[0].leader;
+    s.card_mut(source).deployed = true;
+    e.add_arena(&mut s, source).unwrap();
+    s.card_mut(source).add_phase_keyword(6);
+    s.card_mut(source).phase_keyword_values[0] = 3;
+    let other = unit(&e, &mut s, Seat::P1, "ASH_096");
+    s.source = source;
+    s.attack_source = source;
+    s.attack_defender = s.players[1].base;
+    s.trigger_context = 2;
+    let p = e.def(&s, source).programs.unit[0];
+    e.begin_program(&mut s, p, ProgramContinuation::Triggers)
+        .unwrap();
+    assert_eq!(e.token_count(&s, s.card(source).experience), 1);
+    assert_eq!(s.card(other).experience, 0);
+}
+#[test]
+fn maximum_snapshot_empty_domain_confirmation_zero_power_and_raw_rejections() {
+    let e = engine();
+    let mut s = board(&e, Seat::P1);
+    front(&e, &mut s, Seat::P1);
+    assert_eq!(s.decision, Decision::AbilityNoEffect);
+    assert_eq!(e.ready_resources(&s, Seat::P1), 2);
+    assert!(!s.card(s.players[0].leader).exhausted);
+    let mut s = board(&e, Seat::P1);
+    let zero = unit(&e, &mut s, Seat::P1, "LOF_131");
+    s.card_mut(zero).phase_power = -1;
+    front(&e, &mut s, Seat::P1);
+    assert_eq!(e.token_count(&s, s.card(zero).experience), 1);
+    let original: Value =
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
+    for (field, value) in [
+        ("optional", json!(true)),
+        ("trigger", json!("whenPlayed")),
+        (
+            "then",
+            json!({"effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}),
+        ),
+        (
+            "targetResolver",
+            json!({"owner":"any","type":"unit","zone":"arena"}),
+        ),
+    ] {
+        let mut c = original.clone();
+        let card = c["cards"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|c| c["setCode"] == "LOF_006")
+            .unwrap();
+        card["abilities"]["unit"][0][field] = value;
+        assert!(
+            !Engine::from_catalogue_value(&c)
+                .unwrap()
+                .by_code
+                .contains_key("LOF_006"),
+            "{field}"
+        );
+    }
+    let bad:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"event","title":"Invalid raw snapshot","targetResolver":{"type":"unit","predicate":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","power"]},"right":{"kind":"ref","path":["snapshot","power"]}}},"effect":{"kind":"giveExperience","target":"chosen"}})).unwrap();
+    assert!(crate::ability_ir::Program::compile(&bad)
+        .unwrap_err()
+        .contains("capture references"));
+    eprintln!(
+        "maximum snapshot State bytes={} Card bytes={}",
+        std::mem::size_of::<State>(),
+        std::mem::size_of::<Card>()
+    );
 }
 
-#[test]fn maximum_snapshot_context_hashes_capture_in_every_suspended_window(){
- let default=State::default();let before=default.zobrist();for slot in 0..MAX_DEATH_DEPTH{let mut s=default;s.death_frames[slot].context.maximum_capture=MaximumCapture{power:7,sole:9,count:2};assert_ne!(s.zobrist(),before);let copy=s;assert_eq!(copy.zobrist(),s.zobrist());let context=copy.death_frames[slot].context;context.restore(&mut s);assert_eq!(s.maximum_capture,MaximumCapture{power:7,sole:9,count:2});}assert_eq!(std::mem::size_of::<MaximumCapture>(),8);assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<Card>(),40);
+#[test]
+fn maximum_snapshot_context_hashes_capture_in_every_suspended_window() {
+    let default = State::default();
+    let before = default.zobrist();
+    for slot in 0..MAX_DEATH_DEPTH {
+        let mut s = default;
+        s.death_frames[slot].context.maximum_capture = MaximumCapture {
+            power: 7,
+            sole: 9,
+            count: 2,
+        };
+        assert_ne!(s.zobrist(), before);
+        let copy = s;
+        assert_eq!(copy.zobrist(), s.zobrist());
+        let context = copy.death_frames[slot].context;
+        context.restore(&mut s);
+        assert_eq!(
+            s.maximum_capture,
+            MaximumCapture {
+                power: 7,
+                sole: 9,
+                count: 2
+            }
+        );
+    }
+    assert_eq!(std::mem::size_of::<MaximumCapture>(), 8);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+    assert_eq!(std::mem::size_of::<Card>(), 40);
 }
-#[test]fn maximum_snapshot_requires_reviewed_experience_in_selected_pool(){
- let catalogue=include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));let e=engine();let mut pool=e.compiled_pool().unwrap();pool["cards"].as_array_mut().unwrap().retain(|c|["LOF_006","SOR_014","ASH_019","TOKEN_SHIELD","ASH_096"].contains(&c["setCode"].as_str().unwrap()));assert!(Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),catalogue).err().unwrap().contains("TOKEN_EXPERIENCE"));
+#[test]
+fn maximum_snapshot_requires_reviewed_experience_in_selected_pool() {
+    let catalogue = include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"));
+    let e = engine();
+    let mut pool = e.compiled_pool().unwrap();
+    pool["cards"].as_array_mut().unwrap().retain(|c| {
+        ["LOF_006", "SOR_014", "ASH_019", "TOKEN_SHIELD", "ASH_096"]
+            .contains(&c["setCode"].as_str().unwrap())
+    });
+    assert!(
+        Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(), catalogue)
+            .err()
+            .unwrap()
+            .contains("TOKEN_EXPERIENCE")
+    );
 }
 
-#[test]fn maximum_snapshot_actual_snoke_attack_resumes_after_tie_choice(){
- let e=engine();for seat in[Seat::P1,Seat::P2]{let mut s=board(&e,seat);let source=s.player(seat).leader;s.card_mut(source).deployed=true;e.add_arena(&mut s,source).unwrap();let other=unit(&e,&mut s,seat,"ASH_141");s.card_mut(other).phase_power=2;let base=s.player(seat.other()).base;s.active=seat;s.source=source;s.decision=Decision::AttackTarget;let prompt=e.apply(&s,&e.card_action(&s,base)).unwrap();assert_eq!(prompt.decision,Decision::AbilityTarget);assert_eq!(prompt.attack_source,source);assert_eq!(prompt.maximum_capture.power,4);assert_eq!(prompt.maximum_capture.count,2);let done=e.apply(&prompt,&e.card_action(&prompt,other)).unwrap();assert_eq!(e.token_count(&done,done.card(other).experience),1);assert_eq!(done.card(base).damage,4);assert_eq!(done.attack_source,0);assert_eq!(done.maximum_capture,MaximumCapture::default());}
+#[test]
+fn maximum_snapshot_actual_snoke_attack_resumes_after_tie_choice() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e, seat);
+        let source = s.player(seat).leader;
+        s.card_mut(source).deployed = true;
+        e.add_arena(&mut s, source).unwrap();
+        let other = unit(&e, &mut s, seat, "ASH_141");
+        s.card_mut(other).phase_power = 2;
+        let base = s.player(seat.other()).base;
+        s.active = seat;
+        s.source = source;
+        s.decision = Decision::AttackTarget;
+        let prompt = e.apply(&s, &e.card_action(&s, base)).unwrap();
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        assert_eq!(prompt.attack_source, source);
+        assert_eq!(prompt.maximum_capture.power, 4);
+        assert_eq!(prompt.maximum_capture.count, 2);
+        let done = e.apply(&prompt, &e.card_action(&prompt, other)).unwrap();
+        assert_eq!(e.token_count(&done, done.card(other).experience), 1);
+        assert_eq!(done.card(base).damage, 4);
+        assert_eq!(done.attack_source, 0);
+        assert_eq!(done.maximum_capture, MaximumCapture::default());
+    }
 }

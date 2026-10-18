@@ -1,7 +1,7 @@
 {
   "schema": "swu-card-ir-inputs/v1",
-  "compilerHash": "d188828527e6459ea9c7b2673e4746960923f9d0904c190026e6d454b45a548e",
-  "sourceTreeHash": "13ea7c27e06a9833caa3a4123f607250ed601c894e53cad40ab2391b2095e59f",
+  "compilerHash": "410a4bcba825aa5c86cdc1f655ade233de519dc8bfef497c227ea67e0d92157e",
+  "sourceTreeHash": "bd11e0fed492efebf92f84abdd50dada9ea4d331d4c9c61879985a2c4bd3cef6",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -89,7 +89,7 @@
     },
     {
       "file": "data/Card/academy-training.json",
-      "sha256": "b2484c976f4179037edcc9f147ee914af7fe824780121119e5feff0a974639e2"
+      "sha256": "438a2cb9a92ed53f1bd7585893e3a0f931a2ca49374dbd571bd618d69a64173c"
     },
     {
       "file": "data/Card/accelerate-our-plans.json",
@@ -173,7 +173,7 @@
     },
     {
       "file": "data/Card/admiral-piett#in-command-now.json",
-      "sha256": "bdf2874aa749bc9ff1ca6dc86d58b36dec62a62526f9a299414a513a8add5b24"
+      "sha256": "d43f23d473d3de4ffc82428ed54c4860ebcece5b6b90620f286b2ac1373c7534"
     },
     {
       "file": "data/Card/admiral-trench#chkchkchkchk.json",
@@ -557,7 +557,7 @@
     },
     {
       "file": "data/Card/atat-suppressor.json",
-      "sha256": "d15319c7dba75377c29c173aa1a7b8ae53209112faa6740837fe5e456a811267"
+      "sha256": "f578017029acd7a14cc9d94e5b2c78b31b6817e38b65757bcc9831564e2a0bb4"
     },
     {
       "file": "data/Card/atdp-occupier.json",
@@ -629,7 +629,7 @@
     },
     {
       "file": "data/Card/avenger#hunting-the-rebels.json",
-      "sha256": "ef0f5f5f8e313afe905f7809e80459fef98f624a9db280700f7ae34a39b4541a"
+      "sha256": "3336965a0b5c9c91ade51ce2da4157d0aabd75d70f4d9f0d09abb433829fc90d"
     },
     {
       "file": "data/Card/awakened-exogorth.json",
@@ -641,7 +641,7 @@
     },
     {
       "file": "data/Card/awing.json",
-      "sha256": "35c7a9258bd348de9f5d33b6f35f579f943ac0f247727f23d09734d63236152e"
+      "sha256": "7c8e48f611b4a5d072d30a2b5a256f548a68b8d876b7412ca1a0b866bf3bc756"
     },
     {
       "file": "data/Card/axe-woves#accomplished-warrior.json",
@@ -945,7 +945,7 @@
     },
     {
       "file": "data/Card/blizzard-one#veers-at-the-helm.json",
-      "sha256": "d026cfe0aad31e938efb26444c5734c60ad3c97d197af05a12e4251cbdf4701a"
+      "sha256": "635508cfc524b545f15e38ebe3e9605ee9b50b6b128913ef21e6f17c43870960"
     },
     {
       "file": "data/Card/blockade-runner.json",
@@ -1173,7 +1173,7 @@
     },
     {
       "file": "data/Card/bright-hope#narrow-escape.json",
-      "sha256": "3686c7dec51b96e92890392a9387854b0ff1da09e8545bc4da4916010a523ce4"
+      "sha256": "4aa33bcfa65c257ea7e4d41371c14cd7c216b785492dbfd58385126a2b263e1c"
     },
     {
       "file": "data/Card/bright-hope#the-last-transport.json",
@@ -1241,7 +1241,7 @@
     },
     {
       "file": "data/Card/c3po#protocol-droid.json",
-      "sha256": "a904e3d3fa6d9a98d656dd7b64a04fc5cdd1108c938f4d403b87de88517ce5e2"
+      "sha256": "ef5a0d1ae7c0679b1d8cfe53d4d6d5389ba3521e89fb878389dc0ea9cf681816"
     },
     {
       "file": "data/Card/c3po#translation-protocol.json",
@@ -1677,7 +1677,7 @@
     },
     {
       "file": "data/Card/city-in-the-clouds.json",
-      "sha256": "d330797ab9617721d8260f2fb2f4e21248932540291c9a31b9c731feaee0d96c"
+      "sha256": "02a4bb092ab2e7f76166516fa9268b5685c1f9ed0826da4e36ff3295931be5a7"
     },
     {
       "file": "data/Card/clan-challengers.json",
@@ -1840,6 +1840,10 @@
       "sha256": "bebd41ad70e5e38bb5eb79367e8b821257769c09e4583cc0b983f5d757b69103"
     },
     {
+      "file": "data/Card/commander-pyre#golden-menace.json",
+      "sha256": "9c962edad0b631211f188cfbf7bb17f48b43ce2f33cbe8e91ed3be2302263a66"
+    },
+    {
       "file": "data/Card/commence-patrol.json",
       "sha256": "040675f5570d6d0dfbae30c344e0784fe663ac0cba5ac1ccd95a3d4f7409ece6"
     },
@@ -1909,7 +1913,7 @@
     },
     {
       "file": "data/Card/consumed-by-the-dark-side.json",
-      "sha256": "3ad8508ba27e7b324310760c0adbaba43bba8dde5470e44b84d5d5527bedb96a"
+      "sha256": "f8bd009918c8935be00110d8ce38996229c447a42f5cca50e84b472e0393460f"
     },
     {
       "file": "data/Card/contempt-for-culture.json",
@@ -2345,7 +2349,7 @@
     },
     {
       "file": "data/Card/death-star-stormtrooper.json",
-      "sha256": "20806d1c59b89f74d6b0a6d5ca7374f10a6e49e14dcb8659c2f85be860fe2b32"
+      "sha256": "00bc4113a863c3d888a38d9ba00b9682348c0f680f35f07e7adb884ca1aae048"
     },
     {
       "file": "data/Card/death-trooper-squad.json",
@@ -2353,7 +2357,7 @@
     },
     {
       "file": "data/Card/death-trooper.json",
-      "sha256": "7f68046aa610f557595aeffff007c4894a506454e5db461830182a4b078b1fcc"
+      "sha256": "a0c9be4aad12f37c7ef640c1b32d9a1e54b09e385a82b946fe6f9be7d4dee3bf"
     },
     {
       "file": "data/Card/death-watch-hideout.json",
@@ -2489,7 +2493,7 @@
     },
     {
       "file": "data/Card/dilapidated-ski-speeder.json",
-      "sha256": "0d6633ba83cf76500c44eb450c9a7318277f39a79a4a8f52a3bfb05f695ae04a"
+      "sha256": "43a843f99bcdceec5f7e586c6e029d52ba681bae525fc2b445804b4823eb8c4e"
     },
     {
       "file": "data/Card/dinosaur-turtle.json",
@@ -2713,7 +2717,7 @@
     },
     {
       "file": "data/Card/drk1-probe-droid.json",
-      "sha256": "c1baaeb9c84bdc28af0e5fc01b2fc5a3e9ad96d99321d4b43eefe58b8d96573d"
+      "sha256": "5d0f9ba07248c171f18fa52dbfd4de96816c6c3bec9d1cfd128b73e4e357a4e7"
     },
     {
       "file": "data/Card/droid-cohort.json",
@@ -2817,7 +2821,7 @@
     },
     {
       "file": "data/Card/echo-base.json",
-      "sha256": "0a956ee8165c9788afbfb5673a8329126640b9ebf98e1099a3312c23f5762083"
+      "sha256": "f8686aa65213f7208a5c92a362d6d5fa80989603b1fbe089f49fcf3fe5fbba25"
     },
     {
       "file": "data/Card/echo-caverns.json",
@@ -2842,6 +2846,10 @@
     {
       "file": "data/Card/eighth-brother#hunt-together.json",
       "sha256": "2acef5db9ca49d4bcdc39947056d434708f1bbac0f46134e3afa7a1707682a1c"
+    },
+    {
+      "file": "data/Card/eighth-brother#illfated-escape.json",
+      "sha256": "69c754342e9d04b707368e5bac579920b0e37bcd369a0e27ced65ae8ddbbfc12"
     },
     {
       "file": "data/Card/eject.json",
@@ -3005,7 +3013,7 @@
     },
     {
       "file": "data/Card/eta2-light-interceptor.json",
-      "sha256": "9eb421a4a7463999c56fa87363b694f6c84a36ecf5dcd70bac36e64091bb0dbb"
+      "sha256": "37f8ec60afe681c4301e89bd9d9fa1c1218ea0fcb6061258e34a53817e1c3f66"
     },
     {
       "file": "data/Card/evacuate.json",
@@ -3657,7 +3665,7 @@
     },
     {
       "file": "data/Card/general-veers#leading-the-assault.json",
-      "sha256": "1c7dfced9ee66bfcbb9e4005f3c5660d7c0efe2d5589b6343b57c3f87e69b089"
+      "sha256": "64eaef9e4d294078aee69ece540d1a3ac1cc682b925856decc3a399d9d8a94bd"
     },
     {
       "file": "data/Card/generals-blade.json",
@@ -3897,7 +3905,7 @@
     },
     {
       "file": "data/Card/grogu#irresistible.json",
-      "sha256": "328cd44b3ed019fadc1987df94b9acbdc0c8756c5bb1afcffa2719df2e3b8e9d"
+      "sha256": "70d898dd0ccd17dc2cb75d91628541973543a3164f5731ad9afa554ab9a99ad5"
     },
     {
       "file": "data/Card/grogu#mysterious-child.json",
@@ -4009,7 +4017,7 @@
     },
     {
       "file": "data/Card/han-solo#scruffylooking-nerf-herder.json",
-      "sha256": "99c13c4de63514f425c53fab7386b47b042b9d1b9720081c77e33fd57921db91"
+      "sha256": "01e0d34cf1e55e27281800f74d3dd99439b603df6d876c17d71c3aa76f9d6bb9"
     },
     {
       "file": "data/Card/han-solo#worth-the-risk.json",
@@ -4137,7 +4145,7 @@
     },
     {
       "file": "data/Card/hidden-sharpshooter.json",
-      "sha256": "f64ce4770648f1ff1395e2b2e4ef9f6e6a4f8795bf28c3e124a236ec4aa707ed"
+      "sha256": "a3a48fd13bc869916aa9d63f0d0ba1e7288710cf89e413b8ca8b0f3bef8418c8"
     },
     {
       "file": "data/Card/high-command-councilor.json",
@@ -4165,7 +4173,7 @@
     },
     {
       "file": "data/Card/hk87-assassin-droid.json",
-      "sha256": "e6ebe67635b076a3dc651808177f53a07d88a9e64309d4d8c6a1a9a470b85f77"
+      "sha256": "69d5347081d5b68b36abddb848b5715b21cc0cf61d8a8aca8648e7a40c170c2a"
     },
     {
       "file": "data/Card/hold-for-questioning.json",
@@ -4349,7 +4357,7 @@
     },
     {
       "file": "data/Card/i-am-your-father.json",
-      "sha256": "ebad3abc82d6542eb1d18e02f7aa3162c948cc9a2e11589eec3a810f5763b988"
+      "sha256": "6d184590cb3cf2381da5972e299b73cb0ddabd2dd8bce6c9db9913fc662251e4"
     },
     {
       "file": "data/Card/i-had-no-choice.json",
@@ -4577,7 +4585,7 @@
     },
     {
       "file": "data/Card/inspiring-mentor.json",
-      "sha256": "46e6c38f39f0584c45029d005f23f574262f1319498b54932c57777600f81dca"
+      "sha256": "ca3206f189457fdd5efbc7a12c24a12b742aa92b32d8e798f7195d24723caa78"
     },
     {
       "file": "data/Card/inspiring-senator.json",
@@ -4953,7 +4961,7 @@
     },
     {
       "file": "data/Card/kcm-mining-facility.json",
-      "sha256": "3a89df19e448c5605a24059d86f410d3b139bbf433fd56d28d87e57f44ae0527"
+      "sha256": "f75004cb68093bf0f6b90a2328d6b50ffee038942e40ba1e7a276f7528bccaec"
     },
     {
       "file": "data/Card/keep-fighting.json",
@@ -5309,7 +5317,7 @@
     },
     {
       "file": "data/Card/lethal-crackdown.json",
-      "sha256": "45f0e7df3b7c6460c744835aa3da667e8dc131a6e0a89bea3c2d135a137bf3c5"
+      "sha256": "d87a0d7eead99385794c5e469216c8558ef46d4452e89d0513c58ad0818bf0c3"
     },
     {
       "file": "data/Card/lets-call-it-war.json",
@@ -5457,7 +5465,7 @@
     },
     {
       "file": "data/Card/luke-skywalker#do-you-read-me.json",
-      "sha256": "8e0595423d671f79d91db3b12c42a40df393b37b0ec4e31dceff43338a496115"
+      "sha256": "c2a8d9c0252813d20d032203aebfa8af2266470307e63a7c289d4c1f84cebe6b"
     },
     {
       "file": "data/Card/luke-skywalker#dreaming-farmboy.json",
@@ -5753,7 +5761,7 @@
     },
     {
       "file": "data/Card/medical-frigate.json",
-      "sha256": "6558d816f04bde4355e1fd03e962233f60920ee97c915f74dcaca7b9bbe07835"
+      "sha256": "06a3127d2672ce3ca54da6426b461a1adf70a93515407fe87726efa0e8aec048"
     },
     {
       "file": "data/Card/mercenary-company.json",
@@ -5801,7 +5809,7 @@
     },
     {
       "file": "data/Card/millennium-falcon#bucket-of-bolts.json",
-      "sha256": "8c362c268edecc76837c7d8d40902feb7b0e4e940a04d690e53553cfd3f26954"
+      "sha256": "dda484b498711af98ff53a4d76b5d25ae3db9326998e476602cf04d4f9834d05"
     },
     {
       "file": "data/Card/millennium-falcon#dodging-patrols.json",
@@ -5949,7 +5957,7 @@
     },
     {
       "file": "data/Card/mos-eisley.json",
-      "sha256": "6937216d9f284d018949b1be502a2bd981d5336d10197e83225b16708c5721a3"
+      "sha256": "869be30a8ca5b75e8e5abbd6e08b39a7ad6c289d73d9524e4a6b301b7ff7313a"
     },
     {
       "file": "data/Card/mos-espa-watermonger.json",
@@ -6337,7 +6345,7 @@
     },
     {
       "file": "data/Card/onyx-squadron-brute.json",
-      "sha256": "eea308bb38d846d71cb48f5d2d60eeee4fe8f43ddadadcb41293abf96153c847"
+      "sha256": "fe5301c9b78e7b02644164f5f01fb40edd004613ae698d3c1245e2cafc41b804"
     },
     {
       "file": "data/Card/oomseries-officer.json",
@@ -6621,7 +6629,7 @@
     },
     {
       "file": "data/Card/phase-i-clone-trooper.json",
-      "sha256": "00b75ac5aaf8e8ab2db24ed6f4ecde5719f25b1cc6c35408180fd33b5b382f03"
+      "sha256": "367156a619e6156c0f2407ebc17221bbad8195319eccc9fbee5f938c4ca318fd"
     },
     {
       "file": "data/Card/phase-ii-clone-trooper.json",
@@ -6637,7 +6645,7 @@
     },
     {
       "file": "data/Card/phoenix-squadron-awing.json",
-      "sha256": "bcb346e69a8db2504a3894fce1c13ba53d1bc4da6aa4eba3efbd6cd584d425ff"
+      "sha256": "70c1503525dd914315a21200ceefe75e652c249919f26b693a36215eb312329e"
     },
     {
       "file": "data/Card/phoenix-squadron-fighters.json",
@@ -7013,7 +7021,7 @@
     },
     {
       "file": "data/Card/r2d2#ignoring-protocol.json",
-      "sha256": "99ea771dd9af609d8d4554d448d2b04a58dadd97949ccd0fad6f809c6aaef53a"
+      "sha256": "3e55a898f363a92385886ae453fb5e2a00c255d85d8df5a2d59029e243c70998"
     },
     {
       "file": "data/Card/r2d2#known-to-make-mistakes.json",
@@ -7194,6 +7202,10 @@
     {
       "file": "data/Card/red-leader#strike-the-reactor.json",
       "sha256": "f4bfe1938cf700b7b7130c5a07e09f92e7c513cc62bea866f1294593b16f5470"
+    },
+    {
+      "file": "data/Card/red-leader#wait-for-my-signal.json",
+      "sha256": "d46de63dbdde16c1de8770a24ff4f9379a52340a7cd018a591d52eb4200b7dbc"
     },
     {
       "file": "data/Card/red-squadron-xwing.json",
@@ -7381,7 +7393,7 @@
     },
     {
       "file": "data/Card/resilient.json",
-      "sha256": "8af6b1cb899b0b825cdeb6f613b913cc14b3271a21fe5e49377441b589d90067"
+      "sha256": "77ba946015e189f48f9a773420d3ad627b6b98018b9cab9360dfdcfffb120766"
     },
     {
       "file": "data/Card/resistance-blue-squadron.json",
@@ -7541,7 +7553,7 @@
     },
     {
       "file": "data/Card/rogueclass-starfighter.json",
-      "sha256": "4e60977dc9dd7a926ac56f7db41378456bc27af29701dbd7e20f5160320d5939"
+      "sha256": "f3646bb750cd3e0aa945cbdf58296d13d27a2beae8b052888d3d54cafa13b7ab"
     },
     {
       "file": "data/Card/rookie-rocketjumper.json",
@@ -7593,7 +7605,7 @@
     },
     {
       "file": "data/Card/rune-haako#scheming-second.json",
-      "sha256": "223639038ada08306279c7e7e44184754e8107a0f1fb505a4bce89ea02a07939"
+      "sha256": "62e3fbc9a7928af72af518168a63048197a73122b117c6cf7327d227be10a6a8"
     },
     {
       "file": "data/Card/ruping-rider.json",
@@ -7741,7 +7753,7 @@
     },
     {
       "file": "data/Card/savage-opress#monster.json",
-      "sha256": "1a9910c09387d787691be626c4e9e4549f8316b7329f260568e6235f50ff1a43"
+      "sha256": "51865e66bf9b5f49045fdda1666135d72770e4699d11a1726816977a2565a660"
     },
     {
       "file": "data/Card/savage-opress#you-must-have-your-revenge.json",
@@ -8029,7 +8041,7 @@
     },
     {
       "file": "data/Card/shoot-first.json",
-      "sha256": "f8464d0c19bad62554dcad44f4084749fb7456cac745cca6adbfcd7e5200ff89"
+      "sha256": "c21b040f3ac2cb092d7c09891e767f865a257451cc67d1a00cc521f129d799ca"
     },
     {
       "file": "data/Card/shuttle-st149#under-krennics-authority.json",
@@ -8409,7 +8421,7 @@
     },
     {
       "file": "data/Card/super-battle-droid.json",
-      "sha256": "fde3127427e695023c9500c64716fd77fe988266d61a058b0a317c349dd7f55a"
+      "sha256": "a3797eef679674006f1093d08b1d77fbfaf69c709416d47f7cba22e9c756d7a6"
     },
     {
       "file": "data/Card/supercommando-squad.json",
@@ -9053,7 +9065,7 @@
     },
     {
       "file": "data/Card/tieln-fighter.json",
-      "sha256": "91d606a587ba877c7497d6497f148b30bb009427b7bcaba140e3e2e85cee7b68"
+      "sha256": "60d6f8a9764fa925808d1136338c51d8f47a21138a7faebc1926d08287b21633"
     },
     {
       "file": "data/Card/time-of-crisis.json",

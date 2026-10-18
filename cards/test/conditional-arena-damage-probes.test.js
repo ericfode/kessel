@@ -63,6 +63,12 @@ test('quiet construction donor guards reject provenance-less source/pilot/keywor
 test('46 proposed source terminal definitions round-trip without central dispatch changes', () => {
     const library = require('../reference/library');
     const plans = ['ASH_112', 'TWI_150'].map(id => p.planArenaDamageProbes(get(id), { catalogue }));
+    // This interaction depends on the same complete reviewed Clone entry as
+    // parent-upgrade probes. A metadata drift must not silently drop either seat.
+    const saw = plans.find(plan => plan.cardId === 'TWI_150');
+    for (const seat of [1, 2])
+        assert.ok(saw.cases.some(c => c.name === 'conditional-arena-captured-defense-seat-' + seat),
+            'missing captured OnDefense Clone continuation for seat ' + seat);
     assert.equal(plans.flatMap(p => p.cases).length, 46);
     for (const plan of plans)
         for (const c of plan.cases)

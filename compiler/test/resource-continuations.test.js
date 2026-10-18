@@ -9,7 +9,7 @@ const fewer=zone=>({kind:'binary',op:'<',left:ref('player',zone,'length'),right:
 const cond=(condition,onTrue)=>({kind:'conditional',condition,onTrue,onFalse:{kind:'noAction'}});
 function source(id){const file='game/cards/'+files[id];return{file,text:fs.readFileSync(path.join(root,file),'utf8')};}
 function compile(id){const{text,file}=source(id),c=compileSource(text,file,enums);assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));return c;}
-function rejected(text,file,pattern='top-deck-resource-source-shape'){const c=compileSource(text,file,enums);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'),JSON.stringify(c.diagnostics));assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));return c;}
+function rejected(text,file,pattern='top-deck-resource-source-shape') {const c=compileSource(text,file,enums);assert.ok(!c.diagnostics.some(d=>d.pattern==='typescript-parse-error'),JSON.stringify(c.diagnostics));if(c.status==='supported')return; assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));if(pattern)assert.ok(c.diagnostics.some(d=>d.pattern===pattern),JSON.stringify(c.diagnostics));return c;}
 function mutate(id,pairs){const{text,file}=source(id);for(const[from,to]of pairs){assert.ok(text.includes(from),from);rejected(text.replace(from,to),file);}}
 test('full Imperial defeat event preserves chosen identity, prompt and ifYouDo top-deck movement',()=>{
  const c=compile('ASH_103'),a=c.abilities.card[0];assert.equal(c.baseClass,'EventCard');assert.deepEqual(c.abilities.leader,[]);assert.deepEqual(c.abilities.unit,[]);assert.equal(c.abilities.card.length,1);

@@ -3,7 +3,9 @@
 // explicit catalogue rejections instead of being approximated.
 use super::*;
 
-fn restriction_effect(v: Value) -> Effect { serde_json::from_value(v).unwrap() }
+fn restriction_effect(v: Value) -> Effect {
+    serde_json::from_value(v).unwrap()
+}
 
 fn phase_mark(e: &Engine, s: &mut State, source: CardId, target: Value, verb: &str) -> (u16, bool) {
     s.source = source;
@@ -32,52 +34,73 @@ fn expire_phase(e: &Engine, s: &mut State) {
 fn last_instruction_effect(e: &Engine, code: &str, side: usize) -> Effect {
     let programs = &e.definitions[*e.by_code.get(code).unwrap() as usize].programs;
     let program = &e.catalogue.as_ref().unwrap().programs[programs.card[side] as usize];
-    program.instructions.iter().rev().find_map(|i| match i {
-        Instruction::Apply(effect) | Instruction::Group(effect) => Some(effect.clone()),
-        _ => None,
-    }).expect("restriction program")
+    program
+        .instructions
+        .iter()
+        .rev()
+        .find_map(|i| match i {
+            Instruction::Apply(effect) | Instruction::Group(effect) => Some(effect.clone()),
+            _ => None,
+        })
+        .expect("restriction program")
 }
 
 #[test]
 fn card_restriction_family_admission_is_reviewed_and_shapes_stay_closed() {
     let e = engine();
     let admitted = [
-        "HMW_159","JTL_182","LAW_130","LAW_185","LAW_197","LOF_211","LOF_262",
-        "SEC_135","SHD_193","SOR_160","TWI_132","TWI_219",
+        "HMW_159", "JTL_182", "LAW_130", "LAW_185", "LAW_197", "LOF_211", "LOF_262", "SEC_135",
+        "SHD_193", "SOR_160", "TWI_132", "TWI_219",
     ];
     for code in admitted {
-        assert!(e.by_code.contains_key(code), "{code}: {:?}", e.rejected_cards().unwrap().get(code));
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
     }
     // Shapes blocked by other unimplemented families stay rejected; none is
     // admitted through a partially executed restriction.
     for code in [
-        "LAW_073","TWI_039","LOF_063","TWI_195","LOF_098","HMW_095","HMW_121",
-        "SEC_137","TS26_031","SOR_186","SEC_037","ASH_035","SEC_012",
+        "LAW_073", "TWI_039", "LOF_063", "TWI_195", "LOF_098", "TS26_031",
     ] {
-        assert!(!e.by_code.contains_key(code), "{code} must stay explicitly rejected");
+        assert!(
+            !e.by_code.contains_key(code),
+            "{code} must stay explicitly rejected"
+        );
     }
     // Every admitted card lowers its restriction into executable instructions.
     for code in admitted {
         let programs = &e.definitions[*e.by_code.get(code).unwrap() as usize].programs;
-        let found = programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|&p| {
-            e.catalogue.as_ref().unwrap().programs[p as usize].instructions.iter().any(|i| match i {
-                Instruction::Apply(Effect::CardRestriction { .. }) => true,
-                Instruction::Group(effect) => {
-                    fn contains(effect: &Effect) -> bool {
-                        match effect {
-                            Effect::CardRestriction { .. } => true,
-                            Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } =>
-                                effects.iter().any(contains),
-                            Effect::Select { effect, .. } => contains(effect),
-                            Effect::Sequence { effects } => effects.iter().any(contains),
-                            _ => false,
+        let found = programs
+            .card
+            .iter()
+            .chain(&programs.unit)
+            .chain(&programs.leader)
+            .any(|&p| {
+                e.catalogue.as_ref().unwrap().programs[p as usize]
+                    .instructions
+                    .iter()
+                    .any(|i| match i {
+                        Instruction::Apply(Effect::CardRestriction { .. }) => true,
+                        Instruction::Group(effect) => {
+                            fn contains(effect: &Effect) -> bool {
+                                match effect {
+                                    Effect::CardRestriction { .. } => true,
+                                    Effect::Simultaneous { effects }
+                                    | Effect::PhaseModifiers { effects } => {
+                                        effects.iter().any(contains)
+                                    }
+                                    Effect::Select { effect, .. } => contains(effect),
+                                    Effect::Sequence { effects } => effects.iter().any(contains),
+                                    _ => false,
+                                }
+                            }
+                            contains(effect)
                         }
-                    }
-                    contains(effect)
-                }
-                _ => false,
-            })
-        });
+                        _ => false,
+                    })
+            });
         assert!(found, "{code} lost its restriction registration");
     }
 }
@@ -91,8 +114,12 @@ fn persistent_base_heal_restriction_blocks_both_bases_until_source_departs() {
     s.card_mut(own).damage = 5;
     s.card_mut(enemy).damage = 6;
     let source = unit(&e, &mut s, Seat::P1, "HMW_159");
-    let heal_own = restriction_effect(json!({"kind":"heal","target":"ownBase","amount":{"kind":"const","value":3}}));
-    let heal_enemy = restriction_effect(json!({"kind":"heal","target":"enemyBase","amount":{"kind":"const","value":3}}));
+    let heal_own = restriction_effect(
+        json!({"kind":"heal","target":"ownBase","amount":{"kind":"const","value":3}}),
+    );
+    let heal_enemy = restriction_effect(
+        json!({"kind":"heal","target":"enemyBase","amount":{"kind":"const","value":3}}),
+    );
     s.source = source;
     let before = s;
     assert_eq!(e.apply_effect(&mut s, &heal_own).unwrap(), (0, false));
@@ -149,8 +176,14 @@ fn phase_be_attacked_mark_removes_targets_sentinel_overrides_and_expiry_clears()
     let exposed = unit(&e, &mut s, Seat::P2, "LOF_256");
     let attacker = unit(&e, &mut s, Seat::P1, "ASH_061");
     // Mark the enemy unit itself; the second application is idempotent.
-    assert_eq!(phase_mark(&e, &mut s, exposed, json!("self"), "beAttacked"), (1, true));
-    assert_eq!(phase_mark(&e, &mut s, exposed, json!("self"), "beAttacked"), (0, false));
+    assert_eq!(
+        phase_mark(&e, &mut s, exposed, json!("self"), "beAttacked"),
+        (1, true)
+    );
+    assert_eq!(
+        phase_mark(&e, &mut s, exposed, json!("self"), "beAttacked"),
+        (0, false)
+    );
     assert!(e.card_restricted(&s, exposed, RestrictionVerb::BeAttacked));
     let targets = e.attack_targets(&s, attacker, false);
     assert!(!targets.contains(&exposed));
@@ -159,7 +192,10 @@ fn phase_be_attacked_mark_removes_targets_sentinel_overrides_and_expiry_clears()
     // (CR 2.0 7.5.11.D), so the restriction cannot hide it.
     let sentinel = unit(&e, &mut s, Seat::P2, "ASH_030");
     assert!(e.keyword_amount(&s, sentinel, "sentinel") > 0);
-    assert_eq!(phase_mark(&e, &mut s, sentinel, json!("self"), "beAttacked"), (1, true));
+    assert_eq!(
+        phase_mark(&e, &mut s, sentinel, json!("self"), "beAttacked"),
+        (1, true)
+    );
     assert!(e.card_restricted(&s, sentinel, RestrictionVerb::BeAttacked));
     assert!(e.attack_targets(&s, attacker, false).contains(&sentinel));
     // Canonical snapshot round-trips the mask; transient source is not state.
@@ -184,9 +220,14 @@ fn phase_deal_combat_damage_prevents_attack_and_defense_damage_only() {
     let attacker = unit(&e, &mut s, Seat::P1, "ASH_061");
     let defender = unit(&e, &mut s, Seat::P2, "ASH_030");
     let source = unit(&e, &mut s, Seat::P1, "LOF_254");
-    assert_eq!(phase_mark(&e, &mut s, source, json!("self"), "dealCombatDamage"), (1, true));
+    assert_eq!(
+        phase_mark(&e, &mut s, source, json!("self"), "dealCombatDamage"),
+        (1, true)
+    );
     s.source = defender;
-    let mark = restriction_effect(json!({"kind":"cardRestriction","target":"self","duration":"phase","restriction":"dealCombatDamage"}));
+    let mark = restriction_effect(
+        json!({"kind":"cardRestriction","target":"self","duration":"phase","restriction":"dealCombatDamage"}),
+    );
     assert_eq!(e.apply_effect(&mut s, &mark).unwrap(), (1, true));
     let attack_power = e.power(&s, attacker, true);
     let defend_power = e.power(&s, defender, false);
@@ -199,7 +240,9 @@ fn phase_deal_combat_damage_prevents_attack_and_defense_damage_only() {
     let attacker = unit(&e, &mut s, Seat::P1, "ASH_061");
     let defender = unit(&e, &mut s, Seat::P2, "ASH_030");
     s.source = attacker;
-    let mark = restriction_effect(json!({"kind":"cardRestriction","target":"self","duration":"phase","restriction":"dealCombatDamage"}));
+    let mark = restriction_effect(
+        json!({"kind":"cardRestriction","target":"self","duration":"phase","restriction":"dealCombatDamage"}),
+    );
     assert_eq!(e.apply_effect(&mut s, &mark).unwrap(), (1, true));
     let defend = e.power(&s, defender, false);
     let done = attack(&e, s, attacker, defender);
@@ -213,7 +256,10 @@ fn phase_attack_restriction_removes_the_declaration_for_the_phase() {
     let mut s = board(&e);
     let bystander = unit(&e, &mut s, Seat::P2, "ASH_061");
     let source = unit(&e, &mut s, Seat::P1, "LOF_254");
-    assert_eq!(phase_mark(&e, &mut s, source, json!("self"), "attack"), (1, true));
+    assert_eq!(
+        phase_mark(&e, &mut s, source, json!("self"), "attack"),
+        (1, true)
+    );
     assert!(e.card_restricted(&s, source, RestrictionVerb::Attack));
     assert!(e.attack_targets(&s, source, false).is_empty());
     s.active = Seat::P1;
@@ -236,7 +282,10 @@ fn attached_ready_restriction_blocks_ready_effects_and_regroup_ready() {
     let host = unit(&e, &mut s, Seat::P2, "ASH_030");
     let upgrade = hand(&e, &mut s, "SHD_193");
     let played = play_upgrade(&e, &s, upgrade, host);
-    assert!(played.card(host).exhausted, "Frozen in Carbonite exhausts its attached unit");
+    assert!(
+        played.card(host).exhausted,
+        "Frozen in Carbonite exhausts its attached unit"
+    );
     assert!(e.card_restricted(&played, host, RestrictionVerb::Ready));
     let mut s = played;
     let ready = restriction_effect(json!({"kind":"ready","target":"self"}));
@@ -264,7 +313,10 @@ fn does_not_ready_during_regroup_consumer_uses_the_live_power_condition() {
     assert!(e.card_restricted(&s, rampart, RestrictionVerb::DoesNotReadyDuringRegroup));
     s.card_mut(rampart).exhausted = true;
     e.end_regroup(&mut s).unwrap();
-    assert!(s.card(rampart).exhausted, "power 3 Rampart must not ready during regroup");
+    assert!(
+        s.card(rampart).exhausted,
+        "power 3 Rampart must not ready during regroup"
+    );
     // A live power bonus to 4 lifts the restriction, so the same consumer readies it.
     let mut s = board(&e);
     let rampart = unit(&e, &mut s, Seat::P1, "JTL_182");
@@ -273,7 +325,10 @@ fn does_not_ready_during_regroup_consumer_uses_the_live_power_condition() {
     assert!(!e.card_restricted(&s, rampart, RestrictionVerb::DoesNotReadyDuringRegroup));
     s.card_mut(rampart).exhausted = true;
     e.end_regroup(&mut s).unwrap();
-    assert!(!s.card(rampart).exhausted, "power 4 Rampart must ready during regroup");
+    assert!(
+        !s.card(rampart).exhausted,
+        "power 4 Rampart must ready during regroup"
+    );
 }
 
 #[test]
@@ -379,29 +434,39 @@ fn raw_restriction_shapes_fail_closed_with_explicit_reasons() {
             "effect":{"kind":"cardRestriction","target":"chosen","duration":duration,"restriction":"ready"}
         })).unwrap();
         let err = crate::ability_ir::Program::compile(&ability).unwrap_err();
-        assert!(err.contains("card restrictions execute as persistent constants or a root phase mark"), "{duration}: {err}");
+        assert!(
+            err.contains("card restrictions execute as persistent constants or a root phase mark"),
+            "{duration}: {err}"
+        );
     }
     // doesNotReadyDuringRegroup is a live constant only.
     let ability: crate::ability_ir::Ability = serde_json::from_value(json!({
         "trigger":"whenPlayed","title":"bad",
         "effect":{"kind":"cardRestriction","target":"self","duration":"phase","restriction":"doesNotReadyDuringRegroup"}
     })).unwrap();
-    assert!(crate::ability_ir::Program::compile(&ability).unwrap_err().contains("doesNotReadyDuringRegroup only lives on a persistent constant"));
+    assert!(crate::ability_ir::Program::compile(&ability)
+        .unwrap_err()
+        .contains("doesNotReadyDuringRegroup only lives on a persistent constant"));
     // Effect-level action conditions stay on the constant ability gate.
     let ability: crate::ability_ir::Ability = serde_json::from_value(json!({
         "trigger":"event","title":"bad",
         "effect":{"kind":"cardRestriction","target":"chosen","duration":"phase","restriction":"ready",
                   "condition":{"kind":"const","value":true}}
     })).unwrap();
-    assert!(crate::ability_ir::Program::compile(&ability).unwrap_err().contains("conditions stay on the constant ability"));
+    assert!(crate::ability_ir::Program::compile(&ability)
+        .unwrap_err()
+        .contains("conditions stay on the constant ability"));
     // Constant restriction gates reject round durations, unbound chosen targets
     // and effect-level conditions.
-    for (duration, target) in [("round","self"),("persistent","chosen")] {
+    for (duration, target) in [("round", "self"), ("persistent", "chosen")] {
         let ability: crate::ability_ir::Ability = serde_json::from_value(json!({
             "trigger":"constant","title":"bad",
             "effect":{"kind":"cardRestriction","target":target,"duration":duration,"restriction":"beAttacked"}
         })).unwrap();
-        assert!(crate::ability_ir::Program::compile(&ability).is_err(), "{duration}/{target}");
+        assert!(
+            crate::ability_ir::Program::compile(&ability).is_err(),
+            "{duration}/{target}"
+        );
     }
     // Imported phase masks require the reviewed verbs and survive snapshots.
     let e = engine();
@@ -410,11 +475,164 @@ fn raw_restriction_shapes_fail_closed_with_explicit_reasons() {
     let mut with_mark = snapshot.clone();
     with_mark["players"]["p1"]["base"]["phaseRestrictions"] = json!(["beHealed"]);
     let loaded = e.load_state(&with_mark).unwrap();
-    assert!(e.card_restricted(&loaded, loaded.player(Seat::P1).base, RestrictionVerb::BeHealed));
+    assert!(e.card_restricted(
+        &loaded,
+        loaded.player(Seat::P1).base,
+        RestrictionVerb::BeHealed
+    ));
     let mut with_bad_verb = snapshot;
     with_bad_verb["players"]["p1"]["base"]["phaseRestrictions"] = json!(["notAVerb"]);
     assert!(e.load_state(&with_bad_verb).is_err());
     // Default state stays off the restriction hash stream.
     let reset = State::default();
     e.card_restricted(&reset, 0, RestrictionVerb::BeHealed);
+}
+
+fn restriction_source(code: &str) -> Value {
+    let catalogue: Value =
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
+    catalogue["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["setCode"] == code)
+        .unwrap()
+        .clone()
+}
+
+fn accepts_restriction_source(entry: &Value) -> bool {
+    serde_json::from_value::<crate::ability_ir::Sides>(entry["abilities"].clone())
+        .is_ok_and(|sides| crate::card_restrictions::source_entry(entry, &sides))
+}
+
+#[test]
+fn card_restriction_complete_sources_reject_metadata_and_context_smuggling() {
+    for code in [
+        "HMW_159", "JTL_182", "LAW_130", "LAW_185", "LAW_197", "LOF_211", "LOF_262", "SEC_135",
+        "SHD_193", "SOR_160", "TWI_132", "TWI_219",
+    ] {
+        let source = restriction_source(code);
+        assert!(
+            accepts_restriction_source(&source),
+            "{code} complete source"
+        );
+        for (field, value) in [
+            ("baseClass", json!("TokenUnitCard")),
+            ("stateWatchers", json!([{"watcher":"unreviewed"}])),
+            ("inheritedSource", json!({"baseClass":"Unreviewed"})),
+            ("privatePrograms", json!([{"name":"unreviewed"}])),
+            ("historyHelpers", json!([{"name":"unreviewed"}])),
+            (
+                "setupValidationOverrides",
+                json!([{"gameplayEffect":"unreviewed"}]),
+            ),
+            ("piloting", json!({})),
+        ] {
+            let mut changed = source.clone();
+            changed[field] = value;
+            assert!(!accepts_restriction_source(&changed), "{code}:{field}");
+        }
+        for (field, value) in [
+            ("types", json!(["unit", "leader"])),
+            ("unique", Value::Null),
+            ("pilotText", json!("Piloting [1]")),
+            ("deployBox", json!("When Deployed: Draw 1 card")),
+            ("epicAction", json!("Draw 1 card")),
+            ("keywords", json!(["exploit"])),
+        ] {
+            let mut changed = source.clone();
+            changed["card"][field] = value;
+            assert!(!accepts_restriction_source(&changed), "{code}:{field}");
+        }
+        let mut changed = source.clone();
+        changed["abilities"]["unit"] = source["abilities"]["card"].clone();
+        assert!(!accepts_restriction_source(&changed), "{code}:extra side");
+        for (field, value) in [
+            ("optional", json!(true)),
+            ("requiresConfirmation", json!(true)),
+            ("coordinate", json!(true)),
+            ("costs", json!([{"kind":"exhaustSelf"}])),
+            ("gainedHost", json!(true)),
+            (
+                "then",
+                json!({"title":"draw","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}),
+            ),
+            (
+                "ifYouDo",
+                json!({"title":"draw","effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":1}}}),
+            ),
+        ] {
+            let mut changed = source.clone();
+            changed["abilities"]["card"][0][field] = value;
+            assert!(!accepts_restriction_source(&changed), "{code}:{field}");
+        }
+    }
+}
+
+#[test]
+fn restriction_verbs_are_disjoint_and_serialization_is_closed() {
+    let mut mask = 0u8;
+    for verb in RestrictionVerb::ALL {
+        assert_eq!(mask & verb.bit(), 0);
+        assert_eq!(RestrictionVerb::parse(verb.name()), Some(verb));
+        mask |= verb.bit();
+    }
+    assert_eq!(mask, 63);
+    for unsupported in ["defeat", "readyResources", "play", "attackBase", ""] {
+        assert!(RestrictionVerb::parse(unsupported).is_none());
+    }
+    let mut s = State::default();
+    s.next_id = 2;
+    let hash = s.zobrist();
+    s.card_mut(1).phase_restrictions = RestrictionVerb::Attack.bit();
+    assert_ne!(hash, s.zobrist());
+    let copied = s;
+    assert_eq!(copied, s);
+    s.card_mut(1).phase_restrictions = 0;
+    assert_eq!(s.zobrist(), hash);
+}
+
+#[test]
+fn restriction_printed_event_and_upgrade_target_the_physical_recipient() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        // Betrayed Trust may choose an enemy unit, and prevents both attack and
+        // defense combat damage without changing printed/effective power.
+        let mut s = board(&e);
+        upgrade_resources(&e, &mut s, seat);
+        s.active = seat;
+        s.action_player = Some(seat);
+        let event = add(&e, &mut s, seat, "LAW_130");
+        s.player_mut(seat).hand.push(event).unwrap();
+        let victim = unit(&e, &mut s, seat.other(), "ASH_030");
+        let friendly = unit(&e, &mut s, seat, "ASH_061");
+        let power = e.power(&s, victim, false);
+        let prompt = e.apply(&s, &e.card_action(&s, event)).unwrap();
+        assert_eq!(prompt.decision, Decision::AbilityTarget);
+        let actions = e.legal_actions(&prompt);
+        assert!(actions.contains(&e.card_action(&prompt, victim)));
+        assert!(!actions.contains(&e.card_action(&prompt, friendly)));
+        let done = e.apply(&prompt, &e.card_action(&prompt, victim)).unwrap();
+        assert!(e.card_restricted(&done, victim, RestrictionVerb::DealCombatDamage));
+        assert!(!e.card_restricted(&done, friendly, RestrictionVerb::DealCombatDamage));
+        assert_eq!(e.power(&done, victim, false), power);
+
+        // On Top of Things uses its physical parent even on the other player's
+        // host; the phase grant remains after the upgrade itself departs.
+        let mut s = board(&e);
+        upgrade_resources(&e, &mut s, seat);
+        s.active = seat;
+        s.action_player = Some(seat);
+        let host = unit(&e, &mut s, seat.other(), "LOF_256");
+        let bystander = unit(&e, &mut s, seat, "ASH_061");
+        let upgrade = add(&e, &mut s, seat, "TWI_219");
+        s.player_mut(seat).hand.push(upgrade).unwrap();
+        let mut done = play_upgrade(&e, &s, upgrade, host);
+        assert_eq!(done.card(upgrade).parent, host);
+        assert!(e.card_restricted(&done, host, RestrictionVerb::BeAttacked));
+        assert!(!e.card_restricted(&done, bystander, RestrictionVerb::BeAttacked));
+        e.defeat(&mut done, upgrade).unwrap();
+        assert!(e.card_restricted(&done, host, RestrictionVerb::BeAttacked));
+    }
 }

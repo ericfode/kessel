@@ -8,7 +8,7 @@ pub(super) fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {
 }
 pub(super) fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
 pub(super) fn board(e:&Engine,actor:Seat,code:&str)->State {
-    let mut s=State::default();s.hidden_history_exact=true;s.force_state_exact=true;s.active=actor;s.action_player=Some(actor);
+    let mut s=State::default();s.credit_state_exact=e.needs_credit_state();s.hidden_history_exact=true;s.force_state_exact=true;s.active=actor;s.action_player=Some(actor);
     for seat in [Seat::P1,Seat::P2] {
         let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,if seat==actor {code}else{"SOR_014"});
         s.player_mut(seat).base=base;s.player_mut(seat).leader=leader;s.player_mut(seat).force_id=s.next_id;s.next_id+=1;
@@ -60,7 +60,8 @@ fn native_predicate_staged_identity_reconciliation_distinguishes_native_adapters
     for stage in staged {let card=cards.iter().find(|c|c["id"]==stage["identity"]["id"]).unwrap();assert_eq!(card["internalName"],stage["identity"]["internalName"]);assert_eq!(card["sourcePath"],stage["sourcePath"]);assert_eq!(card["sourceHash"],stage["sourceHash"]);assert_eq!(card["status"],"unsupported");}
     assert!(!c["sourceSupport"].as_array().unwrap().iter().any(|s|s["role"]=="source-without-card-data" && s["sourcePath"]=="game/cards/08_ASH/tokens/Advantage.ts"));
     let e=engine();for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_WEAKNESS","TOKEN_THE_FORCE","TOKEN_ADVANTAGE"] {assert!(e.by_code.contains_key(code));}
-    for code in ["TOKEN_CREDIT"] {assert!(!e.by_code.contains_key(code));assert!(e.rejected_cards().unwrap().contains_key(code));}
+    assert!(e.by_code.contains_key("TOKEN_CREDIT"));
+    assert!(!e.rejected_cards().unwrap().contains_key("TOKEN_CREDIT"));
     let baseline:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/runtime-admission.json")).unwrap();
     let known=baseline["runtimeAdmittedCards"].as_array().unwrap().iter().map(|c|c["setCode"].as_str().unwrap()).collect::<std::collections::BTreeSet<_>>();
     let new=e.by_code.keys().filter(|code|!known.contains(code.as_str())).collect::<std::collections::BTreeSet<_>>();

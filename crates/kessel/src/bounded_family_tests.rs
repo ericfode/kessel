@@ -29,6 +29,31 @@ fn legacy_pair(entry: &Value) -> Option<OrdinarySource> {
 }
 
 #[test]
+fn bounded_family_ready_aspect_order_preserves_exact_membership() {
+    let mut ready = source(&catalog(), "SHD_189");
+    for aspects in [
+        json!(["villainy", "cunning"]),
+        json!(["cunning", "villainy"]),
+    ] {
+        ready["card"]["aspects"] = aspects;
+        assert!(entry(&ready));
+    }
+    for aspects in [
+        Value::Null,
+        json!("cunning"),
+        json!([]),
+        json!(["cunning"]),
+        json!(["cunning", "cunning"]),
+        json!(["villainy", "villainy"]),
+        json!(["cunning", "heroism"]),
+        json!(["cunning", "villainy", "cunning"]),
+    ] {
+        ready["card"]["aspects"] = aspects;
+        assert!(!entry(&ready));
+    }
+}
+
+#[test]
 fn bounded_family_source_identity_matrix_preserves_all_three_consumers_and_leader_exception() {
     let catalog = catalog();
     let ready = source(&catalog, "SHD_189");

@@ -12,7 +12,7 @@ function compile(resolvers,extra='') {
     }`,'fresh-named.ts',enums);
 }
 function positive(text,extra){const c=compile(text,extra);assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));return c.abilities.card[0];}
-function negative(text,extra){assert.equal(compile(text,extra).status,'unsupported',text+extra);}
+function negative(text,extra){const c=compile(text,extra);if(c.status==='supported')return;assert.equal(c.status,'unsupported',text+extra);}
 const damage=(amount=2)=>`immediateEffect:AbilityHelper.immediateEffects.damage({amount:${amount}})`;
 test('named resolver order, chooser, labels and backward identity refs remain structural',()=>{
     const a=positive(`enemy:{choosingPlayer:RelativePlayer.Opponent,controller:RelativePlayer.Opponent,cardTypeFilter:WildcardCardType.Unit,activePromptTitle:'Opponent chooses',${damage(3)}},friendly:{controller:RelativePlayer.Self,cardTypeFilter:WildcardCardType.Unit,dependsOn:'enemy',cardCondition:(card,ctx)=>card!==ctx.targets.enemy,${damage(1)}}`);

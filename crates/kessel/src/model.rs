@@ -2,12 +2,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 pub const MAX_CARDS: usize = 256;
+const _: ()=assert!(MAX_CARDS==crate::credits::CAPACITY);
 pub const MAX_ZONE: usize = 64;
-// Exact budget: 28,208 + native attack grants 64 + registration chronology 256
-// + Disclose selection and alignment 16 + first-strike support flags (2 x 32 = 64)
-// + phase restriction mask (Card 36→40, 256 cards = 1024).
+// Inline budget: base 28,528 + Card restriction mask/padding 1,024
+// + Disclose selection/alignment 16 + first-strike Support flags 64
+// + Credit ledgers and prepared payment/death-group continuations 2,544
+// + bounded conditional attack provenance and gate masks 128.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_304;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -155,12 +157,17 @@ pub struct SupportGrant {
     /// Until-end-of-attack "deals combat damage first" grant (first-strike).
     pub deals_combat_damage_first: bool,
     pub power: i16,
+    /// Index of the admitted initiation program (plus one), instruction and
+    /// successfully installed late entries. Zero mask means no live condition.
+    pub conditional_program: u16,
+    pub conditional_pc: u8,
+    pub conditional_mask: u8,
     pub programs: [u16; MAX_SUPPORT_PROGRAMS],
     pub len: u8,
     pub keywords: [u16; 9],
     pub presence: u16,
 }
-impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,deals_combat_damage_first:false,power:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
+impl Default for SupportGrant {fn default()->Self {Self {target:0,donor:0,native_attack:false,deals_combat_damage_first:false,power:0,conditional_program:0,conditional_pc:0,conditional_mask:0,programs:[0;MAX_SUPPORT_PROGRAMS],len:0,keywords:[0;9],presence:0}}}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupportState {
     pub grants: [SupportGrant; MAX_SUPPORT_GRANTS],
@@ -301,6 +308,7 @@ pub struct Player {
     pub out: bool,
     pub force_id: CardId,
     pub force_held: bool,
+    pub credits: crate::credits::CreditList,
 }
 
 /// Every engine prompt is retained, including confirmation and cancellation prompts.
@@ -326,14 +334,19 @@ pub enum Decision {
     AbilityDistribute,
     AbilityGroupShield,
     AbilityDiscard,
+    /// View-only lookAt / reveal display acknowledgment (Done).
+    AbilityDisplay,
     DeathPlayer,
     DeathOrder,
     DeathBatch,
     Terminal,
+    Support,
+    // Append prompts: these discriminants are part of historical state hashes.
     DiscloseSelect,
     DisclosePause,
     DiscloseReveal,
-    Support,
+    CreditMenu,
+    CreditAmount,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -405,6 +418,8 @@ impl Default for EventGroupState {
 pub struct StepEventResult {
     pub source: CardId, pub program: u16, pub pc: u8,
     pub damage_dealt: u32, pub defeated_units: [u16; 2],
+    /// Ability damage would defeat the unit (remaining HP), independent of Shield replacement.
+    pub will_defeat: bool,
 }
 impl StepEventResult {
     pub fn for_state(s:&State)->Self {Self {source:s.source,program:s.ability_program,pc:s.ability_pc,..Self::default()}}
@@ -439,13 +454,15 @@ impl ProgramContinuation {
 pub enum DeathContinuation {
     Program=1, Triggers=2, Finish=3, PhaseExpiry=4, CombatAfterDamage=5,
     ParentDeaths=6, NativeAttackAfterEarlyEffects=7,
+    CombatAfterFirstDamage=8, ResourcePayment=9,
 }
 impl DeathContinuation {
     pub const fn raw(self)->u8 {self as u8}
     pub const fn from_raw(raw:u8)->Option<Self> {match raw {
         1=>Some(Self::Program),2=>Some(Self::Triggers),3=>Some(Self::Finish),
         4=>Some(Self::PhaseExpiry),5=>Some(Self::CombatAfterDamage),
-        6=>Some(Self::ParentDeaths),7=>Some(Self::NativeAttackAfterEarlyEffects),_=>None,
+        6=>Some(Self::ParentDeaths),7=>Some(Self::NativeAttackAfterEarlyEffects),
+        8=>Some(Self::CombatAfterFirstDamage),9=>Some(Self::ResourcePayment),_=>None,
     }}
 }
 pub const MAX_DEATH_TRIGGERS: usize = 64;
@@ -522,10 +539,13 @@ pub struct ResolutionContext {
     pub ability_succeeded: bool,
     pub ability_return: u8,
     pub ability_committed: bool,
+    pub resource_payment: crate::resource_payment::ResourcePayment,
+    pub resource_cost_index: u16,
+    pub resource_cost_locked: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,last_known_source:s.last_known_source,last_known_power:s.last_known_power,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -533,7 +553,8 @@ impl DeathFrame {
     pub fn continuation(self)->Option<DeathContinuation> {DeathContinuation::from_raw(self.resume)}
 }
 
-/// Hand reveal selection is separate from continuation target selection.
+
+/// Hand reveal selection remains separate from continuation targeting.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 
@@ -556,6 +577,7 @@ pub struct State {
     pub hidden_history_exact:bool,
     pub phase_history:PhaseHistory,
     pub force_state_exact:bool,
+    pub credit_state_exact:bool,
     pub round: u16,
     pub regroup: bool,
     pub initiative: Seat,
@@ -570,6 +592,8 @@ pub struct State {
     pub disabled_ongoing_source: CardId,
     pub target: CardId,
     pub ambush: bool,
+    /// True while settling enter triggers for a Smuggle play (including Unique).
+    pub enter_smuggle: bool,
     pub after_attack_triggers: u8,
     pub attack_restore: u16,
     pub attack_source: CardId,
@@ -599,6 +623,13 @@ pub struct State {
     pub ability_succeeded: bool,
     pub ability_return: u8,
     pub ability_committed: bool,
+    pub resource_payment: crate::resource_payment::ResourcePayment,
+    pub resource_cost_index: u16,
+    pub resource_cost_locked: bool,
+    /// One prepared named group may wait for a cost-event child window.
+    /// Triggered costs and adjusted payments inside groups are not admitted,
+    /// so a second such suspended group cannot occur in supported programs.
+    pub payment_group: EventGroupState,
     pub resource_done: [bool; 2],
     pub resource_selected: [CardId; 2],
     /// 0 ongoing, 1 p1, 2 p2, 3 draw.
@@ -614,7 +645,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,phase_history:PhaseHistory::default(),
+            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,
@@ -627,6 +658,7 @@ impl Default for State {
             disabled_ongoing_source: 0,
             target: 0,
             ambush: false,
+            enter_smuggle: false,
             after_attack_triggers: 0,
             attack_restore: 0,
             attack_source: 0,attack_defender:0,attack_end_captured:false,attack_attacker_defeated:false,attack_attacker_departed:false,attack_defender_defeated:false,attack_defender_departed:false,
@@ -648,6 +680,10 @@ impl Default for State {
             ability_succeeded: false,
             ability_return: 0,
             ability_committed: false,
+            resource_payment: crate::resource_payment::ResourcePayment::default(),
+            resource_cost_index: 0,
+            resource_cost_locked: false,
+            payment_group: EventGroupState::default(),
             resource_done: [false; 2],
             resource_selected: [0; 2],
             outcome: 0,
@@ -701,7 +737,7 @@ impl State {
             h ^= key(i, v);
         };
         fn result_values(r:StepEventResult,lki_source:CardId,lki_power:u16,put:&mut impl FnMut(u64)) {
-            if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}}
+            if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}if r.will_defeat {put(0x57494c4c44454654);}}
         }
         fn context_values(c:&ResolutionContext,put:&mut impl FnMut(u64)) {
             if c.attack_end_captured || c.attack_attacker_defeated || c.attack_attacker_departed || c.attack_defender_defeated || c.attack_defender_departed {put(0x41545441434b454e);put(c.attack_end_captured as u64);put(c.attack_attacker_defeated as u64);put(c.attack_attacker_departed as u64);put(c.attack_defender_defeated as u64);put(c.attack_defender_departed as u64);}
@@ -709,6 +745,26 @@ impl State {
             for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
             if c.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(c.maximum_capture.power as u64);put(c.maximum_capture.sole as u64);put(c.maximum_capture.count as u64);}
+            c.resource_payment.hash_values(put);
+            if c.resource_cost_index!=0 || c.resource_cost_locked {put(0x434f535450524f47);put(c.resource_cost_index as u64);put(c.resource_cost_locked as u64);}
+        }
+        fn group_values(g:&EventGroupState,put:&mut impl FnMut(u64)) {
+        put(g.discard_count as u64);put(g.discard_owner.index() as u64);
+        put(g.active as u64); put(g.resolving as u64); put(g.replacement_done as u64); put(g.shield_mask as u64); put(g.shield_count as u64); put(g.shield_priority as u64); put(g.shield_stash_len as u64); for id in g.shield_stash { put(id as u64); } put(g.initiator.index() as u64); put(g.pc as u64); put(g.count as u64); put(g.depth as u64);
+        for selection in [g.context, g.picks].into_iter().chain(g.stack) {
+            put(selection.len as u64); for id in selection.hash_ids() { put(id as u64); }
+        }
+        for event in g.records { put(event.op as u64); put(event.target as u64); put(event.amount as u64);
+            put(event.power as u64); put(event.hp as u64); put(event.token as u64);  }
+
+        // Inactive default storage preserves the historical hash stream.
+        let uniform=&g.uniform_damage;
+        if uniform.active {
+            put(uniform.active as u64);put(uniform.count as u64);
+            for mask in uniform.prevented {put(mask);}
+            for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
+        } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
+
         }
         fn window_values(w:&DeathWindow,put:&mut impl FnMut(u64)) {
             for v in [w.len as u64,w.initiator.index() as u64,w.player.index() as u64,w.player_chosen as u64,w.group_program as u64,w.group_source as u64,w.group_keyword as u64,w.resolve_all as u64] {put(v);}
@@ -729,6 +785,8 @@ impl State {
         if self.hidden_history_exact {put(1); }
         self.phase_history.hash_values(&mut put);
         if self.force_state_exact {put(1);}
+        if self.credit_state_exact {put(0x4352454449545631);}
+        for (seat,player) in self.players.iter().enumerate() {player.credits.hash_values(0x4352454449540000+seat as u64,&mut put);}
         put(self.regroup as u64);
         put(self.initiative.index() as u64);
         put(self.initiative_claimed as u64);
@@ -737,6 +795,10 @@ impl State {
             put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
             for g in &self.support.grants[..self.support.len as usize] {
                 if g.native_attack {put(0x4e41544956454154);put(g.power as u64);}
+                if g.conditional_mask != 0 {
+                    put(0x434f4e444154544b);put(g.conditional_program as u64);
+                    put(g.conditional_pc as u64);put(g.conditional_mask as u64);
+                }
                 if g.deals_combat_damage_first {put(0x4445414c53464952);}
                 put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);
                 for &p in &g.programs[..g.len as usize] {put(p as u64);}
@@ -753,6 +815,7 @@ impl State {
         put(self.source as u64);
         put(self.target as u64);
         put(self.ambush as u64);
+        if self.enter_smuggle {put(0x534d5547474c45);}
         put(self.after_attack_triggers as u64);
         put(self.attack_restore as u64);
         put(self.attack_source as u64);put(self.attack_defender as u64);
@@ -769,24 +832,13 @@ impl State {
         put(self.ability_selection.len as u64);
         for id in self.ability_selection.hash_ids() { put(id as u64); }
         if self.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(self.maximum_capture.power as u64);put(self.maximum_capture.sole as u64);put(self.maximum_capture.count as u64);}
-        let g = &self.event_group;
-        put(g.discard_count as u64);put(g.discard_owner.index() as u64);
-        put(g.active as u64); put(g.resolving as u64); put(g.replacement_done as u64); put(g.shield_mask as u64); put(g.shield_count as u64); put(g.shield_priority as u64); put(g.shield_stash_len as u64); for id in g.shield_stash { put(id as u64); } put(g.initiator.index() as u64); put(g.pc as u64); put(g.count as u64); put(g.depth as u64);
-        for selection in [g.context, g.picks].into_iter().chain(g.stack) {
-            put(selection.len as u64); for id in selection.hash_ids() { put(id as u64); }
-        }
-        for event in g.records { put(event.op as u64); put(event.target as u64); put(event.amount as u64);
-            put(event.power as u64); put(event.hp as u64); put(event.token as u64);  }
+        group_values(&self.event_group,&mut put);
+        if self.payment_group.active {put(0x50415947524f5550);group_values(&self.payment_group,&mut put);}
+        else {debug_assert_eq!(self.payment_group,EventGroupState::default(),"unused payment group must be cleared");}
+        self.resource_payment.hash_values(&mut put);
+        if self.resource_cost_index!=0 || self.resource_cost_locked {put(0x434f535450524f47);put(self.resource_cost_index as u64);put(self.resource_cost_locked as u64);}
 
-        // Inactive default storage preserves the historical hash stream.
-        let uniform=&g.uniform_damage;
-        if uniform.active {
-            put(uniform.active as u64);put(uniform.count as u64);
-            for mask in uniform.prevented {put(mask);}
-            for record in uniform.records {put(record.target as u64);put(record.shield as u64);}
-        } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
-
-        if self.disclose!=DiscloseState::default() {put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids() {put(id as u64);}}
+        if self.disclose!=DiscloseState::default(){put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids(){put(id as u64);}}
         put(self.ability_result as u64);
         put(self.ability_succeeded as u64);
         put(self.ability_return as u64);
@@ -911,5 +963,34 @@ impl Card {
     pub fn clear_hidden_phase_effects(&mut self) {self.hidden_state &= 1;}
     pub fn phase_keyword_amount(&self, index: usize) -> u16 {
         if let Some(slot) = crate::ability_ir::numeric_keyword_slot(index) { self.phase_keyword_values[slot] } else { u16::from(self.phase_keyword_mask() & (1 << index) != 0) }
+    }
+}
+
+#[cfg(test)]
+mod hash_protocol_tests {
+    use super::Decision;
+
+    #[test]
+    fn historical_prompt_hash_tags_remain_stable() {
+        // Frozen before Credit was added. Both State and saved continuation
+        // hashes use these tags, including Support's existing value of 24.
+        let historical = [
+            Decision::Window, Decision::LeaderMenu, Decision::AttackTarget,
+            Decision::UpgradeTarget, Decision::VaderBase, Decision::SatineHeal,
+            Decision::NoEffect, Decision::Resource, Decision::Unique,
+            Decision::Ambush, Decision::TriggerOrder, Decision::ShieldOrder,
+            Decision::AbilityMenu, Decision::AbilityTarget, Decision::AbilityOptional,
+            Decision::AbilityNoEffect, Decision::AbilityDistribute,
+            Decision::AbilityGroupShield, Decision::AbilityDiscard,
+            Decision::AbilityDisplay, Decision::DeathPlayer, Decision::DeathOrder,
+            Decision::DeathBatch, Decision::Terminal, Decision::Support,
+            Decision::DiscloseSelect, Decision::DisclosePause, Decision::DiscloseReveal,
+        ];
+        for (tag, decision) in historical.into_iter().enumerate() {
+            assert_eq!(decision as usize, tag, "historical {decision:?} hash tag changed");
+        }
+        for decision in [Decision::CreditMenu, Decision::CreditAmount] {
+            assert!(decision as usize > Decision::DiscloseReveal as usize);
+        }
     }
 }

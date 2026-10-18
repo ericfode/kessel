@@ -138,7 +138,12 @@ fn ready_metadata(e: &Value) -> bool {
         .as_object()
         .unwrap()
         .iter()
-        .all(|(k, v)| e["card"][k] == *v)
+        .all(|(k, v)| {
+            // API printings can list these two aspects in either order. Keep
+            // the exact membership and multiplicity required by this contract.
+            e["card"][k] == *v
+                || (k == "aspects" && e["card"][k] == json!(["cunning", "villainy"]))
+        })
 }
 
 fn damage_metadata(e: &Value) -> bool {

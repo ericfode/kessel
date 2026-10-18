@@ -549,6 +549,7 @@ impl NativeCardSelection {
             mode: None,
             count: None,
             native: Some(self),
+            player_selection: false,
         })
     }
 }
@@ -685,6 +686,11 @@ fn any() -> String {
 impl<'de> Deserialize<'de> for TargetResolver {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let value = Value::deserialize(deserializer)?;
+        if value.get("kind").and_then(Value::as_str) == Some("playerSelection") {
+            let native: crate::selected_player::NativePlayerSelection =
+                serde_json::from_value(value).map_err(serde::de::Error::custom)?;
+            return native.lift().map_err(serde::de::Error::custom);
+        }
         if value.get("kind").is_some() {
             let native: NativeCardSelection =
                 serde_json::from_value(value).map_err(serde::de::Error::custom)?;
@@ -704,6 +710,7 @@ impl<'de> Deserialize<'de> for TargetResolver {
             mode: p.mode,
             count: p.count,
             native: None,
+            player_selection: false,
         })
     }
 }
@@ -711,6 +718,20 @@ impl Serialize for TargetResolver {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         if let Some(native) = &self.native {
             return native.serialize(serializer);
+        }
+        if self.player_selection {
+            return serde_json::json!({
+                "kind":"playerSelection",
+                "mode":"player",
+                "chooser":"self",
+                "resultBinding":"selectedPlayer",
+                "defaults":"pinnedTargetResolver",
+                "contextBinding":"target",
+                "choosingPlayerOverride":"contextOverrideFirst",
+                "delayOpponentBeforeCosts":true,
+                "promptTitleParts":self.prompt_title_parts,
+            })
+            .serialize(serializer);
         }
         PortableResolver {
             prompt_title: self.prompt_title.clone(),
@@ -737,6 +758,13 @@ pub fn native_selector_marker(value: &Value) -> bool {
         }
 }
 pub fn expanded_selector_marker(value: &Value) -> bool {
+    if value["kind"] == "playerSelection" || value["targetResolver"]["kind"] == "playerSelection" {
+        return match value {
+            Value::Object(o) => o.iter().any(|(k, v)| k != "targetResolver" && expanded_selector_marker(v)),
+            Value::Array(a) => a.iter().any(expanded_selector_marker),
+            _ => false,
+        };
+    }
     native_selector_marker(value)
         || value["targetResolver"]["type"].as_str().is_some_and(|s| {
             ![

@@ -2,7 +2,9 @@ use super::*;
 fn engine()->Engine {Engine::from_catalogue_bytes(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()}
 fn add(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=s.next_id;s.next_id+=1;*s.card_mut(id)=Card{present:true,def:*e.by_code.get(code).unwrap_or_else(||panic!("{code}: {:?}",e.rejected_cards().unwrap().get(code))),owner:seat,..Card::default()};id}
 fn unit(e:&Engine,s:&mut State,seat:Seat,code:&str)->CardId {let id=add(e,s,seat,code);e.add_arena(s,id).unwrap();id}
-fn board(e:&Engine)->State {let mut s=State::default();s.hidden_history_exact=true;s.force_state_exact=true;for(seat,code)in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")]{let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,code);s.player_mut(seat).base=base;s.player_mut(seat).leader=leader;s.player_mut(seat).force_id=s.next_id;s.next_id+=1;}s}
+fn board(e:&Engine)->State {let mut s=State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();s.hidden_history_exact=true;s.force_state_exact=true;for(seat,code)in[(Seat::P1,"SOR_014"),(Seat::P2,"IBH_053")]{let base=add(e,&mut s,seat,"ASH_019");let leader=add(e,&mut s,seat,code);s.player_mut(seat).base=base;s.player_mut(seat).leader=leader;s.player_mut(seat).force_id=s.next_id;s.next_id+=1;}s}
 #[test]fn bounded_inventory_leader_traits_use_controller_presence_deployment_and_union(){
  let e=engine();assert!(e.by_code.contains_key("LAW_152"));
  for seat in [Seat::P1,Seat::P2]{let mut s=board(&e);let source=unit(&e,&mut s,seat,"LAW_152");let q=Expr::Query{name:"leaderTraits".into(),receiver:Box::new(Expr::Ref{path:vec!["player".into()]}),args:vec![]};

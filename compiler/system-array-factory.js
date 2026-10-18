@@ -1,4 +1,5 @@
 'use strict';
+const {isSpecializedFence}=require('./unsupported-recovery');
 const {ongoingModifierConstruction}=require('./ongoing-generator-construction');
 const {bindAttackCallback}=require('./attack-initiation');
 const {readonlyFunctionValue}=require('./damage-recipient-amount');
@@ -69,7 +70,7 @@ function constructionFrame(input,context,roles,evaluateAt,api) {
 function systemArrayFactory(input,context,mode,defaultTarget,api) {
     const {ts,unwrap,effect,fail}=api,fn=unwrap(input);
     if(!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))return null;
-    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemFactoryContext'],'arrayFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;const callback=require('./private-programs').compileCallback(fn,{...context,pendingSystemConstruction:true,constructionProgram:true},api,['systemFactoryContext'],(value,local)=>({kind:'validatedSystemArray',value:systemConstructionValue(value,local,defaultTarget,api)}));return {kind:'systemArrayProgram',mode,callback,invocationPolicy:'eachNativePropertyGeneration',resolutionMode:'someGameSystemsMustBeLegal'};}
+    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemFactoryContext'],'arrayFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;if(isSpecializedFence(error))throw error;const callback=require('./private-programs').compileCallback(fn,{...context,pendingSystemConstruction:true,constructionProgram:true},api,['systemFactoryContext'],(value,local)=>({kind:'validatedSystemArray',value:systemConstructionValue(value,local,defaultTarget,api)}));return {kind:'systemArrayProgram',mode,callback,invocationPolicy:'eachNativePropertyGeneration',resolutionMode:'someGameSystemsMustBeLegal'};}
     const array=frame.node;
     if(!ts.isArrayLiteralExpression(array))return {kind:'systemArrayFactory',mode,parameters:frame.parameters,captures:frame.captures,constructionOrder:'readonlyDeclarationsThenReturnedConstruction',captureIdentity:'valueOrPhysicalObjectReference',callbacks:'deferredWithLexicalBindings',invocationPolicy:'eachNativePropertyGeneration',resolutionMode:'someGameSystemsMustBeLegal',systems:systemConstructionValue(array,frame.ctx,defaultTarget,api)};
     if(!array.elements.length||array.elements.length>16)fail(context,array,'system-factory-array-bound');
@@ -82,9 +83,10 @@ function systemPropertiesFactory(call,context,defaultTarget,api) {
     if(context.constructionFactorySuppressed===call||call.arguments.length!==1)return null;
     const fn=unwrap(call.arguments[0]);if(!ts.isArrowFunction(fn)&&!ts.isFunctionExpression(fn))return null;
     if(!context.pendingSystemConstruction) {
-        try{return effect(call,{...context,constructionFactorySuppressed:call},defaultTarget);}catch(error){if(!error.diagnostic)throw error;}
+        try{return effect(call,{...context,constructionFactorySuppressed:call},defaultTarget);}
+        catch(error){if(!error.diagnostic)throw error;if(isSpecializedFence(error))throw error;}
     }
-    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemPropertiesContext'],'propertyFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;const program=require('./private-programs').compileSystemProperties(call,context,defaultTarget,api);if(program)return program;throw error;}
+    let frame;try{frame=constructionFrame(fn,{...context,constructionDefaultTarget:defaultTarget},['systemPropertiesContext'],'propertyFactoryInvocation',api);}catch(error){if(!error.diagnostic)throw error;if(isSpecializedFence(error))throw error;const program=require('./private-programs').compileSystemProperties(call,context,defaultTarget,api);if(program)return program;throw error;}
     if(!ts.isObjectLiteralExpression(frame.node))fail(frame.ctx,frame.node,'system-properties-factory-object');
     frame.walk(frame.node);
     const bound=ts.factory.updateCallExpression(call,call.expression,call.typeArguments,[frame.node]);

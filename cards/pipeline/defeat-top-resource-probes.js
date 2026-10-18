@@ -95,7 +95,7 @@ const shape = {
 const designs = [
   {
     "name": "ASH_103-ground-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "sourceSeat": 1,
     "deckSize": 3,
@@ -103,7 +103,7 @@ const designs = [
   },
   {
     "name": "ASH_103-ground-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "sourceSeat": 2,
     "deckSize": 3,
@@ -111,7 +111,7 @@ const designs = [
   },
   {
     "name": "ASH_103-space-seat1",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "sourceSeat": 1,
     "deckSize": 3,
@@ -119,7 +119,7 @@ const designs = [
   },
   {
     "name": "ASH_103-space-seat2",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "sourceSeat": 2,
     "deckSize": 3,
@@ -127,7 +127,7 @@ const designs = [
   },
   {
     "name": "ASH_103-mixed-selector-ground-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "mixed": true,
     "sourceSeat": 1,
@@ -136,7 +136,7 @@ const designs = [
   },
   {
     "name": "ASH_103-mixed-selector-ground-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "mixed": true,
     "sourceSeat": 2,
@@ -145,7 +145,7 @@ const designs = [
   },
   {
     "name": "ASH_103-mixed-selector-space-seat1",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "mixed": true,
     "sourceSeat": 1,
@@ -154,7 +154,7 @@ const designs = [
   },
   {
     "name": "ASH_103-mixed-selector-space-seat2",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "mixed": true,
     "sourceSeat": 2,
@@ -163,7 +163,7 @@ const designs = [
   },
   {
     "name": "ASH_103-prepay-cancel-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "mixed": true,
     "cancel": true,
@@ -173,7 +173,7 @@ const designs = [
   },
   {
     "name": "ASH_103-prepay-cancel-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "mixed": true,
     "cancel": true,
@@ -213,7 +213,7 @@ const designs = [
   },
   {
     "name": "ASH_103-empty-deck-defeat-still-resolves-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "deckSize": 0,
     "sourceSeat": 1,
@@ -221,7 +221,7 @@ const designs = [
   },
   {
     "name": "ASH_103-empty-deck-defeat-still-resolves-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "deckSize": 0,
     "sourceSeat": 2,
@@ -229,7 +229,7 @@ const designs = [
   },
   {
     "name": "ASH_103-last-card-no-fatigue-seat1",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "deckSize": 1,
     "sourceSeat": 1,
@@ -237,7 +237,7 @@ const designs = [
   },
   {
     "name": "ASH_103-last-card-no-fatigue-seat2",
-    "target": "SOR_225",
+    "target": "IC27_178",
     "arena": "space",
     "deckSize": 1,
     "sourceSeat": 2,
@@ -245,7 +245,7 @@ const designs = [
   },
   {
     "name": "ASH_103-event-top-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "topCode": "TWI_124",
     "sourceSeat": 1,
@@ -253,7 +253,7 @@ const designs = [
   },
   {
     "name": "ASH_103-event-top-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "topCode": "TWI_124",
     "sourceSeat": 2,
@@ -261,7 +261,7 @@ const designs = [
   },
   {
     "name": "ASH_103-upgrade-top-seat1",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "topCode": "SOR_057",
     "sourceSeat": 1,
@@ -269,7 +269,7 @@ const designs = [
   },
   {
     "name": "ASH_103-upgrade-top-seat2",
-    "target": "SOR_128",
+    "target": "IC27_097",
     "arena": "ground",
     "topCode": "SOR_057",
     "sourceSeat": 2,
@@ -407,7 +407,7 @@ function planDefeatTopResourceProbes(entry) {
  if(entry.status!=='supported'||entry.diagnostics?.length||!same(shape,normalize(entry)))return null;
  const cases=designs.map(design=>{
   const obligationId=entry.setCode+':defeat-top-resource:'+design.name;
-  return {id:'auto/'+entry.setCode+'/'+design.name.toLowerCase().replaceAll('_','-'),name:design.name,kind:'probe',source:{module:'../pipeline/probe-fixture.js',scenario:design.name},focusCardIds:[entry.setCode],setupCardIds:[...new Set([entry.setCode,'SOR_007','SOR_023','SOR_128','SOR_225','HMW_082',design.topCode,...(design.target?[design.target]:[]),...(design.token?['TOKEN_TIE_FIGHTER']:[])])].sort(),behaviorIds:['friendly-imperial-unit-selector','defeat-result-resource-continuation','death-triggers-after-continuation','exact-resource-identity-order-and-readiness'],assertionStages:['actual-paid-event-or-prepay-cancel','exact-friendly-imperial-selector-and-title','defeat-then-own-top-deck-resource','death-draw-physical-card-order','natural-terminal-continuation'],coverageObligationIds:[obligationId],probe:{family:'defeat-top-resource',scenarioName:design.name,design}};
+  return {id:'auto/'+entry.setCode+'/'+design.name.toLowerCase().replaceAll('_','-'),name:design.name,kind:'probe',source:{module:'../pipeline/probe-fixture.js',scenario:design.name},focusCardIds:[entry.setCode],setupCardIds:[...new Set([entry.setCode,'SOR_007','SOR_023','IC27_097','IC27_178','HMW_082',design.topCode,...(design.target?[design.target]:[]),...(design.token?['TOKEN_TIE_FIGHTER']:[])])].sort(),behaviorIds:['friendly-imperial-unit-selector','defeat-result-resource-continuation','death-triggers-after-continuation','exact-resource-identity-order-and-readiness'],assertionStages:['actual-paid-event-or-prepay-cancel','exact-friendly-imperial-selector-and-title','defeat-then-own-top-deck-resource','death-draw-physical-card-order','natural-terminal-continuation'],coverageObligationIds:[obligationId],probe:{family:'defeat-top-resource',scenarioName:design.name,design}};
  });
  const obligations=cases.map(c=>({id:c.coverageObligationIds[0],path:'defeat-top-resource',dimension:c.name}));
  const uncovered=[['source-semantics','Finite source-derived witnesses require independent complete source lowering review.'],['external-defeat-replacement','Normal actual unit defeat and undeployed leader result witnessed; external replacement/prevention not exhaustively constructed.'],['external-resource-replacements','No exhaustive external movement restrictions, resource-capacity or controlled-card transfer interleavings; runtime boundary tests and independent review remain required.']].map(([dimension,reason])=>{const id=entry.setCode+':defeat-top-resource:'+dimension;obligations.push({id,path:'defeat-top-resource',dimension});return{id,path:'defeat-top-resource',reason};});

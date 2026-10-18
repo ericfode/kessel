@@ -26,6 +26,8 @@ fn unit(e: &Engine, s: &mut State, owner: Seat, code: &str) -> CardId {
 }
 fn board(e: &Engine, seat: Seat) -> State {
     let mut s = State::default();
+    // This builder creates a fresh position with an explicitly empty Credit ledger.
+    s.credit_state_exact=e.needs_credit_state();
     s.active = seat;
     s.action_player = Some(seat);
     s.round = 7;
@@ -318,7 +320,7 @@ fn advantage_missing_malformed_native_and_selected_pool_dependencies_fail_closed
         }
         let e = Engine::from_catalogue_value(&v).unwrap();
         assert!(!e.by_code.contains_key("TOKEN_ADVANTAGE"), "{mutation}");
-        for code in ["ASH_251", "ASH_218", "ASH_264"] {
+        for code in ["ASH_251", "ASH_218", "ASH_264", "ASH_184"] {
             assert!(!e.by_code.contains_key(code), "{mutation}: {code}");
             assert!(e.rejected_cards().unwrap()[code].contains("Advantage"));
         }
@@ -335,12 +337,22 @@ fn advantage_missing_malformed_native_and_selected_pool_dependencies_fail_closed
     assert!(err.contains("TOKEN_ADVANTAGE"), "{err}");
     pool["cards"].as_array_mut().unwrap().retain(|v| {
         ![
-            "ASH_036", "ASH_157", "ASH_167", "ASH_178", "ASH_205", "ASH_218", "ASH_221", "ASH_238",
-            "ASH_251", "ASH_254", "ASH_264",
+            "ASH_036", "ASH_146", "ASH_157", "ASH_167", "ASH_176", "ASH_178", "ASH_205", "ASH_218",
+            "ASH_221", "ASH_238", "ASH_251", "ASH_254", "ASH_264",
         ]
         .iter()
         .any(|code| v["setCode"] == *code)
     });
+    // Follow Me is another physical Advantage creator in the selected pool.
+    // Removing the older creators must not bypass its native-token dependency.
+    let err = Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(), &bytes)
+        .err()
+        .unwrap();
+    assert!(err.contains("TOKEN_ADVANTAGE"), "{err}");
+    pool["cards"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|v| v["setCode"] != "ASH_184");
     Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(), &bytes).unwrap();
 }
 #[test]

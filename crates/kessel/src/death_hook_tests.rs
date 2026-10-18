@@ -624,7 +624,7 @@ fn death_hook_registration_legacy_compatibility_uses_selected_pool_and_future_ca
     let mut e = engine();
     let mut s = midgame(&e, Seat::P1);
     unit(&e, &mut s, Seat::P1, "LOF_254");
-    let mut snapshot = e.snapshot(&s);
+    let mut snapshot = without_empty_credit_state(e.snapshot(&s));
     snapshot
         .as_object_mut()
         .unwrap()
@@ -711,3 +711,690 @@ fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() 
         }}
     }
 }
+
+#[test]
+fn card_played_hook_admission_maz_yularen_leia_force_sentinel_adi_poggle_and_selectors() {
+    let e = engine();
+    for code in [
+        "SHD_096", "SOR_109", "HMW_115", "LOF_096", "LOF_142", "TWI_080", "SHD_255", "SOR_143",
+        "SOR_182", "LOF_087", "LOF_229", "LOF_249", "SHD_005", "SHD_008", "SHD_018",
+    ] {
+        assert!(
+            e.by_code.contains_key(code),
+            "{code}: {:?}",
+            e.rejected_cards().unwrap().get(code)
+        );
+    }
+}
+
+#[test]
+fn card_played_maz_gains_experience_on_other_friendly_unit_play() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let maz = unit(&e, &mut s, seat, "SHD_096");
+            assert_eq!(e.upgrades(&s, maz).len(), 0);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            assert!(e.in_arena(&done, played));
+            assert_eq!(e.upgrades(&done, maz).len(), 1);
+            assert_eq!(e.power(&done, maz, false), e.def(&done, maz).info.power.unwrap_or(0) as u16 + 1);
+            // Own play does not grant Experience.
+            let mut s = midgame(&e, seat);
+            let maz = hand_for(&e, &mut s, seat, "SHD_096");
+            let done = e.apply(&s, &e.card_action(&s, maz)).unwrap();
+            assert!(e.in_arena(&done, maz));
+            assert_eq!(e.upgrades(&done, maz).len(), 0);
+            // Enemy play does not grant Experience.
+            let mut s = midgame(&e, seat);
+            let maz = unit(&e, &mut s, seat, "SHD_096");
+            let enemy = hand_for(&e, &mut s, seat.other(), "ASH_034");
+            s.active = seat.other();
+            s.action_player = Some(seat.other());
+            let done = e.apply(&s, &e.card_action(&s, enemy)).unwrap();
+            assert_eq!(e.upgrades(&done, maz).len(), 0);
+        }
+    }
+}
+
+#[test]
+fn card_played_yularen_heals_on_command_unit_including_self() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        let mut s = midgame(&e, Seat::P1);
+        let yularen = unit(&e, &mut s, Seat::P1, "SOR_109");
+        let base = s.players[0].base;
+        s.card_mut(base).damage = 3;
+        let command = hand(&e, &mut s, "SHD_096"); // command/heroism unit
+        let done = e.apply(&s, &e.card_action(&s, command)).unwrap();
+        assert_eq!(done.card(base).damage, 2);
+        assert!(e.in_arena(&done, yularen));
+        // Self-play also heals.
+        let mut s = midgame(&e, Seat::P1);
+        let base = s.players[0].base;
+        s.card_mut(base).damage = 2;
+        let yularen = hand(&e, &mut s, "SOR_109");
+        let done = e.apply(&s, &e.card_action(&s, yularen)).unwrap();
+        assert_eq!(done.card(base).damage, 1);
+    }
+}
+
+fn drive_ability_prompts(e: &Engine, mut s: State, limit: usize) -> State {
+    for _ in 0..limit {
+        if !e.is_ability_decision(s.decision)
+            && !matches!(
+                s.decision,
+                Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityOptional
+            )
+        {
+            return s;
+        }
+        let actions = e.legal_actions(&s);
+        assert!(!actions.is_empty(), "{:?}", s.decision);
+        // Prefer resolving the effect: trigger confirmations, then card targets,
+        // never the leading Pass/passAbility decline when a real target exists.
+        let preferred = actions
+            .iter()
+            .find(|a| {
+                matches!(
+                    a.arg.as_ref().and_then(Value::as_str),
+                    Some("trigger" | "all")
+                ) || a.label == "Trigger"
+                    || a.label.starts_with("You")
+            })
+            .or_else(|| actions.iter().find(|a| a.id().is_some()))
+            .cloned()
+            .unwrap_or_else(|| actions[0].clone());
+        s = e.apply(&s, &preferred).unwrap();
+    }
+    s
+}
+
+#[test]
+fn card_played_adi_damages_enemy_base_when_opponent_plays_event() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let adi = unit(&e, &mut s, seat, "LOF_142");
+            let enemy_base = s.players[seat.other().index()].base;
+            assert_eq!(s.card(enemy_base).damage, 0);
+            // Heal is effective so the event does not take AbilityNoEffect.
+            s.card_mut(enemy_base).damage = 2;
+            let event = hand_for(&e, &mut s, seat.other(), "SHD_252");
+            s.active = seat.other();
+            s.action_player = Some(seat.other());
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(e.in_arena(&done, adi));
+            assert!(done.players[seat.other().index()].discard.contains(event));
+            // Heal 3 from 2 → 0, then Adi deals 1 to that base.
+            assert_eq!(done.card(enemy_base).damage, 1, "{backend:?}/{seat:?}");
+            // Friendly event play does not trigger Adi.
+            let mut s = midgame(&e, seat);
+            let _adi = unit(&e, &mut s, seat, "LOF_142");
+            let foe_base = s.players[seat.other().index()].base;
+            let own_base = s.players[seat.index()].base;
+            s.card_mut(own_base).damage = 2;
+            let event = hand_for(&e, &mut s, seat, "SHD_252");
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(done.card(foe_base).damage, 0, "friendly event {backend:?}/{seat:?}");
+            assert_eq!(done.card(own_base).damage, 0, "heal only {backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_lady_proxima_may_damage_base_on_other_underworld_play() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let proxima = unit(&e, &mut s, seat, "SHD_255");
+            let own_base = s.players[seat.index()].base;
+            let foe_base = s.players[seat.other().index()].base;
+            // Maz is Underworld; playing her should offer Proxima's optional base damage.
+            let played = hand_for(&e, &mut s, seat, "SHD_096");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(e.in_arena(&done, proxima));
+            assert!(e.in_arena(&done, played));
+            let damaged = done.card(own_base).damage + done.card(foe_base).damage;
+            assert_eq!(damaged, 1, "{backend:?}/{seat:?}");
+            // Self-play does not trigger (other filter).
+            let mut s = midgame(&e, seat);
+            let proxima = hand_for(&e, &mut s, seat, "SHD_255");
+            let mut done = e.apply(&s, &e.card_action(&s, proxima)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(done.card(s.players[seat.index()].base).damage, 0);
+            assert_eq!(done.card(s.players[seat.other().index()].base).damage, 0);
+            // Non-Underworld Aggression unit does not trigger.
+            let mut s = midgame(&e, seat);
+            let _proxima = unit(&e, &mut s, seat, "SHD_255");
+            let played = hand_for(&e, &mut s, seat, "ASH_034"); // Wicket: aggression, not underworld
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(done.card(s.players[seat.index()].base).damage, 0);
+            assert_eq!(done.card(s.players[seat.other().index()].base).damage, 0);
+        }
+    }
+}
+
+#[test]
+fn card_played_fighters_may_damage_base_on_other_aggression_including_upgrade() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            // Unit Aggression play.
+            let mut s = midgame(&e, seat);
+            let fighters = unit(&e, &mut s, seat, "SOR_143");
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(e.in_arena(&done, fighters));
+            let own_base = done.players[seat.index()].base;
+            let foe_base = done.players[seat.other().index()].base;
+            assert_eq!(
+                done.card(own_base).damage + done.card(foe_base).damage,
+                1,
+                "unit play {backend:?}/{seat:?}"
+            );
+            // Aggression upgrade play also captures (non-unit play path).
+            let mut s = midgame(&e, seat);
+            let fighters = unit(&e, &mut s, seat, "SOR_143");
+            let host = unit(&e, &mut s, seat, "ASH_034");
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166"); // Infiltrator's Skill (aggression)
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            assert_eq!(done.decision, Decision::UpgradeTarget);
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(host))
+                .expect("attach host");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(e.in_arena(&done, fighters));
+            let own_base = done.players[seat.index()].base;
+            let foe_base = done.players[seat.other().index()].base;
+            assert_eq!(
+                done.card(own_base).damage + done.card(foe_base).damage,
+                1,
+                "upgrade play {backend:?}/{seat:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn card_played_bossk_may_damage_unit_when_friendly_event_played() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let bossk = unit(&e, &mut s, seat, "SOR_182");
+            let victim = unit(&e, &mut s, seat.other(), "ASH_034");
+            let event = hand_for(&e, &mut s, seat, "SHD_252");
+            // Pre-damage so Heal from Smuggler's Aid does not take AbilityNoEffect alone.
+            s.card_mut(s.players[seat.index()].base).damage = 2;
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            // Prefer Bossk's damage prompt when both event and watcher abilities fire.
+            for _ in 0..24 {
+                if !e.is_ability_decision(done.decision)
+                    && !matches!(
+                        done.decision,
+                        Decision::DeathPlayer
+                            | Decision::DeathOrder
+                            | Decision::DeathBatch
+                            | Decision::AbilityOptional
+                    )
+                {
+                    break;
+                }
+                let actions = e.legal_actions(&done);
+                assert!(!actions.is_empty(), "{:?}", done.decision);
+                let preferred = actions
+                    .iter()
+                    .find(|a| a.id() == Some(victim))
+                    .or_else(|| {
+                        actions.iter().find(|a| {
+                            matches!(
+                                a.arg.as_ref().and_then(Value::as_str),
+                                Some("trigger" | "all")
+                            ) || a.label == "Trigger"
+                                || a.label.starts_with("Deal")
+                                || a.label.starts_with("You")
+                        })
+                    })
+                    .cloned()
+                    .unwrap_or_else(|| actions[0].clone());
+                done = e.apply(&done, &preferred).unwrap();
+            }
+            assert!(e.in_arena(&done, bossk));
+            assert_eq!(done.card(victim).damage, 2, "{backend:?}/{seat:?}");
+            // Enemy event does not trigger Bossk.
+            let mut s = midgame(&e, seat);
+            let _bossk = unit(&e, &mut s, seat, "SOR_182");
+            let victim = unit(&e, &mut s, seat, "ASH_034");
+            let event = hand_for(&e, &mut s, seat.other(), "SHD_252");
+            s.card_mut(s.players[seat.other().index()].base).damage = 2;
+            s.active = seat.other();
+            s.action_player = Some(seat.other());
+            let mut done = e.apply(&s, &e.card_action(&s, event)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(done.card(victim).damage, 0, "enemy event {backend:?}/{seat:?}");
+        }
+    }
+}
+
+fn drive_force_optional(e: &Engine, mut s: State, watcher: CardId, limit: usize) -> State {
+    for _ in 0..limit {
+        if !e.is_ability_decision(s.decision)
+            && !matches!(
+                s.decision,
+                Decision::DeathPlayer
+                    | Decision::DeathOrder
+                    | Decision::DeathBatch
+                    | Decision::AbilityOptional
+                    | Decision::AbilityTarget
+            )
+        {
+            return s;
+        }
+        let actions = e.legal_actions(&s);
+        assert!(!actions.is_empty(), "{:?}", s.decision);
+        // Prefer a card target that is not the watcher (Eighth Brother buffs another unit).
+        let preferred = actions
+            .iter()
+            .find(|a| a.id().is_some_and(|id| id != watcher) && s.source == watcher)
+            .or_else(|| actions.iter().find(|a| a.id().is_some() && s.source == watcher))
+            .or_else(|| {
+                actions.iter().find(|a| {
+                    s.source == watcher
+                        && matches!(
+                            a.arg.as_ref().and_then(Value::as_str),
+                            Some("trigger" | "all")
+                        )
+                })
+            })
+            .or_else(|| {
+                actions.iter().find(|a| {
+                    matches!(
+                        a.arg.as_ref().and_then(Value::as_str),
+                        Some("trigger" | "all")
+                    ) || a.label == "Trigger"
+                        || a.label.starts_with("You")
+                })
+            })
+            .or_else(|| actions.iter().find(|a| a.id().is_some()))
+            .cloned()
+            .unwrap_or_else(|| actions[0].clone());
+        s = e.apply(&s, &preferred).unwrap();
+    }
+    s
+}
+
+#[test]
+fn card_played_eighth_brother_may_use_force_for_plus_two_plus_two() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            s.player_mut(seat).force_held = true;
+            let brother = unit(&e, &mut s, seat, "LOF_087");
+            let ally = unit(&e, &mut s, seat, "ASH_068");
+            let before = e.power(&s, ally, false);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_force_optional(&e, done, brother, 24);
+            assert!(e.in_arena(&done, brother));
+            assert!(!done.player(seat).force_held, "{backend:?}/{seat:?}");
+            assert_eq!(
+                e.power(&done, ally, false),
+                before + 2,
+                "{backend:?}/{seat:?}"
+            );
+            // Without the Force, the optional window does not grant stats.
+            let mut s = midgame(&e, seat);
+            assert!(!s.player(seat).force_held);
+            let brother = unit(&e, &mut s, seat, "LOF_087");
+            let ally = unit(&e, &mut s, seat, "ASH_068");
+            let before = e.power(&s, ally, false);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert_eq!(e.power(&done, ally, false), before);
+            assert!(e.in_arena(&done, brother));
+        }
+    }
+}
+
+#[test]
+fn card_played_luke_may_use_force_for_experience_and_shield_on_unique_play() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            s.player_mut(seat).force_held = true;
+            let luke = unit(&e, &mut s, seat, "LOF_249");
+            assert_eq!(e.upgrades(&s, luke).len(), 0);
+            let played = hand_for(&e, &mut s, seat, "ASH_034"); // unique
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_force_optional(&e, done, luke, 24);
+            assert!(e.in_arena(&done, luke));
+            assert!(!done.player(seat).force_held, "{backend:?}/{seat:?}");
+            assert_eq!(e.upgrades(&done, luke).len(), 2, "{backend:?}/{seat:?}");
+            // Non-unique friendly unit does not trigger.
+            let mut s = midgame(&e, seat);
+            s.player_mut(seat).force_held = true;
+            let luke = unit(&e, &mut s, seat, "LOF_249");
+            let played = hand_for(&e, &mut s, seat, "ASH_068"); // not unique
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(done.player(seat).force_held, "force unused {backend:?}/{seat:?}");
+            assert_eq!(e.upgrades(&done, luke).len(), 0);
+        }
+    }
+}
+
+#[test]
+fn card_played_kylo_may_use_force_to_draw_when_upgrade_attaches() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            s.player_mut(seat).force_held = true;
+            let kylo = unit(&e, &mut s, seat, "LOF_229");
+            let deck_card = add(&e, &mut s, seat, "ASH_068");
+            s.player_mut(seat).deck.push(deck_card).unwrap();
+            let hand_before = s.player(seat).hand.len;
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            assert_eq!(done.decision, Decision::UpgradeTarget);
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(kylo))
+                .expect("attach kylo");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_force_optional(&e, done, kylo, 24);
+            assert!(e.in_arena(&done, kylo));
+            assert!(!done.player(seat).force_held, "{backend:?}/{seat:?}");
+            assert_eq!(
+                done.player(seat).hand.len,
+                hand_before + 1,
+                "{backend:?}/{seat:?}"
+            );
+            // Attaching the same upgrade to another friendly unit does not fire Kylo.
+            let mut s = midgame(&e, seat);
+            s.player_mut(seat).force_held = true;
+            let kylo = unit(&e, &mut s, seat, "LOF_229");
+            let other = unit(&e, &mut s, seat, "ASH_068");
+            let deck_card = add(&e, &mut s, seat, "ASH_068");
+            s.player_mut(seat).deck.push(deck_card).unwrap();
+            let hand_before = s.player(seat).hand.len;
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(other))
+                .expect("attach other");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(done.player(seat).force_held, "force unused {backend:?}/{seat:?}");
+            assert_eq!(done.player(seat).hand.len, hand_before);
+            assert!(e.in_arena(&done, kylo));
+        }
+    }
+}
+
+#[test]
+fn card_played_poggle_may_exhaust_to_create_battle_droid() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            let poggle = unit(&e, &mut s, seat, "TWI_080");
+            assert!(!s.card(poggle).exhausted);
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(e.in_arena(&done, played));
+            assert!(done.card(poggle).exhausted, "{backend:?}/{seat:?}");
+            let tokens = e
+                .arena_units(&done)
+                .into_iter()
+                .filter(|&id| e.def(&done, id).code == "TOKEN_BATTLE_DROID")
+                .collect::<Vec<_>>();
+            assert_eq!(tokens.len(), 1, "{backend:?}/{seat:?}");
+            assert_eq!(done.card(tokens[0]).owner, seat);
+            // Passing declines the Battle Droid.
+            let mut s = midgame(&e, seat);
+            let poggle = unit(&e, &mut s, seat, "TWI_080");
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            for _ in 0..16 {
+                if done.decision == Decision::AbilityOptional && done.source == poggle {
+                    let pass = e
+                        .legal_actions(&done)
+                        .into_iter()
+                        .find(|a| a.arg.as_ref().and_then(Value::as_str) == Some("pass"))
+                        .expect("Pass");
+                    done = e.apply(&done, &pass).unwrap();
+                    break;
+                }
+                if !e.is_ability_decision(done.decision)
+                    && !matches!(
+                        done.decision,
+                        Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch
+                    )
+                {
+                    break;
+                }
+                let actions = e.legal_actions(&done);
+                done = e.apply(&done, &actions[0]).unwrap();
+            }
+            assert!(!done.card(poggle).exhausted);
+            assert_eq!(
+                e.arena_units(&done)
+                    .into_iter()
+                    .filter(|&id| e.def(&done, id).code == "TOKEN_BATTLE_DROID")
+                    .count(),
+                0
+            );
+        }
+    }
+}
+
+fn hand_for(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
+    let id = add(e, s, seat, code);
+    s.player_mut(seat).hand.push(id).unwrap();
+    for _ in 0..8 {
+        let resource = add(e, s, seat, "LOF_254");
+        s.player_mut(seat).resources.push(resource).unwrap();
+    }
+    id
+}
+
+fn set_leader(e: &Engine, s: &mut State, seat: Seat, code: &str) {
+    let leader = s.player(seat).leader;
+    s.card_mut(leader).def = *e.by_code.get(code).unwrap_or_else(|| {
+        panic!("{code}: {:?}", e.rejected_cards().unwrap().get(code))
+    });
+}
+
+fn deploy_leader(e: &Engine, s: &mut State, seat: Seat) {
+    let leader = s.player(seat).leader;
+    s.card_mut(leader).deployed = true;
+    s.card_mut(leader).epic_used = true;
+    e.add_arena(s, leader).unwrap();
+}
+
+#[test]
+fn card_played_mando_front_may_exhaust_to_exhaust_low_hp_enemy_on_upgrade() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_018");
+            let leader = s.player(seat).leader;
+            assert!(!s.card(leader).deployed);
+            assert!(!s.card(leader).exhausted);
+            let host = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034"); // hp 3 ≤ 4
+            assert!(!s.card(enemy).exhausted);
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            assert_eq!(done.decision, Decision::UpgradeTarget);
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(host))
+                .expect("attach host");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert!(done.card(enemy).exhausted, "{backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_mando_deployed_may_exhaust_enemy_on_upgrade_without_self_exhaust() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_018");
+            deploy_leader(&e, &mut s, seat);
+            let leader = s.player(seat).leader;
+            assert!(!s.card(leader).exhausted);
+            let host = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034");
+            let upgrade = hand_for(&e, &mut s, seat, "SOR_166");
+            let mut done = e.apply(&s, &e.card_action(&s, upgrade)).unwrap();
+            let attach = e
+                .legal_actions(&done)
+                .into_iter()
+                .find(|a| a.id() == Some(host))
+                .expect("attach host");
+            done = e.apply(&done, &attach).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(!done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert!(done.card(enemy).exhausted, "{backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_boba_front_may_exhaust_to_buff_friendly_on_keyword_unit() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            let leader = s.player(seat).leader;
+            let ally = unit(&e, &mut s, seat, "LOF_254");
+            let before = e.power(&s, ally, false);
+            let played = hand_for(&e, &mut s, seat, "ASH_034"); // saboteur
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert_eq!(
+                e.power(&done, ally, false),
+                before + 1,
+                "{backend:?}/{seat:?}"
+            );
+            // Non-keyword play does not open the window.
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            let leader = s.player(seat).leader;
+            let played = hand_for(&e, &mut s, seat, "LOF_254");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(!done.card(leader).exhausted, "plain unit {backend:?}/{seat:?}");
+        }
+    }
+}
+
+#[test]
+fn card_played_boba_deployed_aura_buffs_other_keyword_units() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_008");
+            deploy_leader(&e, &mut s, seat);
+            let keyworded = unit(&e, &mut s, seat, "ASH_034");
+            let plain = unit(&e, &mut s, seat, "LOF_254");
+            let enemy = unit(&e, &mut s, seat.other(), "ASH_034");
+            assert_eq!(
+                e.power(&s, keyworded, false),
+                e.def(&s, keyworded).info.power.unwrap_or(0) as u16 + 1,
+                "{backend:?}/{seat:?}"
+            );
+            assert_eq!(
+                e.power(&s, plain, false),
+                e.def(&s, plain).info.power.unwrap_or(0) as u16,
+                "{backend:?}/{seat:?}"
+            );
+            assert_eq!(
+                e.power(&s, enemy, false),
+                e.def(&s, enemy).info.power.unwrap_or(0) as u16,
+                "{backend:?}/{seat:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn card_played_hondo_front_may_exhaust_to_give_experience_on_smuggle() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        for seat in [Seat::P1, Seat::P2] {
+            let mut e = engine();
+            e.set_rules_backend(backend).unwrap();
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_005");
+            let leader = s.player(seat).leader;
+            let ally = unit(&e, &mut s, seat, "LOF_254");
+            assert_eq!(e.upgrades(&s, ally).len(), 0);
+            for _ in 0..6 {
+                let resource = add(&e, &mut s, seat, "LOF_254");
+                s.player_mut(seat).resources.push(resource).unwrap();
+            }
+            let smuggled = add(&e, &mut s, seat, "SHD_160");
+            s.player_mut(seat).resources.push(smuggled).unwrap();
+            let top = add(&e, &mut s, seat, "LOF_256");
+            s.player_mut(seat).deck.push(top).unwrap();
+            let mut done = e.apply(&s, &e.card_action(&s, smuggled)).unwrap();
+            done = drive_ability_prompts(&e, done, 24);
+            assert!(done.card(leader).exhausted, "{backend:?}/{seat:?}");
+            assert_eq!(e.upgrades(&done, ally).len(), 1, "{backend:?}/{seat:?}");
+            // Ordinary hand play does not fire Hondo.
+            let mut s = midgame(&e, seat);
+            set_leader(&e, &mut s, seat, "SHD_005");
+            let leader = s.player(seat).leader;
+            let played = hand_for(&e, &mut s, seat, "ASH_034");
+            let mut done = e.apply(&s, &e.card_action(&s, played)).unwrap();
+            done = drive_ability_prompts(&e, done, 16);
+            assert!(!done.card(leader).exhausted, "hand play {backend:?}/{seat:?}");
+        }
+    }
+}
+

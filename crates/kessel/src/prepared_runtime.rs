@@ -79,6 +79,25 @@ fn group_ops(effect: &Effect) -> Vec<GroupOp<'_>> {
 }
 
 impl Engine {
+    pub(super) fn capture_discarded_selection(&self, s: &State, effect: &Effect) -> Selection {
+        let ops = group_ops(effect);
+        let mut out = Selection::default();
+        for r in &s.event_group.records[..s.event_group.count as usize] {
+            if !matches!(&ops[r.op as usize], GroupOp::Leaf(Effect::DiscardDeck { .. })) {
+                continue;
+            }
+            if self.def(s, r.target).info.is("base") {
+                continue;
+            }
+            if out.len as usize >= out.ids.len() {
+                break;
+            }
+            out.ids[out.len as usize] = r.target;
+            out.len += 1;
+        }
+        out
+    }
+
     pub(super) fn current_group_resolver<'a>(&self, s: &State, p: &'a Program) -> Option<(&'a TargetResolver,&'a Effect)> {
         let effect=p.instructions[s.ability_pc as usize].group_effect()?;
         match group_ops(effect).get(s.event_group.pc as usize) {
@@ -263,12 +282,12 @@ impl Engine {
                         s.active=s.event_group.initiator;
                         if matches!(choosers[index],crate::ability_ir::NamedChooser::Opponent) {
                             // Opponent pretarget always delays until original-player costs are paid.
-                            self.commit_program(s)?;s.active=s.event_group.initiator.other();
+                            if !self.commit_program(s)? {return Ok(false);}s.active=s.event_group.initiator.other();
                         }
                     }
                     if self.group_candidates(s,r,child,true).is_empty() {
                         // A missing pretarget delays the remaining named resolver chain until costs.
-                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {self.commit_program(s)?;}
+                        if !s.ability_committed && self.program(s.ability_program-1).instructions[s.ability_pc as usize].is_named_group() && self.group_candidates(s,r,child,false).is_empty() {if !self.commit_program(s)? {return Ok(false);}}
                         if matches!(self.program(s.ability_program-1).instructions[s.ability_pc as usize],Instruction::NamedChooserGroup{..}) {s.active=s.event_group.initiator;}
                         s.event_group.pc=*end as u16; continue;
                     }

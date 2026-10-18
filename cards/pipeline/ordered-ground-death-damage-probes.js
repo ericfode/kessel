@@ -1,7 +1,7 @@
 'use strict';
 const same = require('node:util').isDeepStrictEqual;
 const shape = {
-  "setCode": "LOF_235",
+  "setCode": "IC27_182",
   "sourcePath": "game/cards/05_LOF/units/HK87AssassinDroid.ts",
   "sourceHash": "add5c3778a8b5f07bbff3f3ea9bbce937a17d94d6c0838f642def3497a25c21c",
   "className": "HK87AssassinDroid",
@@ -129,7 +129,7 @@ const shape = {
 };
 const designs = [
   {
-    "name": "LOF_235-interleaved-survivors-seat1",
+    "name": "IC27_182-interleaved-survivors-seat1",
     "units": [
       {
         "key": "o1",
@@ -165,7 +165,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-interleaved-survivors-seat2",
+    "name": "IC27_182-interleaved-survivors-seat2",
     "units": [
       {
         "key": "o1",
@@ -201,7 +201,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-own-ground-empty-seat1",
+    "name": "IC27_182-own-ground-empty-seat1",
     "units": [
       {
         "key": "o1",
@@ -217,7 +217,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-own-ground-empty-seat2",
+    "name": "IC27_182-own-ground-empty-seat2",
     "units": [
       {
         "key": "o1",
@@ -233,7 +233,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-opponent-ground-empty-seat1",
+    "name": "IC27_182-opponent-ground-empty-seat1",
     "units": [
       {
         "key": "f1",
@@ -249,7 +249,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-opponent-ground-empty-seat2",
+    "name": "IC27_182-opponent-ground-empty-seat2",
     "units": [
       {
         "key": "f1",
@@ -265,7 +265,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-no-ground-recipients-after-source-death-seat1",
+    "name": "IC27_182-no-ground-recipients-after-source-death-seat1",
     "units": [
       {
         "key": "spaceOwn",
@@ -281,7 +281,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-no-ground-recipients-after-source-death-seat2",
+    "name": "IC27_182-no-ground-recipients-after-source-death-seat2",
     "units": [
       {
         "key": "spaceOwn",
@@ -297,7 +297,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-native-ground-deployed-leaders-space-excluded-seat1",
+    "name": "IC27_182-native-ground-deployed-leaders-space-excluded-seat1",
     "units": [
       {
         "key": "enemyToken",
@@ -338,7 +338,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-native-ground-deployed-leaders-space-excluded-seat2",
+    "name": "IC27_182-native-ground-deployed-leaders-space-excluded-seat2",
     "units": [
       {
         "key": "enemyToken",
@@ -379,7 +379,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-both-owner-shields-auto-physical-removal-seat1",
+    "name": "IC27_182-both-owner-shields-auto-physical-removal-seat1",
     "shields": true,
     "units": [
       {
@@ -408,7 +408,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-both-owner-shields-auto-physical-removal-seat2",
+    "name": "IC27_182-both-owner-shields-auto-physical-removal-seat2",
     "shields": true,
     "units": [
       {
@@ -437,7 +437,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-both-owner-lethal-discard-order-seat1",
+    "name": "IC27_182-both-owner-lethal-discard-order-seat1",
     "lethal": true,
     "units": [
       {
@@ -473,7 +473,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-both-owner-lethal-discard-order-seat2",
+    "name": "IC27_182-both-owner-lethal-discard-order-seat2",
     "lethal": true,
     "units": [
       {
@@ -509,13 +509,13 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-opposing-second-hk-full-wave-before-chain-seat1",
+    "name": "IC27_182-opposing-second-hk-full-wave-before-chain-seat1",
     "chain": true,
     "units": [
       {
         "key": "o1",
         "owner": "opponent",
-        "code": "LOF_235",
+        "code": "IC27_182",
         "damage": 2
       },
       {
@@ -532,13 +532,13 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-opposing-second-hk-full-wave-before-chain-seat2",
+    "name": "IC27_182-opposing-second-hk-full-wave-before-chain-seat2",
     "chain": true,
     "units": [
       {
         "key": "o1",
         "owner": "opponent",
-        "code": "LOF_235",
+        "code": "IC27_182",
         "damage": 2
       },
       {
@@ -555,7 +555,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-both-owner-vanguard-death-trigger-after-wave-seat1",
+    "name": "IC27_182-both-owner-vanguard-death-trigger-after-wave-seat1",
     "vanguard": true,
     "units": [
       {
@@ -582,7 +582,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-both-owner-vanguard-death-trigger-after-wave-seat2",
+    "name": "IC27_182-both-owner-vanguard-death-trigger-after-wave-seat2",
     "vanguard": true,
     "units": [
       {
@@ -609,7 +609,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-cody-aura-damage-cap-before-removal-seat1",
+    "name": "IC27_182-cody-aura-damage-cap-before-removal-seat1",
     "aura": true,
     "units": [
       {
@@ -640,7 +640,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-cody-aura-damage-cap-before-removal-seat2",
+    "name": "IC27_182-cody-aura-damage-cap-before-removal-seat2",
     "aura": true,
     "units": [
       {
@@ -671,7 +671,7 @@ const designs = [
     "sourceSeat": 2
   },
   {
-    "name": "LOF_235-actual-combat-death-in-active-attack-seat1",
+    "name": "IC27_182-actual-combat-death-in-active-attack-seat1",
     "combat": true,
     "units": [
       {
@@ -698,7 +698,7 @@ const designs = [
     "sourceSeat": 1
   },
   {
-    "name": "LOF_235-actual-combat-death-in-active-attack-seat2",
+    "name": "IC27_182-actual-combat-death-in-active-attack-seat2",
     "combat": true,
     "units": [
       {

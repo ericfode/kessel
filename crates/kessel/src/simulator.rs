@@ -1,3 +1,7 @@
+#[path = "credit_runtime.rs"]
+mod credit_runtime;
+#[path = "resource_payment_runtime.rs"]
+mod resource_payment_runtime;
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
 #[path = "support_runtime.rs"]
@@ -30,6 +34,14 @@ const T_LEADER: u8 = 4;
 const T_SHIELD: u8 = 8;
 const T_AMBUSH: u8 = 16;
 const T_SUPPORT: u8 = 32;
+/// Printed Smuggle alternate cost: base resource amount plus aspect vector for
+/// aspect-penalty calculation (independent of the card's play aspects).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SmuggleCost {
+    pub amount: u16,
+    pub aspects: [u8; 6],
+}
+
 #[derive(Debug, Clone)]
 pub struct Definition {
     pub code: String,
@@ -38,6 +50,10 @@ pub struct Definition {
     raid: u16,
     restore: u16,
     aspects: [u8; 6],
+    /// Present only for cards whose printed text yields a complete Smuggle cost.
+    pub smuggle: Option<SmuggleCost>,
+    pub(crate) self_play_cost: Option<crate::self_play_cost::SelfPlayCost>,
+    pub(crate) attachment_play_cost: Option<crate::attachment_play_cost::AttachmentPlayCost>,
     programs: CardPrograms,
     traits: Vec<String>,
 }
@@ -54,6 +70,7 @@ pub struct Engine {
     advantage_def: Option<u16>,
     advantage_program: Option<u16>,
     force_def: Option<u16>,
+    credit_def: Option<u16>,
     catalogue: Option<Catalogue>,
     rules_backend: RulesBackend,
     rules_instrumentation: bool,
@@ -221,6 +238,9 @@ impl Engine {
                 raid,
                 restore,
                 aspects,
+                smuggle: None,
+                self_play_cost: None,
+                attachment_play_cost: None,
                 programs: CardPrograms::default(),
                 traits: vec![],
             });
@@ -241,6 +261,7 @@ impl Engine {
             advantage_def: None,
             advantage_program: None,
             force_def: None,
+            credit_def: None,
             catalogue: None,
             rules_backend: RulesBackend::Auto,
             rules_instrumentation: false,
@@ -299,7 +320,8 @@ impl Engine {
         Ok(())
     }
     fn attached_in_play(&self,s:&State,id:CardId)->bool {
-        s.card(id).parent!=0 && self.in_arena(s,s.card(id).parent)
+        let parent=s.card(id).parent;
+        parent!=0 && (self.in_arena(s,parent) || s.players.iter().any(|p|p.base==parent))
     }
     fn upgrades(&self,s:&State,parent:CardId)->Vec<CardId> {
         let mut ids=vec![];let mut id=s.card(parent).upgrades;
@@ -330,7 +352,11 @@ impl Engine {
             let mut id=s.card(parent).upgrades;let mut chain=std::collections::HashSet::new();
             while id!=0 {
                 if id>=s.next_id || !s.card(id).present || !chain.insert(id) || !seen.insert(id) {return Err("invalid or cyclic attachment chain".into());}
-                if s.card(id).parent!=parent || !self.in_arena(s,parent) || !self.def(s,id).info.is("upgrade") || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
+                let parent_live=self.in_arena(s,parent)||s.players.iter().any(|p|p.base==parent);
+                let attachable=self.def(s,id).info.is("upgrade")
+                    || (self.def(s,id).info.is("unit") && self.def(s,id).info.has_keyword("piloting")
+                        && self.def(s,id).info.upgrade_power.is_some() && self.def(s,id).info.upgrade_hp.is_some());
+                if s.card(id).parent!=parent || !parent_live || !attachable || s.card(id).upgrades!=0 {return Err("invalid attachment parent/type/arena".into());}
                 id=s.card(id).next_upgrade;
             }
             for (head,def) in [(s.card(parent).shield,Some(self.shield_def)),(s.card(parent).experience,self.experience_def)] {
@@ -355,6 +381,37 @@ impl Engine {
             self.def(s,*parent).info.is("unit") || (self.def(s,*parent).info.is("leader") && s.card(*parent).deployed)
         }).filter(|parent|self.def(s,id).programs.attach_condition.as_ref().map_or(true,|e|self.attachment_condition(s,id,*parent,e))).collect()
     }
+    /// Exact price for one physical legal host. Keep target-dependent prices
+    /// separate from cost(), which has no selected attachment host.
+    fn upgrade_play_cost(&self,s:&State,upgrade:CardId,host:CardId)->Option<u16> {
+        if upgrade==0 || !s.card(upgrade).present || !self.def(s,upgrade).info.is("upgrade") {return None;}
+        let owner=s.card(upgrade).owner;
+        if owner!=s.active || !self.upgrade_targets(s,upgrade).contains(&host) {return None;}
+        if s.player(owner).resources.contains(upgrade) {
+            // No reviewed host-dependent source has Smuggle. Preserve the
+            // existing resource-play amount for other admitted upgrades.
+            return if self.def(s,upgrade).attachment_play_cost.is_none() {self.smuggle_cost(s,upgrade)}else{None};
+        }
+        if !s.player(owner).hand.contains(upgrade) {return None;}
+        let total=self.cost(s,upgrade);
+        Some(self.def(s,upgrade).attachment_play_cost.map_or(total,|rule| {
+            let qualifies=rule.qualifies(self.def(s,host).info.unique,|name|self.card_has_trait(s,host,name));
+            rule.apply(total,qualifies)
+        }))
+    }
+    /// Payment capability boundary: this admitted path uses ready resources.
+    /// Future payment methods must retain `host` across any yielding prompt and
+    /// revalidate the same physical choice instead of selecting another host.
+    fn can_pay_upgrade_cost(&self,s:&State,upgrade:CardId,_host:CardId,cost:u16)->bool {
+        s.card(upgrade).owner==s.active && self.can_pay_resources(s,s.active,cost)
+    }
+    /// Availability is existential over ordinary legal hosts; the prompt and
+    /// final payment use the same live per-host calculation.
+    fn upgrade_play_targets(&self,s:&State,upgrade:CardId)->Vec<CardId> {
+        self.upgrade_targets(s,upgrade).into_iter().filter(|host|
+            self.upgrade_play_cost(s,upgrade,*host).is_some_and(|cost|self.can_pay_upgrade_cost(s,upgrade,*host,cost))
+        ).collect()
+    }
     fn card_action(&self, s: &State, id: CardId) -> Action {
         Action::card(id, &self.def(s, id).info.internal_name)
     }
@@ -367,16 +424,40 @@ impl Engine {
             .count()
     }
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
-        let p = s.player(s.card(id).owner);
         let d = self.def(s, id);
+        (d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects))
+            .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id, |card, trait_name| self.card_has_trait(s, card, trait_name))))
+    }
+    fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
+        let p = s.player(s.card(id).owner);
         let leader = self.def(s, p.leader);
         let base = self.def(s, p.base);
-        let penalty: u16 = (0..6)
-            .map(|i| {
-                u16::from(d.aspects[i].saturating_sub(leader.aspects[i] + base.aspects[i])) * 2
-            })
-            .sum();
-        d.info.cost().max(0) as u16 + penalty
+        (0..6)
+            .map(|i| u16::from(aspects[i].saturating_sub(leader.aspects[i] + base.aspects[i])) * 2)
+            .sum()
+    }
+    pub fn smuggle_cost(&self, s: &State, id: CardId) -> Option<u16> {
+        let smuggle = self.def(s, id).smuggle?;
+        Some(smuggle.amount + self.aspect_penalty(s, id, &smuggle.aspects))
+    }
+    fn can_smuggle(&self, s: &State, id: CardId) -> bool {
+        let seat = s.card(id).owner;
+        if seat != s.active || !s.player(seat).resources.contains(id) {
+            return false;
+        }
+        let Some(cost) = self.smuggle_cost(s, id) else {
+            return false;
+        };
+        if self.def(s, id).info.is("upgrade") && self.upgrade_targets(s, id).is_empty() {
+            return false;
+        }
+        if self.catalogue.is_some()
+            && self.def(s, id).info.is("event")
+            && self.available_programs(s, id, "event").is_empty()
+        {
+            return false;
+        }
+        self.can_pay_resources(s,seat,cost)
     }
     fn raw_power(&self,s:&State,id:CardId,attacking:bool)->i64 {
         self.def(s,id).info.power.unwrap_or(0) as i64 + if self.keyword_amount(s,id,"grit")>0 {s.card(id).damage as i64}else{0}+if attacking && !self.attack_participant_departed(s,id) {self.keyword_amount(s,id,"raid") as i64}else{0}+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_power as i64+self.constant_stats(s,id).0+self.upgrade_stats(s,id).0+self.native_attack_power(s,id)
@@ -441,20 +522,35 @@ impl Engine {
                     }
                 }
                 for &id in p.hand.as_slice() {
-                    if self.def(s,id).info.is("upgrade") && self.upgrade_targets(s,id).is_empty() {continue;}
+                    if self.def(s,id).info.is("upgrade") {
+                        if !self.upgrade_play_targets(s,id).is_empty() {out.push(self.card_action(s,id));}
+                        continue;
+                    }
                     if self.catalogue.is_some()
                         && self.def(s, id).info.is("event")
                         && self.available_programs(s, id, "event").is_empty()
                     {
                         continue;
                     }
-                    if self.cost(s, id) as usize <= self.ready_resources(s, s.active) {
+                    if self.can_pay_resources(s,s.active,self.cost(s,id)) {
+                        out.push(self.card_action(s, id));
+                    }
+                }
+                for &id in p.resources.as_slice() {
+                    if self.can_smuggle(s, id) {
                         out.push(self.card_action(s, id));
                     }
                 }
                 let (deploy, ability) = self.leader_available(s);
                 if deploy || ability {
                     out.push(self.card_action(s, p.leader));
+                }
+                let base = p.base;
+                if base != 0
+                    && !s.card(base).epic_used
+                    && !self.available_programs(s, base, "epicAction").is_empty()
+                {
+                    out.push(self.card_action(s, base));
                 }
             }
             Decision::LeaderMenu => {
@@ -544,7 +640,7 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 out.push(Action::button("Cancel","cancel"));
-                for id in self.upgrade_targets(s,s.source) {out.push(self.card_action(s,id));}
+                for id in self.upgrade_play_targets(s,s.source) {out.push(self.card_action(s,id));}
             }
             Decision::Unique => {
                 if self.def(s,s.source).info.is("upgrade") {
@@ -572,12 +668,12 @@ impl Engine {
                 out.push(Action::button("You", 0));
                 out.push(Action::button("Opponent", 1));
             }
-            Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
             | Decision::AbilityTarget
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
             | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => {}
         }
@@ -679,6 +775,17 @@ impl Engine {
                     } else if ability {
                         self.use_leader(&mut t)?;
                     }
+                } else if id == t.player(seat).base {
+                    if t.card(id).epic_used {
+                        return Err("base epic action already spent".into());
+                    }
+                    let programs = self.available_programs(&t, id, "epicAction");
+                    let program = *programs
+                        .first()
+                        .ok_or("base has no executable epic action")?;
+                    t.source = id;
+                    t.trigger_context = 0;
+                    self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                 } else if t.player(seat).hand.contains(id) {
                     if self.def(&t,id).info.is("upgrade") {t.source=id;t.decision=Decision::UpgradeTarget;return Ok(t);}
                     if self.catalogue.is_some() && self.def(&t, id).info.is("event") {
@@ -689,20 +796,9 @@ impl Engine {
                         self.begin_program(&mut t, program, ProgramContinuation::Finish)?;
                         return Ok(t);
                     }
-                    t.phase_history.preflight_play(seat)?;
-                    self.spend(&mut t, seat, self.cost(s, id));
-                    t.player_mut(seat).hand.remove(id);
-                    t.card_mut(id).exhausted = !self.self_static_ongoing(&t,id,crate::static_ongoing::SelfEffect::EntersPlayReady);
-                    t.card_mut(id).set_hidden_qualified(true);
-                    self.add_arena(&mut t, id)?;
-                    t.phase_history.entered(seat,id);t.phase_history.played(seat,id)?;
-                    t.source = id;
-                    t.set_trigger_context(TriggerContext::Enter);
-                    if self.def(&t, id).info.unique && self.duplicates(&t, id) > 1 {
-                        t.decision = Decision::Unique;
-                    } else {
-                        self.enter_triggers(&mut t)?;
-                    }
+                    self.play_unit_with_payment(&mut t,id,false)?;
+                } else if t.player(seat).resources.contains(id) {
+                    self.begin_smuggle_play(&mut t, id)?;
                 } else {
                     t.source = id;
                     t.ambush = false;
@@ -721,12 +817,8 @@ impl Engine {
             }
             Decision::UpgradeTarget => {
                 if arg=="cancel" {self.cancel(&mut t);}else{
-                    let upgrade=t.source;t.phase_history.preflight_play(seat)?;self.spend(&mut t,seat,self.cost(s,upgrade));t.player_mut(seat).hand.remove(upgrade);
-                    self.attach(&mut t,upgrade,id);t.phase_history.played(seat,upgrade)?;t.set_trigger_context(TriggerContext::Enter);
-                    if self.def(&t,upgrade).info.unique && self.duplicates(&t,upgrade)>1 {
-                        let same=self.upgrades(&t,id).into_iter().filter(|other|t.card(*other).def==t.card(upgrade).def && t.card(*other).owner==seat).collect::<Vec<_>>();
-                        if same.len()==self.duplicates(&t,upgrade) && same.len()>1 {self.settle_enter_triggers(&mut t,Some(same[0]))?;}else{t.decision=Decision::Unique;}
-                    }else{self.enter_triggers(&mut t)?;}
+                    let upgrade=t.source;
+                    self.play_upgrade_with_payment(&mut t,upgrade,id)?;
                 }
             }
             Decision::LeaderMenu => {
@@ -772,7 +864,10 @@ impl Engine {
                     t.target = id;
                     let source = t.source;
                     t.card_mut(source).exhausted = true;
-                    t.set_trigger_context(TriggerContext::Attack);
+                    // The attack cost precedes late effect application; late
+                    // effects precede AttackFlow and its declaration windows.
+                    self.install_conditional_attack(&mut t)?;
+                    t.trigger_context = 2;
                     t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
@@ -790,7 +885,7 @@ impl Engine {
                     if self.catalogue.is_none() && (d.code == "SOR_014" || d.code == "IBH_053") {
                         t.pending_triggers |= T_LEADER;
                     }
-                    self.queue_programs(&mut t, "onAttack");
+                    self.queue_programs(&mut t, &["onAttack"]);
                     if let Some(context)=declaration_context.as_ref() {
                         if !self.capture_defense_window(&mut t,context)? {self.process_triggers(&mut t)?;}
                     } else {self.process_triggers(&mut t)?;}
@@ -884,12 +979,12 @@ impl Engine {
                 t.set_trigger_context(TriggerContext::ShieldOrder);
                 self.combat(&mut t)?;
             }
-            Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
             | Decision::AbilityTarget
             | Decision::AbilityOptional
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
-            | Decision::AbilityGroupShield | Decision::AbilityDiscard
+            | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
             | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
@@ -913,6 +1008,61 @@ impl Engine {
         }
         debug_assert_eq!(amount, 0);
     }
+    /// Pay a play-from-resources cost. The leaving resource is exhausted first when
+    /// ready (pinned Smuggle/Plot ResourceCost priority), then other ready resources
+    /// in zone order. Deterministic; does not shuffle the resource row.
+    fn spend_resource_play(&self, s: &mut State, mut amount: u16, played: CardId) {
+        if amount > 0 && s.player(s.active).resources.contains(played) && !s.card(played).exhausted {
+            s.card_mut(played).exhausted = true;
+            amount -= 1;
+        }
+        let ids = s.player(s.active).resources;
+        for &id in ids.as_slice() {
+            if amount == 0 {
+                break;
+            }
+            if id != played && !s.card(id).exhausted {
+                s.card_mut(id).exhausted = true;
+                amount -= 1;
+            }
+        }
+        debug_assert_eq!(amount, 0);
+    }
+    fn resource_deck_top_after_play(&self, s: &mut State, seat: Seat) -> Result<(), String> {
+        let Some(&top) = s.player(seat).deck.as_slice().first() else {
+            return Ok(());
+        };
+        let info = &self.def(s, top).info;
+        if info.is("leader") || info.is("token") {
+            return Ok(());
+        }
+        if s.player(seat).resources.len as usize >= crate::model::MAX_ZONE {
+            return Err("resource zone capacity exceeded".into());
+        }
+        s.player_mut(seat).deck.remove(top);
+        s.player_mut(seat).resources.push(top)?;
+        s.card_mut(top).exhausted = true;
+        Ok(())
+    }
+    fn begin_smuggle_play(&self, s: &mut State, id: CardId) -> Result<(), String> {
+        if !self.can_smuggle(s, id) {
+            return Err("illegal smuggle".into());
+        }
+        if self.def(s, id).info.is("upgrade") {
+            s.source = id;
+            s.decision = Decision::UpgradeTarget;
+            return Ok(());
+        }
+        if self.catalogue.is_some() && self.def(s, id).info.is("event") {
+            s.source = id;
+            s.trigger_context = 0;
+            let programs = self.available_programs(s, id, "event");
+            let program = *programs.first().ok_or("event has no executable ability")?;
+            return self.begin_program(s, program, ProgramContinuation::Finish);
+        }
+        self.play_unit_with_payment(s,id,true)?;
+        Ok(())
+    }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
@@ -934,6 +1084,7 @@ impl Engine {
         self.use_legacy_leader(s)
     }
     fn clear_action_context(&self, s: &mut State) {
+        s.resource_payment=crate::resource_payment::ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;s.payment_group=EventGroupState::default();
         s.disclose=DiscloseState::default();
         s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
         s.source = 0;
@@ -972,7 +1123,7 @@ impl Engine {
         // unique copy's ongoing effects disabled. Resolution sees settled deaths.
         s.decision = Decision::Window;
         s.disabled_ongoing_source = unique_defeat.unwrap_or(0);
-        self.capture_enter_triggers(s);
+        self.capture_enter_triggers(s)?;
         s.disabled_ongoing_source = 0;
         if let Some(id) = unique_defeat {
             self.defeat(s, id)?;
@@ -980,17 +1131,27 @@ impl Engine {
         self.sweep_stat_defeats(s)?;
         self.process_triggers(s)
     }
-    fn capture_enter_triggers(&self, s: &mut State) {
+    fn capture_enter_triggers(&self, s: &mut State) -> Result<(), String> {
         let flags = self.effective_flags(s, s.source);
         s.pending_triggers = if flags & SHIELDED != 0 { T_SHIELD } else { 0 }
             | if flags & AMBUSH != 0 { T_AMBUSH } else { 0 }
             | if flags & SUPPORT != 0 {T_SUPPORT}else{0};
-        s.set_trigger_context(TriggerContext::Enter);
+        s.trigger_context = 1;
+        let smuggle = s.enter_smuggle;
+        s.enter_smuggle = false;
         // Standard WhenPlayed abilities watch OnCardPlayed, while keyword
-        // Ambush/Shielded also watch OnLeaderDeployed.
+        // Ambush/Shielded also watch OnLeaderDeployed. Smuggle-only aliases
+        // watch OnCardPlayed with PlayType.Smuggle; leader fronts also watch
+        // Smuggle playType via capture_card_played_watchers.
         if !self.def(s, s.source).info.is("leader") {
-            self.queue_programs(s, "whenPlayed");
+            if smuggle {
+                self.queue_programs(s, &["whenPlayed", "whenPlayedUsingSmuggle"]);
+            } else {
+                self.queue_programs(s, &["whenPlayed"]);
+            }
+            self.capture_card_played_watchers(s, smuggle)?;
         }
+        Ok(())
     }
     fn process_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.trigger_context_is(TriggerContext::DeathKeyword) {return self.process_deaths(s);}
@@ -1091,20 +1252,19 @@ impl Engine {
             s.card_mut(id).damage = s.card(id).damage.saturating_add(amount);
         }
     }
-    fn combat_damage(&self, s: &State, id: CardId, attacking: bool) -> u16 {
-        if self.card_restricted(s, id, crate::ability_ir::RestrictionVerb::DealCombatDamage) { 0 } else { self.power(s, id, attacking) }
+    fn combat_damage(&self,s:&State,id:CardId,attacking:bool)->u16 {
+        if self.card_restricted(s,id,crate::ability_ir::RestrictionVerb::DealCombatDamage) {0} else {self.power(s,id,attacking)}
     }
     fn combat(&self, s: &mut State) -> Result<(), String> {
         let source = s.source;
         let target = s.target;
-        let attack = self.combat_damage(s, source, true);
-        let target_unit = self.in_arena(s, target);
-        let defend = if target_unit { self.combat_damage(s, target, false) } else { 0 };
-        // Sequential first-strike windows never generate the simultaneous
-        // two-shield replacement prompt.
-        let attacker_first = self.deals_combat_damage_first(s, source);
-        if !attacker_first
-            && !s.trigger_context_is(TriggerContext::ShieldOrder)
+        if self.in_arena(s,target) && self.deals_combat_damage_first(s,source) {
+            return self.combat_first_window(s);
+        }
+        let attack=self.combat_damage(s,source,true);
+        let target_unit=self.in_arena(s,target);
+        let defend=if target_unit {self.combat_damage(s,target,false)}else{0};
+        if s.trigger_context != 3
             && s.card(source).shield != 0
             && s.card(target).shield != 0
             && attack > 0
@@ -1123,30 +1283,12 @@ impl Engine {
             } else {
                 0
             };
-            // Engine AttackFlow splits first-strike combat into two event windows:
-            // the attacker's damage (and its lethal defeat) resolves before the
-            // defender's damage event is generated. A Shield replaces that first
-            // damage event instead of defeating the defender, so it still deals
-            // damage in the second window. There is no simultaneous two-shield
-            // ordering prompt because the windows are sequential.
-            let first_window = attacker_first && !s.trigger_context_is(TriggerContext::ShieldOrder);
-            let mut defender_deals_damage = true;
-            if first_window {
-                let shielded = s.card(target).shield != 0;
-                self.damage(s, target, attack);
-                defender_deals_damage = shielded
-                    || !(s.card(target).damage > target_damage_before && s.card(target).damage >= self.hp(s, target));
-            } else if s.trigger_context_is(TriggerContext::ShieldOrder) && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
+            if s.trigger_context==3 && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
                 let (first,second)=if s.attack_shield_opponent_first { (target,source) } else { (source,target) };
                 let (first_token,second_token)=self.combat_shield_contexts(s,first,second);
                 self.remove_group_shield(s,first,first_token); self.remove_group_shield(s,second,second_token);
             } else {
                 self.damage(s, target, attack);
-                self.damage(s, source, defend);
-            }
-            if first_window && defender_deals_damage {
-                // The defender's window is generated only while the defender is
-                // still in play; its own defeat above already prevents this.
                 self.damage(s, source, defend);
             }
             if excess > 0 {
@@ -1169,7 +1311,7 @@ impl Engine {
         }
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
-        if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
+        if self.open_deaths(s, DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.combat_after_damage(s)
     }
     fn combat_after_damage(&self,s:&mut State)->Result<(),String> {
@@ -1468,7 +1610,10 @@ impl Engine {
                     s.card_mut(id).experience = uid;
                     prior
                 } else {
-                    if !self.def(s,uid).info.is("upgrade") || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
+                    let attachable=self.def(s,uid).info.is("upgrade")
+                        || (self.def(s,uid).info.is("unit") && self.def(s,uid).info.has_keyword("piloting")
+                            && self.def(s,uid).info.upgrade_power.is_some() && self.def(s,uid).info.upgrade_hp.is_some());
+                    if !attachable || (self.def(s,uid).info.is("token") && Some(s.card(uid).def)!=self.weakness_def && Some(s.card(uid).def)!=self.advantage_def) {return Err("unsupported attachment type".into());}
                     0
                 };
                 s.card_mut(uid).next_token = prior;
@@ -1478,7 +1623,13 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("viewSelectionPending").is_some(){return Err("pending view selection cannot be imported as an action window".into());}
+        if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
+        if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
+        if v["supportGrants"].as_array().is_some_and(|grants|grants.iter().any(|g|g.get("conditionalAttack").is_some())) {
+            return Err("pending conditional attack grants cannot be imported as action windows".into());
+        }
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
         } else {
@@ -1547,6 +1698,7 @@ impl Engine {
             );
         }
         self.load_force_evidence(&mut s,v)?;
+        if v.get("creditStateVersion").is_some() {self.load_credit_state(&mut s,v)?;}
         self.load_phase_history_evidence(&mut s,v)?;
         self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
@@ -1580,6 +1732,12 @@ impl Engine {
             s.decision = Decision::Terminal;
         }
         self.check_stat_capacity(&s)?;
+        // Preserve existing import diagnostics before checking the additional
+        // selected-pool requirement. No imported state escapes either guard.
+        if !s.arena_order_exact && self.needs_modal_arena_order() {
+            return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
+        }
+        if v.get("creditStateVersion").is_none() {self.load_credit_state(&mut s,v)?;}
         Ok(s)
     }
     fn card_ref(&self, s: &State, id: CardId) -> Value {
@@ -1660,8 +1818,12 @@ impl Engine {
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
+        if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
+        if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         self.write_snapshot_evidence(s,&mut value);
+        self.snapshot_credit_state(s,&mut value);
+        if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}
         value
     }
 }
@@ -1675,6 +1837,10 @@ pub(crate) fn program_backend(hash:&str,bytes:&[u8])->Result<usize,&'static str>
 pub(crate) fn expression_backend(hash: &str, bytes: &[u8]) -> Option<usize> {
     generic_runtime::generated_expression_backend(hash, bytes)
 }
+
+#[cfg(test)]
+#[path = "credit_action_tests.rs"]
+mod credit_action_tests;
 
 #[cfg(test)]
 #[path = "compatibility_tests.rs"]

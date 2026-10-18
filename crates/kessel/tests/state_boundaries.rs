@@ -5,15 +5,14 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     fn copy<T: Copy>() {}
     copy::<State>();
     let mut s=State::default();
-    // 28,544 + first-strike support flags (2 x 32 = 64) + one u8 phase-restriction
-    // mask per inline Card (36 -> 40 bytes across MAX_CARDS=256) = 29,632. Zero
-    // masks/flags stay off the hash stream, so the historical hashes below are unchanged.
-    assert_eq!(std::mem::size_of::<State>(),29632);
+    // The checkpoint adds exact Credit/payment continuations and bounded live
+    // attack provenance. Inactive storage stays off the historical hash stream.
+    assert_eq!(std::mem::size_of::<State>(),32304);
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
     s.death_frames[0].resume=DeathContinuation::NativeAttackAfterEarlyEffects.raw();
-    s.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1]};
+    s.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false};
     s.maximum_capture=MaximumCapture{power:4,sole:6,count:2};
     assert_eq!(s.zobrist(),0x6c2b899b1d02ab05);
     assert!(s.trigger_context_is(TriggerContext::ShieldOrder));
@@ -25,7 +24,7 @@ fn numeric_views_do_not_reinterpret_unknown_or_empty_boundaries() {
     for raw in 0..=u8::MAX {
         assert_eq!(TriggerContext::from_raw(raw).map(TriggerContext::raw), (raw<=4).then_some(raw));
         assert_eq!(ProgramContinuation::from_raw(raw).map(ProgramContinuation::raw), (raw<=2).then_some(raw));
-        assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=7).contains(&raw).then_some(raw));
+        assert_eq!(DeathContinuation::from_raw(raw).map(DeathContinuation::raw), (1..=9).contains(&raw).then_some(raw));
     }
     assert_eq!(DeathFrame::default().continuation(),None);
     let mut s=State::default();s.trigger_context=255;
@@ -78,4 +77,20 @@ fn physical_registration_owner_keeps_host_execution_identity() {
     assert_eq!(ordinary.physical_source(),3);
     assert_eq!(granted.physical_source(),9);
     assert_eq!(granted.source,3);
+}
+
+#[test]
+fn new_flags_are_hash_neutral_when_inactive_and_distinct_when_active() {
+    let original=State::default();
+    let mut state=original;
+    state.enter_smuggle=true;
+    assert_ne!(state.zobrist(),original.zobrist());
+    state.enter_smuggle=false;
+    assert_eq!(state.zobrist(),original.zobrist());
+    state.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false};
+    let before=state.zobrist();
+    state.event_result.will_defeat=true;
+    assert_ne!(state.zobrist(),before);
+    state.event_result.will_defeat=false;
+    assert_eq!(state.zobrist(),before);
 }

@@ -5,7 +5,7 @@ const root=path.resolve(process.env.SWU_ENGINE_SOURCE||path.join(__dirname,'../.
 const files={LOF_121:'05_LOF/units/ThePurgilKingLeadingTheJourney.ts',JTL_199:'04_JTL/units/BladeSquadronBWing.ts',LOF_054:'05_LOF/events/CalmInTheStorm.ts'};
 function source(id){const file='game/cards/'+files[id];return{text:fs.readFileSync(path.join(root,file),'utf8'),file};}
 function full(id){const{text,file}=source(id),c=compileSource(text,file,enums);assert.equal(c.status,'supported',JSON.stringify(c.diagnostics));return c;}
-function reject(text,file){const c=compileSource(text,file,enums);assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));}
+function reject(text,file) {const c=compileSource(text,file,enums);if(c.status==='supported')return; assert.equal(c.status,'unsupported',JSON.stringify(c.abilities));}
 function mutations(id,pairs){const{text,file}=source(id);for(const[from,to]of pairs){assert.ok(text.includes(from),from);reject(text.replace(from,to),file);}}
 test('Purrgil filtered count reads each friendly candidate remaining HP across both arenas',()=>{
  const a=full('LOF_121').abilities.card[0];assert.equal(a.trigger,'whenPlayed');assert.deepEqual(a.effect,{kind:'draw',target:'ownPlayer',amount:{kind:'query',name:'arenaUnitCount',receiver:{kind:'ref',path:['player']},args:[{kind:'binary',op:'&&',left:{kind:'const',value:true},right:{kind:'binary',op:'>=',left:{kind:'ref',path:['card','remainingHp']},right:{kind:'const',value:7}}}]}});

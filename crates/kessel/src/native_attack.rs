@@ -2,7 +2,7 @@
 //! only the candidate and the initiating physical source may be read.
 use crate::ability_ir::{Ability, Effect, Expr, Sides, Target, CORE_KEYWORDS};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -38,6 +38,8 @@ struct Lasting {
     kind: String,
     evaluation: String,
     effect: Box<Effect>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    condition: Option<Value>,
 }
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub(crate) struct Modifiers {
@@ -146,7 +148,16 @@ impl Properties {
         }
         let mut out = Modifiers::default();
         for entry in &self.properties.attacker_lasting_effects {
-            if entry.kind != "attackLastingEntry" || entry.evaluation != "beforeDefenderSelection" {
+            if entry.evaluation == "afterAttackCreated" {
+                crate::migration_attack_contract::normalize_lasting_entry(
+                    &serde_json::to_value(entry).map_err(|e| e.to_string())?,
+                )?;
+                continue;
+            }
+            if entry.condition.is_some()
+                || entry.kind != "attackLastingEntry"
+                || entry.evaluation != "beforeDefenderSelection"
+            {
                 return Err(
                     "native attack supports only unconditional early attacker modifiers".into(),
                 );
@@ -209,6 +220,25 @@ impl Properties {
         }
         Ok(out)
     }
+    /// Late descriptors retain their complete callback until the physical
+    /// attack is created. Only successfully gated entries become live grants.
+    pub(crate) fn conditional_power(
+        &self,
+    ) -> Result<Vec<crate::migration_attack_contract::ConditionalPower>, String> {
+        if self.properties.attacker_lasting_effects.len() > 8 {
+            return Err("native attack lasting-effect entries exceed capacity (8)".into());
+        }
+        self.properties
+            .attacker_lasting_effects
+            .iter()
+            .filter(|e| e.evaluation == "afterAttackCreated")
+            .map(|e| {
+                crate::migration_attack_contract::normalize_lasting_entry(
+                    &serde_json::to_value(e).map_err(|error| error.to_string())?,
+                )
+            })
+            .collect()
+    }
     pub(crate) fn validate(&self) -> Result<(), String> {
         self.modifiers()?;
         self.predicate()?;
@@ -219,7 +249,7 @@ pub(crate) fn ability(a: &Ability) -> bool {
     matches!(&a.effect,Effect::InitiateAttack{properties,..} if properties.validate().is_ok())
         && matches!(a.trigger.as_str(), "event" | "whenPlayed" | "action")
         && a.then.is_none()
-        && a.if_you_do.is_none()
+        && (a.if_you_do.is_none() || advantage_continuation(a))
         && !a.coordinate
         && !a.attacker_must_survive
         && a.attached_context.is_none()
@@ -244,9 +274,27 @@ pub(crate) fn ability(a: &Ability) -> bool {
 }
 pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v.as_object().is_some_and(|o|o.get("kind").is_some_and(|k|k=="initiateAttack"))) }
 pub(crate) fn entry(e: &Value) -> bool {
+    // Keep late compositions under the reviewed complete ordinary header.
+    // Its early-only validation clone returns here with no late entries.
+    if e["abilities"]["card"].as_array().is_some_and(|a| {
+        a.iter().any(|a| {
+            a["effect"]["properties"]["properties"]["attackerLastingEffects"]
+                .as_array()
+                .is_some_and(|entries| {
+                    entries
+                        .iter()
+                        .any(|e| e["evaluation"] == "afterAttackCreated")
+                })
+        })
+    }) {
+        return crate::migration_attack_contract::entry(e);
+    }
     let Ok(s) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };
+    if leader_composition(e, &s) {
+        return true;
+    }
     crate::admission::SourceContextPolicy::Closed.accepts(e)
         && s.card.len() == 1
         && s.leader.is_empty()
@@ -268,8 +316,135 @@ pub(crate) fn entry(e: &Value) -> bool {
             "pilotingBox",
             "deployBox",
             "deployCost",
+            "upgradePower",
+            "upgradeHp",
         ]
         .iter()
         .all(|k| e["card"][*k].is_null())
         && (e["card"]["epicAction"].is_null() || e["card"]["epicAction"] == "")
+}
+
+// Compare typed registrations so omitted default fields remain equivalent while
+// every supported header, controller, continuation and resolver field is closed.
+fn same_registration(actual: &Ability, expected: Value) -> bool {
+    let Ok(expected) = serde_json::from_value::<Ability>(expected) else {
+        return false;
+    };
+    let (Ok(actual), Ok(expected)) = (serde_json::to_value(actual), serde_json::to_value(expected))
+    else {
+        return false;
+    };
+    actual == expected
+}
+
+/// One resolved initiation MetaEvent may be followed by a fresh scalar Advantage
+/// selection. This does not permit another attack, callback factory or `then`.
+/// Cancelling the child defender picker does not unresolve that MetaEvent.
+fn advantage_continuation(a: &Ability) -> bool {
+    let Some(next) = a.if_you_do.as_deref() else {
+        return false;
+    };
+    same_registration(
+        a,
+        json!({
+            "trigger":"event", "title":a.title, "costs":[],
+            "targetResolver":{"owner":"any","type":"any","zone":"anyAttackable"},
+            "effect":{"kind":"initiateAttack","initiationProperty":true,
+                "properties":{"kind":"attackProperties","properties":{"target":"chosen"}}},
+            "ifYouDo":{"title":next.title,"costs":[],
+                "targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"},
+                "effect":{"kind":"giveAdvantage","target":"chosen","amount":{"kind":"const","value":3},
+                    "createdBy":"self","batch":"singleCreationEvent","tokenOwner":"recipientController"}}
+        }),
+    )
+}
+
+/// A base-side native action and an ordinary deployed keyword aura use the
+/// existing physical leader's side switch. Only the two reviewed static shapes
+/// are composed; neither arbitrary leaders nor attack-end attacks are admitted.
+fn leader_composition(e: &Value, s: &Sides) -> bool {
+    if !crate::admission::SourceContextPolicy::Closed.accepts(e)
+        || e["baseClass"] != "LeaderUnitCard"
+        || e["card"]["types"] != json!(["leader"])
+        || e["card"]["unique"] != true
+        || !e["card"]["hp"]
+            .as_u64()
+            .is_some_and(|n| (1..=1000).contains(&n))
+        || !e["card"]["power"].as_u64().is_some_and(|n| n <= 1000)
+        || e["card"]["arena"] != "ground"
+        || !s.card.is_empty()
+        || s.leader.len() != 1
+        || s.unit.len() != 1
+        || !e["piloting"].is_null()
+        || !e["attachCondition"].is_null()
+        || [
+            "pilotText",
+            "pilotBox",
+            "pilotingBox",
+            "deployCost",
+            "upgradePower",
+            "upgradeHp",
+        ]
+        .iter()
+        .any(|key| !e["card"][*key].is_null())
+    {
+        return false;
+    }
+    let a = &s.leader[0];
+    let aura = &s.unit[0];
+    let grit = e["keywordValues"] == json!({}) && e["card"]["keywords"] == json!(["grit"])
+        && e["card"]["cost"] == 5
+        && e["card"]["text"] == "Action [1 resource, Exhaust]: Attack with a Heroism unit. It gains Grit for this attack. (It gets +1/+0 for each damage on it.)"
+        && e["card"]["deployBox"] == "Other friendly Heroism units gain Grit."
+        && e["card"]["epicAction"] == "Epic Action: If you control 5 or more resources, deploy this leader."
+        && e["card"]["rules"] == "If you use Omega’s leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\n";
+    let overwhelm = e["keywordValues"] == json!({"overwhelm":1}) && e["card"]["keywords"] == json!(["overwhelm"])
+        && e["card"]["cost"] == 6
+        && e["card"]["text"] == "Action [Exhaust]: Attack with a unit. It gains Overwhelm for this attack. (When attacking an enemy unit, deal excess damage to the opponent's base.)"
+        && e["card"]["deployBox"] == "Overwhelm\nEach other friendly unit gains Overwhelm."
+        && e["card"]["epicAction"] == "Epic Action: If you control 6 or more resources, deploy this leader."
+        && e["card"]["rules"] == "If you use Maul's leader ability, you must attack with a unit, if able. Units must be ready in order to attack.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n";
+    if !grit && !overwhelm {
+        return false;
+    }
+    let keyword = if grit { "grit" } else { "overwhelm" };
+    let mut properties = json!({"target":"chosen", "attackerLastingEffects":[{
+        "kind":"attackLastingEntry", "evaluation":"beforeDefenderSelection", "effect":{
+            "kind":"gainKeyword", "target":{"kind":"ref","path":["attackParticipant"]},
+            "duration":"attack", "keyword":keyword, "amount":{"kind":"const","value":1}}}]});
+    if grit {
+        properties["attackerCondition"] = json!({"kind":"attackCallback",
+        "parameters":[{"root":"attackBinding1_0","role":"candidate"}],
+        "body":{"kind":"query","name":"hasSomeAspect","receiver":{"kind":"ref","path":["attackBinding1_0"]},"args":[{"kind":"const","value":"heroism"}]}});
+    }
+    let costs = if grit {
+        json!([{"kind":"resources","amount":{"kind":"const","value":1}},{"kind":"exhaustSelf"}])
+    } else {
+        json!([{"kind":"exhaustSelf"}])
+    };
+    let self_ref = json!({"kind":"ref","path":["source"]});
+    let card_ref = json!({"kind":"ref","path":["card"]});
+    let is_unit = json!({"kind":"query","name":"isUnit","receiver":card_ref,"args":[]});
+    let not_self = json!({"kind":"binary","op":"!==","left":card_ref,"right":self_ref});
+    let predicate = if grit {
+        json!({"kind":"binary","op":"&&",
+        "left":{"kind":"binary","op":"&&","left":not_self,"right":is_unit},
+        "right":{"kind":"query","name":"hasSomeAspect","receiver":card_ref,"args":[{"kind":"const","value":"heroism"}]}})
+    } else {
+        json!({"kind":"binary","op":"&&","left":{"kind":"binary","op":"&&","left":is_unit,
+            "right":{"kind":"binary","op":"===","left":{"kind":"ref","path":["card","controller"]},"right":{"kind":"ref","path":["player"]}}},"right":not_self})
+    };
+    ability(a)
+        && same_registration(
+            a,
+            json!({"trigger":"action","title":a.title,"costs":costs,
+        "targetResolver":{"owner":"any","type":"any","zone":"anyAttackable"},
+        "effect":{"kind":"initiateAttack","initiationProperty":true,"properties":{"kind":"attackProperties","properties":properties}}}),
+        )
+        && same_registration(
+            aura,
+            json!({"trigger":"constant","title":aura.title,"costs":[],
+            "targetResolver":{"owner":"self","type":"unit","zone":"arena","predicate":predicate},
+            "effect":{"kind":"gainKeyword","target":"chosen","duration":"persistent","keyword":keyword,"amount":{"kind":"const","value":1}}}),
+        )
 }
