@@ -125,6 +125,7 @@ fn reference(path: &[String]) -> Result<String, String> {
             None=>"Eval::Player(player)",
             Some("base") if p.get(2)==Some(&"damage")=>"Eval::Number(s.card(s.player(player).base).damage as i64)",
             Some("base")=>"Eval::Card(s.player(player).base)",
+            Some("creditTokenCount") if root=="player"&&p.len()==2=>"{assert!(s.credit_state_exact,\"live Credit count requires exact ledger\");Eval::Number(s.player(player).credits.len() as i64)}",
             Some("readyResourceCount")=>"Eval::Number(self.ready_resources(s,player) as i64)",
             Some("exhaustedResourceCount")=>"Eval::Number(s.player(player).resources.len as i64-self.ready_resources(s,player) as i64)",
             Some("resources") if p.len()==2=>"Eval::Array(s.player(player).resources.as_slice().iter().copied().map(Eval::Card).collect())",

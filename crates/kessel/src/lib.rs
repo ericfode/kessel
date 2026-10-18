@@ -78,3 +78,5 @@ mod migration_attack_contract;
 mod migration_defeat_history_contract;
 #[cfg(test)]
 mod admission_tests;
+
+mod migration_modal_deck_contract;

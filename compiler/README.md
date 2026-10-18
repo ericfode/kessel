@@ -610,6 +610,12 @@ Three further closed ordinary-unit compositions retain their full conditions and
 continuations: another friendly Underworld unit on entry, a friendly ground unit
 on attack, and optional adjusted payment of two resources on attack before
 creation. They share the original native dependency and payment lifecycle.
+A closed When Defeated registration creates one Credit for each player in fixed
+player order, with allocation checked for both players before either ledger is
+exposed. A closed event creates one own Credit before an optional unit-damage
+selection whose amount reads the current own Credit ledger. The optional prompt
+is skipped when no unit is eligible. These continuations preserve source
+controller and event-payment timing.
 Other printed Credit registrations and modified or blanked Credit states remain
 rejected. These contracts do not imply support for every Credit card.
 
@@ -956,6 +962,26 @@ removed on recipient departure or attack cleanup. Pending attacks cannot be
 imported as action windows. Early unconditional effects keep their existing
 cancellation and snapshot behavior.
 
-Dependent modal choices and defeat-history source contracts remain inspection
-descriptors without runtime admission. Defeat history still requires exact
-captured controller/type projections and versioned storage.
+The closed enemy-unit damage-or-draw event retains its physical target through
+payment and gives the opponent a later choice between seven damage to that unit
+and three cards drawn by the event player. Empty-deck draws resolve through
+fatigue. A closed optional When Defeated ground-unit selection also retains its
+physical target while that unit's owner chooses Top or Bottom of their deck.
+Declining the target skips the menu; token units leave the game, and attachment
+cleanup uses the shared departure path without recording another unit defeat.
+These menus export `dependentChoicePending` and cannot be imported as action
+windows. Costed owner-relative deck placement and opposite-controller adjusted
+payment choices remain inspection descriptors without runtime admission.
+
+Closed defeat-history registrations can test whether a friendly or enemy unit
+was defeated, count defeated units by controller at the event, or test the last
+known leader-unit type. Exact bounded aggregate counts record each physical
+defeat event, including repeated defeat after re-entry, simultaneous defeats and
+tokens. Leaving play without defeat adds no event. Counts reset at phase end,
+participate in hashing, and reject overflow before removal. `phaseHistory`
+version 2 carries these projections; version 1 remains usable only when the
+selected and imported cards cannot read defeat history. Native Mandalorian
+creation additionally requires its exact reviewed source and Shielded metadata.
+Captured-power self-return and other unreviewed watcher shapes remain rejected.
+Focused Rust fixtures cover these additions; new differential conformance remains
+unassessed.

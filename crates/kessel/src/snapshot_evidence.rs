@@ -62,9 +62,15 @@ impl Engine {
             }
         } else {
             s.phase_history.exact = false;
+            s.phase_history.defeats_exact = false;
             if self.needs_phase_history() {
                 return Err("selected pool requires explicit phaseHistory version".into());
             }
+        }
+        if (!s.phase_history.exact || !s.phase_history.defeats_exact)
+            && (self.needs_defeat_history() || self.state_needs_defeat_history(s))
+        {
+            return Err("selected or imported pool requires exact defeat phase history version 2".into());
         }
         Ok(())
     }

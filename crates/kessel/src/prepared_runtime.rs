@@ -474,6 +474,17 @@ impl Engine {
 
         if s.event_group.uniform_damage.active {return self.resolve_uniform_damage(s,e);}
         let ops=group_ops(e);
+        // All explicit defeat registrations see the same pre-movement event state.
+        let mut explicit_sources=vec![];
+        for r in &s.event_group.records[..s.event_group.count as usize] {
+            if matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::Defeat{..})) && self.in_arena(s,r.target) && !explicit_sources.contains(&r.target) {explicit_sources.push(r.target);}
+        }
+        // Preflight the complete physical defeat set before registrations or
+        // attachment cleanup can mutate this prepared window. Each scalar
+        // handler records its own captured fact exactly once after this gate.
+        let mut counts=[0u16;2];let mut leaders=0u16;
+        for &id in &explicit_sources {counts[s.card(id).owner.index()]+=1;leaders+=u16::from(self.def(s,id).info.is("leader"));}
+        s.phase_history.preflight_defeats(counts,leaders)?;
         if !s.event_group.replacement_done {
             s.event_group.initiator=s.active;
             s.event_group.replacement_done=true;
@@ -498,11 +509,7 @@ impl Engine {
             }
         }
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
-        // All explicit defeat registrations see the same pre-movement event state.
-        let mut explicit_sources=vec![];
-        for r in &s.event_group.records[..s.event_group.count as usize] {
-            if matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::Defeat{..})) && self.in_arena(s,r.target) && !explicit_sources.contains(&r.target) {explicit_sources.push(r.target);}
-        }
+        // All registrations see the same pre-movement state after replacement.
         for &id in &explicit_sources {self.capture_explicit_death(s,id)?;}
         // Cleanup contingents belong to the whole prepared window. The pinned
         // unary event-order comparator reverses their combined insertion order

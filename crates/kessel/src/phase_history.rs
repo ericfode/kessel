@@ -18,6 +18,8 @@ pub struct Query {
 pub enum Watcher {
     #[serde(rename = "cardsEnteredPlayThisPhase")]
     Entered,
+    #[serde(rename = "cardsDefeatedThisPhase")]
+    Defeated,
     #[serde(rename = "cardsPlayedThisPhase")]
     Played,
 }
@@ -29,6 +31,12 @@ pub enum Operation {
     SomePlayed,
     #[serde(rename = "getCardsPlayed")]
     PlayedList,
+    #[serde(rename = "someDefeatedUnitControlledByPlayer")]
+    SomeDefeated,
+    #[serde(rename = "getDefeatedUnitsControlledByPlayer")]
+    DefeatedList,
+    #[serde(rename = "someUnitDefeatedThisPhase")]
+    SomeUnitDefeated,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReadAt {
@@ -39,10 +47,15 @@ pub enum ReadAt {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Argument {
     DataLambda { bindings: Vec<String>, body: Filter },
+    Ref { path: Vec<String> },
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Filter {
+    EnumTypeTest {
+        test: String,
+        args: Vec<Filter>,
+    },
     Binary {
         op: String,
         left: Box<Filter>,
@@ -91,6 +104,9 @@ pub enum QueryKind {
     /// Friendly card played this phase with an exact printed trait (Force, First Order, …).
     PlayedTrait(String),
     PlayedOpponentCount,
+    DefeatedControlled(crate::migration_defeat_history_contract::RelativePlayer),
+    DefeatedCount(crate::migration_defeat_history_contract::RelativePlayer),
+    DefeatedLeader,
 }
 impl Query {
     /// Projection after kind() has validated the complete immutable filter.
@@ -99,11 +115,23 @@ impl Query {
             .expect("history projection was validated at admission")
     }
     pub fn kind(&self) -> Result<QueryKind, String> {
+        if self.watcher == Watcher::Defeated {
+            use crate::migration_defeat_history_contract::Projection;
+            let mut raw = serde_json::to_value(self).map_err(|e| e.to_string())?;
+            raw["kind"] = json!("historyQuery");
+            return crate::migration_defeat_history_contract::projection(&raw).map(|p| match p {
+                Projection::SomeControlledUnit(p) => QueryKind::DefeatedControlled(p),
+                Projection::ControlledUnitCount(p) => QueryKind::DefeatedCount(p),
+                Projection::SomeLeaderUnit => QueryKind::DefeatedLeader,
+            });
+        }
         let invalid = || "unsupported phase history watcher/filter projection".to_string();
         if self.binding.is_empty() || self.binding.len() > 128 || self.args.len() != 1 {
             return Err(invalid());
         }
-        let Argument::DataLambda { bindings, body } = &self.args[0];
+        let Argument::DataLambda { bindings, body } = &self.args[0] else {
+            return Err(invalid());
+        };
         if bindings.len() != 1 || bindings[0].is_empty() || bindings[0].len() > 128 {
             return Err(invalid());
         }
@@ -196,6 +224,33 @@ impl Query {
 }
 pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "historyQuery") }
 pub(crate) fn ability(a: &Ability) -> bool {
+    let raw = serde_json::to_value(a).unwrap_or(Value::Null);
+    if crate::migration_defeat_history_contract::marker(&raw) {
+        fn closed(v: &Value) -> bool {
+            if v["kind"] == "historyQuery" {
+                let mut query = v.clone();
+                query.as_object_mut().expect("query object").remove("kind");
+                return serde_json::from_value::<Query>(query).is_ok_and(|q| q.kind().is_ok());
+            }
+            match v {
+                Value::Array(a) => a.iter().all(closed),
+                Value::Object(o) => o.values().all(closed),
+                _ => true,
+            }
+        }
+        // Complete raw source/companion closure is enforced by entry().
+        return ["event", "whenPlayed", "constant"].contains(&a.trigger.as_str())
+            && a.costs.is_empty()
+            && !a.coordinate
+            && !a.requires_confirmation
+            && a.gained_host.is_none()
+            && a.attached_context.is_none()
+            && a.then.is_none()
+            && a.if_you_do.is_none()
+            && a.target_resolvers.is_empty()
+            && closed(&raw);
+    }
+
     if a.coordinate
         || a.requires_confirmation
         || a.gained_host.is_some()
@@ -262,6 +317,10 @@ pub(crate) fn ability(a: &Ability) -> bool {
         && matches!(&a.effect,Effect::ModifyStats{target:Target::Name(t),duration,power,hp} if t=="chosen"&&duration=="phase"&&negative_four(power)&&negative_four(hp))
 }
 pub(crate) fn entry(e: &Value) -> bool {
+    if crate::migration_defeat_history_contract::marker(&e["abilities"]) {
+        return matches!(crate::migration_defeat_history_contract::contract(e),Ok(Some(c)) if !c.captured_power_return);
+    }
+
     let Ok(s) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };
@@ -300,4 +359,34 @@ pub(crate) fn entry(e: &Value) -> bool {
         .iter()
         .all(|k| e["card"][*k].is_null())
         && (e["card"]["epicAction"].is_null() || e["card"]["epicAction"] == "")
+}
+
+/// Exact aggregate defeat projections can appear in root constant conditions
+/// or compiled branch conditions. General watcher/capture shapes remain closed.
+pub(crate) fn requires_defeats(program: &crate::ability_ir::Program) -> bool {
+    fn expression(e: &Expr) -> bool {
+        match e.original() {
+            Expr::HistoryQuery(q) => q.watcher == Watcher::Defeated,
+            Expr::DataMember {
+                receiver: List::HistoryQuery(q),
+                ..
+            } => q.watcher == Watcher::Defeated,
+            Expr::Binary { left, right, .. } => expression(left) || expression(right),
+            Expr::Unary { value, .. } => expression(value),
+            Expr::Conditional {
+                condition,
+                then,
+                r#else,
+            } => expression(condition) || expression(then) || expression(r#else),
+            _ => false,
+        }
+    }
+    program.condition.as_ref().is_some_and(expression)
+        || program.instructions.iter().any(|i| match i {
+            crate::ability_ir::Instruction::Conditional { condition, .. } => expression(condition),
+            crate::ability_ir::Instruction::Apply(Effect::GiveExperience { amount, .. }) => {
+                expression(amount)
+            }
+            _ => false,
+        })
 }

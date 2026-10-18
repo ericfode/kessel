@@ -351,7 +351,7 @@ impl Expr {
                         | "readyResourceCount"
                         | "exhaustedResourceCount"
                         | "length"
-                        | "totalDistributed" | "damageDealt"
+                        | "totalDistributed" | "damageDealt" | "creditTokenCount"
                 )
             ),
             Self::Binary { op, left, right } => {
@@ -398,8 +398,8 @@ impl Expr {
                 if !scalar(&args[0]) {return Err("collection callback/value must return a supported scalar".into());}
                 sub(receiver)?;sub(&args[0])
             },
-            Self::HistoryQuery(q) => {if q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Err("history list requires exact length consumption".into())}else{Ok(())}},
-            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
+            Self::HistoryQuery(q) => {if matches!(q.kind()?,crate::phase_history::QueryKind::PlayedOpponentCount|crate::phase_history::QueryKind::DefeatedCount(_)) {Err("history list requires exact length consumption".into())}else{Ok(())}},
+            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&matches!(q.kind()?,crate::phase_history::QueryKind::PlayedOpponentCount|crate::phase_history::QueryKind::DefeatedCount(_)) {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
@@ -438,7 +438,7 @@ impl Expr {
                     ["source" | "target" | "card" | "player" | "opponent"] => true,
                     ["source" | "target" | "card", "title" | "upgrades"] => true,
                     ["player" | "opponent", "hand" | "discard" | "drawDeck" | "resources"] => true,
-                    ["player", "hasTheForce"] => true,
+                    ["player", "hasTheForce" | "creditTokenCount"] => true,
                     ["card","activeAttack","attacker"] => true,
                     ["card","keywords","length"] => true,
                     ["modifierTarget"] | ["modifierTarget","damage"|"controller"] | ["modifierTarget","controller","resources","length"] => true,
@@ -557,7 +557,20 @@ impl Expr {
 pub enum Target {
     Name(String),
     ArenaList(ArenaListTarget),
+    PlayerList(PlayerListTarget),
     Expression(Expr),
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlayerListTarget {kind:PlayerListKind,name:PlayerListName,receiver:Expr,args:Vec<Value>}
+// Target is untagged: nominal tags must reject ordinary query expressions here
+// so they continue to deserialize through Target::Expression unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlayerListKind { #[serde(rename="collection")] Collection }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlayerListName { #[serde(rename="players")] Players }
+impl PlayerListTarget {
+    pub(crate) fn game_players(&self)->bool {self.args.is_empty()&&matches!(&self.receiver,Expr::Ref{path} if path==&["game"])}
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -688,6 +701,7 @@ impl Target {
     }
     pub fn validate(&self) -> Result<(), String> {
         match self {
+            Self::PlayerList(_)=>Err("player lists require the closed ordered Credit creation contract".into()),
             Self::ArenaList(_)=>Err("arena lists require standalone verified phase-stat semantics".into()),
             Self::Name(s)
                 if [
@@ -883,6 +897,10 @@ pub enum Cost {
 
 pub use crate::card_restrictions::RestrictionVerb;
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all="camelCase")]
+pub enum DeckPosition { Top, Bottom }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Effect {
@@ -909,6 +927,14 @@ pub enum Effect {
     Draw {
         amount: Expr,
         target: Target,
+    },
+    Optional {
+        target:Value,
+        effect:Box<Effect>,
+        #[serde(rename="titleParts")] title_parts:Vec<Expr>,
+        #[serde(rename="choosingPlayer")] choosing_player:String,
+        legality:String,
+        #[serde(rename="declineResult")] decline_result:String,
     },
     CreateCreditToken {
         target: Target,
@@ -967,6 +993,9 @@ pub enum Effect {
     /// owner's deck. Play-zone moves stay rejected until their cleanup windows
     /// are reviewed.
     MoveToBottomOfDeck { target: Target },
+    /// Constructed only after the complete dependent owner-choice proof. Raw
+    /// source leaves cannot compile this internal captured-target operation.
+    MoveSelectedArenaUnitToOwnerDeck { target: Target, position: DeckPosition },
     /// While attacking, this unit deals its combat damage before the defender.
     /// Only the reviewed persistent self registration and the reviewed
     /// until-end-of-attack participant grant are executable.
@@ -1125,13 +1154,14 @@ impl Effect {
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
-            Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
+            Self::MoveSelectedArenaUnitToOwnerDeck{target,..}|Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
             | Self::Ready { target } | Self::Exhaust { target } | Self::Defeat { target } => {
                 target.visit_expression_roots_mut(visit);
             }
             Self::ModifyStats { target, power, hp, .. } => {
                 target.visit_expression_roots_mut(visit); visit(power); visit(hp);
             }
+            Self::Optional {effect,title_parts,..}=>{for part in title_parts {visit(part);}effect.visit_expression_roots_mut(visit);}
             Self::Select { target_resolver, effect } => {
                 target_resolver.visit_expression_roots_mut(visit);
                 effect.visit_expression_roots_mut(visit);
@@ -1920,6 +1950,9 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        fn optional(v:&Value)->bool {v["kind"]=="optional"||match v {Value::Array(a)=>a.iter().any(optional),Value::Object(o)=>o.values().any(optional),_=>false}}
+        if optional(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::migration_credit_contract::optional_registration(ability) {return Err("optional system requires the complete live-Credit damage registration".into());}
+
         if crate::current_played_unit::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::current_played_unit::ability(ability){return Err("current played-unit query requires the complete ready/conditional-Spy event registration".into());}
         if crate::disclose::has_disclose(ability)&&!crate::disclose::registration(ability)&&!crate::migration_look_contract::registration(ability){return Err("disclose requires a complete bounded All registration and supported continuation".into());}
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
@@ -2697,6 +2730,7 @@ impl Program {
                     _ => Err("card event groups do not support player targets".into()),
                 },
                 Target::Expression(e) => { card_expr(e,array)?; Ok(1) },
+                Target::PlayerList(_)=>Err("grouped player lists require a separate event contract".into()),
                 Target::ArenaList(_)=>Err("grouped arena lists require separate event-capacity witnesses".into()),
             }
         }
@@ -2741,7 +2775,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     GroupRequirements::ordinary(multiplicity(target,targets,array)?)
                 },
-                Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2777,7 +2811,7 @@ impl Program {
         fn contains_select(e: &Effect) -> bool { match e { Effect::Select {..}=>true,Effect::Simultaneous {effects}|Effect::PhaseModifiers {effects}|Effect::Sequence {effects}=>effects.iter().any(contains_select),Effect::Conditional {on_true,on_false,..}=>contains_select(on_true)||on_false.as_deref().is_some_and(contains_select),_=>false } }
         if contains_weakness(effect)&&contains_select(effect)&&!native_single_weakness_group(effect) {return Err("selected Weakness group requires the bounded native opponent single-card contract".into());}
         fn primitive_captures_target(e: &Effect) -> bool {
-            fn target(t: &Target) -> bool { match t { Target::Name(n)=>n=="chosen",Target::Expression(e)=>target_dependent(e),Target::ArenaList(_)=>true } }
+            fn target(t: &Target) -> bool { match t { Target::Name(n)=>n=="chosen",Target::Expression(e)=>target_dependent(e),Target::ArenaList(_)=>true,Target::PlayerList(_)=>false } }
             match e {
                 Effect::Damage {target:t,amount}|Effect::Heal {target:t,amount}|Effect::Draw {target:t,amount}|Effect::GiveShield {target:t,amount}|Effect::GiveExperience {target:t,amount}|Effect::ReadyResources {target:t,amount}|Effect::GainKeyword {target:t,amount,..}=>target(t)||target_dependent(amount),
                 Effect::ModifyStats {target:t,power,hp,..}=>target(t)||target_dependent(power)||target_dependent(hp),
@@ -2871,6 +2905,13 @@ impl Program {
             return Err("effect nesting exceeds capacity".into());
         }
         match effect {
+            Effect::Optional{target,effect,title_parts,choosing_player,legality,decline_result}=>{
+                if *target!=serde_json::json!({"kind":"inheritedSystemTarget","binding":null,"fallback":"empty"})||choosing_player!="contextPlayer"||legality!="innerSystem"||decline_result!="noEvents"||title_parts.len()!=1||!matches!(effect.as_ref(),Effect::Select{..}) {return Err("optional system exceeds the closed scalar selection contract".into());}
+                self.instructions.push(Instruction::EndStep);
+                let at=self.instructions.len();self.instructions.push(Instruction::OptionalConfirm{skip:0});
+                self.compile_effect(effect,depth+1)?;
+                self.instructions[at]=Instruction::OptionalConfirm{skip:self.instructions.len()};
+            }
             Effect::Disclose{..}=>return Err("disclose requires standalone bounded ability compilation".into()),
             Effect::InitiateAttack{properties,..} => {if depth!=0 || !["event","whenPlayed","action"].contains(&self.trigger.as_str()) {return Err("native attack requires a standalone ordinary registration".into());}properties.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
 
@@ -2930,7 +2971,7 @@ impl Program {
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::CreateCreditToken {target,amount,destination,creation_timing}=>{
-                if !matches!(target,Target::Name(n) if n=="ownPlayer")
+                if !(matches!(target,Target::Name(n) if n=="ownPlayer")||matches!(target,Target::PlayerList(p) if p.game_players()))
                     || destination!="base" || creation_timing!="eventUpdate"
                     || !matches!(amount.original(),Expr::Const{value} if value.as_u64().is_some_and(|n|(1..=3).contains(&n))) {
                     return Err("Credit creation requires the closed own-player base-zone batch contract".into());
@@ -3026,6 +3067,7 @@ impl Program {
                 }
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
+            Effect::MoveSelectedArenaUnitToOwnerDeck { .. } => return Err("arena owner-deck placement requires a prepared dependent-choice contract".into()),
             Effect::MoveToBottomOfDeck { target } => {
                 if !matches!(target,Target::Name(n) if n=="chosen") {return Err("moveToBottomOfDeck supports only a chosen card from a hand or discard pile".into());}
                 let resolver=self.instructions.iter().rev().find_map(|i|if let Instruction::Select(r)=i {Some(r)}else{None});
@@ -3180,6 +3222,8 @@ impl Catalogue {
                 let current_played_unit=crate::current_played_unit::prepare(entry)?;
                 crate::pay_adjusted_resources::validate_entry(entry)?;
                 crate::credits::creation_source(entry)?;
+                fn credit_count(v:&Value)->bool {v["kind"]=="ref"&&v["path"].as_array().is_some_and(|a|a.iter().any(|p|p=="creditTokenCount"))||match v {Value::Array(a)=>a.iter().any(credit_count),Value::Object(o)=>o.values().any(credit_count),_=>false}}
+                if credit_count(&entry["abilities"])&&!matches!(crate::migration_credit_contract::prepare(entry),Ok(Some(p)) if p.composition==crate::migration_credit_contract::Composition::CreateThenOptionalLiveDamage) {return Err("live Credit count requires the complete post-creation optional damage source".into());}
                 for key in ["abilities", "attachCondition", "piloting"] { crate::deck_search::reject(&entry[key])?; }
                 // Upgrade grant/host refs use source.parent* or target "parent".
                 // Selector predicates on an upgrade candidate use card.parent* and must not
@@ -3210,9 +3254,10 @@ impl Catalogue {
                 {
                     return Err("parent references require an ordinary attached upgrade".into());
                 }
-                let modal_arena = crate::modal_arena_choices::prepare(entry)?;
-                let modal = if modal_arena.is_none() {crate::modal_choices::prepare(entry)?} else {None};
-                let mut entry_owned = if let Some(arena)=&modal_arena {arena.normalized.clone()} else {modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone())};
+                let dependent_modal=crate::migration_modal_contract::executable(entry)?;
+                let modal_arena = if dependent_modal.is_none() {crate::modal_arena_choices::prepare(entry)?}else{None};
+                let modal = if dependent_modal.is_none()&&modal_arena.is_none() {crate::modal_choices::prepare(entry)?} else {None};
+                let mut entry_owned = if let Some(dependent)=&dependent_modal {dependent.normalized.clone()}else if let Some(arena)=&modal_arena {arena.normalized.clone()} else {modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone())};
                 let piloting_keyword_grant = crate::piloting_attached::marker(&entry_owned["abilities"]);
                 if piloting_keyword_grant {
                     crate::piloting_attached::normalize(&mut entry_owned)?;
@@ -3525,7 +3570,7 @@ impl Catalogue {
                             return Err("ability program capacity exceeded".into());
                         }
                         dst.push(id as u16);
-                        let program=if let Some(arena)=&modal_arena {arena.compile(ability)?} else if let Some(modal)=&modal {modal.compile(ability)?} else {Program::compile(ability)?};
+                        let program=if let Some(dependent)=&dependent_modal {dependent.compile(ability)?}else if let Some(arena)=&modal_arena {arena.compile(ability)?} else if let Some(modal)=&modal {modal.compile(ability)?} else {Program::compile(ability)?};
                         if entry["baseClass"]=="UpgradeCard" {
                             fn source_target(target:&Target)->bool {
                                 match target {

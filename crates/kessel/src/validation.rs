@@ -164,7 +164,7 @@ pub fn validate_state_with_catalogue(
             "players",
             "arenaUnitOrder", "registrationOrder",
             "hiddenHistoryVersion", "phaseHistory",
-            "supportStateVersion", "supportGrants", "supportAttackPending",
+            "supportStateVersion", "supportGrants", "supportAttackPending", "dependentChoicePending",
             "forceStateVersion", "creditStateVersion",
         ],
         "state",

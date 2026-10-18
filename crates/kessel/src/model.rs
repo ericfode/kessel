@@ -7,9 +7,10 @@ pub const MAX_ZONE: usize = 64;
 // Inline budget: base 28,528 + Card restriction mask/padding 1,024
 // + Disclose selection/alignment 16 + first-strike Support flags 64
 // + Credit ledgers and prepared payment/death-group continuations 2,544
-// + bounded conditional attack provenance and gate masks 128.
+// + bounded conditional attack provenance and gate masks 128
+// + exact aggregate defeat history 8.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_304;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_312;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,6 +19,9 @@ pub struct PhaseHistory {
     pub entered: [[u64; MAX_CARDS / 64]; 2],
     pub played: [[u64; MAX_CARDS / 64]; 2],
     pub play_counts: [u16; 2],
+    pub defeats_exact: bool,
+    pub defeated_unit_counts: [u16; 2],
+    pub defeated_leader_count: u16,
 }
 impl Default for PhaseHistory {
     fn default() -> Self {
@@ -26,6 +30,9 @@ impl Default for PhaseHistory {
             entered: [[0; MAX_CARDS / 64]; 2],
             played: [[0; MAX_CARDS / 64]; 2],
             play_counts: [0; 2],
+            defeats_exact: true,
+            defeated_unit_counts: [0; 2],
+            defeated_leader_count: 0,
         }
     }
 }
@@ -53,10 +60,21 @@ impl PhaseHistory {
         self.played[seat.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
         Ok(())
     }
+    pub fn preflight_defeats(&self, counts:[u16;2], leaders:u16)->Result<(),String> {
+        if !self.exact||!self.defeats_exact {return Ok(());}
+        for i in 0..2 {self.defeated_unit_counts[i].checked_add(counts[i]).ok_or("phase defeated-unit count capacity exceeded")?;}
+        self.defeated_leader_count.checked_add(leaders).ok_or("phase defeated-leader count capacity exceeded")?;
+        Ok(())
+    }
+    pub fn record_defeat(&mut self, controller:Seat, leader:bool) {
+        if self.exact&&self.defeats_exact {self.defeated_unit_counts[controller.index()]+=1;if leader {self.defeated_leader_count+=1;}}
+    }
     pub fn reset(&mut self) {
+        let defeats_exact=self.defeats_exact;
         let exact = self.exact;
         *self = Self::default();
         self.exact = exact;
+        self.defeats_exact=defeats_exact;
     }
     pub fn hash_values(&self, put: &mut impl FnMut(u64)) {
         if self.exact {
@@ -66,9 +84,8 @@ impl PhaseHistory {
                     put(*b);
                 }
             }
-            for n in self.play_counts {
-                put(n as u64);
-            }
+            for n in self.play_counts {put(n as u64);}
+            if self.defeats_exact {put(0x4445464541545632);for n in self.defeated_unit_counts {put(n as u64);}put(self.defeated_leader_count as u64);}
         }
     }
     pub fn snapshot(&self) -> Value {
@@ -83,7 +100,9 @@ impl PhaseHistory {
             }
             out
         };
-        json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts})
+        let mut value=json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts});
+        if self.defeats_exact {value["version"]=json!(2);value["defeatedUnitCounts"]=json!(self.defeated_unit_counts);value["defeatedLeaderCount"]=json!(self.defeated_leader_count);}
+        value
     }
     pub fn parse(v: &Value, next: CardId) -> Result<Self, String> {
         #[derive(Deserialize)]
@@ -93,6 +112,8 @@ impl PhaseHistory {
             entered: Vec<Entry>,
             played: Vec<Entry>,
             play_counts: [u16; 2],
+            defeated_unit_counts: Option<[u16;2]>,
+            defeated_leader_count: Option<u16>,
         }
         #[derive(Deserialize)]
         #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -102,10 +123,16 @@ impl PhaseHistory {
         }
         let wire: Wire =
             serde_json::from_value(v.clone()).map_err(|e| format!("invalid phaseHistory: {e}"))?;
-        if wire.version != 1 {
+        if ![1,2].contains(&wire.version) {
             return Err("unsupported phaseHistory version".into());
         }
         let mut out = Self::default();
+        out.defeats_exact=wire.version==2;
+        if wire.version==2 {
+            out.defeated_unit_counts=wire.defeated_unit_counts.ok_or("phaseHistory v2 requires defeatedUnitCounts")?;
+            out.defeated_leader_count=wire.defeated_leader_count.ok_or("phaseHistory v2 requires defeatedLeaderCount")?;
+            if u32::from(out.defeated_leader_count)>out.defeated_unit_counts.into_iter().map(u32::from).sum::<u32>() {return Err("phaseHistory defeated leader count exceeds unit count".into());}
+        } else if v.get("defeatedUnitCounts").is_some()||v.get("defeatedLeaderCount").is_some() {return Err("phaseHistory v1 cannot carry defeat projections".into());}
         out.play_counts = wire.play_counts;
         for (entries, bits) in [
             (wire.entered, &mut out.entered),

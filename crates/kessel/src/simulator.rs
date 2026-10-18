@@ -737,8 +737,9 @@ impl Engine {
         }
     }
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
-        self.check_stat_capacity(s)?;
+        if (!s.phase_history.exact||!s.phase_history.defeats_exact)&&(self.needs_defeat_history()||self.state_needs_defeat_history(s)) {return Err("selected or imported pool requires exact defeat phase history version 2".into());}
         if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
+        self.check_stat_capacity(s)?;
         if !self.legal_actions(s).contains(a) {
             return Err(format!("illegal action {} at {:?}", a.key(), s.decision));
         }
@@ -1347,20 +1348,70 @@ impl Engine {
         }
         Ok(())
     }
+    fn prepare_unit_defeat(&self,s:&State,id:CardId)->Result<Option<(Seat,bool)>,String> {
+        let fact=if self.in_arena(s,id) {Some((s.card(id).owner,self.def(s,id).info.is("leader")))}else{None};
+        if let Some((owner,leader))=fact {let mut counts=[0;2];counts[owner.index()]=1;s.phase_history.preflight_defeats(counts,u16::from(leader))?;}
+        Ok(fact)
+    }
+    fn finish_physical_defeat(&self,s:&mut State,id:CardId,fact:Option<(Seat,bool)>)->Result<(),String> {
+        if let Some((owner,leader))=fact {s.phase_history.record_defeat(owner,leader);}
+        self.leave_play(s,id)
+    }
     fn defeat(&self, s: &mut State, id: CardId) -> Result<(), String> {
         if !self.in_arena(s,id) && !self.attached_in_play(s,id) {return Ok(());}
+        let fact=self.prepare_unit_defeat(s,id)?;
         self.capture_death(s,id)?;
-        self.leave_play(s, id)
+        self.finish_physical_defeat(s,id,fact)
     }
     fn defeat_many(&self,s:&mut State,ids:&[CardId])->Result<(),String> {
-        for &id in ids {self.capture_death(s,id)?;}
+        let mut seen=std::collections::BTreeSet::new();
+        let ids=ids.iter().copied().filter(|id|seen.insert(*id)&&(self.in_arena(s,*id)||self.attached_in_play(s,*id))).collect::<Vec<_>>();
+        let facts=ids.iter().filter(|id|self.in_arena(s,**id)).map(|id|(*id,s.card(*id).owner,self.def(s,*id).info.is("leader"))).collect::<Vec<_>>();
+        let mut counts=[0u16;2];let mut leaders=0u16;
+        for (_,owner,leader) in &facts {counts[owner.index()]+=1;leaders+=u16::from(*leader);}
+        s.phase_history.preflight_defeats(counts,leaders)?;
+        // Capture all sibling LKI/registrations before history changes can
+        // alter a live ongoing effect on another simultaneous combatant.
+        for &id in &ids {self.capture_death(s,id)?;}
         let attachments=ids.iter().flat_map(|id|self.upgrades(s,*id)).collect::<Vec<_>>();
         // The pinned engine gives cleanup events order -1, then uses a unary
         // sort comparator (event => event.order). Its observed order is reverse
         // cleanup insertion, before the primary parent handlers.
         for upgrade in attachments.into_iter().rev() {self.leave_play_primary(s,upgrade)?;}
-        for &id in ids {if self.in_arena(s,id)||self.attached_in_play(s,id) {self.leave_play_primary(s,id)?;}}
+        for &id in &ids {if self.in_arena(s,id)||self.attached_in_play(s,id) {
+            let fact=facts.iter().find(|(card,_,_)|*card==id).map(|(_,owner,leader)|(*owner,*leader));
+            self.finish_physical_defeat(s,id,fact)?;
+        }}
         Ok(())
+    }
+    // The menu captures one physical arena recipient; its owner chooses only
+    // the destination. This is departure, so reuse contingent attachment cleanup
+    // and primary reset without capturing a defeat or incrementing history.
+    fn owner_deck_target_eligible(&self,s:&State,id:CardId)->bool {
+        id!=0 && self.in_arena(s,id) && self.def(s,id).info.is("unit")
+            && !self.def(s,id).info.is("leader")
+    }
+    fn move_arena_unit_to_owner_deck(&self,s:&mut State,id:CardId,position:crate::ability_ir::DeckPosition)->Result<u16,String> {
+        if !self.owner_deck_target_eligible(s,id) {return Ok(0);}
+        let owner=s.card(id).owner;
+        let token=self.def(s,id).info.is("token");
+        // No physical movement or attachment cleanup precedes capacity checks.
+        if !token && s.player(owner).deck.len as usize==MAX_ZONE {return Err("owner deck capacity exceeded".into());}
+        let attachments=self.upgrades(s,id);
+        let mut discard_counts=[0usize;2];
+        for &upgrade in &attachments {if !self.def(s,upgrade).info.is("token") {discard_counts[s.card(upgrade).owner.index()]+=1;}}
+        for seat in [Seat::P1,Seat::P2] {if s.player(seat).discard.len as usize+discard_counts[seat.index()]>MAX_ZONE {return Err("attachment discard capacity exceeded".into());}}
+        for upgrade in attachments.into_iter().rev() {self.leave_play_primary(s,upgrade)?;}
+        self.leave_play_primary_to_discard(s,id,false)?;
+        if !token {
+            let deck=&mut s.player_mut(owner).deck;
+            deck.push(id)?;
+            if position==crate::ability_ir::DeckPosition::Top {
+                let last=deck.len as usize-1;
+                deck.ids[..=last].rotate_right(1);
+            }
+        }
+        Ok(1)
     }
     fn leave_play(&self,s:&mut State,id:CardId)->Result<(),String> {
         let attachments=self.upgrades(s,id);
@@ -1623,6 +1674,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("dependentChoicePending").is_some(){return Err("pending dependent choice cannot be imported as an action window".into());}
         if v.get("viewSelectionPending").is_some(){return Err("pending view selection cannot be imported as an action window".into());}
         if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
@@ -1821,6 +1873,7 @@ impl Engine {
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
+        if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
         self.write_snapshot_evidence(s,&mut value);
         self.snapshot_credit_state(s,&mut value);
         if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}

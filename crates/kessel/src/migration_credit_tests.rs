@@ -6,7 +6,7 @@ use super::*;
 use crate::migration_credit_contract::{prepare, Composition};
 
 const CANDIDATES: &[&str] = &["LAW_134", "LAW_155", "LAW_258"];
-const HELD: &[&str] = &["LAW_053", "LAW_071", "LAW_080", "LAW_116", "LAW_247"];
+const HELD: &[&str] = &["LAW_053", "LAW_071", "LAW_080"];
 
 fn entry(code: &str) -> Value {
     catalogue()["cards"]
@@ -43,6 +43,8 @@ fn migration_credit_complete_contract_preserves_conditions_and_success_continuat
         ("LAW_134", Composition::OtherFriendlyUnderworldOnPlay),
         ("LAW_155", Composition::FriendlyGroundOnAttack),
         ("LAW_258", Composition::OptionalAttackPayment),
+        ("LAW_116", Composition::AllPlayersOnDefeat),
+        ("LAW_247", Composition::CreateThenOptionalLiveDamage),
     ] {
         let original = entry(code);
         let prepared = prepare(&original).unwrap().unwrap();
@@ -384,8 +386,8 @@ fn migration_credit_creation_still_requires_selected_native_provenance_and_exact
                 .retain(|entry| entry["setCode"] != "TOKEN_CREDIT");
         }
         let e = Engine::from_catalogue_value(&changed).unwrap();
-        for code in CANDIDATES {
-            assert!(!e.by_code.contains_key(*code), "{code}");
+        for code in CANDIDATES.iter().copied().chain(["LAW_116", "LAW_247"]) {
+            assert!(!e.by_code.contains_key(code), "{code}");
         }
     }
     let e = engine(RulesBackend::Interpreter);
@@ -407,7 +409,10 @@ fn migration_credit_creation_still_requires_selected_native_provenance_and_exact
     for seat in ["p1", "p2"] {
         for field in ["credits", "retiredCredits"] {
             assert_eq!(legacy["players"][seat][field], json!([]));
-            legacy["players"][seat].as_object_mut().unwrap().remove(field);
+            legacy["players"][seat]
+                .as_object_mut()
+                .unwrap()
+                .remove(field);
         }
     }
     let error = e.load_state(&legacy).unwrap_err();
@@ -490,4 +495,221 @@ fn migration_credit_captured_criminal_uses_original_controller_after_source_defe
             roundtrip(&e, &done);
         }
     }
+}
+
+#[test]
+fn migration_credit_bondsman_defeat_allocates_in_player_order_independent_of_source_and_initiative()
+{
+    cases(|e, actor| {
+        for source_owner in [actor, actor.other()] {
+            for initiative in [Seat::P1, Seat::P2] {
+                let mut s = midgame(e, actor);
+                s.initiative = initiative;
+                let source = unit(e, &mut s, source_owner, "LAW_116");
+                s.card_mut(source).damage = 2;
+                let other = unit(e, &mut s, source_owner.other(), "LOF_256");
+                let old_p1 = credits(e, &mut s, Seat::P1, 1);
+                let old_p2 = credits(e, &mut s, Seat::P2, 2);
+                let next = s.next_id;
+                let (attacker, defender) = if actor == source_owner {
+                    (source, other)
+                } else {
+                    (other, source)
+                };
+                let done = attack(e, &s, attacker, defender);
+                assert!(done.player(source_owner).discard.contains(source));
+                assert_eq!(live(&done, Seat::P1), [old_p1, vec![next]].concat());
+                assert_eq!(live(&done, Seat::P2), [old_p2, vec![next + 1]].concat());
+                assert_eq!(done.card(next).owner, Seat::P1);
+                assert_eq!(done.card(next + 1).owner, Seat::P2);
+                assert_eq!(done.next_id, next + 2);
+                assert_eq!(done.decision, Decision::Window);
+                assert_eq!(done.round, 4);
+                roundtrip(e, &done);
+            }
+        }
+    });
+}
+
+#[test]
+fn migration_credit_hutts_creates_before_optional_and_counts_only_live_friendly_credits_after_payment(
+) {
+    cases(|e, actor| {
+        for (count, spend) in [(0, 0u16), (2, 0), (3, 3)] {
+            let mut s = midgame(e, actor);
+            let source = hand(e, &mut s, actor, "LAW_247");
+            let target = unit(e, &mut s, actor.other(), "LOF_256");
+            let old = credits(e, &mut s, actor, count);
+            let enemy = credits(e, &mut s, actor.other(), 2);
+            let cost = usize::from(e.cost(&s, source));
+            resources(e, &mut s, actor, cost - usize::from(spend));
+            let next = s.next_id;
+            let played = choose(e, &s, source);
+            let optional = if count == 0 {
+                played
+            } else {
+                button(
+                    e,
+                    &played,
+                    if spend == 0 {
+                        "Pay costs without Credit tokens"
+                    } else {
+                        "Use 3 Credits"
+                    },
+                )
+            };
+            assert_eq!(optional.decision, Decision::AbilityOptional);
+            assert_eq!(optional.active, actor);
+            let mut expected = if spend == 0 { old } else { vec![] };
+            expected.push(next);
+            assert_eq!(live(&optional, actor), expected);
+            assert_eq!(live(&optional, actor.other()), enemy);
+            assert_eq!(optional.next_id, next + 1);
+            assert_eq!(optional.card(target).damage, 0);
+            let declined = button(e, &optional, "Pass");
+            assert_eq!(declined.card(target).damage, 0);
+            assert_eq!(live(&declined, actor), expected);
+            assert_eq!(declined.decision, Decision::Window);
+            let selected = button(e, &optional, "Trigger");
+            assert_eq!(selected.decision, Decision::AbilityTarget);
+            let done = choose(e, &selected, target);
+            assert_eq!(done.card(target).damage, expected.len() as u16);
+            assert_eq!(live(&done, actor), expected);
+            assert_eq!(live(&done, actor.other()), enemy);
+            assert!(done.player(actor).discard.contains(source));
+            assert_eq!(done.next_id, next + 1);
+            assert_eq!(done.decision, Decision::Window);
+            roundtrip(e, &done);
+        }
+    });
+}
+
+#[test]
+fn migration_credit_hutts_without_units_still_creates_and_skips_optional() {
+    cases(|e, actor| {
+        let mut s = midgame(e, actor);
+        let source = hand(e, &mut s, actor, "LAW_247");
+        let cost = usize::from(e.cost(&s, source));
+        resources(e, &mut s, actor, cost);
+        let next = s.next_id;
+        let done = choose(e, &s, source);
+        assert_eq!(live(&done, actor), vec![next]);
+        assert_eq!(done.next_id, next + 1);
+        assert_eq!(done.decision, Decision::Window);
+        roundtrip(e, &done);
+    });
+}
+
+#[test]
+fn migration_credit_new_compositions_reject_changed_targets_live_refs_and_complete_registration() {
+    for code in ["LAW_116", "LAW_247"] {
+        let original = entry(code);
+        for (field, value) in [
+            ("hooks", json!([])),
+            ("optional", json!(true)),
+            ("then", json!({"effect":{"kind":"noAction"}})),
+            ("targetResolver", json!({})),
+        ] {
+            let mut changed = original.clone();
+            changed["abilities"]["card"][0][field] = value;
+            assert!(prepare(&changed).is_err(), "{code}: {field}");
+        }
+        for (field, value) in [
+            ("stateWatchers", json!([{}])),
+            ("privatePrograms", json!([{}])),
+        ] {
+            let mut changed = original.clone();
+            changed[field] = value;
+            assert!(prepare(&changed).is_err(), "{code}: {field}");
+        }
+    }
+    for (code, path, value) in [
+        (
+            "LAW_116",
+            "/abilities/card/0/effect/target/receiver/path",
+            json!(["player"]),
+        ),
+        (
+            "LAW_116",
+            "/abilities/card/0/effect/target/args",
+            json!([{"kind":"const","value":true}]),
+        ),
+        (
+            "LAW_116",
+            "/abilities/card/0/effect/creationTiming",
+            json!("handler"),
+        ),
+        (
+            "LAW_247",
+            "/abilities/card/0/effect/effects/1/effect/effect/amount/path",
+            json!(["player", "opponent", "creditTokenCount"]),
+        ),
+        (
+            "LAW_247",
+            "/abilities/card/0/effect/effects/1/target/fallback",
+            json!("ownPlayer"),
+        ),
+        (
+            "LAW_247",
+            "/abilities/card/0/effect/effects/1/choosingPlayer",
+            json!("opponent"),
+        ),
+        (
+            "LAW_247",
+            "/abilities/card/0/effect/effects/1/effect/targetResolver/owner",
+            json!("opponent"),
+        ),
+        ("LAW_247", "/card/types", json!(["event", "unit"])),
+        ("LAW_247", "/card/hp", json!(3)),
+    ] {
+        let mut changed = entry(code);
+        *changed.pointer_mut(path).unwrap() = value;
+        assert!(prepare(&changed).is_err(), "{code}: {path}");
+    }
+    let mut reordered = entry("LAW_247");
+    reordered["abilities"]["card"][0]["effect"]["effects"]
+        .as_array_mut()
+        .unwrap()
+        .swap(0, 1);
+    assert!(prepare(&reordered).is_err());
+}
+
+#[test]
+fn migration_credit_both_player_allocation_capacity_failure_preserves_both_ledgers() {
+    cases(|e, actor| {
+        let mut s = midgame(e, actor);
+        let source = unit(e, &mut s, actor, "LAW_116");
+        s.card_mut(source).damage = 2;
+        let other = unit(e, &mut s, actor.other(), "LOF_256");
+        let old_p1 = credits(e, &mut s, Seat::P1, 1);
+        let old_p2 = credits(e, &mut s, Seat::P2, 1);
+        s.next_id = (MAX_CARDS - 1) as u16;
+        let targeting = choose(e, &s, source);
+        let before = targeting;
+        let hash = before.zobrist();
+        let error = e
+            .apply(&targeting, &e.card_action(&targeting, other))
+            .unwrap_err();
+        assert!(
+            error.contains("card capacity exceeded creating Credits"),
+            "{error}"
+        );
+        assert_eq!(targeting, before);
+        assert_eq!(targeting.zobrist(), hash);
+        assert_eq!(live(&targeting, Seat::P1), old_p1);
+        assert_eq!(live(&targeting, Seat::P2), old_p2);
+        assert!(!targeting.card((MAX_CARDS - 1) as u16).present);
+    });
+}
+
+#[test]
+fn migration_credit_player_list_tags_preserve_existing_expression_targets() {
+    use crate::ability_ir::{Target,Expr};
+    let query=json!({"kind":"query","name":"topDeckCard","receiver":{"kind":"ref","path":["player"]},"args":[]});
+    let target:Target=serde_json::from_value(query.clone()).unwrap();
+    assert!(matches!(&target,Target::Expression(Expr::Query{name,..}) if name=="topDeckCard"));
+    assert!(crate::ability_ir::resource_card_system_target(&target));
+    assert_eq!(serde_json::to_value(target).unwrap(),query);
+    let players:Target=serde_json::from_value(json!({"kind":"collection","name":"players","receiver":{"kind":"ref","path":["game"]},"args":[]})).unwrap();
+    assert!(matches!(players,Target::PlayerList(p) if p.game_players()));
 }

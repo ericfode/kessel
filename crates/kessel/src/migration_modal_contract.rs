@@ -1,9 +1,9 @@
 //! Closed descriptions of named target -> modal choice registrations.
 //!
-//! This is a source/IR contract, not an executor or an admission shortcut.
-//! In particular, `registration` retains every callback and named binding:
-//! replacing it with NoAction would lose payment timing and captured identity.
-//! Shared runtime integration must implement the descriptor before admitting it.
+//! Descriptors retain every callback and named binding. Only the reviewed
+//! damage/draw event has an executable adapter; its ordinary-ability scaffolding
+//! must be replaced by the complete dependent menu before admission. Other
+//! descriptors remain inspection-only and cannot erase captures into NoAction.
 use serde_json::{json, Value};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,6 +39,61 @@ pub(crate) struct DependentChoice {
     pub resolution: Resolution,
     /// Full original registration, including prompt/highlight/capture provenance.
     pub registration: Value,
+}
+
+/// Reviewed executable family plus ordinary-ability scaffolding. The caller
+/// must install the dependent menu before compiling/admitting this entry;
+/// `normalized` alone deliberately does not represent the complete effect.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct Executable {
+    pub normalized: Value,
+    pub descriptor: DependentChoice,
+}
+
+/// Executable adapters require a complete raw proof, then replace the ordinary
+/// scaffolding with a captured-target menu. Adjusted payment remains held.
+pub(crate) fn executable(entry: &Value) -> Result<Option<Executable>, String> {
+    if let Some(prepared)=crate::migration_modal_deck_contract::prepare(entry)? {
+        let mut normalized=entry.clone();
+        let raw=&prepared.registration;
+        normalized["abilities"]["card"][0]=json!({"trigger":"whenDefeated","title":raw["title"],"costs":[],
+            "targetResolver":raw["targetResolvers"][0]["targetResolver"],"effect":{"kind":"noAction"}});
+        normalized["abilities"]["card"][0]["targetResolver"]["resultBinding"]=json!("target");
+        normalized["abilities"]["card"][0]["targetResolver"]["resolverName"]=json!("target");
+        return Ok(Some(Executable{normalized,descriptor:prepared.descriptor}));
+    }
+    // Legacy menus and other named-target families retain their own complete
+    // validators; only this two-resolver selectUnless shape enters this path.
+    let raw = &entry["abilities"]["card"][0]["targetResolvers"];
+    if !raw.as_array().is_some_and(|a| a.len() == 2)
+        || raw[1]["targetResolver"]["mode"] != "selectUnless"
+    {
+        return Ok(None);
+    }
+
+    let Some(descriptor) = inspect(entry)? else {
+        return Ok(None);
+    };
+    if descriptor.trigger != "event"
+        || descriptor.resolution != (Resolution::DamageOrDraw { damage: 7, draw: 3 })
+    {
+        return Ok(None);
+    }
+    let mut normalized = entry.clone();
+    let raw = &descriptor.registration;
+    normalized["abilities"]["card"][0] = json!({
+        "trigger":"event", "title":raw["title"], "costs":[],
+        "targetResolver":raw["targetResolvers"][0]["targetResolver"],
+        "effect":{"kind":"noAction"}
+    });
+    // One proved physical binding becomes the existing root target register.
+    // Preserve the complete original named registration in descriptor.
+    normalized["abilities"]["card"][0]["targetResolver"]["resultBinding"] = json!("target");
+    normalized["abilities"]["card"][0]["targetResolver"]["resolverName"] = json!("target");
+    Ok(Some(Executable {
+        normalized,
+        descriptor,
+    }))
 }
 
 fn marker(value: &Value) -> bool {
@@ -372,4 +427,83 @@ pub(crate) fn inspect(entry: &Value) -> Result<Option<DependentChoice>, String> 
         resolution,
         registration: raw.clone(),
     }))
+}
+
+impl Executable {
+    pub(crate) fn compile(
+        &self,
+        ability: &crate::ability_ir::Ability,
+    ) -> Result<crate::ability_ir::Program, String> {
+        use crate::ability_ir::{Effect, Expr, Instruction, Program, Target};
+        use crate::modal_choices::{Branch, Menu};
+        if self.descriptor.resolution==Resolution::OwnerDeckPlacement {
+            use crate::ability_ir::DeckPosition;
+            let mut program=Program::compile(ability)?;
+            let resolver=ability.target_resolver.clone().ok_or("owner-deck physical target resolver missing")?;
+            program.instructions=vec![
+                Instruction::Select(resolver),Instruction::Commit,
+                Instruction::ModalChoice(Menu{chooser:crate::modal_choices::Chooser::SelectedOwner,
+                    prompt_title:"Select one".into(),preserve_target:true,unless_branch:None,
+                    branches:vec![Branch{label:"Top".into(),start:3,end:4,always_legal:false},
+                        Branch{label:"Bottom".into(),start:5,end:6,always_legal:false}],end:7}),
+                Instruction::Apply(Effect::MoveSelectedArenaUnitToOwnerDeck{target:Target::name("chosen"),position:DeckPosition::Top}),
+                Instruction::Jump{to:7},
+                Instruction::Apply(Effect::MoveSelectedArenaUnitToOwnerDeck{target:Target::name("chosen"),position:DeckPosition::Bottom}),
+                Instruction::Jump{to:7},Instruction::EndStep,
+            ];
+            program.select_ends.clear();program.event_end=7;
+            program.executable=Err("owner-deck menu uses captured physical-target interpreter continuation");
+            return Ok(program);
+        }
+        let Resolution::DamageOrDraw { damage, draw } = self.descriptor.resolution else {
+            return Err("dependent modal executor requires a complete reviewed contract".into());
+        };
+        let mut program = Program::compile(ability)?;
+        let resolver = ability
+            .target_resolver
+            .clone()
+            .ok_or("dependent modal physical target resolver missing")?;
+        let amount = |n: u16| Expr::Const { value: json!(n) };
+        program.instructions = vec![
+            Instruction::Select(resolver),
+            Instruction::Commit,
+            Instruction::ModalChoice(Menu {
+                chooser: crate::modal_choices::Chooser::Opponent,
+                prompt_title: "Select one".into(),
+                preserve_target: true,
+                unless_branch: Some(1),
+                branches: vec![
+                    Branch {
+                        label: "Damage".into(),
+                        start: 3,
+                        end: 4,
+                        always_legal: false,
+                    },
+                    Branch {
+                        label: "Draw".into(),
+                        start: 5,
+                        end: 6,
+                        always_legal: false,
+                    },
+                ],
+                end: 7,
+            }),
+            Instruction::Apply(Effect::Damage {
+                target: Target::Name("chosen".into()),
+                amount: amount(damage),
+            }),
+            Instruction::Jump { to: 7 },
+            Instruction::Apply(Effect::Draw {
+                target: Target::Name("ownPlayer".into()),
+                amount: amount(draw),
+            }),
+            Instruction::Jump { to: 7 },
+            Instruction::EndStep,
+        ];
+        program.select_ends.clear();
+        program.event_end = 7;
+        program.executable =
+            Err("dependent modal uses captured physical-target interpreter continuation");
+        Ok(program)
+    }
 }

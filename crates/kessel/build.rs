@@ -44,6 +44,9 @@ mod live_power_maximum;
 #[path = "src/static_ongoing.rs"]
 mod static_ongoing;
 #[allow(dead_code)]
+#[path = "src/migration_defeat_history_contract.rs"]
+mod migration_defeat_history_contract;
+#[allow(dead_code)]
 #[path = "src/phase_history.rs"]
 mod phase_history;
 #[allow(dead_code)]
@@ -70,6 +73,11 @@ mod deck_search;
 #[path = "src/selected_player.rs"]
 mod selected_player;
 
+#[allow(dead_code)]
+#[path = "src/migration_modal_contract.rs"]
+mod migration_modal_contract;
+#[path = "src/migration_modal_deck_contract.rs"]
+mod migration_modal_deck_contract;
 #[allow(dead_code)]
 #[path = "src/modal_choices.rs"]
 mod modal_choices;
@@ -197,6 +205,8 @@ fn lower(p: &Program) -> Result<String, String> {
 }
 fn main() {
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
+    println!("cargo:rerun-if-changed=src/migration_modal_contract.rs");
+    println!("cargo:rerun-if-changed=src/migration_modal_deck_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_arena_choices.rs");
     println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/migration_attack_contract.rs");
@@ -229,6 +239,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
     println!("cargo:rerun-if-changed=src/phase_history.rs");
+    println!("cargo:rerun-if-changed=src/migration_defeat_history_contract.rs");
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
     println!("cargo:rerun-if-changed=src/live_power_maximum.rs");
