@@ -13,6 +13,31 @@ const IR_SCHEMA = 'swu-card-ir/v1';
 
 const GENERATED = path.resolve(__dirname, 'generated');
 
+/** Validate the authoritative ordered name domain without normalizing its strings or order. */
+function validatePlayableCardTitles(registry) {
+    if (!registry || typeof registry !== 'object' || Array.isArray(registry)
+        || Object.keys(registry).length !== 3
+        || !Object.hasOwn(registry, 'version') || !Object.hasOwn(registry, 'sourceHash') || !Object.hasOwn(registry, 'titles')
+        || registry.version !== 1 || typeof registry.sourceHash !== 'string' || !/^[0-9a-f]{64}$/.test(registry.sourceHash)
+        || !Array.isArray(registry.titles) || registry.titles.length === 0 || registry.titles.length > 0xffff) {
+        throw new Error('playableCardTitles requires version 1, an exact-byte SHA-256 sourceHash, and 1..65535 ordered titles');
+    }
+    const seen = new Set();
+    for (const title of registry.titles) {
+        if (typeof title !== 'string' || title.trim().length === 0 || Buffer.byteLength(title, 'utf8') > 0xffff || seen.has(title)) {
+            throw new Error('playableCardTitles requires unique nonempty strings of at most 65535 UTF-8 bytes');
+        }
+        seen.add(title);
+    }
+    return registry;
+}
+
+function optionalPlayableCardTitles(catalog) {
+    return Object.hasOwn(catalog, 'playableCardTitles')
+        ? { playableCardTitles: validatePlayableCardTitles(catalog.playableCardTitles) }
+        : {};
+}
+
 function readJson(file) {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
@@ -31,6 +56,7 @@ function catalogDir(target = GENERATED) {
 /** Split a unified catalogue object into byte-stable concern shards. */
 function splitCatalog(catalog) {
     if (catalog.schema !== IR_SCHEMA) throw new Error(`splitCatalog expects ${IR_SCHEMA}`);
+    const playableCardTitles = optionalPlayableCardTitles(catalog);
     const diagnosticsCards = [];
     const cards = catalog.cards.map((entry) => {
         const { diagnostics, ...rest } = entry;
@@ -48,6 +74,7 @@ function splitCatalog(catalog) {
             sourceTreeHash: catalog.sourceTreeHash,
             compilerHash: catalog.compilerHash,
             sourceSupport: catalog.sourceSupport,
+            ...playableCardTitles,
             inventory: catalog.inventory,
             files: {
                 cards: 'cards.json',
@@ -85,6 +112,7 @@ function loadCatalog(target = GENERATED) {
         if (value.schema !== IR_SCHEMA || !Array.isArray(value.cards)) {
             throw new Error(`Not a ${IR_SCHEMA} catalogue: ${resolved}`);
         }
+        optionalPlayableCardTitles(value);
         return value;
     }
     const dir = catalogDir(resolved);
@@ -117,6 +145,7 @@ function loadCatalog(target = GENERATED) {
         compilerHash: manifest.compilerHash,
         inputs: inputsFile.inputs,
         sourceSupport: manifest.sourceSupport,
+        ...optionalPlayableCardTitles(manifest),
         cards,
         inventory: manifest.inventory,
     };
@@ -148,6 +177,7 @@ module.exports = {
     DIAGNOSTICS_SCHEMA,
     CARDS_SCHEMA,
     IR_SCHEMA,
+    validatePlayableCardTitles,
     splitCatalog,
     loadCatalog,
     catalogBytes,
