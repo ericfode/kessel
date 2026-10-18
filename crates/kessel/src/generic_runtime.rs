@@ -958,7 +958,6 @@ impl Engine {
             ("TOKEN_WEAKNESS", "pool containing GiveWeakness cards must include reviewed TOKEN_WEAKNESS"),
             ("TOKEN_THE_FORCE", "pool containing Force gain/use/presence cards must include reviewed TOKEN_THE_FORCE"),
             ("TOKEN_CREDIT", "pool containing Credit creation cards must include reviewed TOKEN_CREDIT"),
-            ("TOKEN_MANDALORIAN","pool containing Mandalorian creation must include reviewed TOKEN_MANDALORIAN"),
             ("TOKEN_SPY", "pool containing Spy creation must include reviewed TOKEN_SPY"),
             ("TOKEN_BEAST", "pool containing Beast creation must include reviewed TOKEN_BEAST"),
             ("TOKEN_EXPERIENCE", "pool containing Experience creation must include reviewed TOKEN_EXPERIENCE"),
