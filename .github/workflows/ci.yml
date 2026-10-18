@@ -112,7 +112,7 @@ jobs:
             forceteki/node_modules
             forceteki/build
             forceteki/test/json
-          key: engine-${{ steps.engine.outputs.rev }}-v1
+          key: engine-${{ steps.engine.outputs.rev }}-v2
       - name: Install the pinned engine parser and fetch card metadata
         if: steps.scope.outputs.run != 'false' && steps.engine-cache.outputs.cache-hit != 'true'
         run: |

@@ -687,7 +687,8 @@ fn zone_statics_complete_cards_and_imported_continuations_fail_closed() {
         assert!(e.load_state(&snapshot).is_err(), "{field}");
     }
     let invalid = s;
-    assert!(DeathContinuation::from_raw(9).is_none());
+    assert_eq!(DeathContinuation::from_raw(9),Some(DeathContinuation::ResourcePayment));
+    assert!(DeathContinuation::from_raw(10).is_none());
     assert_eq!(invalid, s);
 }
 

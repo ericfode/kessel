@@ -56,7 +56,7 @@ test('quiet host metadata is data-only and cannot hide source/intrinsic/pilot be
 test('native Clone and Weakness dependencies bind complete reviewed entries', () => {
     for (const [id, classify] of [['TOKEN_CLONE_TROOPER', p.nativeCloneTrooper], ['TOKEN_WEAKNESS', p.nativeWeakness]]) {
         assert.ok(classify(get(id)));
-        for (const mutate of [e => e.setCode = 'TOKEN_FAKE', e => e.sourceHash = 'a'.repeat(64), e => e.card.hp++, e => e.abilities.card.push({ trigger: 'whenPlayed' })]) {
+        for (const mutate of [e => e.setCode = 'TOKEN_FAKE', e => e.sourceHash = 'a'.repeat(64), e => e.dataHash = 'a'.repeat(64), e => e.card.hp++, e => e.abilities.card.push({ trigger: 'whenPlayed' })]) {
             const e = get(id);
             mutate(e);
             assert.equal(classify(e), false);

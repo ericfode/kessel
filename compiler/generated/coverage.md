@@ -1,6 +1,6 @@
 # Card source conversion coverage
 
-Known card definitions: **2605**. IR-converted definitions: **2568** (2121 from source AST; 447 metadata-only plain cards). Explicitly blocked definitions: **37**. Excluded test mocks: 0.
+Known card definitions: **2605**. IR-converted definitions: **2568** (2121 from source AST; 447 metadata-only plain cards). Explicitly blocked definitions: **37**. Excluded test mocks: 21.
 
 These counts measure bounded IR conversion, not runtime acceptance. Metadata-only conversion handles plain bases, fully parsed keyword-only units, and plain stat-only upgrades using the generic UpgradeCard fallback. The Rust runtime separately validates its supported operation set. Unsupported definitions retain their source locations and must not be loaded as no-op cards.
 

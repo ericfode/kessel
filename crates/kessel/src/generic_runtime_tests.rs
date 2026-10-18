@@ -12743,7 +12743,7 @@ fn typed_continuation_keeps_unknown_persisted_program_fallback_and_death_error()
         e.end_program(&mut s).unwrap();
         assert_eq!(s, expected, "legacy program return {raw} must still finish");
     }
-    for raw in [0, 8, u8::MAX] {
+    for raw in [0, 10, u8::MAX] {
         let mut s = initial;
         s.death_depth = 1;
         s.death_frames[0] = DeathFrame {

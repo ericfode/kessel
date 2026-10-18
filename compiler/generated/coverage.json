@@ -1,9 +1,9 @@
 {
   "schema": "swu-card-compiler-coverage/v1",
-  "sourceTreeHash": "5ad2d48640000b1c25d8e701a0f63966537ef40a52d44cbd24d598fd74d12497",
+  "sourceTreeHash": "4fa2b34dd5313b257b0c66ac8166ccbbbc063de6965675ac2ee70389e09b5623",
   "compilerHash": "5869e54f633df3188ea490931dd5797894694f5af211c45c890194bbe6cca640",
   "knownCards": 2605,
-  "mockCardsExcluded": 0,
+  "mockCardsExcluded": 21,
   "sourceFiles": 2074,
   "sourceDefinitions": 2071,
   "definitionsWithSource": 2051,
@@ -2739,7 +2739,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/0454689845.json",
+          "file": "data/Card/eighth-brother#illfated-escape.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2754,7 +2754,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/3261127126.json",
+          "file": "data/Card/clone-pilot.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2769,7 +2769,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/3287404938.json",
+          "file": "data/Card/determined-recruit.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2799,7 +2799,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/7420426716.json",
+          "file": "data/Card/dagger-squadron-pilot.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2814,7 +2814,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/3356393152.json",
+          "file": "data/Card/indoctrinated-conscript.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2829,7 +2829,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/8930110877.json",
+          "file": "data/Card/hopeful-volunteer.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2844,7 +2844,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/4164902248.json",
+          "file": "data/Card/sullustan-spacer.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2859,7 +2859,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/3796991604.json",
+          "file": "data/Card/dogmatic-shock-squad.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2874,7 +2874,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/0024944513.json",
+          "file": "data/Card/armor-of-fortune.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2889,7 +2889,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/8826807979.json",
+          "file": "data/Card/dressellian-commandos.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2904,7 +2904,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/2877797132.json",
+          "file": "data/Card/unveiled-might.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2919,7 +2919,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/2785395871.json",
+          "file": "data/Card/sudden-ferocity.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2934,7 +2934,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/6015383018.json",
+          "file": "data/Card/sneaking-suspicion.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2964,7 +2964,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/4783554451.json",
+          "file": "data/Card/first-light#headquarters-of-the-crimson-dawn.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -2979,7 +2979,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/1982478444.json",
+          "file": "data/Card/vigilant-pursuit-craft.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3009,7 +3009,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/8552719712.json",
+          "file": "data/Card/pirate-battle-tank.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3024,7 +3024,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/5171970586.json",
+          "file": "data/Card/collections-starhopper.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3039,7 +3039,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/9483244696.json",
+          "file": "data/Card/weequay-pirate-gang.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3054,7 +3054,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/6037778228.json",
+          "file": "data/Card/nite-owl-skirmisher.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3246,7 +3246,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/5084084838.json",
+          "file": "data/Card/droideka-security.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3261,7 +3261,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/9283787549.json",
+          "file": "data/Card/separatist-super-tank.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3276,7 +3276,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/5243634234.json",
+          "file": "data/Card/baktoid-spider-droid.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3291,7 +3291,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/2554988743.json",
+          "file": "data/Card/gor#grievouss-pet.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3306,7 +3306,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/8201333805.json",
+          "file": "data/Card/squadron-of-vultures.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3321,7 +3321,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/6623894685.json",
+          "file": "data/Card/infiltrating-demolisher.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
@@ -3336,7 +3336,7 @@
         {
           "code": "MISSING_IMPLEMENTATION",
           "pattern": "no-source-for-rules-text",
-          "file": "data/Card/6772128891.json",
+          "file": "data/Card/hailfire-tank.json",
           "line": 1,
           "column": 1,
           "message": "No source implementation and card is not a plain base or supported keyword-only unit"
