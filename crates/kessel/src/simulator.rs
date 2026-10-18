@@ -882,6 +882,9 @@ impl Engine {
                     t.target = id;
                     let source = t.source;
                     t.card_mut(source).exhausted = true;
+                    // The attack cost precedes late effect application; late
+                    // effects precede AttackFlow and its declaration windows.
+                    self.install_conditional_attack(&mut t)?;
                     t.trigger_context = 2;
                     t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
@@ -1660,6 +1663,9 @@ impl Engine {
         if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
+        if v["supportGrants"].as_array().is_some_and(|grants|grants.iter().any(|g|g.get("conditionalAttack").is_some())) {
+            return Err("pending conditional attack grants cannot be imported as action windows".into());
+        }
         if let Some(catalogue) = &self.catalogue {
             crate::validation::validate_state_with_catalogue(v, &catalogue.metadata)?;
         } else {

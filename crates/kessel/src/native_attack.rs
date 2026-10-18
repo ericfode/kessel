@@ -38,6 +38,8 @@ struct Lasting {
     kind: String,
     evaluation: String,
     effect: Box<Effect>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    condition: Option<Value>,
 }
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub(crate) struct Modifiers {
@@ -146,7 +148,16 @@ impl Properties {
         }
         let mut out = Modifiers::default();
         for entry in &self.properties.attacker_lasting_effects {
-            if entry.kind != "attackLastingEntry" || entry.evaluation != "beforeDefenderSelection" {
+            if entry.evaluation == "afterAttackCreated" {
+                crate::migration_attack_contract::normalize_lasting_entry(
+                    &serde_json::to_value(entry).map_err(|e| e.to_string())?,
+                )?;
+                continue;
+            }
+            if entry.condition.is_some()
+                || entry.kind != "attackLastingEntry"
+                || entry.evaluation != "beforeDefenderSelection"
+            {
                 return Err(
                     "native attack supports only unconditional early attacker modifiers".into(),
                 );
@@ -209,6 +220,25 @@ impl Properties {
         }
         Ok(out)
     }
+    /// Late descriptors retain their complete callback until the physical
+    /// attack is created. Only successfully gated entries become live grants.
+    pub(crate) fn conditional_power(
+        &self,
+    ) -> Result<Vec<crate::migration_attack_contract::ConditionalPower>, String> {
+        if self.properties.attacker_lasting_effects.len() > 8 {
+            return Err("native attack lasting-effect entries exceed capacity (8)".into());
+        }
+        self.properties
+            .attacker_lasting_effects
+            .iter()
+            .filter(|e| e.evaluation == "afterAttackCreated")
+            .map(|e| {
+                crate::migration_attack_contract::normalize_lasting_entry(
+                    &serde_json::to_value(e).map_err(|error| error.to_string())?,
+                )
+            })
+            .collect()
+    }
     pub(crate) fn validate(&self) -> Result<(), String> {
         self.modifiers()?;
         self.predicate()?;
@@ -252,6 +282,21 @@ pub(crate) fn marker(v: &Value) -> bool {
     }
 }
 pub(crate) fn entry(e: &Value) -> bool {
+    // Keep late compositions under the reviewed complete ordinary header.
+    // Its early-only validation clone returns here with no late entries.
+    if e["abilities"]["card"].as_array().is_some_and(|a| {
+        a.iter().any(|a| {
+            a["effect"]["properties"]["properties"]["attackerLastingEffects"]
+                .as_array()
+                .is_some_and(|entries| {
+                    entries
+                        .iter()
+                        .any(|e| e["evaluation"] == "afterAttackCreated")
+                })
+        })
+    }) {
+        return crate::migration_attack_contract::entry(e);
+    }
     let Ok(s) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };

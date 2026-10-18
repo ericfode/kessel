@@ -21,6 +21,9 @@ mod card_restrictions;
 #[path = "src/pay_adjusted_resources.rs"]
 mod pay_adjusted_resources;
 #[allow(dead_code)]
+#[path = "src/migration_attack_contract.rs"]
+mod migration_attack_contract;
+#[allow(dead_code)]
 #[path = "src/native_attack.rs"]
 mod native_attack;
 
@@ -199,6 +202,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
     println!("cargo:rerun-if-changed=src/modal_arena_choices.rs");
     println!("cargo:rerun-if-changed=src/native_attack.rs");
+    println!("cargo:rerun-if-changed=src/migration_attack_contract.rs");
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");

@@ -927,8 +927,17 @@ match uses `Done`. Empty hands do not invent a display event. Pending displays
 export `viewSelectionPending` and cannot be reloaded as action windows, including
 when actor or winner fields are changed.
 
-Dependent modal choices, conditional attack bonuses and defeat-history source
-contracts have separate inspection descriptors. Those descriptors do not grant
-runtime admission. Conditional attacks still require an initial applicability
-gate and a live installed condition; defeat history still requires exact captured
-controller/type projections and versioned storage.
+Complete ordinary attack registrations can add literal conditional power after
+selection of the defender. A true initial applicability gate installs a live
+condition for the attack; a false gate installs nothing. The reviewed predicates
+read the selected attacker's traits, initiative, total resource counts, or traits
+shared with another friendly unit in either arena. Later trait/resource changes
+can deactivate and reactivate installed effects. Bounded grants retain their
+physical donor and initiation program, contribute to state hashing, and are
+removed on recipient departure or attack cleanup. Pending attacks cannot be
+imported as action windows. Early unconditional effects keep their existing
+cancellation and snapshot behavior.
+
+Dependent modal choices and defeat-history source contracts remain inspection
+descriptors without runtime admission. Defeat history still requires exact
+captured controller/type projections and versioned storage.

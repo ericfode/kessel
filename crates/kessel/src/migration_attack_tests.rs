@@ -292,24 +292,8 @@ fn migration_attack_contract_malformed_containers_return_false_without_panicking
     }
 }
 
-// A pure source contract must not silently turn an unimplemented attack into
-// an executable partial card. Remove this hold only with the runtime integration
-// and unignore the source-derived regressions below at the same checkpoint.
 #[test]
-fn migration_attack_pending_runtime_admission_is_explicit() {
-    let e = engine();
-    for code in PRINTINGS {
-        assert!(
-            !e.by_code.contains_key(code),
-            "{code}: source recognition is not runtime admission"
-        );
-        assert!(e.rejected_cards().unwrap().contains_key(code));
-    }
-}
-
-#[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
-fn migration_attack_runtime_printings_share_programs_without_duplicate_admission() {
+fn migration_attack_runtime_printings_have_equivalent_programs_without_duplicate_admission() {
     let e = engine();
     for code in PRINTINGS {
         assert!(
@@ -320,10 +304,17 @@ fn migration_attack_runtime_printings_share_programs_without_duplicate_admission
     }
     assert_eq!(e.definitions[e.by_code["SOR_227"] as usize].code, "SOR_227");
     assert_eq!(e.definitions[e.by_code["SHD_236"] as usize].code, "SHD_236");
-    assert_eq!(
-        e.definitions[e.by_code["SOR_227"] as usize].programs.card,
-        e.definitions[e.by_code["SHD_236"] as usize].programs.card
-    );
+    // First-class catalogue alias rows have separate numeric indices; their
+    // full serialized programs and canonical-only export must remain equivalent.
+    let alias = &e.definitions[e.by_code["SOR_227"] as usize].programs.card;
+    let canonical = &e.definitions[e.by_code["SHD_236"] as usize].programs.card;
+    assert_eq!(alias.len(), canonical.len());
+    for (&alias, &canonical) in alias.iter().zip(canonical) {
+        assert_eq!(
+            serde_json::to_value(e.program(alias)).unwrap(),
+            serde_json::to_value(e.program(canonical)).unwrap()
+        );
+    }
     let pool = e.compiled_pool().unwrap();
     assert!(pool["cards"]
         .as_array()
@@ -338,7 +329,6 @@ fn migration_attack_runtime_printings_share_programs_without_duplicate_admission
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_trait_bonuses_read_selected_attacker_and_cleanup() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -394,7 +384,6 @@ fn migration_attack_runtime_trait_bonuses_read_selected_attacker_and_cleanup() {
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_initiative_and_total_resource_boundaries() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -449,7 +438,6 @@ fn migration_attack_runtime_initiative_and_total_resource_boundaries() {
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_precision_fire_grants_early_saboteur_and_late_trooper_power() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -483,7 +471,6 @@ fn migration_attack_runtime_precision_fire_grants_early_saboteur_and_late_troope
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_cancel_retains_only_early_grants_and_snapshot_provenance() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -534,7 +521,6 @@ fn migration_attack_runtime_cancel_retains_only_early_grants_and_snapshot_proven
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_familiar_requires_another_friendly_matching_unit() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -563,7 +549,6 @@ fn migration_attack_runtime_familiar_requires_another_friendly_matching_unit() {
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_familiar_reads_live_gained_traits_and_both_arenas() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -610,7 +595,6 @@ fn migration_attack_runtime_familiar_reads_live_gained_traits_and_both_arenas() 
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_registered_familiar_condition_rechecks_after_ally_departure() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -658,7 +642,6 @@ fn migration_attack_runtime_registered_familiar_condition_rechecks_after_ally_de
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_false_initial_gate_never_installs_later_shared_trait_bonus() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -701,13 +684,22 @@ fn migration_attack_runtime_false_initial_gate_never_installs_later_shared_trait
                 "new matching Clone/Trooper does not revive a failed initial gate"
             );
             assert_eq!(e.power(&done, attacker, false), 3);
-            ma_roundtrip(&e, &done);
+            // The existing snapshot format omits retired upgrade-token slots.
+            // Check the observable roundtrip and all other hashed state after
+            // projecting only that inert Experience slot to its import default.
+            let snapshot = e.snapshot(&done);
+            let imported = e.load_state(&snapshot).unwrap();
+            assert_eq!(e.snapshot(&imported), snapshot);
+            assert_eq!(e.legal_actions(&imported), e.legal_actions(&done));
+            assert_eq!(done.card(experience).parent, 0);
+            let mut projected = done;
+            *projected.card_mut(experience) = Card::default();
+            assert_eq!(imported.zobrist(), projected.zobrist());
         }
     }
 }
 
 #[test]
-#[ignore = "requires integrated conditional native-attack registration and live-grant runtime"]
 fn migration_attack_runtime_registered_resource_condition_uses_live_total_counts() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
@@ -740,4 +732,133 @@ fn migration_attack_runtime_registered_resource_condition_uses_live_total_counts
             ma_roundtrip(&e, &done);
         }
     }
+}
+
+#[test]
+fn migration_attack_runtime_live_reactivation_and_physical_departure_boundaries() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let e = ma_engine(backend);
+        for seat in [Seat::P1, Seat::P2] {
+            let mut s = ma_start(&e, seat);
+            ma_resources(&e, &mut s, seat, 12);
+            let attacker = unit(&e, &mut s, seat, "SOR_131");
+            let ally = unit(&e, &mut s, seat, "SHD_085");
+            let base = s.player(seat.other()).base;
+            let (select, donor) = ma_play(&e, &mut s, "HMW_266");
+            let defender = ma_click(&e, &select, attacker);
+            let mut declaration = ma_click(&e, &defender, base);
+            assert_eq!(e.power(&declaration, attacker, true), 4);
+            // Exercise actual departure and re-entry helpers while the captured
+            // declaration window is paused. The same installed grant reactivates.
+            e.leave_play(&mut declaration, ally).unwrap();
+            assert_eq!(e.power(&declaration, attacker, true), 2);
+            assert!(declaration.player_mut(seat).discard.remove(ally));
+            e.add_arena(&mut declaration, ally).unwrap();
+            assert_eq!(e.power(&declaration, attacker, true), 4);
+            // The event donor is already in discard; its absence from play
+            // never replaces the selected physical attacker in the predicate.
+            assert!(declaration.player(seat).discard.contains(donor));
+            assert!(!e.in_arena(&declaration, donor));
+            e.leave_play(&mut declaration, attacker).unwrap();
+            assert_eq!(declaration.support.len, 0);
+            assert_eq!(e.native_attack_power(&declaration, attacker), 0);
+        }
+    }
+}
+
+#[test]
+fn migration_attack_runtime_bounded_provenance_hash_and_pending_import_guards() {
+    let e = ma_engine(RulesBackend::Auto);
+    let mut s = ma_start(&e, Seat::P1);
+    ma_resources(&e, &mut s, Seat::P1, 12);
+    let attacker = unit(&e, &mut s, Seat::P1, "SOR_131");
+    unit(&e, &mut s, Seat::P1, "SHD_085");
+    let base = s.player(Seat::P2).base;
+    let (select, _) = ma_play(&e, &mut s, "HMW_266");
+    let defender = ma_click(&e, &select, attacker);
+    let declared = ma_click(&e, &defender, base);
+    let index = declared.support.grants[..declared.support.len as usize]
+        .iter()
+        .position(|g| g.conditional_mask != 0)
+        .unwrap();
+    assert_eq!(
+        std::mem::size_of::<State>(),
+        crate::model::EXPECTED_INLINE_STATE_BYTES
+    );
+    let original = declared.zobrist();
+    for field in 0..3 {
+        let mut changed = declared;
+        let g = &mut changed.support.grants[index];
+        match field {
+            0 => g.conditional_program += 1,
+            1 => g.conditional_pc += 1,
+            _ => g.conditional_mask ^= 2,
+        }
+        assert_ne!(
+            changed.zobrist(),
+            original,
+            "conditional provenance field {field}"
+        );
+    }
+    let snapshot = e.snapshot(&declared);
+    assert!(snapshot["supportGrants"][index]
+        .get("conditionalAttack")
+        .is_some());
+    for marker in [json!(true), json!(false), json!(null)] {
+        let mut forged = snapshot.clone();
+        forged["actor"] = json!("p1");
+        forged["winner"] = json!("p1");
+        forged["supportAttackPending"] = marker;
+        assert!(e.load_state(&forged).is_err());
+    }
+    let mut forged = snapshot;
+    forged["actor"] = json!("p1");
+    forged["winner"] = json!("p1");
+    forged
+        .as_object_mut()
+        .unwrap()
+        .remove("supportAttackPending");
+    for descriptor in [json!(false), json!(null)] {
+        forged["supportGrants"][index]["conditionalAttack"] = descriptor;
+        assert!(e.load_state(&forged).is_err());
+    }
+}
+
+#[test]
+fn migration_attack_runtime_late_capacity_failure_is_transactional() {
+    let e = ma_engine(RulesBackend::Auto);
+    let mut s = ma_start(&e, Seat::P1);
+    ma_resources(&e, &mut s, Seat::P1, 12);
+    let attacker = unit(&e, &mut s, Seat::P1, "SHD_236");
+    let base = s.player(Seat::P2).base;
+    let (select, _) = ma_play(&e, &mut s, "SOR_168");
+    let mut defender = ma_click(&e, &select, attacker);
+    // Fill the existing bounded grant storage before late registration. The
+    // public immutable transition must return an error and preserve its input.
+    let early = defender.support.grants[0];
+    defender.support.grants.fill(early);
+    defender.support.len = MAX_SUPPORT_GRANTS as u8;
+    let before = e.snapshot(&defender);
+    let hash = defender.zobrist();
+    let error = e
+        .apply(&defender, &e.card_action(&defender, base))
+        .unwrap_err();
+    assert!(
+        error.contains("lasting-effect capacity exceeded"),
+        "{error}"
+    );
+    assert_eq!(e.snapshot(&defender), before);
+    assert_eq!(defender.zobrist(), hash);
+    assert!(!defender.card(attacker).exhausted);
+    let mut oversized = ma_click(&e, &select, attacker);
+    oversized.card_mut(attacker).phase_power = 65_533;
+    let original = oversized;
+    let error = e
+        .apply(&oversized, &e.card_action(&oversized, base))
+        .unwrap_err();
+    assert!(
+        error.contains("computed stats exceed compact capacity"),
+        "{error}"
+    );
+    assert_eq!(oversized, original);
 }
