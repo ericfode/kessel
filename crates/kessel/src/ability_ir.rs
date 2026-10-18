@@ -952,6 +952,17 @@ pub enum Effect {
         target: Target,
         amount: Expr,
     },
+    /// Plain ExhaustResourcesSystem effect; never a payment or a cost.
+    ExhaustResources {
+        target: Target,
+        amount: Expr,
+        #[serde(rename = "paymentType")]
+        payment_type: String,
+        #[serde(rename = "isCost")]
+        is_cost: bool,
+        #[serde(rename = "allowCostAdjustments")]
+        allow_cost_adjustments: bool,
+    },
     /// Exhaust ready resources as an effect (BB-8 pay-then-ready). Distinct from costs.
     PayResources {
         target: Target,
@@ -1149,6 +1160,7 @@ impl Effect {
             | Self::Heal { amount, target } | Self::Draw { amount, target }
             | Self::ReadyResources { amount, target } | Self::PayResources { amount, target }
             | Self::PayAdjustedResources { amount, target, .. }
+            | Self::ExhaustResources { amount, target, .. }
             | Self::CreateCreditToken { amount, target, .. }
             | Self::GiveShield { amount, target }
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
@@ -2777,7 +2789,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     GroupRequirements::ordinary(multiplicity(target,targets,array)?)
                 },
-                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -2966,6 +2978,10 @@ impl Program {
                 {
                     return Err("chosen-player resource ready amount must be literal 1..2".into());
                 }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::ExhaustResources { .. } => {
+                crate::resource_exhaust::amount(effect)?;
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::PayAdjustedResources { .. } => {
@@ -3222,6 +3238,7 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                crate::resource_exhaust::validate_entry(entry)?;
                 if let Some(named)=crate::named_play_contract::prepare(entry)? {
                     if catalogue.playable_card_titles.is_none() {return Err("card naming requires reviewed playableCardTitles registry".into());}
                     let program=Program {
