@@ -398,8 +398,8 @@ impl Expr {
                 if !scalar(&args[0]) {return Err("collection callback/value must return a supported scalar".into());}
                 sub(receiver)?;sub(&args[0])
             },
-            Self::HistoryQuery(q) => {if q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Err("history list requires exact length consumption".into())}else{Ok(())}},
-            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?==crate::phase_history::QueryKind::PlayedOpponentCount {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
+            Self::HistoryQuery(q) => {if q.kind()?.count() {Err("history list requires exact length consumption".into())}else{Ok(())}},
+            Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&q.kind()?.count() {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
             Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
@@ -817,9 +817,18 @@ impl TargetResolver {
         if self
             .zone
             .as_deref()
-            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand"].contains(&z))
+            .is_some_and(|z| !["arena", "base", "anyAttackable", "discard", "hand", "resource"].contains(&z))
         {
             return Err(format!("unsupported target zone {:?}", self.zone));
+        }
+        if self.zone.as_deref()==Some("resource") {
+            // Resource-zone selectors are the engine's ZoneName.Resource domain:
+            // physical unit/event/upgrade cards a player controls as resources.
+            // Kessel keeps the bounded untyped domain (the three printed sources
+            // all use WildcardCardType.Any) and rejects arena filters.
+            if self.card_type!="any" || self.arena.is_some() {
+                return Err("resource selectors require the any card type without an arena filter".into());
+            }
         }
         if let Some(p) = &self.predicate {
             p.validate()?;
@@ -1158,6 +1167,10 @@ pub struct Ability {
     pub attacker_must_survive: bool,
     #[serde(default)]
     pub coordinate: bool,
+    /// Bounty keyword registration metadata. Set only by the compiler's
+    /// `bounty-registration` lowering and validated exactly by [`crate::bounty`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bounty: Option<crate::bounty::Metadata>,
     pub title: String,
     #[serde(default)]
     pub context_title: Vec<Expr>,
@@ -1209,6 +1222,24 @@ pub(crate) fn resource_card_system_target(target:&Target)->bool {
         Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="topDeckCard" && args.is_empty()
             && matches!(receiver.original(),Expr::Ref{path} if path==&["player"])),
         _=>false,
+    }
+}
+/// The pinned `CardAttackLastingEffectSystem` can only attach its
+/// until-end-of-attack stat effect to a card that is participating in the
+/// resolving attack: its `updateEvent` Contract-asserts `target.activeAttack`
+/// and `canAffectInternal` additionally accepts units only. In IR terms that is
+/// the ability's own source (`self`, the helper's default `context.source`) or
+/// the attack's captured target list (`context.event.attack.getAllTargets()`,
+/// which this runtime evaluates to the attacking unit's unit defender). A
+/// chosen card, arbitrary card/player reference or base target has no asserted
+/// active attack, so it stays an explicit rejection instead of silently
+/// granting an effect the engine would not create.
+pub(crate) fn attack_duration_target(target:&Target)->bool {
+    match target {
+        Target::Name(name)=>name=="self",
+        Target::Expression(e)=>matches!(e.original(),Expr::Query{name,receiver,args} if name=="getAllAttackTargets" && args.is_empty()
+            && matches!(receiver.original(),Expr::Ref{path} if path==&["event","attack"])),
+        Target::ArenaList(_)=>false,
     }
 }
 fn top_deck_marker(v:&Value)->bool { contains(v,|v|v.get("target").is_some_and(|t|t.as_str()==Some("ownTopDeck"))) }
@@ -1795,6 +1826,11 @@ impl Program {
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
 
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
+        // Bounty is a keyword-owned registration, so the metadata and the trigger are
+        // one contract: either half alone would silently change the rule.
+        if ability.bounty.is_some() || ability.trigger == "bounty" {
+            if !crate::bounty::registration(ability) {return Err("bounty requires one reviewed keyword registration".into());}
+        }
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
             if !crate::death_hooks::registration(ability) {return Err("defeat hooks require one bounded typed root registration".into());}
             let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
@@ -1906,7 +1942,7 @@ impl Program {
             if literal_bytes > 1024 { return Err("context title aggregate literal bytes exceed capacity".into()); }
         }
 
-        if !["action", "whenPlayed", "whenDefeated", "onAttack", "onDefense", "whenAttackEnds", "event", "constant"]
+        if !["action", "whenPlayed", "whenDefeated", "onAttack", "onDefense", "whenAttackEnds", "event", "constant", "bounty"]
             .contains(&ability.trigger.as_str())
         {
             return Err(format!("unsupported runtime trigger {}", ability.trigger));
@@ -2069,6 +2105,7 @@ impl Program {
             self.compile_effect(&next.effect,1)?;self.instructions[skip]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
         }
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {return Err("event hooks cannot appear inside effect continuations".into());}
+        if depth != 0 && (ability.bounty.is_some() || ability.trigger == "bounty") {return Err("bounty registrations cannot appear inside effect continuations".into());}
         // One captured target, then one simultaneous two-attachment window. This
         // preserves both token identities before the resulting stat-death sweep.
         if depth==0 && crate::phase_history::ability(ability) && contains_weakness(&ability.effect) {
@@ -2154,8 +2191,11 @@ impl Program {
             self.compile_effect(&ability.if_you_do.as_ref().unwrap().effect,depth+1)?;
             self.instructions[at]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
         }
-        if top_deck_marker(&serde_json::to_value(ability).unwrap()) && (depth!=0||!reviewed_top_deck_registration(ability)){return Err("top-deck resource requires a sole bounded optional unit entry registration".into());}
-        if depth==0 && contains_resource(ability) && !reviewed_top_deck_registration(ability) {
+        // A reviewed Bounty registration owns its own top-deck resource move and its
+        // context player is the collector, so the play/event families below cannot
+        // describe it (Outlaw Corona).
+        if top_deck_marker(&serde_json::to_value(ability).unwrap()) && (depth!=0||!(reviewed_top_deck_registration(ability)||crate::bounty::registration(ability))){return Err("top-deck resource requires a sole bounded optional unit entry registration".into());}
+        if depth==0 && contains_resource(ability) && !(reviewed_top_deck_registration(ability)||crate::bounty::registration(ability)) {
             let header=!ability.requires_confirmation && !ability.coordinate && ability.context_title.is_empty() && ability.costs.is_empty() && ability.target_resolver.is_none() && ability.target_resolvers.is_empty() && ability.condition.is_none() && ability.then.is_none();
             let event=ability.trigger=="event" && !ability.optional && resource_self(&ability.effect) && ability.if_you_do.is_none();
             let death=ability.trigger=="whenDefeated" && ability.optional && ability.if_you_do.is_none() && matches!(&ability.effect,Effect::Conditional{condition:Expr::Binary{op,left,right},on_true,on_false} if op=="===" && matches!(left.as_ref(),Expr::Ref{path} if path.iter().map(String::as_str).collect::<Vec<_>>()==["source","zoneName"]) && matches!(right.as_ref(),Expr::Const{value} if value.as_str()==Some("discard")) && resource_self(on_true) && on_false.as_deref().is_some_and(|e|matches!(e,Effect::NoAction)));
@@ -2489,6 +2529,10 @@ impl Program {
                 Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
+                    // Grouped stats resolve through the phase-stat prepared windows;
+                    // an attack-duration grant inside a group would silently use the
+                    // wrong expiry, so it stays an explicit rejection.
+                    if matches!(primitive, Effect::ModifyStats { duration, .. } if duration=="attack") { return Err("grouped stat modifications require phase duration".into()); }
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
                     let amount = match primitive { Effect::Damage {amount,..} | Effect::Heal {amount,..} | Effect::GiveShield {amount,..} | Effect::GiveExperience {amount,..} | Effect::GiveWeakness {amount,..} | Effect::GiveAdvantage {amount,..} | Effect::GainKeyword {amount,..} => Some(amount), _ => None };
                     if array && amount.is_some_and(target_dependent) { return Err("array-dependent group amount is unsupported".into()); }
@@ -2715,19 +2759,38 @@ impl Program {
             Effect::ReturnToHand { target } => { target.validate()?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::ModifyStats { target, power, hp, duration } => {
                 if matches!(target,Target::ArenaList(_)) && depth!=0 {return Err("nested arena-list modifiers require explicit continuation witnesses".into());}
-                if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }
-                if let Target::ArenaList(list)=target {
-                    if self.trigger=="onAttack" && list.token_unit_attack_scope() {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
-                }else{target.validate()?;}
-                if matches!(target,Target::ArenaList(_)) {
-                    // Unary plus is emitted by signed source literals. Normalize only this
-                    // bounded stat scope; general expression unary-plus remains rejected.
-                    fn normalized(e:&Expr)->Expr {match e {Expr::Unary{op,value} if op=="+" && matches!(value.as_ref(),Expr::Const{value} if value.as_i64().is_some_and(|n|(0..=65535).contains(&n)))=>*value.clone(),_=>e.clone()}}
-                    let power=normalized(power);let hp=normalized(hp);power.validate_number()?;hp.validate_number()?;
-                    self.instructions.push(Instruction::Apply(Effect::ModifyStats{target:target.clone(),power,hp,duration:duration.clone()}));
-                }else {
-                    if duration=="persistent" {power.live_stat_bounds()?;hp.live_stat_bounds()?;}else{power.validate_number()?;hp.validate_number()?;}
+                if duration=="attack" {
+                    // Pinned CardAttackLastingEffectSystem: one unit-only ongoing
+                    // stat effect with Duration.UntilEndOfAttack. Only an attack-
+                    // triggered registration observes that window, the target must
+                    // be one the engine can attach to (it Contract-asserts
+                    // `target.activeAttack`), and the effect is not part of any
+                    // simultaneous group (group execution would otherwise re-use
+                    // phase-stat semantics; validate_group rejects it).
+                    if self.trigger!="onAttack" {return Err("attack stat modifications require an On Attack trigger".into());}
+                    if !attack_duration_target(target) {
+                        return Err("attack stat modifications require self or the current attack's target list".into());
+                    }
+                    power.validate_number()?;hp.validate_number()?;
+                    // `attack_duration_target` already checked the query's exact
+                    // name, empty arguments and event.attack receiver, so the
+                    // attack target list is not admitted anywhere else.
                     self.instructions.push(Instruction::Apply(effect.clone()));
+                } else {
+                    if duration != "phase" && !(self.trigger=="constant" && duration=="persistent") { return Err("only phase stat modifications execute".into()); }
+                    if let Target::ArenaList(list)=target {
+                        if self.trigger=="onAttack" && list.token_unit_attack_scope() {list.receiver.validate()?;list.predicate.validate()?;} else {list.validate_phase_stats()?;}
+                    }else{target.validate()?;}
+                    if matches!(target,Target::ArenaList(_)) {
+                        // Unary plus is emitted by signed source literals. Normalize only this
+                        // bounded stat scope; general expression unary-plus remains rejected.
+                        fn normalized(e:&Expr)->Expr {match e {Expr::Unary{op,value} if op=="+" && matches!(value.as_ref(),Expr::Const{value} if value.as_i64().is_some_and(|n|(0..=65535).contains(&n)))=>*value.clone(),_=>e.clone()}}
+                        let power=normalized(power);let hp=normalized(hp);power.validate_number()?;hp.validate_number()?;
+                        self.instructions.push(Instruction::Apply(Effect::ModifyStats{target:target.clone(),power,hp,duration:duration.clone()}));
+                    }else {
+                        if duration=="persistent" {power.live_stat_bounds()?;hp.live_stat_bounds()?;}else{power.validate_number()?;hp.validate_number()?;}
+                        self.instructions.push(Instruction::Apply(effect.clone()));
+                    }
                 }
             }
             Effect::MaximumPowerExperience{..}=>return Err("maximum capture cannot be nested or used as a primitive".into()),
@@ -2859,6 +2922,9 @@ impl Catalogue {
                 if basezone_relevant&&activation_contract::base_zone_source(entry).is_none(){return Err("base-zone ongoing source requires exact reviewed base or two-side leader shape".into());}
                 if contains_arena_scalar(&entry["abilities"]) && arena_query_source_kind(entry).is_none() {return Err("arena scalar query requires exact reviewed complete source shape".into());}
                 let sides: Sides = crate::attached_registration::sides(entry)?;
+                if crate::bounty::marker(entry) && !crate::bounty::entry(entry, &sides) {
+                    return Err("Bounty requires exactly one reviewed registration for a printed own-line keyword on an ordinary unit source".into());
+                }
                 if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(has_disclose) {
                     let unit=entry["baseClass"]=="NonLeaderUnitCard"&&crate::admission::OrdinarySource::from_entry(entry)==Some(crate::admission::OrdinarySource::Unit)&&(1..=2).contains(&sides.card.len())&&sides.card.iter().all(|a|["whenPlayed","whenDefeated","onAttack","onDefense"].contains(&a.trigger.as_str())&&disclose_registration(a));
                     let event=entry["baseClass"]=="EventCard"&&crate::admission::OrdinarySource::from_entry(entry)==Some(crate::admission::OrdinarySource::Event)&&sides.card.len()==1&&sides.card[0].trigger=="event"&&disclose_registration(&sides.card[0]);
@@ -3077,8 +3143,18 @@ impl Catalogue {
                 if sides.leader.iter().chain(&sides.unit).any(|a|contains_force(&a.effect)) || sides.card.iter().any(|a|contains_force(&a.effect) && !((entry["baseClass"]=="NonLeaderUnitCard" && ["whenPlayed","whenDefeated","onAttack"].contains(&a.trigger.as_str())) || (entry["baseClass"]=="EventCard" && a.trigger=="event") || upgrade_force(a))) {return Err("Force registration requires ordinary unit/event or bounded upgrade play-heal metadata".into());}
                 if sides.leader.iter().chain(&sides.unit).any(contains_force_presence) || sides.card.iter().any(|a|contains_force_presence(a) && (entry["baseClass"]!="NonLeaderUnitCard")) {return Err("Force presence requires ordinary unit card-side metadata".into());}
                 let top_deck=["abilities","attachCondition","piloting"].iter().any(|key|top_deck_marker(&entry[*key]));
-                if top_deck && (sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!reviewed_top_deck_registration(&sides.card[0])||!(if imperial_resource_continuation(&sides.card[0])||simultaneous_resource_registration(&sides.card[0]) {entry["baseClass"]=="EventCard"&&entry["card"]["unique"]==false}else{entry["baseClass"]=="NonLeaderUnitCard"})||!complete_plain_source_metadata||!no_keywords) {return Err("top-deck resource requires complete sole optional ordinary unit metadata".into());}
-                if !top_deck && (sides.leader.iter().chain(&sides.unit).any(contains_resource) || sides.card.iter().any(|a|contains_resource(a) && !((entry["baseClass"]=="NonLeaderUnitCard" && a.trigger=="whenDefeated") || (entry["baseClass"]=="EventCard" && a.trigger=="event")))) {return Err("resourceCard requires ordinary unit death/event metadata".into());}
+                // A reviewed Bounty registration owns its own top-deck resource move
+                // (e.g. Outlaw Corona). Its context player is the collector, so the
+                // play/event families below cannot describe it; every other top-deck
+                // or resourceCard form still needs one of those reviewed contracts.
+                let bounty_owned=|marker:&dyn Fn(&Ability)->bool| {
+                    sides.card.iter().any(|a|marker(a))
+                        && sides.card.iter().filter(|a|marker(a)).all(|a|crate::bounty::registration(a))
+                };
+                let bounty_top_deck=bounty_owned(&|a|top_deck_marker(&serde_json::to_value(a).unwrap()));
+                if top_deck && !bounty_top_deck && (sides.card.len()!=1||!sides.unit.is_empty()||!sides.leader.is_empty()||!reviewed_top_deck_registration(&sides.card[0])||!(if imperial_resource_continuation(&sides.card[0])||simultaneous_resource_registration(&sides.card[0]) {entry["baseClass"]=="EventCard"&&entry["card"]["unique"]==false}else{entry["baseClass"]=="NonLeaderUnitCard"})||!complete_plain_source_metadata||!no_keywords) {return Err("top-deck resource requires complete sole optional ordinary unit metadata".into());}
+                let bounty_resource=bounty_owned(&|a|contains_resource(a));
+                if !top_deck && !bounty_resource && (sides.leader.iter().chain(&sides.unit).any(contains_resource) || sides.card.iter().any(|a|contains_resource(a) && !((entry["baseClass"]=="NonLeaderUnitCard" && a.trigger=="whenDefeated") || (entry["baseClass"]=="EventCard" && a.trigger=="event")))) {return Err("resourceCard requires ordinary unit death/event metadata".into());}
                 let coordinates=sides.card.iter().filter(|a|a.coordinate).count();
                 if sides.leader.iter().chain(&sides.unit).any(|a|a.coordinate) || coordinates>1 || (coordinates==1 && (entry["baseClass"]!="NonLeaderUnitCard" || entry["keywordValues"]["coordinate"].as_u64()!=Some(1))) {return Err("Coordinate requires exactly one printed nonleader card-side registration".into());}
                 if entry["keywordValues"].get("coordinate").is_some() && coordinates!=1 {return Err("printed Coordinate must have one implemented registration".into());}

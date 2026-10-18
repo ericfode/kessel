@@ -118,6 +118,8 @@ fn evaluate_collection(mut receiver:Eval,name:&str,mut callback:impl FnMut(CardI
 enum Trigger {
     Keyword(u8),
     Program(usize, u16),
+    /// A Plot keyword ability offered by the leader-deploy window.
+    Plot(CardId),
 }
 
 fn token_unit_code(token_type: &str) -> Option<&'static str> {
@@ -298,6 +300,83 @@ fn reviewed_force_entry(entry:&Value)->bool {
   "internalName": "the-force"
 }"#).expect("reviewed Force metadata");
     entry["sourceHash"]=="3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6" && entry["baseClass"]=="TokenCard" && entry["card"]==metadata && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["keywordValues"]==serde_json::json!({}) && entry["attachCondition"].is_null()
+}
+
+/// One printed side of an intrinsic numeric Exploit keyword, parsed exactly as
+/// `KeywordHelpers.parseNumericKeywordValueIfEnabled` does with
+/// `/(?:^|(?:\n))Exploit ([\d]+)/g`: only a line-initial occurrence counts, a
+/// second own-line occurrence on the same side is an engine initialization
+/// error, and the parse continues after the captured digits. This is a
+/// source-derived printed value, not a heuristic: provider keyword metadata
+/// mentions a keyword in mid-line ability text ("gains Exploit 1") without
+/// creating an intrinsic instance, and such a side contributes zero.
+fn printed_exploit_side(text: &str) -> Result<u16, String> {
+    let bytes = text.as_bytes();
+    let mut hits = 0u16;
+    let mut total = 0u32;
+    let mut index = 0usize;
+    while index < bytes.len() {
+        let line_initial = index == 0 || bytes[index - 1] == b'\n';
+        if line_initial && bytes[index..].starts_with(b"Exploit ") {
+            let start = index + "Exploit ".len();
+            let mut end = start;
+            while end < bytes.len() && bytes[end].is_ascii_digit() { end += 1; }
+            if end > start {
+                hits = hits.checked_add(1).ok_or("printed Exploit occurrence count overflow")?;
+                if hits > 1 {
+                    return Err("multiple printed Exploit values on one printed side are unsupported".into());
+                }
+                let value: u32 = text[start..end]
+                    .parse()
+                    .map_err(|_| "printed Exploit amount exceeds bounded capacity")?;
+                total = total.checked_add(value).ok_or("printed Exploit total exceeds bounded capacity")?;
+                index = end;
+                continue;
+            }
+        }
+        index += 1;
+    }
+    Ok(total as u16)
+}
+
+/// Sum the intrinsic Exploit instances over the printed sides the pinned engine
+/// parses for numeric keywords: a leader's `deployBox` and `text`, or a
+/// non-leader's `text` only. Numeric instances are summed by `dedupeKeywords`,
+/// so two sides can each contribute one amount. Values above the bounded
+/// keyword capacity stay explicit rejections.
+fn printed_exploit_total(info: &CardInfo) -> Result<u16, String> {
+    let sides: [Option<&str>; 2] = if info.is("leader") {
+        [info.deploy_box.as_deref(), info.text.as_deref()]
+    } else {
+        [None, info.text.as_deref()]
+    };
+    let mut total = 0u32;
+    for side in sides.into_iter().flatten() {
+        total = total
+            .checked_add(u32::from(printed_exploit_side(side)?))
+            .ok_or("printed Exploit total exceeds bounded capacity")?;
+    }
+    if total > 1000 { return Err("printed Exploit amount exceeds bounded keyword capacity".into()); }
+    Ok(total as u16)
+}
+
+/// Distributed healing needs its prompted amount re-applied after an event cost
+/// is committed, but the Exploit payment boundary suspends before the event's
+/// commit continuation. Admission keeps that combination explicit rather than
+/// resuming the wrong continuation.
+fn effect_contains_distribute_healing(effect: &Effect) -> bool {
+    match effect {
+        Effect::DistributeHealing { .. } => true,
+        Effect::Sequence { effects } | Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => {
+            effects.iter().any(effect_contains_distribute_healing)
+        }
+        Effect::Conditional { on_true, on_false, .. } => {
+            effect_contains_distribute_healing(on_true)
+                || on_false.as_ref().is_some_and(|e| effect_contains_distribute_healing(e))
+        }
+        Effect::Select { effect, .. } => effect_contains_distribute_healing(effect),
+        _ => false,
+    }
 }
 
 impl Engine {
@@ -488,8 +567,26 @@ impl Engine {
                     }
                     }
                 } else if info.is("base") {
+                    // Pinned DataVault/ThermalOscillator are plain BaseCard
+                    // subclasses whose source comment reads "no implementation
+                    // here, the 'implementation' is in DeckValidator": their
+                    // printed minimum-deck-size sentence is a deck-construction
+                    // rule, not an in-game ability, and a position is a caller-
+                    // supplied deck. Admit exactly those printed sentences on a
+                    // base with no registered programs; any other non-plain base
+                    // still needs the reviewed base-zone ongoing source.
+                    fn construction_only(text: &str) -> bool {
+                        matches!(
+                            text,
+                            "Your minimum deck size is increased by 10 cards."
+                                | "Your minimum deck size is decreased by 5 cards."
+                        )
+                    }
+                    let text = info.text.as_deref().unwrap_or("");
+                    let construction_only =
+                        programs.card.is_empty() && construction_only(text.trim());
                     if !info.hp.is_some_and(|n| (1..=1000).contains(&n))
-                        || ((!info.text.as_deref().unwrap_or("").trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base))
+                        || ((!text.trim().is_empty()||!programs.card.is_empty())&&base_zone_source(entry)!=Some(Source::Base)&&!construction_only)
                     {
                         return Err("only plain bases with bounded positive HP execute".into());
                     }
@@ -517,13 +614,98 @@ impl Engine {
                 let coordinate_programs=programs.card.iter().chain(&programs.unit).chain(&programs.leader).filter(|&&id|catalogue.programs[id as usize].coordinate).count();
                 let coordinate_value=entry["keywordValues"].get("coordinate");
                 if coordinate_names>1||coordinate_names!=coordinate_programs||if coordinate_names==0 {coordinate_value.is_some()}else{coordinate_value.and_then(Value::as_u64)!=Some(1)} {return Err("Coordinate printed metadata, keyword value and registration count must agree at zero or one".into());}
+                // Plot and Smuggle are alternate-play-from-resources keywords.
+                // The compiler leaves keywordValues empty for them, and the
+                // metadata keyword list is a mention list, so derive the exact
+                // intrinsic instance with the pinned engine's own printed-text
+                // regexes (KeywordHelpers.getRegexForKeyword) and require one
+                // own-printed occurrence. Mention-only text is not a keyword.
+                let keyword_mentions = |name: &str| -> usize {
+                    entry["card"]["keywords"].as_array().into_iter().flatten().filter(|k| k.as_str()==Some(name)).count()
+                };
+                let printed_sides: Vec<&str> = if info.is("leader") {
+                    vec![
+                        entry["card"]["deployBox"].as_str().unwrap_or(""),
+                        entry["card"]["text"].as_str().unwrap_or(""),
+                    ]
+                } else {
+                    vec![entry["card"]["text"].as_str().unwrap_or("")]
+                };
+                let plot_instance = super::play_from_resources::plot_instance(keyword_mentions("plot"), &printed_sides)?;
+                let smuggle_instance = super::play_from_resources::smuggle_instance(keyword_mentions("smuggle"), &printed_sides)?;
+                if info.is("leader") && (plot_instance || smuggle_instance.is_some()) {
+                    return Err("Plot/Smuggle cannot be printed on a leader: PlotAbility asserts non-leaders and leaders never enter the resource zone".into());
+                }
                 let mut flags = 0;
                 let mut raid = 0;
                 let mut restore = 0;
+                let mut exploit = 0;
+                let mut exploit_instances = 0u8;
                 for keyword in entry["card"]["keywords"].as_array().into_iter().flatten() {
                     let name = keyword.as_str().ok_or("invalid keyword")?;
+                    if name=="plot" || name=="smuggle" {
+                        // Derived above; a metadata mention alone is not an instance.
+                        continue;
+                    }
                     if name=="coordinate" {
                         if entry["keywordValues"][name].as_u64()!=Some(1) || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].coordinate).count()!=1 || info.is("leader") {return Err("unimplemented printed Coordinate registration".into());}
+                        continue;
+                    }
+                    if name=="bounty" {
+                        // Bounty is an ability-definition keyword: the compiler never
+                        // emits a keywordValue for it (compiler/build.js omits
+                        // ability-definition keywords), and provider metadata lists
+                        // mentions too (e.g. "If an enemy unit has a Bounty").
+                        // `Catalogue::load` already bound the printed own-line count to
+                        // the reviewed registrations, so a mention stays metadata-only
+                        // and a printed instance is executable here.
+                        if crate::bounty::printed_count(entry)==0 { continue; }
+                        if info.is("leader") || programs.card.iter().filter(|&&id|catalogue.programs[id as usize].trigger=="bounty").count()!=1 {return Err("printed Bounty requires exactly one reviewed unit-side registration".into());}
+                        flags |= BOUNTY;
+                        continue;
+                    }
+                    if name == "exploit" {
+                        // Numeric Exploit is not lowered into keywordValues, so
+                        // the intrinsic amount comes from the printed text with
+                        // the pinned engine's own per-side parse. Zero is a
+                        // valid outcome: provider keyword metadata also lists
+                        // mid-line mentions, which create no intrinsic instance.
+                        // A duplicated metadata instance would make the engine's
+                        // dedupeKeywords sum the numeric keyword twice, so keep
+                        // it an explicit rejection instead of overwriting here.
+                        exploit_instances = exploit_instances.checked_add(1).ok_or("printed Exploit instance count overflow")?;
+                        if exploit_instances > 1 {
+                            return Err("duplicate intrinsic Exploit keyword instance is unsupported".into());
+                        }
+                        let amount = printed_exploit_total(&info)?;
+                        if entry["keywordValues"].get(name).is_some_and(|v| v.as_u64() != Some(amount as u64)) {
+                            return Err("printed Exploit differs from catalogue keyword value".into());
+                        }
+                        if amount > 0 {
+                            // An upgrade pays after its attach target is chosen;
+                            // the current runtime has no exploit payment hook in
+                            // that continuation. The catalogue has no such card.
+                            if info.is("upgrade") {
+                                return Err("Exploit upgrades require the attach-before-payment boundary".into());
+                            }
+                            // Distributed healing owns a prompted continuation
+                            // that this runtime has not witnessed after an
+                            // Exploit settlement; keep that combination explicit.
+                            // The two exploit events in the catalogue omit it.
+                            let distributes = programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|&id| {
+                                catalogue.programs[id as usize].instructions.iter().any(|instruction| match instruction {
+                                    Instruction::Apply(effect)
+                                    | Instruction::Group(effect)
+                                    | Instruction::NamedGroup(effect)
+                                    | Instruction::NamedChooserGroup { effect, .. } => effect_contains_distribute_healing(effect),
+                                    _ => false,
+                                })
+                            });
+                            if info.is("event") && distributes {
+                                return Err("Exploit events with distributed healing require a dedicated post-payment witness".into());
+                            }
+                        }
+                        exploit = amount;
                         continue;
                     }
                     if !crate::ability_ir::CORE_KEYWORDS.contains(&name) { return Err(format!("unimplemented runtime keyword {name}")); }
@@ -592,8 +774,11 @@ impl Engine {
                     flags,
                     raid,
                     restore,
+                    exploit,
                     aspects,
                     programs,
+                    plot: plot_instance,
+                    smuggle: smuggle_instance,
                     traits: entry["card"]["traits"]
                         .as_array()
                         .into_iter()
@@ -799,10 +984,12 @@ impl Engine {
                 if !(0..=65535).contains(&self.raw_keyword_amount(s, id, keyword)) { return Err(format!("computed {keyword} exceeds bounded keyword capacity")); }
             }
             let (constant_power, constant_hp) = self.constant_stats(s, id);
+            let (attack_power, attack_hp) = self.attack_stat_bonus(s, id);
             let power = d.info.power.unwrap_or(0) as i64
                 + self.token_count(s, s.card(id).experience) as i64
                 + s.card(id).phase_power as i64
                 + constant_power + self.upgrade_stats(s,id).0 + self.native_attack_power(s,id)
+                + attack_power
                 + if self.keyword_amount(s, id, "grit") > 0 {
                     s.card(id).damage as i64
                 } else {
@@ -812,7 +999,8 @@ impl Engine {
             let hp = d.info.hp.unwrap_or(0) as i64
                 + self.token_count(s, s.card(id).experience) as i64
                 + s.card(id).phase_hp as i64
-                + constant_hp + self.upgrade_stats(s,id).1;
+                + constant_hp + self.upgrade_stats(s,id).1
+                + attack_hp;
             if power > 65535 || hp > 65535 {
                 return Err("computed stats exceed compact capacity".into());
             }
@@ -991,6 +1179,13 @@ impl Engine {
             .any(|(_, e)| matches!(e, Effect::DealsCombatDamageFirst { target: Target::Name(n), duration } if n == "self" && duration == "persistent"))
     }
     pub(super) fn has_keyword(&self, s: &State, target: CardId, keyword: &str) -> bool {
+        // Printed Bounty is an ability-definition keyword instance: it answers keyword
+        // queries (e.g. "If an enemy unit has a Bounty") but is not part of the
+        // numeric/flag inventory. No supported effect grants or removes it, so the
+        // reviewed definition flag is the whole answer.
+        if keyword == "bounty" {
+            return self.def(s, target).flags & BOUNTY != 0;
+        }
         let Some(index) = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| *k == keyword) else { return false; };
         if s.card(target).lost_keyword_mask() & (1 << index) != 0 { return false; }
         let effects = self.constant_effects_matching(s, target, ConstantScope::Keyword(Some(keyword)));
@@ -1005,7 +1200,7 @@ impl Engine {
     pub(super) fn effective_flags(&self, s: &State, target: CardId) -> u16 {
         crate::ability_ir::CORE_KEYWORDS.iter().enumerate().filter(|(i,_)| crate::ability_ir::numeric_keyword_slot(*i).is_none()).fold(0, |flags, (i, k)| flags | if self.keyword_amount(s, target, k) > 0 { 1 << i } else { 0 })
     }
-    fn raw_hp(&self,s:&State,id:CardId)->i64 {self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_hp as i64+self.constant_stats(s,id).1+self.upgrade_stats(s,id).1}
+    fn raw_hp(&self,s:&State,id:CardId)->i64 {self.def(s,id).info.hp.unwrap_or(0) as i64+self.token_count(s,s.card(id).experience) as i64+s.card(id).phase_hp as i64+self.constant_stats(s,id).1+self.upgrade_stats(s,id).1+self.attack_stat_bonus(s,id).1}
     pub fn hp(&self,s:&State,id:CardId)->u16 {u16::try_from(self.raw_hp(s,id).max(0)).expect("HP exceeds validated compact capacity")}
     pub(super) fn program(&self, id: u16) -> &Program {
         &self.catalogue.as_ref().expect("IR catalogue").programs[id as usize]
@@ -1052,6 +1247,13 @@ impl Engine {
     fn active_attack_pair(&self,s:&State,id:CardId)->(CardId,CardId) {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
+    /// The attack currently resolving, independent of which card owns the
+    /// observing ability. `getAllAttackTargets` reads the event's attack and the
+    /// attack-duration granted-effect store checks participation.
+    pub(super) fn current_attack_pair(&self,s:&State)->(CardId,CardId) {
+        if s.attack_source!=0 {return (s.attack_source,s.attack_defender);}
+        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))
+    }
     pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
         if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_attacker_departed}else{s.attack_defender_departed};}
         s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_attacker_departed}else{f.context.attack_defender_departed})
@@ -1074,26 +1276,67 @@ impl Engine {
             None => self.definitions.iter().any(predicate),
         }
     }
-    pub(super) fn needs_phase_history(&self)->bool {
-        fn expression(e:&Expr)->bool {match e.original() {
-            Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
-            Expr::Binary{left,right,..}=>expression(left)||expression(right),
-            _=>false,
-        }}
+    /// Scan the compiled program for phase-history reads. The scan is over the
+    /// serialized instructions so a history consumer is found wherever it sits
+    /// (condition, selector predicate, or an effect amount such as `length`),
+    /// not only in the two instruction shapes that used to carry them.
+    fn needs_history(&self, wanted: impl Fn(crate::phase_history::QueryKind) -> bool + Copy) -> bool {
+        fn found(value: &Value, wanted: impl Fn(crate::phase_history::QueryKind) -> bool + Copy) -> bool {
+            match value {
+                Value::Object(o) => {
+                    if o.get("kind").and_then(Value::as_str) == Some("historyQuery") {
+                        // The expression carries the tag; the Query fields are inline.
+                        let mut fields = o.clone();
+                        fields.remove("kind");
+                        if serde_json::from_value::<crate::phase_history::Query>(Value::Object(fields))
+                            .is_ok_and(|q| q.kind().is_ok_and(wanted))
+                        {
+                            return true;
+                        }
+                    }
+                    o.values().any(|v| found(v, wanted))
+                }
+                Value::Array(a) => a.iter().any(|v| found(v, wanted)),
+                _ => false,
+            }
+        }
         self.catalogue.is_some() && self.selected_definition_any(|definition| {
             let p = &definition.programs;
-            p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id|self.program(id).instructions.iter().any(|i|match i {Instruction::Conditional{condition,..}=>expression(condition),Instruction::Select(r)=>r.predicate.as_ref().is_some_and(expression),_=>false}))
+            p.card.iter().chain(&p.leader).chain(&p.unit).any(|&id| {
+                // A constant registration keeps its condition on the program,
+                // outside the instruction list, so scan the complete program.
+                serde_json::to_value(self.program(id))
+                    .ok()
+                    .is_some_and(|v| found(&v, wanted))
+            })
         })
+    }
+    pub(super) fn needs_phase_history(&self)->bool { self.needs_history(|_|true) }
+    /// The defeat counters are their own export capability: a snapshot that does
+    /// not record them cannot support a selected card that reads them.
+    pub(super) fn needs_defeat_history(&self)->bool {
+        self.needs_history(|kind|kind.defeat_projection())
+    }
+    /// Resolve one exact `ref player`/`ref opponent` controller argument.
+    fn history_seat(player:Seat,side:crate::phase_history::PlayerRef)->usize {
+        use crate::phase_history::PlayerRef;
+        if side==PlayerRef::Opponent {player.other().index()} else {player.index()}
     }
     fn history_boolean(&self,s:&State,source:CardId,card:CardId,q:&crate::phase_history::Query)->bool {
         use crate::model::PhaseHistory;use crate::phase_history::QueryKind;
         assert!(s.phase_history.exact,"phase history must be exact before execution");
         let player=s.card(source).owner;
-        match q.admitted_kind() {
+        let kind=q.admitted_kind();
+        if kind.defeat_projection() {assert!(s.phase_history.defeat_exact,"defeat phase history must be exact before execution");}
+        match kind {
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
             QueryKind::PlayedForce => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,"force")),
-            QueryKind::PlayedOpponentCount => unreachable!("history list requires length consumer"),
+            // The pinned watcher stores one entry per defeat; these projections
+            // are existential over entries, so a per-controller counter is exact.
+            QueryKind::DefeatedUnit(side) => s.phase_history.defeated_counts[Self::history_seat(player,side)]>0,
+            QueryKind::DefeatedWhileAttacking(side) => s.phase_history.defeated_while_attacking_counts[Self::history_seat(player,side)]>0,
+            QueryKind::PlayedOpponentCount | QueryKind::DefeatedUnitCount(_) => unreachable!("history list requires length consumer"),
         }
     }
     fn eval(&self, s: &State, source: CardId, target: CardId, e: &Expr) -> Eval {
@@ -1126,7 +1369,7 @@ impl Engine {
         match e {
             Expr::Compiled(_) => unreachable!("compiled expression handled above"),
             Expr::HistoryQuery(q) => Eval::Bool(self.history_boolean(s,source,card,q)),
-            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(_),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");Eval::Number(s.phase_history.play_counts[player.other().index()] as i64)},
+            Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),..} => {assert!(s.phase_history.exact,"phase history must be exact before execution");let kind=q.admitted_kind();if kind.defeat_projection(){assert!(s.phase_history.defeat_exact,"defeat phase history must be exact before execution");}Eval::Number(match kind {crate::phase_history::QueryKind::PlayedOpponentCount=>s.phase_history.play_counts[player.other().index()] as i64,crate::phase_history::QueryKind::DefeatedUnitCount(side)=>s.phase_history.defeated_counts[Self::history_seat(player,side)] as i64,_=>unreachable!("only count history kinds are length consumers")})},
             Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
@@ -1323,6 +1566,14 @@ impl Engine {
                 receiver,
                 args,
             } => {
+                if name=="getAllAttackTargets" {
+                    // `context.event.attack.getAllTargets()`: the attack's captured
+                    // target list. Kessel admits one target per attack, and the
+                    // pinned lasting-effect system's own canAffect filter accepts
+                    // units only, so a unit still in play is the complete list.
+                    let (_,defender)=self.current_attack_pair(s);
+                    return Eval::Array(if defender!=0 && self.in_arena(s,defender) {vec![Eval::Card(defender)]}else{vec![]});
+                }
                 if name=="leaderTraits" {
                     let Eval::Player(player)=sub(receiver) else {return Eval::Null;};
                     let mut traits=std::collections::BTreeSet::new();
@@ -1449,6 +1700,8 @@ impl Engine {
                 p.discard.as_slice().to_vec()
             } else if r.zone.as_deref() == Some("hand") {
                 p.hand.as_slice().to_vec()
+            } else if r.zone.as_deref() == Some("resource") {
+                p.resources.as_slice().to_vec()
             } else if r.is_upgrade_domain() {
                 (1..s.next_id).filter(|id|s.card(*id).owner==seat && self.attached_in_play(s,*id)).collect()
             } else {
@@ -1596,13 +1849,13 @@ impl Engine {
                         Effect::Exhaust { .. } => {
                             self.exhaustible_card(s,id) && (!require_change || !s.card(id).exhausted)
                         }
-                        Effect::Defeat { .. } => unit || self.attached_in_play(s,id),
+                        Effect::Defeat { .. } => unit || self.attached_in_play(s,id) || self.resource_zone_card(s,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="ownTopDeck" => self.resource_top_deck_eligible(&context,id),
                         Effect::ResourceCard {target:Target::Name(n)} if n=="self" => self.resource_source_eligible(&context,id) && (!require_change || !s.player(s.card(id).owner).resources.contains(id)),
                         Effect::ResourceCard { .. } => self.resource_card_eligible(&context,id),
                         Effect::ReturnToHand { .. } => {
                             !self.def(s, id).info.is("leader")
-                                && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id))
+                                && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id) || self.resource_zone_card(s,id))
                         }
                         Effect::ModifyStats { .. } | Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => unit,
                         Effect::GiveShield { .. } | Effect::GiveExperience { .. } | Effect::GiveWeakness{..}|Effect::GiveAdvantage{..} => {
@@ -1720,19 +1973,23 @@ impl Engine {
             _ => self.instructions_can_affect(s, source, 0, p, 0, usize::MAX, require_change),
         }
     }
-    pub(super) fn program_menu_title(&self, s: &State, source: CardId, p: u16) -> String {
+    /// The registration's displayed title, resolved for the current context. The
+    /// effect-availability suffix is a separate decision (`program_menu_title`).
+    pub(super) fn program_title(&self, s: &State, source: CardId, p: u16) -> String {
         let program = self.program(p);
-        let title = if program.context_title.is_empty() { program.title.clone() } else {
-            program.context_title.iter().map(|fragment| match self.eval(s, source, s.ability_target, fragment) {
-                Eval::Text(value) => value,
-                Eval::Number(value) => value.to_string(),
-                Eval::Bool(value) => value.to_string(),
-                Eval::Null => "null".into(),
-                _ => "[object Object]".into(),
-            }).collect::<String>()
-        };
+        if program.context_title.is_empty() { return program.title.clone(); }
+        program.context_title.iter().map(|fragment| match self.eval(s, source, s.ability_target, fragment) {
+            Eval::Text(value) => value,
+            Eval::Number(value) => value.to_string(),
+            Eval::Bool(value) => value.to_string(),
+            Eval::Null => "null".into(),
+            _ => "[object Object]".into(),
+        }).collect::<String>()
+    }
+    pub(super) fn program_menu_title(&self, s: &State, source: CardId, p: u16) -> String {
+        let title = self.program_title(s, source, p);
         if self.trigger_has_effect(s, source, p) {
-            title.clone()
+            title
         } else {
             format!("(No effect) {title}")
         }
@@ -1875,8 +2132,13 @@ impl Engine {
     }
     /// New work chooses a named continuation; only suspended state stores its
     /// historical numeric representation. Legacy raw return decoding stays in end_program.
-    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+    /// Reset the per-ability fields and bind the continuation. Shared by ordinary
+    /// registrations and the two keyword-owned defeat flows so their phase order
+    /// (fields, prompt, effect gate, execution) cannot drift apart.
+    fn start_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) {
         s.disclose=DiscloseState::default();
+        // A new program cannot inherit a play-cost prompt from an earlier action.
+        s.exploit = ExploitState::default();
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
@@ -1884,11 +2146,30 @@ impl Engine {
         s.ability_selection=Selection::default();
         s.event_group=EventGroupState::default();
         s.event_result=StepEventResult::default();
-        if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;}
+        // Defeat registrations keep the pre-handler LKI snapshot captured for them.
+        if !matches!(self.program(p).trigger.as_str(),"whenDefeated"|"bounty") {s.last_known_source=0;s.last_known_power=0;}
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = return_to.raw();
         s.ability_committed = return_to != ProgramContinuation::Finish;
+    }
+    /// A Bounty registration is always offered: the engine sets
+    /// `canResolveWithoutLegalTargets` and overrides `hasAnyLegalEffects` to true, so
+    /// an optional bounty prompts even without a legal target and a mandatory one
+    /// resolves (collecting the bounty) even when its effect cannot change state.
+    fn begin_bounty_program(&self, s: &mut State, p: u16) -> Result<(), String> {
+        self.start_program(s, p, ProgramContinuation::Deaths);
+        if self.program(p).optional {
+            s.decision = Decision::AbilityOptional;
+            return Ok(());
+        }
+        if !self.program_has_effect_mode(s, s.source, p, false) {
+            return self.end_program(s);
+        }
+        self.run_program(s)
+    }
+    pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        self.start_program(s, p, return_to);
         if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
@@ -1915,8 +2196,19 @@ impl Engine {
         }
         self.run_program(s)
     }
+    /// Pay the ability's costs once, at the first boundary where the engine has
+    /// no remaining cost stage. Non-Exploit hand events keep Kessel's existing
+    /// delayed first-effect payment; intrinsic-Exploit events settle before
+    /// `begin_paid_program` instead (see `settle_exploit_event_program`).
+    ///
+    /// A Plot/Smuggle event continuation reaches this boundary with
+    /// `ability_committed` already set (the triggered play cannot be cancelled),
+    /// but its play cost is still paid here: PlayEventAction pays after early
+    /// targets and before the effect, so `pending_resource_event` keeps the
+    /// payment committed exactly once.
     fn commit_program(&self, s: &mut State) -> Result<(), String> {
-        if s.ability_committed {
+        let pending_resource_event = self.pending_resource_event(s);
+        if s.ability_committed && !pending_resource_event {
             return Ok(());
         }
         let source = s.source;
@@ -1932,6 +2224,9 @@ impl Engine {
             s.player_mut(s.active).hand.remove(source);
             s.player_mut(s.active).discard.push(source)?;
             s.phase_history.played(s.active,source)?;
+            s.exploit = ExploitState::default();
+        } else if pending_resource_event {
+            self.commit_resource_event_play(s)?;
         }
         for cost in &self.program(s.ability_program - 1).costs {
             match cost {
@@ -1949,8 +2244,103 @@ impl Engine {
         s.ability_committed = true;
         Ok(())
     }
+    /// Validate everything an intrinsic-Exploit event settlement needs before
+    /// any defeat or payment mutates the position, so a failed play is atomic.
+    pub(super) fn preflight_exploit_event_settlement(&self, s: &State, program: u16) -> Result<(), String> {
+        let source = s.source;
+        if s.ability_program != 0 || !s.player(s.active).hand.contains(source) || !self.def(s, source).info.is("event") {
+            return Err("Exploit event settlement requires an unstarted hand event".into());
+        }
+        let p = self.program(program);
+        if p.trigger != "event" {
+            return Err("Exploit event settlement requires an event program".into());
+        }
+        // Mandatory Force payment must be possible before any cost mutation.
+        if p.costs.iter().any(|c| matches!(c, Cost::UseForceCost { .. })) && !self.can_pay_force_cost(s, source) {
+            return Err("Force cost requires exact held Force identity".into());
+        }
+        s.phase_history.preflight_play(s.active)
+    }
+    /// Settle an intrinsic-Exploit event played from hand. The pinned engine
+    /// suppresses an event's early targets while Exploit is available
+    /// (`PlayEventAction.resolveEarlyTargets` returns default results when
+    /// `usesExploit`) and AbilityResolver pays every cost before
+    /// activateHandler/resolveTargets. So the card cost (with the 2-per-defeated
+    /// -unit decrease), the program costs and the discard all happen before any
+    /// instruction, and the program starts already committed: its first Select
+    /// then sees the post-defeat board and no instruction can charge again.
+    pub(super) fn settle_exploit_event_program(&self, s: &mut State, program: u16, discount: u16) -> Result<(), String> {
+        let source = s.source;
+        self.preflight_exploit_event_settlement(s, program)?;
+        let p = self.program(program);
+        s.phase_history.preflight_play(s.active)?;
+        self.spend(s, s.active, self.cost(s, source).saturating_sub(discount));
+        s.player_mut(s.active).hand.remove(source);
+        s.player_mut(s.active).discard.push(source)?;
+        s.phase_history.played(s.active, source)?;
+        for cost in &p.costs {
+            match cost {
+                Cost::ExhaustSelf => s.card_mut(source).exhausted = true,
+                Cost::Resources { amount } => self.spend(
+                    s,
+                    s.active,
+                    self.eval(s, source, 0, amount)
+                        .number()
+                        .clamp(0, u16::MAX as i64) as u16,
+                ),
+                Cost::UseForceCost { .. } => s.player_mut(s.card(source).owner).force_held = false,
+            }
+        }
+        s.exploit = ExploitState::default();
+        self.begin_paid_program(s, program, ProgramContinuation::Finish)
+    }
+    /// Begin a program whose card and ability costs are already paid. Mirrors
+    /// `begin_program` but sets `ability_committed`, so `commit_program` inside
+    /// every instruction is a no-op. A program with no resolvable effect ends
+    /// directly: the engine has no pre-payment "Play anyway" menu left once the
+    /// costs were paid.
+    fn begin_paid_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        s.disclose=DiscloseState::default();
+        s.exploit=ExploitState::default();
+        s.ability_program = p + 1;
+        s.ability_pc = 0;
+        s.ability_target = 0;
+        s.maximum_capture=MaximumCapture::default();
+        s.ability_selection=Selection::default();
+        s.event_group=EventGroupState::default();
+        s.event_result=StepEventResult::default();
+        if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;}
+        s.ability_result = 0;
+        s.ability_succeeded = false;
+        s.ability_return = return_to.raw();
+        s.ability_committed = true;
+        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
+        if self.program(p).optional
+            && !matches!(
+                self.program(p).instructions.first(),
+                Some(Instruction::Select(_))
+            )
+            && self.program_has_effect(s, s.source, p)
+        {
+            s.decision = Decision::AbilityOptional;
+            return Ok(());
+        }
+        if !self.program_has_effect_mode(s, s.source, p, false) {
+            return self.end_program(s);
+        }
+        if !self.program_has_effect(s, s.source, p) {
+            return self.end_program(s);
+        }
+        self.run_program(s)
+    }
     fn end_program(&self, s: &mut State) -> Result<(), String> {
         s.disclose=DiscloseState::default();
+        // A resource-zone event play always pays for itself, including paths that
+        // end the program without executing an effect (declined optional ability,
+        // no-effect continuation). This is a no-op once the program committed.
+        if self.pending_resource_event(s) {
+            self.commit_resource_event_play(s)?;
+        }
         let next = s.ability_return;
         s.ability_program = 0;
         s.maximum_capture=MaximumCapture::default();
@@ -1958,6 +2348,7 @@ impl Engine {
         match ProgramContinuation::from_raw(next) {
             Some(ProgramContinuation::Deaths) => self.process_deaths(s),
             Some(ProgramContinuation::Triggers) => self.process_triggers(s),
+            Some(ProgramContinuation::Plot) => self.plot_settle_enter(s, None),
             // Historical raw values outside the two resumable cases finish.
             _ => self.finish(s),
         }
@@ -2028,7 +2419,8 @@ impl Engine {
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
                 }
                 Instruction::Apply(Effect::Disclose{aspects,..})=>{
-                    self.commit_program(s)?;s.ability_result=0;s.ability_succeeded=false;
+                    self.commit_program(s)?;
+                    s.ability_result=0;s.ability_succeeded=false;
                     let player=s.card(s.source).owner;s.disclose=DiscloseState{player,selected:Selection::default()};s.active=player;
                     if self.can_disclose(s,player,aspects) {s.decision=Decision::DiscloseSelect;return Ok(());}
                     if p.trigger!="event" {s.decision=Decision::DisclosePause;return Ok(());}
@@ -2067,8 +2459,22 @@ impl Engine {
             }
         }
     }
-    fn effect_targets(&self, s: &State, target: &Target) -> Vec<Eval> {
+    /// The engine's ability context player (`AbilityContext.player`). Ordinary
+    /// abilities resolve relative to their source card's controller. A Bounty
+    /// registration is controlled by the opponent of the defeated unit's controller
+    /// (`RelativePlayer.Opponent`), and while that program runs `ability_program`
+    /// identifies it, so "own"/"enemy" effect targets follow the collector without
+    /// storing a second player in `State`.
+    pub(super) fn context_owner(&self, s: &State) -> Seat {
         let owner = s.card(s.source).owner;
+        if s.ability_program != 0 && self.program(s.ability_program - 1).trigger == "bounty" {
+            owner.other()
+        } else {
+            owner
+        }
+    }
+    fn effect_targets(&self, s: &State, target: &Target) -> Vec<Eval> {
+        let owner = self.context_owner(s);
         match target {
             Target::ArenaList(list)=>{
                 let seat=match self.eval(s,s.source,s.ability_target,&list.receiver) {Eval::Player(seat)=>Some(seat),_=>None};
@@ -2164,14 +2570,72 @@ impl Engine {
         };
         u16::try_from(n).map_err(|_| format!("effect amount {n} exceeds bounded runtime"))
     }
+    fn resource_zone_card(&self, s: &State, id: CardId) -> bool {
+        id != 0 && s.player(s.card(id).owner).resources.contains(id)
+    }
+    /// `CardTargetSystem.leavesResourceZoneEventHandler` (pinned): when a ready
+    /// resource controlled by the ability's player leaves the resource zone, it
+    /// first swaps ready state with the first exhausted resource; the effect then
+    /// consumes readiness rather than a particular physical resource identity.
+    /// The engine compares the resource's controller to `context.player`, not to the
+    /// source card's controller, so an alternate ability context (a Bounty is
+    /// collected by the opponent of the defeated unit's controller) must guard on the
+    /// same owner. The swap itself stays inside the physical resource owner's zone,
+    /// which equals the context player after this guard.
+    fn swap_resource_ready_state_on_departure(&self, s: &mut State, id: CardId) {
+        if s.card(id).exhausted || s.card(id).owner != self.context_owner(s) {
+            return;
+        }
+        let owner = s.card(id).owner;
+        let other = s
+            .player(owner)
+            .resources
+            .as_slice()
+            .iter()
+            .copied()
+            .find(|&resource| resource != id && s.card(resource).exhausted);
+        if let Some(other) = other {
+            s.card_mut(id).exhausted = true;
+            s.card_mut(other).exhausted = false;
+        }
+    }
+    /// `DefeatCardSystem` on a card in the Resource zone: swap readiness, leave
+    /// the zone, and move the physical card to its owner's discard. This is a
+    /// zone move, not a leaves-play event; no defeat registration is captured.
+    fn defeat_resource(&self, s: &mut State, id: CardId) -> Result<u16, String> {
+        if !self.resource_zone_card(s, id) {
+            return Ok(0);
+        }
+        self.swap_resource_ready_state_on_departure(s, id);
+        let owner = s.card(id).owner;
+        let p = s.player_mut(owner);
+        p.resources.remove(id);
+        p.discard.push(id)?;
+        Ok(1)
+    }
+    /// `MoveCardSystem(returnToHand)` on a card in the Resource zone: the same
+    /// readiness swap, then the card moves to its owner's hand.
+    fn return_resource_to_hand(&self, s: &mut State, id: CardId) -> Result<u16, String> {
+        if !self.resource_zone_card(s, id) {
+            return Ok(0);
+        }
+        self.swap_resource_ready_state_on_departure(s, id);
+        let owner = s.card(id).owner;
+        let p = s.player_mut(owner);
+        p.resources.remove(id);
+        p.hand.push(id)?;
+        Ok(1)
+    }
     fn resource_top_deck_eligible(&self,s:&State,id:CardId)->bool {
         if id==0||!s.card(id).present||s.source==0{return false;}
-        let owner=s.card(s.source).owner;let info=&self.def(s,id).info;
+        // The deck is the context player's, not the source card's controller's: a
+        // Bounty collects for the opponent of the defeated unit's controller.
+        let owner=self.context_owner(s);let info=&self.def(s,id).info;
         s.card(id).owner==owner&&s.player(owner).deck.as_slice().first()==Some(&id)&&!info.is("leader")&&!info.is("token")&&(info.is("unit")||info.is("event")||info.is("upgrade"))
     }
     fn resource_top_deck(&self,s:&mut State,id:CardId)->Result<u16,String> {
         if !self.resource_top_deck_eligible(s,id){return Ok(0);}
-        let owner=s.card(s.source).owner;
+        let owner=s.card(id).owner;
         if s.player(owner).resources.len as usize>=crate::model::MAX_ZONE{return Err("resource zone capacity exceeded".into());}
         // Preserve the ability source. The target vector captured this physical
         // deck-front identity before this single event handler mutates zones.
@@ -2554,7 +3018,8 @@ impl Engine {
                             || (matches!(e,Effect::Ready{..}|Effect::Exhaust{..}) && self.exhaustible_card(s,id))
                             || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.attached_in_play(s,id))
                             || (matches!(e, Effect::ReturnToHand { .. })
-                                && s.player(s.card(id).owner).discard.contains(id))) =>
+                                && s.player(s.card(id).owner).discard.contains(id))
+                            || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.resource_zone_card(s,id))) =>
                 {
                     let in_arena = self.in_arena(s, id);
                     match e {
@@ -2576,6 +3041,9 @@ impl Engine {
                         }
                         Effect::Exhaust { .. } if self.exhaustible_card(s,id) => {
                             result += self.set_card_exhausted(s, id, true);
+                        }
+                        Effect::ReturnToHand { .. } if self.resource_zone_card(s,id) => {
+                            result = result.saturating_add(self.return_resource_to_hand(s,id)?);
                         }
                         Effect::ReturnToHand { .. } if !self.def(s, id).info.is("leader") => {
                             let owner = s.card(id).owner;
@@ -2603,10 +3071,21 @@ impl Engine {
                             s.card_mut(id).add_lost_keyword(index);
                             result += 1;
                         }
-                        Effect::ModifyStats { .. } if in_arena => {
-                            self.modify_phase_stats(s, id,
-                                modifier.expect("stat modifier captured before event batch"))?;
+                        Effect::ModifyStats { duration, .. } if in_arena => {
+                            let delta = modifier.expect("stat modifier captured before event batch");
+                            if duration == "attack" {
+                                // CardAttackLastingEffectSystem: unit-only, until
+                                // the attack ends, resolved deltas applied now.
+                                self.grant_attack_stats(s, id, delta.power, delta.hp)?;
+                            } else {
+                                self.modify_phase_stats(s, id, delta)?;
+                            }
                             result += 1;
+                        }
+                        Effect::Defeat { .. } if self.resource_zone_card(s,id) => {
+                            // A resource defeat is a zone move, not a leaves-play
+                            // event (the card was never in play this incarnation).
+                            result = result.saturating_add(self.defeat_resource(s,id)?);
                         }
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {
                             if in_arena {events.defeated_units[s.card(id).owner.index()]+=1;}
@@ -2720,7 +3199,17 @@ impl Engine {
                 if a.arg.as_ref().and_then(Value::as_str) == Some("pass") {
                     self.end_program(&mut t)?;
                 } else {
-                    self.run_program(&mut t)?;
+                    // An optional Bounty is offered even when its effect currently
+                    // cannot change state; resolving it collects the bounty with no
+                    // further effect instead of entering an empty selector.
+                    let p = t.ability_program - 1;
+                    if self.program(p).trigger == "bounty"
+                        && !self.program_has_effect_mode(&t, t.source, p, false)
+                    {
+                        self.end_program(&mut t)?;
+                    } else {
+                        self.run_program(&mut t)?;
+                    }
                 }
             }
             Decision::AbilityTarget => {
@@ -2788,9 +3277,24 @@ impl Engine {
     }
     pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {
         if !self.in_arena(s,id) {return Ok(());}
+        // The pinned `CardsDefeatedThisPhaseWatcher` appends one entry per
+        // `onCardDefeated` for unit and upgrade last-known types. Upgrades are
+        // not in_arena here, so capturing every in-arena defeat is exactly the
+        // unit subset the admitted projections read; `Card.owner` is the
+        // controller while in play. The while-attacking value is the pre-move
+        // event value (`isUnit() && isInPlay() && isAttacking()`), so it is
+        // sampled before the attack lifecycle marks this defeat. The counter is
+        // preflighted here and committed only after every error point, so a
+        // rejected capture cannot fabricate history.
+        let while_attacking=self.is_attacking(s,id);
+        let seat=s.card(id).owner;
+        s.phase_history.preflight_defeat(seat)?;
         self.mark_attack_lifecycle(s,id,true);
         let registration_start=s.death_pending.len as usize;
-        if self.catalogue.is_none() {return Ok(());}
+        if self.catalogue.is_none() {
+            s.phase_history.defeated(seat,while_attacking)?;
+            return Ok(());
+        }
         let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
         let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
             let p=self.program(program);p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
@@ -2801,6 +3305,19 @@ impl Engine {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
             s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.len+=1;
+        }
+        // A printed Bounty registers on the same defeat event (`OnCardDefeated:
+        // preResolve` in the pinned UnitProperties listener) but is controlled by the
+        // opponent of the source's controller, so it enters the same window under the
+        // collector's player bucket. The registration is not optional-gated: the
+        // engine's BountyAbility always has a legal effect (collecting), so the window
+        // must offer it even when the effect cannot change state.
+        for &program in self.card_programs(s,id) {
+            if self.program(program).trigger!="bounty" {continue;}
+            let n=s.death_pending.len as usize;
+            if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
+            s.death_pending.entries[n]=DeathTrigger {last_known_power:context.last_known_power,grantor:0,source:id,program,player:s.card(id).owner.other(),after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:T_BOUNTY};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -2817,6 +3334,7 @@ impl Engine {
             }
         }}
         self.sort_captured_registrations(s,registration_start)?;
+        s.phase_history.defeated(seat,while_attacking)?;
         Ok(())
     }
     /// Keep the original in-play identities, including through non-defeat exits.
@@ -2971,7 +3489,10 @@ impl Engine {
     }
     fn death_title(&self,s:&State,e:DeathTrigger,static_title:bool)->String {
         let c=self.captured_trigger_context(s,e);
-        if e.keyword!=0 {let title=self.trigger_title(&c,e.keyword);if !static_title&&!self.trigger_effect(&c,e.keyword) {format!("(No effect) {title}")}else{title}}
+        // A Bounty registration always has a legal effect (collecting), so it never
+        // takes the "(No effect)" prefix that unavailable keyword/effect entries use.
+        if e.keyword==T_BOUNTY {if static_title {self.program(e.program).title.clone()}else{self.program_title(&c,e.source,e.program)}}
+        else if e.keyword!=0 {let title=self.trigger_title(&c,e.keyword);if !static_title&&!self.trigger_effect(&c,e.keyword) {format!("(No effect) {title}")}else{title}}
         else if static_title {self.program(e.program).title.clone()}else{self.program_menu_title(&c,e.source,e.program)}
     }
     fn same_death_group(&self,s:&State,a:DeathTrigger,b:DeathTrigger)->bool {
@@ -2988,6 +3509,9 @@ impl Engine {
         groups
     }
     fn death_has_effect(&self,s:&State,e:DeathTrigger)->bool {
+        // `BountyAbility.hasAnyLegalEffects()` is true and
+        // `canResolveWithoutLegalTargets` is set, so collecting is always available.
+        if e.keyword==T_BOUNTY {return true;}
         let context=self.captured_trigger_context(s,e);
         if e.keyword!=0 {self.trigger_effect(&context,e.keyword)}else{self.trigger_has_effect(&context,e.source,e.program)}
     }
@@ -2998,7 +3522,9 @@ impl Engine {
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
         let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
-        if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
+        if e.keyword==T_BOUNTY {self.begin_bounty_program(s,e.program)}
+        else if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}
+        else {self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
         loop {
@@ -3075,10 +3601,15 @@ impl Engine {
                 }
             }
         }
+        if s.trigger_context_is(TriggerContext::LeaderDeploy) {
+            out.extend(self.plot_candidates(s).into_iter().map(Trigger::Plot));
+        }
         out.extend(self.trigger_bits(s).into_iter().map(Trigger::Keyword));
         out.sort_by_key(|t| !match t {
             Trigger::Keyword(bit) => self.trigger_effect(s, *bit),
             Trigger::Program(_, p) => self.trigger_has_effect(s, s.source, *p),
+            // Plot candidates are only listed while the play is legal.
+            Trigger::Plot(_) => true,
         });
         out
     }
@@ -3095,6 +3626,7 @@ impl Engine {
                     }
                 }
                 Trigger::Program(_, p) => self.program_menu_title(s, s.source, *p),
+                Trigger::Plot(id) => self.plot_trigger_title(s, *id),
             })
             .collect()
     }
@@ -3113,17 +3645,27 @@ impl Engine {
                 s.pending_programs &= !(1 << i);
                 self.begin_program(s, p, ProgramContinuation::Triggers)
             }
+            Trigger::Plot(id) => self.begin_plot_trigger(s, id),
         }
     }
     pub(super) fn process_all_triggers(&self, s: &mut State) -> Result<(), String> {
         if s.is_terminal() && !s.trigger_context_is(TriggerContext::Attack) {
             return if s.pending_triggers==0 && s.pending_programs==0 && s.death_pending.len==0 && s.death_depth==0 {self.finish(s)} else {Ok(())};
         }
+        // A Plot play's own trigger window is nested inside the suspended
+        // leader-deploy window; once it is exhausted, resume the outer window.
+        if s.plot.stage==PlotState::INNER
+            && s.pending_triggers==0 && s.pending_programs==0
+            && s.death_pending.len==0 && s.death_depth==0
+        {
+            return self.resume_leader_window(s);
+        }
         let triggers = self.ordered_triggers(s);
         if triggers.len() > 1 {
             if triggers.iter().all(|t| match t {
                 Trigger::Keyword(bit) => !self.trigger_effect(s, *bit),
                 Trigger::Program(_, p) => !self.trigger_has_effect(s, s.source, *p),
+                Trigger::Plot(_) => false,
             }) {
                 s.pending_triggers = 0;
                 s.pending_programs = 0;
@@ -3132,7 +3674,13 @@ impl Engine {
                 return Ok(());
             }
         }
-        if s.pending_triggers != 0 || s.pending_programs != 0 {
+        // A lone Plot trigger is not represented in pending_triggers /
+        // pending_programs; every other trigger still follows the historical
+        // pending-bit driver below.
+        if s.pending_triggers != 0
+            || s.pending_programs != 0
+            || triggers.iter().any(|t| matches!(t, Trigger::Plot(_)))
+        {
             return self.resolve_ordered_trigger(s, 0);
         }
         if s.trigger_context_is(TriggerContext::Attack) {
@@ -3152,6 +3700,9 @@ impl Engine {
                 self.capture_advantage_end(s)?;
                 self.combat_after_damage(s)
             } else {
+                // AttackFlow still runs cleanUpAttack when the attack does not
+                // resolve combat damage, so UntilEndOfAttack effects expire here.
+                self.clear_attack_stats(s);
                 self.finish(s)
             }
         } else {
@@ -3315,3 +3866,7 @@ mod advantage_tests;
 #[cfg(test)]
 #[path="pay_adjusted_resources_tests.rs"]
 mod pay_adjusted_resources_tests;
+
+#[cfg(test)]
+#[path="exploit_tests.rs"]
+mod exploit_tests;

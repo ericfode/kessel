@@ -5,25 +5,47 @@ pub const MAX_CARDS: usize = 256;
 pub const MAX_ZONE: usize = 64;
 // Exact budget: 28,208 + native attack grants 64 + registration chronology 256
 // + Disclose selection and alignment 16 + first-strike support flags (2 x 32 = 64)
-// + phase restriction mask (Card 36→40, 256 cards = 1024).
+// + phase restriction mask (Card 36→40, 256 cards = 1024)
+// + until-end-of-attack stat grants (32 targets x 6 bytes + length = 194
+// bytes, which reused the 2-byte alignment gap before the event window: net 192)
+// + phase unit-defeat counters (2 controllers x 2 counters x u16 = 8, padded)
+// + leader-deploy Plot window (PlotState: card/leader u16, pending u8,
+//   programs u16, stage u8 + padding = 8, plus the resolved-instance bitmask
+//   [u64; 4] = 32 that keeps one window from re-offering a resolved Plot)
+// + the inline Exploit pay-mode selection (Selection 12 + 4 alignment
+//   padding = 16 in this layout).
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_632;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 29_888;
 pub type CardId = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PhaseHistory {
     pub exact: bool,
+    /// Unit-defeat counters are only reconstructed from snapshots that record
+    /// them; a legacy import keeps them unknown instead of inventing zeros.
+    pub defeat_exact: bool,
     pub entered: [[u64; MAX_CARDS / 64]; 2],
     pub played: [[u64; MAX_CARDS / 64]; 2],
     pub play_counts: [u16; 2],
+    /// `CardsDefeatedThisPhaseWatcher` unit entries by controller-at-defeat.
+    /// Repeated defeats of one physical card are separate entries, so these are
+    /// counters, not identity sets. Existential projections read `> 0`.
+    pub defeated_counts: [u16; 2],
+    /// Subset of `defeated_counts` whose entry had the pinned engine's
+    /// while-attacking flag (the unit was the attacker of the current attack at
+    /// defeat time and still in play).
+    pub defeated_while_attacking_counts: [u16; 2],
 }
 impl Default for PhaseHistory {
     fn default() -> Self {
         Self {
             exact: true,
+            defeat_exact: true,
             entered: [[0; MAX_CARDS / 64]; 2],
             played: [[0; MAX_CARDS / 64]; 2],
             play_counts: [0; 2],
+            defeated_counts: [0; 2],
+            defeated_while_attacking_counts: [0; 2],
         }
     }
 }
@@ -36,6 +58,32 @@ impl PhaseHistory {
         // tracking a suffix would not make their phase history exact.
         if !self.exact {return;}
         self.entered[seat.index()][id as usize / 64] |= 1u64 << (id as usize % 64);
+    }
+    pub fn preflight_defeat(&self, seat: Seat) -> Result<(), String> {
+        if !self.exact || !self.defeat_exact {return Ok(());}
+        self.defeated_counts[seat.index()]
+            .checked_add(1)
+            .map(|_| ())
+            .ok_or("phase unit-defeat count capacity exceeded".into())
+    }
+    /// Record one pinned-engine `DefeatedCardEntry` for an in-play unit. The
+    /// caller has already established that the card is an in-arena unit, that
+    /// it is the controller's while in play, and whether it was attacking.
+    pub fn defeated(&mut self, seat: Seat, while_attacking: bool) -> Result<(), String> {
+        if !self.exact || !self.defeat_exact {return Ok(());}
+        self.preflight_defeat(seat)?;
+        // Both counters are preflighted before either moves, so a refused
+        // capture leaves the recorded history unchanged.
+        if while_attacking {
+            self.defeated_while_attacking_counts[seat.index()]
+                .checked_add(1)
+                .ok_or("phase while-attacking defeat count capacity exceeded")?;
+        }
+        self.defeated_counts[seat.index()] += 1;
+        if while_attacking {
+            self.defeated_while_attacking_counts[seat.index()] += 1;
+        }
+        Ok(())
     }
     pub fn preflight_play(&self, seat: Seat) -> Result<(), String> {
         if !self.exact {return Ok(());}
@@ -53,8 +101,10 @@ impl PhaseHistory {
     }
     pub fn reset(&mut self) {
         let exact = self.exact;
+        let defeat_exact = self.defeat_exact;
         *self = Self::default();
         self.exact = exact;
+        self.defeat_exact = defeat_exact;
     }
     pub fn hash_values(&self, put: &mut impl FnMut(u64)) {
         if self.exact {
@@ -66,6 +116,22 @@ impl PhaseHistory {
             }
             for n in self.play_counts {
                 put(n as u64);
+            }
+            // Zero defeat counters stay off the hash stream, so legacy/default
+            // positions retain their historical hash.
+            if self
+                .defeated_counts
+                .iter()
+                .chain(&self.defeated_while_attacking_counts)
+                .any(|n| *n != 0)
+            {
+                put(0x5048444546454154);
+                for n in self.defeated_counts {
+                    put(n as u64);
+                }
+                for n in self.defeated_while_attacking_counts {
+                    put(n as u64);
+                }
             }
         }
     }
@@ -81,7 +147,16 @@ impl PhaseHistory {
             }
             out
         };
-        json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts})
+        let mut out =
+            json!({"version":1,"entered":entries(&self.entered),"played":entries(&self.played),"playCounts":self.play_counts});
+        // Same pattern as forceStateVersion: a new capability carries its own
+        // marker, so consumers never infer defeat counters from an old export.
+        if self.defeat_exact {
+            out["defeatsVersion"] = json!(1);
+            out["defeatedCounts"] = json!(self.defeated_counts);
+            out["defeatedWhileAttackingCounts"] = json!(self.defeated_while_attacking_counts);
+        }
+        out
     }
     pub fn parse(v: &Value, next: CardId) -> Result<Self, String> {
         #[derive(Deserialize)]
@@ -91,6 +166,12 @@ impl PhaseHistory {
             entered: Vec<Entry>,
             played: Vec<Entry>,
             play_counts: [u16; 2],
+            #[serde(default)]
+            defeats_version: Option<u8>,
+            #[serde(default)]
+            defeated_counts: [u16; 2],
+            #[serde(default)]
+            defeated_while_attacking_counts: [u16; 2],
         }
         #[derive(Deserialize)]
         #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -105,6 +186,27 @@ impl PhaseHistory {
         }
         let mut out = Self::default();
         out.play_counts = wire.play_counts;
+        match wire.defeats_version {
+            None if wire.defeated_counts == [0; 2]
+                && wire.defeated_while_attacking_counts == [0; 2] =>
+            {
+                out.defeat_exact = false;
+            }
+            None => return Err("defeat counts require an explicit defeatsVersion".into()),
+            Some(1) => {
+                out.defeat_exact = true;
+                out.defeated_counts = wire.defeated_counts;
+                out.defeated_while_attacking_counts = wire.defeated_while_attacking_counts;
+            }
+            Some(_) => return Err("unsupported defeatsVersion".into()),
+        }
+        for seat in [Seat::P1, Seat::P2] {
+            if out.defeated_while_attacking_counts[seat.index()]
+                > out.defeated_counts[seat.index()]
+            {
+                return Err("phaseHistory while-attacking defeats exceed unit defeats".into());
+            }
+        }
         for (entries, bits) in [
             (wire.entered, &mut out.entered),
             (wire.played, &mut out.played),
@@ -171,6 +273,33 @@ pub struct SupportState {
     pub context: ResolutionContext,
 }
 impl Default for SupportState {fn default()->Self {Self {grants:[SupportGrant::default();MAX_SUPPORT_GRANTS],len:0,pending:false,native_attack:false,optional_attack:false,context:ResolutionContext::default()}}}
+
+/// One until-end-of-attack stat modification. The pinned engine creates one
+/// unit-only `OngoingCardEffect` per target with `Duration.UntilEndOfAttack`
+/// (`CardAttackLastingEffectSystem`); the values are the deltas resolved when
+/// the ability applied, not composed live stats.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct AttackStatGrant {
+    pub target: CardId,
+    pub power: i16,
+    pub hp: i16,
+}
+pub const MAX_ATTACK_STAT_GRANTS: usize = 32;
+/// Until-end-of-attack stat effects share one lifecycle: every `AttackFlow`
+/// cleanup removes all of them, and a target that leaves play loses its own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AttackStats {
+    pub grants: [AttackStatGrant; MAX_ATTACK_STAT_GRANTS],
+    pub len: u8,
+}
+impl Default for AttackStats {
+    fn default() -> Self {
+        Self {
+            grants: [AttackStatGrant::default(); MAX_ATTACK_STAT_GRANTS],
+            len: 0,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Zone {
@@ -334,6 +463,13 @@ pub enum Decision {
     DisclosePause,
     DiscloseReveal,
     Support,
+    /// Optional prompt for a Plot keyword ability that was chosen in the
+    /// leader-deploy trigger window: Trigger plays, Pass returns to the window.
+    PlotOptional,
+    /// Pay-mode prompt for an intrinsic Exploit play cost adjustment.
+    ExploitChoice,
+    /// Friendly-unit multi-select for an accepted Exploit adjustment.
+    ExploitTarget,
 }
 
 /// Ordered target context retained across suspended event generation.
@@ -342,6 +478,7 @@ pub struct Selection { pub ids: [CardId; 5], pub len: u8 }
 impl Selection {
     pub fn hash_ids(&self)->impl Iterator<Item=CardId>+'_ { self.ids[..if self.len>3 {5}else{3}].iter().copied() }
     pub fn one(id: CardId) -> Self { Self { ids: [id, 0, 0, 0, 0], len: u8::from(id != 0) } }
+    pub fn as_slice(&self) -> &[CardId] { &self.ids[..self.len as usize] }
     pub fn toggle(&mut self, id: CardId) -> Result<(), String> {
         if let Some(i) = self.ids[..self.len as usize].iter().position(|v| *v == id) {
             for j in i..self.len as usize - 1 { self.ids[j] = self.ids[j+1]; }
@@ -350,6 +487,14 @@ impl Selection {
         Ok(())
     }
 }
+
+/// Pinned-engine Exploit play-cost adjustment. `selection` retains the friendly
+/// units chosen at the play-cost prompt (capacity 5 covers the catalogue's
+/// maximum printed Exploit 4). The engine resolves this prompt before an
+/// event's early targets and before any program instruction runs, so no
+/// continuation needs to be stored here.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ExploitState { pub selection: Selection }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct PreparedEvent {
     pub op: u16, pub target: CardId, pub amount: u16,
@@ -417,21 +562,28 @@ impl StepEventResult {
 /// suspended contexts: their numeric hashing and legacy compatibility are stable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum TriggerContext { Action=0, Enter=1, Attack=2, ShieldOrder=3, DeathKeyword=4 }
+pub enum TriggerContext { Action=0, Enter=1, Attack=2, ShieldOrder=3, DeathKeyword=4,
+    /// The deploying player's leader entered the arena. Plot keyword abilities of
+    /// cards in that player's resource zone watch this event (forceteki
+    /// PlotAbility.buildPlotAbilityProperties, `onLeaderDeployed`).
+    LeaderDeploy=5 }
 impl TriggerContext {
     pub const fn raw(self)->u8 {self as u8}
     pub const fn from_raw(raw:u8)->Option<Self> {match raw {
         0=>Some(Self::Action),1=>Some(Self::Enter),2=>Some(Self::Attack),
-        3=>Some(Self::ShieldOrder),4=>Some(Self::DeathKeyword),_=>None,
+        3=>Some(Self::ShieldOrder),4=>Some(Self::DeathKeyword),5=>Some(Self::LeaderDeploy),_=>None,
     }}
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum ProgramContinuation { Finish=0, Triggers=1, Deaths=2 }
+pub enum ProgramContinuation { Finish=0, Triggers=1, Deaths=2,
+    /// A Plot play of an event: after the event ability resolves, execute the
+    /// Plot `ifYouDo` replacement and the played card's deferred triggers.
+    Plot=3 }
 impl ProgramContinuation {
     pub const fn raw(self)->u8 {self as u8}
     pub const fn from_raw(raw:u8)->Option<Self> {match raw {
-        0=>Some(Self::Finish),1=>Some(Self::Triggers),2=>Some(Self::Deaths),_=>None,
+        0=>Some(Self::Finish),1=>Some(Self::Triggers),2=>Some(Self::Deaths),3=>Some(Self::Plot),_=>None,
     }}
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -537,11 +689,55 @@ impl DeathFrame {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 
+/// A suspended leader-deploy trigger window while a Plot keyword ability plays
+/// the chosen resource-zone card. PlotAbility.ts resolves the play through
+/// PlayCardSystem (nested=false), so the play's event window passes its triggers
+/// to the Plot ability's window: the top-of-deck resourcing runs before the
+/// played card's When Played triggers, and those triggers resolve before the
+/// leader's remaining deploy triggers are offered again. `leader_pending` and
+/// `leader_programs` preserve exactly the outer window's still-unresolved
+/// triggers. Zero everything else means no plot window is open.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct PlotState {
+    /// Plot card being offered (or already played while stage is Inner).
+    pub card: CardId,
+    /// Deploying leader whose trigger window is suspended. Nonzero means the
+    /// leader-deploy trigger window is still open, including while a plot card
+    /// resolves.
+    pub leader: CardId,
+    pub leader_pending: u8,
+    pub leader_programs: u16,
+    pub stage: u8,
+    /// Plot instances already resolved (played or declined) in this window; the
+    /// engine removes each triggered ability from its window when resolved.
+    pub done: [u64; 4],
+}
+impl PlotState {
+    /// Optional Trigger/Pass prompt for the chosen plot card.
+    pub const OFFERED: u8 = 1;
+    /// A plot upgrade waits for its attach target before entering play.
+    pub const ATTACH: u8 = 2;
+    /// The played card's own enter triggers resolve before the outer window.
+    pub const INNER: u8 = 3;
+    /// A plot play that created a unique replacement needs the choice first;
+    /// the engine's uniqueness check runs inside the play window, before the
+    /// Plot `ifYouDo` replacement.
+    pub const UNIQUE: u8 = 4;
+    pub fn active(self)->bool {self.stage!=0 || self.leader!=0}
+    pub fn window_open(self)->bool {self.leader!=0}
+    pub fn is_done(self, id:CardId)->bool {self.done[id as usize/64] & (1u64<<(id as usize%64)) != 0}
+    pub fn mark_done(&mut self, id:CardId) {self.done[id as usize/64] |= 1u64<<(id as usize%64);}
+}
+
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
     pub disclose:DiscloseState,
+    pub plot:PlotState,
     pub support: SupportState,
+    /// Until-end-of-attack stat effects; cleared by the same attack-end sweep
+    /// that removes the Support/native-attack grants.
+    pub attack_stats: AttackStats,
     pub death_pending: DeathWindow,
     pub death_window: DeathWindow,
     pub death_frames: [DeathFrame; MAX_DEATH_DEPTH],
@@ -591,6 +787,8 @@ pub struct State {
     pub ability_target: CardId,
     pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
+    /// Intrinsic Exploit's play-cost prompt/selection, separate from ability targets.
+    pub exploit: ExploitState,
     pub event_group: EventGroupState,
     pub event_result: StepEventResult,
     pub last_known_source: CardId,
@@ -608,7 +806,9 @@ impl Default for State {
     fn default() -> Self {
         Self {
             disclose:DiscloseState::default(),
+            plot: PlotState::default(),
             support: SupportState::default(),
+            attack_stats: AttackStats::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
             death_frames:[DeathFrame::default();MAX_DEATH_DEPTH], death_depth:0,
             cards: [Card::default(); MAX_CARDS],
@@ -640,6 +840,7 @@ impl Default for State {
             ability_target: 0,
             maximum_capture:MaximumCapture::default(),
             ability_selection: Selection::default(),
+            exploit: ExploitState::default(),
             event_group: EventGroupState::default(),
             event_result:StepEventResult::default(),
             last_known_source:0,
@@ -747,6 +948,14 @@ impl State {
                 context_values(&self.support.context,&mut put);
             }
         }
+        // Attack-duration stat grants are resolution-internal: empty outside an
+        // attack, so every zero grant leaves the historical hash stream untouched.
+        if self.attack_stats.len != 0 {
+            put(0x41545441434b5354);put(self.attack_stats.len as u64);
+            for g in &self.attack_stats.grants[..self.attack_stats.len as usize] {
+                put(g.target as u64);put(g.power as u16 as u64);put(g.hp as u16 as u64);
+            }
+        }
         put(self.active.index() as u64);
         put(self.action_player.map_or(0,|p|p.index() as u64+1));
         put(self.decision as u64);
@@ -787,6 +996,9 @@ impl State {
         } else {debug_assert_eq!(*uniform,UniformDamageState::default(),"inactive uniform storage must be cleared");}
 
         if self.disclose!=DiscloseState::default() {put(0x64697363);put(self.disclose.player.index() as u64);put(self.disclose.selected.len as u64);for id in self.disclose.selected.hash_ids() {put(id as u64);}}
+        // A suspended leader-deploy Plot window is internal prompt state; inactive
+        // plot storage stays off the historical hash stream.
+        if self.plot.active() {put(0x504c4f54);put(self.plot.card as u64);put(self.plot.leader as u64);put(self.plot.leader_pending as u64);put(self.plot.leader_programs as u64);put(self.plot.stage as u64);for word in self.plot.done {put(word);}}
         put(self.ability_result as u64);
         put(self.ability_succeeded as u64);
         put(self.ability_return as u64);
@@ -855,6 +1067,15 @@ impl State {
                 for &id in zone.as_slice() {
                     put(id as u64);
                 }
+            }
+        }
+        // Exploit prompt state is hash-relevant only while a play-cost choice is
+        // pending; default storage stays off the historical hash stream.
+        if self.exploit != ExploitState::default() {
+            put(0x4558504c4f4954);
+            put(self.exploit.selection.len as u64);
+            for &id in &self.exploit.selection.ids[..self.exploit.selection.len as usize] {
+                put(id as u64);
             }
         }
         h

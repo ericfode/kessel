@@ -66,6 +66,9 @@ impl Engine {
                 return Err("selected pool requires explicit phaseHistory version".into());
             }
         }
+        if !s.phase_history.defeat_exact && self.needs_defeat_history() {
+            return Err("selected pool requires explicit defeat phase history version".into());
+        }
         Ok(())
     }
     pub(super) fn write_snapshot_evidence(&self, s: &State, value: &mut Value) {

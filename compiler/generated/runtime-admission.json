@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 382,
     "nativeAdapters": 5,
-    "sourceIr": 791
+    "sourceIr": 851
   },
   "runtimeAdmittedCards": [
     {
@@ -449,6 +449,11 @@
       "implementation": "sourceIr",
       "internalName": "pegasus-triwing",
       "setCode": "ASH_171"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "razor-crest#outfitted-armament",
+      "setCode": "ASH_172"
     },
     {
       "implementation": "dataOnly",
@@ -1472,6 +1477,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "setCode": "IBH_010"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "r2d2#known-to-make-mistakes",
       "setCode": "IBH_011"
     },
@@ -1684,6 +1694,16 @@
       "implementation": "dataOnly",
       "internalName": "resistance-headquarters",
       "setCode": "JTL_022"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "data-vault",
+      "setCode": "JTL_024"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "thermal-oscillator",
+      "setCode": "JTL_025"
     },
     {
       "implementation": "dataOnly",
@@ -2087,6 +2107,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "sith-trooper",
+      "setCode": "JTL_238"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "tie-dagger-vanguard",
       "setCode": "JTL_239"
     },
@@ -2349,6 +2374,11 @@
       "implementation": "sourceIr",
       "internalName": "lando-calrissian#eyes-open",
       "setCode": "LAW_108"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tantive-iv#carrying-hope",
+      "setCode": "LAW_109"
     },
     {
       "implementation": "sourceIr",
@@ -3092,6 +3122,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "sith-holocron",
+      "setCode": "LOF_138"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "battle-fury",
       "setCode": "LOF_139"
     },
@@ -3482,6 +3517,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "last-words",
+      "setCode": "LOF_263"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "its-worse",
       "setCode": "LOF_264"
     },
@@ -3574,6 +3614,11 @@
       "implementation": "sourceIr",
       "internalName": "kylo-rens-command-shuttle#icon-of-authority",
       "setCode": "SEC_032"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "cad-bane#impressed-now",
+      "setCode": "SEC_034"
     },
     {
       "implementation": "sourceIr",
@@ -3681,6 +3726,16 @@
       "setCode": "SEC_080"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "isb-shuttle",
+      "setCode": "SEC_083"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "mas-amedda#accomplice-to-power",
+      "setCode": "SEC_084"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "cruel-commandos",
       "setCode": "SEC_086"
@@ -3722,6 +3777,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "naboo-royal-starship#fit-for-a-queen",
+      "setCode": "SEC_099"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "renowned-dignitaries",
       "setCode": "SEC_102"
     },
@@ -3734,6 +3794,11 @@
       "implementation": "sourceIr",
       "internalName": "senators-aide",
       "setCode": "SEC_108"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "jar-jar-binks#mesa-propose",
+      "setCode": "SEC_111"
     },
     {
       "implementation": "dataOnly",
@@ -3822,6 +3887,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "hondo-ohnaka#you-better-hurry",
+      "setCode": "SEC_140"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "the-galleon#marauding-pirate-ship",
       "setCode": "SEC_141"
     },
@@ -3847,6 +3917,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "strike-force-xwing",
+      "setCode": "SEC_152"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "luthens-haulcraft#countermeasures-armed",
       "setCode": "SEC_153"
     },
@@ -3859,6 +3934,11 @@
       "implementation": "sourceIr",
       "internalName": "alexsandr-kallus#with-new-purpose",
       "setCode": "SEC_155"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "oppression-breeds-rebellion",
+      "setCode": "SEC_158"
     },
     {
       "implementation": "dataOnly",
@@ -3896,6 +3976,11 @@
       "setCode": "SEC_170"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "cinta-kaz#the-struggle-comes-first",
+      "setCode": "SEC_172"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "republic-war-walker",
       "setCode": "SEC_173"
@@ -3924,6 +4009,11 @@
       "implementation": "sourceIr",
       "internalName": "darth-traya#lord-of-betrayal",
       "setCode": "SEC_188"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "lurking-snub-fighter",
+      "setCode": "SEC_189"
     },
     {
       "implementation": "sourceIr",
@@ -3964,6 +4054,11 @@
       "implementation": "sourceIr",
       "internalName": "rebel-propagandist",
       "setCode": "SEC_202"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tala-durith#i-can-get-you-inside",
+      "setCode": "SEC_203"
     },
     {
       "implementation": "sourceIr",
@@ -4037,6 +4132,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "fn-trooper-corps",
+      "setCode": "SEC_243"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "b2emo#thats-two-lies",
       "setCode": "SEC_248"
     },
@@ -4064,6 +4164,11 @@
       "implementation": "sourceIr",
       "internalName": "heroic-arc170",
       "setCode": "SEC_254"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "remote-escort-tank",
+      "setCode": "SEC_255"
     },
     {
       "implementation": "sourceIr",
@@ -4131,9 +4236,19 @@
       "setCode": "SHD_026"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "hylobon-enforcer",
+      "setCode": "SHD_027"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "pyke-sentinel",
       "setCode": "SHD_029"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "lom-pyke#dealer-in-truths",
+      "setCode": "SHD_032"
     },
     {
       "implementation": "sourceIr",
@@ -4187,8 +4302,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "chewbacca#pykesbane",
+      "setCode": "SHD_050"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "mystic-reflection",
       "setCode": "SHD_051"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "sugi#hired-guardian",
+      "setCode": "SHD_052"
     },
     {
       "implementation": "dataOnly",
@@ -4199,6 +4324,11 @@
       "implementation": "sourceIr",
       "internalName": "follower-of-the-way",
       "setCode": "SHD_056"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "val#loyal-to-the-end",
+      "setCode": "SHD_058"
     },
     {
       "implementation": "sourceIr",
@@ -4247,6 +4377,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "covert-strength",
+      "setCode": "SHD_075"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "fell-the-dragon",
       "setCode": "SHD_078"
     },
@@ -4277,8 +4412,23 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "warbird-stowaway",
+      "setCode": "SHD_086"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "crosshair#following-orders",
       "setCode": "SHD_087"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "clone-deserter",
+      "setCode": "SHD_095"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "freetown-backup",
+      "setCode": "SHD_097"
     },
     {
       "implementation": "dataOnly",
@@ -4311,6 +4461,16 @@
       "setCode": "SHD_112"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "outlaw-corona",
+      "setCode": "SHD_116"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "kihraxz-heavy-fighter",
+      "setCode": "SHD_118"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "mercenary-company",
       "setCode": "SHD_121"
@@ -4321,9 +4481,24 @@
       "setCode": "SHD_130"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "guavian-antagonizer",
+      "setCode": "SHD_134"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "death-watch-loyalist",
       "setCode": "SHD_136"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "krrsantan#muscle-for-hire",
+      "setCode": "SHD_139"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "trandoshan-hunters",
+      "setCode": "SHD_140"
     },
     {
       "implementation": "dataOnly",
@@ -4336,9 +4511,19 @@
       "setCode": "SHD_150"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "valiant-assault-ship",
+      "setCode": "SHD_151"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "desperado-freighter",
       "setCode": "SHD_152"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "wrecker#boom",
+      "setCode": "SHD_154"
     },
     {
       "implementation": "sourceIr",
@@ -4361,6 +4546,11 @@
       "setCode": "SHD_159"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "reckless-gunslinger",
+      "setCode": "SHD_160"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "house-kast-soldier",
       "setCode": "SHD_162"
@@ -4377,13 +4567,28 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "wanted-insurgents",
+      "setCode": "SHD_167"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "clan-challengers",
       "setCode": "SHD_169"
     },
     {
       "implementation": "sourceIr",
+      "internalName": "covetous-rivals",
+      "setCode": "SHD_171"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "desperate-attack",
       "setCode": "SHD_179"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "doctor-evazan#wanted-on-twelve-systems",
+      "setCode": "SHD_185"
     },
     {
       "implementation": "sourceIr",
@@ -4407,6 +4612,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "cartel-turncoat",
+      "setCode": "SHD_195"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "grogu#irresistible",
       "setCode": "SHD_196"
     },
@@ -4414,6 +4624,11 @@
       "implementation": "dataOnly",
       "internalName": "liberated-slaves",
       "setCode": "SHD_200"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "principled-outlaw",
+      "setCode": "SHD_201"
     },
     {
       "implementation": "sourceIr",
@@ -4427,8 +4642,18 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "fugitive-wookiee",
+      "setCode": "SHD_211"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "privateer-scyk",
       "setCode": "SHD_212"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "smugglers-starfighter",
+      "setCode": "SHD_215"
     },
     {
       "implementation": "dataOnly",
@@ -4484,6 +4709,11 @@
       "implementation": "sourceIr",
       "internalName": "wookiee-warrior",
       "setCode": "SHD_249"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "smugglers-aid",
+      "setCode": "SHD_252"
     },
     {
       "implementation": "sourceIr",
@@ -4624,6 +4854,11 @@
       "implementation": "sourceIr",
       "internalName": "the-ghost#spectre-home-base",
       "setCode": "SOR_050"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "luke-skywalker#jedi-knight",
+      "setCode": "SOR_051"
     },
     {
       "implementation": "sourceIr",
@@ -5282,6 +5517,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "rune-haako#scheming-second",
+      "setCode": "TWI_031"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "wartime-trade-official",
       "setCode": "TWI_032"
     },
@@ -5299,6 +5539,16 @@
       "implementation": "sourceIr",
       "internalName": "devastating-gunship",
       "setCode": "TWI_036"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "providence-destroyer",
+      "setCode": "TWI_038"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "malevolence#grievouss-secret-weapon",
+      "setCode": "TWI_039"
     },
     {
       "implementation": "sourceIr",
@@ -5387,6 +5637,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "multitroop-transport",
+      "setCode": "TWI_066"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "perilous-position",
       "setCode": "TWI_070"
     },
@@ -5419,6 +5674,11 @@
       "implementation": "sourceIr",
       "internalName": "vanquish",
       "setCode": "TWI_077"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-invasion-of-christophsis",
+      "setCode": "TWI_078"
     },
     {
       "implementation": "sourceIr",
@@ -5597,6 +5857,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "jyn-erso#stardust",
+      "setCode": "TWI_143"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "batch-brothers",
       "setCode": "TWI_144"
     },
@@ -5677,6 +5942,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "heavy-persuader-tank",
+      "setCode": "TWI_167"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "old-access-codes",
       "setCode": "TWI_168"
     },
@@ -5712,6 +5982,16 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "planetary-invasion",
+      "setCode": "TWI_178"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "soulless-one#customized-for-grievous",
+      "setCode": "TWI_179"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "separatist-commando",
       "setCode": "TWI_180"
     },
@@ -5724,6 +6004,11 @@
       "implementation": "sourceIr",
       "internalName": "rush-clovis#banking-clan-scion",
       "setCode": "TWI_183"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "san-hill#chairman-of-the-banking-clan",
+      "setCode": "TWI_186"
     },
     {
       "implementation": "sourceIr",
@@ -5792,6 +6077,16 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "geonosis-patrol-fighter",
+      "setCode": "TWI_215"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tridroid-suppressor",
+      "setCode": "TWI_217"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "droid-cohort",
       "setCode": "TWI_218"
     },
@@ -5839,6 +6134,11 @@
       "implementation": "dataOnly",
       "internalName": "patrolling-aat",
       "setCode": "TWI_232"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "battle-droid-legion",
+      "setCode": "TWI_235"
     },
     {
       "implementation": "sourceIr",
@@ -5901,7 +6201,7 @@
       "setCode": "TWI_253"
     }
   ],
-  "runtimeAdmittedCount": 1178,
+  "runtimeAdmittedCount": 1238,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6010,7 +6310,7 @@
     },
     {
       "internalName": "purrgil-ultra",
-      "reason": "purrgil-ultra: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "purrgil-ultra: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_038"
     },
     {
@@ -6090,7 +6390,7 @@
     },
     {
       "internalName": "at-attin-safety-droid",
-      "reason": "at-attin-safety-droid: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "at-attin-safety-droid: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_070"
     },
     {
@@ -6145,7 +6445,7 @@
     },
     {
       "internalName": "moff-jerjerrod#we-shall-redouble-our-efforts",
-      "reason": "moff-jerjerrod#we-shall-redouble-our-efforts: invalid ability IR: unknown field `appendOverrideTitle`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "moff-jerjerrod#we-shall-redouble-our-efforts: invalid ability IR: unknown field `appendOverrideTitle`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_094"
     },
     {
@@ -6230,7 +6530,7 @@
     },
     {
       "internalName": "justifier#relentless",
-      "reason": "justifier#relentless: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "justifier#relentless: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_146"
     },
     {
@@ -6305,17 +6605,12 @@
     },
     {
       "internalName": "axe-woves#undaunted",
-      "reason": "axe-woves#undaunted: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "axe-woves#undaunted: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_169"
     },
     {
-      "internalName": "razor-crest#outfitted-armament",
-      "reason": "razor-crest#outfitted-armament: only phase stat modifications execute",
-      "setCode": "ASH_172"
-    },
-    {
       "internalName": "imposing-scout-walker",
-      "reason": "imposing-scout-walker: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "imposing-scout-walker: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_176"
     },
     {
@@ -6405,7 +6700,7 @@
     },
     {
       "internalName": "sabine-wren#i-learned-the-hard-way",
-      "reason": "sabine-wren#i-learned-the-hard-way: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "sabine-wren#i-learned-the-hard-way: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_208"
     },
     {
@@ -6465,7 +6760,7 @@
     },
     {
       "internalName": "diplomatic-pageantry",
-      "reason": "diplomatic-pageantry: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "diplomatic-pageantry: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "ASH_231"
     },
     {
@@ -6595,7 +6890,7 @@
     },
     {
       "internalName": "the-warrior#deft-duelist",
-      "reason": "the-warrior#deft-duelist: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "the-warrior#deft-duelist: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_018"
     },
     {
@@ -6620,7 +6915,7 @@
     },
     {
       "internalName": "dooku#corruption-must-be-eradicated",
-      "reason": "dooku#corruption-must-be-eradicated: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "dooku#corruption-must-be-eradicated: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_042"
     },
     {
@@ -6655,7 +6950,7 @@
     },
     {
       "internalName": "third-sister#cycle-of-vengeance",
-      "reason": "third-sister#cycle-of-vengeance: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "third-sister#cycle-of-vengeance: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_051"
     },
     {
@@ -6680,7 +6975,7 @@
     },
     {
       "internalName": "vice-admiral-rampart#a-new-era-of-safety",
-      "reason": "vice-admiral-rampart#a-new-era-of-safety: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "vice-admiral-rampart#a-new-era-of-safety: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_060"
     },
     {
@@ -6720,7 +7015,7 @@
     },
     {
       "internalName": "alliance-shield-generator",
-      "reason": "alliance-shield-generator: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "alliance-shield-generator: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_081"
     },
     {
@@ -6730,7 +7025,7 @@
     },
     {
       "internalName": "numa#still-fighting",
-      "reason": "numa#still-fighting: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "numa#still-fighting: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_088"
     },
     {
@@ -6945,7 +7240,7 @@
     },
     {
       "internalName": "arena-nexu#starved-for-prey",
-      "reason": "arena-nexu#starved-for-prey: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "arena-nexu#starved-for-prey: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_182"
     },
     {
@@ -6955,7 +7250,7 @@
     },
     {
       "internalName": "ty-yorrick#monster-hunter",
-      "reason": "ty-yorrick#monster-hunter: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "ty-yorrick#monster-hunter: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_185"
     },
     {
@@ -6980,7 +7275,7 @@
     },
     {
       "internalName": "qimir#everyone-has-a-weakness",
-      "reason": "qimir#everyone-has-a-weakness: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "qimir#everyone-has-a-weakness: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_196"
     },
     {
@@ -7100,7 +7395,7 @@
     },
     {
       "internalName": "ewok-archers",
-      "reason": "ewok-archers: invalid ability IR: unknown field `sourceZoneFilter`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "ewok-archers: invalid ability IR: unknown field `sourceZoneFilter`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "HMW_257"
     },
     {
@@ -7147,11 +7442,6 @@
       "internalName": "ive-found-them",
       "reason": "ive-found-them: invalid ability IR: unknown variant `systemPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "IBH_009"
-    },
-    {
-      "internalName": "han-solo#scruffylooking-nerf-herder",
-      "reason": "han-solo#scruffylooking-nerf-herder: only phase stat modifications execute",
-      "setCode": "IBH_010"
     },
     {
       "internalName": "watch-this",
@@ -7249,16 +7539,6 @@
       "setCode": "JTL_021"
     },
     {
-      "internalName": "data-vault",
-      "reason": "only plain bases with bounded positive HP execute",
-      "setCode": "JTL_024"
-    },
-    {
-      "internalName": "thermal-oscillator",
-      "reason": "only plain bases with bounded positive HP execute",
-      "setCode": "JTL_025"
-    },
-    {
       "internalName": "nabat-village",
       "reason": "nabat-village: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "JTL_028"
@@ -7335,7 +7615,7 @@
     },
     {
       "internalName": "youre-all-clear-kid",
-      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "youre-all-clear-kid: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_055"
     },
     {
@@ -7470,7 +7750,7 @@
     },
     {
       "internalName": "seasoned-fleet-admiral",
-      "reason": "seasoned-fleet-admiral: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "seasoned-fleet-admiral: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_111"
     },
     {
@@ -7620,7 +7900,7 @@
     },
     {
       "internalName": "relentless-firespray",
-      "reason": "relentless-firespray: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "relentless-firespray: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_157"
     },
     {
@@ -7680,7 +7960,7 @@
     },
     {
       "internalName": "shoot-down",
-      "reason": "shoot-down: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "shoot-down: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_176"
     },
     {
@@ -7750,7 +8030,7 @@
     },
     {
       "internalName": "cat-and-mouse",
-      "reason": "cat-and-mouse: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "cat-and-mouse: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_195"
     },
     {
@@ -7770,12 +8050,12 @@
     },
     {
       "internalName": "shuttle-tydirium#fly-casual",
-      "reason": "shuttle-tydirium#fly-casual: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "shuttle-tydirium#fly-casual: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_200"
     },
     {
       "internalName": "ahsoka-tano#chasing-whispers",
-      "reason": "ahsoka-tano#chasing-whispers: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "ahsoka-tano#chasing-whispers: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "JTL_201"
     },
     {
@@ -7909,11 +8189,6 @@
       "setCode": "JTL_237"
     },
     {
-      "internalName": "sith-trooper",
-      "reason": "sith-trooper: only phase stat modifications execute",
-      "setCode": "JTL_238"
-    },
-    {
       "internalName": "fetts-firespray#feared-silhouette",
       "reason": "fetts-firespray#feared-silhouette: invalid ability IR: unknown variant `selectedPlayerSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "JTL_240"
@@ -7980,7 +8255,7 @@
     },
     {
       "internalName": "agent-kallus#reconsider-your-allegiance",
-      "reason": "agent-kallus#reconsider-your-allegiance: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "agent-kallus#reconsider-your-allegiance: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_003"
     },
     {
@@ -8055,7 +8330,7 @@
     },
     {
       "internalName": "lando-calrissian#full-sabacc",
-      "reason": "lando-calrissian#full-sabacc: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "lando-calrissian#full-sabacc: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_018"
     },
     {
@@ -8140,7 +8415,7 @@
     },
     {
       "internalName": "nothing-left-to-fear",
-      "reason": "nothing-left-to-fear: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "nothing-left-to-fear: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_041"
     },
     {
@@ -8160,7 +8435,7 @@
     },
     {
       "internalName": "the-mandalorian#lets-see-the-puck",
-      "reason": "the-mandalorian#lets-see-the-puck: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "the-mandalorian#lets-see-the-puck: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_052"
     },
     {
@@ -8275,7 +8550,7 @@
     },
     {
       "internalName": "rio-durant#becketts-right-hands",
-      "reason": "rio-durant#becketts-right-hands: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "rio-durant#becketts-right-hands: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_093"
     },
     {
@@ -8300,18 +8575,13 @@
     },
     {
       "internalName": "display-piece",
-      "reason": "display-piece: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "display-piece: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_103"
     },
     {
       "internalName": "defiant-scrapper",
       "reason": "defiant-scrapper: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "LAW_106"
-    },
-    {
-      "internalName": "tantive-iv#carrying-hope",
-      "reason": "tantive-iv#carrying-hope: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "LAW_109"
     },
     {
       "internalName": "phoenix-squadron-fighters",
@@ -8405,7 +8675,7 @@
     },
     {
       "internalName": "rey#skywalker",
-      "reason": "rey#skywalker: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "rey#skywalker: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_149"
     },
     {
@@ -8415,7 +8685,7 @@
     },
     {
       "internalName": "hunter-for-hire",
-      "reason": "hunter-for-hire: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "hunter-for-hire: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_156"
     },
     {
@@ -8450,7 +8720,7 @@
     },
     {
       "internalName": "haymaker",
-      "reason": "haymaker: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "haymaker: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_168"
     },
     {
@@ -8465,12 +8735,12 @@
     },
     {
       "internalName": "bt1#blastomech",
-      "reason": "bt1#blastomech: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "bt1#blastomech: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_173"
     },
     {
       "internalName": "sebulbas-podracer#taking-the-lead",
-      "reason": "sebulbas-podracer#taking-the-lead: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "sebulbas-podracer#taking-the-lead: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_176"
     },
     {
@@ -8545,7 +8815,7 @@
     },
     {
       "internalName": "collateral-damage",
-      "reason": "collateral-damage: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "collateral-damage: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_208"
     },
     {
@@ -8585,7 +8855,7 @@
     },
     {
       "internalName": "secret-battle-of-pretend",
-      "reason": "secret-battle-of-pretend: invalid ability IR: unknown field `callback`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "secret-battle-of-pretend: invalid ability IR: unknown field `callback`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LAW_226"
     },
     {
@@ -8745,7 +9015,7 @@
     },
     {
       "internalName": "darth-revan#scourge-of-the-old-republic",
-      "reason": "darth-revan#scourge-of-the-old-republic: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "darth-revan#scourge-of-the-old-republic: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_017"
     },
     {
@@ -8835,7 +9105,7 @@
     },
     {
       "internalName": "always-two",
-      "reason": "always-two: invalid ability IR: unknown field `customConfirmation`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "always-two: invalid ability IR: unknown field `customConfirmation`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_042"
     },
     {
@@ -9030,13 +9300,8 @@
     },
     {
       "internalName": "savage-opress#imbued-with-hate",
-      "reason": "savage-opress#imbued-with-hate: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "savage-opress#imbued-with-hate: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_137"
-    },
-    {
-      "internalName": "sith-holocron",
-      "reason": "sith-holocron: only phase stat modifications execute",
-      "setCode": "LOF_138"
     },
     {
       "internalName": "darth-mauls-lightsaber",
@@ -9090,7 +9355,7 @@
     },
     {
       "internalName": "do-or-do-not",
-      "reason": "do-or-do-not: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "do-or-do-not: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_175"
     },
     {
@@ -9115,7 +9380,7 @@
     },
     {
       "internalName": "baylan-skoll#enigmatic-master",
-      "reason": "baylan-skoll#enigmatic-master: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "baylan-skoll#enigmatic-master: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_185"
     },
     {
@@ -9205,7 +9470,7 @@
     },
     {
       "internalName": "shien-flurry",
-      "reason": "shien-flurry: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "shien-flurry: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "LOF_220"
     },
     {
@@ -9269,18 +9534,13 @@
       "setCode": "LOF_260"
     },
     {
-      "internalName": "last-words",
-      "reason": "last-words: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "LOF_263"
-    },
-    {
       "internalName": "chancellor-palpatine#how-liberty-dies",
       "reason": "chancellor-palpatine#how-liberty-dies: unimplemented deck-search contract: unknown variant `hasSomeKeyword`, expected one of `isUnit`, `isUpgrade`, `isEvent`, `hasSomeTrait`, `hasSomeAspect`",
       "setCode": "SEC_001"
     },
     {
       "internalName": "jabba-the-hutt#wonderful-human-being",
-      "reason": "jabba-the-hutt#wonderful-human-being: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "jabba-the-hutt#wonderful-human-being: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_002"
     },
     {
@@ -9300,7 +9560,7 @@
     },
     {
       "internalName": "dryden-vos#i-never-ask-twice",
-      "reason": "dryden-vos#i-never-ask-twice: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "dryden-vos#i-never-ask-twice: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_007"
     },
     {
@@ -9315,7 +9575,7 @@
     },
     {
       "internalName": "dedra-meero#not-wasting-time",
-      "reason": "dedra-meero#not-wasting-time: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "dedra-meero#not-wasting-time: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_010"
     },
     {
@@ -9330,7 +9590,7 @@
     },
     {
       "internalName": "padme-amidala#what-do-you-have-to-hide",
-      "reason": "padme-amidala#what-do-you-have-to-hide: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "padme-amidala#what-do-you-have-to-hide: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_016"
     },
     {
@@ -9347,11 +9607,6 @@
       "internalName": "sly-moore#witness-to-power",
       "reason": "sly-moore#witness-to-power: invalid ability IR: unknown variant `systemPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_033"
-    },
-    {
-      "internalName": "cad-bane#impressed-now",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_034"
     },
     {
       "internalName": "darth-sion#lord-of-pain",
@@ -9385,7 +9640,7 @@
     },
     {
       "internalName": "cassian-andor#lay-low",
-      "reason": "cassian-andor#lay-low: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "cassian-andor#lay-low: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_042"
     },
     {
@@ -9400,7 +9655,7 @@
     },
     {
       "internalName": "vigil#securing-the-future",
-      "reason": "vigil#securing-the-future: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "vigil#securing-the-future: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_050"
     },
     {
@@ -9425,7 +9680,7 @@
     },
     {
       "internalName": "willrow-hood#on-the-run",
-      "reason": "willrow-hood#on-the-run: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "willrow-hood#on-the-run: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_061"
     },
     {
@@ -9440,7 +9695,7 @@
     },
     {
       "internalName": "umbaran-mobile-cannon",
-      "reason": "umbaran-mobile-cannon: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "umbaran-mobile-cannon: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_067"
     },
     {
@@ -9470,7 +9725,7 @@
     },
     {
       "internalName": "relief-request",
-      "reason": "relief-request: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "relief-request: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_074"
     },
     {
@@ -9487,16 +9742,6 @@
       "internalName": "chancellor-palpatine#i-am-the-senate",
       "reason": "chancellor-palpatine#i-am-the-senate: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SEC_082"
-    },
-    {
-      "internalName": "isb-shuttle",
-      "reason": "isb-shuttle: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "SEC_083"
-    },
-    {
-      "internalName": "mas-amedda#accomplice-to-power",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_084"
     },
     {
       "internalName": "vice-admiral-rampart#on-schedule",
@@ -9520,7 +9765,7 @@
     },
     {
       "internalName": "c3po#anything-i-might-do",
-      "reason": "c3po#anything-i-might-do: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "c3po#anything-i-might-do: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_093"
     },
     {
@@ -9529,23 +9774,18 @@
       "setCode": "SEC_096"
     },
     {
-      "internalName": "naboo-royal-starship#fit-for-a-queen",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_099"
-    },
-    {
       "internalName": "dressellian-commandos",
       "reason": "dressellian-commandos: compiler rejected \"dressellian-commandos\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/dressellian-commandos.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
       "setCode": "SEC_100"
     },
     {
       "internalName": "queen-amidala#championing-her-people",
-      "reason": "queen-amidala#championing-her-people: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "queen-amidala#championing-her-people: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_101"
     },
     {
       "internalName": "mon-mothma#clinging-to-hope",
-      "reason": "mon-mothma#clinging-to-hope: invalid ability IR: unknown field `duplicates`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "mon-mothma#clinging-to-hope: invalid ability IR: unknown field `duplicates`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_103"
     },
     {
@@ -9572,11 +9812,6 @@
       "internalName": "gnk-power-droid",
       "reason": "gnk-power-droid: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_110"
-    },
-    {
-      "internalName": "jar-jar-binks#mesa-propose",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_111"
     },
     {
       "internalName": "orn-free-taa#political-power-broker",
@@ -9610,7 +9845,7 @@
     },
     {
       "internalName": "with-thunderous-applause",
-      "reason": "with-thunderous-applause: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "with-thunderous-applause: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_129"
     },
     {
@@ -9632,11 +9867,6 @@
       "internalName": "miraj-scintel#the-weak-deserve-to-kneel",
       "reason": "miraj-scintel#the-weak-deserve-to-kneel: invalid ability IR: unknown variant `liveKeywordDependentGrant`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_139"
-    },
-    {
-      "internalName": "hondo-ohnaka#you-better-hurry",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_140"
     },
     {
       "internalName": "the-elite-squad#neutralizing-insurgents",
@@ -9669,11 +9899,6 @@
       "setCode": "SEC_150"
     },
     {
-      "internalName": "strike-force-xwing",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_152"
-    },
-    {
       "internalName": "nemiks-manifesto",
       "reason": "nemiks-manifesto: companion registration: unknown variant `attachedModifierRegistration`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_156"
@@ -9684,13 +9909,8 @@
       "setCode": "SEC_157"
     },
     {
-      "internalName": "oppression-breeds-rebellion",
-      "reason": "oppression-breeds-rebellion: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "SEC_158"
-    },
-    {
       "internalName": "chairman-papanoida#undaunted-diplomat",
-      "reason": "chairman-papanoida#undaunted-diplomat: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "chairman-papanoida#undaunted-diplomat: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_159"
     },
     {
@@ -9700,7 +9920,7 @@
     },
     {
       "internalName": "warrior-of-clan-ordo",
-      "reason": "warrior-of-clan-ordo: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "warrior-of-clan-ordo: invalid ability IR: unknown field `ifYouDoNot`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_164"
     },
     {
@@ -9710,18 +9930,13 @@
     },
     {
       "internalName": "aat-incinerator",
-      "reason": "aat-incinerator: invalid ability IR: unknown field `thenCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "aat-incinerator: invalid ability IR: unknown field `thenCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_169"
     },
     {
       "internalName": "punishing-one#takes-no-prisoners",
       "reason": "punishing-one#takes-no-prisoners: keyword amounts require nonnegative literals or verified live damage/resource counts",
       "setCode": "SEC_171"
-    },
-    {
-      "internalName": "cinta-kaz#the-struggle-comes-first",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_172"
     },
     {
       "internalName": "saw-gerreras-uwing#breaking-the-rules",
@@ -9750,7 +9965,7 @@
     },
     {
       "internalName": "lets-call-it-war",
-      "reason": "lets-call-it-war: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "lets-call-it-war: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_180"
     },
     {
@@ -9772,11 +9987,6 @@
       "internalName": "garindan#information-broker",
       "reason": "garindan#information-broker: invalid ability IR: unknown variant `resolveTargetSelection`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_186"
-    },
-    {
-      "internalName": "lurking-snub-fighter",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_189"
     },
     {
       "internalName": "grand-moff-tarkin#taking-krennics-achievement",
@@ -9802,11 +10012,6 @@
       "internalName": "no-one-ever-knew",
       "reason": "no-one-ever-knew: invalid ability IR: unknown field `numCardsFunc`, expected one of `kind`, `mode`, `chooser`, `resultBinding`, `defaults`, `contextBinding`, `choosingPlayerOverride`, `delayOpponentBeforeCosts`, `cardTypes`, `zones`, `controller`, `predicate`, `optional`, `canChooseNoCards`, `promptTitleParts`, `resolverName`, `condition`, `mustChangeGameState`",
       "setCode": "SEC_196"
-    },
-    {
-      "internalName": "tala-durith#i-can-get-you-inside",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_203"
     },
     {
       "internalName": "obiwan-kenobi#finding-what-doesnt-exist",
@@ -9845,7 +10050,7 @@
     },
     {
       "internalName": "emissarys-sheathipede",
-      "reason": "emissarys-sheathipede: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "emissarys-sheathipede: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_215"
     },
     {
@@ -9910,7 +10115,7 @@
     },
     {
       "internalName": "bog-down-in-procedure",
-      "reason": "bog-down-in-procedure: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "bog-down-in-procedure: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SEC_234"
     },
     {
@@ -9932,11 +10137,6 @@
       "internalName": "elia-kane#false-convert",
       "reason": "elia-kane#false-convert: invalid ability IR: unknown variant `randomSelection`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_242"
-    },
-    {
-      "internalName": "fn-trooper-corps",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_243"
     },
     {
       "internalName": "darth-nihilus#lord-of-hunger",
@@ -9962,11 +10162,6 @@
       "internalName": "covert-operative",
       "reason": "covert-operative: invalid ability IR: unknown variant `capture`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SEC_253"
-    },
-    {
-      "internalName": "remote-escort-tank",
-      "reason": "unimplemented runtime keyword plot",
-      "setCode": "SEC_255"
     },
     {
       "internalName": "moral-authority",
@@ -10035,7 +10230,7 @@
     },
     {
       "internalName": "bossk#hunting-his-prey",
-      "reason": "bossk#hunting-his-prey: invalid ability IR: unknown field `thenCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "bossk#hunting-his-prey: invalid ability IR: unknown field `thenCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_010"
     },
     {
@@ -10065,7 +10260,7 @@
     },
     {
       "internalName": "fennec-shand#honoring-the-deal",
-      "reason": "fennec-shand#honoring-the-deal: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "fennec-shand#honoring-the-deal: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_016"
     },
     {
@@ -10079,11 +10274,6 @@
       "setCode": "SHD_018"
     },
     {
-      "internalName": "hylobon-enforcer",
-      "reason": "hylobon-enforcer: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_027"
-    },
-    {
       "internalName": "doctor-pershing#experimenting-with-life",
       "reason": "doctor-pershing#experimenting-with-life: invalid ability IR: unknown variant `selectCardCost`, expected one of `exhaustSelf`, `resources`, `useForceCost`",
       "setCode": "SHD_028"
@@ -10092,11 +10282,6 @@
       "internalName": "the-client#dictated-by-discretion",
       "reason": "the-client#dictated-by-discretion: invalid ability IR: unknown variant `gainBounty`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_031"
-    },
-    {
-      "internalName": "lom-pyke#dealer-in-truths",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_032"
     },
     {
       "internalName": "synara-san#loyal-to-kragan",
@@ -10115,7 +10300,7 @@
     },
     {
       "internalName": "calculated-lethality",
-      "reason": "calculated-lethality: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "calculated-lethality: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_039"
     },
     {
@@ -10134,16 +10319,6 @@
       "setCode": "SHD_046"
     },
     {
-      "internalName": "chewbacca#pykesbane",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_050"
-    },
-    {
-      "internalName": "sugi#hired-guardian",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_052"
-    },
-    {
       "internalName": "second-chance",
       "reason": "second-chance: attached program: unknown variant `registrationModifier`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_053"
@@ -10152,11 +10327,6 @@
       "internalName": "midnight-repairs",
       "reason": "midnight-repairs: invalid ability IR: missing field `maxTargets`",
       "setCode": "SHD_054"
-    },
-    {
-      "internalName": "val#loyal-to-the-end",
-      "reason": "val#loyal-to-the-end: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_058"
     },
     {
       "internalName": "survivors-gauntlet",
@@ -10194,11 +10364,6 @@
       "setCode": "SHD_074"
     },
     {
-      "internalName": "covert-strength",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_075"
-    },
-    {
       "internalName": "unexpected-escape",
       "reason": "unexpected-escape: invalid ability IR: native selector arena upgrade inventory/order requires a separately reviewed selector contract",
       "setCode": "SHD_076"
@@ -10210,18 +10375,13 @@
     },
     {
       "internalName": "salacious-crumb#obnoxious-pet",
-      "reason": "salacious-crumb#obnoxious-pet: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "salacious-crumb#obnoxious-pet: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_080"
     },
     {
       "internalName": "phaseiii-dark-trooper",
       "reason": "phaseiii-dark-trooper: invalid ability IR: data did not match any variant of untagged enum Hook",
       "setCode": "SHD_084"
-    },
-    {
-      "internalName": "warbird-stowaway",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_086"
     },
     {
       "internalName": "ephant-mon#head-of-security",
@@ -10259,19 +10419,9 @@
       "setCode": "SHD_094"
     },
     {
-      "internalName": "clone-deserter",
-      "reason": "clone-deserter: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_095"
-    },
-    {
       "internalName": "maz-kanata#pirate-queen",
       "reason": "maz-kanata#pirate-queen: invalid ability IR: data did not match any variant of untagged enum Hook",
       "setCode": "SHD_096"
-    },
-    {
-      "internalName": "freetown-backup",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_097"
     },
     {
       "internalName": "echo#restored",
@@ -10334,19 +10484,9 @@
       "setCode": "SHD_115"
     },
     {
-      "internalName": "outlaw-corona",
-      "reason": "outlaw-corona: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_116"
-    },
-    {
       "internalName": "reputable-hunter",
       "reason": "reputable-hunter: invalid ability IR: unknown variant `boundCallback`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_117"
-    },
-    {
-      "internalName": "kihraxz-heavy-fighter",
-      "reason": "kihraxz-heavy-fighter: only phase stat modifications execute",
-      "setCode": "SHD_118"
     },
     {
       "internalName": "weequay-pirate-gang",
@@ -10390,7 +10530,7 @@
     },
     {
       "internalName": "timely-intervention",
-      "reason": "timely-intervention: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "timely-intervention: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_129"
     },
     {
@@ -10402,11 +10542,6 @@
       "internalName": "dengar#the-demolisher",
       "reason": "dengar#the-demolisher: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "SHD_133"
-    },
-    {
-      "internalName": "guavian-antagonizer",
-      "reason": "guavian-antagonizer: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_134"
     },
     {
       "internalName": "kylos-tie-silencer#ruthlessly-efficient",
@@ -10422,16 +10557,6 @@
       "internalName": "jango-fett#renowned-bounty-hunter",
       "reason": "jango-fett#renowned-bounty-hunter: invalid ability IR: unknown variant `attackValueQuery`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_138"
-    },
-    {
-      "internalName": "krrsantan#muscle-for-hire",
-      "reason": "unimplemented runtime keyword bounty",
-      "setCode": "SHD_139"
-    },
-    {
-      "internalName": "trandoshan-hunters",
-      "reason": "unimplemented runtime keyword bounty",
-      "setCode": "SHD_140"
     },
     {
       "internalName": "kylo-ren#killing-the-past",
@@ -10474,29 +10599,14 @@
       "setCode": "SHD_149"
     },
     {
-      "internalName": "valiant-assault-ship",
-      "reason": "valiant-assault-ship: only phase stat modifications execute",
-      "setCode": "SHD_151"
-    },
-    {
       "internalName": "poe-dameron#quick-to-improvise",
       "reason": "poe-dameron#quick-to-improvise: invalid ability IR: unknown variant `discardSpecificCard`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_153"
     },
     {
-      "internalName": "wrecker#boom",
-      "reason": "wrecker#boom: unsupported target zone Some(\"resource\")",
-      "setCode": "SHD_154"
-    },
-    {
       "internalName": "heroic-resolve",
       "reason": "heroic-resolve: native attacks require a complete sole ordinary unit/event registration",
       "setCode": "SHD_155"
-    },
-    {
-      "internalName": "reckless-gunslinger",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_160"
     },
     {
       "internalName": "stolen-landspeeder",
@@ -10505,7 +10615,7 @@
     },
     {
       "internalName": "migs-mayfeld#triggerman",
-      "reason": "migs-mayfeld#triggerman: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "migs-mayfeld#triggerman: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_163"
     },
     {
@@ -10514,19 +10624,9 @@
       "setCode": "SHD_165"
     },
     {
-      "internalName": "wanted-insurgents",
-      "reason": "wanted-insurgents: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_167"
-    },
-    {
       "internalName": "ig11#i-cannot-be-captured",
-      "reason": "ig11#i-cannot-be-captured: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "ig11#i-cannot-be-captured: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_170"
-    },
-    {
-      "internalName": "covetous-rivals",
-      "reason": "unimplemented runtime keyword bounty",
-      "setCode": "SHD_171"
     },
     {
       "internalName": "krayt-dragon",
@@ -10584,18 +10684,13 @@
       "setCode": "SHD_184"
     },
     {
-      "internalName": "doctor-evazan#wanted-on-twelve-systems",
-      "reason": "doctor-evazan#wanted-on-twelve-systems: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_185"
-    },
-    {
       "internalName": "hunter-of-the-haxion-brood",
       "reason": "hunter-of-the-haxion-brood: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
       "setCode": "SHD_186"
     },
     {
       "internalName": "lurking-tie-phantom",
-      "reason": "lurking-tie-phantom: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "lurking-tie-phantom: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_187"
     },
     {
@@ -10614,11 +10709,6 @@
       "setCode": "SHD_194"
     },
     {
-      "internalName": "cartel-turncoat",
-      "reason": "cartel-turncoat: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_195"
-    },
-    {
       "internalName": "l337#droid-revolutionary",
       "reason": "l337#droid-revolutionary: invalid ability IR: unknown variant `registrationSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_197"
@@ -10632,11 +10722,6 @@
       "internalName": "coruscant-dissident",
       "reason": "coruscant-dissident: invalid ability IR: unknown variant `selectedPlayerSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_199"
-    },
-    {
-      "internalName": "principled-outlaw",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_201"
     },
     {
       "internalName": "qira#playing-her-part",
@@ -10665,7 +10750,7 @@
     },
     {
       "internalName": "a-new-adventure",
-      "reason": "a-new-adventure: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "a-new-adventure: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_207"
     },
     {
@@ -10674,24 +10759,14 @@
       "setCode": "SHD_208"
     },
     {
-      "internalName": "fugitive-wookiee",
-      "reason": "fugitive-wookiee: invalid ability IR: unknown field `bounty`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
-      "setCode": "SHD_211"
-    },
-    {
       "internalName": "dj#blatant-thief",
       "reason": "dj#blatant-thief: invalid ability IR: unknown variant `systemArrayFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "SHD_213"
     },
     {
       "internalName": "frontier-trader",
-      "reason": "frontier-trader: unsupported target zone Some(\"resource\")",
+      "reason": "frontier-trader: nested continuation costs, optional triggers and registrations are unsupported",
       "setCode": "SHD_214"
-    },
-    {
-      "internalName": "smugglers-starfighter",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_215"
     },
     {
       "internalName": "chain-code-collector",
@@ -10730,7 +10805,7 @@
     },
     {
       "internalName": "boba-fetts-armor",
-      "reason": "boba-fetts-armor: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "boba-fetts-armor: invalid ability IR: unknown field `amount`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_224"
     },
     {
@@ -10819,11 +10894,6 @@
       "setCode": "SHD_251"
     },
     {
-      "internalName": "smugglers-aid",
-      "reason": "unimplemented runtime keyword smuggle",
-      "setCode": "SHD_252"
-    },
-    {
       "internalName": "this-is-the-way",
       "reason": "this-is-the-way: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
       "setCode": "SHD_253"
@@ -10835,7 +10905,7 @@
     },
     {
       "internalName": "mercenary-gunship",
-      "reason": "mercenary-gunship: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "mercenary-gunship: invalid ability IR: unknown field `canBeTriggeredBy`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SHD_256"
     },
     {
@@ -10969,11 +11039,6 @@
       "setCode": "SOR_047"
     },
     {
-      "internalName": "luke-skywalker#jedi-knight",
-      "reason": "luke-skywalker#jedi-knight: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "SOR_051"
-    },
-    {
       "internalName": "redemption#medical-frigate",
       "reason": "redemption#medical-frigate: invalid ability IR: missing field `maxTargets`",
       "setCode": "SOR_052"
@@ -11105,7 +11170,7 @@
     },
     {
       "internalName": "agent-kallus#seeking-the-rebels",
-      "reason": "agent-kallus#seeking-the-rebels: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "agent-kallus#seeking-the-rebels: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_115"
     },
     {
@@ -11320,12 +11385,12 @@
     },
     {
       "internalName": "lando-calrissian#responsible-businessman",
-      "reason": "lando-calrissian#responsible-businessman: unsupported target zone Some(\"resource\")",
+      "reason": "lando-calrissian#responsible-businessman: event group contains an unverified operation",
       "setCode": "SOR_197"
     },
     {
       "internalName": "bamboozle",
-      "reason": "bamboozle: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "bamboozle: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_199"
     },
     {
@@ -11345,7 +11410,7 @@
     },
     {
       "internalName": "greedo#slow-on-the-draw",
-      "reason": "greedo#slow-on-the-draw: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "greedo#slow-on-the-draw: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_204"
     },
     {
@@ -11360,7 +11425,7 @@
     },
     {
       "internalName": "sneak-attack",
-      "reason": "sneak-attack: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "sneak-attack: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_219"
     },
     {
@@ -11420,7 +11485,7 @@
     },
     {
       "internalName": "restock",
-      "reason": "restock: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "restock: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "SOR_252"
     },
     {
@@ -11545,7 +11610,7 @@
     },
     {
       "internalName": "reckless-landing",
-      "reason": "reckless-landing: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "reckless-landing: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_032"
     },
     {
@@ -11580,7 +11645,7 @@
     },
     {
       "internalName": "secret-marriage",
-      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "secret-marriage: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_046"
     },
     {
@@ -11595,7 +11660,7 @@
     },
     {
       "internalName": "lom-pyke#making-a-withdrawal",
-      "reason": "lom-pyke#making-a-withdrawal: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "lom-pyke#making-a-withdrawal: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_051"
     },
     {
@@ -11670,7 +11735,7 @@
     },
     {
       "internalName": "wartime-profiteer",
-      "reason": "wartime-profiteer: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "wartime-profiteer: invalid ability IR: unknown field `playerChoosingOptional`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TS26_076"
     },
     {
@@ -11760,7 +11825,7 @@
     },
     {
       "internalName": "mace-windu#vaapad-form-master",
-      "reason": "mace-windu#vaapad-form-master: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "mace-windu#vaapad-form-master: invalid ability IR: unknown field `ifYouDoCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TWI_013"
     },
     {
@@ -11794,11 +11859,6 @@
       "setCode": "TWI_025"
     },
     {
-      "internalName": "rune-haako#scheming-second",
-      "reason": "rune-haako#scheming-second: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "TWI_031"
-    },
-    {
       "internalName": "general-grievous#trophy-collector",
       "reason": "general-grievous#trophy-collector: invalid ability IR: unknown variant `costAdjuster`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "TWI_034"
@@ -11807,16 +11867,6 @@
       "internalName": "droideka-security",
       "reason": "droideka-security: compiler rejected \"droideka-security\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/droideka-security.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
       "setCode": "TWI_037"
-    },
-    {
-      "internalName": "providence-destroyer",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_038"
-    },
-    {
-      "internalName": "malevolence#grievouss-secret-weapon",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_039"
     },
     {
       "internalName": "a-fine-addition",
@@ -11850,18 +11900,13 @@
     },
     {
       "internalName": "equalize",
-      "reason": "equalize: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "equalize: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TWI_055"
     },
     {
       "internalName": "kiadimundi#composed-and-confident",
       "reason": "kiadimundi#composed-and-confident: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "TWI_064"
-    },
-    {
-      "internalName": "multitroop-transport",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_066"
     },
     {
       "internalName": "the-zillo-beast#awoken-from-the-depths",
@@ -11882,11 +11927,6 @@
       "internalName": "i-have-the-high-ground",
       "reason": "i-have-the-high-ground: invalid ability IR: unknown variant `gainAbility`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "TWI_072"
-    },
-    {
-      "internalName": "the-invasion-of-christophsis",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_078"
     },
     {
       "internalName": "poggle-the-lesser#archduke-of-the-stalgasin-hive",
@@ -11995,7 +12035,7 @@
     },
     {
       "internalName": "the-clone-wars",
-      "reason": "the-clone-wars: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
+      "reason": "the-clone-wars: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `bounty`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`",
       "setCode": "TWI_125"
     },
     {
@@ -12034,11 +12074,6 @@
       "setCode": "TWI_139"
     },
     {
-      "internalName": "jyn-erso#stardust",
-      "reason": "jyn-erso#stardust: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "TWI_143"
-    },
-    {
       "internalName": "steela-gerrera#beloved-tactician",
       "reason": "steela-gerrera#beloved-tactician: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
       "setCode": "TWI_146"
@@ -12074,11 +12109,6 @@
       "setCode": "TWI_166"
     },
     {
-      "internalName": "heavy-persuader-tank",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_167"
-    },
-    {
       "internalName": "grenade-strike",
       "reason": "grenade-strike: invalid ability IR: unknown field `dependsOn`, expected one of `name`, `targetResolver`, `chooser`, `effect`",
       "setCode": "TWI_171"
@@ -12094,16 +12124,6 @@
       "setCode": "TWI_177"
     },
     {
-      "internalName": "planetary-invasion",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_178"
-    },
-    {
-      "internalName": "soulless-one#customized-for-grievous",
-      "reason": "soulless-one#customized-for-grievous: only phase stat modifications execute",
-      "setCode": "TWI_179"
-    },
-    {
       "internalName": "infiltrating-demolisher",
       "reason": "infiltrating-demolisher: compiler rejected \"infiltrating-demolisher\": [{\"code\":\"MISSING_IMPLEMENTATION\",\"column\":1,\"file\":\"data/Card/infiltrating-demolisher.json\",\"line\":1,\"message\":\"No source implementation and card is not a plain base or supported keyword-only unit\",\"pattern\":\"no-source-for-rules-text\"}]",
       "setCode": "TWI_182"
@@ -12117,11 +12137,6 @@
       "internalName": "ziro-the-hutt#colorful-schemer",
       "reason": "ziro-the-hutt#colorful-schemer: invalid ability IR: unknown variant `exhaustResources`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `select`, `readyResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `cardRestriction`",
       "setCode": "TWI_185"
-    },
-    {
-      "internalName": "san-hill#chairman-of-the-banking-clan",
-      "reason": "san-hill#chairman-of-the-banking-clan: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "TWI_186"
     },
     {
       "internalName": "cad-bane#hostage-taker",
@@ -12199,19 +12214,9 @@
       "setCode": "TWI_213"
     },
     {
-      "internalName": "geonosis-patrol-fighter",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_215"
-    },
-    {
       "internalName": "fives#in-search-of-truth",
       "reason": "fives#in-search-of-truth: invalid ability IR: data did not match any variant of untagged enum Hook",
       "setCode": "TWI_216"
-    },
-    {
-      "internalName": "tridroid-suppressor",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_217"
     },
     {
       "internalName": "shadowed-intentions",
@@ -12247,11 +12252,6 @@
       "internalName": "the-invisible-hand#imposing-flagship",
       "reason": "the-invisible-hand#imposing-flagship: unsupported target mode/count; unlimited selection is base-only",
       "setCode": "TWI_234"
-    },
-    {
-      "internalName": "battle-droid-legion",
-      "reason": "unimplemented runtime keyword exploit",
-      "setCode": "TWI_235"
     },
     {
       "internalName": "grievouss-wheel-bike",
@@ -12304,7 +12304,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1280,
+  "runtimeRejectedCount": 1220,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2040
 }

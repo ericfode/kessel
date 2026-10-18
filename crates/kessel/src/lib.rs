@@ -1,6 +1,7 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
 mod admission;
 mod death_hooks;
+mod bounty;
 pub mod model;
 mod seat;
 pub mod search;

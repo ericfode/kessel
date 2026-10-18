@@ -171,10 +171,21 @@ impl Engine {
             if !(-65535..=65535).contains(&power)||!(-65535..=65535).contains(&hp) {return Err("phase stat delta exceeds capacity".into());}
             (power,hp)
         } else {(0,0)};
-        for target in self.effect_targets(s,target) {
+        let destination=target;
+        for target in self.effect_targets(s,destination) {
             let Eval::Card(target)=target else { continue; };
             if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")) { continue; }
-            if !self.effect_can_affect(s,s.source,s.ability_target,e,false) { continue; }
+            // A "chosen" group is one event per selected card in the engine, so a
+            // selected card that left play before resolution cannot suppress the
+            // remaining events. The previous single outer-target check let an
+            // Exploit-defeated first target hide its surviving siblings.
+            // A "chosen" group is one event per selected card in the engine, so a
+            // selected card that left play before resolution cannot suppress the
+            // remaining events. The outer ability target would do exactly that
+            // when Exploit defeats the first selected card before the event
+            // effect resolves; check each chosen recipient instead.
+            let affect_target=if matches!(destination,Target::Name(n) if n=="chosen"){target}else{s.ability_target};
+            if !self.effect_can_affect(s,s.source,affect_target,e,false) { continue; }
             if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}) { continue; }
             let tokens=matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}|Effect::GiveAdvantage{..});
             for _ in 0..if tokens { amount } else { 1 } {

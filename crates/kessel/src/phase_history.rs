@@ -20,6 +20,8 @@ pub enum Watcher {
     Entered,
     #[serde(rename = "cardsPlayedThisPhase")]
     Played,
+    #[serde(rename = "cardsDefeatedThisPhase")]
+    Defeated,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Operation {
@@ -29,6 +31,12 @@ pub enum Operation {
     SomePlayed,
     #[serde(rename = "getCardsPlayed")]
     PlayedList,
+    #[serde(rename = "someDefeatedUnitControlledByPlayer")]
+    SomeDefeatedUnit,
+    #[serde(rename = "someDefeatedWhileAttackingUnitControlledByPlayer")]
+    SomeDefeatedWhileAttackingUnit,
+    #[serde(rename = "getDefeatedUnitsControlledByPlayer")]
+    DefeatedUnitsList,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReadAt {
@@ -39,6 +47,9 @@ pub enum ReadAt {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Argument {
     DataLambda { bindings: Vec<String>, body: Filter },
+    /// The pinned watchers that take a controller argument receive one exact
+    /// `context.player`/`context.opponent` reference, never a lambda.
+    Ref { path: Vec<String> },
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
@@ -84,19 +95,60 @@ pub enum Length {
     #[serde(rename = "length")]
     Length,
 }
+/// Relative controller argument of a defeat query: the pinned operations take
+/// `context.player`/`context.opponent`, resolved against the ability's controller.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlayerRef {
+    Player,
+    Opponent,
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum QueryKind {
     EnteredCard,
     EnteredOtherFriendly,
     PlayedForce,
     PlayedOpponentCount,
+    /// `someDefeatedUnitControlledByPlayer(controller)`.
+    DefeatedUnit(PlayerRef),
+    /// `someDefeatedWhileAttackingUnitControlledByPlayer(controller)`.
+    DefeatedWhileAttacking(PlayerRef),
+    /// `getDefeatedUnitsControlledByPlayer(controller)` consumed as `length`.
+    DefeatedUnitCount(PlayerRef),
+}
+impl QueryKind {
+    /// Kinds whose value is a count and may only be read through a `length`
+    /// consumer, never as a boolean predicate.
+    pub(crate) fn count(self) -> bool {
+        matches!(self, Self::PlayedOpponentCount | Self::DefeatedUnitCount(_))
+    }
+    /// Kinds that read the `cardsDefeatedThisPhase` watcher.
+    pub(crate) fn defeat_projection(self) -> bool {
+        matches!(
+            self,
+            Self::DefeatedUnit(_) | Self::DefeatedWhileAttacking(_) | Self::DefeatedUnitCount(_)
+        )
+    }
+}
+/// One exact controller reference: `ref player` or `ref opponent`.
+fn player_ref(args: &[Argument]) -> Option<PlayerRef> {
+    let [Argument::Ref { path }] = args else {
+        return None;
+    };
+    match path.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+        ["player"] => Some(PlayerRef::Player),
+        ["opponent"] => Some(PlayerRef::Opponent),
+        _ => None,
+    }
 }
 impl Query {
     /// O(1) projection after kind() has validated the complete immutable filter.
     pub(crate) fn admitted_kind(&self) -> QueryKind {
+        let player_ref = || player_ref(&self.args).expect("controller argument validated at admission");
         match (&self.watcher, &self.operation) {
             (Watcher::Entered, Operation::SomeEntered) => {
-                let Argument::DataLambda { body, .. } = &self.args[0];
+                let Argument::DataLambda { body, .. } = &self.args[0] else {
+                    unreachable!("entry projection was validated at admission")
+                };
                 if matches!(body,Filter::Binary{op,..} if op=="&&") {
                     QueryKind::EnteredOtherFriendly
                 } else {
@@ -105,6 +157,15 @@ impl Query {
             }
             (Watcher::Played, Operation::SomePlayed) => QueryKind::PlayedForce,
             (Watcher::Played, Operation::PlayedList) => QueryKind::PlayedOpponentCount,
+            (Watcher::Defeated, Operation::SomeDefeatedUnit) => {
+                QueryKind::DefeatedUnit(player_ref())
+            }
+            (Watcher::Defeated, Operation::SomeDefeatedWhileAttackingUnit) => {
+                QueryKind::DefeatedWhileAttacking(player_ref())
+            }
+            (Watcher::Defeated, Operation::DefeatedUnitsList) => {
+                QueryKind::DefeatedUnitCount(player_ref())
+            }
             _ => unreachable!("history projection was validated at admission"),
         }
     }
@@ -113,7 +174,26 @@ impl Query {
         if self.binding.is_empty() || self.binding.len() > 128 || self.args.len() != 1 {
             return Err(invalid());
         }
-        let Argument::DataLambda { bindings, body } = &self.args[0];
+        // The three defeat projections take one exact controller reference and
+        // read the live per-controller defeat counters. Every other combination,
+        // including a lambda or an extra argument, stays rejected.
+        if let Some(side) = player_ref(&self.args) {
+            return match (&self.watcher, &self.operation) {
+                (Watcher::Defeated, Operation::SomeDefeatedUnit) => {
+                    Ok(QueryKind::DefeatedUnit(side))
+                }
+                (Watcher::Defeated, Operation::SomeDefeatedWhileAttackingUnit) => {
+                    Ok(QueryKind::DefeatedWhileAttacking(side))
+                }
+                (Watcher::Defeated, Operation::DefeatedUnitsList) => {
+                    Ok(QueryKind::DefeatedUnitCount(side))
+                }
+                _ => Err(invalid()),
+            };
+        }
+        let Argument::DataLambda { bindings, body } = &self.args[0] else {
+            return Err(invalid());
+        };
         if bindings.len() != 1 || bindings[0].is_empty() || bindings[0].len() > 128 {
             return Err(invalid());
         }
@@ -187,6 +267,31 @@ impl Query {
 }
 pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "historyQuery") }
 pub(crate) fn ability(a: &Ability) -> bool {
+    let literal =
+        |e: &Expr, n: i64| matches!(e.original(),Expr::Const{value} if value.as_i64()==Some(n));
+    // The one reviewed family that owns a root condition: a passive self
+    // registration gated by the live `cardsDefeatedThisPhase` controller read.
+    // Every other root-condition field stays rejected by the prelude below.
+    if a.trigger == "constant"
+        && !a.coordinate
+        && !a.requires_confirmation
+        && a.gained_host.is_none()
+        && a.attached_context.is_none()
+        && a.context_title.is_empty()
+        && a.target_resolvers.is_empty()
+        && a.then.is_none()
+        && a.if_you_do.is_none()
+        && !a.optional
+        && a.costs.is_empty()
+        && a.target_resolver.is_none()
+        && matches!(&a.condition,Some(Expr::HistoryQuery(q)) if q.kind()==Ok(QueryKind::DefeatedUnit(PlayerRef::Opponent)))
+        && matches!(&a.effect,Effect::Simultaneous{effects}
+            if effects.len()==2
+            && matches!(&effects[0],Effect::ModifyStats{target:Target::Name(t),duration,power,hp} if t=="self"&&duration=="persistent"&&literal(power,1)&&literal(hp,0))
+            && matches!(&effects[1],Effect::GainKeyword{target:Target::Name(t),keyword,duration,amount} if t=="self"&&duration=="persistent"&&keyword=="saboteur"&&literal(amount,1)))
+    {
+        return true;
+    }
     if a.coordinate
         || a.requires_confirmation
         || a.gained_host.is_some()
@@ -199,12 +304,110 @@ pub(crate) fn ability(a: &Ability) -> bool {
     {
         return false;
     }
-    let literal =
-        |e: &Expr, n: i64| matches!(e.original(),Expr::Const{value} if value.as_i64()==Some(n));
     let draw = |e: &Effect| matches!(e,Effect::Draw{target:Target::Name(t),amount} if t=="ownPlayer"&&literal(amount,1));
     let simple_resolver = |predicate: bool| {
         a.target_resolver.as_ref().is_some_and(|r|r.owner=="any"&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.arena.is_none()&&r.prompt_title.is_none()&&if predicate{matches!(&r.predicate,Some(Expr::HistoryQuery(q)) if q.kind()==Ok(QueryKind::EnteredCard))}else{r.predicate.is_none()})
     };
+    // `cardsDefeatedThisPhase` existence projections. Each clause is one exact
+    // ordinary registration whose only condition reads the live watcher through
+    // one controller reference; the branches are the same supported effects the
+    // ordinary runtime already executes for the same trigger.
+    let negative =
+        |e: &Expr, n: i64| matches!(e.original(),Expr::Unary{op,value} if op=="-"&&literal(value,n));
+    let phase_stats = |e: &Effect, n: i64| {
+        matches!(e,Effect::ModifyStats{target:Target::Name(t),duration,power,hp} if t=="chosen"&&duration=="phase"&&negative(power,n)&&negative(hp,n))
+    };
+    let unit_resolver = |owner: &str| {
+        a.target_resolver.as_ref().is_some_and(|r|r.owner==owner&&r.card_type=="unit"&&r.zone.as_deref()==Some("anyAttackable")&&!r.optional&&r.mode.is_none()&&r.count.is_none()&&r.arena.is_none()&&r.prompt_title.is_none()&&r.prompt_title_parts.is_empty()&&r.predicate.is_none()&&r.native.is_none())
+    };
+    // For each friendly unit that was defeated this phase, ready a friendly
+    // resource: the count consumer of `getDefeatedUnitsControlledByPlayer`.
+    if a.trigger == "onAttack"
+        && !a.optional
+        && a.costs.is_empty()
+        && a.target_resolver.is_none()
+        && matches!(&a.effect,Effect::ReadyResources{target:Target::Name(t),amount}
+            if t=="ownPlayer"&&matches!(amount.original(),Expr::DataMember{receiver:List::HistoryQuery(q),key:Length::Length,optional:false} if q.kind()==Ok(QueryKind::DefeatedUnitCount(PlayerRef::Player))))
+    {
+        return true;
+    }
+    if let Effect::Conditional {
+        condition,
+        on_true,
+        on_false,
+    } = &a.effect
+    {
+        let history = |kind: QueryKind| {
+            matches!(condition.original(),Expr::HistoryQuery(q) if q.kind()==Ok(kind))
+        };
+        let no_action = matches!(on_false.as_deref(),Some(Effect::NoAction));
+        // If a friendly unit was defeated this phase: heal 4 from your base.
+        if a.trigger == "whenPlayed"
+            && !a.optional
+            && a.costs.is_empty()
+            && a.target_resolver.is_none()
+            && history(QueryKind::DefeatedUnit(PlayerRef::Player))
+            && no_action
+            && matches!(on_true.as_ref(),Effect::Heal{target:Target::Name(t),amount} if t=="ownBase"&&literal(amount,4))
+        {
+            return true;
+        }
+        // If a friendly unit was defeated this phase: create a Spy token.
+        if a.trigger == "whenPlayed"
+            && !a.optional
+            && a.costs.is_empty()
+            && a.target_resolver.is_none()
+            && history(QueryKind::DefeatedUnit(PlayerRef::Player))
+            && no_action
+            && matches!(on_true.as_ref(),Effect::CreateTokenUnit{token_type,amount,target,enters_ready} if token_type=="spy"&&literal(amount,1)&&matches!(target,Target::Name(t) if t=="ownPlayer")&&!enters_ready)
+        {
+            return true;
+        }
+        // If a friendly unit was defeated this phase, you may give a unit -1/-1.
+        if a.trigger == "whenPlayed"
+            && a.optional
+            && a.costs.is_empty()
+            && unit_resolver("any")
+            && history(QueryKind::DefeatedUnit(PlayerRef::Player))
+            && no_action
+            && phase_stats(on_true, 1)
+        {
+            return true;
+        }
+        // If a friendly unit was defeated this phase: give a unit 2 Experience.
+        if a.trigger == "event"
+            && !a.optional
+            && a.costs.is_empty()
+            && unit_resolver("any")
+            && history(QueryKind::DefeatedUnit(PlayerRef::Player))
+            && no_action
+            && matches!(on_true.as_ref(),Effect::GiveExperience{target:Target::Name(t),amount} if t=="chosen"&&literal(amount,2))
+        {
+            return true;
+        }
+        // Give an enemy unit -3/-3, or -6/-6 if a friendly unit was defeated this phase.
+        if a.trigger == "whenPlayed"
+            && !a.optional
+            && a.costs.is_empty()
+            && unit_resolver("opponent")
+            && history(QueryKind::DefeatedUnit(PlayerRef::Player))
+            && phase_stats(on_true, 6)
+            && on_false.as_deref().is_some_and(|e| phase_stats(e, 3))
+        {
+            return true;
+        }
+        // If a friendly unit was defeated while attacking this phase: draw 3.
+        if a.trigger == "event"
+            && !a.optional
+            && a.costs.is_empty()
+            && a.target_resolver.is_none()
+            && history(QueryKind::DefeatedWhileAttacking(PlayerRef::Player))
+            && no_action
+            && matches!(on_true.as_ref(),Effect::Draw{target:Target::Name(t),amount} if t=="ownPlayer"&&literal(amount,3))
+        {
+            return true;
+        }
+    }
     if let Effect::Conditional {
         condition,
         on_true,
@@ -266,7 +469,8 @@ pub(crate) fn entry(e: &Value) -> bool {
         && (if event {
             s.card[0].trigger == "event"
         } else {
-            ["whenPlayed", "action"].contains(&s.card[0].trigger.as_str())
+            ["whenPlayed", "action", "onAttack", "constant"]
+                .contains(&s.card[0].trigger.as_str())
         })
         && e["piloting"].is_null()
         && e["attachCondition"].is_null()

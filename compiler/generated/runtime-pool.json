@@ -3551,6 +3551,48 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4046328280",
+      "internalName": "razor-crest#outfitted-armament",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_172",
+      "setCodes": [
+        {
+          "number": 172,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 172,
+        "set": "ASH"
+      },
+      "subtitle": "Outfitted Armament",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nOn Attack: You may discard a card from your hand. If you do, this unit gets +2/+0 for this attack.",
+      "title": "Razor Crest",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression"
@@ -11732,6 +11774,51 @@
         "cunning",
         "heroism"
       ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "4136801536",
+      "internalName": "han-solo#scruffylooking-nerf-herder",
+      "keywords": [
+        "raid"
+      ],
+      "power": 4,
+      "rules": "(ERRATA) Templating update: “Defender” becomes “defending unit”.\n",
+      "setCode": "IBH_010",
+      "setCodes": [
+        {
+          "number": 10,
+          "set": "IBH"
+        },
+        {
+          "number": 42,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 10,
+        "set": "IBH"
+      },
+      "subtitle": "Scruffy-Looking Nerf Herder",
+      "text": "Raid 2 (This unit gets +2/+0 while attacking.)\nOn Attack:The defender gets –2/–0 for this attack.",
+      "title": "Han Solo",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -13584,6 +13671,80 @@
       "title": "Resistance Headquarters",
       "traits": [
         "d'qar"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 33,
+      "id": "4028826022",
+      "internalName": "data-vault",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_024",
+      "setCodes": [
+        {
+          "number": 24,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 24,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Your minimum deck size is increased by 10 cards.",
+      "title": "Data Vault",
+      "traits": [
+        "scarif"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 27,
+      "id": "4301437393",
+      "internalName": "thermal-oscillator",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_025",
+      "setCodes": [
+        {
+          "number": 25,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 25,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "Your minimum deck size is decreased by 5 cards.",
+      "title": "Thermal Oscillator",
+      "traits": [
+        "starkiller base"
       ],
       "types": [
         "base"
@@ -16830,6 +16991,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "2922063712",
+      "internalName": "sith-trooper",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "JTL_238",
+      "setCodes": [
+        {
+          "number": 238,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 238,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "On Attack: This unit gets +1/+0 for this attack for each damaged unit the defending player controls.",
+      "title": "Sith Trooper",
+      "traits": [
+        "first order",
+        "sith",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "villainy"
@@ -19011,6 +19212,49 @@
       "traits": [
         "rebel",
         "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "4287527709",
+      "internalName": "tantive-iv#carrying-hope",
+      "keywords": [
+        "restore"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "LAW_109",
+      "setCodes": [
+        {
+          "number": 109,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 109,
+        "set": "LAW"
+      },
+      "subtitle": "Carrying Hope",
+      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)\nWhen Played: If a friendly unit was defeated this phase, heal 4 damage from your base.",
+      "title": "Tantive IV",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
       ],
       "types": [
         "unit"
@@ -24998,6 +25242,45 @@
         "aggression",
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "0412810079",
+      "internalName": "sith-holocron",
+      "keywords": [],
+      "power": 1,
+      "rules": "The attached unit can use Sith Holocron's ability to damage itself.\n",
+      "setCode": "LOF_138",
+      "setCodes": [
+        {
+          "number": 138,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 138,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "Attach to a Force unit.\nAttached unit gains: “On Attack: You may deal 2 damage to a friendly unit. If you do, this unit gets +2/+0 for this attack.”",
+      "title": "Sith Holocron",
+      "traits": [
+        "sith",
+        "item"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -28128,6 +28411,41 @@
     },
     {
       "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4371455331",
+      "internalName": "last-words",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "LOF_263",
+      "setCodes": [
+        {
+          "number": 263,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 263,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "If a friendly unit was defeated this phase, give 2 Experience tokens to a unit.",
+      "title": "Last Words",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [],
       "cost": 7,
       "deployBox": null,
       "epicAction": "",
@@ -28871,6 +29189,48 @@
         "first order",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8365930807",
+      "internalName": "cad-bane#impressed-now",
+      "keywords": [
+        "plot"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SEC_034",
+      "setCodes": [
+        {
+          "number": 34,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 34,
+        "set": "SEC"
+      },
+      "subtitle": "Impressed Now?",
+      "text": "When Played: You may defeat a unit with 2 or less remaining HP.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Cad Bane",
+      "traits": [
+        "underworld",
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -29722,6 +30082,89 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "7227136692",
+      "internalName": "isb-shuttle",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: If a friendly unit was defeated this phase, create a Spy token.",
+      "title": "ISB Shuttle",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7365023470",
+      "internalName": "mas-amedda#accomplice-to-power",
+      "keywords": [
+        "plot"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_084",
+      "setCodes": [
+        {
+          "number": 84,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 84,
+        "set": "SEC"
+      },
+      "subtitle": "Accomplice to Power",
+      "text": "When Played: Give an Experience token to each of up to 2 other Official units.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Mas Amedda",
+      "traits": [
+        "republic",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -30053,6 +30496,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2919204327",
+      "internalName": "naboo-royal-starship#fit-for-a-queen",
+      "keywords": [
+        "plot"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SEC_099",
+      "setCodes": [
+        {
+          "number": 99,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 99,
+        "set": "SEC"
+      },
+      "subtitle": "Fit For A Queen",
+      "text": "Each friendly leader unit gains Raid 2 and Overwhelm.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Naboo Royal Starship",
+      "traits": [
+        "naboo",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command",
@@ -30172,6 +30658,49 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "9985741271",
+      "internalName": "jar-jar-binks#mesa-propose",
+      "keywords": [
+        "plot"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_111",
+      "setCodes": [
+        {
+          "number": 111,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 111,
+        "set": "SEC"
+      },
+      "subtitle": "Mesa Propose…",
+      "text": "When Played: You may give another friendly unit +2/+2 for this phase.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Jar Jar Binks",
+      "traits": [
+        "naboo",
+        "republic",
+        "gungan",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -30858,6 +31387,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8845103653",
+      "internalName": "hondo-ohnaka#you-better-hurry",
+      "keywords": [
+        "plot"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "SEC_140",
+      "setCodes": [
+        {
+          "number": 140,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 140,
+        "set": "SEC"
+      },
+      "subtitle": "You Better Hurry",
+      "text": "Each other friendly unit gains Raid 1.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Hondo Ohnaka",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",
@@ -31069,6 +31639,49 @@
         "aggression",
         "heroism"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "1501441701",
+      "internalName": "strike-force-xwing",
+      "keywords": [
+        "plot"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_152",
+      "setCodes": [
+        {
+          "number": 152,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 152,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: You may deal 2 damage to a ready unit.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Strike Force X-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": "",
@@ -31183,6 +31796,44 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "3208071698",
+      "internalName": "oppression-breeds-rebellion",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_158",
+      "setCodes": [
+        {
+          "number": 158,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 158,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "If a friendly unit was defeated while attacking this phase, draw 3 cards.",
+      "title": "Oppression Breeds Rebellion",
+      "traits": [
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -31472,6 +32123,46 @@
       "cost": 6,
       "deployBox": null,
       "epicAction": "",
+      "hp": 5,
+      "id": "7482343383",
+      "internalName": "cinta-kaz#the-struggle-comes-first",
+      "keywords": [
+        "plot"
+      ],
+      "power": 5,
+      "rules": "Units must be ready in order to attack.\n",
+      "setCode": "SEC_172",
+      "setCodes": [
+        {
+          "number": 172,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 172,
+        "set": "SEC"
+      },
+      "subtitle": "The Struggle Comes First",
+      "text": "When Played: You may attack with a unit.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Cinta Kaz",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 6,
       "id": "5932264704",
       "internalName": "republic-war-walker",
@@ -31696,6 +32387,49 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9755584844",
+      "internalName": "lurking-snub-fighter",
+      "keywords": [
+        "plot"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_189",
+      "setCodes": [
+        {
+          "number": 189,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 189,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: You may exhaust a unit.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Lurking Snub Fighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -32025,6 +32759,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "1369084772",
+      "internalName": "tala-durith#i-can-get-you-inside",
+      "keywords": [
+        "plot"
+      ],
+      "power": 3,
+      "rules": "Hidden prevents a unit from being attacked during the same phase it enters play, so Tala Durith's ability means each other friendly unit can't be attacked the phase it enters play.\n",
+      "setCode": "SEC_203",
+      "setCodes": [
+        {
+          "number": 203,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 203,
+        "set": "SEC"
+      },
+      "subtitle": "I Can Get You Inside",
+      "text": "Each other friendly unit gains Hidden.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Tala Durith",
+      "traits": [
+        "imperial",
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -32595,6 +33371,47 @@
     {
       "arena": "ground",
       "aspects": [
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "7248761207",
+      "internalName": "fn-trooper-corps",
+      "keywords": [
+        "plot"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SEC_243",
+      "setCodes": [
+        {
+          "number": 243,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 243,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: Give an Experience token to another friendly unit.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "FN Trooper Corps",
+      "traits": [
+        "first order",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "heroism"
       ],
       "cost": 1,
@@ -32829,6 +33646,48 @@
         "republic",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "3206848209",
+      "internalName": "remote-escort-tank",
+      "keywords": [
+        "plot"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "SEC_255",
+      "setCodes": [
+        {
+          "number": 255,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 255,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "When Played: Give a unit Sentinel for this phase.\nPlot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)",
+      "title": "Remote Escort Tank",
+      "traits": [
+        "republic",
+        "vehicle",
+        "tank"
       ],
       "types": [
         "unit"
@@ -33336,6 +34195,48 @@
         "villainy",
         "vigilance"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "6878039039",
+      "internalName": "hylobon-enforcer",
+      "keywords": [
+        "grit",
+        "bounty"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SHD_027",
+      "setCodes": [
+        {
+          "number": 27,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 27,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Grit (This unit gets +1/+0 for each damage on it.)\nBounty — Draw a card. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Hylobon Enforcer",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -33368,6 +34269,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "5632569775",
+      "internalName": "lom-pyke#dealer-in-truths",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_032",
+      "setCodes": [
+        {
+          "number": 32,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 32,
+        "set": "SHD"
+      },
+      "subtitle": "Dealer in Truths",
+      "text": "On Attack: You may give a Shield token to an enemy unit. If you do, give a Shield token to a friendly unit.\nSmuggle [5 resources Vigilance Villainy]",
+      "title": "Lom Pyke",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33790,6 +34732,49 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "vigilance"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 10,
+      "id": "5169472456",
+      "internalName": "chewbacca#pykesbane",
+      "keywords": [
+        "grit",
+        "smuggle"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_050",
+      "setCodes": [
+        {
+          "number": 50,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 50,
+        "set": "SHD"
+      },
+      "subtitle": "Pykesbane",
+      "text": "Grit\nWhen Played: You may defeat a unit with 5 or less remaining HP.\nSmuggle [9 resources Aggression Heroism]",
+      "title": "Chewbacca",
+      "traits": [
+        "underworld",
+        "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "heroism",
         "vigilance"
@@ -33824,6 +34809,49 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "9871430123",
+      "internalName": "sugi#hired-guardian",
+      "keywords": [
+        "sentinel",
+        "smuggle"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_052",
+      "setCodes": [
+        {
+          "number": 52,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 52,
+        "set": "SHD"
+      },
+      "subtitle": "Hired Guardian",
+      "text": "While an enemy unit is upgraded, this unit gains Sentinel.\nSmuggle [6 resources Vigilance] (If this card is a resource, you may play her for her smuggle cost. Replace her with the top card of your deck.)",
+      "title": "Sugi",
+      "traits": [
+        "underworld",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -33902,6 +34930,46 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "0474909987",
+      "internalName": "val#loyal-to-the-end",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_058",
+      "setCodes": [
+        {
+          "number": 58,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 58,
+        "set": "SHD"
+      },
+      "subtitle": "Loyal to the End",
+      "text": "Bounty — Deal 3 damage to a unit.\nWhen Defeated: Give 2 Experience tokens to a friendly unit. (The active player chooses the order of Val's abilities.)",
+      "title": "Val",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -34273,6 +35341,45 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "8645125292",
+      "internalName": "covert-strength",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": null,
+      "rules": null,
+      "setCode": "SHD_075",
+      "setCodes": [
+        {
+          "number": 75,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 75,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Heal 2 damage from a unit and give an Experience token to it.\nSmuggle [3 resources Vigilance] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Covert Strength",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": null,
@@ -34518,6 +35625,47 @@
     {
       "arena": "ground",
       "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "8305828130",
+      "internalName": "warbird-stowaway",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_086",
+      "setCodes": [
+        {
+          "number": 86,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 86,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "While you have the initiative, this unit gets +2/+0.\nSmuggle [4 resources Command Villainy] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Warbird Stowaway",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "villainy",
         "command"
       ],
@@ -34553,6 +35701,90 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9503028597",
+      "internalName": "clone-deserter",
+      "keywords": [
+        "restore",
+        "bounty"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Restore 1 (When this unit attacks, heal 1 damage from your base.)\nBounty — Draw a card. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Clone Deserter",
+      "traits": [
+        "fringe",
+        "clone"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "4534554684",
+      "internalName": "freetown-backup",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 1,
+      "rules": null,
+      "setCode": "SHD_097",
+      "setCodes": [
+        {
+          "number": 97,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 97,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "On Attack: Give another friendly unit +2/+2 for this phase.\nSmuggle [4 resources Command Heroism] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Freetown Backup",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -34800,6 +36032,89 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "3503780024",
+      "internalName": "outlaw-corona",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 3,
+      "rules": "A card put into play as a resource enters play exhausted.\n(ERRATA) Templating update: “Put into play as a resource” becomes “resource”.\n",
+      "setCode": "SHD_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Bounty — Put the top card of your deck into play as a resource. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Outlaw Corona",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4721657243",
+      "internalName": "kihraxz-heavy-fighter",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 3,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SHD_118",
+      "setCodes": [
+        {
+          "number": 118,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 118,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\nOn Attack: You may exhaust another friendly unit. If you do, this unit gets +3/+0 for this attack.",
+      "title": "Kihraxz Heavy Fighter",
+      "traits": [
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "command"
@@ -34888,6 +36203,49 @@
         "villainy",
         "aggression"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "2151430798",
+      "internalName": "guavian-antagonizer",
+      "keywords": [
+        "saboteur",
+        "bounty"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_134",
+      "setCodes": [
+        {
+          "number": 134,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 134,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nBounty — Draw a card. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Guavian Antagonizer",
+      "traits": [
+        "underworld",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "aggression"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": null,
@@ -34917,6 +36275,92 @@
       "traits": [
         "mandalorian",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "3622749641",
+      "internalName": "krrsantan#muscle-for-hire",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_139",
+      "setCodes": [
+        {
+          "number": 139,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 139,
+        "set": "SHD"
+      },
+      "subtitle": "Muscle for Hire",
+      "text": "When Played: If an enemy unit has a Bounty, you may ready this unit.\nOn Attack: Choose a ground unit. You may deal 1 damage to it for each damage on this unit.",
+      "title": "Krrsantan",
+      "traits": [
+        "underworld",
+        "wookiee",
+        "bounty hunter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "1743599390",
+      "internalName": "trandoshan-hunters",
+      "keywords": [
+        "overwhelm",
+        "bounty"
+      ],
+      "power": 6,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SHD_140",
+      "setCodes": [
+        {
+          "number": 140,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 140,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\nWhen Played: If an enemy unit has a Bounty, give an Experience token to this unit.",
+      "title": "Trandoshan Hunters",
+      "traits": [
+        "underworld",
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -35012,6 +36456,49 @@
         "heroism",
         "aggression"
       ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "7922308768",
+      "internalName": "valiant-assault-ship",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_151",
+      "setCodes": [
+        {
+          "number": 151,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 151,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nOn Attack: If the defending player controls more resources than you, this unit gets +2/+0 for this attack.",
+      "title": "Valiant Assault Ship",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": null,
@@ -35044,6 +36531,48 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "2470093702",
+      "internalName": "wrecker#boom",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 7,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SHD_154",
+      "setCodes": [
+        {
+          "number": 154,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 154,
+        "set": "SHD"
+      },
+      "subtitle": "Boom!",
+      "text": "Overwhelm\nWhen Played: You may defeat a friendly resource. If you do, deal 5 damage to a ground unit.",
+      "title": "Wrecker",
+      "traits": [
+        "fringe",
+        "clone"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -35209,6 +36738,46 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "9690731982",
+      "internalName": "reckless-gunslinger",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_160",
+      "setCodes": [
+        {
+          "number": 160,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 160,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "When Played: Deal 1 damage to each base.\nSmuggle [3 resources Aggression] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Reckless Gunslinger",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
@@ -35334,6 +36903,46 @@
       "aspects": [
         "aggression"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "8679638018",
+      "internalName": "wanted-insurgents",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_167",
+      "setCodes": [
+        {
+          "number": 167,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 167,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Bounty — Deal 2 damage to a unit. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Wanted Insurgents",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
       "cost": 5,
       "deployBox": null,
       "epicAction": null,
@@ -35363,6 +36972,47 @@
       "traits": [
         "mandalorian",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "1304452249",
+      "internalName": "covetous-rivals",
+      "keywords": [
+        "grit",
+        "bounty"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "SHD_171",
+      "setCodes": [
+        {
+          "number": 171,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 171,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Grit (This unit gets +1/+0 for each damage on it.)\nWhen Played/On Attack: You may deal 2 damage to a unit with a Bounty.",
+      "title": "Covetous Rivals",
+      "traits": [
+        "bounty hunter"
       ],
       "types": [
         "unit"
@@ -35405,6 +37055,48 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "6135081953",
+      "internalName": "doctor-evazan#wanted-on-twelve-systems",
+      "keywords": [
+        "shielded",
+        "bounty"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_185",
+      "setCodes": [
+        {
+          "number": 185,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 185,
+        "set": "SHD"
+      },
+      "subtitle": "Wanted on Twelve Systems",
+      "text": "Shielded (When you play this unit, give a Shield token to him.)\nBounty — Ready up to 12 resources. (When this unit is defeated or captured, your opponent collects his bounty.)",
+      "title": "Doctor Evazan",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -35573,6 +37265,49 @@
       "upgradePower": 0
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9108611319",
+      "internalName": "cartel-turncoat",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_195",
+      "setCodes": [
+        {
+          "number": 195,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 195,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Bounty — Draw a card. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Cartel Turncoat",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -35645,6 +37380,47 @@
         "droid",
         "twi'lek",
         "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "9040137775",
+      "internalName": "principled-outlaw",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "SHD_201",
+      "setCodes": [
+        {
+          "number": 201,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 201,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "On Attack: You may exhaust a ground unit.\nSmuggle [6 resources Cunning Heroism] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Principled Outlaw",
+      "traits": [
+        "underworld"
       ],
       "types": [
         "unit"
@@ -35732,6 +37508,46 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "6947306017",
+      "internalName": "fugitive-wookiee",
+      "keywords": [
+        "bounty"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_211",
+      "setCodes": [
+        {
+          "number": 211,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 211,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Bounty — Exhaust a unit. (When this unit is defeated or captured, your opponent collects its bounty.)",
+      "title": "Fugitive Wookiee",
+      "traits": [
+        "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning"
@@ -35765,6 +37581,48 @@
         "fringe",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "1312599620",
+      "internalName": "smugglers-starfighter",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_215",
+      "setCodes": [
+        {
+          "number": 215,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 215,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "When Played: If you control another Underworld unit, give an enemy unit –3/–0 for this phase.\nSmuggle [4 resources Cunning] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Smuggler's Starfighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
       ],
       "types": [
         "unit"
@@ -36211,6 +38069,45 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "0866321455",
+      "internalName": "smugglers-aid",
+      "keywords": [
+        "smuggle"
+      ],
+      "power": null,
+      "rules": null,
+      "setCode": "SHD_252",
+      "setCodes": [
+        {
+          "number": 252,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 252,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Heal 3 damage from your base.\nSmuggle [3 resources Heroism] (If this card is a resource, you may play it for its smuggle cost. Replace it with the top card of your deck.)",
+      "title": "Smuggler's Aid",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -37317,6 +39214,49 @@
         "vehicle",
         "transport",
         "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism",
+        "vigilance"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "7109944284",
+      "internalName": "luke-skywalker#jedi-knight",
+      "keywords": [
+        "restore"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "SOR_051",
+      "setCodes": [
+        {
+          "number": 51,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 51,
+        "set": "SOR"
+      },
+      "subtitle": "Jedi Knight",
+      "text": "Restore 3\n\nWhen Played: Give an enemy unit –3/–3 for this phase. If a friendly unit was defeated this phase, give that enemy unit –6/–6 for this phase instead.",
+      "title": "Luke Skywalker",
+      "traits": [
+        "force",
+        "jedi",
+        "rebel"
       ],
       "types": [
         "unit"
@@ -42487,6 +44427,46 @@
       "cost": 2,
       "deployBox": null,
       "epicAction": null,
+      "hp": 2,
+      "id": "5333016146",
+      "internalName": "rune-haako#scheming-second",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_031",
+      "setCodes": [
+        {
+          "number": 31,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 31,
+        "set": "TWI"
+      },
+      "subtitle": "Scheming Second",
+      "text": "When Played: If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase.",
+      "title": "Rune Haako",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
       "hp": 3,
       "id": "0677558416",
       "internalName": "wartime-trade-official",
@@ -42644,6 +44624,93 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy",
+        "vigilance"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "6436543702",
+      "internalName": "providence-destroyer",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 5,
+      "rules": null,
+      "setCode": "TWI_038",
+      "setCodes": [
+        {
+          "number": 38,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 38,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nOn Attack: Give an enemy space unit –2/–2 for this phase.",
+      "title": "Providence Destroyer",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "3381931079",
+      "internalName": "malevolence#grievouss-secret-weapon",
+      "keywords": [
+        "exploit",
+        "restore"
+      ],
+      "power": 7,
+      "rules": null,
+      "setCode": "TWI_039",
+      "setCodes": [
+        {
+          "number": 39,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 39,
+        "set": "TWI"
+      },
+      "subtitle": "Grievous's Secret Weapon",
+      "text": "Exploit 4\nRestore 2\nWhen Played: Give an enemy unit –4/–0 for this phase. It can't attack for this phase.",
+      "title": "Malevolence",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -43346,6 +45413,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "1320229479",
+      "internalName": "multitroop-transport",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nOn Attack: Create a Battle Droid token.",
+      "title": "Multi-Troop Transport",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "tank"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "vigilance"
       ],
@@ -43604,6 +45713,46 @@
       "title": "Vanquish",
       "traits": [
         "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 15,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "2565830105",
+      "internalName": "the-invasion-of-christophsis",
+      "keywords": [
+        "exploit"
+      ],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_078",
+      "setCodes": [
+        {
+          "number": 78,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 78,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 4\nChoose an opponent. Defeat each unit that player controls.",
+      "title": "The Invasion of Christophsis",
+      "traits": [
+        "separatist",
+        "plan"
       ],
       "types": [
         "event"
@@ -45052,6 +47201,47 @@
         "aggression",
         "heroism"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "7099699830",
+      "internalName": "jyn-erso#stardust",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_143",
+      "setCodes": [
+        {
+          "number": 143,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 143,
+        "set": "TWI"
+      },
+      "subtitle": "Stardust",
+      "text": "While an enemy unit has been defeated this phase, this unit gets +1/+0 and gains Saboteur.",
+      "title": "Jyn Erso",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": null,
@@ -45711,6 +47901,49 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "4210027426",
+      "internalName": "heavy-persuader-tank",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "TWI_167",
+      "setCodes": [
+        {
+          "number": 167,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 167,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nWhen Played: You may deal 2 damage to a ground unit.",
+      "title": "Heavy Persuader Tank",
+      "traits": [
+        "separatist",
+        "droid",
+        "vehicle",
+        "tank"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "aggression"
       ],
@@ -45982,6 +48215,88 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 12,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "1167572655",
+      "internalName": "planetary-invasion",
+      "keywords": [
+        "exploit",
+        "overwhelm"
+      ],
+      "power": null,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "TWI_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 3\nReady up to 3 units. Each of those units gets +1/+0 and gains Overwhelm for this phase.",
+      "title": "Planetary Invasion",
+      "traits": [
+        "separatist",
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "6406254252",
+      "internalName": "soulless-one#customized-for-grievous",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TWI_179",
+      "setCodes": [
+        {
+          "number": 179,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 179,
+        "set": "TWI"
+      },
+      "subtitle": "Customized for Grievous",
+      "text": "On Attack: You may exhaust a friendly Droid unit or General Grievous (leader or unit). If you do, this unit gets +2/+0 for this attack.",
+      "title": "Soulless One",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -46096,6 +48411,48 @@
       "subtitle": "Banking Clan Scion",
       "text": "Raid 2\nOn Attack: If the defending player controls no ready resources, create a Battle Droid token.",
       "title": "Rush Clovis",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "cunning"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "0021045666",
+      "internalName": "san-hill#chairman-of-the-banking-clan",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_186",
+      "setCodes": [
+        {
+          "number": 186,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 186,
+        "set": "TWI"
+      },
+      "subtitle": "Chairman of the Banking Clan",
+      "text": "Exploit 3 (While playing this card, defeat up to 3 units you control. This card costs 2 resources less for each unit defeated this way.)\nOn Attack: For each friendly unit that was defeated this phase, ready a friendly resource.",
+      "title": "San Hill",
       "traits": [
         "separatist",
         "official"
@@ -46636,6 +48993,91 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "3348783048",
+      "internalName": "geonosis-patrol-fighter",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 3,
+      "rules": "Abilities that refer to a card's cost always refer to its printed cost, regardless of modifiers.\nAbilities that return a card to hand must choose a card in play unless otherwise specified.\n",
+      "setCode": "TWI_215",
+      "setCodes": [
+        {
+          "number": 215,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 215,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nWhen Played: You may return a non-leader unit that costs 3 or less to its owner's hand.",
+      "title": "Geonosis Patrol Fighter",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "6700679522",
+      "internalName": "tridroid-suppressor",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "TWI_217",
+      "setCodes": [
+        {
+          "number": 217,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 217,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nWhen Played: Exhaust an enemy ground unit.",
+      "title": "Tri-Droid Suppressor",
+      "traits": [
+        "separatist",
+        "droid",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "cunning"
       ],
@@ -47024,6 +49466,48 @@
         "separatist",
         "vehicle",
         "tank"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "1083333786",
+      "internalName": "battle-droid-legion",
+      "keywords": [
+        "exploit"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "TWI_235",
+      "setCodes": [
+        {
+          "number": 235,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 235,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)\nWhen Defeated: Create 3 Battle Droid tokens.",
+      "title": "Battle Droid Legion",
+      "traits": [
+        "separatist",
+        "droid",
+        "trooper"
       ],
       "types": [
         "unit"
