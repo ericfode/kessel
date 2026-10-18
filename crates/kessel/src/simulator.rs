@@ -422,7 +422,7 @@ impl Engine {
     pub fn cost(&self, s: &State, id: CardId) -> u16 {
         let d = self.def(s, id);
         (d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects))
-            .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id, |card| self.card_has_trait(s, card, "rebel"))))
+            .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id, |card, trait_name| self.card_has_trait(s, card, trait_name))))
     }
     fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
         let p = s.player(s.card(id).owner);

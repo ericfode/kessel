@@ -532,9 +532,15 @@ combat settles the attacker's damage and death triggers before calculating a
 surviving defender's return power. Modal choices preserve the chooser and resume
 the selected branch through the ordinary program interpreter.
 
-Two closed ordinary-event cost contracts retain their executable event after
+Closed ordinary-unit cost contracts also support initiative, another friendly
+Trooper, at least three other friendly units, at least three opposing space
+units, and the opposing arena unit count. These read the source controller's live
+state; an incoming unit never qualifies as its own other unit. Intrinsic Raid,
+Sentinel and Ambush remain independent of the extracted cost registration.
+
+Three closed ordinary-event cost contracts retain their executable event after
 extracting the cost registration: friendly arena leader units reduce an up-to-three
-Experience event, and friendly Rebel units/leaders reduce a Draw 2 event. The
+Experience event or targeted Damage 3 event, and friendly Rebel units/leaders reduce a Draw 2 event. The
 Rebel inventory uses live traits and counts the undeployed leader once; attached
 ordinary Pilots retain upgrade mode and do not count as units. Leader-upgrade
 modes remain outside admission. These reductions apply to the source's play cost,

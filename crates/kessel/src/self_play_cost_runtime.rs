@@ -7,9 +7,51 @@ impl SelfPlayCost {
         self,
         state: &State,
         source: CardId,
-        has_rebel: impl Fn(CardId) -> bool,
+        has_trait: impl Fn(CardId, &str) -> bool,
     ) -> u16 {
         let owner = state.card(source).owner;
+        // These live predicates use the same physical arena inventories as
+        // ordinary queries; cards in hand, base-zone leaders and attached Pilots
+        // cannot contribute. The cost rule remains local to its physical source.
+        let arena_count = |seat, space_only: bool, predicate: &dyn Fn(CardId) -> bool| {
+            let p = state.player(seat);
+            p.space
+                .as_slice()
+                .iter()
+                .chain(
+                    if space_only {
+                        &[][..]
+                    } else {
+                        p.ground.as_slice()
+                    }
+                    .iter(),
+                )
+                .filter(|&&id| {
+                    let card = state.card(id);
+                    card.present && card.owner == seat && card.parent == 0 && predicate(id)
+                })
+                .count() as u16
+        };
+        match self {
+            Self::Initiative => return u16::from(state.initiative == owner),
+            Self::OtherFriendlyTrooper => {
+                return u16::from(
+                    arena_count(owner, false, &|id| id != source && has_trait(id, "trooper")) > 0,
+                )
+            }
+            Self::ThreeOtherFriendlyUnits => {
+                return u16::from(arena_count(owner, false, &|id| id != source) >= 3)
+            }
+            Self::ThreeEnemySpaceUnits => {
+                return if arena_count(owner.other(), true, &|_| true) >= 3 {
+                    3
+                } else {
+                    0
+                }
+            }
+            Self::EnemyUnits => return arena_count(owner.other(), false, &|_| true),
+            _ => {}
+        }
         if matches!(
             self,
             Self::FriendlyLeaderUnits | Self::FriendlyRebelUnitsAndLeaders
@@ -29,7 +71,7 @@ impl SelfPlayCost {
                         && card.parent == 0
                         && match self {
                             Self::FriendlyLeaderUnits => id == player.leader && card.deployed,
-                            Self::FriendlyRebelUnitsAndLeaders => has_rebel(id),
+                            Self::FriendlyRebelUnitsAndLeaders => has_trait(id, "rebel"),
                             _ => unreachable!(),
                         }
                 })
@@ -46,13 +88,13 @@ impl SelfPlayCost {
                 && state.card(leader).parent == 0
                 && !player.ground.contains(leader)
                 && !player.space.contains(leader)
-                && has_rebel(leader);
+                && has_trait(leader, "rebel");
             return arena_count + u16::from(front);
         }
         let seats: &[Seat] = match self {
             Self::FriendlyDamagedUnits => std::slice::from_ref(&owner),
             Self::AllDamagedGroundUnits => &[Seat::P1, Seat::P2],
-            Self::FriendlyLeaderUnits | Self::FriendlyRebelUnitsAndLeaders => unreachable!(),
+            _ => unreachable!("other cost contracts handled above"),
         };
         seats
             .iter()

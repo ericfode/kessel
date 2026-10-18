@@ -232,3 +232,6 @@ fn self_play_cost_selected_pool_round_trip_retains_native_reduction() {
         assert_eq!(loaded.cost(&s, id), cost - 1);
     }
 }
+
+#[path = "self_play_cost_batch_tests.rs"]
+mod self_play_cost_batch_tests;

@@ -8,6 +8,11 @@ pub(crate) enum SelfPlayCost {
     AllDamagedGroundUnits,
     FriendlyLeaderUnits,
     FriendlyRebelUnitsAndLeaders,
+    Initiative,
+    OtherFriendlyTrooper,
+    ThreeOtherFriendlyUnits,
+    ThreeEnemySpaceUnits,
+    EnemyUnits,
 }
 
 pub(crate) fn marker(v: &Value) -> bool {
@@ -55,6 +60,61 @@ fn ground() -> Value {
     )
 }
 fn registration(rule: SelfPlayCost) -> Value {
+    let other = b(
+        "||",
+        json!({"kind":"unary","op":"!","value":r(&["source"])}),
+        b("!==", r(&["card"]), r(&["source"])),
+    );
+    let trait_test = |name: &str| {
+        b(
+            "&&",
+            c(json!(true)),
+            q("hasSomeTrait", r(&["card"]), vec![c(json!(name))]),
+        )
+    };
+    let fixed = match rule {
+        SelfPlayCost::Initiative => Some((1, q("hasInitiative", r(&["player"]), vec![]))),
+        SelfPlayCost::OtherFriendlyTrooper => Some((
+            1,
+            q(
+                "hasSomeArenaUnit",
+                r(&["player"]),
+                vec![b("&&", trait_test("trooper"), other.clone())],
+            ),
+        )),
+        SelfPlayCost::ThreeOtherFriendlyUnits => Some((
+            1,
+            b(
+                ">=",
+                count(&["player"], b("&&", c(json!(true)), other)),
+                c(json!(3)),
+            ),
+        )),
+        SelfPlayCost::ThreeEnemySpaceUnits => {
+            let arena = c(json!("spaceArena"));
+            let filter = b(
+                "||",
+                json!({"kind":"unary","op":"!","value":arena}),
+                b(
+                    "||",
+                    b("===", arena.clone(), c(json!("anyArena"))),
+                    b("===", r(&["card", "zoneName"]), arena),
+                ),
+            );
+            Some((
+                3,
+                b(
+                    ">=",
+                    count(&["opponent"], b("&&", c(json!(true)), filter)),
+                    c(json!(3)),
+                ),
+            ))
+        }
+        _ => None,
+    };
+    if let Some((amount, condition)) = fixed {
+        return cost_registration(c(json!(amount)), Some(condition));
+    }
     let amount = match rule {
         SelfPlayCost::FriendlyLeaderUnits => count(
             &["adjusterPlayer"],
@@ -79,6 +139,7 @@ fn registration(rule: SelfPlayCost) -> Value {
             &["adjusterPlayer"],
             b("&&", c(json!(true)), damaged("isUnit")),
         ),
+        SelfPlayCost::EnemyUnits => count(&["adjusterPlayer", "opponent"], c(json!(true))),
         SelfPlayCost::AllDamagedGroundUnits => {
             let predicate = b(
                 "&&",
@@ -91,13 +152,24 @@ fn registration(rule: SelfPlayCost) -> Value {
                 count(&["adjusterPlayer", "opponent"], predicate),
             )
         }
+        _ => unreachable!("fixed cost condition handled above"),
     };
-    json!({"trigger":"costAdjustment","costs":[],"effect":{
+    cost_registration(
+        json!({"kind":"boundCallback","parameters":["adjustedCard","adjusterPlayer"],"timing":"costAdjustment","value":amount}),
+        None,
+    )
+}
+fn cost_registration(amount: Value, condition: Option<Value>) -> Value {
+    let mut registration = json!({"trigger":"costAdjustment","costs":[],"effect":{
         "kind":"decreaseSelfPlayCost","sourceZone":"any","targetPlayers":"any",
         "matchSourceIdentity":true,"matchPrintedType":true,"stage":"standard_0",
-        "amount":{"kind":"boundCallback","parameters":["adjustedCard","adjusterPlayer"],"timing":"costAdjustment","value":amount},
+        "amount":amount,
         "matchAbilityCosts":false,"matchCardEffectResourcePayments":false
-    }})
+    }});
+    if let Some(value) = condition {
+        registration["condition"] = json!({"kind":"boundCallback","parameters":["context"],"timing":"constantCondition","value":value});
+    }
+    registration
 }
 
 /// Complete ordinary unit/event contract. No card names, IDs, or source hashes select
@@ -141,11 +213,21 @@ pub(crate) fn extract(entry: &Value) -> Result<Option<SelfPlayCost>, String> {
     for rule in [
         SelfPlayCost::FriendlyDamagedUnits,
         SelfPlayCost::AllDamagedGroundUnits,
+        SelfPlayCost::Initiative,
+        SelfPlayCost::OtherFriendlyTrooper,
+        SelfPlayCost::ThreeOtherFriendlyUnits,
+        SelfPlayCost::ThreeEnemySpaceUnits,
+        SelfPlayCost::EnemyUnits,
     ] {
         let (text, keywords, values) = match rule {
             SelfPlayCost::FriendlyDamagedUnits => ("This unit costs 1 resource less to play for each friendly damaged unit.", json!([]), json!({})),
             SelfPlayCost::AllDamagedGroundUnits => ("This unit costs 1 resource less to play for each damaged ground unit.\nOverwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)", json!(["overwhelm"]), json!({"overwhelm":1})),
-            SelfPlayCost::FriendlyLeaderUnits | SelfPlayCost::FriendlyRebelUnitsAndLeaders => unreachable!("event rules were handled separately"),
+            SelfPlayCost::Initiative => ("While you have the initiative, this unit costs 1 resource less to play.", json!([]), json!({})),
+            SelfPlayCost::OtherFriendlyTrooper => ("Raid 1 (This unit gets +1/+0 while attacking.)\n\nIf you control a TROOPER unit, this unit costs [1 resource] less to play.", json!(["raid"]), json!({"raid":1})),
+            SelfPlayCost::ThreeOtherFriendlyUnits => ("If you control 3 or more units, this unit costs 1 resource less to play.", json!([]), json!({})),
+            SelfPlayCost::ThreeEnemySpaceUnits => ("If an opponent controls 3 or more space units, this unit costs 3 resources less to play.\nAmbush", json!(["ambush"]), json!({"ambush":1})),
+            SelfPlayCost::EnemyUnits => ("This unit costs 1 resource less to play for each unit controlled by the opponent who controls the most units.\nSentinel (Units in this arena can't attack your non-Sentinel units or your base.)", json!(["sentinel"]), json!({"sentinel":1})),
+            _ => unreachable!("event rules were handled separately"),
         };
         if plain
             && abilities == json!({"leader":[],"unit":[],"card":[registration(rule)]})
@@ -196,23 +278,32 @@ fn event_rule(entry: &Value) -> Option<SelfPlayCost> {
             }
         }
     }
-    for rule in [
-        SelfPlayCost::FriendlyLeaderUnits,
-        SelfPlayCost::FriendlyRebelUnitsAndLeaders,
-    ] {
-        let (text, cost, aspects, traits, body) = match rule {
-            SelfPlayCost::FriendlyLeaderUnits => (
+    enum Body {
+        Experience,
+        Draw,
+        Damage,
+    }
+    for kind in [Body::Experience, Body::Draw, Body::Damage] {
+        let rule = match kind {
+            Body::Experience | Body::Damage => SelfPlayCost::FriendlyLeaderUnits,
+            Body::Draw => SelfPlayCost::FriendlyRebelUnitsAndLeaders,
+        };
+        let (text, cost, aspects, traits, body) = match kind {
+            Body::Experience => (
                 "This event costs 1 resource less to play for each friendly leader unit.\nGive an Experience token to each of up to 3 units.",
                 3, json!(["command"]), json!(["tactic"]),
                 json!({"trigger":"event","costs":[],"targetResolver":{
                     "owner":"any","type":"unit","zone":"anyAttackable","mode":"upTo",
                     "count":{"kind":"const","value":3},"optional":true},
                     "effect":{"kind":"giveExperience","target":"chosen","amount":{"kind":"const","value":1}}})),
-            SelfPlayCost::FriendlyRebelUnitsAndLeaders => (
+            Body::Draw => (
                 "This card costs 1 resource less to play for each friendly Rebel unit and leader.\nDraw 2 cards.",
                 4, json!(["aggression", "heroism"]), json!(["rebel", "plan"]),
                 json!({"trigger":"event","costs":[],"effect":{"kind":"draw","target":"ownPlayer","amount":{"kind":"const","value":2}}})),
-            _ => unreachable!(),
+            Body::Damage => (
+                "This event costs 1 resource less to play for each friendly leader unit.\nDeal 3 damage to a unit.",
+                3, json!(["aggression"]), json!(["tactic"]),
+                json!({"trigger":"event","costs":[],"targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable"},"effect":{"kind":"damage","target":"chosen","amount":{"kind":"const","value":3}}})),
         };
         if entry["card"]["text"] == text
             && entry["card"]["cost"] == cost
