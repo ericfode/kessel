@@ -1570,27 +1570,6 @@ function legacyConstantAbility(input, context, validatedObject = null) {
 // These are grant templates owned by an upgrade definition. At declaration,
 // runtime captures each physical grantor and binds the body to its host.
 // Keep this provenance separate from attachedContext used by live constants.
-function looksLikeGainedHostCohort(input,ctx) {
-    try {
-        const raw=unwrap(input);
-        // Factory / saved-binding mutations are not plain objects — keep closed.
-        if(!ts.isObjectLiteralExpression(raw))return true;
-        const obj=object(raw,ctx),keys=new Set(obj.props.keys());
-        // Discard cohort (and mutations that keep discardCardsFromOwnHand).
-        if(keys.has('immediateEffect')&&!keys.has('targetResolver')) {
-            const effect=unwrap(obj.props.get('immediateEffect'));
-            if(!ts.isCallExpression(effect)||effect.questionDotToken)return false;
-            return access(effect.expression,ctx).at(-1)==='discardCardsFromOwnHand';
-        }
-        // Heal / phase cohort always set optional:true with a cardCondition resolver.
-        if(!keys.has('targetResolver')||!keys.has('optional'))return false;
-        const resolver=object(unwrap(obj.props.get('targetResolver')),ctx);
-        return resolver.props.has('cardCondition')&&resolver.props.has('immediateEffect');
-    } catch(error) {
-        if(!(error instanceof Unsupported))throw error;
-        return false;
-    }
-}
 function gainedHostOnAttack(input,ctx,setup,call) {
     const reject=()=>fail(ctx,call,'registrar:addGainOnAttackAbilityTargetingAttached');
     const raw=unwrap(input);
@@ -2204,10 +2183,9 @@ function compileSource(text, file, enums = {}, options = {}) {
                     try{out.abilities.card.push(gainedHostOnAttack(call.arguments[0],local,member,call));}
                     catch(error){
                         if(!(error instanceof Unsupported))throw error;
-                        // Cohort heal/phase/discard sources that fail validation stay
-                        // closed. Non-cohort attached on-attack grants (e.g. giveExperience)
-                        // recover through piloting registration.
-                        if(looksLikeGainedHostCohort(call.arguments[0],local))throw error;
+                        // The full attached registration preserves noncanonical
+                        // headers, operands and lexical captures as source-only IR.
+                        // Its validator retains the original malformed-field guards.
                         if(!recoversToContract(error,['registrar:addGainOnAttackAbilityTargetingAttached']))throw error;
                         out.abilities.card.push(pilotingRegistration(registration,call,local,{baseClass:out.baseClass,side:SIDE_METHODS[name]},pilotingApi()));
                     }

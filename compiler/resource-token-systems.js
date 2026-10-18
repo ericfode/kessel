@@ -38,16 +38,9 @@ function extendedTokenSystem(kind,obj,defaultTarget,api) {
     const {props,ctx,node}=obj,{ts,unwrap}=api;
     fields(obj,['amount','target','entersReady','enterPlayEffect'],api);
     const target=props.has('target')?api.target(props.get('target'),ctx,'ownPlayer'):(ctx.selectedPlayerTarget||'ownPlayer');
-    let fixedAmount=null,literalAmount=undefined,amountLiteralFailed=false;
+    let fixedAmount=null;
     if(!props.has('amount'))fixedAmount=1;
-    else {
-        try {literalAmount=api.literal(props.get('amount'),ctx);}
-        catch(error){if(!error.diagnostic)throw error;amountLiteralFailed=true;}
-        if(!amountLiteralFailed){
-            if(typeof literalAmount==='number')fixedAmount=literalAmount;
-            else api.fail(ctx,props.get('amount'),'token-system-amount-type');
-        }
-    }
+    else {try {const value=api.literal(props.get('amount'),ctx);if(typeof value==='number')fixedAmount=value;}catch(error){if(!error.diagnostic)throw error;}}
     let legacyDynamic=false;
     if(props.has('amount')&&fixedAmount===null){try{legacyDynamic=!!api.resourceTokenAmount(props.get('amount'),ctx,{ts,unwrap,expr:api.expr,literal:api.literal,fail:api.fail,unshadowedEnum:api.unshadowedEnum});}catch(error){if(!error.diagnostic)throw error;}}
     const extended=props.has('enterPlayEffect')||typeof target!=='string'||!['ownPlayer','enemyPlayer'].includes(target)||fixedAmount!==null&&(fixedAmount<1||fixedAmount>5)||props.has('amount')&&fixedAmount===null&&!legacyDynamic;
@@ -56,9 +49,7 @@ function extendedTokenSystem(kind,obj,defaultTarget,api) {
     let n=props.has('amount')&&unwrap(props.get('amount'));const seen=new Set();
     while(n&&ts.isIdentifier(n)&&ctx.constants.has(n.text)){if(seen.has(n.text))api.fail(ctx,n,'token-amount-alias-cycle');seen.add(n.text);n=unwrap(ctx.constants.get(n.text));}
     if(n&&(ts.isArrowFunction(n)||ts.isFunctionExpression(n)))api.fail(ctx,n,'token-amount-is-not-number');
-    // Keep the specialized 1..5 fence for plain fixed amounts. Extended mode
-    // is for dynamic/controller/entry shapes, not for admitting amount 0.
-    if(fixedAmount!==null&&(!Number.isSafeInteger(fixedAmount)||fixedAmount<1||fixedAmount>64))api.fail(ctx,node,'token-system-fixed-amount-bound');
+    if(fixedAmount!==null&&(!Number.isSafeInteger(fixedAmount)||fixedAmount<0||fixedAmount>64))api.fail(ctx,node,'token-system-fixed-amount-bound');
     const entersReady=props.has('entersReady')?api.literal(props.get('entersReady'),ctx):false;
     if(typeof entersReady!=='boolean')api.fail(ctx,node,'token-system-readiness-type');
     // Preserve source array order rather than compressing a player array to a

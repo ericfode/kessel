@@ -173,36 +173,11 @@ function queryContract(input,ctx,api) {
  // single player/card register. Keep its physical receiver and predicate role.
  if(['getArenaUnits','hasSomeArenaUnit','hasSomeArenaCard','hasSomeArenaUpgrade'].includes(name)) {
   const value=receiver(base),p=valuePath(value);
-  // Typed roots are only arena controllers when they name a player seat — not
-  // source/target/card identities that happen to live in the callback scope.
-  // A bare getPlayers() element is itself a player. Construction callbacks use
-  // the general collectionElement role, so prove that receiver at the original
-  // callback site rather than accepting arbitrary typed collection elements.
-  const gamePlayerElement=()=>{
-   if(value.kind!=='ref'||p.length!==1||!ts.isIdentifier(base))return false;
-   const role=ctx.typedCallbackRoles?.get(p[0]);
-   if(role==='player')return true; // getPlayers collection/reduce query contract.
-   if(role!=='collectionElement')return false;
-   for(let callback=base.parent;callback;callback=callback.parent){
-    const index=callback.parameters?.findIndex(parameter=>ts.isIdentifier(parameter.name)&&parameter.name.text===base.text);
-    if(index===undefined||index<0)continue;
-    if(index!==0||(!ts.isArrowFunction(callback)&&!ts.isFunctionExpression(callback)))return false;
-    const collectionCall=callback.parent;
-    if(!ts.isCallExpression(collectionCall)||collectionCall.arguments.length!==1||collectionCall.arguments[0]!==callback||collectionCall.questionDotToken||!ts.isPropertyAccessExpression(collectionCall.expression)||collectionCall.expression.questionDotToken||!['some','every','map','filter','find'].includes(collectionCall.expression.name.text))return false;
-    const players=unwrap(collectionCall.expression.expression);
-    if(!ts.isCallExpression(players)||!ts.isPropertyAccessExpression(players.expression)||players.expression.name.text!=='getPlayers')return false;
-    return queryContract(players,ctx,api)?.kind==='gamePlayersQuery';
-   }
-   return false;
-  };
-  const typed=((ctx.typedCallbackRoles?.has(p[0])||ctx.dataRoots?.has(p[0]))&&['player','opponent'].includes(p.at(-1)))||gamePlayerElement();
-  // A property factory receives the native system context. Its direct game
-  // member is the global arena receiver, not an arbitrary typed card member.
-  const factoryGame=value.kind==='ref'&&p.length===2&&p[1]==='game'&&ctx.typedCallbackRoles?.get(p[0])==='systemPropertiesContext';
+  const typed=ctx.typedCallbackRoles?.has(p[0])||ctx.dataRoots?.has(p[0]);
   const computed=value.kind==='otherPlayerQuery';
   const candidateController=['card','selectionCandidate','attachTarget'].includes(p[0])&&p.at(-1)==='controller';
   const ordinary=value.kind==='ref'&&['player','opponent','game','source.controller','source.controller.opponent'].includes(p.join('.'));
-  if(!typed&&!factoryGame&&!computed&&!candidateController&&!ordinary)return null;
+  if(!typed&&!computed&&!candidateController&&!ordinary)return null;
   stage();if(n.arguments.length>1||n.questionDotToken||call.questionDotToken)fail(ctx,n,'arena-query-contract-arity');
   const o=n.arguments.length?object(n.arguments[0],ctx):{props:new Map(),ctx},filter={};
   for(const[key,v]of o.props){if(!['arena','trait','aspect','keyword','otherThan','condition',...(name==='hasSomeArenaCard'?['type']:[])].includes(key))fail(o.ctx,v,'arena-query-contract-filter:'+key);filter[key]=key==='condition'?cb(v,['candidate']):expr(v,o.ctx);}
