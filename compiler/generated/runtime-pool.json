@@ -3519,6 +3519,49 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "5203773671",
+      "internalName": "alphabet-squadron-uwing#quiet-devotion",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 5,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "ASH_159",
+      "setCodes": [
+        {
+          "number": 159,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 159,
+        "set": "ASH"
+      },
+      "subtitle": "Quiet Devotion",
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\nWhen the regroup phase starts: Give an Advantage token to a unit.",
+      "title": "Alphabet Squadron U-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression"
@@ -26996,6 +27039,46 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "6523135540",
+      "internalName": "dume#redeem-the-future",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LOF_055",
+      "setCodes": [
+        {
+          "number": 55,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 55,
+        "set": "LOF"
+      },
+      "subtitle": "Redeem the Future",
+      "text": "When the regroup phase starts: Give an Experience token to each other friendly non-Vehicle unit.",
+      "title": "Dume",
+      "traits": [
+        "force",
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "vigilance"
       ],
       "cost": 2,
@@ -46640,6 +46723,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4687650543",
+      "internalName": "assault-lander-laat",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TS26_023",
+      "setCodes": [
+        {
+          "number": 23,
+          "set": "TS26"
+        }
+      ],
+      "setId": {
+        "number": 23,
+        "set": "TS26"
+      },
+      "subtitle": "",
+      "text": "When Played: Create 2 Clone Trooper tokens.\nWhen the regroup phase starts: Deal 4 damage to this unit.",
+      "title": "Assault Lander LAAT",
+      "traits": [
+        "republic",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "command",
@@ -49103,6 +49227,44 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 10,
+      "id": "0216922902",
+      "internalName": "the-zillo-beast#awoken-from-the-depths",
+      "keywords": [],
+      "power": 10,
+      "rules": null,
+      "setCode": "TWI_067",
+      "setCodes": [
+        {
+          "number": 67,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 67,
+        "set": "TWI"
+      },
+      "subtitle": "Awoken From The Depths",
+      "text": "When Played: Give each enemy ground unit –5/–0 for this phase.\nWhen the regroup phase starts: Heal 5 damage from this unit.",
+      "title": "The Zillo Beast",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

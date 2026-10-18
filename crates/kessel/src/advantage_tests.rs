@@ -339,16 +339,15 @@ fn advantage_missing_malformed_native_and_selected_pool_dependencies_fail_closed
         .err()
         .unwrap();
     assert!(err.contains("TOKEN_ADVANTAGE"), "{err}");
+    // Isolate Follow Me's dependency instead of assuming a fixed inventory of
+    // other creators. New admissions must not enter the token-independent control.
     pool["cards"].as_array_mut().unwrap().retain(|v| {
-        ![
-            "ASH_036", "ASH_146", "ASH_157", "ASH_167", "ASH_176", "ASH_178", "ASH_205", "ASH_218",
-            "ASH_221", "ASH_238", "ASH_251", "ASH_254", "ASH_264",
-        ]
-        .iter()
-        .any(|code| v["setCode"] == *code)
+        ["ASH_019", "SOR_014", "TOKEN_SHIELD", "ASH_184"]
+            .iter()
+            .any(|code| v["setCode"] == *code)
     });
-    // Follow Me is another physical Advantage creator in the selected pool.
-    // Removing the older creators must not bypass its native-token dependency.
+    assert!(pool["cards"].as_array().unwrap().iter().any(|v| v["setCode"] == "ASH_184"));
+    // Follow Me remains a physical Advantage creator in this selected pool.
     let err = Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(), &bytes)
         .err()
         .unwrap();

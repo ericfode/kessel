@@ -1673,6 +1673,7 @@ fn title_registration(a:&Ability)->bool {
 }
 fn contains_arena_tokens(a:&Ability)->bool {fn walk(e:&Effect)->bool {match e {Effect::GiveShield{target:Target::ArenaList(_),..}|Effect::GiveExperience{target:Target::ArenaList(_),..}=>true,Effect::Conditional{on_true,on_false,..}=>walk(on_true)||on_false.as_deref().is_some_and(walk),Effect::Simultaneous{effects}|Effect::Sequence{effects}|Effect::PhaseModifiers{effects}=>effects.iter().any(walk),Effect::Select{effect,..}=>walk(effect),_=>false}}walk(&a.effect)||a.then.as_deref().is_some_and(contains_arena_tokens)||a.if_you_do.as_deref().is_some_and(contains_arena_tokens)||a.target_resolvers.iter().any(|d|walk(&d.effect))}
 fn arena_token_kind(a:&Ability)->Option<u8> {
+ if matches!(&a.effect,Effect::GiveExperience{target:Target::ArenaList(_),..})&&crate::regroup_hooks::arena_token_registration(a) {return Some(5);}
  if !["whenPlayed","whenDefeated"].contains(&a.trigger.as_str())||a.optional||!a.costs.is_empty()||a.condition.is_some()||a.target_resolver.is_some()||!a.target_resolvers.is_empty()||a.then.is_some()||a.if_you_do.is_some()||a.coordinate||!a.context_title.is_empty(){return None;}
  let (list,shield)=match &a.effect {Effect::GiveShield{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,true),Effect::GiveExperience{target:Target::ArenaList(l),amount:Expr::Const{value}} if value.as_u64()==Some(1)=>(l,false),_=>return None};
  if list.controller_order.is_some()||!matches!(&list.receiver,Expr::Ref{path} if path==&["player"])||list.predicate.validate().is_err(){return None;}
@@ -3551,7 +3552,11 @@ impl Catalogue {
                     let kinds=sides.card.iter().map(arena_token_kind).collect::<Option<Vec<_>>>().ok_or("unsupported arena token registration")?;
                     if kinds.contains(&4) && (!complete_plain_source_metadata||!no_keywords||entry["card"]["unique"]!=false) {return Err("unshielded ground snapshot requires complete ordinary nonunique unit metadata".into());}
                     let pair=kinds==[1,1]&&sides.card[0].trigger=="whenPlayed"&&sides.card[1].trigger=="whenDefeated";
-                    if !entry["card"]["unique"].is_boolean()||entry["baseClass"]!="NonLeaderUnitCard"||!(pair||(kinds.len()==1&&kinds[0]!=1))||!entry["attachCondition"].is_null()||!no_pilot {return Err("arena token source requires complete ordinary unit shape".into());}
+                    // The live non-Vehicle list is projected only from the exact
+                    // complete regroup source, never a new ordinary play leaf.
+                    let regroup=kinds==[5]&&crate::regroup_hooks::entry(entry);
+                    let single=kinds.len()==1&&matches!(kinds[0],0|2|3|4);
+                    if !entry["card"]["unique"].is_boolean()||entry["baseClass"]!="NonLeaderUnitCard"||!(pair||single||regroup)||!entry["attachCondition"].is_null()||!no_pilot {return Err("arena token source requires complete ordinary unit shape".into());}
                 }
                 let ordered=["abilities","attachCondition","piloting"].iter().any(|k|contains(&entry[*k],|v|v.as_object().is_some_and(|o|o.contains_key("controllerOrder"))));
                 if ordered {

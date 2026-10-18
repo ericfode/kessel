@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 931
+    "sourceIr": 935
   },
   "runtimeAdmittedCards": [
     {
@@ -444,6 +444,11 @@
       "implementation": "sourceIr",
       "internalName": "danger-squadron-wingmen",
       "setCode": "ASH_157"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "alphabet-squadron-uwing#quiet-devotion",
+      "setCode": "ASH_159"
     },
     {
       "implementation": "dataOnly",
@@ -3322,6 +3327,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "dume#redeem-the-future",
+      "setCode": "LOF_055"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "nightsister-warrior",
       "setCode": "LOF_059"
     },
@@ -5777,6 +5787,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "assault-lander-laat",
+      "setCode": "TS26_023"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "sundari-gauntlet",
       "setCode": "TS26_024"
     },
@@ -6084,6 +6099,11 @@
       "implementation": "dataOnly",
       "internalName": "falchion-ion-tank",
       "setCode": "TWI_065"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-zillo-beast#awoken-from-the-depths",
+      "setCode": "TWI_067"
     },
     {
       "implementation": "sourceIr",
@@ -6616,7 +6636,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1321,
+  "runtimeAdmittedCount": 1325,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6972,11 +6992,6 @@
       "internalName": "han-solo#itll-work",
       "reason": "han-solo#itll-work: group tokens require one or two per target",
       "setCode": "ASH_158"
-    },
-    {
-      "internalName": "alphabet-squadron-uwing#quiet-devotion",
-      "reason": "alphabet-squadron-uwing#quiet-devotion: onPhaseStarted requires the complete bounded regroup-start unit registration",
-      "setCode": "ASH_159"
     },
     {
       "internalName": "kachirho-militia",
@@ -9622,11 +9637,6 @@
       "internalName": "jedi-trials",
       "reason": "jedi-trials: companion registration: unknown variant `attachedModifierRegistration`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "LOF_052"
-    },
-    {
-      "internalName": "dume#redeem-the-future",
-      "reason": "dume#redeem-the-future: onPhaseStarted requires the complete bounded regroup-start unit registration",
-      "setCode": "LOF_055"
     },
     {
       "internalName": "size-matters-not",
@@ -12284,11 +12294,6 @@
       "setCode": "TS26_022"
     },
     {
-      "internalName": "assault-lander-laat",
-      "reason": "assault-lander-laat: onPhaseStarted requires the complete bounded regroup-start unit registration",
-      "setCode": "TS26_023"
-    },
-    {
       "internalName": "fiery-alliance",
       "reason": "fiery-alliance: native attacks require a complete sole ordinary unit/event registration",
       "setCode": "TS26_025"
@@ -12612,11 +12617,6 @@
       "internalName": "multitroop-transport",
       "reason": "unimplemented runtime keyword exploit",
       "setCode": "TWI_066"
-    },
-    {
-      "internalName": "the-zillo-beast#awoken-from-the-depths",
-      "reason": "the-zillo-beast#awoken-from-the-depths: onPhaseStarted requires the complete bounded regroup-start unit registration",
-      "setCode": "TWI_067"
     },
     {
       "internalName": "foresight",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1284,
+  "runtimeRejectedCount": 1280,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }
