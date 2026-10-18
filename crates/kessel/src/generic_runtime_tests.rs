@@ -157,6 +157,15 @@ fn without_empty_credit_state(mut snapshot: Value) -> Value {
         .remove("creditStateVersion");
     snapshot
 }
+// These comparisons select fixtures without naming sources. Project only a
+// verified empty default naming ledger, never an active lock or custom domain.
+fn without_empty_named_play_state(mut snapshot:Value)->Value {
+    if let Some(named)=snapshot.get("namedPlayState") {
+        assert_eq!(named,&json!({"version":1,"registry":"71d635921e9bb4db5bef6f99ad42466ad57500711f8759670d68987e8fee365f","locks":[]}));
+        snapshot.as_object_mut().unwrap().remove("namedPlayState");
+    }
+    snapshot
+}
 fn unit(e: &Engine, s: &mut State, seat: Seat, code: &str) -> CardId {
     let id = add(e, s, seat, code);
     e.add_arena(s, id).unwrap();
@@ -3179,7 +3188,7 @@ fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_
         .unwrap()
         .metadata
         .retain(|code, _| ["ASH_019", "SOR_014", "IBH_053", "LOF_256"].contains(&code.as_str()));
-    let mut legacy = without_empty_credit_state(snapshot);
+    let mut legacy = without_empty_named_play_state(without_empty_credit_state(snapshot));
     legacy.as_object_mut().unwrap().remove("arenaUnitOrder");
     legacy.as_object_mut().unwrap().remove("registrationOrder");
     legacy

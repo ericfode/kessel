@@ -120,7 +120,7 @@ fn collection_query_piercing_shot_removes_every_native_shield_before_damage_in_a
             assert!(e.legal_actions(&chosen).contains(&e.card_action(&chosen,host)));let done=e.apply(&chosen,&e.card_action(&chosen,host)).unwrap();
             assert_eq!(done.card(host).damage,3);assert!(e.in_arena(&done,host));assert_eq!(done.card(host).shield,0);assert_eq!(done.card(host).experience,xp);assert_eq!(done.card(ordinary).parent,host);assert_eq!(e.upgrades(&done,host),vec![ordinary,xp]);
             for token in shields {assert_eq!(done.card(token).parent,0);assert!(!done.player(seat.other()).discard.contains(token));}
-            assert!(done.player(seat).discard.contains(source));observations.push((e.snapshot(&done),done.zobrist()));
+            assert!(done.player(seat).discard.contains(source));observations.push((without_empty_named_play_state(e.snapshot(&done)),done.zobrist()));
         }
         assert_eq!(observations[0],observations[1]);assert_eq!(observations[1],observations[2]);
     }}
