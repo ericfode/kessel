@@ -1,7 +1,7 @@
 {
   "schema": "swu-card-ir-inputs/v1",
   "compilerHash": "5869e54f633df3188ea490931dd5797894694f5af211c45c890194bbe6cca640",
-  "sourceTreeHash": "4fa2b34dd5313b257b0c66ac8166ccbbbc063de6965675ac2ee70389e09b5623",
+  "sourceTreeHash": "bd11e0fed492efebf92f84abdd50dada9ea4d331d4c9c61879985a2c4bd3cef6",
   "inputs": [
     {
       "file": "data/_mockCardNames.json",
@@ -77,7 +77,7 @@
     },
     {
       "file": "data/Card/academy-defense-walker.json",
-      "sha256": "bbda2ca87de343f8a9f25ea2d1cbdbeb46c62c6172ad26c436f87d7691e4d8b5"
+      "sha256": "d739df744d1ddeb98d3b732f281693ccc820ee6b7f5b66091ea40eab5aa960ce"
     },
     {
       "file": "data/Card/academy-disciplinarian.json",
@@ -309,7 +309,7 @@
     },
     {
       "file": "data/Card/alliance-dispatcher.json",
-      "sha256": "fc625a3f7e8dc40e4c2d2da03b464879798a4338f34dcd65c7cf8ddf1a790e02"
+      "sha256": "7d8610f132278824a673abbe3a4b5cb77fdab4745c75f0d36ee793baf0a2ff3c"
     },
     {
       "file": "data/Card/alliance-outpost.json",
@@ -557,7 +557,7 @@
     },
     {
       "file": "data/Card/atat-suppressor.json",
-      "sha256": "f8de3ff5085a6b6064468af103fb223a8b2d0c611c5979f166dc23fd9f6c7a0f"
+      "sha256": "f578017029acd7a14cc9d94e5b2c78b31b6817e38b65757bcc9831564e2a0bb4"
     },
     {
       "file": "data/Card/atdp-occupier.json",
@@ -625,7 +625,7 @@
     },
     {
       "file": "data/Card/avenger#hunting-star-destroyer.json",
-      "sha256": "0acf37ab2d93a8ad273b77b07dc2014d04521ef575755dfc43ba1176c4852aa6"
+      "sha256": "9f85b579f15c1bfc5ccebb1d107cf3b66bd710855a9c977bb7c11b9c76c8131e"
     },
     {
       "file": "data/Card/avenger#hunting-the-rebels.json",
@@ -1137,7 +1137,7 @@
     },
     {
       "file": "data/Card/bounty-hunter-crew.json",
-      "sha256": "67c6a554533f99dcac88551ac8fd680d873e3d9aecf50a04b7e19b75e630cba8"
+      "sha256": "66280ab5cd0a145db1a240de3cf07f29dc970a066dd5708b11978c6bb8003cc5"
     },
     {
       "file": "data/Card/bounty-hunters-quarry.json",
@@ -1253,7 +1253,7 @@
     },
     {
       "file": "data/Card/cad-bane#hostage-taker.json",
-      "sha256": "bd4493f2ea116096794ebd312ffc4d0f97523c211889353932708c8438d6cb6e"
+      "sha256": "cdcea559131c47dcd9fb93d36aad701cf5b9ca3f24fc9b50e89dbe9ed32b3fb9"
     },
     {
       "file": "data/Card/cad-bane#impressed-now.json",
@@ -1873,11 +1873,11 @@
     },
     {
       "file": "data/Card/confederate-courier.json",
-      "sha256": "bc4973e3ea40abeb0f981ca7164e663aa076093d0af819ba39517a4f9907acbb"
+      "sha256": "f27b18555977a59741235d16e782b9b56dbb87e63c3acd4fabf4344c5e0faaee"
     },
     {
       "file": "data/Card/confederate-trifighter.json",
-      "sha256": "f9a6027fee0ed5b36c898696d56e028eeffa93aabd181f23499c23675726043a"
+      "sha256": "96948153ae8874f783be097e4957d01c97124cd357c8895c129d937e88bb32ee"
     },
     {
       "file": "data/Card/confidence-in-victory.json",
@@ -1957,7 +1957,7 @@
     },
     {
       "file": "data/Card/corner-the-prey.json",
-      "sha256": "7427069ebff8ec25513c7b3cbfba5269d7f8a55fa3dc1e3434e4e386d2369dec"
+      "sha256": "e756ac80037fe467f4feb2c74dcb7164cee2dfb743ece07959dc99915a184a33"
     },
     {
       "file": "data/Card/corona-four#justice-for-alderaan.json",
@@ -2021,7 +2021,7 @@
     },
     {
       "file": "data/Card/count-dooku#darth-tyranus.json",
-      "sha256": "a4eb03cf416abfb4b293ad8bbbb66d4f091f22b9acf0541f01b0a900b83b216d"
+      "sha256": "d1c0a91d796a724789881125f04b080f7a2a6af2bd929b29db79acf932aa7c80"
     },
     {
       "file": "data/Card/count-dooku#face-of-the-confederacy.json",
@@ -2113,7 +2113,7 @@
     },
     {
       "file": "data/Card/crosshair#following-orders.json",
-      "sha256": "3ee8f14b3171eca479b3d0e3cc1f399bdd45444a18cfb14be849b917b2a12bb5"
+      "sha256": "fce8e7a3cf2a901c8cb7a370536950f4fb41e4c464fc9b2fddde931261151095"
     },
     {
       "file": "data/Card/crosshair#ive-changed.json",
@@ -2349,7 +2349,7 @@
     },
     {
       "file": "data/Card/death-star-stormtrooper.json",
-      "sha256": "05431ad9c553bf229703c790a3f88e1640ea42e06903a25cb4bbc529179a9a70"
+      "sha256": "00bc4113a863c3d888a38d9ba00b9682348c0f680f35f07e7adb884ca1aae048"
     },
     {
       "file": "data/Card/death-trooper-squad.json",
@@ -2357,7 +2357,7 @@
     },
     {
       "file": "data/Card/death-trooper.json",
-      "sha256": "ea27cabdfdb5a2a6804d8542fdc6d96c14fd015ea1205edf82c4edd3cce8fd3d"
+      "sha256": "a0c9be4aad12f37c7ef640c1b32d9a1e54b09e385a82b946fe6f9be7d4dee3bf"
     },
     {
       "file": "data/Card/death-watch-hideout.json",
@@ -2473,7 +2473,7 @@
     },
     {
       "file": "data/Card/devastating-gunship.json",
-      "sha256": "d80817d03238821f3053914c7f80f6fbd389a6e12a469f4b2f4a1a9e064c2077"
+      "sha256": "67ca50165a44aa6c795ef0b59bd396d7aec14a3f614d9e822913a3d840cf8ad1"
     },
     {
       "file": "data/Card/devastator#hunting-the-rebellion.json",
@@ -2725,7 +2725,7 @@
     },
     {
       "file": "data/Card/droid-commando.json",
-      "sha256": "6109456786107706f9002166297013d6fb4918225404dc0a437b05126f58c411"
+      "sha256": "f560bb7f38355b9ea02e62bbe816d4f533367f782528c9d8230af90ea33f32a6"
     },
     {
       "file": "data/Card/droid-deployment.json",
@@ -2765,7 +2765,7 @@
     },
     {
       "file": "data/Card/dryden-vos#offering-no-escape.json",
-      "sha256": "d980cbd59432e5358eb5f7152487240272c86edc03ad3fb10b165dd30b1395a2"
+      "sha256": "b41427c0a2b304bd6e144ef6df183d791c3cd70f46ed376e09ab3bd615c9d4f6"
     },
     {
       "file": "data/Card/duchesss-champion.json",
@@ -3521,7 +3521,7 @@
     },
     {
       "file": "data/Card/frozen-in-carbonite.json",
-      "sha256": "ea11f8306ebc3bc1e34689f196b0a912e534822e45cef0096c4627bed8a98072"
+      "sha256": "5a26b0a250b766c23af513551c1865f3739c98f91110a034e905e885e417a9e7"
     },
     {
       "file": "data/Card/fugitive-wookiee.json",
@@ -3657,7 +3657,7 @@
     },
     {
       "file": "data/Card/general-tagge#concerned-commander.json",
-      "sha256": "7b49a33083aa274bfa9e6016f10a2d3883a6697cace22cfe084559355d1d8296"
+      "sha256": "a0a05b43918b46f363bee0ce46449c2e2ca657f06d2a91f898184a93e55ebdbd"
     },
     {
       "file": "data/Card/general-veers#blizzard-force-commander.json",
@@ -3817,7 +3817,7 @@
     },
     {
       "file": "data/Card/grand-moff-tarkin#oversector-governor.json",
-      "sha256": "d82d5fb5bcf776fb04d16a5fcfd651ed53d306c5d629931f28bfd11ca32c01b5"
+      "sha256": "4e9f9eeb07c02c0a947daf243f15a4218ab0d71b6724a9c638cb6fd775099b20"
     },
     {
       "file": "data/Card/grand-moff-tarkin#taking-krennics-achievement.json",
@@ -4401,7 +4401,7 @@
     },
     {
       "file": "data/Card/ig88#ruthless-bounty-hunter.json",
-      "sha256": "70c1081b45d88ff8fd08eeb582f09769b74fa125b3dae5b44be7cd046925b484"
+      "sha256": "7d7f74931e5e0d739588153a7837776be896f3d25b9bd33ea800ff7fac21c6b7"
     },
     {
       "file": "data/Card/igv55-listener.json",
@@ -4641,7 +4641,7 @@
     },
     {
       "file": "data/Card/isb-agent.json",
-      "sha256": "8b78a45b15b56a608f27466629a9f549309ebabbd4ae120a1c63b8d7bbfc568f"
+      "sha256": "e30cb8a7af33c6fed99dd7fae5f72c53dfcec0516a20fea3edcd597ef3707447"
     },
     {
       "file": "data/Card/isb-shuttle.json",
@@ -4689,7 +4689,7 @@
     },
     {
       "file": "data/Card/jabba-the-hutt#his-high-exaltedness.json",
-      "sha256": "4e633b344091c41d2636e4bd1d995d17a9ad78a9748578e6d998a4170fa1e12a"
+      "sha256": "c1e2e838d2097ebff31660b5873cb17040f4378cc3f162ec3748298a8dde3fce"
     },
     {
       "file": "data/Card/jabba-the-hutt#wonderful-human-being.json",
@@ -4805,7 +4805,7 @@
     },
     {
       "file": "data/Card/jedi-lightsaber.json",
-      "sha256": "ab0faca24704f42407a4602d08f2cf573c6a80d7c7774b74e1b7620fbcd3a6cc"
+      "sha256": "3f5b532a6a6af3d8015143dedf5690d28c5f0a47818192a004e8bb8755ae6267"
     },
     {
       "file": "data/Card/jedi-sentinel.json",
@@ -5265,7 +5265,7 @@
     },
     {
       "file": "data/Card/leia-organa#alliance-general.json",
-      "sha256": "ff8c75f4636bb1d9033bf4b86241cd54f23307a7f76d0eb1a15d46823de1cbf0"
+      "sha256": "c32a0d13aab11c7121b04e216b157265c3606d2b449d44333fc7cf266b6b5cff"
     },
     {
       "file": "data/Card/leia-organa#defiant-princess.json",
@@ -5353,7 +5353,7 @@
     },
     {
       "file": "data/Card/lieutenant-childsen#death-star-prison-warden.json",
-      "sha256": "b930bbef5819a9d2582f57e6d9a74596b9b512fab1339a28d69cbbb4deebfe10"
+      "sha256": "6e377b1f23f3473ad3357e5ba66f5c8351b5b3247beaa960e064149cd42d9961"
     },
     {
       "file": "data/Card/lieutenant-gorn#i-deserve-worse.json",
@@ -5485,7 +5485,7 @@
     },
     {
       "file": "data/Card/luke-skywalker#jedi-knight.json",
-      "sha256": "89c1513dd1631926497f2c80872a6f16fe5b51660ff685d852513cb650030f8f"
+      "sha256": "12fda89440e6ebbe066ea32d445be406c904683090e7710db3ac21e0e5635c04"
     },
     {
       "file": "data/Card/luke-skywalker#profit-or-be-destroyed.json",
@@ -6057,7 +6057,7 @@
     },
     {
       "file": "data/Card/nala-se#clone-engineer.json",
-      "sha256": "bec10fe68c50a5a9d46246daeaed0abffd8df98a2e07b8f0ca58605dcbd15d9b"
+      "sha256": "319b0b039f8d13291db8ef45d9e317ff4a8e02d0bde52e7e2a2b467f4eeee120"
     },
     {
       "file": "data/Card/nala-se#silent-survivor.json",
@@ -6321,7 +6321,7 @@
     },
     {
       "file": "data/Card/on-the-doorstep.json",
-      "sha256": "42fab7229c3b8761b6796d4d844d6002e378d8dfc8f474b2b5ebc9cd43b847bf"
+      "sha256": "344ff8421ca6f0ab537789c063df1d939b2bc9c10cc975d90d6d2bacf19cf92f"
     },
     {
       "file": "data/Card/on-top-of-things.json",
@@ -6665,7 +6665,7 @@
     },
     {
       "file": "data/Card/pirate-battle-tank.json",
-      "sha256": "1f198691af08ce68d35b9b063addc6f00f17a18483b8291c3b4081b936ed2ee1"
+      "sha256": "e2938523d88641322cd3c71a00e93dadf2a4ecbb789e777599ab7b710853ef2c"
     },
     {
       "file": "data/Card/pirate-snub-fighter.json",
@@ -6717,7 +6717,7 @@
     },
     {
       "file": "data/Card/poggle-the-lesser#archduke-of-the-stalgasin-hive.json",
-      "sha256": "69cb2f315c1352ff1e569378308d1939669978684f3223c013fe3f50dc66832a"
+      "sha256": "d0faf97742c4ee60381e48ef5b848a20f92aed63c744e2423a44669f97b86d79"
     },
     {
       "file": "data/Card/poggle-the-lesser#let-the-executions-begin.json",
@@ -6881,7 +6881,7 @@
     },
     {
       "file": "data/Card/providence-destroyer.json",
-      "sha256": "e5445ed593ea88efedeae8d23fab1bfc6a17eddf8f047ce7d1ae6d39439873a9"
+      "sha256": "d9c471e2da0b98936b38a3fef3ed3da5d7eed9771e6a70893f4822cb745ad6f9"
     },
     {
       "file": "data/Card/psychometry.json",
@@ -7121,7 +7121,7 @@
     },
     {
       "file": "data/Card/rebel-assault.json",
-      "sha256": "f0fa347553faa5577b585d087d987028be19c656086f8957ed07478ed8f47c43"
+      "sha256": "2446ca5b2e1f8263a2b1b97d1e753234dacc9378c53a1ad793194fd500917c90"
     },
     {
       "file": "data/Card/rebel-blockade-runner.json",
@@ -7273,7 +7273,7 @@
     },
     {
       "file": "data/Card/relentless#konstantines-folly.json",
-      "sha256": "3e71f2101e5e7d4492847c0051fc96e3d140fa1b2dfb34ea513862e0d5c3f9dd"
+      "sha256": "5b21d3e15aa3a003525ae7d232fb00eb752398fbb5e54e9a93d5b1ad9af21d3f"
     },
     {
       "file": "data/Card/relic-scavenger.json",
@@ -7713,7 +7713,7 @@
     },
     {
       "file": "data/Card/san-hill#chairman-of-the-banking-clan.json",
-      "sha256": "4538f3b09bd00ea5e1f3c58c08aa3de4742bdaf90eac8d9641bcdf3ac7b7ff73"
+      "sha256": "e012b297269c4dfbadb4c66c6133f671b929cb5a1a10c10e9815ffae2dd7ede5"
     },
     {
       "file": "data/Card/sanctioners-shuttle.json",
@@ -7817,7 +7817,7 @@
     },
     {
       "file": "data/Card/scout-bike-pursuer.json",
-      "sha256": "cfa6bdbbbc706aad94cda14ef37743fedf7b176793999505b02f1d5e609afdac"
+      "sha256": "36d6cad9389cc3825d62910437a03c08074b0db26092540d91ce048861a50cbe"
     },
     {
       "file": "data/Card/scouting-headhunter.json",
@@ -7841,7 +7841,7 @@
     },
     {
       "file": "data/Card/search-your-feelings.json",
-      "sha256": "ad7e673ae79029b178ab016a23f14fbfa04b5c05dc28f0270a9575b8c50da7ee"
+      "sha256": "94c8369d0e20f9ef28be18b9ce0974f9bcc7ca3289023369024f0aaba3cbe1ca"
     },
     {
       "file": "data/Card/seasoned-fleet-admiral.json",
@@ -7849,7 +7849,7 @@
     },
     {
       "file": "data/Card/seasoned-shoretrooper.json",
-      "sha256": "5ea2d2583159ebcc3de8a917a78daf52f806a25a73e6387658d93f950a9a6fa6"
+      "sha256": "586161bf9a85c27ab95bc17bdd4638470c1bf34dfa4fd13c0a1ce0569a15addd"
     },
     {
       "file": "data/Card/seasoned-tracker.json",
@@ -8109,7 +8109,7 @@
     },
     {
       "file": "data/Card/slavers-freighter.json",
-      "sha256": "7af88a418fe4c94e94033cc0c5491c2719750e4e1fbcd767e84d08bf6f3f61e7"
+      "sha256": "e6e987b68723eb83fd6909bb0329fd6dcc7bf32931a372795d5ca7e7e939f4a3"
     },
     {
       "file": "data/Card/sly-moore#cipher-in-the-dark.json",
@@ -8433,7 +8433,7 @@
     },
     {
       "file": "data/Card/superlaser-blast.json",
-      "sha256": "0d5024350aefccdedde482219ee8da2738987b3282d7b232cfcd703ee2ffcee0"
+      "sha256": "0476510074c7e07d6127589b3af5bfce4b02212eb103a3f96c68fc7c57e87652"
     },
     {
       "file": "data/Card/superlaser-technician.json",
@@ -9381,7 +9381,7 @@
     },
     {
       "file": "data/Card/uwing-reinforcement.json",
-      "sha256": "a5cdf0c5a2919c563d16d3204edfb5ad07d61dd769278a7430089c15cbb5113b"
+      "sha256": "bcce92322025f0a0beef1eface4ae66012b9303390c2beeb4e114e90caa19035"
     },
     {
       "file": "data/Card/v19-skirmisher.json",
@@ -9517,7 +9517,7 @@
     },
     {
       "file": "data/Card/vigilant-honor-guards.json",
-      "sha256": "2e38d9c344e57002500066a27bd5833f6f649d294e6ccd06589a96a59c759392"
+      "sha256": "3d866d7172b82a6591a98c71c76139e309aa862fd5d4b4419d1eb76219fac4af"
     },
     {
       "file": "data/Card/vigilant-pursuit-craft.json",

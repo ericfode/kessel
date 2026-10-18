@@ -147,7 +147,7 @@ jobs:
         if: failure() && steps.scope.outputs.run != 'false'
         uses: actions/upload-artifact@v7
         with:
-          name: kessel-compiler-inputs-${{ github.run_id }}
+          name: kessel-compiler-inputs-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/kessel-compiler-diagnostic/
             forceteki/test/json/

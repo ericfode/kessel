@@ -13976,8 +13976,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 3,
       "deployBox": null,
@@ -14121,8 +14121,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 8,
       "deployBox": null,
@@ -14525,8 +14525,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "aggression",
-        "villainy"
+        "villainy",
+        "aggression"
       ],
       "cost": 1,
       "deployBox": null,
@@ -38278,8 +38278,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 2,
       "deployBox": null,
@@ -38363,8 +38363,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 2,
       "deployBox": null,
@@ -38491,8 +38491,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 4,
       "deployBox": null,
@@ -39787,8 +39787,8 @@
     {
       "arena": "space",
       "aspects": [
-        "cunning",
-        "villainy"
+        "villainy",
+        "cunning"
       ],
       "cost": 5,
       "deployBox": null,
@@ -39869,8 +39869,8 @@
     },
     {
       "aspects": [
-        "cunning",
-        "villainy"
+        "villainy",
+        "cunning"
       ],
       "cost": 3,
       "deployBox": null,
@@ -40987,8 +40987,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 5,
       "deployBox": "On Attack: You may give an Experience token to another Imperial unit.",
@@ -41442,8 +41442,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 2,
       "deployBox": null,
@@ -41524,8 +41524,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 6,
       "deployBox": null,
@@ -41567,8 +41567,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 7,
       "deployBox": null,
@@ -41610,8 +41610,8 @@
     {
       "arena": "space",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 9,
       "deployBox": null,
@@ -41688,8 +41688,8 @@
     },
     {
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 8,
       "deployBox": null,
@@ -41811,8 +41811,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "vigilance",
-        "heroism"
+        "heroism",
+        "vigilance"
       ],
       "cost": 5,
       "deployBox": null,
@@ -44130,8 +44130,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "cunning",
-        "villainy"
+        "villainy",
+        "cunning"
       ],
       "cost": 6,
       "deployBox": null,
@@ -47678,8 +47678,8 @@
     {
       "arena": "space",
       "aspects": [
-        "vigilance",
-        "villainy"
+        "villainy",
+        "vigilance"
       ],
       "cost": 5,
       "deployBox": null,
@@ -48687,8 +48687,8 @@
     {
       "arena": "space",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 2,
       "deployBox": null,
@@ -48728,8 +48728,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 2,
       "deployBox": null,
@@ -48768,8 +48768,8 @@
     {
       "arena": "ground",
       "aspects": [
-        "command",
-        "villainy"
+        "villainy",
+        "command"
       ],
       "cost": 3,
       "deployBox": null,
@@ -49995,8 +49995,8 @@
     {
       "arena": "space",
       "aspects": [
-        "aggression",
-        "villainy"
+        "villainy",
+        "aggression"
       ],
       "cost": 3,
       "deployBox": null,
@@ -51261,8 +51261,8 @@
     },
     {
       "aspects": [
-        "cunning",
-        "villainy"
+        "villainy",
+        "cunning"
       ],
       "cost": 4,
       "deployBox": null,
