@@ -752,3 +752,85 @@ fn support_defender_window_retains_outer_trigger_cursor_until_resume() {
         assert_eq!(s.decision,Decision::AttackTarget);
     }
 }
+
+#[test]
+fn support_explicit_empty_evidence_roundtrips_without_selected_dependency() {
+    let e = Engine::from_compiled_pool_bytes(
+        include_bytes!("../data/pool.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
+    ).unwrap();
+    assert!(!e.needs_support_state());
+    for seat in [Seat::P1, Seat::P2] {
+        let legacy = start(&e, seat);
+        assert!(!legacy.support_state_explicit);
+        assert!(!e.state_needs_support_state(&legacy));
+        let legacy_snapshot = e.snapshot(&legacy);
+        assert!(legacy_snapshot.get("supportStateVersion").is_none());
+        assert!(legacy_snapshot.get("supportGrants").is_none());
+        let restored_legacy = e.load_state(&legacy_snapshot).unwrap();
+        assert!(!restored_legacy.support_state_explicit);
+        assert_eq!(e.snapshot(&restored_legacy), legacy_snapshot);
+        let mut explicit = legacy_snapshot.clone();
+        explicit["supportStateVersion"] = json!(1);
+        explicit["supportGrants"] = json!([]);
+        let state = e.load_state(&explicit).unwrap();
+        assert!(state.support_state_explicit);
+        assert_eq!(state.support.len, 0);
+        assert_eq!(e.snapshot(&state), explicit);
+        assert_eq!(state.zobrist(), restored_legacy.zobrist(), "wire presence is not gameplay state");
+        assert_eq!(e.legal_actions(&state), e.legal_actions(&restored_legacy));
+
+        let copied = state;
+        assert!(copied.support_state_explicit);
+        let pass = Action::button("Pass", "pass");
+        let mut moved = e.apply(&copied, &pass).unwrap();
+        let legacy_moved = e.apply(&restored_legacy, &pass).unwrap();
+        assert!(moved.support_state_explicit);
+        assert_eq!(moved.zobrist(), legacy_moved.zobrist());
+        assert_eq!(e.legal_actions(&moved), e.legal_actions(&legacy_moved));
+        e.clear_support_grants(&mut moved);
+        assert!(moved.support_state_explicit);
+        let ordinary = unit(&e, &mut moved, seat, "LOF_254");
+        e.leave_play_primary(&mut moved, ordinary).unwrap();
+        assert!(moved.support_state_explicit);
+        let snapshot = e.snapshot(&moved);
+        assert_eq!(snapshot["supportStateVersion"], 1);
+        assert_eq!(snapshot["supportGrants"], json!([]));
+        assert_eq!(e.snapshot(&e.load_state(&snapshot).unwrap()), snapshot);
+    }
+    eprintln!("Support presence State={} library budget={} integration budget=32736 SupportState={} Card={}",
+        std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES,
+        std::mem::size_of::<SupportState>(), std::mem::size_of::<Card>());
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+    assert_eq!(std::mem::size_of::<State>(), 32_736);
+}
+
+#[test]
+fn support_wire_presence_is_set_only_after_valid_version_and_grants() {
+    let e = Engine::from_compiled_pool_bytes(
+        include_bytes!("../data/pool.json"),
+        include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")),
+    ).unwrap();
+    for bad in [
+        json!({"supportStateVersion":2,"supportGrants":[]}),
+        json!({"supportStateVersion":"1","supportGrants":[]}),
+        json!({"supportStateVersion":1}),
+        json!({"supportStateVersion":1,"supportGrants":null}),
+        json!({"supportStateVersion":1,"supportGrants":{}}),
+        json!({"supportStateVersion":1,"supportGrants":[{}]}),
+        json!({"supportGrants":[]}),
+        json!({"supportStateVersion":1,"supportGrants":[],"supportAttackPending":false}),
+    ] {
+        let mut fresh = start(&e, Seat::P1);
+        assert!(e.load_support_state(&mut fresh, &bad).is_err(), "{bad}");
+        assert!(!fresh.support_state_explicit, "invalid evidence acquired wire presence: {bad}");
+        let mut snapshot = e.snapshot(&fresh);
+        for (key, value) in bad.as_object().unwrap() { snapshot[key] = value.clone(); }
+        assert!(e.load_state(&snapshot).is_err(), "full importer: {bad}");
+    }
+    let mut fresh = start(&e, Seat::P1);
+    e.load_support_state(&mut fresh, &json!({"supportStateVersion":1,"supportGrants":[]})).unwrap();
+    assert!(fresh.support_state_explicit);
+    e.load_support_state(&mut fresh, &json!({})).unwrap();
+    assert!(fresh.support_state_explicit, "later legacy omission does not erase observed evidence");
+}

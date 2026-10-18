@@ -142,7 +142,11 @@ fn advantage_native_physical_stats_owner_capacity_and_snapshot() {
         let loaded = e.load_state(&snapshot).unwrap();
         assert_eq!(snapshot, e.snapshot(&loaded));
         assert_eq!(s.zobrist(), loaded.zobrist());
-        assert_eq!(s, loaded);
+        assert!(!s.support_state_explicit);
+        assert!(loaded.support_state_explicit);
+        let mut expected = s;
+        expected.support_state_explicit = true;
+        assert_eq!(expected, loaded);
         let mut full = s;
         full.next_id = (MAX_CARDS - 2) as CardId;
         let copy = full;
@@ -735,7 +739,13 @@ fn advantage_support_retained_attack_end_program_roundtrips_and_rejects_unreview
     assert_eq!(passed.support.len, 1);
     let snap = e.snapshot(&passed);
     let restored = e.load_state(&snap).unwrap();
-    assert_eq!(restored, passed);
+    // Import records observed versioned Support evidence; internal construction
+    // has not observed a wire header. The gameplay state and hash still agree.
+    assert!(!passed.support_state_explicit);
+    assert!(restored.support_state_explicit);
+    let mut expected = passed;
+    expected.support_state_explicit = true;
+    assert_eq!(restored, expected);
     assert_eq!(restored.zobrist(), passed.zobrist());
     let mut bad = snap.clone();
     bad["supportGrants"][0]["programs"][0] = json!("unknown-program-hash");

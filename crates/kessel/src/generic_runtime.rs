@@ -30,6 +30,7 @@ impl Effect {
             | Self::DiscardOwnHand { target, amount }
             | Self::CreateTokenUnit { target, amount, .. }
             | Self::ReadyResources { target, amount }
+            | Self::ExhaustResources { target, amount, .. }
             | Self::PayResources {target,amount}
             | Self::Damage { target, amount }
             | Self::Heal { target, amount }
@@ -1831,6 +1832,8 @@ impl Engine {
                                 .as_slice()
                                 .iter()
                                 .any(|&id| s.card(id).exhausted)
+                    } else if matches!(e, Effect::ExhaustResources { .. }) {
+                        amount > 0 && (!require_change || self.ready_resources(s, player) > 0)
                     } else if matches!(e, Effect::PayResources { .. }) {
                         amount > 0
                             && self.ready_resources(s, player) as i64 >= amount
@@ -2893,6 +2896,10 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if matches!(e, Effect::ExhaustResources { .. }) {
+            crate::resource_exhaust::amount(e)?;
+            if s.source == 0 { return Err("exhaustResources requires an ability source".into()); }
+        }
         if let Effect::CreateCreditToken {target,amount,..}=e {
             let payer=s.card(s.source).owner;
             let players=self.effect_targets(s,target);
@@ -3045,6 +3052,20 @@ impl Engine {
                         }
                     }
                     resources_fully_resolved &= readied == amount;
+                }
+                Eval::Player(seat) if matches!(e, Effect::ExhaustResources { .. }) => {
+                    // Plain effects partially resolve and use physical zone order.
+                    // No payment transaction, cost adjuster, or Credit is involved.
+                    let resources = s.player(seat).resources;
+                    let mut exhausted = 0u16;
+                    for &id in resources.as_slice() {
+                        if exhausted >= amount { break; }
+                        if !s.card(id).exhausted {
+                            s.card_mut(id).exhausted = true;
+                            exhausted += 1;
+                        }
+                    }
+                    result = result.saturating_add(exhausted);
                 }
                 Eval::Player(seat) if matches!(e, Effect::PayResources { .. }) => {
                     let resources = s.player(seat).resources;
@@ -4133,3 +4154,7 @@ mod self_play_cost_tests;
 
 #[path="zone_statics.rs"]
 mod zone_statics;
+
+#[cfg(test)]
+#[path = "resource_exhaust_tests.rs"]
+mod resource_exhaust_tests;

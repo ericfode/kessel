@@ -22,6 +22,8 @@ mod card_restrictions;
 #[allow(dead_code)]
 #[path = "src/pay_adjusted_resources.rs"]
 mod pay_adjusted_resources;
+#[path = "src/resource_exhaust.rs"]
+mod resource_exhaust;
 #[allow(dead_code)]
 #[path = "src/migration_attack_contract.rs"]
 mod migration_attack_contract;
@@ -153,7 +155,7 @@ fn targets(t: &Target) -> Result<String, String> {
 }
 fn primitive(e: &Effect) -> Result<String, String> {
     if matches!(e,Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated payment identity mismatch\".into())};if !self.run_adjusted_resource_payment(s,effect)? {return Ok(true);}".into());}
-    if matches!(e,Effect::CreateCreditToken{..}|Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
+    if matches!(e,Effect::ExhaustResources{..}|Effect::CreateCreditToken{..}|Effect::Damage{..}|Effect::Defeat{..}|Effect::Ready{..}|Effect::Exhaust{..}|Effect::PayAdjustedResources{..}) {return Ok("let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated shared effect identity mismatch\".into())};let (amount,resolved)=self.apply_effect(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;".into());}
     if matches!(e, Effect::NoAction) {
         return Ok("s.event_result=StepEventResult::default();s.ability_result=0; s.ability_succeeded=false;".into());
     }
@@ -217,6 +219,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/migration_attack_contract.rs");
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
+    println!("cargo:rerun-if-changed=src/resource_exhaust.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
     println!("cargo:rerun-if-changed=src/migration_look_contract.rs");

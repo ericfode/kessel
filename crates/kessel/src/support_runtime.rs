@@ -390,6 +390,10 @@ impl Engine {
             s.support.grants[s.support.len as usize] = g;
             s.support.len += 1;
         }
+        // Preserve successfully validated wire evidence even for an empty list
+        // and a selected pool with no Support dependency. This is not gameplay
+        // state and is not cleared when grants expire or their cards depart.
+        s.support_state_explicit = true;
         Ok(())
     }
 }
