@@ -108,6 +108,13 @@ and target directory, reports failures, and develops fixes there for integration
 Do not let later canonical changes invalidate or relabel an older checkpoint's
 results. Necessary targeted checks still follow each affected semantic change.
 
+Forward-test cadence changes by recording a real packet-bound run at its immutable
+integration revision and checking copied evidence plus idempotent re-recording.
+Shard assembly can change JSON object property order. Require full JSON equality
+with committed configuration while retaining the exact recorded catalogue bytes
+and hashes used by the runtime, references and review packet; do not substitute
+an invented normalized byte hash or award manual credit after a counter failure.
+
 Inspect the actual test bodies before choosing ordinary gates. The Rust library
 test `generated_programs_match_all_committed_engine_traces` covers original fixed
 fixtures; keep it. The separate `reference_conformance` integration test and
