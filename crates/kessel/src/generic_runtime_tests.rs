@@ -241,6 +241,41 @@ fn native_tokens_fail_closed_if_source_or_stats_change() {
     }
 }
 #[test]
+fn subset_pool_aspect_order_preserves_multiplicity_and_raw_provenance() {
+    let e = engine();
+    let mut pool = e.compiled_pool().unwrap();
+    pool["cards"].as_array_mut().unwrap().retain(|card| {
+        matches!(card["setCode"].as_str(), Some("SOR_007" | "TOKEN_SHIELD" | "TOKEN_EXPERIENCE"))
+    });
+    let card = pool["cards"].as_array_mut().unwrap().iter_mut()
+        .find(|card| card["setCode"] == "SOR_007").unwrap();
+    let original = card["aspects"].as_array().unwrap().clone();
+    assert_eq!(original.len(), 2);
+    assert_ne!(original[0], original[1]);
+    card["aspects"].as_array_mut().unwrap().reverse();
+    let bytes = serde_json::to_vec(&pool).unwrap();
+    let subset = Engine::from_compiled_pool_bytes(&bytes, committed_catalogue_bytes()).unwrap();
+    assert_eq!(subset.pool_hash(), format!("{:x}", Sha256::digest(&bytes)));
+    let recorded_pool = include_bytes!("../tests/compiled-fixtures/pool.json");
+    let recorded = Engine::from_compiled_pool_bytes(recorded_pool, committed_catalogue_bytes()).unwrap();
+    assert_eq!(recorded.pool_hash(), format!("{:x}", Sha256::digest(recorded_pool)));
+    for aspects in [
+        Value::Null, json!("command"), json!([]), json!([original[0]]),
+        json!([original[0], original[0]]),
+        json!([original[0], original[1], original[0]]),
+        json!([original[0], "unknown"]), json!([original[0], false]),
+    ] {
+        let mut bad = pool.clone();
+        bad["cards"].as_array_mut().unwrap().iter_mut()
+            .find(|card| card["setCode"] == "SOR_007").unwrap()["aspects"] = aspects;
+        let error = Engine::from_compiled_pool_bytes(
+            &serde_json::to_vec(&bad).unwrap(), committed_catalogue_bytes(),
+        ).err().unwrap();
+        assert!(error.contains("aspects differs"), "{error}");
+    }
+}
+
+#[test]
 fn subset_pool_binds_provenance_and_rejects_metadata_changes() {
     let e = engine();
     let mut pool = e.compiled_pool().unwrap();

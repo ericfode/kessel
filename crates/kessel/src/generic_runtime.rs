@@ -6,6 +6,21 @@ use crate::ability_ir::activation_contract::{base_zone_source, Source};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
 
+fn same_aspect_multiset(left: &Value, right: &Value) -> bool {
+    let (Some(left), Some(right)) = (left.as_array(), right.as_array()) else {
+        return false;
+    };
+    let Some(mut left) = left.iter().map(Value::as_str).collect::<Option<Vec<_>>>() else {
+        return false;
+    };
+    let Some(mut right) = right.iter().map(Value::as_str).collect::<Option<Vec<_>>>() else {
+        return false;
+    };
+    left.sort_unstable();
+    right.sort_unstable();
+    left == right
+}
+
 // Scalar field structure is independent of legality, checked amount conversion
 // and capture timing. Callers retain those distinct semantic boundaries.
 impl Effect {
@@ -906,7 +921,12 @@ impl Engine {
                 "backSideTraits",
                 "pilotText",
             ] {
-                if card[field] != approved[field] {
+                // Aspect order is metadata presentation; repeated aspects still
+                // carry separate costs. Retain exact raw pool bytes for hashing.
+                if card[field] != approved[field]
+                    && !(field == "aspects"
+                        && same_aspect_multiset(&card[field], &approved[field]))
+                {
                     return Err(format!(
                         "pool card {code}: {field} differs from compiled catalogue"
                     ));
