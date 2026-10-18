@@ -165,6 +165,7 @@ pub fn validate_state_with_catalogue(
             "arenaUnitOrder", "registrationOrder",
             "hiddenHistoryVersion", "phaseHistory",
             "supportStateVersion", "supportGrants", "supportAttackPending", "dependentChoicePending",
+            "namedPlayState",
             "forceStateVersion", "creditStateVersion",
         ],
         "state",
@@ -496,6 +497,24 @@ pub fn validate_state_with_catalogue(
         return Err("winner disagrees with base damage".into());
     }
     if let Some(history)=v.get("phaseHistory") {crate::model::PhaseHistory::parse(history,(next+1) as u16)?;}
+    if let Some(named)=v.get("namedPlayState") {
+        fields(named,&["version","registry","locks"],"namedPlayState")?;
+        if named["version"]!=1 {return Err("unsupported named Play state version".into());}
+        if !named["registry"].as_str().is_some_and(|s|s.len()==64&&s.bytes().all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b))) {
+            return Err("invalid named Play registry fingerprint".into());
+        }
+        let locks=named["locks"].as_array().ok_or("named Play state needs locks")?;
+        if locks.len()>crate::model::MAX_NAMED_PLAY_LOCKS {return Err("named Play ledger capacity exceeded".into());}
+        for lock in locks {
+            fields(lock,&["source","title","recipient"],"named Play lock")?;
+            let id=lock["source"].as_str().ok_or("named Play source missing")?;
+            if !id.strip_prefix('c').and_then(|n|n.parse::<u64>().ok()).is_some_and(|n|format!("c{n}")==id&&n<next) {
+                return Err("invalid named Play source identity".into());
+            }
+            if !lock["title"].as_str().is_some_and(|s|!s.is_empty()&&s.len()<=u16::MAX as usize)
+                || !matches!(lock["recipient"].as_str(),Some("p1"|"p2")) {return Err("invalid named Play title/recipient".into());}
+        }
+    }
     if let Some(order)=v.get("registrationOrder") {
         let parsed=crate::model::RegistrationOrder::parse(order,(next+1) as u16)?;
         let mut expected=HashSet::new();

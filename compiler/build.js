@@ -9,7 +9,7 @@ const path = require('path');
 const { SCHEMA, VERSION, hash, compileSource, loadEnums, ts } = require('./compiler');
 const { parseKeywords } = require('./keywords');
 const { isPlainUpgrade } = require('./plain-upgrade');
-const { splitCatalog, loadCatalog } = require('./load-catalog');
+const { splitCatalog, loadCatalog, validatePlayableCardTitles } = require('./load-catalog');
 
 const repository = path.resolve(__dirname, '..');
 const codeFor = (card) => card.setId?.number == null ? `TOKEN_${card.internalName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}` : `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
@@ -135,6 +135,17 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     const mockText = fs.existsSync(mockFile) ? fs.readFileSync(mockFile, 'utf8') : '[]';
     const mocks = new Set(JSON.parse(mockText));
     inputs.push({ file: 'data/_mockCardNames.json', sha256: hash(mockText) });
+    // The engine's name prompt owns this complete ordered domain, including
+    // titles whose card definitions this runtime cannot admit. Keep its exact
+    // source bytes in provenance; never rebuild or sort the array from metadata.
+    const playableTitlesFile = path.join(cards, '_playableCardTitles.json');
+    let playableCardTitles;
+    if (fs.existsSync(playableTitlesFile)) {
+        const bytes = fs.readFileSync(playableTitlesFile);
+        const sourceHash = hash(bytes);
+        playableCardTitles = validatePlayableCardTitles({ version: 1, sourceHash, titles: JSON.parse(bytes.toString('utf8')) });
+        inputs.push({ file: 'data/_playableCardTitles.json', sha256: sourceHash });
+    }
     const definitions = [];
     let mockCount = 0;
     const sourceUsed = new Set();
@@ -178,7 +189,7 @@ function compileCatalog({ source = path.join(repository, 'forceteki/server'), ca
     const compilerFiles = files(__dirname, '.js').filter((f) => !f.startsWith('generated' + path.sep) && !f.startsWith('test' + path.sep)).map((file) => ({ file, sha256: hash(fs.readFileSync(path.join(__dirname, file))) }));
     const inputHash = hash(JSON.stringify(inputs));
     const compilerHash = hash(JSON.stringify(compilerFiles));
-    return { schema: SCHEMA, compilerVersion: VERSION, typescriptVersion: ts.version, sourceTreeHash: inputHash, compilerHash, inputs, sourceSupport: unmatchedSources, cards: definitions, inventory: { knownCards: definitions.length, mockCardsExcluded: mockCount, sourceFiles: files(sourceDir, '.ts').length, sourceDefinitions: sources.length, definitionsWithSource: sourceUsed.size } };
+    return { schema: SCHEMA, compilerVersion: VERSION, typescriptVersion: ts.version, sourceTreeHash: inputHash, compilerHash, inputs, sourceSupport: unmatchedSources, ...(playableCardTitles === undefined ? {} : { playableCardTitles }), cards: definitions, inventory: { knownCards: definitions.length, mockCardsExcluded: mockCount, sourceFiles: files(sourceDir, '.ts').length, sourceDefinitions: sources.length, definitionsWithSource: sourceUsed.size } };
 }
 function coverage(catalog) {
     const patterns = new Map();

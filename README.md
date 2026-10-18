@@ -3,8 +3,9 @@
 Kessel is a deterministic Rust rules simulator and endgame prover for an explicit subset of
 Star Wars Unlimited, with the same core compiled to WebAssembly, and a compiler that lowers
 [forceteki](https://github.com/ericfode/forceteki) card definitions into the data-only rules IR
-the simulator runs. Every supported card is checked against complete games recorded from the
-forceteki engine. Unsupported cards are rejected with a reason; they are never approximated.
+the simulator runs. Runtime admission checks complete card capabilities; the committed
+reference corpus checks a subset against recorded forceteki games. Admission alone does not
+establish differential conformance. Unsupported cards are rejected with a reason; they are never approximated.
 
 It started as `bot/omni-rs` in [swu_bot](https://github.com/ericfode/swu_bot) and was moved here
 with its history (`git filter-repo`). swu_bot (the arena) and [Holocron](https://github.com/ericfode/holocron)
@@ -62,6 +63,15 @@ npm run wasm:pack && npm run wasm:pack:check
 
 Card browsing: `npm run cards -- summary`, `npm run cards -- show TWI_124`,
 `npm run cards:reference -- verify`, `npm run cards:reference -- list --card TWI_124`.
+
+Ryder Azadi and Regional Governor support compulsory card naming and opponent Play restrictions
+while the source remains in play. Naming uses the compiler manifest’s ordered, reviewed
+`playableCardTitles` registry, including titles outside the admitted pool. Hosts may configure
+`Engine::set_legal_card_titles` before creating a position and use `new_named_play_state` for
+that configuration. Action-window snapshots retain versioned `namedPlayState` evidence and its
+registry fingerprint; pending naming prompts cannot be imported as action windows. The inline
+ledger holds up to 64 simultaneous locks and fails explicitly at capacity. Phase-long
+named restrictions and named cost increases remain unsupported.
 
 ## What lives in Holocron and the arena
 

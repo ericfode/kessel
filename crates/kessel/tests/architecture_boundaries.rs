@@ -13,6 +13,7 @@ const SOURCE_CONTRACTS: &[&str] = &[
     "src/admission.rs",
     "src/activation_contract.rs",
     "src/selector_contract.rs",
+    "src/named_play_contract.rs",
 ];
 
 #[derive(Default)]

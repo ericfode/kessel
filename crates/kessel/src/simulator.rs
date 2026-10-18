@@ -14,6 +14,8 @@ mod registration_runtime;
 mod legacy_leader;
 #[path = "snapshot_evidence.rs"]
 mod snapshot_evidence;
+#[path = "named_play_runtime.rs"]
+mod named_play_runtime;
 use crate::ability_ir::{CardPrograms, Catalogue};
 use crate::model::*;
 use serde_json::{json, Value};
@@ -72,6 +74,7 @@ pub struct Engine {
     force_def: Option<u16>,
     credit_def: Option<u16>,
     catalogue: Option<Catalogue>,
+    legal_card_titles: Option<Vec<u16>>,
     rules_backend: RulesBackend,
     rules_instrumentation: bool,
     rules_hits: std::sync::Mutex<std::collections::BTreeMap<usize, [u64;2]>>,
@@ -263,6 +266,7 @@ impl Engine {
             force_def: None,
             credit_def: None,
             catalogue: None,
+            legal_card_titles: None,
             rules_backend: RulesBackend::Auto,
             rules_instrumentation: false,
     rules_hits: Default::default(),
@@ -384,7 +388,7 @@ impl Engine {
     /// Exact price for one physical legal host. Keep target-dependent prices
     /// separate from cost(), which has no selected attachment host.
     fn upgrade_play_cost(&self,s:&State,upgrade:CardId,host:CardId)->Option<u16> {
-        if upgrade==0 || !s.card(upgrade).present || !self.def(s,upgrade).info.is("upgrade") {return None;}
+        if upgrade==0 || !s.card(upgrade).present || !self.def(s,upgrade).info.is("upgrade") || !self.named_play_allowed(s,upgrade) {return None;}
         let owner=s.card(upgrade).owner;
         if owner!=s.active || !self.upgrade_targets(s,upgrade).contains(&host) {return None;}
         if s.player(owner).resources.contains(upgrade) {
@@ -442,7 +446,7 @@ impl Engine {
     }
     fn can_smuggle(&self, s: &State, id: CardId) -> bool {
         let seat = s.card(id).owner;
-        if seat != s.active || !s.player(seat).resources.contains(id) {
+        if seat != s.active || !s.player(seat).resources.contains(id) || !self.named_play_allowed(s,id) {
             return false;
         }
         let Some(cost) = self.smuggle_cost(s, id) else {
@@ -522,6 +526,7 @@ impl Engine {
                     }
                 }
                 for &id in p.hand.as_slice() {
+                    if !self.named_play_allowed(s,id) {continue;}
                     if self.def(s,id).info.is("upgrade") {
                         if !self.upgrade_play_targets(s,id).is_empty() {out.push(self.card_action(s,id));}
                         continue;
@@ -737,6 +742,7 @@ impl Engine {
         }
     }
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
+        self.check_named_play(s)?;
         if (!s.phase_history.exact||!s.phase_history.defeats_exact)&&(self.needs_defeat_history()||self.state_needs_defeat_history(s)) {return Err("selected or imported pool requires exact defeat phase history version 2".into());}
         if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
         self.check_stat_capacity(s)?;
@@ -1426,6 +1432,7 @@ impl Engine {
     // the common detach/state-reset path without consuming a discard slot.
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
         if self.in_arena(s,id) {self.mark_attack_lifecycle(s,id,false);}
+        s.named_play.remove_source(id);
         self.remove_support_target(s,id);
         self.detach(s,id);
         let owner = s.card(id).owner;
@@ -1674,6 +1681,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("namedPlayPending").is_some() {return Err("pending card naming cannot be imported as an action window".into());}
         if v.get("dependentChoicePending").is_some(){return Err("pending dependent choice cannot be imported as an action window".into());}
         if v.get("viewSelectionPending").is_some(){return Err("pending view selection cannot be imported as an action window".into());}
         if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
@@ -1738,6 +1746,7 @@ impl Engine {
         self.load_arena_order(&mut s,v)?;
         self.validate_attachment_links(&s)?;
         self.load_registration_order(&mut s,v)?;
+        self.load_named_play(&mut s,v)?;
         if let Some(next) = v["nextCardId"].as_u64() {
             if next >= MAX_CARDS as u64 {
                 return Err("card capacity exceeded".into());
@@ -1875,6 +1884,7 @@ impl Engine {
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
         self.write_snapshot_evidence(s,&mut value);
+        self.snapshot_named_play(s,&mut value);
         self.snapshot_credit_state(s,&mut value);
         if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}
         value

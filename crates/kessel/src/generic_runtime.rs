@@ -840,6 +840,7 @@ impl Engine {
             rules_hits: Default::default(),
             expression_hits: Default::default(),
             catalogue: Some(catalogue),
+            legal_card_titles: None,
         })
     }
     pub fn from_catalogue_bytes(bytes: &[u8]) -> Result<Self, String> {
@@ -1884,6 +1885,7 @@ impl Engine {
             match instruction {
                 Instruction::EndStep => {}
                 Instruction::Commit => {}
+                Instruction::NameOpponentPlay => {return true;}
                 Instruction::CaptureMaximum{aspect}=>{let mut captured=*s;if self.capture_maximum(&mut captured,source,aspect).is_err(){return false;}return self.instructions_can_affect(&captured,source,target,p,pc+1,end,require_change);}
 
                 Instruction::ModalChoice(menu) => {
@@ -2054,6 +2056,9 @@ impl Engine {
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.credit_payment_actions(s);}
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
             let p = self.program(s.ability_program - 1);
+            if matches!(p.instructions.get(s.ability_pc as usize),Some(Instruction::NameOpponentPlay)) {
+                return self.naming_options().into_iter().map(|(_,title)|Action::button(title,title)).collect();
+            }
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 let mut context = *s;
                 context.active = context.card(s.source).owner;
@@ -2294,6 +2299,7 @@ impl Engine {
             let hand=s.player(seat).hand.contains(source);
             let from_resources=s.player(seat).resources.contains(source);
             if hand || from_resources {
+                if !self.named_play_allowed(s,source) {return Err("named event cannot be played".into());}
                 let cost=if from_resources {self.smuggle_cost(s,source).ok_or("event smuggle requires a printed Smuggle cost")?}else{self.cost(s,source)};
                 s.phase_history.preflight_play(seat)?;
                 let request=self.resource_request(s,PaymentPurpose::ProgramPlay,source,s.ability_target,
@@ -2386,6 +2392,14 @@ impl Engine {
             };
             match instruction {
                 Instruction::EndStep => {s.ability_pc+=1;}
+                Instruction::NameOpponentPlay => {
+                    let options=self.naming_options();
+                    match options.as_slice() {
+                        []=>{s.ability_succeeded=false;s.ability_pc+=1;},
+                        [(id,_)]=>{self.install_named_play(s,*id)?;s.ability_pc+=1;},
+                        _=>{s.decision=Decision::AbilityTarget;return Ok(());},
+                    }
+                }
                 Instruction::CaptureMaximum{aspect}=>{self.capture_maximum(s,s.source,aspect)?;s.ability_pc+=1;}
                 Instruction::Commit => {
                     if !self.commit_program(s)? {return Ok(());}
@@ -3168,6 +3182,12 @@ impl Engine {
         let mut t = *s;
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
             let p = self.program(s.ability_program - 1);
+            if matches!(p.instructions.get(s.ability_pc as usize),Some(Instruction::NameOpponentPlay)) {
+                let title=a.arg.as_ref().and_then(Value::as_str).ok_or("named title argument missing")?;
+                let id=self.naming_options().into_iter().find(|(_,name)|*name==title).ok_or("illegal named title")?.0;
+                self.install_named_play(&mut t,id)?;
+                t.ability_pc+=1;self.run_program(&mut t)?;return Ok(t);
+            }
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 t.active = t.card(t.source).owner;
                 let index = a.arg.as_ref().and_then(Value::as_u64).ok_or("modal branch index missing")? as usize;
