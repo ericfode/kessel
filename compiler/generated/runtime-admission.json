@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 926
+    "sourceIr": 929
   },
   "runtimeAdmittedCards": [
     {
@@ -2357,6 +2357,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "fireball#an-explosion-with-wings",
+      "setCode": "JTL_198"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "blade-squadron-bwing",
       "setCode": "JTL_199"
     },
@@ -2399,6 +2404,11 @@
       "implementation": "sourceIr",
       "internalName": "boshek#charismatic-smuggler",
       "setCode": "JTL_215"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "contracted-hunter",
+      "setCode": "JTL_216"
     },
     {
       "implementation": "sourceIr",
@@ -2609,6 +2619,11 @@
       "implementation": "dataOnly",
       "internalName": "devaronian-doorbuster",
       "setCode": "LAW_070"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "the-max-rebo-band#jatzwailers",
+      "setCode": "LAW_071"
     },
     {
       "implementation": "sourceIr",
@@ -6591,7 +6606,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1316,
+  "runtimeAdmittedCount": 1319,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6795,7 +6810,7 @@
     },
     {
       "internalName": "arcana-star-map#path-to-peridea",
-      "reason": "arcana-star-map#path-to-peridea: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "arcana-star-map#path-to-peridea: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "ASH_084"
     },
     {
@@ -6890,7 +6905,7 @@
     },
     {
       "internalName": "the-darksaber#icon-of-leadership",
-      "reason": "the-darksaber#icon-of-leadership: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "the-darksaber#icon-of-leadership: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "ASH_135"
     },
     {
@@ -6950,7 +6965,7 @@
     },
     {
       "internalName": "alphabet-squadron-uwing#quiet-devotion",
-      "reason": "alphabet-squadron-uwing#quiet-devotion: unimplemented event hook onPhaseStarted",
+      "reason": "alphabet-squadron-uwing#quiet-devotion: onPhaseStarted requires the complete bounded regroup-start unit registration",
       "setCode": "ASH_159"
     },
     {
@@ -7025,12 +7040,12 @@
     },
     {
       "internalName": "gorian-shards-corsair#pirate-warship",
-      "reason": "gorian-shards-corsair#pirate-warship: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "gorian-shards-corsair#pirate-warship: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "ASH_196"
     },
     {
       "internalName": "executor#final-destruction-of-the-alliance",
-      "reason": "executor#final-destruction-of-the-alliance: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "executor#final-destruction-of-the-alliance: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "ASH_197"
     },
     {
@@ -7055,7 +7070,7 @@
     },
     {
       "internalName": "kelleran-beq#where-are-the-others",
-      "reason": "kelleran-beq#where-are-the-others: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "kelleran-beq#where-are-the-others: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "ASH_206"
     },
     {
@@ -7425,7 +7440,7 @@
     },
     {
       "internalName": "military-academy",
-      "reason": "military-academy: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "military-academy: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "HMW_112"
     },
     {
@@ -7470,7 +7485,7 @@
     },
     {
       "internalName": "verdant-fortress",
-      "reason": "verdant-fortress: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "verdant-fortress: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "HMW_126"
     },
     {
@@ -7635,7 +7650,7 @@
     },
     {
       "internalName": "the-chieftain#here-since-the-oceans-dried",
-      "reason": "the-chieftain#here-since-the-oceans-dried: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "the-chieftain#here-since-the-oceans-dried: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "HMW_212"
     },
     {
@@ -7685,7 +7700,7 @@
     },
     {
       "internalName": "ritual-dragon",
-      "reason": "ritual-dragon: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "ritual-dragon: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "HMW_234"
     },
     {
@@ -7745,7 +7760,7 @@
     },
     {
       "internalName": "landing-pad",
-      "reason": "landing-pad: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "landing-pad: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "HMW_271"
     },
     {
@@ -8200,7 +8215,7 @@
     },
     {
       "internalName": "colossus",
-      "reason": "colossus: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "colossus: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_021"
     },
     {
@@ -8220,7 +8235,7 @@
     },
     {
       "internalName": "nabat-village",
-      "reason": "nabat-village: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "nabat-village: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_028"
     },
     {
@@ -8260,7 +8275,7 @@
     },
     {
       "internalName": "admiral-yularen#fleet-coordinator",
-      "reason": "admiral-yularen#fleet-coordinator: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "admiral-yularen#fleet-coordinator: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_047"
     },
     {
@@ -8330,7 +8345,7 @@
     },
     {
       "internalName": "nien-nunb#loyal-copilot",
-      "reason": "nien-nunb#loyal-copilot: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "nien-nunb#loyal-copilot: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_093"
     },
     {
@@ -8475,7 +8490,7 @@
     },
     {
       "internalName": "vonregs-tie-interceptor#ace-of-the-first-order",
-      "reason": "vonregs-tie-interceptor#ace-of-the-first-order: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "vonregs-tie-interceptor#ace-of-the-first-order: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_137"
     },
     {
@@ -8490,7 +8505,7 @@
     },
     {
       "internalName": "devastator#hunting-the-rebellion",
-      "reason": "devastator#hunting-the-rebellion: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "devastator#hunting-the-rebellion: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_143"
     },
     {
@@ -8535,7 +8550,7 @@
     },
     {
       "internalName": "hunting-aggressor",
-      "reason": "hunting-aggressor: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "hunting-aggressor: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_165"
     },
     {
@@ -8550,7 +8565,7 @@
     },
     {
       "internalName": "targeting-computer",
-      "reason": "targeting-computer: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "targeting-computer: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_171"
     },
     {
@@ -8649,11 +8664,6 @@
       "setCode": "JTL_197"
     },
     {
-      "internalName": "fireball#an-explosion-with-wings",
-      "reason": "fireball#an-explosion-with-wings: unimplemented event hook onPhaseStarted",
-      "setCode": "JTL_198"
-    },
-    {
       "internalName": "shuttle-tydirium#fly-casual",
       "reason": "shuttle-tydirium#fly-casual: ifYouDoCondition requires reviewed willDefeat eventResult",
       "setCode": "JTL_200"
@@ -8692,11 +8702,6 @@
       "internalName": "sidon-ithano#the-crimson-corsair",
       "reason": "sidon-ithano#the-crimson-corsair: invalid ability IR: unknown variant `attachUpgradeSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "JTL_213"
-    },
-    {
-      "internalName": "contracted-hunter",
-      "reason": "contracted-hunter: unimplemented event hook onPhaseStarted",
-      "setCode": "JTL_216"
     },
     {
       "internalName": "guerilla-soldier",
@@ -8805,7 +8810,7 @@
     },
     {
       "internalName": "millennium-falcon#get-out-and-push",
-      "reason": "millennium-falcon#get-out-and-push: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "millennium-falcon#get-out-and-push: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_249"
     },
     {
@@ -8990,7 +8995,7 @@
     },
     {
       "internalName": "obiwan-kenobi#protector-of-felucia",
-      "reason": "obiwan-kenobi#protector-of-felucia: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "obiwan-kenobi#protector-of-felucia: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LAW_036"
     },
     {
@@ -9069,13 +9074,8 @@
       "setCode": "LAW_066"
     },
     {
-      "internalName": "the-max-rebo-band#jatzwailers",
-      "reason": "the-max-rebo-band#jatzwailers: Credit composition requires a complete reviewed ordinary registration",
-      "setCode": "LAW_071"
-    },
-    {
       "internalName": "max-rebo#encore",
-      "reason": "max-rebo#encore: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "max-rebo#encore: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LAW_072"
     },
     {
@@ -9140,7 +9140,7 @@
     },
     {
       "internalName": "hondo-ohnaka#plays-by-his-own-rules",
-      "reason": "hondo-ohnaka#plays-by-his-own-rules: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "hondo-ohnaka#plays-by-his-own-rules: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LAW_094"
     },
     {
@@ -9180,7 +9180,7 @@
     },
     {
       "internalName": "conveyex-security-captain",
-      "reason": "conveyex-security-captain: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "conveyex-security-captain: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LAW_117"
     },
     {
@@ -9620,7 +9620,7 @@
     },
     {
       "internalName": "dume#redeem-the-future",
-      "reason": "dume#redeem-the-future: unimplemented event hook onPhaseStarted",
+      "reason": "dume#redeem-the-future: onPhaseStarted requires the complete bounded regroup-start unit registration",
       "setCode": "LOF_055"
     },
     {
@@ -9665,7 +9665,7 @@
     },
     {
       "internalName": "mythosaur#folklore-awakened",
-      "reason": "mythosaur#folklore-awakened: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "mythosaur#folklore-awakened: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LOF_073"
     },
     {
@@ -9685,7 +9685,7 @@
     },
     {
       "internalName": "praetorian-guard",
-      "reason": "praetorian-guard: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "praetorian-guard: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LOF_085"
     },
     {
@@ -9695,7 +9695,7 @@
     },
     {
       "internalName": "inquisitors-lightsaber",
-      "reason": "inquisitors-lightsaber: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "inquisitors-lightsaber: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LOF_090"
     },
     {
@@ -9875,7 +9875,7 @@
     },
     {
       "internalName": "marchion-ro#eye-of-the-nihil",
-      "reason": "marchion-ro#eye-of-the-nihil: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "marchion-ro#eye-of-the-nihil: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "LOF_186"
     },
     {
@@ -10085,7 +10085,7 @@
     },
     {
       "internalName": "dj#need-a-lift",
-      "reason": "dj#need-a-lift: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "dj#need-a-lift: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SEC_018"
     },
     {
@@ -10575,7 +10575,7 @@
     },
     {
       "internalName": "libertine#under-new-ownership",
-      "reason": "libertine#under-new-ownership: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "libertine#under-new-ownership: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SEC_212"
     },
     {
@@ -11255,7 +11255,7 @@
     },
     {
       "internalName": "hunter-of-the-haxion-brood",
-      "reason": "hunter-of-the-haxion-brood: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "hunter-of-the-haxion-brood: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SHD_186"
     },
     {
@@ -11455,7 +11455,7 @@
     },
     {
       "internalName": "tech#source-of-insight",
-      "reason": "tech#source-of-insight: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "tech#source-of-insight: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SHD_248"
     },
     {
@@ -11500,7 +11500,7 @@
     },
     {
       "internalName": "chirrut-imwe#one-with-the-force",
-      "reason": "chirrut-imwe#one-with-the-force: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "chirrut-imwe#one-with-the-force: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SOR_004"
     },
     {
@@ -11920,7 +11920,7 @@
     },
     {
       "internalName": "saw-gerrera#extremist",
-      "reason": "saw-gerrera#extremist: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "saw-gerrera#extremist: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SOR_153"
     },
     {
@@ -12030,7 +12030,7 @@
     },
     {
       "internalName": "millennium-falcon#piece-of-junk",
-      "reason": "millennium-falcon#piece-of-junk: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "millennium-falcon#piece-of-junk: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "SOR_193"
     },
     {
@@ -12280,7 +12280,7 @@
     },
     {
       "internalName": "assault-lander-laat",
-      "reason": "assault-lander-laat: unimplemented event hook onPhaseStarted",
+      "reason": "assault-lander-laat: onPhaseStarted requires the complete bounded regroup-start unit registration",
       "setCode": "TS26_023"
     },
     {
@@ -12575,7 +12575,7 @@
     },
     {
       "internalName": "satine-kryze#committed-to-peace",
-      "reason": "satine-kryze#committed-to-peace: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "satine-kryze#committed-to-peace: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "TWI_047"
     },
     {
@@ -12610,7 +12610,7 @@
     },
     {
       "internalName": "the-zillo-beast#awoken-from-the-depths",
-      "reason": "the-zillo-beast#awoken-from-the-depths: unimplemented event hook onPhaseStarted",
+      "reason": "the-zillo-beast#awoken-from-the-depths: onPhaseStarted requires the complete bounded regroup-start unit registration",
       "setCode": "TWI_067"
     },
     {
@@ -12715,7 +12715,7 @@
     },
     {
       "internalName": "squad-support",
-      "reason": "squad-support: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "squad-support: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "TWI_122"
     },
     {
@@ -12745,7 +12745,7 @@
     },
     {
       "internalName": "darth-maul#revenge-at-last",
-      "reason": "darth-maul#revenge-at-last: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "darth-maul#revenge-at-last: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "TWI_135"
     },
     {
@@ -13025,7 +13025,7 @@
     },
     {
       "internalName": "brain-invaders",
-      "reason": "brain-invaders: static self ongoing contracts require complete ordinary nonleader unit metadata and one registration",
+      "reason": "brain-invaders: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "TWI_255"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1289,
+  "runtimeRejectedCount": 1286,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

@@ -1527,21 +1527,25 @@ impl Engine {
         }
         Ok(())
     }
+    // Action-phase expiry and its complete defeat window settle first. Entering
+    // regroup captures every phase-start registration before resolving any of
+    // them. RegroupDraw resumes below, never through this capture function, so
+    // nested defeats cannot trigger the phase twice or draw before it finishes.
     fn advance_after_expiry(&self,s:&mut State)->Result<(),String> {
+            if s.is_terminal() {s.decision=Decision::Terminal;return Ok(());}
             s.regroup = true;
             s.players[0].out = false;
             s.players[1].out = false;
             s.initiative_claimed = false;
             s.prev_passed = false;
+            self.capture_regroup_start(s)?;
+            if self.open_deaths(s,DeathContinuation::RegroupDraw)? {return Ok(());}
+            self.draw_for_regroup(s)
+    }
+    fn draw_for_regroup(&self,s:&mut State)->Result<(),String> {
+            if s.is_terminal() {s.decision=Decision::Terminal;return Ok(());}
             for seat in [Seat::P1, Seat::P2] {
-                for _ in 0..2 {
-                    if let Some(id) = s.player_mut(seat).deck.pop_front() {
-                        s.player_mut(seat).hand.push(id)?;
-                    } else {
-                        let base = s.player(seat).base;
-                        s.card_mut(base).damage += 3;
-                    }
-                }
+                self.draw_cards(s,seat,2)?;
             }
             self.check_win(s);
             if !s.is_terminal() {
@@ -1681,6 +1685,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("regroupStartPending").is_some() {return Err("pending regroup-start triggers cannot be imported as an action window".into());}
         if v.get("namedPlayPending").is_some() {return Err("pending card naming cannot be imported as an action window".into());}
         if v.get("dependentChoicePending").is_some(){return Err("pending dependent choice cannot be imported as an action window".into());}
         if v.get("viewSelectionPending").is_some(){return Err("pending view selection cannot be imported as an action window".into());}
@@ -1878,6 +1883,7 @@ impl Engine {
             s.winner().map(Seat::as_str)
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
+        if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}

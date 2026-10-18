@@ -49,7 +49,7 @@ fn credit_trigger_complete_source_contracts_extend_only_the_two_closed_roles() {
     }
     // No broader admission of other Credit registrations accompanies this change.
     for code in [
-        "LAW_071", "LAW_161", "LAW_006",
+        "LAW_161", "LAW_006",
     ] {
         assert!(
             crate::credits::creation_source(&entry(code)).is_err(),

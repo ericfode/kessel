@@ -509,7 +509,7 @@ impl ProgramContinuation {
 pub enum DeathContinuation {
     Program=1, Triggers=2, Finish=3, PhaseExpiry=4, CombatAfterDamage=5,
     ParentDeaths=6, NativeAttackAfterEarlyEffects=7,
-    CombatAfterFirstDamage=8, ResourcePayment=9,
+    CombatAfterFirstDamage=8, ResourcePayment=9, RegroupDraw=10,
 }
 impl DeathContinuation {
     pub const fn raw(self)->u8 {self as u8}
@@ -517,7 +517,8 @@ impl DeathContinuation {
         1=>Some(Self::Program),2=>Some(Self::Triggers),3=>Some(Self::Finish),
         4=>Some(Self::PhaseExpiry),5=>Some(Self::CombatAfterDamage),
         6=>Some(Self::ParentDeaths),7=>Some(Self::NativeAttackAfterEarlyEffects),
-        8=>Some(Self::CombatAfterFirstDamage),9=>Some(Self::ResourcePayment),_=>None,
+        8=>Some(Self::CombatAfterFirstDamage),9=>Some(Self::ResourcePayment),
+        10=>Some(Self::RegroupDraw),_=>None,
     }}
 }
 pub const MAX_DEATH_TRIGGERS: usize = 64;

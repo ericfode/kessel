@@ -14,6 +14,7 @@ const SOURCE_CONTRACTS: &[&str] = &[
     "src/activation_contract.rs",
     "src/selector_contract.rs",
     "src/named_play_contract.rs",
+    "src/regroup_hooks.rs",
 ];
 
 #[derive(Default)]

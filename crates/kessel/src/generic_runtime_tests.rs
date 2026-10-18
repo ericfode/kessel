@@ -12870,3 +12870,6 @@ mod migration_defeat_history_tests;
 
 #[path = "migration_modal_deck_tests.rs"]
 mod migration_modal_deck_tests;
+
+#[path = "regroup_hook_tests.rs"]
+mod regroup_hook_tests;

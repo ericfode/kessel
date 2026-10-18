@@ -31,6 +31,8 @@ mod native_attack;
 
 #[path = "src/death_hooks.rs"]
 mod death_hooks;
+#[path = "src/regroup_hooks.rs"]
+mod regroup_hooks;
 #[allow(dead_code)]
 #[path = "src/ability_ir.rs"]
 mod ability_ir;
@@ -219,6 +221,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
+    println!("cargo:rerun-if-changed=src/regroup_hooks.rs");
     println!("cargo:rerun-if-changed=src/migration_look_contract.rs");
     println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");

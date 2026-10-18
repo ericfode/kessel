@@ -1964,7 +1964,8 @@ impl Program {
             let smuggle=crate::death_hooks::smuggle_play_registration(ability);
             let leader_deploy=crate::death_hooks::leader_deploy_base_registration(ability);
             let card_played=crate::death_hooks::card_played_registration(ability);
-            if !crate::death_hooks::registration(ability) && !smuggle && !leader_deploy && !card_played {
+            let regroup=crate::regroup_hooks::registration(ability);
+            if !crate::death_hooks::registration(ability) && !smuggle && !leader_deploy && !card_played && !regroup {
                 return Err(crate::death_hooks::reject_reason(ability));
             }
             let mut normalized=ability.clone();normalized.hooks.clear();normalized.trigger="whenPlayed".into();
@@ -1976,6 +1977,8 @@ impl Program {
                 program.trigger="onLeaderDeployed".into();
             } else if card_played {
                 program.trigger="onCardPlayed".into();
+            } else if regroup {
+                program.trigger="onRegroupStarted".into();
             } else if !ability.hooks.iter().any(|h|matches!(h,crate::death_hooks::Hook::Alias(v) if matches!(v.alias,crate::death_hooks::AliasName::WhenPlayed))) {
                 program.trigger="eventHooks".into();
             }
@@ -3263,7 +3266,7 @@ impl Catalogue {
                 if current_played_unit.is_none()&&crate::phase_history::marker(&entry["abilities"])&&!crate::phase_history::entry(entry){return Err("phase history requires complete ordinary unit/event source metadata and registration".into());}
                 if crate::view_cards::marker(&entry["abilities"])&&!crate::view_cards::entry(entry){return Err("view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration".into());}
                 if crate::static_ongoing::trait_dependencies(entry).iter().any(|edge|cyclic_traits.contains(edge)){return Err("trait producer dependency cycle is unsupported".into());}
-                if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and one registration".into());}
+                if crate::static_ongoing::marker(entry) && !crate::static_ongoing::entry(entry) && !crate::attached_constants::entry(entry) {return Err("static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations".into());}
                 if parent_reference(&entry["abilities"]) && entry["baseClass"]!="UpgradeCard"
                     && !crate::piloting_attached::entry(entry)
                     && !crate::attached_registration::piloting_host_entry(entry)
@@ -3323,6 +3326,8 @@ impl Catalogue {
                         if !crate::death_hooks::leader_deploy_base_entry(entry,&sides) {return Err("leader-deploy base watchers require exact reviewed base shape".into());}
                     } else if hooks.iter().all(|a|crate::death_hooks::card_played_registration(a)) {
                         if !crate::death_hooks::card_played_entry(entry,&sides) {return Err("onCardPlayed requires complete ordinary unit source metadata and bounded registrations".into());}
+                    } else if hooks.iter().all(|a|crate::regroup_hooks::registration(a)) {
+                        if !crate::regroup_hooks::entry(entry) {return Err("onPhaseStarted requires complete bounded regroup-start unit source metadata".into());}
                     } else {
                         return Err(crate::death_hooks::reject_reason(hooks[0]));
                     }
