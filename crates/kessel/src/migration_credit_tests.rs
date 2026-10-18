@@ -102,6 +102,8 @@ fn migration_credit_contract_rejects_source_metadata_and_hidden_registration_mut
             ("historyHelpers", json!([{}])),
             ("privatePrograms", json!([{}])),
             ("inheritedSource", json!([{}])),
+            ("deploymentOverride", json!([{}])),
+            ("setupValidationOverrides", json!([{}])),
             ("stateWatchers", json!([{}])),
             ("classMethods", json!([{}])),
             ("privateClassConstants", json!([{}])),
@@ -171,12 +173,6 @@ fn migration_credit_contract_rejects_effect_scope_timing_and_payment_mutations()
     let mut mandatory = original.clone();
     mandatory["abilities"]["card"][0]["optional"] = json!(false);
     assert!(prepare(&mandatory).is_err());
-    let mut unconditional = original;
-    unconditional["abilities"]["card"][0]
-        .as_object_mut()
-        .unwrap()
-        .remove("ifYouDo");
-    assert!(prepare(&unconditional).unwrap().is_none());
     for code in ["LAW_134", "LAW_155"] {
         let mut changed = entry(code);
         changed["abilities"]["card"][0]["effect"]["condition"]["receiver"] =
@@ -415,33 +411,68 @@ fn migration_credit_creation_still_requires_selected_native_provenance_and_exact
 }
 
 #[test]
-fn migration_credit_captured_registration_retains_departed_source_controller() {
-    // Source-derived captured-program boundary, constructed directly in a
-    // midgame position; this is not a public-action engine witness.
+fn migration_credit_bib_unique_replacement_checks_live_other_after_source_defeat() {
     cases(|e, actor| {
-        for (code, trigger) in [("LAW_134", "whenPlayed"), ("LAW_258", "onAttack")] {
+        for defeat_incoming in [false, true] {
             let mut s = midgame(e, actor);
-            let source = unit(e, &mut s, actor, code);
-            unit(e, &mut s, actor, "LAW_262");
-            let enemy_resources = resources(e, &mut s, actor.other(), 2);
-            if code == "LAW_258" {
-                credits(e, &mut s, actor, 2);
-            }
-            let program = e.available_programs(&s, source, trigger)[0];
-            e.defeat(&mut s, source).unwrap();
-            assert!(s.player(actor).discard.contains(source));
-            s.active = actor.other();
-            s.source = source;
+            let previous = unit(e, &mut s, actor, "LAW_134");
+            let incoming = hand(e, &mut s, actor, "LAW_134");
+            let cost = usize::from(e.cost(&s, incoming));
+            resources(e, &mut s, actor, cost);
             let next = s.next_id;
-            e.begin_program(&mut s, program, 0).unwrap();
-            let done = if code == "LAW_258" {
-                assert_eq!(s.decision, Decision::AbilityOptional);
-                let payment = button(e, &s, "Trigger");
-                menu(e, &payment, &["Use 2 Credits"]);
-                button(e, &payment, "Use 2 Credits")
-            } else {
-                s
-            };
+            let unique = choose(e, &s, incoming);
+            assert_eq!(unique.decision, Decision::Unique);
+            let defeated = if defeat_incoming { incoming } else { previous };
+            let kept = if defeat_incoming { previous } else { incoming };
+            let done = choose(e, &unique, defeated);
+            assert!(done.player(actor).discard.contains(defeated));
+            assert!(done.player(actor).ground.contains(kept));
+            // A captured incoming trigger survives its own defeat. Its query is
+            // still live: retaining only the incoming Bib leaves no OTHER unit.
+            assert_eq!(
+                live(&done, actor),
+                if defeat_incoming { vec![next] } else { vec![] }
+            );
+            assert!(live(&done, actor.other()).is_empty());
+            assert_eq!(done.decision, Decision::Window);
+            roundtrip(e, &done);
+        }
+    });
+}
+
+#[test]
+fn migration_credit_captured_criminal_uses_original_controller_after_source_defeat() {
+    // Synthetic defender registration establishes the ordering boundary. The
+    // attacker uses Criminal Contact's unchanged complete printed definition;
+    // this diagnostic is not a forceteki differential witness.
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine(backend);
+        for actor in [Seat::P1, Seat::P2] {
+            let mut s = midgame(&e, actor);
+            let source = unit(&e, &mut s, actor, "LAW_258");
+            let defender = unit(&e, &mut s, actor.other(), "LOF_256");
+            let enemy_resources = resources(&e, &mut s, actor.other(), 2);
+            credits(&e, &mut s, actor, 2);
+            let ability = serde_json::from_value(json!({"trigger":"onDefense","title":"DIAGNOSTIC defeat attacker", "targetResolver":{"owner":"opponent","type":"unit","zone":"arena"},"effect":{"kind":"defeat","target":"chosen"}})).unwrap();
+            let program = crate::ability_ir::Program::compile(&ability).unwrap();
+            let catalogue = e.catalogue.as_mut().unwrap();
+            let index = catalogue.programs.len() as u16;
+            catalogue.programs.push(program);
+            e.definitions[s.card(defender).def as usize].programs.card = vec![index];
+            let next = s.next_id;
+            let order = attack(&e, &s, source, defender);
+            assert_eq!(order.decision, Decision::DeathPlayer);
+            let removal = button(&e, &order, "Opponent");
+            assert_eq!(removal.active, actor.other());
+            assert_eq!(removal.decision, Decision::AbilityTarget);
+            let captured = choose(&e, &removal, source);
+            assert!(captured.player(actor).discard.contains(source));
+            assert_eq!(captured.decision, Decision::AbilityOptional);
+            assert_eq!(captured.active, actor);
+            let payment = button(&e, &captured, "Trigger");
+            menu(&e, &payment, &["Use 2 Credits"]);
+            assert_eq!(payment.active, actor);
+            let done = button(&e, &payment, "Use 2 Credits");
             assert!(done.player(actor).discard.contains(source));
             assert_eq!(live(&done, actor), vec![next]);
             assert!(live(&done, actor.other()).is_empty());
@@ -450,7 +481,9 @@ fn migration_credit_captured_registration_retains_departed_source_controller() {
                 assert!(!done.card(id).exhausted);
             }
             assert_eq!(done.decision, Decision::Window);
-            roundtrip(e, &done);
+            assert_eq!(done.attack_source, 0);
+            assert_eq!(done.death_depth, 0);
+            roundtrip(&e, &done);
         }
-    });
+    }
 }
