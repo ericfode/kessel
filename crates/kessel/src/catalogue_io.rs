@@ -97,7 +97,7 @@ pub fn load_catalogue_value(path: &Path) -> Result<Value, String> {
             card
         })
         .collect::<Vec<_>>();
-    Ok(json!({
+    let mut value=json!({
         "schema": IR_SCHEMA,
         "compilerVersion": manifest["compilerVersion"],
         "typescriptVersion": manifest["typescriptVersion"],
@@ -107,7 +107,9 @@ pub fn load_catalogue_value(path: &Path) -> Result<Value, String> {
         "sourceSupport": manifest["sourceSupport"],
         "cards": cards,
         "inventory": manifest["inventory"],
-    }))
+    });
+    if let Some(registry)=manifest.get("playableCardTitles") {value["playableCardTitles"]=registry.clone();}
+    Ok(value)
 }
 
 /// JSON bytes of the assembled catalogue (compact). Suitable for `from_catalogue_bytes`.

@@ -1,5 +1,5 @@
 {
-  "catalogueHash": "8f09dcf9067ad7612da2b49ab7c79133835f7731491e1736e78b1d3a40e7d5c6",
+  "catalogueHash": "92d1ee30a80fbef481352df788f48cd5ab33347bc2dc67b1ca8030cd90f88268",
   "dataOnlyConvertedCount": 447,
   "gameConformance": "not assessed by this report",
   "irConvertedCount": 2568,
@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 924
+    "sourceIr": 926
   },
   "runtimeAdmittedCards": [
     {
@@ -194,6 +194,11 @@
       "implementation": "dataOnly",
       "internalName": "remnant-official",
       "setCode": "ASH_076"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "ryder-azadi#restored-governor",
+      "setCode": "ASH_077"
     },
     {
       "implementation": "sourceIr",
@@ -5251,6 +5256,11 @@
       "setCode": "SOR_060"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "regional-governor",
+      "setCode": "SOR_062"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "cloud-city-wing-guard",
       "setCode": "SOR_063"
@@ -6581,7 +6591,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1314,
+  "runtimeAdmittedCount": 1316,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6777,11 +6787,6 @@
       "internalName": "pit-droid-team",
       "reason": "pit-droid-team: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_075"
-    },
-    {
-      "internalName": "ryder-azadi#restored-governor",
-      "reason": "ryder-azadi#restored-governor: modal registration contains an unreviewed header field",
-      "setCode": "ASH_077"
     },
     {
       "internalName": "summaverminoth",
@@ -7405,7 +7410,7 @@
     },
     {
       "internalName": "the-first-legion#vaders-fist",
-      "reason": "the-first-legion#vaders-fist: modal registration contains an unreviewed header field",
+      "reason": "the-first-legion#vaders-fist: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "HMW_108"
     },
     {
@@ -9430,7 +9435,7 @@
     },
     {
       "internalName": "transmission-jamming",
-      "reason": "transmission-jamming: modal registration contains an unreviewed header field",
+      "reason": "transmission-jamming: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "LAW_243"
     },
     {
@@ -9915,7 +9920,7 @@
     },
     {
       "internalName": "zuckuss#the-findsman",
-      "reason": "zuckuss#the-findsman: modal registration contains an unreviewed header field",
+      "reason": "zuckuss#the-findsman: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "LOF_204"
     },
     {
@@ -10135,7 +10140,7 @@
     },
     {
       "internalName": "galen-erso#youll-never-win",
-      "reason": "galen-erso#youll-never-win: modal registration contains an unreviewed header field",
+      "reason": "galen-erso#youll-never-win: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "SEC_046"
     },
     {
@@ -10505,7 +10510,7 @@
     },
     {
       "internalName": "garindan#information-broker",
-      "reason": "garindan#information-broker: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
+      "reason": "garindan#information-broker: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "SEC_186"
     },
     {
@@ -10695,7 +10700,7 @@
     },
     {
       "internalName": "inspectors-shuttle",
-      "reason": "inspectors-shuttle: modal registration contains an unreviewed header field",
+      "reason": "inspectors-shuttle: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "SEC_260"
     },
     {
@@ -11644,11 +11649,6 @@
       "setCode": "SOR_061"
     },
     {
-      "internalName": "regional-governor",
-      "reason": "regional-governor: modal registration contains an unreviewed header field",
-      "setCode": "SOR_062"
-    },
-    {
       "internalName": "system-patrol-craft",
       "reason": "reprint alias of SHD_063",
       "setCode": "SOR_066"
@@ -11995,7 +11995,7 @@
     },
     {
       "internalName": "chimaera#flagship-of-the-seventh-fleet",
-      "reason": "chimaera#flagship-of-the-seventh-fleet: modal registration contains an unreviewed header field",
+      "reason": "chimaera#flagship-of-the-seventh-fleet: named Play lock requires the complete reviewed ordinary when-played registration",
       "setCode": "SOR_185"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1291,
+  "runtimeRejectedCount": 1289,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

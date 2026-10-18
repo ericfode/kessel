@@ -1547,6 +1547,8 @@ pub enum Instruction {
     Select(TargetResolver),
     /// Closed target-resolver menu; branches reuse ordinary instructions.
     ModalChoice(crate::modal_choices::Menu),
+    /// Internal instruction, installed only after the complete raw naming proof.
+    NameOpponentPlay,
     CaptureMaximum {aspect:String},
     Conditional { condition: Expr, skip: usize },
     IfResult { skip: usize },
@@ -1945,7 +1947,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -3179,6 +3181,7 @@ serde_json::from_str(r##"{"leader":[{"trigger":"action","costs":[{"kind":"exhaus
 fn arena_query_ability(a: &Ability) -> bool { selector_contract::reviewed_arena_query_ability(a) }
 #[derive(Debug, Default)]
 pub struct Catalogue {
+    pub(crate) playable_card_titles: Option<crate::named_play::Registry>,
     pub programs: Vec<Program>,
     pub cards: std::collections::HashMap<String, CardPrograms>,
     pub metadata: std::collections::HashMap<String, Value>,
@@ -3203,7 +3206,7 @@ impl Catalogue {
             edges.iter().filter(|(a,_)|a==from).any(|(_,b)|trait_path(edges,b,to,seen))
         }
         let cyclic_traits=trait_edges.iter().filter(|(a,b)|trait_path(&trait_edges,b,a,&mut Default::default())).cloned().collect::<std::collections::BTreeSet<_>>();
-        let mut catalogue = Self::default();
+        let mut catalogue = Self {playable_card_titles:crate::named_play::Registry::parse(value.get("playableCardTitles"))?,..Self::default()};
         for entry in entries {
             let code = entry["setCode"]
                 .as_str()
@@ -3218,6 +3221,20 @@ impl Catalogue {
                         "compiler rejected {}: {}",
                         entry["internalName"], entry["diagnostics"]
                     ));
+                }
+                if let Some(named)=crate::named_play_contract::prepare(entry)? {
+                    if catalogue.playable_card_titles.is_none() {return Err("card naming requires reviewed playableCardTitles registry".into());}
+                    let program=Program {
+                        attached_host:false,piloting_ability:false,pilot_unit_ability:false,
+                        hooks:vec![],gained_host:None,attached_context:None,
+                        title:named.registration["title"].as_str().ok_or("naming title missing")?.into(),
+                        context_title:vec![],trigger:named.descriptor.trigger,attacker_must_survive:false,
+                        coordinate:false,costs:vec![],optional:false,requires_confirmation:false,condition:None,
+                        instructions:vec![Instruction::NameOpponentPlay],event_end:1,
+                        executable:Err("named title selection requires interpreter"),select_ends:vec![],
+                    };
+                    let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;
+                    return Ok((CardPrograms {card:vec![id],..CardPrograms::default()},vec![program]));
                 }
                 let current_played_unit=crate::current_played_unit::prepare(entry)?;
                 crate::pay_adjusted_resources::validate_entry(entry)?;

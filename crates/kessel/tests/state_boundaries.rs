@@ -6,9 +6,9 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     copy::<State>();
     let mut s=State::default();
     // The checkpoint adds exact Credit/payment continuations and bounded live
-    // attack provenance plus eight bytes of exact aggregate defeat history.
+    // attack provenance, exact aggregate defeat history and the named Play ledger.
     // Inactive legacy storage stays off the historical hash stream.
-    assert_eq!(std::mem::size_of::<State>(),32312);
+    assert_eq!(std::mem::size_of::<State>(),32736);
     // Legacy v1 hashes stay stable; v2 distinguishes exact defeat projections.
     s.phase_history.defeats_exact=false;
     assert_eq!(s.zobrist(),0x08e5596b5f608cd6);

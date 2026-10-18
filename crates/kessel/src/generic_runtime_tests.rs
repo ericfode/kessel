@@ -1,4 +1,8 @@
 use super::*;
+#[path="named_play_tests.rs"]
+mod named_play_tests;
+#[path="named_play_state_tests.rs"]
+mod named_play_state_tests;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.

@@ -330,6 +330,7 @@ impl Engine {
         id: CardId,
         from_resources: bool,
     ) -> Result<bool, String> {
+        if !self.named_play_allowed(s,id) {return Err("named card cannot be played".into());}
         let seat = s.card(id).owner;
         if !(if from_resources {
             s.player(seat).resources.contains(id)

@@ -1499,6 +1499,47 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2346080263",
+      "internalName": "ryder-azadi#restored-governor",
+      "keywords": [
+        "restore"
+      ],
+      "power": 2,
+      "rules": "Abilities that refer to a card’s “name” do not include the subtitle of the card.\nUntil Ryder leaves play, opponents can't play cards with the chosen name. This effect is not changed if an opponent takes control of Ryder.\nIf Ryder is captured and then rescued, his \"\"When Played\"\" effect does not resume.\n",
+      "setCode": "ASH_077",
+      "setCodes": [
+        {
+          "number": 77,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 77,
+        "set": "ASH"
+      },
+      "subtitle": "Restored Governor",
+      "text": "Restore 1\nWhen Played: Name a card. While this unit is in play, opponents can't play cards with that name.",
+      "title": "Ryder Azadi",
+      "traits": [
+        "new republic",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance"
@@ -42492,6 +42533,45 @@
         "fringe",
         "vehicle",
         "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "3503494534",
+      "internalName": "regional-governor",
+      "keywords": [],
+      "power": 1,
+      "rules": "Abilities that refer to a card’s “name” do not include the subtitle of the card.\nUntil Regional Governor leaves play, your opponents can’t play the named card. This effect is not changed if an opponent takes control of Regional Governor.\nIf Regional Governor is captured and then rescued, its \"When Played\" effect does not resume.\n",
+      "setCode": "SOR_062",
+      "setCodes": [
+        {
+          "number": 62,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 62,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "When Played: Name a card. While this unit is in play, opponents can't play the named card.",
+      "title": "Regional Governor",
+      "traits": [
+        "imperial",
+        "official"
       ],
       "types": [
         "unit"

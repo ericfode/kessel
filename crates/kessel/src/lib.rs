@@ -80,3 +80,5 @@ mod migration_defeat_history_contract;
 mod admission_tests;
 
 mod migration_modal_deck_contract;
+mod named_play_contract;
+mod named_play;

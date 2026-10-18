@@ -78,6 +78,10 @@ mod selected_player;
 mod migration_modal_contract;
 #[path = "src/migration_modal_deck_contract.rs"]
 mod migration_modal_deck_contract;
+#[path = "src/named_play_contract.rs"]
+mod named_play_contract;
+#[path = "src/named_play.rs"]
+mod named_play;
 #[allow(dead_code)]
 #[path = "src/modal_choices.rs"]
 mod modal_choices;
@@ -207,6 +211,8 @@ fn main() {
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
     println!("cargo:rerun-if-changed=src/migration_modal_contract.rs");
     println!("cargo:rerun-if-changed=src/migration_modal_deck_contract.rs");
+    println!("cargo:rerun-if-changed=src/named_play_contract.rs");
+    println!("cargo:rerun-if-changed=src/named_play.rs");
     println!("cargo:rerun-if-changed=src/modal_arena_choices.rs");
     println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/migration_attack_contract.rs");

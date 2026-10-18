@@ -5,8 +5,7 @@ use crate::migration_modal_contract::{self as contract, Chooser, Resolution};
 
 const DESCRIBED: &[&str] = &["HMW_218", "IC27_185", "LOF_200", "SHD_227", "SOR_233"];
 const HELD: &[&str] = &[
-    "ASH_077", "HMW_218", "LAW_086", "LAW_243", "LOF_222", "SEC_220", "SHD_227",
-    "SOR_062",
+    "HMW_218", "LAW_086", "LAW_243", "LOF_222", "SEC_220", "SHD_227",
 ];
 fn catalogue() -> Value {
     serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap()

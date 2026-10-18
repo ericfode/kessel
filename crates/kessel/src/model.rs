@@ -8,10 +8,38 @@ pub const MAX_ZONE: usize = 64;
 // + Disclose selection/alignment 16 + first-strike Support flags 64
 // + Credit ledgers and prepared payment/death-group continuations 2,544
 // + bounded conditional attack provenance and gate masks 128
-// + exact aggregate defeat history 8.
+// + exact aggregate defeat history 8; named Play ledger/registry and alignment 424.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_312;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 32_736;
 pub type CardId = u16;
+
+pub const MAX_NAMED_PLAY_LOCKS: usize = 64;
+pub const DEFAULT_NAMED_PLAY_REGISTRY: [u8;32] = [113,214,53,146,30,155,180,219,91,239,111,153,173,66,70,106,213,117,0,113,31,135,89,103,13,104,152,126,143,238,54,95];
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct NamedPlayLock { pub source: CardId, pub title: u16, pub recipient: Seat }
+/// Additive effects retain the recipient captured at application. Removing a
+/// source removes its effects permanently, so reentry cannot revive a name.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NamedPlayState {
+    pub exact: bool,
+    /// Binds IDs and the legal naming domain to the exact registry configuration.
+    pub registry: [u8;32],
+    pub len: u8,
+    pub locks: [NamedPlayLock; MAX_NAMED_PLAY_LOCKS],
+}
+impl Default for NamedPlayState {
+    fn default()->Self {Self {exact:true,registry:DEFAULT_NAMED_PLAY_REGISTRY,len:0,locks:[NamedPlayLock::default();MAX_NAMED_PLAY_LOCKS]}}
+}
+impl NamedPlayState {
+    pub fn remove_source(&mut self,source:CardId) {
+        let mut kept=0;
+        for index in 0..usize::from(self.len) {
+            let lock=self.locks[index];
+            if lock.source!=source {self.locks[kept]=lock;kept+=1;}
+        }
+        self.locks[kept..].fill(NamedPlayLock::default());self.len=kept as u8;
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PhaseHistory {
@@ -588,6 +616,7 @@ pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub named_play: NamedPlayState,
     pub disclose:DiscloseState,
     pub support: SupportState,
     pub death_pending: DeathWindow,
@@ -665,6 +694,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
+            named_play:NamedPlayState::default(),
             disclose:DiscloseState::default(),
             support: SupportState::default(),
             death_pending:DeathWindow::default(), death_window:DeathWindow::default(),
@@ -763,6 +793,12 @@ impl State {
             i += 1;
             h ^= key(i, v);
         };
+        if self.named_play.len!=0 || self.named_play.registry!=DEFAULT_NAMED_PLAY_REGISTRY {
+            put(0x4e414d4544504c41);
+            for chunk in self.named_play.registry.chunks_exact(8) {put(u64::from_le_bytes(chunk.try_into().expect("eight bytes")));}
+            put(self.named_play.len as u64);
+            for lock in &self.named_play.locks[..usize::from(self.named_play.len)] {put(lock.source as u64);put(lock.title as u64);put(lock.recipient.index() as u64);}
+        }
         fn result_values(r:StepEventResult,lki_source:CardId,lki_power:u16,put:&mut impl FnMut(u64)) {
             if r!=StepEventResult::default()||lki_source!=0 {put(0x45564e54524553);for v in [r.source as u64,r.program as u64,r.pc as u64,r.damage_dealt as u64,r.defeated_units[0] as u64,r.defeated_units[1] as u64,lki_source as u64,lki_power as u64]{put(v);}if r.will_defeat {put(0x57494c4c44454654);}}
         }
