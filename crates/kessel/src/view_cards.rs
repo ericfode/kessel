@@ -115,8 +115,9 @@ pub(crate) fn reviewed_look_at_select(e: &Effect) -> bool {
             card_condition,
             selected_context_field,
             immediate_effect,
+            active_prompt_title_parts,
         } => {
-            if !(opponent_hand(target)
+            if !(active_prompt_title_parts.is_empty() && opponent_hand(target)
                 && self_player(player)
                 && const_u64(max_cards, 1)
                 && selected_context_field == "selectedPromptCards"
@@ -164,7 +165,7 @@ pub(crate) fn draws_for_opponent(e: &Effect) -> bool {
 pub(crate) fn selection_predicate(e: &Effect) -> Option<Expr> {
     match e {
         Effect::LookAtAndSelectCard { card_condition, .. } => {
-            reviewed_card_condition(card_condition)
+            reviewed_card_condition(card_condition).or_else(||crate::migration_look_contract::selection_predicate(card_condition))
         }
         _ => None,
     }
@@ -365,6 +366,7 @@ fn closed_unit_or_event(e: &Value, sides: &Sides, trigger: &str) -> bool {
 }
 
 pub(crate) fn entry(e: &Value) -> bool {
+    if crate::migration_look_contract::entry(e) {return true;}
     let Ok(sides) = serde_json::from_value::<Sides>(e["abilities"].clone()) else {
         return false;
     };

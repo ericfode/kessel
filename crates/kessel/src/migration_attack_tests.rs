@@ -378,7 +378,7 @@ fn migration_attack_runtime_trait_bonuses_read_selected_attacker_and_cleanup() {
                     let done = ma_finish(&e, ma_click(&e, &defender, base));
                     assert_eq!(
                         done.card(base).damage as i64,
-                        before + if matching { 2 } else { 0 },
+                        i64::from(before) + if matching { 2 } else { 0 },
                         "{source_code}/{matching}"
                     );
                     assert!(done.card(attacker).exhausted);

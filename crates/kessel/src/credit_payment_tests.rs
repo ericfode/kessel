@@ -254,7 +254,7 @@ fn credit_initial_creation_contracts_are_complete_and_reusable() {
         assert!(creation_source(&changed).is_err());
     }
     for code in [
-        "LAW_116", "LAW_134", "LAW_155", "LAW_247", "LAW_258",
+        "LAW_116", "LAW_247",
     ] {
         assert!(
             creation_source(&entry(code)).is_err(),

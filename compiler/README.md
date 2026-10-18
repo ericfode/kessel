@@ -588,6 +588,10 @@ the defender's controller, even if the source leaves play before resolution.
 Creation allocates fresh physical identities as one batch before ordered BaseZone
 entry. The ledger retains zone order, controller/owner changes and
 retired physical metadata; defeating a Credit never recycles its identity.
+Three further closed ordinary-unit compositions retain their full conditions and
+continuations: another friendly Underworld unit on entry, a friendly ground unit
+on attack, and optional adjusted payment of two resources on attack before
+creation. They share the original native dependency and payment lifecycle.
 Other printed Credit registrations and modified or blanked Credit states remain
 rejected. These contracts do not imply support for every Credit card.
 
@@ -910,3 +914,21 @@ hooks or granted death registrations; legacy imports never infer that evidence.
 The inline State grows by 256 bytes (the 260-byte sequence absorbs existing
 padding). Rust source-derived fixtures cover these boundaries; parity
 for these additions has not been checked by executing the source engine.
+
+
+## Bounded hand-observation compositions
+
+Complete ordinary events can discard one own-hand card before an optional
+opponent-hand discard, Disclose two Cunning before a mandatory unit-card discard,
+or perform two opposite-owner hand selections followed by both players drawing.
+Each selection retains its original hand owner, chooser, predicate and success
+boundary. Optional selection uses `Take nothing`; mandatory selection with no
+match uses `Done`. Empty hands do not invent a display event. Pending displays
+export `viewSelectionPending` and cannot be reloaded as action windows, including
+when actor or winner fields are changed.
+
+Dependent modal choices, conditional attack bonuses and defeat-history source
+contracts have separate inspection descriptors. Those descriptors do not grant
+runtime admission. Conditional attacks still require an initial applicability
+gate and a live installed condition; defeat history still requires exact captured
+controller/type projections and versioned storage.

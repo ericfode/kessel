@@ -61,9 +61,16 @@ mod modal_arena_choices;
 mod attachment_play_cost;
 
 mod credits;
+mod migration_credit_contract;
+mod migration_look_contract;
 mod resource_payment;
 #[cfg(test)]
 #[path = "credit_payment_tests.rs"]
 mod credit_payment_tests;
 
 mod current_played_unit;
+
+mod migration_modal_contract;
+mod migration_attack_contract;
+
+mod migration_defeat_history_contract;

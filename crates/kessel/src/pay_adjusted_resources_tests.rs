@@ -197,7 +197,7 @@ fn admitted_payment_cards_compile_and_unsupported_companions_stay_rejected() {
             e.rejected_cards().unwrap().get(code)
         );
     }
-    for code in ["ASH_014", "ASH_219", "JTL_096", "LAW_193", "LAW_258"] {
+    for code in ["ASH_014", "ASH_219", "JTL_096", "LAW_193"] {
         assert!(
             !e.by_code.contains_key(code),
             "unsupported companion admitted on {code}"

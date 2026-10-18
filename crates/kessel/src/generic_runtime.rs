@@ -2021,13 +2021,13 @@ impl Engine {
                         .look_at_select_effect(s)
                         .is_some_and(crate::view_cards::can_choose_fewer);
                     if selectable.is_empty() {
-                        out.push(Action::button("Done", "done"));
+                        out.push(Action::button(if optional {"Take nothing"} else {"Done"}, "done"));
                     } else {
                         for id in selectable {
                             out.push(self.card_action(s, id));
                         }
                         if optional {
-                            out.push(Action::button("Done", "done"));
+                            out.push(Action::button("Take nothing", "done"));
                         }
                     }
                 } else {

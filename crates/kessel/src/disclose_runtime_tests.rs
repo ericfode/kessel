@@ -302,11 +302,11 @@ fn disclose_all_event_first_spy_survives_impossible_or_declined_second_spy() {
 }
 
 #[test]
-fn disclose_real_catalogue_restores_thirteen_without_admitting_extended_modes() {
+fn disclose_real_catalogue_keeps_reviewed_sources_without_admitting_extended_modes() {
     let e = engine();
     for code in [
         "SEC_059", "SEC_062", "SEC_076", "SEC_094", "SEC_098", "SEC_120", "SEC_141", "SEC_148",
-        "SEC_153", "SEC_181", "SEC_182", "SEC_190", "SEC_248",
+        "SEC_153", "SEC_181", "SEC_182", "SEC_190", "SEC_230", "SEC_248",
     ] {
         assert!(
             e.by_code.contains_key(code),
@@ -321,7 +321,7 @@ fn disclose_real_catalogue_restores_thirteen_without_admitting_extended_modes() 
             .contains("\"kind\":\"disclose\"")
             && ![
                 "SEC_059", "SEC_062", "SEC_076", "SEC_094", "SEC_098", "SEC_120", "SEC_141",
-                "SEC_148", "SEC_153", "SEC_181", "SEC_182", "SEC_190", "SEC_248",
+                "SEC_148", "SEC_153", "SEC_181", "SEC_182", "SEC_190", "SEC_230", "SEC_248",
             ]
             .contains(&row["setCode"].as_str().unwrap())
         {

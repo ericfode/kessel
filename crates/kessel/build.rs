@@ -6,6 +6,12 @@ mod attachment_play_cost;
 #[path = "src/credits.rs"]
 mod credits;
 #[allow(dead_code)]
+#[path = "src/migration_credit_contract.rs"]
+mod migration_credit_contract;
+#[allow(dead_code)]
+#[path = "src/migration_look_contract.rs"]
+mod migration_look_contract;
+#[allow(dead_code)]
 #[path = "src/self_play_cost.rs"]
 mod self_play_cost;
 #[allow(dead_code)]
@@ -195,6 +201,8 @@ fn main() {
     println!("cargo:rerun-if-changed=src/native_attack.rs");
     println!("cargo:rerun-if-changed=src/pay_adjusted_resources.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
+    println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
+    println!("cargo:rerun-if-changed=src/migration_look_contract.rs");
     println!("cargo:rerun-if-changed=src/card_restrictions.rs");
     println!("cargo:rerun-if-env-changed=SWU_RULES_CATALOGUE");
     let catalog = env::var_os("SWU_RULES_CATALOGUE")

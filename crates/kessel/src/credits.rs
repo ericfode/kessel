@@ -214,6 +214,25 @@ pub(crate) struct Creation {
     pub event: bool,
 }
 pub(crate) fn creation_source(entry: &Value) -> Result<Option<Creation>, String> {
+    match standalone_creation_source(entry) {
+        Ok(original) => Ok(original),
+        Err(original_error) => {
+            let Some(prepared) = crate::migration_credit_contract::prepare(entry)? else {
+                return Err(original_error);
+            };
+            if prepared.normalized != *entry {
+                return Err("Credit composition must preserve the complete executable source".into());
+            }
+            let amount = match prepared.composition {
+                crate::migration_credit_contract::Composition::OtherFriendlyUnderworldOnPlay
+                | crate::migration_credit_contract::Composition::FriendlyGroundOnAttack
+                | crate::migration_credit_contract::Composition::OptionalAttackPayment => 1,
+            };
+            Ok(Some(Creation { amount, event: false }))
+        }
+    }
+}
+fn standalone_creation_source(entry: &Value) -> Result<Option<Creation>, String> {
     fn marker(v: &Value) -> bool {
         v["kind"] == "createCreditToken"
             || match v {

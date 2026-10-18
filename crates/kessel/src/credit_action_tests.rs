@@ -641,3 +641,6 @@ fn credit_named_event_retains_both_pretargets_and_allocates_shield_after_payment
 
 #[path = "credit_trigger_tests.rs"]
 mod credit_trigger_tests;
+
+#[path = "migration_credit_tests.rs"]
+mod migration_credit_tests;

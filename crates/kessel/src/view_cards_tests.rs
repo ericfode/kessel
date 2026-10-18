@@ -204,7 +204,7 @@ fn remnant_lookouts_may_discard_then_opponent_draws() {
     assert_eq!(prompt.decision, Decision::AbilityDisplay);
     let actions = e.legal_actions(&prompt);
     assert!(actions.contains(&e.card_action(&prompt, card)));
-    assert!(actions.contains(&Action::button("Done", "done")));
+    assert!(actions.contains(&Action::button("Take nothing", "done")));
     let done = e.apply(&prompt, &e.card_action(&prompt, card)).unwrap();
     assert!(done.players[1].discard.contains(card));
     assert!(!done.players[1].hand.contains(card));
@@ -225,7 +225,7 @@ fn remnant_lookouts_done_looks_without_discard() {
     let source = hand(&e, &mut s, "ASH_220");
     let prompt = e.apply(&s, &e.card_action(&s, source)).unwrap();
     let done = e
-        .apply(&prompt, &Action::button("Done", "done"))
+        .apply(&prompt, &Action::button("Take nothing", "done"))
         .unwrap();
     assert!(done.players[1].hand.contains(card));
     assert!(!done.players[1].discard.contains(card));
@@ -306,9 +306,9 @@ fn beguile_empty_hand_still_offers_bounce() {
 #[test]
 fn look_at_select_wrapped_and_play_shapes_stay_rejected() {
     let e = engine();
-    // Mother Talzin: ifYouDo play-from-discard. Unmasking: ifYouDo wrapper.
+    // Mother Talzin: ifYouDo play-from-discard.
     // Tear This Ship: playCardSystem immediate.
-    for code in ["TS26_026", "TWI_223", "LAW_066"] {
+    for code in ["TS26_026", "LAW_066"] {
         assert!(
             !e.by_code.contains_key(code),
             "{code} must stay rejected"

@@ -404,10 +404,14 @@ fn migration_credit_creation_still_requires_selected_native_provenance_and_exact
     let s = midgame(&e, Seat::P2);
     let mut legacy = e.snapshot(&s);
     legacy.as_object_mut().unwrap().remove("creditStateVersion");
-    assert!(e
-        .load_state(&legacy)
-        .unwrap_err()
-        .contains("Credit state version"));
+    for seat in ["p1", "p2"] {
+        for field in ["credits", "retiredCredits"] {
+            assert_eq!(legacy["players"][seat][field], json!([]));
+            legacy["players"][seat].as_object_mut().unwrap().remove(field);
+        }
+    }
+    let error = e.load_state(&legacy).unwrap_err();
+    assert!(error.contains("Credit state version"), "{error}");
 }
 
 #[test]

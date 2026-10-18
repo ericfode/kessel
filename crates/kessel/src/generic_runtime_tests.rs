@@ -3882,3 +3882,14 @@ fn credit_base_zone_title_and_trait_queries_follow_live_controller_and_retiremen
     e.defeat_credits_for_payment(&mut s,Seat::P2,1).unwrap();
     assert!(!e.eval(&s,s.player(Seat::P2).leader,0,&title).truth());
 }
+
+#[path = "migration_look_tests.rs"]
+mod migration_look_tests;
+
+#[path = "migration_modal_tests.rs"]
+mod migration_modal_tests;
+#[path = "migration_attack_tests.rs"]
+mod migration_attack_tests;
+
+#[path = "migration_defeat_history_tests.rs"]
+mod migration_defeat_history_tests;

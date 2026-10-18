@@ -1044,6 +1044,8 @@ pub enum Effect {
         selected_context_field: String,
         #[serde(rename = "immediateEffect")]
         immediate_effect: ViewSelectImmediate,
+        #[serde(default, rename = "activePromptTitleParts", skip_serializing_if = "Vec::is_empty")]
+        active_prompt_title_parts: Vec<Expr>,
     },
 }
 
@@ -1826,7 +1828,7 @@ impl Program {
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
         if crate::current_played_unit::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::current_played_unit::ability(ability){return Err("current played-unit query requires the complete ready/conditional-Spy event registration".into());}
-        if crate::disclose::has_disclose(ability)&&!crate::disclose::registration(ability){return Err("disclose requires a complete bounded All registration and supported continuation".into());}
+        if crate::disclose::has_disclose(ability)&&!crate::disclose::registration(ability)&&!crate::migration_look_contract::registration(ability){return Err("disclose requires a complete bounded All registration and supported continuation".into());}
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
 
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
@@ -2130,6 +2132,29 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        // Complete source contracts establish these ordered hand observations.
+        // Keep the general nested-view guard closed: only these full registrations
+        // can emit the display leaves directly, with their original chooser/target.
+        if depth==0 && crate::migration_look_contract::registration(ability) {
+            if let Effect::Sequence { effects } = &ability.effect {
+                for effect in &effects[..2] {
+                    self.instructions.push(Instruction::Apply(effect.clone()));
+                }
+                self.compile_effect(&effects[2], 0)?;
+            } else {
+                if matches!(ability.effect, Effect::Disclose { .. }) {
+                    self.instructions.push(Instruction::Apply(ability.effect.clone()));
+                } else {
+                    self.compile_effect(&ability.effect, 0)?;
+                }
+                let gate=self.instructions.len();
+                self.instructions.push(Instruction::IfResult { skip:0 });
+                self.instructions.push(Instruction::EndStep);
+                self.instructions.push(Instruction::Apply(ability.if_you_do.as_ref().expect("closed look continuation").effect.clone()));
+                self.instructions[gate]=Instruction::IfResult { skip:self.instructions.len() };
+            }
+            return Ok(());
+        }
         if depth==0 && crate::disclose::has_disclose(ability) {
             if !crate::disclose::registration(ability) {return Err("unsupported disclose registration".into());}
             let step=if matches!(&ability.effect,Effect::Disclose{..}) {ability}else{self.compile_effect(&ability.effect,0)?;self.instructions.push(Instruction::EndStep);ability.then.as_deref().unwrap()};
@@ -3116,7 +3141,7 @@ impl Catalogue {
                     normalized["abilities"] = abilities;
                     crate::attached_registration::sides(&normalized)?
                 };
-                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(crate::disclose::has_disclose)&&!crate::disclose::source_entry(entry,&sides){return Err("disclose requires complete ordinary unit or event source metadata".into());}
+                if sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(crate::disclose::has_disclose)&&!crate::disclose::source_entry(entry,&sides)&&!crate::migration_look_contract::entry(entry){return Err("disclose requires complete ordinary unit or event source metadata".into());}
                 if piloting_keyword_grant
                     && (sides.card.is_empty()
                         || sides.card.len() > 8

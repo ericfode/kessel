@@ -1656,6 +1656,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("viewSelectionPending").is_some(){return Err("pending view selection cannot be imported as an action window".into());}
         if v.get("creditPaymentPending").is_some() || v.get("resourcePaymentPending").is_some() {return Err("pending Credit/resource payment cannot be imported as an action window".into());}
         if v.get("disclosePending").is_some(){return Err("pending Disclose cannot be imported as an action window".into());}
         if v.get("supportAttackPending").is_some() {return Err("pending Support attacks cannot be imported as action windows".into());}
@@ -1862,6 +1863,7 @@ impl Engine {
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
+        if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.force_state_exact {value["forceStateVersion"]=json!(1);for seat in [Seat::P1,Seat::P2] {let p=s.player(seat);value["players"][seat.as_str()]["forceToken"]=json!({"id":format!("c{}",p.force_id-1),"held":p.force_held});}}
         if s.hidden_history_exact {value["hiddenHistoryVersion"]=json!(1);}
