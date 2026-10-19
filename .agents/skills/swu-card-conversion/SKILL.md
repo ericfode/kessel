@@ -81,6 +81,17 @@ subprocess concurrency is not model concurrency. Preserve explicit path ownershi
 and do not edit canonical execution inputs during validation. Queue submission
 and successful comparisons never substitute for independent semantic review.
 
+Submit claimed jobs before applying any author patch to the canonical checkout,
+including an owned patch from another author in the same job. Submission rechecks
+the captured baseline. Keep patches and test receipts in the isolated author
+directory until submission completes; integrate them afterward.
+
+Before preparing a build, verify that the selected `wasm-bindgen` executable
+matches the version pinned in `crates/kessel-wasm/build.js`. If reusing an existing
+installation outside `target/wasm-tools`, pass its exact path as `WASM_BINDGEN`
+to preparation and subsequent Wasm builds. A previously built package does not
+establish that the current process can find the required tool.
+
 After a repository migration or exporter contract change, preflight one selected
 real-engine recording through native and Wasm imports before starting the card
 fanout. Preserve failed attempts; a missing shared state field is not a card-level

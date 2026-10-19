@@ -2,6 +2,8 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const selectionExhaust = require("./selection-exhaust-probes").planSelectionExhaustProbes(entry, options);
+    if (selectionExhaust) return selectionExhaust;
     const exhaustResources = require("./exhaust-resources-probes").planExhaustResourcesProbes(entry, options);
     if (exhaustResources) return exhaustResources;
     const gainedHostAttack = require("./gained-host-attack-probes").planGainedHostAttackProbes(entry, options);

@@ -84,14 +84,14 @@ fn leaf(target: &str) -> Value {
 #[test]
 fn resource_exhaust_admits_exactly_the_reviewed_current_sources() {
     let e = engine();
-    for code in ["ASH_216", "TWI_185"] {
+    for code in ["ASH_216", "TWI_185", "SEC_216"] {
         assert!(
             e.by_code.contains_key(code),
             "{code}: {:?}",
             e.rejected_cards().unwrap().get(code)
         );
     }
-    for code in ["JTL_250", "SEC_216", "SEC_235", "SHD_191", "SOR_188"] {
+    for code in ["JTL_250", "SEC_235", "SHD_191", "SOR_188"] {
         assert!(!e.by_code.contains_key(code), "unreviewed source {code}");
         assert!(e.rejected_cards().unwrap().contains_key(code));
     }
@@ -417,4 +417,267 @@ fn resource_exhaust_generated_dispatch_and_interpreter_share_the_state_change() 
         .unwrap()
         .values()
         .all(|hits| hits[1] == 0));
+}
+
+#[test]
+fn selection_exhaust_complete_source_rejects_wrapper_and_context_mutants() {
+    let original = entry("SEC_216");
+    assert!(admits(original.clone()));
+    let mut renamed = original.clone();
+    renamed["setCode"] = json!("TEST_SELECTION");
+    renamed["internalName"] = json!("same-contract");
+    assert!(admits(renamed));
+    for (pointer, value) in [
+        ("/abilities/card/0/effect/system", json!("selectCard")),
+        ("/abilities/card/0/effect/name", json!("other")),
+        ("/abilities/card/0/effect/contract", json!("other")),
+        ("/abilities/card/0/effect/legality", json!("always")),
+        (
+            "/abilities/card/0/effect/resolver/kind",
+            json!("cardSelection"),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/mode",
+            json!("multiplePlayers"),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/chooser",
+            json!("opponent"),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/resultBinding",
+            json!("selectedPlayer"),
+        ),
+        ("/abilities/card/0/effect/resolver/defaults", json!("other")),
+        (
+            "/abilities/card/0/effect/resolver/contextBinding",
+            json!("other"),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/choosingPlayerOverride",
+            json!("other"),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/delayOpponentBeforeCosts",
+            json!(false),
+        ),
+        (
+            "/abilities/card/0/effect/resolver/resolverName",
+            json!("other"),
+        ),
+        (
+            "/abilities/card/0/effect/innerSystem/target",
+            json!("enemyPlayer"),
+        ),
+        (
+            "/abilities/card/0/effect/innerSystem/amount/value",
+            json!(0),
+        ),
+        (
+            "/abilities/card/0/effect/innerSystem/amount/value",
+            json!(2),
+        ),
+        ("/abilities/card/0/effect/innerSystem/isCost", json!(true)),
+        (
+            "/abilities/card/0/effect/innerSystem/allowCostAdjustments",
+            json!(true),
+        ),
+        (
+            "/abilities/card/0/effect/innerSystem/paymentType",
+            json!("cardEffectPayment"),
+        ),
+        ("/abilities/card/0/costs", json!([])),
+        ("/abilities/card/0/trigger", json!("whenPlayed")),
+        ("/baseClass", json!("LeaderUnitCard")),
+        ("/card/types", json!(["unit", "token"])),
+    ] {
+        let mut bad = original.clone();
+        *bad.pointer_mut(pointer).unwrap() = value;
+        assert!(!admits(bad), "{pointer}");
+    }
+    for key in [
+        "historyHelpers",
+        "classMethods",
+        "privatePrograms",
+        "inheritedSource",
+        "stateWatchers",
+    ] {
+        let mut bad = original.clone();
+        bad[key] = json!([{"unreviewed":true}]);
+        assert!(!admits(bad));
+    }
+    for (key, value) in [
+        ("optional", json!(true)),
+        ("condition", json!({"kind":"const","value":true})),
+        (
+            "then",
+            json!({"title":"extra","effect":{"kind":"noAction"}}),
+        ),
+    ] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0][key] = value;
+        assert!(!admits(bad));
+    }
+    for key in ["target", "additionalProperties"] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0]["effect"][key] = json!("ownPlayer");
+        assert!(!admits(bad));
+    }
+    let wrapper = original["abilities"]["card"][0]["effect"].clone();
+    for effect in [
+        json!({"kind":"sequence","effects":[wrapper.clone()]}),
+        json!({"kind":"simultaneous","effects":[wrapper.clone()]}),
+        json!({"kind":"optional","effect":wrapper}),
+    ] {
+        let mut bad = original.clone();
+        bad["abilities"]["card"][0]["effect"] = effect;
+        assert!(!admits(bad));
+    }
+    let mut bad = original.clone();
+    bad["abilities"]["card"]
+        .as_array_mut()
+        .unwrap()
+        .push(original["abilities"]["card"][0].clone());
+    assert!(!admits(bad));
+}
+
+fn selection_menu(e: &Engine, s: &State, source: CardId) -> State {
+    assert!(e.legal_actions(s).contains(&e.card_action(s, source)));
+    let menu = e.apply(s, &e.card_action(s, source)).unwrap();
+    assert_eq!(menu.decision, Decision::AbilityMenu);
+    assert!(!menu.card(source).exhausted);
+    assert_eq!(
+        e.legal_actions(&menu),
+        vec![
+            Action::button("Exhaust a resource", 0),
+            Action::button("Attack", 1),
+            Action::button("Cancel", 2)
+        ]
+    );
+    menu
+}
+fn nested_menu(e: &Engine, menu: &State, source: CardId) -> State {
+    let paid = e
+        .apply(menu, &Action::button("Exhaust a resource", 0))
+        .unwrap();
+    assert_eq!(paid.decision, Decision::AbilityTarget);
+    assert!(paid.card(source).exhausted);
+    assert!(paid.ability_committed);
+    assert_eq!(
+        e.legal_actions(&paid),
+        vec![Action::button("You", 0), Action::button("Opponent", 1)]
+    );
+    assert!(e.apply(&paid, &Action::button("Cancel", 2)).is_err());
+    paid
+}
+#[test]
+fn selection_exhaust_paid_nested_menu_is_unfiltered_and_cannot_refund_cost_both_owners() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        for (own_ready, enemy_ready) in [(2, 2), (0, 2), (2, 0), (0, 0)] {
+            for chosen in [0, 1] {
+                let mut s = board(&e, seat);
+                let source = unit(&e, &mut s, seat, "SEC_216");
+                let own = resources(&e, &mut s, seat, &[true, own_ready == 0, own_ready == 0]);
+                let enemy = resources(
+                    &e,
+                    &mut s,
+                    seat.other(),
+                    &[true, enemy_ready == 0, enemy_ready == 0],
+                );
+                e.create_credit_tokens(&mut s, seat, 2).unwrap();
+                e.create_credit_tokens(&mut s, seat.other(), 1).unwrap();
+                let ledgers = [s.player(seat).credits, s.player(seat.other()).credits];
+                // Reverse the physical ready order independently of allocated card IDs.
+                s.player_mut(seat).resources.ids.swap(1, 2);
+                s.player_mut(seat.other()).resources.ids.swap(1, 2);
+                let menu = selection_menu(&e, &s, source);
+                let cancelled = e.apply(&menu, &Action::button("Cancel", 2)).unwrap();
+                assert!(!cancelled.card(source).exhausted);
+                assert_eq!(cancelled.zobrist(), s.zobrist());
+                let paid = nested_menu(&e, &menu, source);
+                let done = e
+                    .apply(
+                        &paid,
+                        &Action::button(if chosen == 0 { "You" } else { "Opponent" }, chosen),
+                    )
+                    .unwrap();
+                assert_eq!(done.decision, Decision::Window);
+                assert!(done.card(source).exhausted);
+                for (ids, count, role) in [(&own, own_ready, 0), (&enemy, enemy_ready, 1)] {
+                    assert_eq!(done.card(ids[2]).exhausted, count == 0 || chosen == role);
+                    assert_eq!(
+                        done.card(ids[1]).exhausted,
+                        count == 0,
+                        "only first ready physical card changes"
+                    );
+                }
+                assert_eq!(
+                    [done.player(seat).credits, done.player(seat.other()).credits],
+                    ledgers
+                );
+                assert!(!done.resource_payment.active());
+                assert!(e.available_programs(&done, source, "action").is_empty());
+            }
+        }
+    }
+}
+
+#[test]
+fn selection_exhaust_generated_and_interpreted_cost_and_menu_paths_agree() {
+    let mut interpreted = engine();
+    interpreted
+        .set_rules_backend(RulesBackend::Interpreter)
+        .unwrap();
+    let mut generated = engine();
+    for d in &mut generated.definitions {
+        if d.code != "SEC_216" {
+            d.programs = Default::default();
+        }
+    }
+    generated.set_rules_backend(RulesBackend::Aot).unwrap();
+    generated.set_rules_instrumentation(true);
+    for seat in [Seat::P1, Seat::P2] {
+        for choice in [0, 1] {
+            let mut s = board(&interpreted, seat);
+            let source = unit(&interpreted, &mut s, seat, "SEC_216");
+            resources(&interpreted, &mut s, seat, &[false, true, false]);
+            resources(&interpreted, &mut s, seat.other(), &[false]);
+            let i = selection_menu(&interpreted, &s, source);
+            let a = selection_menu(&generated, &s, source);
+            assert_eq!(a, i);
+            let i = nested_menu(&interpreted, &i, source);
+            let a = nested_menu(&generated, &a, source);
+            assert_eq!(a, i);
+            let button = Action::button(if choice == 0 { "You" } else { "Opponent" }, choice);
+            let i = interpreted.apply(&i, &button).unwrap();
+            let a = generated.apply(&a, &button).unwrap();
+            assert_eq!(a, i);
+        }
+    }
+    let hits = generated.rules_hits.lock().unwrap();
+    assert!(hits.values().any(|h| h[0] > 0));
+    assert!(hits.values().all(|h| h[1] == 0));
+}
+
+#[test]
+fn selection_exhaust_recomputes_live_resource_keyword_dependencies() {
+    let e = engine();
+    for seat in [Seat::P1, Seat::P2] {
+        let mut s = board(&e, seat);
+        let source = unit(&e, &mut s, seat, "SEC_216");
+        let friendly = unit(&e, &mut s, seat, "HMW_117");
+        let enemy = unit(&e, &mut s, seat.other(), "HMW_117");
+        resources(&e, &mut s, seat, &[false]);
+        resources(&e, &mut s, seat.other(), &[false]);
+        assert_eq!(e.keyword_amount(&s, friendly, "raid"), 0);
+        assert!(!e.has_keyword(&s, friendly, "overwhelm"));
+        let menu = selection_menu(&e, &s, source);
+        let paid = nested_menu(&e, &menu, source);
+        let done = e.apply(&paid, &Action::button("You", 0)).unwrap();
+        assert_eq!(e.keyword_amount(&done, friendly, "raid"), 1);
+        assert!(e.has_keyword(&done, friendly, "overwhelm"));
+        assert_eq!(e.keyword_amount(&done, enemy, "raid"), 0);
+        assert!(!e.has_keyword(&done, enemy, "overwhelm"));
+    }
 }

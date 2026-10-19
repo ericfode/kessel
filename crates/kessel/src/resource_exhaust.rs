@@ -1,7 +1,8 @@
 //! Reviewed plain resource exhaustion, deliberately separate from payment.
 //!
-//! The first family is constant one, direct player targets, on ordinary units.
-//! Whole-source registration envelopes keep nested/modal/payment variants closed.
+//! Constant-one effects support direct player targets and one exact in-effect
+//! player selector on ordinary units. Whole-source registration envelopes keep
+//! other nested, modal, and payment variants closed.
 use crate::ability_ir::{Effect, Expr, Target};
 use serde_json::{json, Value};
 
@@ -40,6 +41,25 @@ fn marker(v: &Value) -> bool {
 fn leaf(target: &str) -> Value {
     json!({"kind":"exhaustResources","target":target,"amount":{"kind":"const","value":1},
         "paymentType":"exhaustResources","isCost":false,"allowCostAdjustments":false})
+}
+
+/// The retained wrapper is intentionally distinct from selectedPlayerSystem:
+/// its target binding is installed by a new resolver after cost commitment.
+fn selection_shape() -> Value {
+    let mut inner = leaf("ownPlayer");
+    inner["target"] = json!({"kind":"ref","path":["selectedPlayer"]});
+    json!({"kind":"selectionSystem","system":"selectPlayer","name":"target",
+        "resolver":{"kind":"playerSelection","mode":"player","chooser":"self",
+        "resultBinding":"target","defaults":"pinnedTargetResolver","contextBinding":"target",
+        "choosingPlayerOverride":"contextOverrideFirst","delayOpponentBeforeCosts":true,"resolverName":"target"},
+        "innerSystem":inner,"contract":"SelectPlayerSystem.selectedPlayerDefaultTarget","legality":"innerSystemCanAffectPlayer"})
+}
+
+pub(crate) fn selection(effect: &Effect) -> Result<(), String> {
+    if serde_json::to_value(effect).map_err(|e| e.to_string())? != selection_shape() {
+        return Err("selectionSystem requires the exact nested single-player effect-only constant-one exhaustion contract".into());
+    }
+    Ok(())
 }
 
 pub(crate) fn validate_entry(entry: &Value) -> Result<(), String> {
@@ -99,8 +119,11 @@ pub(crate) fn validate_entry(entry: &Value) -> Result<(), String> {
          "effect":{"kind":"exhaust","target":"chosen"}},
         {"trigger":"onAttack","costs":[],"optional":true,"effect":leaf("enemyPlayer")}
     ]});
-    if sides != death && sides != attack {
-        return Err("exhaustResources requires a complete reviewed direct constant-one death/attack registration envelope".into());
+    let selected = json!({"leader":[],"unit":[],"card":[
+        {"trigger":"action","costs":[{"kind":"exhaustSelf"}],"effect":selection_shape()}
+    ]});
+    if sides != death && sides != attack && sides != selected {
+        return Err("exhaustResources requires a complete reviewed constant-one direct death/attack or nested action registration envelope".into());
     }
     Ok(())
 }

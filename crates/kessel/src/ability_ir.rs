@@ -1074,6 +1074,16 @@ pub enum Effect {
         #[serde(rename = "targetResolver")]
         target_resolver: TargetResolver,
     },
+    /// Nested PlayerTargetResolver created only during immediate-effect execution.
+    SelectionSystem {
+        system: String,
+        name: String,
+        resolver: Value,
+        #[serde(rename = "innerSystem")]
+        inner_system: Box<Effect>,
+        contract: String,
+        legality: String,
+    },
     /// Compiler `selectedPlayerSystem`; lowered to draw/ready/discard at program compile.
     SelectedPlayerSystem {
         system: String,
@@ -1196,7 +1206,7 @@ impl Effect {
             // their runtime matches on the raw shapes.
             Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
             | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
-            | Self::SelectedPlayerSystem { .. } | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
+            | Self::SelectionSystem { .. } | Self::SelectedPlayerSystem { .. } | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
             Self::LookAt { target, player, .. } => {
                 visit(target);
                 visit(player);
@@ -2793,7 +2803,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     GroupRequirements::ordinary(multiplicity(target,targets,array)?)
                 },
-                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::SelectionSystem { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -3011,6 +3021,11 @@ impl Program {
                 ) {
                     return Err("payResources amount must be literal 1..3".into());
                 }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
+            Effect::SelectionSystem { .. } => {
+                if depth != 0 { return Err("selected-player exhaustion requires a root effect".into()); }
+                crate::resource_exhaust::selection(effect)?;
                 self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::SelectedPlayerSystem {

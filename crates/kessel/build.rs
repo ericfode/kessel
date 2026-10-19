@@ -199,6 +199,10 @@ fn lower(p: &Program) -> Result<String, String> {
             Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
             Instruction::Select(_)=>format!("let Instruction::Select(r)=&p.instructions[{pc}] else {{return Err(\"AOT selection identity mismatch\".into())}};if self.program_targets(s,s.source,s.ability_program-1,{pc},r,true).is_empty() {{s.ability_target=0;s.ability_selection=Selection::default();s.ability_pc+=1;}} else {{s.decision=Decision::AbilityTarget;return Ok(true);}}"),
             Instruction::Conditional {skip,..}=>format!("let Instruction::Conditional{{condition,..}}=&p.instructions[{pc}] else {{return Err(\"AOT condition identity mismatch\".into())}};s.ability_pc=if self.eval(s,s.source,s.ability_target,condition).truth() {{{}}}else{{{skip}}};",pc+1),
+            Instruction::Apply(effect @ Effect::SelectionSystem { .. })=>{
+                crate::resource_exhaust::selection(effect)?;
+                "let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated nested selection identity mismatch\".into())};self.begin_selection_exhaust(s,effect)?;return Ok(true);".into()
+            },
             Instruction::Apply(Effect::DistributeHealing{..})=>"if !self.commit_program(s)? {return Ok(true);}s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
             Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
