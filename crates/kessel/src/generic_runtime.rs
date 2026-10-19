@@ -1836,6 +1836,13 @@ impl Engine {
             }
             _ => {},
         }
+        if matches!(e, Effect::SelectionSystem { .. }) {
+            if crate::resource_exhaust::selection(e).is_err() { return false; }
+            // Wrapper feasibility uses its inherited opponent default. The
+            // action's None mode does not require ready resources; the nested
+            // menu itself deliberately never filters either player.
+            return !require_change || self.ready_resources(s, s.card(source).owner.other()) > 0;
+        }
         let mut context = *s;
         context.source = source;
         context.ability_target = target;
@@ -2175,6 +2182,9 @@ impl Engine {
             }
             Decision::AbilityTarget => {
                 let p=self.program(s.ability_program-1);
+                if matches!(p.instructions.get(s.ability_pc as usize),Some(Instruction::Apply(Effect::SelectionSystem { .. }))) {
+                    return vec![Action::button("You",0),Action::button("Opponent",1)];
+                }
                 let (r,child)=if let Some((r,e))=self.current_group_resolver(s,p) { (r,Some(e)) } else {
                     let Instruction::Select(r)=&p.instructions[s.ability_pc as usize] else { unreachable!() }; (r,None)
                 };
@@ -2567,6 +2577,10 @@ impl Engine {
                         return Ok(());
                     }
                 }
+                Instruction::Apply(effect @ Effect::SelectionSystem { .. }) => {
+                    self.begin_selection_exhaust(s,effect)?;
+                    return Ok(());
+                }
                 Instruction::Apply(Effect::LookAtAndSelectCard { target, player, .. }) => {
                     // Shape was fenced at Program::compile; expressions may already be Compiled.
                     if !self.commit_program(s)? {return Ok(());}
@@ -2922,6 +2936,31 @@ impl Engine {
         if !matches!(e,Effect::Damage{..}|Effect::Defeat{..}) {s.event_result=StepEventResult::default();}
         Ok(result)
     }
+    /// Costs commit before SelectPlayerSystem creates its nested resolver. The
+    /// menu has no Cancel/Pass and includes ineffective players; only the chosen
+    /// player's event then checks readiness in the ordinary scalar executor.
+    fn begin_selection_exhaust(&self, s: &mut State, effect: &Effect) -> Result<(), String> {
+        crate::resource_exhaust::selection(effect)?;
+        if !self.commit_program(s)? { return Ok(()); }
+        s.decision = Decision::AbilityTarget;
+        Ok(())
+    }
+    fn apply_selection_exhaust(&self, s: &State, action: &Action, effect: &Effect) -> Result<State, String> {
+        crate::resource_exhaust::selection(effect)?;
+        if !s.ability_committed { return Err("nested player menu requires committed costs".into()); }
+        let index = action.arg.as_ref().and_then(Value::as_u64).filter(|i| *i <= 1).ok_or("invalid nested player choice")?;
+        let Effect::SelectionSystem { inner_system, .. } = effect else { unreachable!() };
+        let mut inner = *inner_system.clone();
+        let Effect::ExhaustResources { target, .. } = &mut inner else { unreachable!() };
+        *target = Target::name(if index == 0 {"ownPlayer"} else {"enemyPlayer"});
+        let mut result = *s;
+        let (amount,resolved) = self.apply_effect(&mut result,&inner)?;
+        result.ability_result = amount;
+        result.ability_succeeded = resolved;
+        result.ability_pc += 1;
+        self.run_program(&mut result)?;
+        Ok(result)
+    }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
         if matches!(e, Effect::ExhaustResources { .. }) {
             crate::resource_exhaust::amount(e)?;
@@ -3230,6 +3269,9 @@ impl Engine {
         let mut t = *s;
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
             let p = self.program(s.ability_program - 1);
+            if let Some(Instruction::Apply(effect @ Effect::SelectionSystem { .. })) = p.instructions.get(s.ability_pc as usize) {
+                return self.apply_selection_exhaust(s,a,effect);
+            }
             if matches!(p.instructions.get(s.ability_pc as usize),Some(Instruction::NameOpponentPlay)) {
                 let title=a.arg.as_ref().and_then(Value::as_str).ok_or("named title argument missing")?;
                 let id=self.naming_options().into_iter().find(|(_,name)|*name==title).ok_or("illegal named title")?.0;

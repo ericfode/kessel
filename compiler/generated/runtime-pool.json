@@ -36375,6 +36375,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "5572220841",
+      "internalName": "regulations-bureaucrat",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SEC_216",
+      "setCodes": [
+        {
+          "number": 216,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 216,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust]: Exhaust a resource.",
+      "title": "Regulations Bureaucrat",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "cunning"
