@@ -89,3 +89,4 @@ mod cross_arena_contract;
 mod recipient_heal_contract;
 
 mod cinder_contract;
+mod piloting_lifecycle;

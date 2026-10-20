@@ -106,9 +106,7 @@ fn self_play_event_complete_sources_keep_their_executable_event() {
             e.rejected_cards().unwrap().get(code)
         );
     }
-    for code in [
-        "JTL_101", "SEC_122", "TS26_047",
-    ] {
+    for code in ["JTL_101", "SEC_122", "TS26_047"] {
         assert!(!e.by_code.contains_key(code), "incomplete companion {code}");
     }
 }
@@ -124,12 +122,12 @@ fn self_play_event_leader_count_uses_actual_arena_units_only() {
             assert_eq!(original, 5, "printed 3 plus missing Command penalty 2");
             event_deploy(&e, &mut s, seat.other());
             let host = unit(&e, &mut s, seat, "LAW_253");
-            let pilot = add(&e, &mut s, seat, "JTL_045");
+            let pilot = add(&e, &mut s, seat, "HMW_235");
             e.attach(&mut s, pilot, host);
             assert_eq!(
                 e.cost(&s, source),
                 original,
-                "enemy leader, own front leader and Pilot upgrade do not count"
+                "enemy leader, own front leader and ordinary upgrade do not count"
             );
             let leader = event_deploy(&e, &mut s, seat);
             assert_eq!(e.cost(&s, source), original - 1);
@@ -150,7 +148,7 @@ fn self_play_event_leader_count_uses_actual_arena_units_only() {
 }
 
 #[test]
-fn self_play_event_rebel_count_excludes_pilot_upgrade_hidden_cards_and_enemies() {
+fn self_play_event_rebel_count_excludes_upgrades_hidden_cards_and_enemies() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = event_engine(backend);
         for seat in [Seat::P1, Seat::P2] {
@@ -161,17 +159,17 @@ fn self_play_event_rebel_count_excludes_pilot_upgrade_hidden_cards_and_enemies()
                 3,
                 "friendly Rebel front leader discounts printed 4"
             );
-            let ground = unit(&e, &mut s, seat, "JTL_045");
+            let ground = unit(&e, &mut s, seat, "ASH_061");
             let host = unit(&e, &mut s, seat, "LAW_253");
             assert_eq!(e.cost(&s, source), 1);
-            // Move the same physical Pilot from unit mode to attachment mode;
-            // do not manufacture simultaneous unique Hera copies in play.
+            // A departed Rebel unit and an attached ordinary Rebel upgrade do
+            // not contribute to the arena-unit count.
             e.leave_play(&mut s, ground).unwrap();
-            s.player_mut(seat).discard.remove(ground);
-            e.attach(&mut s, ground, host);
+            let upgrade = add(&e, &mut s, seat, "LAW_150");
+            e.attach(&mut s, upgrade, host);
             unit(&e, &mut s, seat.other(), "LAW_253");
             for zone in ["hand", "deck", "discard", "resources"] {
-                let id = add(&e, &mut s, seat, "JTL_045");
+                let id = add(&e, &mut s, seat, "ASH_061");
                 match zone {
                     "hand" => s.player_mut(seat).hand.push(id).unwrap(),
                     "deck" => s.player_mut(seat).deck.push(id).unwrap(),
@@ -182,7 +180,7 @@ fn self_play_event_rebel_count_excludes_pilot_upgrade_hidden_cards_and_enemies()
             assert_eq!(
                 e.cost(&s, source),
                 2,
-                "physical Pilot upgrade and nonplay/enemy Rebels are excluded"
+                "ordinary Rebel upgrade and nonplay/enemy Rebels are excluded"
             );
             let leader = event_deploy(&e, &mut s, seat);
             assert_eq!(e.cost(&s, source), 2, "deployed leader is counted once");
@@ -480,7 +478,13 @@ fn self_play_event_leader_upgrade_and_is_leader_producers_stay_unreachable() {
             "mixed leader/upgrade {code}"
         );
     }
-    let mut leader_shaped_pilot = e.catalogue.as_ref().unwrap().metadata["JTL_045"].clone();
+    let mut leader_shaped_pilot = event_catalogue()["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["setCode"] == "JTL_045")
+        .unwrap()["card"]
+        .clone();
     leader_shaped_pilot["types"] = json!(["leader"]);
     assert!(!crate::piloting_attached::metadata_is_pilot_attachment(
         &leader_shaped_pilot

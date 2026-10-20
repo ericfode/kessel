@@ -583,9 +583,16 @@ fn payment_catalogue_rejects_unreviewed_source_envelopes() {
             .get("LAW_227")
             .expect("named source-envelope rejection");
         assert!(
-            reason.contains(
-                "card-effect resource payment requires ordinary nonleader unit source metadata"
-            ),
+            if ["piloting", "pilotText", "pilotBox", "pilotingBox"].contains(&mutation)
+                || mutation.starts_with("pilotingAbility ")
+                || mutation.starts_with("pilotUnitAbility ")
+            {
+                reason.contains(crate::piloting_lifecycle::REASON)
+            } else {
+                reason.contains(
+                    "card-effect resource payment requires ordinary nonleader unit source metadata",
+                )
+            },
             "{mutation}: {reason}"
         );
     };

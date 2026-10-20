@@ -37,6 +37,10 @@ New compiler lowering does not imply executable runtime support.
 Before choosing implementation families, inspect the complete card metadata and
 intrinsic keyword lifecycle as well as its explicit source registrations. A small
 leaf can sit behind Plot, Support, or another unimplemented native lifecycle.
+Runtime admission, attached-state import, or incidental lifecycle code does not
+prove native play support. Before calling a lifecycle case standard, match its
+concrete lifecycle-specific native legal action to an actual engine witness;
+preserve unmatched engine witnesses as engine-only diagnostics.
 Record those dependencies in the selection result: a normal-play probe does not
 satisfy Plot, and a printed constant on a Support donor must also work on the
 recipient during the granted attack. Keep the complete card rejected when that
@@ -173,6 +177,8 @@ When adding a construction adapter, wire both planner/fixture dispatch and the
 central fixture dependency inventory so reusable recordings bind the new source
 files. Compare every preceding full plan object, including its obligations and
 construction parameters, after changing dispatch.
+When changing Holocron's external dependency inventory or source identity, run `node --test lab/kessel-reference/test/load.test.js` with the read-only pinned built engine and no sibling Kessel checkout.
+Keep the dependency-path grammar strict; scoped engine fixture tests do not replace this inventory gate.
 
 ## Establish evidence
 

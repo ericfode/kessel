@@ -5,7 +5,7 @@ use super::*;
 use crate::attachment_play_cost::{self, AttachmentPlayCost};
 
 const ATTACHMENT_CASES: [(&str, &str, u16, AttachmentPlayCost); 3] = [
-    ("ASH_262", "JTL_058", 2, AttachmentPlayCost::Imperial),
+    ("ASH_262", "ASH_143", 2, AttachmentPlayCost::Imperial),
     ("ASH_263", "SHD_258", 2, AttachmentPlayCost::Mandalorian),
     ("LAW_129", "ASH_202", 4, AttachmentPlayCost::Unique),
 ];
@@ -325,24 +325,23 @@ fn attachment_play_cost_live_trait_changes_refresh_menu_and_revalidate_final_pay
 }
 
 #[test]
-fn attachment_play_cost_inventory_excludes_pilot_mode_and_nonarena_cards() {
+fn attachment_play_cost_inventory_excludes_nonarena_cards() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = attachment_engine(backend);
         for seat in [Seat::P1, Seat::P2] {
             let mut s = attachment_board(&e, seat);
             let source = attachment_hand(&e, &mut s, seat, "ASH_262");
-            let pilot = unit(&e, &mut s, seat, "JTL_058");
+            let pilot = unit(&e, &mut s, seat, "ASH_143");
             let host = unit(&e, &mut s, seat, "LAW_253");
             attachment_resources(&e, &mut s, seat, 1);
             assert_eq!(e.upgrade_play_targets(&s, source), vec![pilot]);
             e.leave_play(&mut s, pilot).unwrap();
-            s.player_mut(seat).discard.remove(pilot);
-            e.attach(&mut s, pilot, host);
+            assert!(s.player(seat).discard.contains(pilot));
             assert_eq!(e.upgrade_play_cost(&s, source, pilot), None);
             assert_eq!(e.upgrade_play_cost(&s, source, host), Some(2));
             assert!(e.upgrade_play_targets(&s, source).is_empty());
             assert!(!e.legal_actions(&s).contains(&e.card_action(&s, source)));
-            let hidden = attachment_hand(&e, &mut s, seat, "JTL_058");
+            let hidden = attachment_hand(&e, &mut s, seat, "ASH_143");
             assert_eq!(e.upgrade_play_cost(&s, source, hidden), None);
             assert_eq!(e.upgrade_play_cost(&s, source, s.player(seat).base), None);
             assert_eq!(e.upgrade_play_cost(&s, source, s.player(seat).leader), None);
@@ -386,7 +385,7 @@ fn attachment_play_cost_forged_source_contexts_and_departed_host_reject() {
         for seat in [Seat::P1, Seat::P2] {
             let mut s = attachment_board(&e, seat);
             let source = attachment_hand(&e, &mut s, seat, "ASH_262");
-            let host = unit(&e, &mut s, seat, "JTL_058");
+            let host = unit(&e, &mut s, seat, "ASH_143");
             attachment_resources(&e, &mut s, seat, 2);
             let pending = attachment_click(&e, &s, source);
             let mut departed = pending;

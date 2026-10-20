@@ -53,6 +53,7 @@ pub fn validate_pool(v: &Value) -> Result<(), String> {
     let cards = v["cards"].as_array().ok_or("pool.cards must be an array")?;
     let mut seen = HashSet::new();
     for c in cards {
+        crate::piloting_lifecycle::reject_card(c)?;
         let code = c["setCode"].as_str().ok_or("pool card missing setCode")?;
         let name = c["internalName"].as_str().unwrap_or("unnamed");
         let approved = catalogue().get(code).ok_or_else(|| {
@@ -82,6 +83,9 @@ pub fn validate_pool(v: &Value) -> Result<(), String> {
             "arena",
             "traits",
             "pilotText",
+            "pilotBox",
+            "pilotingBox",
+            "piloting",
         ] {
             if c[field] != approved[field] {
                 return Err(format!("unsupported card {name} ({code}): {field} differs from the implemented catalogue"));

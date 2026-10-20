@@ -541,6 +541,7 @@ impl Engine {
                 continue;
             }
             let result = (|| -> Result<Definition, String> {
+                crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
                 if entry["card"]["types"].as_array().is_some_and(|a|a.iter().any(|v|v=="unit"||v=="leader")) && !entry["card"]["unique"].is_boolean(){return Err("arena candidate requires explicit boolean unique metadata".into());}
                 let info: CardInfo =
                     serde_json::from_value(entry["card"].clone()).map_err(|e| e.to_string())?;
@@ -669,15 +670,7 @@ impl Engine {
                         continue;
                     }
                     if name == "piloting" {
-                        // Piloting is a play-mode mention on reviewed Pilot units that
-                        // may attach as upgrades; it is not an intrinsic combat flag.
-                        if !crate::piloting_attached::entry(entry)
-                            && !crate::attached_registration::piloting_host_entry(entry)
-                            && !crate::attached_registration::piloting_self_entry(entry)
-                        {
-                            return Err("unimplemented runtime keyword piloting".into());
-                        }
-                        continue;
+                        return Err(crate::piloting_lifecycle::REASON.into());
                     }
                     if name == "plot" {
                         // Plot watches OnLeaderDeployed from resource-zone cards and
@@ -917,6 +910,7 @@ impl Engine {
         let mut engine = Self::from_catalogue_bytes(catalogue_bytes)?;
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
+            crate::piloting_lifecycle::reject_card(card)?;
             let code = card["setCode"]
                 .as_str()
                 .ok_or("pool card missing setCode")?;
@@ -961,6 +955,9 @@ impl Engine {
                 "traits",
                 "backSideTraits",
                 "pilotText",
+                "pilotBox",
+                "pilotingBox",
+                "piloting",
             ] {
                 // Aspect order is metadata presentation; repeated aspects still
                 // carry separate costs. Retain exact raw pool bytes for hashing.
@@ -4250,3 +4247,7 @@ mod chosen_hand_discard_tests;
 #[cfg(test)]
 #[path="cinder_runtime_tests.rs"]
 mod cinder_runtime_tests;
+
+#[cfg(test)]
+#[path="piloting_lifecycle_tests.rs"]
+mod piloting_lifecycle_tests;

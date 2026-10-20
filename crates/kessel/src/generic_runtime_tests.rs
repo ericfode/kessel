@@ -1,8 +1,8 @@
 use super::*;
-#[path="named_play_tests.rs"]
-mod named_play_tests;
-#[path="named_play_state_tests.rs"]
+#[path = "named_play_state_tests.rs"]
 mod named_play_state_tests;
+#[path = "named_play_tests.rs"]
+mod named_play_tests;
 use std::path::Path;
 // Captured physical grant provenance adds 2 bytes × 64 entries × 10 windows = 1280 bytes.
 // Combined event/LKI context adds 1456 bytes to the Support checkpoint.
@@ -159,9 +159,12 @@ fn without_empty_credit_state(mut snapshot: Value) -> Value {
 }
 // These comparisons select fixtures without naming sources. Project only a
 // verified empty default naming ledger, never an active lock or custom domain.
-fn without_empty_named_play_state(mut snapshot:Value)->Value {
-    if let Some(named)=snapshot.get("namedPlayState") {
-        assert_eq!(named,&json!({"version":1,"registry":"71d635921e9bb4db5bef6f99ad42466ad57500711f8759670d68987e8fee365f","locks":[]}));
+fn without_empty_named_play_state(mut snapshot: Value) -> Value {
+    if let Some(named) = snapshot.get("namedPlayState") {
+        assert_eq!(
+            named,
+            &json!({"version":1,"registry":"71d635921e9bb4db5bef6f99ad42466ad57500711f8759670d68987e8fee365f","locks":[]})
+        );
         snapshot.as_object_mut().unwrap().remove("namedPlayState");
     }
     snapshot
@@ -258,10 +261,17 @@ fn subset_pool_aspect_order_preserves_multiplicity_and_raw_provenance() {
     let e = engine();
     let mut pool = e.compiled_pool().unwrap();
     pool["cards"].as_array_mut().unwrap().retain(|card| {
-        matches!(card["setCode"].as_str(), Some("SOR_007" | "TOKEN_SHIELD" | "TOKEN_EXPERIENCE"))
+        matches!(
+            card["setCode"].as_str(),
+            Some("SOR_007" | "TOKEN_SHIELD" | "TOKEN_EXPERIENCE")
+        )
     });
-    let card = pool["cards"].as_array_mut().unwrap().iter_mut()
-        .find(|card| card["setCode"] == "SOR_007").unwrap();
+    let card = pool["cards"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|card| card["setCode"] == "SOR_007")
+        .unwrap();
     let original = card["aspects"].as_array().unwrap().clone();
     assert_eq!(original.len(), 2);
     assert_ne!(original[0], original[1]);
@@ -270,20 +280,35 @@ fn subset_pool_aspect_order_preserves_multiplicity_and_raw_provenance() {
     let subset = Engine::from_compiled_pool_bytes(&bytes, committed_catalogue_bytes()).unwrap();
     assert_eq!(subset.pool_hash(), format!("{:x}", Sha256::digest(&bytes)));
     let recorded_pool = include_bytes!("../tests/compiled-fixtures/pool.json");
-    let recorded = Engine::from_compiled_pool_bytes(recorded_pool, committed_catalogue_bytes()).unwrap();
-    assert_eq!(recorded.pool_hash(), format!("{:x}", Sha256::digest(recorded_pool)));
+    let recorded =
+        Engine::from_compiled_pool_bytes(recorded_pool, committed_catalogue_bytes()).unwrap();
+    assert_eq!(
+        recorded.pool_hash(),
+        format!("{:x}", Sha256::digest(recorded_pool))
+    );
     for aspects in [
-        Value::Null, json!("command"), json!([]), json!([original[0]]),
+        Value::Null,
+        json!("command"),
+        json!([]),
+        json!([original[0]]),
         json!([original[0], original[0]]),
         json!([original[0], original[1], original[0]]),
-        json!([original[0], "unknown"]), json!([original[0], false]),
+        json!([original[0], "unknown"]),
+        json!([original[0], false]),
     ] {
         let mut bad = pool.clone();
-        bad["cards"].as_array_mut().unwrap().iter_mut()
-            .find(|card| card["setCode"] == "SOR_007").unwrap()["aspects"] = aspects;
+        bad["cards"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|card| card["setCode"] == "SOR_007")
+            .unwrap()["aspects"] = aspects;
         let error = Engine::from_compiled_pool_bytes(
-            &serde_json::to_vec(&bad).unwrap(), committed_catalogue_bytes(),
-        ).err().unwrap();
+            &serde_json::to_vec(&bad).unwrap(),
+            committed_catalogue_bytes(),
+        )
+        .err()
+        .unwrap();
         assert!(error.contains("aspects differs"), "{error}");
     }
 }
@@ -2242,11 +2267,19 @@ fn terminal_optional_opponent_prompt_preserves_latched_action_priority() {
     assert_eq!(s.decision, Decision::AbilityOptional);
     // Optional choices already captured in a death window remain responses to
     // that event, not new action-window turns. Winner/actor stay latched.
-    let trigger=Action::button("Trigger","trigger");let pass=Action::button("Pass","pass");
-    assert!(e.legal_actions(&s).contains(&trigger));assert!(e.legal_actions(&s).contains(&pass));
-    assert_eq!(s.actor(),None);
-    let accepted=e.apply(&s,&trigger).unwrap();assert_eq!(accepted.outcome,1);assert!(accepted.players[1].hand.contains(draw));assert!(e.legal_actions(&accepted).is_empty());
-    let declined=e.apply(&s,&pass).unwrap();assert_eq!(declined.outcome,1);assert!(declined.players[1].deck.contains(draw));assert!(e.legal_actions(&declined).is_empty());
+    let trigger = Action::button("Trigger", "trigger");
+    let pass = Action::button("Pass", "pass");
+    assert!(e.legal_actions(&s).contains(&trigger));
+    assert!(e.legal_actions(&s).contains(&pass));
+    assert_eq!(s.actor(), None);
+    let accepted = e.apply(&s, &trigger).unwrap();
+    assert_eq!(accepted.outcome, 1);
+    assert!(accepted.players[1].hand.contains(draw));
+    assert!(e.legal_actions(&accepted).is_empty());
+    let declined = e.apply(&s, &pass).unwrap();
+    assert_eq!(declined.outcome, 1);
+    assert!(declined.players[1].deck.contains(draw));
+    assert!(e.legal_actions(&declined).is_empty());
     assert!(s.players[1].deck.contains(draw));
     assert_eq!(e.snapshot(&s)["activePlayer"], json!("p1"));
     let original = s.zobrist();
@@ -3509,7 +3542,10 @@ fn complete_source_admission_preserves_secondary_and_printed_keyword_blockers() 
         );
     }
     for code in ["ASH_226", "HMW_041"] {
-        assert!(e.by_code.contains_key(code), "complete chosen-hand card {code} rejected");
+        assert!(
+            e.by_code.contains_key(code),
+            "complete chosen-hand card {code} rejected"
+        );
     }
     assert!(
         e.by_code.contains_key("ASH_046"),
@@ -12154,7 +12190,22 @@ fn bounded_reduction_preserves_recorded_admissions_and_admits_completed_reductio
         old.len(),
         baseline["runtimeAdmittedCount"].as_u64().unwrap() as usize
     );
+    let raw: Value =
+        serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
+            .unwrap();
+    let restricted: std::collections::BTreeSet<_> = raw["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|entry| crate::piloting_lifecycle::reject_entry(entry).is_err())
+        .filter_map(|entry| entry["setCode"].as_str())
+        .collect();
     for code in &old {
+        if restricted.contains(code.as_str()) {
+            assert!(!e.by_code.contains_key(code));
+            assert!(e.rejected_cards().unwrap()[code].contains(crate::piloting_lifecycle::REASON));
+            continue;
+        }
         assert!(
             e.by_code.contains_key(code),
             "lost baseline {code}: {:?}",
