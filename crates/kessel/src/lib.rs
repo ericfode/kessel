@@ -84,3 +84,6 @@ mod admission_tests;
 mod migration_modal_deck_contract;
 mod named_play_contract;
 mod named_play;
+
+mod cross_arena_contract;
+mod recipient_heal_contract;

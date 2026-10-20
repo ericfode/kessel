@@ -637,6 +637,50 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "cunning",
+        "heroism"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "0770708432",
+      "internalName": "red-leader#strike-the-reactor",
+      "keywords": [
+        "support"
+      ],
+      "power": 6,
+      "rules": null,
+      "setCode": "ASH_037",
+      "setCodes": [
+        {
+          "number": 37,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 37,
+        "set": "ASH"
+      },
+      "subtitle": "Strike the Reactor",
+      "text": "Support (When you play this unit, you may attack with another unit. It gains this unit's other abilities for this attack.)\nThis unit may attack units in either arena.",
+      "title": "Red Leader",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression",
@@ -1127,6 +1171,49 @@
       "title": "The Armorer",
       "traits": [
         "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 10,
+      "id": "0334778925",
+      "internalName": "home-one#heart-of-the-fleet",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 7,
+      "rules": null,
+      "setCode": "ASH_065",
+      "setCodes": [
+        {
+          "number": 65,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 65,
+        "set": "ASH"
+      },
+      "subtitle": "Heart of the Fleet",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)\nWhen Played: Heal all damage from each friendly unit.",
+      "title": "Home One",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "capital ship"
       ],
       "types": [
         "unit"
