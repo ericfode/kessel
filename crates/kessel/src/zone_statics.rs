@@ -139,6 +139,7 @@ impl Engine {
         p.hand.remove(id);
         p.discard.remove(id);
         p.resources.push(id)?;
+        s.card_mut(id).inactive_entry_power=0;
         s.card_mut(id).exhausted = true;
         Ok(1)
     }
@@ -169,6 +170,7 @@ impl Engine {
         p.hand.remove(id);
         p.discard.remove(id);
         p.deck.push(id)?;
+        s.card_mut(id).inactive_entry_power=0;
         Ok(1)
     }
     /// Reviewed ResourceCardSystem target domain. The acting player's own
@@ -240,6 +242,7 @@ impl Engine {
         p.deck.remove(id);
         p.discard.remove(id);
         p.resources.push(id)?;
+        s.card_mut(id).inactive_entry_power=0;
         // ResourceCardSystem's primary move initializes exhaustion; its
         // contingent ReadySystem resolves before framework trigger processing.
         s.card_mut(id).exhausted = true;

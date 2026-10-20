@@ -622,6 +622,19 @@ function legacyExpr(input, context, params = ['context']) {
     const ongoingLeaf=ongoingExpression(node,ctx,{...contractApi(),value:(n,c)=>ongoingValue(n,c,ongoingApi()),additionalCost,targetResolverProperties});if(ongoingLeaf)return ongoingLeaf;
     const selectionContract=selectionContractExpression(node,ctx,selectionApi());if(selectionContract)return selectionContract;
     const constructedExpression=constructionExpression(node,ctx.constructionProgram?{...ctx,pendingSystemConstruction:true}:ctx,{ts,unwrap,expr,effect,literal,access,fail,lambda,contextTitle,modifierEffects});if(constructedExpression)return constructedExpression;
+    // This whole predicate is the reviewed optional active-attack read. Do not
+    // generalize arbitrary member navigation or expose an unscoped attack flag.
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+        const left = unwrap(node.left), right = unwrap(node.right);
+        if (ts.isCallExpression(left) && !left.questionDotToken && left.arguments.length === 0 &&
+            ts.isPropertyAccessExpression(left.expression) && !left.expression.questionDotToken && left.expression.name.text === 'isAttacking' &&
+            ts.isPropertyAccessExpression(right) && right.questionDotToken && right.name.text === 'isAmbush' &&
+            ts.isPropertyAccessExpression(right.expression) && !right.expression.questionDotToken && right.expression.name.text === 'activeAttack') {
+            const attacker = expr(left.expression.expression, ctx), flagSource = expr(right.expression.expression, ctx);
+            if (JSON.stringify(attacker) === JSON.stringify({kind:'ref',path:['source']}) && JSON.stringify(flagSource) === JSON.stringify(attacker))
+                return {kind:'query',name:'isAttackingUsingAmbush',receiver:attacker,args:[]};
+        }
+    }
     const attackExpression=normalizeAttackExpression(node,ctx,{ts,unwrap,expr,object,fail,lambda});if(attackExpression)return attackExpression;
     const deckValue=deckExpression(node,ctx,{ts,unwrap,expr,fail});if(deckValue)return deckValue;
     const choiceValue=choiceExpression(node,ctx,choiceApi());if(choiceValue)return choiceValue;
@@ -1761,6 +1774,14 @@ function normalizeSingletonExhaust(result) {
     result.targetResolver=slot.targetResolver;result.effect=slot.effect;delete result.targetResolvers;
     next.effect.effects.forEach(effect=>{effect.target='chosen';});return result;
 }
+function normalizeUnitEntry(a) {
+    const path=(v,role,keys)=>v?.kind==='dataPath'&&JSON.stringify(Object.keys(v).sort())===JSON.stringify(['kind','root','contextBinding','steps'].sort())&&JSON.stringify(v.root)==='["context"]'&&v.contextBinding?.role===role&&v.contextBinding.bindAt==='callbackInvocation'&&v.contextBinding.readAt==='expressionEvaluation'&&v.contextBinding.reference==='lexicalContextObject'&&typeof v.contextBinding.id==='string'&&Object.keys(v.contextBinding).length===5&&JSON.stringify(v.steps)===JSON.stringify(keys.map(key=>({key,optional:false})));
+    if(a.trigger==='eventHooks'&&a.hooks?.length===1&&a.hooks[0].event==='onUnitEntersPlay'&&a.effect?.kind==='modifyStats'&&path(a.effect.target,'properties:forThisPhaseCardEffect',['event','card'])&&a.contextTitle?.length===3&&path(a.contextTitle[1],'contextTitle',['event','card','title'])) {
+        a.effect.target={kind:'ref',path:['unitEntryCard']};
+        a.contextTitle[1]={kind:'ref',path:['unitEntryCard','title']};
+    }
+    return a;
+}
 function ability(input, context, trigger = null, validatedObject = null) {
     if(!validatedObject){const merged=privateAbilityValues.merge(input,context,trigger,privateApi());if(merged)return merged;}
     if(!validatedObject){const privateAbility=privatePrograms.abilityCall(input,context,privateApi());if(privateAbility)return privateAbility;}
@@ -1768,7 +1789,7 @@ function ability(input, context, trigger = null, validatedObject = null) {
     if(!validatedObject&&!context.abilityProgramAttempt&&(ts.isArrowFunction(fn)||ts.isFunctionExpression(fn))&&(ts.isBlock(fn.body)||privateAbilityValues.isCall(fn.body,context,privateApi()))){
         try{return legacyAbility(input,{...context,abilityProgramAttempt:true},trigger,validatedObject);}catch(error){if(!(error instanceof Unsupported))throw error;if(isSpecializedFence(error))throw error;const callback=privatePrograms.compileCallback(fn,{...context,abilityProgramAttempt:true},privateApi(),['continuationContext'],(value,local)=>({kind:'validatedAbility',ability:ability(value,local,trigger)}));return {kind:'abilityFactoryProgram',callback,evaluation:'nativeAbilityFactoryInvocation'};}
     }
-    return legacyAbility(input,context,trigger,validatedObject);
+    return normalizeUnitEntry(legacyAbility(input,context,trigger,validatedObject));
 }
 function legacyAbility(input, context, trigger = null, validatedObject = null) {
     const rawFactory=unwrap(input);
@@ -2299,6 +2320,7 @@ function compileSource(text, file, enums = {}, options = {}) {
         else {out.inheritedSource={className:out.baseClass,sourcePath:inherited.sourcePath,sourceHash:inherited.sourceHash};out.abilities.card=inherited.abilities.card.map(registration=>({trigger:'inheritedBaseRegistration',title:registration.title,costs:[],effect:{kind:'inheritedBaseAbility',registration}}));}
     }
     if(options.abstractDefinition&&(!cls.modifiers?.some(m=>m.kind===ts.SyntaxKind.AbstractKeyword)||out.baseClass!=='BaseCard'))diagnostics.push(new Unsupported(ctx,cls,'abstract-base-contract').diagnostic);
+    for(const side of ["leader","unit","card"])out.abilities[side]=out.abilities[side].map(normalizeUnitEntry);
     out.status = diagnostics.length ? 'unsupported' : 'supported';
     return out;
 }

@@ -34,6 +34,8 @@ pub struct Event {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EventName {
+    #[serde(rename = "onUnitEntersPlay")]
+    UnitEntersPlay,
     #[serde(rename = "onCardDefeated")]
     Defeated,
     #[serde(rename = "onLeaderDeployed")]

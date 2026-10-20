@@ -227,6 +227,7 @@ fn query(name: &str, receiver: &Expr, args: &[Expr]) -> Result<String, String> {
         "isBase"=>"Eval::Bool(d.info.is(\"base\"))".into(),
         "isLeader"=>"Eval::Bool(d.info.is(\"leader\"))".into(),
         "isAttacking"=>"Eval::Bool(self.is_attacking(s,id))".into(),
+        "isAttackingUsingAmbush"=>"Eval::Bool(self.is_attacking_using_ambush(s,id))".into(),
         "isDefending"=>"Eval::Bool(self.is_defending(s,id))".into(),
         "isInPlay"=>"Eval::Bool(self.in_arena(s,id)||self.attached_in_play(s,id)||d.info.is(\"base\"))".into(),
         "canBeExhausted"=>"Eval::Bool(d.info.is(\"unit\")||d.info.is(\"leader\")||d.info.is(\"event\")||d.info.is(\"upgrade\"))".into(),

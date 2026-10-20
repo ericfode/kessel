@@ -89,4 +89,8 @@ mod cross_arena_contract;
 mod recipient_heal_contract;
 
 mod cinder_contract;
+mod arena_defeat_attack_contract;
 mod piloting_lifecycle;
+mod unit_entry_contract;
+
+mod variable_payment_contract;

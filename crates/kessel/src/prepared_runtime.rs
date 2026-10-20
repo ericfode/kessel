@@ -613,6 +613,7 @@ impl Engine {
             }
         }
         let created=s.event_group.records[..s.event_group.count as usize].iter().filter(|r|matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::CreateTokenUnit{..}))).map(|r|r.token).collect::<Vec<_>>();
+        self.capture_unit_entry_watchers(s,&created)?;
         for source in created {
             let flags=self.effective_flags(s,source);
             for keyword in [T_SHIELD,T_AMBUSH] {
