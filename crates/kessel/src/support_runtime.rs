@@ -217,7 +217,7 @@ impl Engine {
     fn definition_needs_support_state(&self, definition: &Definition) -> bool {
         fn effect_needs_support(effect: &Effect) -> bool {
             match effect {
-                Effect::InitiateAttack{..}=>true,
+                Effect::InitiateAttack{..}|Effect::AttackModifiers{..}=>true,
                 Effect::GainKeyword { keyword, .. } => keyword == "support",
                 Effect::CopyKeywords { domain, .. } => domain.iter().any(|k| k == "support"),
                 Effect::Sequence { effects } | Effect::Simultaneous { effects }
@@ -280,6 +280,11 @@ impl Engine {
                 "programs":g.programs[..g.len as usize].iter().map(|&p|serde_json::to_value(&catalogue.programs[p as usize]).expect("serializable program")).collect::<Vec<_>>(),
                 "keywords":g.keywords,"presence":g.presence
             });
+            if g.conditional_program!=0&&g.conditional_mask==0&&!g.native_attack {
+                // Internal inspection only. These are pending current-attack
+                // effects, never an importable Support/early-initiation row.
+                return json!({"kind":"onAttackModifiersPending","target":format!("c{}",g.target-1),"donor":format!("c{}",g.donor-1),"program":g.conditional_program,"pc":g.conditional_pc,"power":g.power,"keywords":g.keywords,"presence":g.presence});
+            }
             if !g.native_attack && g.conditional_mask==0 && !g.deals_combat_damage_first
                 && self.support_source_programs(s,g.donor)==Some(&g.programs[..g.len as usize]) {
                 // The captured sequence is authoritative. A changed donor's live
@@ -436,5 +441,23 @@ impl Engine {
         // state and is not cleared when grants expire or their cards depart.
         s.support_state_explicit = true;
         Ok(())
+    }
+}
+
+impl Engine {
+    pub(super) fn apply_on_attack_modifiers(&self,s:&mut State,e:&Effect)->Result<(u16,bool),String>{
+        if !crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e){return Err("attack modifiers require one reviewed +15/Overwhelm envelope".into());}
+        if !self.in_arena(s,s.source)||self.active_attack_pair(s,s.source).0!=s.source{return Ok((0,false));}
+        if s.ability_program==0||!self.on_attack_modifiers_program(s.ability_program-1)||!matches!(self.program(s.ability_program-1).instructions.get(s.ability_pc as usize),Some(Instruction::Apply(current)) if crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(current)){return Err("attack modifier origin is not an admitted chosen-hand program".into());}
+        if s.support.len as usize==MAX_SUPPORT_GRANTS{return Err("attack modifier grant capacity exceeded (32)".into());}
+        let mut keywords=[0;9];keywords[1]=1;
+        s.support.grants[s.support.len as usize]=SupportGrant{target:s.source,donor:s.source,power:15,presence:OVERWHELM,keywords,conditional_program:s.ability_program,conditional_pc:s.ability_pc,..SupportGrant::default()};s.support.len+=1;
+        self.check_stat_capacity(s)?;self.finish_effect_window(s)?;Ok((1,true))
+    }
+    fn on_attack_modifiers_program(&self,p:u16)->bool {
+        let Some(catalogue)=&self.catalogue else{return false;};
+        self.program(p).trigger=="onAttack"
+            && self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)))
+            && catalogue.cards.values().any(|card|card.card.contains(&p))
     }
 }

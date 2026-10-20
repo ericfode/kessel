@@ -213,7 +213,9 @@ pub struct SupportGrant {
     pub deals_combat_damage_first: bool,
     pub power: i16,
     /// Index of the admitted initiation program (plus one), instruction and
-    /// successfully installed late entries. Zero mask means no live condition.
+    /// successfully installed late entries. With zero mask, a nonzero program
+    /// instead captures the admitted OnAttack modifier envelope origin; it has
+    /// no live condition and is never an early native attack.
     pub conditional_program: u16,
     pub conditional_pc: u8,
     pub conditional_mask: u8,
@@ -861,9 +863,10 @@ impl State {
             put(0x535550504f5254);put(self.support.len as u64);put(self.support.pending as u64);
             for g in &self.support.grants[..self.support.len as usize] {
                 if g.native_attack {put(0x4e41544956454154);put(g.power as u64);}
-                if g.conditional_mask != 0 {
+                if g.conditional_mask != 0 || g.conditional_program != 0 {
                     put(0x434f4e444154544b);put(g.conditional_program as u64);
                     put(g.conditional_pc as u64);put(g.conditional_mask as u64);
+                    if g.conditional_mask==0 {put(g.power as u64);}
                 }
                 if g.deals_combat_damage_first {put(0x4445414c53464952);}
                 put(g.target as u64);put(g.donor as u64);put(g.len as u64);put(g.presence as u64);

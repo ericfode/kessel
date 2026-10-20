@@ -7,6 +7,8 @@ use crate::ability_ir::activation_contract::{base_zone_source, Source};
 mod prepared_runtime;
 #[path = "distributed_damage_runtime.rs"]
 mod distributed_damage_runtime;
+#[path = "chosen_hand_discard_runtime.rs"]
+mod chosen_hand_discard_runtime;
 
 fn same_aspect_multiset(left: &Value, right: &Value) -> bool {
     let (Some(left), Some(right)) = (left.as_array(), right.as_array()) else {
@@ -42,7 +44,8 @@ impl Effect {
             | Self::GiveWeakness { target, amount }
             | Self::GiveAdvantage { target, amount, .. }
             | Self::GainKeyword { target, amount, .. } => (target, Some(amount)),
-            Self::ResourceCard { target }
+            Self::DiscardSpecificCard { target }
+            | Self::ResourceCard { target }
             | Self::MoveToBottomOfDeck { target }
             | Self::MoveSelectedArenaUnitToOwnerDeck { target, .. }
             | Self::UseForce { target }
@@ -1284,7 +1287,7 @@ impl Engine {
             })
             .collect()
     }
-    fn active_attack_pair(&self,s:&State,id:CardId)->(CardId,CardId) {
+    pub(super) fn active_attack_pair(&self,s:&State,id:CardId)->(CardId,CardId) {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
     pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
@@ -1809,6 +1812,8 @@ impl Engine {
                 let Ok(amount) = crate::pay_adjusted_resources::amount(e) else { return false; };
                 return source != 0 && self.can_pay_resources(s,s.card(source).owner,amount);
             }
+            Effect::DiscardSpecificCard {..} => return target!=0 && s.card(target).owner==s.card(source).owner && s.player(s.card(source).owner).hand.contains(target),
+            Effect::AttackModifiers {..} => return self.in_arena(s,source)&&self.active_attack_pair(s,source).0==source,
             Effect::InitiateAttack {properties,..} => return self.native_attack_eligible(s,source,target,properties),
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
@@ -1988,8 +1993,9 @@ impl Engine {
         r: &TargetResolver,
         require_change: bool,
     ) -> Vec<CardId> {
-        self.matching_targets(s, source, r)
-            .into_iter()
+        let candidates=self.matching_targets(s,source,r);
+        if crate::ability_ir::chosen_hand_discard_contract::hand_selector(r)&&r.is_multiple()&&candidates.len()<r.max_targets().unwrap_or(usize::MAX){return vec![];}
+        candidates.into_iter()
             .filter(|id| self.instructions_can_affect(s, source, *id, p, pc + 1, self.program(p).select_end(pc), require_change))
             .collect()
     }
@@ -2196,11 +2202,12 @@ impl Engine {
                 let named=p.instructions[s.ability_pc as usize].is_named_group();
                 if !named && !s.ability_committed && s.ability_return==ProgramContinuation::Finish.raw() { out.push(Action::button("Cancel","cancel")); }
                 if child.is_none() && p.optional && s.ability_pc==0 { out.push(Action::button("Pass","passAbility")); }
+                let chosen_hand=child.is_none()&&self.chosen_hand_prompt(s,p);
                 let picks=if child.is_some() { s.event_group.picks } else { s.ability_selection };
                 if r.is_multiple() {
-                    if picks.len>0 { out.push(Action::button("Done","done")); }
-                    else if r.optional { out.push(Action::button("Choose nothing","done")); }
-                } else if r.optional {
+                    if picks.len>0 && (!chosen_hand || picks.len as usize==r.max_targets().expect("reviewed exact count")) { out.push(Action::button("Done","done")); }
+                    else if picks.len==0 && (r.optional||chosen_hand) { out.push(Action::button("Choose nothing","done")); }
+                } else if r.optional && !chosen_hand {
                     if child.is_some() || s.ability_pc>0 && matches!(p.instructions[s.ability_pc as usize-1],Instruction::Commit) {
                         out.push(Action::button("Choose nothing","done"));
                     } else { out.push(Action::button("Choose no target","noTarget")); }
@@ -2500,6 +2507,10 @@ impl Engine {
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
                 }
                 Instruction::Apply(Effect::Disclose{aspects,..})=>{if self.start_disclose(s,aspects,&p.trigger)?{return Ok(());}}
+                Instruction::Apply(effect @ Effect::DiscardSpecificCard{..}) => {
+                    if !self.commit_program(s)?{return Ok(());}
+                    let (amount,resolved)=self.execute_chosen_hand_discard(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;s.ability_pc+=1;
+                }
                 Instruction::Apply(effect @ Effect::DistributeDamage { target_resolver, .. }) => {
                     if !self.commit_program(s)? {return Ok(());}
                     if !s.event_group.active {
@@ -2881,7 +2892,7 @@ impl Engine {
     // A complete scalar window observes lost HP before checking the winner.
     // Group damage and arena keyword grants retain their distinct callback and
     // win-before-sweep boundaries; they must not use this as a universal hook.
-    fn finish_effect_window(&self, s: &mut State) -> Result<(), String> {
+    pub(super) fn finish_effect_window(&self, s: &mut State) -> Result<(), String> {
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
         Ok(())
@@ -3023,6 +3034,7 @@ impl Engine {
             let marked = self.mark_phase_restriction(s, target, *restriction);
             return Ok((marked, marked > 0));
         }
+        if let Effect::AttackModifiers{..}=e{return self.apply_on_attack_modifiers(s,e);}
         // These primitives execute only through their dedicated group handlers.
         if matches!(e,Effect::DiscardDeck {..}|Effect::DiscardOwnHand {..}|Effect::CreateTokenUnit {..}) {return Err("nonprimitive instruction reached executor".into());}
         let (target,amount)=e.scalar_args().ok_or("nonprimitive instruction reached executor")?;
@@ -3046,8 +3058,21 @@ impl Engine {
         let mut replacement_resolved = false;
         let mut draw_resolved = false;
         let mut resources_fully_resolved = true;
+        let mut last_discard_resolved=false;
+        if matches!(e,Effect::DiscardSpecificCard{..}) {
+            if s.source==0{return Err("chosen hand discard requires source controller".into());}
+            if targets.iter().any(|v|!matches!(v,Eval::Card(id) if *id!=0)){return Err("chosen hand discard requires captured physical card identities".into());}
+            let owner=s.card(s.source).owner;
+            let count=targets.iter().filter(|v|matches!(v,Eval::Card(id) if *id!=0&&s.card(*id).owner==owner&&s.player(owner).hand.contains(*id))).count();
+            if s.player(owner).discard.len as usize+count>MAX_ZONE{return Err("chosen hand discard destination capacity exceeded".into());}
+        }
         for target in targets {
             match target {
+                Eval::Card(id) if matches!(e,Effect::DiscardSpecificCard{..})=>{
+                    last_discard_resolved=false;
+                    let owner=s.card(s.source).owner;
+                    if id!=0&&s.card(id).owner==owner&&s.player_mut(owner).hand.remove(id){s.player_mut(owner).discard.push(id)?;result=result.saturating_add(1);last_discard_resolved=true;}
+                }
                 Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {
                     let n=match e {
                         Effect::ResourceCard{target:Target::Name(n)} if n=="ownTopDeck"=>self.resource_top_deck(s,id)?,
@@ -3218,7 +3243,7 @@ impl Engine {
         s.event_result=if matches!(e,Effect::Damage {..}|Effect::Defeat {..}) {events}else{StepEventResult::default()};
         Ok((
             result,
-            if matches!(e, Effect::ReadyResources { .. } | Effect::PayResources { .. }) {
+            if matches!(e,Effect::DiscardSpecificCard{..}) {last_discard_resolved} else if matches!(e, Effect::ReadyResources { .. } | Effect::PayResources { .. }) {
                 resources_fully_resolved
             } else {
                 result > 0 || replacement_resolved || draw_resolved
@@ -3399,6 +3424,7 @@ impl Engine {
             Decision::AbilityTarget => {
                 let p=self.program(s.ability_program-1);
                 let nested=self.current_group_resolver(s,p);
+                if nested.is_none()&&self.chosen_hand_prompt(s,p){return self.apply_chosen_hand_selection(s,a);}
                 let r=if let Some((r,_))=nested { r } else { let Instruction::Select(r)=&p.instructions[s.ability_pc as usize] else { unreachable!() }; r };
                 if a.arg.as_ref().and_then(Value::as_str)==Some("passAbility") { self.end_program(&mut t)?; }
                 else if a.arg.as_ref().and_then(Value::as_str)==Some("cancel") { self.cancel(&mut t); }
@@ -4217,3 +4243,6 @@ include!("recipient_heal_runtime.rs");
 #[cfg(test)]
 #[path="recipient_heal_tests.rs"]
 mod recipient_heal_tests;
+#[cfg(test)]
+#[path = "chosen_hand_discard_tests.rs"]
+mod chosen_hand_discard_tests;

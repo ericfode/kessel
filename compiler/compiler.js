@@ -1835,6 +1835,33 @@ function legacyAbility(input, context, trigger = null, validatedObject = null) {
             if(!result.effect)result.effect = effect(resolver.props.get('immediateEffect'), {...resolver.ctx,otherBaseTargetScope,damageRecipientScope,...(result.targetResolver.kind==='playerSelection'?{selectedPlayerTarget:reference('selectedPlayer')}:{}),...(result.targetResolver.kind?{pendingSelection:true}:{}),...(result.targetResolver.kind==='numberSelection'?{pendingChoice:true,pendingSelectionContract:true}:{})}, 'chosen');
         }
     }
+    // Hand-discard prompt labels are part of the reviewed physical-selection
+    // protocol. Do not let the general display-field allowance erase them or
+    // silently accept other display overrides in this closed resolver envelope.
+    if (result.effect?.kind === 'discardSpecificCard' && result.optional === true && result.costs.length === 0 &&
+        ['whenPlayed', 'onAttack'].includes(result.trigger) && props.has('targetResolver')) {
+        const resolver = object(props.get('targetResolver'), ctx);
+        const fields = ['controller', 'zoneFilter', 'cardCondition', 'mode', 'numCards', 'immediateEffect', 'activePromptTitle'];
+        for (const [key, value] of resolver.props) {
+            if (!fields.includes(key)) fail(ctx, value, 'hand-discard-resolver-field:' + key);
+        }
+        const system = unwrap(resolver.props.get('immediateEffect'));
+        if (ts.isCallExpression(system) && system.arguments.length) {
+            const properties = object(system.arguments[0], resolver.ctx);
+            for (const [key, value] of properties.props)
+                if (key !== 'target') fail(ctx, value, 'hand-discard-system-field:' + key);
+        }
+        if (resolver.props.has('activePromptTitle')) {
+            const spec = result.targetResolver;
+            const single = !spec.mode && !spec.count;
+            const exactPair = spec.mode === 'exactly' && spec.count?.kind === 'const' && spec.count.value === 2;
+            if (result.effect.target !== 'chosen' || spec.kind || spec.owner !== 'self' || spec.type !== 'any' || spec.zone !== 'hand' || (!single && !exactPair))
+                fail(ctx, resolver.node, 'hand-discard-prompt-scope');
+            const title = literal(resolver.props.get('activePromptTitle'), resolver.ctx);
+            if (typeof title !== 'string' || !title.length) fail(ctx, resolver.node, 'hand-discard-prompt-title');
+            spec.promptTitle = title;
+        }
+    }
     if (props.has('immediateEffect')) {
         if (result.effect) fail(ctx, node, 'both-targeted-and-direct-effects');
         result.effect = effect(props.get('immediateEffect'), ctx, result.targetResolver ? 'chosen' : 'self');

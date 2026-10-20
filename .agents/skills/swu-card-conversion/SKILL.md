@@ -86,7 +86,10 @@ the existing `cards:reference import` command so they run in CI.
 For concurrent work, use the `work` queue and `prepare`/`fanout` commands in
 `cards/PIPELINE.md`. Fan out up to 20 card subprocesses against one prepared
 build, with isolated author work directories and one integrator for shared runtime
-changes. Follow the user's model/effort choices within available model slots;
+changes. If canonical owned files are dirty, materialize their captured bytes and
+execution dependencies in the author checkout before editing; its Git HEAD can
+omit earlier integrated patches. Verify owned preimages against the claim. A
+private author baseline is bookkeeping and adds no admission credit. Follow the user's model/effort choices within available model slots;
 subprocess concurrency is not model concurrency. Preserve explicit path ownership
 and do not edit canonical execution inputs during validation. Queue submission
 and successful comparisons never substitute for independent semantic review.
@@ -109,7 +112,10 @@ semantic failure and must not be bypassed by weakening the runtime import guard.
 
 Focused experiments may use an explicit `prepare --pool-cards` selection of
 admitted definitions, including all reachable setup and native dependencies.
-Keep its hashed unfiltered pool and report its scope. A successful focused replay
+Keep its hashed unfiltered pool and report its scope. Resolve card references
+from the complete plans, including hand cards, setup plays and attachments, and
+verify their inclusion in the selected admitted definitions before preparation;
+a partial list of common probe fields can omit required donors. A successful focused replay
 does not resolve a failed whole-pool import or establish whole-pool conformance.
 
 When initializing a queue through its module API, include every intended ownership
@@ -220,6 +226,13 @@ additional recordings. Cases without reference evidence remain unassessed.
 
 
 ## Validate and publish within authorization
+
+Before the first corpus import or integration mutation, validate every selected
+packet-bound independent review and all publication constraints for the complete
+selected batch. A later invalid review must not leave an earlier card partially
+adopted. Distinguish pre-existing aggregate fixture-coverage findings from new-card
+semantic defects using their source and witness evidence; preserve both findings,
+and never relabel an actual semantic defect as baseline coverage to permit adoption.
 
 Run compiler tests, relevant Rust tests, generated-output checks and native/Wasm
 reference comparisons. The accepted corpus runs in CI; its runner must not

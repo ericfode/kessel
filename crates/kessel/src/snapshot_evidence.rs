@@ -75,6 +75,11 @@ impl Engine {
         Ok(())
     }
     pub(super) fn write_snapshot_evidence(&self, s: &State, value: &mut Value) {
+        // The wire has no proven current-attack grant provenance adapter. Keep
+        // retained native diagnostics explicit and unimportable; normal attack
+        // cleanup removes this marker together with its lasting-effect grants.
+        if s.support.grants[..s.support.len as usize].iter().any(|g|!g.native_attack&&g.conditional_program!=0&&g.conditional_mask==0){value["onAttackModifiersPending"]=json!(true);}
+
         if s.force_state_exact {
             value["forceStateVersion"] = json!(1);
             for seat in [Seat::P1, Seat::P2] {
