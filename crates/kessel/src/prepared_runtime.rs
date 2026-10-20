@@ -432,6 +432,7 @@ impl Engine {
         }
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
         s.ability_result=0;s.ability_succeeded=false;s.event_group.resolving=true;
+        let listeners=self.blade_base_damage_listeners(s)?;
         let mut events=StepEventResult::for_state(s);
         let mut observations=DamageObservations::new(false);
         for i in 0..s.event_group.uniform_damage.count as usize {
@@ -440,7 +441,7 @@ impl Engine {
             if s.event_group.uniform_damage.is_prevented(i) {self.remove_group_shield(s,target,record.shield());continue;}
             s.event_group.context=Selection::one(target);s.ability_target=target;
             let remaining=self.hp(s,target).saturating_sub(s.card(target).damage);
-            let (applied,resolved)=self.apply_scalar_effect(s,e,vec![Eval::Card(target)],amount.min(remaining),None)?;
+            let (applied,resolved)=self.apply_scalar_effect_observed(s,e,vec![Eval::Card(target)],amount.min(remaining),None,&listeners)?;
             events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
             observations.observe(self,s,target,applied);
             s.ability_result=s.ability_result.saturating_add(applied);s.ability_succeeded|=resolved;
@@ -480,6 +481,7 @@ impl Engine {
 
         if s.event_group.uniform_damage.active {return self.resolve_uniform_damage(s,e);}
         let ops=group_ops(e);
+        let listeners=self.blade_base_damage_listeners(s)?;
         // All explicit defeat registrations see the same pre-movement event state.
         let mut explicit_sources=vec![];
         for r in &s.event_group.records[..s.event_group.count as usize] {
@@ -515,6 +517,10 @@ impl Engine {
             }
         }
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
+        // Keep the pre-handler registration context locally. Cancelled
+        // attachments are omitted before dedup, as cleanUpTriggers requires.
+        let collective_before=*s;let collective_start=s.death_pending.len as usize;
+        let mut collective_resolved=Vec::new();
         // All registrations see the same pre-movement state after replacement.
         for &id in &explicit_sources {self.capture_explicit_death(s,id)?;}
         // Cleanup contingents belong to the whole prepared window. The pinned
@@ -565,8 +571,9 @@ impl Engine {
                     }
                     Effect::Draw {target,..}=> {
                         let draw=CapturedDraw::from_record(r);
-                        if contingent {self.apply_draw_fatigue(s,draw.base,draw.fatigue);continue;}
-                        let (amount,resolved)=self.apply_scalar_effect(s,effect,self.effect_targets(s,target),draw.requested,None)?;
+                        if contingent {self.apply_draw_fatigue(s,draw.base,draw.fatigue,&listeners)?;continue;}
+                        let (amount,resolved)=self.apply_scalar_effect_observed(s,effect,self.effect_targets(s,target),draw.requested,None,&listeners)?;
+                        if resolved {collective_resolved.push(CollectiveEvent::CardsDrawn(s.card(draw.base).owner));}
                         s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
                     }
                     Effect::CreateTokenUnit {..}=> {
@@ -590,12 +597,16 @@ impl Engine {
                         let previous=std::mem::replace(head,r.token);
                         s.card_mut(r.token).next_token=previous;
                     }
-                    self.attach(s,r.token,r.target);continue;
+                    self.attach(s,r.token,r.target);collective_resolved.push(CollectiveEvent::UpgradeAttached{parent:r.target,upgrade:r.token});continue;
                 }
                 s.event_group.context=Selection::one(r.target);s.ability_target=r.target;
                 if damage {
                     let hp=if self.def(s,r.target).info.is("base") {self.def(s,r.target).info.hp.unwrap_or(30).max(0) as u16}else{self.hp(s,r.target)};
+                    let emitted=r.amount>0;
                     r.amount=r.amount.min(hp.saturating_sub(s.card(r.target).damage));
+                    // The event existed before the remaining-HP cap, even when
+                    // an earlier sibling already filled this base's damage.
+                    if emitted && r.amount==0 {self.capture_blade_base_damage_event(s,&listeners,r.target,true)?;}
                 }
                 // These records already resolved their scalar fields and physical
                 // recipient. No Effect reconstruction or expression reevaluation.
@@ -605,13 +616,14 @@ impl Engine {
                     |Effect::GainKeyword {..}|Effect::LoseKeyword {..}=>None,
                     _=>return Err("unsupported captured primitive".into()),
                 };
-                let (amount,resolved)=self.apply_scalar_effect(s,effect,vec![Eval::Card(r.target)],r.amount,modifier)?;
+                let (amount,resolved)=self.apply_scalar_effect_observed(s,effect,vec![Eval::Card(r.target)],r.amount,modifier,&listeners)?;
                 events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
                 for p in 0..2 {events.defeated_units[p]=events.defeated_units[p].checked_add(s.event_result.defeated_units[p]).ok_or("defeat result exceeds capacity")?;}
                 if damage {observations.observe(self,s,r.target,amount);}
                 s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;
             }
         }
+        self.capture_resolved_collective_window(s,&collective_before,collective_start,&collective_resolved)?;
         let created=s.event_group.records[..s.event_group.count as usize].iter().filter(|r|matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::CreateTokenUnit{..}))).map(|r|r.token).collect::<Vec<_>>();
         self.capture_unit_entry_watchers(s,&created)?;
         for source in created {

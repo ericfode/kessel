@@ -1,3 +1,5 @@
+#[path = "src/collective_trigger_contract.rs"]
+mod collective_trigger_contract;
 #[allow(dead_code)]
 #[path="src/defeat_cause_contract.rs"]
 mod defeat_cause;
@@ -6,6 +8,8 @@ mod defeat_cause;
 mod executor_upgrade_count;
 #[path = "src/cinder_contract.rs"]
 mod cinder_contract;
+#[path="src/blade_base_damage_contract.rs"]
+mod blade_base_damage_contract;
 #[path="src/variable_payment_contract.rs"]
 mod variable_payment_contract;
 #[path = "src/arena_defeat_attack_contract.rs"]
@@ -252,6 +256,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/recipient_heal_contract.rs");
     println!("cargo:rerun-if-changed=src/ambush_context_contract.rs");
     println!("cargo:rerun-if-changed=src/cinder_contract.rs");
+    println!("cargo:rerun-if-changed=src/blade_base_damage_contract.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
     println!("cargo:rerun-if-changed=src/regroup_hooks.rs");

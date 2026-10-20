@@ -516,7 +516,7 @@ impl ProgramContinuation {
 pub enum DeathContinuation {
     Program=1, Triggers=2, Finish=3, PhaseExpiry=4, CombatAfterDamage=5,
     ParentDeaths=6, NativeAttackAfterEarlyEffects=7,
-    CombatAfterFirstDamage=8, ResourcePayment=9, RegroupDraw=10,
+    CombatAfterFirstDamage=8, ResourcePayment=9, RegroupDraw=10, RegroupResources=11,
 }
 impl DeathContinuation {
     pub const fn raw(self)->u8 {self as u8}
@@ -525,7 +525,7 @@ impl DeathContinuation {
         4=>Some(Self::PhaseExpiry),5=>Some(Self::CombatAfterDamage),
         6=>Some(Self::ParentDeaths),7=>Some(Self::NativeAttackAfterEarlyEffects),
         8=>Some(Self::CombatAfterFirstDamage),9=>Some(Self::ResourcePayment),
-        10=>Some(Self::RegroupDraw),_=>None,
+        10=>Some(Self::RegroupDraw),11=>Some(Self::RegroupResources),_=>None,
     }}
 }
 pub const MAX_DEATH_TRIGGERS: usize = 64;
@@ -1095,3 +1095,7 @@ mod hash_protocol_tests {
         }
     }
 }
+
+/// Inputs from one exact event window, before any of its handlers.
+#[derive(Clone,Copy,Debug)]
+pub enum CollectiveEvent { CardsDrawn(Seat), UpgradeAttached {parent:CardId,upgrade:CardId} }

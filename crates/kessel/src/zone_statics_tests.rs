@@ -689,7 +689,8 @@ fn zone_statics_complete_cards_and_imported_continuations_fail_closed() {
     let invalid = s;
     assert_eq!(DeathContinuation::from_raw(9),Some(DeathContinuation::ResourcePayment));
     assert_eq!(DeathContinuation::from_raw(10),Some(DeathContinuation::RegroupDraw));
-    assert!(DeathContinuation::from_raw(11).is_none());
+    assert_eq!(DeathContinuation::from_raw(11),Some(DeathContinuation::RegroupResources));
+    assert!(DeathContinuation::from_raw(12).is_none());
     assert_eq!(invalid, s);
 }
 

@@ -1,4 +1,5 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod collective_trigger_contract;
 mod admission;
 mod death_hooks;
 mod regroup_hooks;
@@ -89,6 +90,7 @@ mod cross_arena_contract;
 mod recipient_heal_contract;
 
 mod cinder_contract;
+mod blade_base_damage_contract;
 mod arena_defeat_attack_contract;
 mod piloting_lifecycle;
 mod unit_entry_contract;

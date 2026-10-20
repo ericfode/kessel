@@ -2049,6 +2049,9 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::blade_base_damage_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {
+            return crate::blade_base_damage_contract::compile_registration(ability);
+        }
         if crate::executor_upgrade_count::program_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::executor_upgrade_count::ability(ability) {return Err("other upgrade count and Advantage arena batch require exact standalone registrations".into());}
 
         if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?,|v|v["kind"]=="defeatCauseAmount")&&!crate::defeat_cause::registration(ability) {return Err("captured defeat cause requires the exact optional Advantage death registration".into());}
@@ -3385,18 +3388,24 @@ impl Catalogue {
                 return Err(format!("duplicate IR card {code}"));
             }
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
+                // This complete raw envelope must precede every family's early return.
+                if crate::blade_base_damage_contract::marker(entry)? && !crate::blade_base_damage_contract::entry(entry) {
+                    return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
+                }
                 if entry["status"] != "supported" {
                     return Err(format!(
                         "compiler rejected {}: {}",
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                let collective=crate::collective_trigger_contract::prepare(entry)?;
                 let defeat_cause_normalized=crate::defeat_cause::prepare(entry)?;
                 // Validate raw source/query markers before any family can return early.
                 let executor_upgrade_count=crate::executor_upgrade_count::prepare(entry)?;
                 let mut executor_entry;
                 let entry=if let Some(abilities)=executor_upgrade_count {executor_entry=entry.clone();executor_entry["abilities"]=abilities;&executor_entry}else{entry};
                 crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
+                if let Some(program)=collective {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok(crate::collective_trigger_contract::programs(program,id));}
                 if let Some(mut program)=crate::variable_payment_contract::prepare(entry)? {
                     program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);
                     let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;
@@ -3504,7 +3513,9 @@ impl Catalogue {
                 if sides.card.iter().any(crate::attached_constants::host_trait_aura)&&!crate::attached_constants::entry(entry) {return Err("host trait auras require the complete attached constant wrapper source contract".into());}
                 if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|!a.hooks.is_empty()||a.trigger=="eventHooks") {
                     let hooks:Vec<_>=sides.card.iter().chain(&sides.leader).chain(&sides.unit).filter(|a|!a.hooks.is_empty()||a.trigger=="eventHooks").collect();
-                    if hooks.iter().all(|a|crate::unit_entry_contract::registration(a)) {
+                    if hooks.iter().all(|a|crate::blade_base_damage_contract::registration(a)) {
+                        if !crate::blade_base_damage_contract::entry(entry) {return Err("own-base damage source envelope changed".into());}
+                    } else if hooks.iter().all(|a|crate::unit_entry_contract::registration(a)) {
                         if !crate::unit_entry_contract::entry(entry,&sides) {return Err("unit entry requires complete ordinary unit source metadata".into());}
                     } else if hooks.iter().all(|a|crate::death_hooks::registration(a)) {
                         if !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
@@ -4020,7 +4031,9 @@ mod tests {
     #[test]
     fn zero_record_trees_still_require_bounded_group_operations() {
         let leaf=json!({"kind":"conditional","condition":{"kind":"const","value":true},"onTrue":{"kind":"noAction"},"onFalse":{"kind":"noAction"}});
-        let mut tree=leaf;for _ in 0..5 {tree=json!({"kind":"simultaneous","effects":vec![tree;8]});}
+        // 512 zero-record conditionals require 1024 group operations (>128),
+        // while remaining below the independent 65536-node source scan bound.
+        let mut tree=leaf;for _ in 0..3 {tree=json!({"kind":"simultaneous","effects":vec![tree;8]});}
         let err=compiled_group(json!({"trigger":"event","title":"op overflow","effect":tree})).unwrap_err();assert!(err.contains("operation budget"));
     }
     #[test]

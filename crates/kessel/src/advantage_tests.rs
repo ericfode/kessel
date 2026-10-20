@@ -850,3 +850,71 @@ fn advantage_actual_follower_upgraded_hp_disappears_on_native_defeat_and_sweeps_
     assert_eq!(done.decision, Decision::Window);
     assert_eq!(done.attack_source, 0);
 }
+
+#[test]
+fn advantage_native_owner_transition_checks_effectiveness_only_before_shift() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e=engine();e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1,Seat::P2] {
+            // Entirely ineffective windows remain suppressed before any owner
+            // choice: both four-power/four-HP hosts depart in this attack.
+            let mut s=board(&e,seat);
+            let a=unit(&e,&mut s,seat,"ASH_204");let d=unit(&e,&mut s,seat.other(),"ASH_204");
+            give(&e,&mut s,a,2);give(&e,&mut s,d,2);
+            let done=attack(&e,&s,a,d);
+            assert_eq!(done.decision,Decision::Window);assert_eq!(done.death_depth,0);
+            assert!(!e.in_arena(&done,a));assert!(!e.in_arena(&done,d));
+        }
+        for seat in [Seat::P1,Seat::P2] {for live_first in [true,false] {for all in [false,true] {
+            let mut s=board(&e,seat);
+            let a=unit(&e,&mut s,seat,"ASH_204");
+            let d=unit(&e,&mut s,seat.other(),"ASH_204");
+            give(&e,&mut s,a,2);give(&e,&mut s,d,2);
+            for _ in 0..2 {
+                let shield=add(&e,&mut s,seat,"TOKEN_SHIELD");e.attach(&mut s,shield,a);
+                s.card_mut(shield).next_token=s.card(a).shield;s.card_mut(a).shield=shield;
+            }
+            let shield_chain=|s:&State| {
+                let mut ids=Vec::new();let mut id=s.card(a).shield;
+                while id!=0 {assert!(!ids.contains(&id));ids.push(id);id=s.card(id).next_token;}
+                ids.sort_unstable();ids
+            };
+            let physical_shields=|s:&State| {
+                let mut ids=e.upgrades(s,a).into_iter().filter(|id|s.card(*id).def==e.by_code["TOKEN_SHIELD"]).collect::<Vec<_>>();
+                ids.sort_unstable();ids
+            };
+            assert_eq!(shield_chain(&s).len(),2);assert_eq!(shield_chain(&s),physical_shields(&s));
+            crate::validation::validate_state_with_catalogue(&e.snapshot(&s),&e.catalogue.as_ref().unwrap().metadata).unwrap();
+            let pending=attack(&e,&s,a,d);
+            assert_eq!(pending.decision,Decision::DeathPlayer);
+            assert!(!e.in_arena(&pending,d));assert!(e.in_arena(&pending,a));
+            assert_eq!(pending.active,seat);
+            assert_eq!(e.legal_actions(&pending).iter().map(|a|a.label.as_str()).collect::<Vec<_>>(),vec!["You","Opponent"]);
+            let mut batch=button(&e,&pending,if live_first {"You"}else{"Opponent"});
+            assert_eq!(batch.decision,Decision::DeathBatch);assert_eq!(batch.active,seat);
+            assert_eq!(e.legal_actions(&batch).iter().map(|a|a.label.as_str()).collect::<Vec<_>>(),vec!["Resolve next","Resolve all (2)"]);
+            batch=button(&e,&batch,if all {"Resolve all (2)"}else{"Resolve next"});
+            if live_first {
+                // Captured dead-owner contexts are exposed immediately after the
+                // owner shift. On a later resumption they are ineffective again.
+                assert_eq!(batch.decision,Decision::DeathBatch);assert_eq!(batch.active,seat.other());
+                assert_eq!(e.legal_actions(&batch).iter().map(|a|a.label.as_str()).collect::<Vec<_>>(),vec!["Resolve next","Resolve all (2)"]);
+                // Native-only completion proof: the pinned engine crashes after
+                // All on this dead-owner batch. Both native choices must commit
+                // exactly the same captured window, including physical IDs and
+                // parent continuation; this is not a completed oracle replay.
+                let next=button(&e,&batch,"Resolve next");
+                let all_done=button(&e,&batch,"Resolve all (2)");
+                assert_eq!(next,all_done);assert_eq!(next.zobrist(),all_done.zobrist());
+                assert_eq!(e.snapshot(&next),e.snapshot(&all_done));
+                batch=if all {all_done}else{next};
+            }
+            assert_eq!(batch.decision,Decision::Window);assert_eq!(batch.active,seat.other());
+            assert!(batch.winner().is_none());assert!(tokens(&e,&batch,a).is_empty());
+            assert_eq!(shield_chain(&batch).len(),1);
+            assert_eq!(shield_chain(&batch),physical_shields(&batch));
+            assert_eq!(batch.card(a).shield,physical_shields(&batch)[0]);
+            assert_eq!(batch.death_depth,0);assert_eq!(batch.death_pending.len,0);
+        }}}
+    }
+}

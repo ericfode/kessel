@@ -14,6 +14,7 @@ impl Engine {
         if source == 0 || target == 0 || !self.in_arena(s, source) || !self.in_arena(s, target) {
             return Err("first-strike window requires live attack participants".into());
         }
+        let listeners=self.blade_base_damage_listeners(s)?;
         let attack = self.combat_damage(s, source, true);
         let before = s.card(target).damage;
         let remaining = self.hp(s, target).saturating_sub(before);
@@ -28,6 +29,7 @@ impl Engine {
         if excess > 0 {
             let base = s.player(s.card(target).owner).base;
             self.damage(s, base, excess);
+            self.capture_blade_base_damage_event(s,&listeners,base,true)?;
         }
         // Primary damage defeat precedes the framework stat sweep. Capture the
         // complete framework lethal set before any sibling leaves play.

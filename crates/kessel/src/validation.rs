@@ -54,6 +54,7 @@ pub fn validate_pool(v: &Value) -> Result<(), String> {
     let mut seen = HashSet::new();
     for c in cards {
         crate::piloting_lifecycle::reject_card(c)?;
+        crate::collective_trigger_contract::reject_pool(c)?;
         let code = c["setCode"].as_str().ok_or("pool card missing setCode")?;
         let name = c["internalName"].as_str().unwrap_or("unnamed");
         let approved = catalogue().get(code).ok_or_else(|| {

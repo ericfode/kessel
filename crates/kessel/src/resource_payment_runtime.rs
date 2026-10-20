@@ -416,6 +416,7 @@ impl Engine {
         } else {
             s.player_mut(seat).hand.remove(upgrade);
         }
+        self.capture_collective_window(s,&[CollectiveEvent::UpgradeAttached{parent:host,upgrade}])?;
         self.attach(s, upgrade, host);
         s.phase_history.played(seat, upgrade)?;
         s.trigger_context = 1;

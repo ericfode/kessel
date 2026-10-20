@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 931
+    "sourceIr": 934
   },
   "runtimeAdmittedCards": [
     {
@@ -502,6 +502,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "axe-woves#undaunted",
+      "setCode": "ASH_169"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "desert-sharpshooter",
       "setCode": "ASH_170"
     },
@@ -617,6 +622,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "blade-three#bane-of-the-devastator",
+      "setCode": "ASH_204"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "inspiring-veteran",
       "setCode": "ASH_205"
     },
@@ -624,6 +634,11 @@
       "implementation": "sourceIr",
       "internalName": "heroic-purrgil",
       "setCode": "ASH_207"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "sabine-wren#i-learned-the-hard-way",
+      "setCode": "ASH_208"
     },
     {
       "implementation": "sourceIr",
@@ -6616,7 +6631,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1321,
+  "runtimeAdmittedCount": 1324,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6710,7 +6725,7 @@
     },
     {
       "internalName": "rancor-keeper",
-      "reason": "rancor-keeper: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "rancor-keeper: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "ASH_032"
     },
     {
@@ -6900,7 +6915,7 @@
     },
     {
       "internalName": "wipe-them-out",
-      "reason": "wipe-them-out: defeat cause requires the complete closed optional unit death source and exact event-cause helper",
+      "reason": "wipe-them-out: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "ASH_137"
     },
     {
@@ -6969,11 +6984,6 @@
       "setCode": "ASH_168"
     },
     {
-      "internalName": "axe-woves#undaunted",
-      "reason": "axe-woves#undaunted: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "ASH_169"
-    },
-    {
       "internalName": "razor-crest#outfitted-armament",
       "reason": "razor-crest#outfitted-armament: only phase stat modifications execute",
       "setCode": "ASH_172"
@@ -7029,19 +7039,9 @@
       "setCode": "ASH_203"
     },
     {
-      "internalName": "blade-three#bane-of-the-devastator",
-      "reason": "blade-three#bane-of-the-devastator: unimplemented event hook onDamageDealt",
-      "setCode": "ASH_204"
-    },
-    {
       "internalName": "kelleran-beq#where-are-the-others",
       "reason": "kelleran-beq#where-are-the-others: attack permission requires the complete closed paired constant unit and intrinsic Support profile",
       "setCode": "ASH_206"
-    },
-    {
-      "internalName": "sabine-wren#i-learned-the-hard-way",
-      "reason": "sabine-wren#i-learned-the-hard-way: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "ASH_208"
     },
     {
       "internalName": "fateful-goodbye",
@@ -7170,7 +7170,7 @@
     },
     {
       "internalName": "darth-sidious#there-is-no-mercy",
-      "reason": "darth-sidious#there-is-no-mercy: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "darth-sidious#there-is-no-mercy: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_011"
     },
     {
@@ -7180,7 +7180,7 @@
     },
     {
       "internalName": "cham-syndulla#hammer-of-ryloth",
-      "reason": "cham-syndulla#hammer-of-ryloth: unimplemented event hook onDamageDealt",
+      "reason": "cham-syndulla#hammer-of-ryloth: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_013"
     },
     {
@@ -7230,7 +7230,7 @@
     },
     {
       "internalName": "logray#bright-tree-shaman",
-      "reason": "logray#bright-tree-shaman: unimplemented event hook onDamageDealt",
+      "reason": "logray#bright-tree-shaman: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_045"
     },
     {
@@ -7490,7 +7490,7 @@
     },
     {
       "internalName": "arena-acklay#screaming-predator",
-      "reason": "arena-acklay#screaming-predator: unimplemented event hook onDamageDealt",
+      "reason": "arena-acklay#screaming-predator: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_156"
     },
     {
@@ -7505,7 +7505,7 @@
     },
     {
       "internalName": "gungi#fighting-for-kashyyyk",
-      "reason": "gungi#fighting-for-kashyyyk: unimplemented event hook onDamageDealt",
+      "reason": "gungi#fighting-for-kashyyyk: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_166"
     },
     {
@@ -7515,7 +7515,7 @@
     },
     {
       "internalName": "crosshair#ive-changed",
-      "reason": "crosshair#ive-changed: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "crosshair#ive-changed: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_169"
     },
     {
@@ -7590,7 +7590,7 @@
     },
     {
       "internalName": "tech#i-thought-it-was-obvious",
-      "reason": "tech#i-thought-it-was-obvious: unimplemented event hook onDamageDealt",
+      "reason": "tech#i-thought-it-was-obvious: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "HMW_211"
     },
     {
@@ -8100,7 +8100,7 @@
     },
     {
       "internalName": "boba-fett#any-methods-necessary",
-      "reason": "boba-fett#any-methods-necessary: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "boba-fett#any-methods-necessary: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_009"
     },
     {
@@ -8405,7 +8405,7 @@
     },
     {
       "internalName": "seasoned-fleet-admiral",
-      "reason": "seasoned-fleet-admiral: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "seasoned-fleet-admiral: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "JTL_111"
     },
     {
@@ -8415,7 +8415,7 @@
     },
     {
       "internalName": "dorsal-turret",
-      "reason": "dorsal-turret: attached registration requires one exact attack/defense/defeat alias",
+      "reason": "dorsal-turret: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_120"
     },
     {
@@ -8475,7 +8475,7 @@
     },
     {
       "internalName": "allegiant-general-pryde#ruthless-and-loyal",
-      "reason": "allegiant-general-pryde#ruthless-and-loyal: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "allegiant-general-pryde#ruthless-and-loyal: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_133"
     },
     {
@@ -8550,7 +8550,7 @@
     },
     {
       "internalName": "trench-run",
-      "reason": "trench-run: attack permission requires the complete closed paired constant unit and intrinsic Support profile",
+      "reason": "trench-run: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_156"
     },
     {
@@ -8610,7 +8610,7 @@
     },
     {
       "internalName": "stay-on-target",
-      "reason": "stay-on-target: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "stay-on-target: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_177"
     },
     {
@@ -8645,7 +8645,7 @@
     },
     {
       "internalName": "moff-gideon#i-know-everything",
-      "reason": "moff-gideon#i-know-everything: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "moff-gideon#i-know-everything: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "JTL_188"
     },
     {
@@ -9070,7 +9070,7 @@
     },
     {
       "internalName": "the-mandalorian#lets-see-the-puck",
-      "reason": "the-mandalorian#lets-see-the-puck: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "the-mandalorian#lets-see-the-puck: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "LAW_052"
     },
     {
@@ -9330,7 +9330,7 @@
     },
     {
       "internalName": "sebulbas-podracer#taking-the-lead",
-      "reason": "sebulbas-podracer#taking-the-lead: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "sebulbas-podracer#taking-the-lead: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "LAW_176"
     },
     {
@@ -9555,7 +9555,7 @@
     },
     {
       "internalName": "darth-revan#scourge-of-the-old-republic",
-      "reason": "darth-revan#scourge-of-the-old-republic: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "darth-revan#scourge-of-the-old-republic: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "LOF_017"
     },
     {
@@ -9595,7 +9595,7 @@
     },
     {
       "internalName": "temple-of-destruction",
-      "reason": "temple-of-destruction: base-zone ongoing source requires exact reviewed base or two-side leader shape",
+      "reason": "temple-of-destruction: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "LOF_025"
     },
     {
@@ -9875,7 +9875,7 @@
     },
     {
       "internalName": "blockade-runner",
-      "reason": "blockade-runner: unimplemented event hook onDamageDealt",
+      "reason": "blockade-runner: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "LOF_166"
     },
     {
@@ -10035,7 +10035,7 @@
     },
     {
       "internalName": "the-daughter#embodiment-of-light",
-      "reason": "the-daughter#embodiment-of-light: unimplemented event hook onDamageDealt",
+      "reason": "the-daughter#embodiment-of-light: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "LOF_252"
     },
     {
@@ -10050,7 +10050,7 @@
     },
     {
       "internalName": "jabba-the-hutt#wonderful-human-being",
-      "reason": "jabba-the-hutt#wonderful-human-being: invalid ability IR: unknown field `namedTargetTiming`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "jabba-the-hutt#wonderful-human-being: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_002"
     },
     {
@@ -10100,12 +10100,12 @@
     },
     {
       "internalName": "padme-amidala#what-do-you-have-to-hide",
-      "reason": "padme-amidala#what-do-you-have-to-hide: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "padme-amidala#what-do-you-have-to-hide: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "SEC_016"
     },
     {
       "internalName": "sabe#queens-shadow",
-      "reason": "sabe#queens-shadow: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
+      "reason": "sabe#queens-shadow: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_017"
     },
     {
@@ -10155,7 +10155,7 @@
     },
     {
       "internalName": "populist-advisor",
-      "reason": "populist-advisor: unimplemented event hook onDamageDealt",
+      "reason": "populist-advisor: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_041"
     },
     {
@@ -10405,7 +10405,7 @@
     },
     {
       "internalName": "the-elite-squad#neutralizing-insurgents",
-      "reason": "the-elite-squad#neutralizing-insurgents: unimplemented event hook onDamageDealt",
+      "reason": "the-elite-squad#neutralizing-insurgents: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_143"
     },
     {
@@ -10420,7 +10420,7 @@
     },
     {
       "internalName": "chopper#war-hero",
-      "reason": "chopper#war-hero: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "chopper#war-hero: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_147"
     },
     {
@@ -10430,7 +10430,7 @@
     },
     {
       "internalName": "valiant-commando",
-      "reason": "valiant-commando: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "valiant-commando: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_150"
     },
     {
@@ -10455,7 +10455,7 @@
     },
     {
       "internalName": "chairman-papanoida#undaunted-diplomat",
-      "reason": "chairman-papanoida#undaunted-diplomat: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "chairman-papanoida#undaunted-diplomat: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "SEC_159"
     },
     {
@@ -10575,7 +10575,7 @@
     },
     {
       "internalName": "obiwan-kenobi#finding-what-doesnt-exist",
-      "reason": "obiwan-kenobi#finding-what-doesnt-exist: invalid ability IR: unknown variant `discardDeckSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "obiwan-kenobi#finding-what-doesnt-exist: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_205"
     },
     {
@@ -10930,7 +10930,7 @@
     },
     {
       "internalName": "phaseiii-dark-trooper",
-      "reason": "phaseiii-dark-trooper: unimplemented event hook onDamageDealt",
+      "reason": "phaseiii-dark-trooper: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SHD_084"
     },
     {
@@ -10945,7 +10945,7 @@
     },
     {
       "internalName": "maul#shadow-collective-visionary",
-      "reason": "maul#shadow-collective-visionary: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "maul#shadow-collective-visionary: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SHD_090"
     },
     {
@@ -11160,7 +11160,7 @@
     },
     {
       "internalName": "ketsu-onyo#old-friend",
-      "reason": "ketsu-onyo#old-friend: unimplemented event hook onDamageDealt",
+      "reason": "ketsu-onyo#old-friend: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SHD_147"
     },
     {
@@ -11195,7 +11195,7 @@
     },
     {
       "internalName": "migs-mayfeld#triggerman",
-      "reason": "migs-mayfeld#triggerman: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "migs-mayfeld#triggerman: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "SHD_163"
     },
     {
@@ -11480,7 +11480,7 @@
     },
     {
       "internalName": "tarfful#kashyyyk-chieftain",
-      "reason": "tarfful#kashyyyk-chieftain: invalid ability IR: unknown variant `damagePropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "tarfful#kashyyyk-chieftain: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SHD_250"
     },
     {
@@ -11555,7 +11555,7 @@
     },
     {
       "internalName": "cassian-andor#dedicated-to-the-rebellion",
-      "reason": "cassian-andor#dedicated-to-the-rebellion: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "cassian-andor#dedicated-to-the-rebellion: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SOR_013"
     },
     {
@@ -11730,7 +11730,7 @@
     },
     {
       "internalName": "rukh#thrawns-assassin",
-      "reason": "rukh#thrawns-assassin: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "rukh#thrawns-assassin: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SOR_085"
     },
     {
@@ -11740,7 +11740,7 @@
     },
     {
       "internalName": "blizzard-assault-atat",
-      "reason": "blizzard-assault-atat: defeat cause requires the complete closed optional unit death source and exact event-cause helper",
+      "reason": "blizzard-assault-atat: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SOR_088"
     },
     {
@@ -11880,7 +11880,7 @@
     },
     {
       "internalName": "seventh-sister#implacable-inquisitor",
-      "reason": "seventh-sister#implacable-inquisitor: unimplemented event hook onDamageDealt",
+      "reason": "seventh-sister#implacable-inquisitor: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SOR_133"
     },
     {
@@ -11920,7 +11920,7 @@
     },
     {
       "internalName": "heroic-sacrifice",
-      "reason": "heroic-sacrifice: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "heroic-sacrifice: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SOR_150"
     },
     {
@@ -12425,7 +12425,7 @@
     },
     {
       "internalName": "moralo-eval#infamous-murderer",
-      "reason": "moralo-eval#infamous-murderer: unimplemented event hook onDamageDealt",
+      "reason": "moralo-eval#infamous-murderer: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "TS26_073"
     },
     {
@@ -12525,7 +12525,7 @@
     },
     {
       "internalName": "jango-fett#concealing-the-conspiracy",
-      "reason": "jango-fett#concealing-the-conspiracy: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "jango-fett#concealing-the-conspiracy: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "TWI_016"
     },
     {
@@ -12610,7 +12610,7 @@
     },
     {
       "internalName": "kiadimundi#composed-and-confident",
-      "reason": "kiadimundi#composed-and-confident: unresolved phase history helpers require reviewed registration",
+      "reason": "kiadimundi#composed-and-confident: collective triggers require the complete closed ordinary source registration and metadata",
       "setCode": "TWI_064"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1284,
+  "runtimeRejectedCount": 1281,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }
