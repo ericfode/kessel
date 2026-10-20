@@ -26,6 +26,8 @@ pub(crate) fn contains_force_presence<T: Serialize>(value:&T)->bool {
 
 #[path = "selector_contract.rs"]
 pub mod selector_contract;
+#[path = "distributed_damage_contract.rs"]
+mod distributed_damage_contract;
 #[path = "activation_contract.rs"]
 pub(crate) mod activation_contract;
 
@@ -1065,6 +1067,15 @@ pub enum Effect {
         #[serde(rename = "onFalse", default)]
         on_false: Option<Box<Effect>>,
     },
+    DistributeDamage {
+        amount: Expr,
+        #[serde(rename = "canChooseNoTargets", default)]
+        can_choose_no_targets: bool,
+        #[serde(rename = "canDistributeLess", default)]
+        can_distribute_less: bool,
+        #[serde(rename = "targetResolver")]
+        target_resolver: TargetResolver,
+    },
     DistributeHealing {
         amount: Expr,
         #[serde(rename = "maxTargets")]
@@ -1197,7 +1208,7 @@ impl Effect {
                 visit(condition); on_true.visit_expression_roots_mut(visit);
                 if let Some(effect) = on_false { effect.visit_expression_roots_mut(visit); }
             }
-            Self::DistributeHealing { amount, target_resolver, .. } => {
+            Self::DistributeHealing { amount, target_resolver, .. } | Self::DistributeDamage { amount, target_resolver, .. } => {
                 visit(amount); target_resolver.visit_expression_roots_mut(visit);
             }
             Self::CardRestriction { target, condition, .. } => {
@@ -1637,7 +1648,7 @@ pub enum Instruction {
     NamedChooserGroup { effect: Effect, choosers: Vec<NamedChooser> },
 }
 impl Instruction {
-    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedChooserGroup{effect:e,..}=>Some(e),_=>None}}
+    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedChooserGroup{effect:e,..}|Self::Apply(e @ Effect::DistributeDamage{..})=>Some(e),_=>None}}
     pub fn is_named_group(&self)->bool {matches!(self,Self::NamedGroup(_)|Self::NamedChooserGroup{..})}
 }
 
@@ -2867,7 +2878,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     GroupRequirements::ordinary(multiplicity(target,targets,array)?)
                 },
-                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::SelectionSystem { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::SelectionSystem { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::DistributeDamage { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -3031,6 +3042,12 @@ impl Program {
             Effect::Simultaneous { effects } if self.trigger == "constant" => { for effect in effects { self.compile_effect(effect, depth + 1)?; } }
             Effect::Simultaneous { .. } => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Group(effect.clone())); }
             Effect::PhaseModifiers {effects:_} => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Apply(effect.clone())); }
+            Effect::DistributeDamage { amount, can_choose_no_targets, can_distribute_less, target_resolver } => {
+                if depth!=0 || !matches!(self.trigger.as_str(),"whenPlayed"|"whenDefeated") || !distributed_damage_contract::effect(amount,*can_choose_no_targets,*can_distribute_less,target_resolver) {
+                    return Err("distributed damage requires literal six and mandatory enemy units".into());
+                }
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::DistributeHealing { amount, max_targets, target_resolver, .. } => {
                 amount.validate_number()?;target_resolver.validate()?;
                 let amount_n = match amount {
@@ -3469,6 +3486,7 @@ impl Catalogue {
                     && entry["attachCondition"].is_null() && no_pilot
                     && ["deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|key|entry["card"][key].is_null())
                     && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "");
+                if distributed_damage_contract::marker(entry) && (!complete_plain_source_metadata || !distributed_damage_contract::entry(entry)) {return Err("distributed damage requires a complete closed ordinary six-damage unit registration".into());}
                 if contains(&entry["abilities"],|v|matches!(v["kind"].as_str(),Some("gainTrait"|"loseTrait"))) {
                     let unit=source_class==Some("NonLeaderUnitCard");
                     let upgrade=source_class==Some("UpgradeCard");

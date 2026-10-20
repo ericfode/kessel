@@ -57,6 +57,12 @@ enum GroupOp<'a> {
     Jump(usize),
 }
 fn group_ops(effect: &Effect) -> Vec<GroupOp<'_>> {
+    // Distribution records own nonuniform captured amounts. Their mutation owner
+    // is the same scalar damage leaf as all other prepared ability damage.
+    if matches!(effect,Effect::DistributeDamage{..}) {
+        static DAMAGE: std::sync::OnceLock<Effect> = std::sync::OnceLock::new();
+        return vec![GroupOp::Leaf(DAMAGE.get_or_init(||Effect::Damage{target:Target::Name("chosen".into()),amount:Expr::Const{value:serde_json::json!(1)}}))];
+    }
     fn add<'a>(e: &'a Effect, out: &mut Vec<GroupOp<'a>>) {
         match e {
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => { for e in effects { add(e,out); } }
@@ -524,8 +530,12 @@ impl Engine {
         // Attachment, unit-entry and draw-fatigue contingents retain record order
         // after every primary handler has finished.
         let count=s.event_group.count as usize;
+        // Distributed damage children have order meta.order-1. The pinned
+        // unary sort comparator reverses these children only after replacement
+        // contexts were captured in insertion order. Keep both boundaries.
+        let primary_order=if matches!(e,Effect::DistributeDamage{..}) {(0..count).rev().collect::<Vec<_>>()}else{(0..count).collect()};
         for contingent in [false,true] {
-            for index in 0..count {
+            for &index in &primary_order {
                 let mut r=s.event_group.records[index];
                 let GroupOp::Leaf(effect)=&ops[r.op as usize] else { unreachable!() };
                 let attachment=matches!(effect,Effect::GiveShield {..}|Effect::GiveExperience {..}|Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::CreateTokenUnit {..});
@@ -611,6 +621,7 @@ impl Engine {
                 s.death_pending.entries[n]=DeathTrigger {source,keyword,player:s.card(source).owner,after_pc:self.program(s.ability_program-1).event_end,defer_depth:s.death_depth,..DeathTrigger::default()};s.death_pending.len+=1;
             }
         }
+        if matches!(e,Effect::DistributeDamage{..}) {s.ability_succeeded=s.event_group.count>0;}
         s.event_result=events;
         s.event_group.resolving=false;
         observations.finish(self,s)?;

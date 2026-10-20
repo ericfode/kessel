@@ -31060,6 +31060,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "7793687843",
+      "internalName": "the-legacy-run#doomed-debris",
+      "keywords": [],
+      "power": 3,
+      "rules": "All damage dealt by The Legacy Run's \"When Defeated\" ability is dealt simultaneously.\nYou can choose to assign more damage to a unit than it has remaining HP.\n",
+      "setCode": "LOF_213",
+      "setCodes": [
+        {
+          "number": 213,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 213,
+        "set": "LOF"
+      },
+      "subtitle": "Doomed Debris",
+      "text": "When Defeated: Deal 6 damage divided as you choose among enemy units.",
+      "title": "The Legacy Run",
+      "traits": [
+        "republic",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning"
@@ -44173,6 +44213,50 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "9097316363",
+      "internalName": "emperor-palpatine#master-of-the-dark-side",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 6,
+      "rules": "You can choose to assign more damage to a unit than it has remaining HP.\nAll damage dealt by a single ability is dealt simultaneously.\nShields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "SOR_135",
+      "setCodes": [
+        {
+          "number": 135,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 135,
+        "set": "SOR"
+      },
+      "subtitle": "Master of the Dark Side",
+      "text": "Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)\n\nWhen Played: Deal 6 damage divided as you choose among enemy units.",
+      "title": "Emperor Palpatine",
+      "traits": [
+        "force",
+        "imperial",
+        "sith",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

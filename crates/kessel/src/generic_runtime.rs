@@ -5,6 +5,8 @@ use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVer
 use crate::ability_ir::activation_contract::{base_zone_source, Source};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
+#[path = "distributed_damage_runtime.rs"]
+mod distributed_damage_runtime;
 
 fn same_aspect_multiset(left: &Value, right: &Value) -> bool {
     let (Some(left), Some(right)) = (left.as_array(), right.as_array()) else {
@@ -1811,6 +1813,7 @@ impl Engine {
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
+            Effect::DistributeDamage {target_resolver,..} => return !self.distribution_damage_targets(s,source,target_resolver).is_empty(),
             Effect::LookAt { target: view_target, .. } => {
                 let _ = require_change;
                 return matches!(
@@ -2019,9 +2022,8 @@ impl Engine {
             Some(Instruction::Select(r)) => !self
                 .program_targets(s, source, p, 0, r, require_change)
                 .is_empty(),
-            Some(Instruction::Apply(Effect::DistributeHealing {
-                target_resolver, ..
-            })) => !self.matching_targets(s, source, target_resolver).is_empty(),
+            Some(Instruction::Apply(Effect::DistributeHealing { target_resolver, .. })) => !self.matching_targets(s, source, target_resolver).is_empty(),
+            Some(Instruction::Apply(Effect::DistributeDamage { target_resolver, .. })) => !self.distribution_damage_targets(s,source,target_resolver).is_empty(),
             _ => self.instructions_can_affect(s, source, 0, p, 0, usize::MAX, require_change),
         }
     }
@@ -2220,62 +2222,7 @@ impl Engine {
                 }
             }
             Decision::AbilityDistribute => {
-                let p = self.program(s.ability_program - 1);
-                let Instruction::Apply(Effect::DistributeHealing {
-                    amount,
-                    max_targets,
-                    target_resolver,
-                    can_choose_no_targets,
-                    can_distribute_less,
-                    ..
-                }) = &p.instructions[s.ability_pc as usize]
-                else {
-                    unreachable!()
-                };
-                let amount = self.eval(s, source, 0, amount).number().clamp(0, 3);
-                let label = format!("distribute {amount}");
-                if *can_choose_no_targets {
-                    out.push(Action {
-                        kind: "distribute".into(),
-                        card: None,
-                        arg: Some(json!([])),
-                        method: None,
-                        label: label.clone(),
-                    });
-                }
-                let targets = self.matching_targets(s, source, target_resolver);
-                for &id in &targets {
-                    for n in 1..=amount {
-                        if n != amount && !can_distribute_less {
-                            continue;
-                        }
-                        out.push(Action {
-                            kind: "distribute".into(),
-                            card: None,
-                            arg: Some(json!([[format!("c{}", id - 1), n]])),
-                            method: None,
-                            label: label.clone(),
-                        });
-                    }
-                }
-                // Reviewed Trace shape: amount 2 / maxTargets 2 / full amount required.
-                // Enumerate unordered 1+1 splits across distinct unit candidates.
-                if *max_targets > 1 && amount == 2 {
-                    for i in 0..targets.len() {
-                        for j in (i + 1)..targets.len() {
-                            out.push(Action {
-                                kind: "distribute".into(),
-                                card: None,
-                                arg: Some(json!([
-                                    [format!("c{}", targets[i] - 1), 1],
-                                    [format!("c{}", targets[j] - 1), 1]
-                                ])),
-                                method: None,
-                                label: label.clone(),
-                            });
-                        }
-                    }
-                }
+                out.extend(self.distribution_actions(s).expect("distribution menu preflighted before prompt"));
             }
             _ => {}
         }
@@ -2553,8 +2500,20 @@ impl Engine {
                     s.ability_result=0;s.ability_succeeded=false;s.ability_pc+=1;
                 }
                 Instruction::Apply(Effect::Disclose{aspects,..})=>{if self.start_disclose(s,aspects,&p.trigger)?{return Ok(());}}
+                Instruction::Apply(effect @ Effect::DistributeDamage { target_resolver, .. }) => {
+                    if !self.commit_program(s)? {return Ok(());}
+                    if !s.event_group.active {
+                        let targets=self.distribution_damage_targets(s,s.source,target_resolver);
+                        if targets.is_empty() {s.ability_result=0;s.ability_succeeded=false;s.event_result=StepEventResult::for_state(s);s.ability_pc+=1;continue;}
+                        if targets.len()>1 {self.distribution_actions(s)?;s.decision=Decision::AbilityDistribute;return Ok(());}
+                        self.capture_distribution(s,&[(targets[0],6)])?;
+                    }
+                    if !self.resolve_group(s,effect)? {return Ok(());}
+                    s.event_group=EventGroupState::default();s.ability_pc+=1;
+                }
                 Instruction::Apply(Effect::DistributeHealing { .. }) => {
                     if !self.commit_program(s)? {return Ok(());}
+                    self.distribution_actions(s)?;
                     s.decision = Decision::AbilityDistribute;
                     return Ok(());
                 }
@@ -3478,29 +3437,16 @@ impl Engine {
             }
             Decision::AbilityDistribute => {
                 if !self.commit_program(&mut t)? {return Ok(t);}
-                t.event_result=StepEventResult::for_state(&t);
-                t.ability_result = 0;
-                t.ability_succeeded = false;
-                if let Some(pairs) = a.arg.as_ref().and_then(Value::as_array) {
-                    let mut total = 0u16;
-                    for pair in pairs {
-                        let id = cid(
-                            pair.get(0)
-                                .and_then(Value::as_str)
-                                .ok_or("distribution target missing")?,
-                        )?;
-                        let heal = (pair
-                            .get(1)
-                            .and_then(Value::as_u64)
-                            .ok_or("distribution amount missing")? as u16)
-                            .min(t.card(id).damage);
-                        let heal=self.heal_card(&mut t,id,heal);
-                        total = total.saturating_add(heal);
-                    }
-                    t.ability_result = total;
-                    t.ability_succeeded = total > 0;
+                let effect=match &self.program(t.ability_program-1).instructions[t.ability_pc as usize] {Instruction::Apply(effect)=>effect,_=>return Err("invalid distribution instruction".into())};
+                let pairs=self.validate_distribution(&t,&a)?;
+                if matches!(effect,Effect::DistributeDamage{..}) {
+                    self.capture_distribution(&mut t,&pairs)?;
+                } else {
+                    t.event_result=StepEventResult::for_state(&t);t.ability_result=0;t.ability_succeeded=false;
+                    for (id,amount) in pairs {t.ability_result=t.ability_result.saturating_add(self.heal_card(&mut t,id,amount));}
+                    t.ability_succeeded=t.ability_result>0;
+                    t.ability_pc+=1;
                 }
-                t.ability_pc += 1;
                 self.run_program(&mut t)?;
             }
             _ => return Err("not an ability decision".into()),
