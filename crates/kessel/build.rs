@@ -207,7 +207,7 @@ fn lower(p: &Program) -> Result<String, String> {
                 crate::resource_exhaust::selection(effect)?;
                 "let Instruction::Apply(effect)=&p.instructions[s.ability_pc as usize] else {return Err(\"generated nested selection identity mismatch\".into())};self.begin_selection_exhaust(s,effect)?;return Ok(true);".into()
             },
-            Instruction::Apply(Effect::DistributeHealing{..})=>"if !self.commit_program(s)? {return Ok(true);}s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
+            Instruction::Apply(Effect::DistributeHealing{..})=>"if !self.commit_program(s)? {return Ok(true);}self.distribution_actions(s)?;s.decision=Decision::AbilityDistribute;return Ok(true);".into(),
             Instruction::IfResult {skip}=>format!("s.ability_pc=if s.ability_succeeded {{{}}}else{{{skip}}};",pc+1),
             Instruction::IfWillDefeat {skip}=>format!("s.ability_pc=if s.ability_succeeded&&s.event_result.will_defeat {{{}}}else{{{skip}}};",pc+1),
             Instruction::Jump {to}=>format!("s.ability_pc={to};"),

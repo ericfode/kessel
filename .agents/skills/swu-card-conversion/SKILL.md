@@ -131,10 +131,19 @@ results. Necessary targeted checks still follow each affected semantic change.
 
 Forward-test cadence changes by recording a real packet-bound run at its immutable
 integration revision and checking copied evidence plus idempotent re-recording.
-Shard assembly can change JSON object property order. Require full JSON equality
+Shard assembly can change JSON object property order. Use structural comparisons or
+explicit semantic fingerprints for donor guards too; byte-exact catalogue and
+source hashes remain execution identities. Require full JSON equality
 with committed configuration while retaining the exact recorded catalogue bytes
 and hashes used by the runtime, references and review packet; do not substitute
 an invented normalized byte hash or award manual credit after a counter failure.
+
+Keep the committed-data `npm test` independent of the engine, TypeScript parser
+and setup dependencies. Fresh `compileCatalog()` assertions belong in
+`compiler/test/`; retain shard-only planner checks in `cards/test/`. When adding
+compiler imports to tests, forward-test the committed-data suite in an isolated
+source tree without `forceteki` or `node_modules`, then run the compiler suite
+with the pinned dependencies. Local setup can otherwise hide a CI failure.
 
 Inspect the actual test bodies before choosing ordinary gates. The Rust library
 test `generated_programs_match_all_committed_engine_traces` covers original fixed
@@ -188,6 +197,7 @@ additional recordings. Cases without reference evidence remain unassessed.
 - Source registrations and keyword triggers can share a prompt. Preserve engine ordering, and test new leader deployment keywords as well as ordinary unit play. On Attack and On Defense share the declaration event: capture both owners before state-based deaths remove sources, and let the active action player choose the owner order. Skip the entire window only when all registered triggers are ineffective; retain an ineffective owner when the other owner still has a legal effect. Distinguish initial attack stat deaths whose child window passes triggers to the declaration parent from deaths caused while resolving a selected ability.
 - For units, unique replacement precedes incoming aura activation and incoming stat-death checks. Offer both copies before resolving the choice; keep-old/keep-new can differ. Capture eligible When Played triggers before the defeat subwindow: a defeated source can still draw, while a self-only upgrade cannot rescue a source already defeated. Use explicit engine witnesses for each distinction. Ordinary upgrades add two exceptions: unique copies on the same parent automatically defeat the oldest, while different parents require a choice; printed attachment stats can already apply while incoming constant abilities remain disabled during uniqueness. Keep upgrade controller separate from host controller, and preserve attachment order through parent cleanup events.
 - Event order comes from executable engine code, including its sort comparator, not nominal event names or comments. In the pinned engine, negative-order attachment contingents reverse their insertion order across the complete event window and resolve before parents; combat queues the defender defeat before the attacker defeat. Capture trigger registrations before any handler, preserve duplicate parent events when deriving contingent order, and apply event conditions again when duplicates become invalid. Witness mixed tokens and ordinary upgrades on both opposing combatants and reversed multi-target selections.
+- Before using a staged control change as a runtime witness, prove that the snapshot preserves both physical owner and current controller. An omitted owner field does not prove equality. If the wire supports only equal ownership and control, reject divergent engine states before projection, retain negative boundary tests, and label additional engine games as diagnostics.
 - Per-player arena lists cannot reconstruct global entry order across controllers. Capture ground and space unit IDs directly from the engine, validate membership and each controller subsequence on import, preserve order through departure and re-entry, and include it in state hashes. Same-owner upgrades on enemy hosts make this observable even before implementing global-list abilities. Legacy snapshots missing order must not acquire invented order; refuse reachable order-sensitive mechanics or keep an explicitly bounded compatibility path.
 - Card-data keyword lists include mentions and grants to other cards. Derive intrinsic keywords with the pinned engine's printed-text parser, including leader sides and numeric presence at zero. Read each new token type's pinned metadata; names and familiar card-game conventions do not establish traits, aspects or keywords. Test a card that mentions a keyword without having it, and a stat condition that depends on that absence.
 - Persistent player tokens can retain an existing identity outside play. Export both identity and presence; test actual gain/use/regain, independent owners, phase persistence, no new allocation, captured defeated-source continuations, and full-state copy/hash behavior. Legacy compatibility and native-token dependencies must use the selected pool, not unused definitions in a retained catalog. A resolver can override a player-target helper's default; reject lowering that loses that context.
