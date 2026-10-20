@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 943
+    "sourceIr": 944
   },
   "runtimeAdmittedCards": [
     {
@@ -439,6 +439,11 @@
       "implementation": "sourceIr",
       "internalName": "the-cyborg-mech#mysterious-threat",
       "setCode": "ASH_147"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "operation-cinder",
+      "setCode": "ASH_151"
     },
     {
       "implementation": "sourceIr",
@@ -6676,7 +6681,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1333,
+  "runtimeAdmittedCount": 1334,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6997,11 +7002,6 @@
       "internalName": "deadly-vulnerability",
       "reason": "deadly-vulnerability: attached aliases require complete ordinary upgrade metadata and matching printed stats",
       "setCode": "ASH_150"
-    },
-    {
-      "internalName": "operation-cinder",
-      "reason": "operation-cinder: arena damage requires ordinary unit metadata and only a bounded Coordinate Raid companion",
-      "setCode": "ASH_151"
     },
     {
       "internalName": "inspired-recruit",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1272,
+  "runtimeRejectedCount": 1271,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

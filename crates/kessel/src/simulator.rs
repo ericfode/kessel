@@ -515,7 +515,13 @@ impl Engine {
         self.attack_target_iter(s, source, ambush).next().is_some()
     }
     pub fn legal_actions(&self, s: &State) -> Vec<Action> {
-        if s.is_terminal() {
+        // Scoring/actor export latch immediately, but the native event pipeline
+        // still accepts choices in an already captured ability/death resolver
+        // (including optional target/Pass and committed-root continuations).
+        // No new action-window or attack turn reopens after a win. Already queued
+        // regroup resource choices retain their simultaneous unfinished seats.
+        if s.is_terminal() && !((s.has_pending_resolution() && self.is_ability_decision(s.decision))
+            || (s.regroup && s.decision == Decision::Resource && !s.resource_done[s.active.index()])) {
             return vec![];
         }
         if self.is_ability_decision(s.decision) {
@@ -737,6 +743,27 @@ impl Engine {
         }
     }
     pub fn set_actor(&self, s: &mut State, actor: Seat) -> Result<(), String> {
+        // A latched winner hides the exported turn actor, but an already
+        // captured resolver still has its chooser in active (which can differ
+        // from the action owner). Validate that chooser without reopening turns
+        // or changing the scoring/export latch. A captured regroup resource prompt
+        // has its separate simultaneous-seat protocol below.
+        if s.is_terminal() {
+            // The queued regroup ResourcePrompt is simultaneous: either unfinished
+            // seat may act. This changes only its chooser, never the action owner.
+            if s.regroup && s.decision == Decision::Resource && !s.resource_done[actor.index()] {
+                s.active = actor;
+                return Ok(());
+            }
+            return if s.has_pending_resolution()
+                && self.is_ability_decision(s.decision)
+                && actor == s.active
+            {
+                Ok(())
+            } else {
+                Err(format!("actor mismatch at terminal {:?}: trace {actor:?}", s.decision))
+            };
+        }
         if s.decision == Decision::Resource && !s.resource_done[actor.index()] {
             s.active = actor;
             Ok(())
@@ -1548,7 +1575,12 @@ impl Engine {
     // them. RegroupDraw resumes below, never through this capture function, so
     // nested defeats cannot trigger the phase twice or draw before it finishes.
     fn advance_after_expiry(&self,s:&mut State)->Result<(),String> {
-            if s.is_terminal() {s.decision=Decision::Terminal;return Ok(());}
+            if s.is_terminal() && !(s.players[0].out && s.players[1].out) {
+                s.decision = Decision::Terminal;
+                return Ok(());
+            }
+            // Already queued phase closure continues after expiry-trigger wins.
+            // It cannot be entered by a new action once the outcome is latched.
             s.regroup = true;
             s.players[0].out = false;
             s.players[1].out = false;
@@ -1559,12 +1591,17 @@ impl Engine {
             self.draw_for_regroup(s)
     }
     fn draw_for_regroup(&self,s:&mut State)->Result<(),String> {
-            if s.is_terminal() {s.decision=Decision::Terminal;return Ok(());}
+            if s.is_terminal() && !s.regroup {
+                s.decision = Decision::Terminal;
+                return Ok(());
+            }
             for seat in [Seat::P1, Seat::P2] {
                 self.draw_cards(s,seat,2)?;
             }
             self.check_win(s);
-            if !s.is_terminal() {
+            // Source queues resourcing and readying after the whole draw window,
+            // even if fatigue (or an earlier captured trigger) latched a winner.
+            {
                 s.decision = Decision::Resource;
                 s.resource_done = [false; 2];
                 s.resource_selected = [0; 2];

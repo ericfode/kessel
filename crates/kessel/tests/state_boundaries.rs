@@ -97,3 +97,18 @@ fn new_flags_are_hash_neutral_when_inactive_and_distinct_when_active() {
     state.event_result.will_defeat=false;
     assert_eq!(state.zobrist(),before);
 }
+
+#[test]
+fn winner_latch_and_pending_resolution_are_independent_without_new_storage() {
+    let mut s=State::default();s.outcome=2;
+    assert!(s.is_terminal());assert_eq!(s.winner(),Some(Seat::P2));
+    assert_eq!(s.actor(),None);assert!(!s.has_pending_resolution());
+    let settled_hash=s.zobrist();
+    s.ability_program=7;s.decision=Decision::AbilityTarget;
+    assert!(s.is_terminal());assert!(s.has_pending_resolution());assert_eq!(s.actor(),None);
+    assert_eq!(s.winner(),Some(Seat::P2));assert_ne!(s.zobrist(),settled_hash);
+    s.ability_program=0;s.death_depth=1;
+    assert!(s.has_pending_resolution());assert_eq!(s.winner(),Some(Seat::P2));
+    s.death_depth=0;s.decision=Decision::Window;
+    assert!(!s.has_pending_resolution());assert!(!s.is_action_window());
+}

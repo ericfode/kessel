@@ -118,9 +118,10 @@ fn resolved_event_terminal_window_keeps_mandatory_raddus_damage_and_winner() {
     // printed Raddus registration after its controller's base is defeated.
     let e=engine();let mut s=board(&e);let raddus=unit(&e,&mut s,Seat::P1,"JTL_104");let enemy=unit(&e,&mut s,Seat::P2,"LOF_256");s.card_mut(enemy).phase_hp=20;s.source=s.players[0].leader;s.ability_target=raddus;
     let group=Effect::Simultaneous{effects:vec![damage("ownBase",30),damage("chosen",6)]};s.event_group.active=true;s.event_group.context=Selection::one(raddus);assert!(e.generate_group(&mut s,&group).unwrap());assert!(e.resolve_group(&mut s,&group).unwrap());s.event_group=EventGroupState::default();assert!(s.is_terminal());let winner=s.outcome;
-    e.finish(&mut s).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);assert_eq!(s.source,raddus);assert_eq!(s.outcome,winner);assert!(e.legal_actions(&s).is_empty(),"a terminal prompt must not allow a new external action");assert_eq!(e.eval(&s,raddus,enemy,&lki()),Eval::Number(8));
-    // Internal continuation diagnostic only: the public action protocol remains terminal.
-    let action=e.card_action(&s,enemy);s=e.apply_ability_action(&s,&action).unwrap();assert_eq!(s.card(enemy).damage,8);assert_eq!(s.outcome,winner);assert_eq!(s.decision,Decision::Terminal);
+    e.finish(&mut s).unwrap();assert_eq!(s.decision,Decision::AbilityTarget);assert_eq!(s.source,raddus);assert_eq!(s.outcome,winner);assert_eq!(s.actor(),None);assert!(e.legal_actions(&s).contains(&e.card_action(&s,enemy)),"captured Raddus target remains public after winner latch");assert_eq!(e.eval(&s,raddus,enemy,&lki()),Eval::Number(8));
+    // The real Raddus death window keeps its mandatory target protocol; this
+    // synthetic group checks that the same shared mutation path remains public.
+    let action=e.card_action(&s,enemy);s=e.apply(&s,&action).unwrap();assert_eq!(s.card(enemy).damage,8);assert_eq!(s.outcome,winner);assert_eq!(s.decision,Decision::Terminal);
 }
 
 #[test]

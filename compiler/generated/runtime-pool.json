@@ -3481,6 +3481,45 @@
       "upgradePower": null
     },
     {
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6062959089",
+      "internalName": "operation-cinder",
+      "keywords": [],
+      "power": null,
+      "rules": "All damage dealt to units by Operation Cinder is dealt simultaneously.\n",
+      "setCode": "ASH_151",
+      "setCodes": [
+        {
+          "number": 151,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 151,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Deal 5 damage to your base. Then, deal 5 damage to each unit.",
+      "title": "Operation Cinder",
+      "traits": [
+        "disaster",
+        "plan"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",

@@ -209,9 +209,15 @@ fn attack_end_generated_dispatch_matches_interpreter_exactly() {
 }
 
 #[test]
-fn attack_end_terminal_latches_pending_context_without_external_actions() {
-    let e=engine();let (mut s,source)=live_board(&e,Seat::P1,"LAW_033");let _=unit(&e,&mut s,Seat::P2,"LOF_256");let base=s.players[1].base;s.card_mut(base).damage=29;
-    let done=attack(&e,s,source,base);assert!(done.is_terminal());assert_eq!(done.outcome,1);assert!(e.legal_actions(&done).is_empty());assert_eq!(done.decision,Decision::AbilityTarget);assert_eq!(done.attack_source,source);assert_eq!(done.death_depth,1);
+fn attack_end_terminal_latches_winner_but_keeps_captured_optional_target_and_pass() {
+    let e=engine();let (mut s,source)=live_board(&e,Seat::P1,"LAW_033");let victim=unit(&e,&mut s,Seat::P2,"LOF_256");let base=s.players[1].base;s.card_mut(base).damage=29;
+    let choosing=attack(&e,s,source,base);assert!(choosing.is_terminal());assert_eq!(choosing.outcome,1);assert_eq!(choosing.actor(),None);assert_eq!(choosing.decision,Decision::AbilityTarget);assert_eq!(choosing.attack_source,source);assert_eq!(choosing.death_depth,1);
+    // Hound's Tooth's actual attack-end pipeline retains both the optional
+    // target and Pass after lethal base damage; neither opens a new turn.
+    let target=e.card_action(&choosing,victim);let pass=Action::button("Pass","passAbility");
+    assert!(e.legal_actions(&choosing).contains(&target));assert!(e.legal_actions(&choosing).contains(&pass));
+    let defeated=e.apply(&choosing,&target).unwrap();assert!(!e.in_arena(&defeated,victim));assert_eq!(defeated.outcome,1);assert!(e.legal_actions(&defeated).is_empty());
+    let declined=e.apply(&choosing,&pass).unwrap();assert!(e.in_arena(&declined,victim));assert_eq!(declined.outcome,1);assert!(e.legal_actions(&declined).is_empty());
 }
 
 #[test]

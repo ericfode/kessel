@@ -2240,7 +2240,13 @@ fn terminal_optional_opponent_prompt_preserves_latched_action_priority() {
     assert_eq!(s.outcome, 1);
     assert_eq!(s.active, Seat::P2);
     assert_eq!(s.decision, Decision::AbilityOptional);
-    assert!(e.legal_actions(&s).is_empty());
+    // Optional choices already captured in a death window remain responses to
+    // that event, not new action-window turns. Winner/actor stay latched.
+    let trigger=Action::button("Trigger","trigger");let pass=Action::button("Pass","pass");
+    assert!(e.legal_actions(&s).contains(&trigger));assert!(e.legal_actions(&s).contains(&pass));
+    assert_eq!(s.actor(),None);
+    let accepted=e.apply(&s,&trigger).unwrap();assert_eq!(accepted.outcome,1);assert!(accepted.players[1].hand.contains(draw));assert!(e.legal_actions(&accepted).is_empty());
+    let declined=e.apply(&s,&pass).unwrap();assert_eq!(declined.outcome,1);assert!(declined.players[1].deck.contains(draw));assert!(e.legal_actions(&declined).is_empty());
     assert!(s.players[1].deck.contains(draw));
     assert_eq!(e.snapshot(&s)["activePlayer"], json!("p1"));
     let original = s.zobrist();
@@ -9883,7 +9889,8 @@ fn conditional_arena2_raw_wrapper_scope_and_depth_remain_closed() {
         }
     }
     let e = engine();
-    for code in ["ASH_151", "LOF_141", "SEC_183"] {
+    assert!(e.by_code.contains_key("ASH_151"));
+    for code in ["LOF_141", "SEC_183"] {
         assert!(!e.by_code.contains_key(code));
     }
     assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);

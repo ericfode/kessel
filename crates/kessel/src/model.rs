@@ -761,6 +761,12 @@ impl State {
     pub fn is_action_window(&self) -> bool {
         self.decision == Decision::Window && !self.is_terminal()
     }
+    /// A winner is latched independently of an already captured event resolver.
+    /// Keep score/actor terminal while the engine finishes its existing ability
+    /// or death choices; this does not authorize another ordinary turn.
+    pub fn has_pending_resolution(&self) -> bool {
+        self.ability_program != 0 || self.death_depth != 0
+    }
     pub fn is_terminal(&self) -> bool {
         self.outcome != 0
     }
