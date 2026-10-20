@@ -1,6 +1,8 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[path = "src/cinder_contract.rs"]
 mod cinder_contract;
+#[path = "src/piloting_lifecycle.rs"]
+mod piloting_lifecycle;
 #[path = "src/cross_arena_contract.rs"]
 mod cross_arena_contract;
 #[path="src/recipient_heal_contract.rs"]

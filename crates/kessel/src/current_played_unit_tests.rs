@@ -364,39 +364,6 @@ fn current_played_unit_real_hand_smuggle_placement_reentry_and_phase_paths() {
 }
 
 #[test]
-fn current_played_unit_attachment_mode_is_not_an_arena_unit_incarnation() {
-    let e = projection_engine(RulesBackend::Interpreter);
-    let mut s = position(&e, Seat::P1);
-    let host = unit(&e, &mut s, Seat::P1, "LOF_256");
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_045");
-    mark_played(&mut s, Seat::P1, pilot);
-    assert!(e.current_played_unit_matches(&s, pilot));
-    // Model a legal zone transition with ordinary departure cleanup first.
-    e.leave_play_primary_to_discard(&mut s, pilot, false)
-        .unwrap();
-    e.attach(&mut s, pilot, host);
-    assert!(!e.current_played_unit_matches(&s, pilot));
-    s.card_mut(pilot).set_hidden_qualified(true);
-    assert!(
-        !e.current_played_unit_matches(&s, pilot),
-        "attachment remains ineligible even with stale qualification"
-    );
-    e.leave_play_primary_to_discard(&mut s, pilot, false)
-        .unwrap();
-    e.add_arena(&mut s, pilot).unwrap();
-    assert!(
-        !e.current_played_unit_matches(&s, pilot),
-        "plain re-entry after attachment cannot reuse earlier play"
-    );
-    e.leave_play_primary_to_discard(&mut s, pilot, false)
-        .unwrap();
-    s.player_mut(Seat::P1).hand.push(pilot).unwrap();
-    fund(&e, &mut s, Seat::P1);
-    s = play(&e, &s, pilot);
-    assert!(e.current_played_unit_matches(&s, pilot));
-}
-
-#[test]
 fn current_played_unit_selected_pool_import_requires_both_exact_evidence_versions() {
     let e = selected_pool(true);
     assert!(e.needs_hidden_history());

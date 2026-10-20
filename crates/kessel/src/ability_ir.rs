@@ -3368,6 +3368,7 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
                 crate::resource_exhaust::validate_entry(entry)?;
                 if crate::cinder_contract::marker(entry) && !crate::cinder_contract::entry(entry) {return Err("self-base then arena damage requires the complete closed ordinary event source and exact two-window registration".into());}
                 if crate::cross_arena_contract::marker(&entry["abilities"]) && !crate::cross_arena_contract::entry(entry) {return Err("attack permission requires the complete closed paired constant unit and intrinsic Support profile".into());}

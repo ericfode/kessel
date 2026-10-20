@@ -1,5 +1,18 @@
 use super::*;
 
+// Pure retained descriptor checks only. This does not construct an Engine or
+// grant whole-card admission while native Piloting play remains unavailable.
+fn piloting_source_recipe(e: &Value) -> bool {
+    (crate::attached_registration::piloting_host_entry(e)
+        || crate::attached_registration::piloting_self_entry(e))
+        && crate::attached_registration::sides(e).is_ok_and(|s| {
+            s.card
+                .iter()
+                .chain(&s.unit)
+                .chain(&s.leader)
+                .all(|a| Program::compile(a).is_ok())
+        })
+}
 fn attack(e: &Engine, s: State, source: CardId, target: CardId) -> State {
     let a = e.card_action(&s, source);
     assert!(e.legal_actions(&s).contains(&a));
@@ -17,8 +30,7 @@ fn attached_alias_admission_census_and_preserved_rejections() {
     let e = engine();
     for code in [
         "ASH_134", "ASH_210", "JTL_073", "SEC_039", "TS26_052", "TWI_169", "TWI_218", "IC27_085",
-        "SHD_104", "JTL_035", "JTL_046", "JTL_036", "JTL_057", "JTL_084", "JTL_086", "JTL_141",
-        "JTL_142", "JTL_145", "JTL_148", "JTL_189", "JTL_210", "SHD_175", "JTL_066",
+        "SHD_104", "SHD_175",
     ] {
         assert!(
             e.by_code.contains_key(code),
@@ -620,99 +632,6 @@ fn attached_alias_source_context_extras_are_not_silently_discarded() {
 }
 
 #[test]
-fn piloting_host_paige_on_attack_experience_then_self_damage() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_046"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_046")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        // Blank host: avoid stacking a unit onAttack beside the piloting grant.
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let printed_hp = e.hp(&s, host);
-        attach(&e, &mut s, seat, "JTL_046", host);
-        let base = s.player(seat.other()).base;
-        let done = attack(&e, s, host, base);
-        assert_eq!(
-            e.upgrades(&done, host)
-                .iter()
-                .filter(|&&id| e.def(&done, id).code == "TOKEN_EXPERIENCE")
-                .count(),
-            1,
-            "{seat:?} experience"
-        );
-        assert_eq!(
-            done.card(host).damage,
-            1,
-            "{seat:?} self damage after experience"
-        );
-        assert!(
-            e.hp(&done, host) >= printed_hp,
-            "{seat:?} experience raises hp before damage"
-        );
-    }
-}
-
-#[test]
-fn piloting_host_paige_as_unit_does_not_fire_attached_grant() {
-    let e = engine();
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_046");
-    let base = s.player(Seat::P2).base;
-    let done = attack(&e, s, pilot, base);
-    assert_eq!(
-        e.upgrades(&done, pilot)
-            .iter()
-            .filter(|&&id| e.def(&done, id).code == "TOKEN_EXPERIENCE")
-            .count(),
-        0
-    );
-    assert_eq!(done.card(pilot).damage, 0);
-}
-
-#[test]
-fn piloting_host_tam_debuffs_enemy_in_same_arena() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_035"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_035")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let enemy = unit(&e, &mut s, seat.other(), "LOF_256");
-        let space = unit(&e, &mut s, seat.other(), "TOKEN_XWING");
-        let printed = e.power(&s, enemy, false);
-        let printed_hp = e.hp(&s, enemy);
-        attach(&e, &mut s, seat, "JTL_035", host);
-        let base = s.player(seat.other()).base;
-        let prompt = attack(&e, s, host, base);
-        assert_eq!(prompt.decision, Decision::AbilityTarget, "{seat:?}");
-        assert_eq!(prompt.source, host);
-        let actions = e.legal_actions(&prompt);
-        assert!(actions.iter().any(|a| a.id() == Some(enemy)));
-        assert!(!actions
-            .iter()
-            .any(|a| a.id() == Some(space) || a.id() == Some(host)));
-        let done = e.apply(&prompt, &e.card_action(&prompt, enemy)).unwrap();
-        assert_eq!(e.power(&done, enemy, false), printed.saturating_sub(1));
-        assert_eq!(e.hp(&done, enemy), printed_hp.saturating_sub(1));
-    }
-}
-
-#[test]
 fn piloting_host_rejects_leaders_and_extra_keywords() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -724,12 +643,7 @@ fn piloting_host_rejects_leaders_and_extra_keywords() {
         .find(|e| e["setCode"] == "JTL_046")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_046")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     for (path, value) in [
         ("/baseClass", json!("LeaderUnitCard")),
@@ -773,54 +687,6 @@ fn fire_attached_when_played(e: &Engine, s: &mut State, pilot: CardId) {
 }
 
 #[test]
-fn piloting_host_ig88_enemy_damaged_buffs_unit_and_attached_host() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_141"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_141")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        // As a unit: +3/+0 while an enemy unit is damaged.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let ig = unit(&e, &mut s, seat, "JTL_141");
-        let printed = e.power(&s, ig, false);
-        assert_eq!(
-            e.power(&s, ig, false),
-            printed,
-            "{seat:?} no enemy damage yet"
-        );
-        let enemy = unit(&e, &mut s, seat.other(), "LOF_256");
-        s.card_mut(enemy).damage = 1;
-        assert_eq!(e.power(&s, ig, false), printed + 3, "{seat:?} unit buff");
-
-        // While attached: host gains the aura; the pilot does not stay a unit.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let host_printed = e.power(&s, host, false);
-        let enemy = unit(&e, &mut s, seat.other(), "LOF_256");
-        attach(&e, &mut s, seat, "JTL_141", host);
-        assert_eq!(
-            e.power(&s, host, false),
-            host_printed,
-            "{seat:?} attached without damage"
-        );
-        s.card_mut(enemy).damage = 1;
-        assert_eq!(
-            e.power(&s, host, false),
-            host_printed + 3,
-            "{seat:?} host buff while attached"
-        );
-    }
-}
-
-#[test]
 fn piloting_host_ig88_rejects_mismatched_companion_and_hooks() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -832,12 +698,7 @@ fn piloting_host_ig88_rejects_mismatched_companion_and_hooks() {
         .find(|e| e["setCode"] == "JTL_141")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_141")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     // Host-only (no companion) still admits via constant parent grant.
     let mut host_only = original.clone();
@@ -863,109 +724,6 @@ fn piloting_host_ig88_rejects_mismatched_companion_and_hooks() {
 }
 
 #[test]
-fn piloting_self_astromech_heals_when_attached_not_as_unit() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_057"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_057")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let damaged = unit(&e, &mut s, seat, "LOF_256");
-        s.card_mut(damaged).damage = 3;
-        let pilot = attach(&e, &mut s, seat, "JTL_057", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?}");
-        assert_eq!(s.source, pilot);
-        assert!(e.legal_actions(&s).iter().any(|a| a.id() == Some(damaged)));
-        let done = e.apply(&s, &e.card_action(&s, damaged)).unwrap();
-        assert_eq!(done.card(damaged).damage, 1, "{seat:?}");
-    }
-    // Played as a unit: WhenPlayed must not fire.
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_057");
-    let damaged = unit(&e, &mut s, Seat::P1, "LOF_256");
-    s.card_mut(damaged).damage = 3;
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::Window);
-    assert_eq!(s.card(damaged).damage, 3);
-}
-
-#[test]
-fn piloting_self_victor_two_creates_tie_when_attached() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_084"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_084")
-    );
-    assert!(e.by_code.contains_key("TOKEN_TIE_FIGHTER"));
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "TOKEN_XWING");
-        let before = e.arena_units(&s).len();
-        let pilot = attach(&e, &mut s, seat, "JTL_084", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        let ties: Vec<_> = e
-            .arena_units(&s)
-            .into_iter()
-            .filter(|&id| e.def(&s, id).code == "TOKEN_TIE_FIGHTER" && s.card(id).owner == seat)
-            .collect();
-        assert_eq!(ties.len(), 1, "{seat:?}");
-        assert!(s.card(ties[0]).exhausted);
-        assert_eq!(e.arena_units(&s).len(), before + 1);
-    }
-}
-
-#[test]
-fn piloting_self_backstabber_experience_excludes_host() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_086"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_086")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let ally = unit(&e, &mut s, seat, "LOF_256");
-        let enemy = unit(&e, &mut s, seat.other(), "LOF_256");
-        let pilot = attach(&e, &mut s, seat, "JTL_086", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?}");
-        let actions = e.legal_actions(&s);
-        assert!(actions.iter().any(|a| a.id() == Some(ally)));
-        assert!(actions.iter().any(|a| a.id() == Some(enemy)));
-        assert!(
-            !actions.iter().any(|a| a.id() == Some(host)),
-            "host excluded via parentCard"
-        );
-        let done = e.apply(&s, &e.card_action(&s, ally)).unwrap();
-        assert_eq!(
-            e.upgrades(&done, ally)
-                .iter()
-                .filter(|&&id| e.def(&done, id).code == "TOKEN_EXPERIENCE")
-                .count(),
-            1
-        );
-    }
-}
-
-#[test]
 fn piloting_self_rejects_non_when_played_and_companions() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -977,12 +735,7 @@ fn piloting_self_rejects_non_when_played_and_companions() {
         .find(|e| e["setCode"] == "JTL_057")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_057")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     for (path, value) in [
         (
@@ -1027,60 +780,6 @@ fn piloting_self_rejects_non_when_played_and_companions() {
 }
 
 #[test]
-fn piloting_self_iden_gives_host_shield_when_attached() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_036"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_036")
-    );
-    assert!(e.by_code.contains_key("TOKEN_SHIELD"));
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        assert_eq!(
-            e.upgrades(&s, host)
-                .iter()
-                .filter(|&&id| e.def(&s, id).code == "TOKEN_SHIELD")
-                .count(),
-            0
-        );
-        let pilot = attach(&e, &mut s, seat, "JTL_036", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::Window, "{seat:?} auto-resolves");
-        assert_eq!(
-            e.upgrades(&s, host)
-                .iter()
-                .filter(|&&id| e.def(&s, id).code == "TOKEN_SHIELD")
-                .count(),
-            1,
-            "{seat:?} host shield"
-        );
-        assert!(
-            e.upgrades(&s, host).contains(&pilot),
-            "{seat:?} pilot still attached"
-        );
-    }
-    // Played as a unit: attach watcher must not fire (Shielded is intrinsic separately).
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_036");
-    let before = e.upgrades(&s, pilot).len();
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::Window);
-    assert_eq!(
-        e.upgrades(&s, pilot).len(),
-        before,
-        "unit play does not run attach Shield"
-    );
-}
-
-#[test]
 fn piloting_self_iden_rejects_partial_attach_and_shield_shapes() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -1092,12 +791,7 @@ fn piloting_self_iden_rejects_partial_attach_and_shield_shapes() {
         .find(|e| e["setCode"] == "JTL_036")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_036")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     assert!(crate::attached_registration::piloting_self_entry(&original));
     // Watcher must be self-attach, not an unrelated upgrade attach.
@@ -1126,169 +820,6 @@ fn piloting_self_iden_rejects_partial_attach_and_shield_shapes() {
 }
 
 #[test]
-fn piloting_self_boba_damages_by_host_transport_trait() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_189"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_189")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        // Non-Transport host: 1 damage.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "TOKEN_XWING");
-        let victim = unit(&e, &mut s, seat.other(), "LOF_256");
-        let pilot = attach(&e, &mut s, seat, "JTL_189", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(
-            s.decision,
-            Decision::AbilityTarget,
-            "{seat:?} non-transport"
-        );
-        let done = e.apply(&s, &e.card_action(&s, victim)).unwrap();
-        assert_eq!(done.card(victim).damage, 1, "{seat:?} non-transport");
-
-        // Transport host: 2 damage.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "ASH_254");
-        let victim = unit(&e, &mut s, seat.other(), "LOF_256");
-        let pilot = attach(&e, &mut s, seat, "JTL_189", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?} transport");
-        let done = e.apply(&s, &e.card_action(&s, victim)).unwrap();
-        assert_eq!(done.card(victim).damage, 2, "{seat:?} transport");
-    }
-    // Played as a unit: WhenPlayed must not fire.
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_189");
-    let victim = unit(&e, &mut s, Seat::P2, "LOF_256");
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::Window);
-    assert_eq!(s.card(victim).damage, 0);
-}
-
-#[test]
-fn piloting_self_mandalorian_exhausts_enemy_in_host_arena_when_attached() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_210"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_210")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        // Ground host: only ground enemies in the same arena are legal.
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let enemy_ground = unit(&e, &mut s, seat.other(), "LOF_256");
-        let enemy_space = unit(&e, &mut s, seat.other(), "TOKEN_XWING");
-        let ally = unit(&e, &mut s, seat, "LOF_256");
-        let pilot = attach(&e, &mut s, seat, "JTL_210", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?} attached");
-        assert_eq!(s.source, pilot);
-        let actions = e.legal_actions(&s);
-        assert!(
-            actions.iter().any(|a| a.id() == Some(enemy_ground)),
-            "{seat:?} ground enemy"
-        );
-        assert!(
-            !actions.iter().any(|a| a.id() == Some(enemy_space)
-                || a.id() == Some(ally)
-                || a.id() == Some(host)),
-            "{seat:?} arena/owner filter"
-        );
-        let done = e.apply(&s, &e.card_action(&s, enemy_ground)).unwrap();
-        assert!(done.card(enemy_ground).exhausted, "{seat:?} exhausted");
-
-        // Space host: ground enemy is excluded.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "TOKEN_XWING");
-        let enemy_ground = unit(&e, &mut s, seat.other(), "LOF_256");
-        let enemy_space = unit(&e, &mut s, seat.other(), "TOKEN_TIE_FIGHTER");
-        let pilot = attach(&e, &mut s, seat, "JTL_210", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?} space host");
-        let actions = e.legal_actions(&s);
-        assert!(
-            actions.iter().any(|a| a.id() == Some(enemy_space)),
-            "{seat:?} space enemy"
-        );
-        assert!(
-            !actions.iter().any(|a| a.id() == Some(enemy_ground)),
-            "{seat:?} excludes other arena"
-        );
-    }
-}
-
-#[test]
-fn piloting_self_mandalorian_unit_companion_fires_only_as_unit() {
-    let e = engine();
-    // As a unit: exhaust up to 2 ground units (multi-select + Done).
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_210");
-    let g1 = unit(&e, &mut s, Seat::P2, "LOF_256");
-    let g2 = unit(&e, &mut s, Seat::P2, "LOF_254");
-    let space = unit(&e, &mut s, Seat::P2, "TOKEN_XWING");
-    s.source = pilot;
-    s.trigger_context = 1;
-    s.decision = Decision::Window;
-    e.queue_programs(&mut s, &["whenPlayed"]);
-    e.process_all_triggers(&mut s).unwrap();
-    assert_eq!(s.decision, Decision::AbilityTarget);
-    let actions = e.legal_actions(&s);
-    assert!(actions.iter().any(|a| a.id() == Some(g1)));
-    assert!(actions.iter().any(|a| a.id() == Some(g2)));
-    assert!(
-        !actions.iter().any(|a| a.id() == Some(space)),
-        "space excluded from ground upTo"
-    );
-    let picked = e.apply(&s, &e.card_action(&s, g1)).unwrap();
-    assert_eq!(
-        picked.decision,
-        Decision::AbilityTarget,
-        "upTo waits for Done"
-    );
-    assert!(!picked.card(g1).exhausted, "not exhausted until Done");
-    let done = named_button(&e, &picked, "Done");
-    assert!(done.card(g1).exhausted);
-    // While attached, unit companion must not fire; only host-arena exhaust does.
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let host = unit(&e, &mut s, Seat::P1, "LOF_254");
-    let enemy = unit(&e, &mut s, Seat::P2, "LOF_256");
-    let pilot = attach(&e, &mut s, Seat::P1, "JTL_210", host);
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::AbilityTarget);
-    assert_eq!(s.source, pilot);
-    let actions = e.legal_actions(&s);
-    assert!(actions.iter().any(|a| a.id() == Some(enemy)));
-    assert!(
-        !actions.iter().any(|a| a.id() == Some(host)),
-        "unit upTo must not replace host-arena exhaust"
-    );
-}
-
-#[test]
 fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -1300,27 +831,10 @@ fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
         .find(|e| e["setCode"] == "JTL_210")
         .unwrap()
         .clone();
-    let catalogue_admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_210")
-    };
-    let engine_admitted = |e: Value| {
-        let mut full = catalog.clone();
-        let cards = full["cards"].as_array_mut().unwrap();
-        let slot = cards
-            .iter_mut()
-            .find(|c| c["setCode"] == "JTL_210")
-            .unwrap();
-        *slot = e;
-        Engine::from_catalogue_value(&full)
-            .unwrap()
-            .by_code
-            .contains_key("JTL_210")
-    };
-    assert!(catalogue_admitted(original.clone()));
-    assert!(engine_admitted(original.clone()));
+    let source_recipe_supported = |e: Value| piloting_source_recipe(&e);
+    let complete_recipe_supported = |e: Value| piloting_source_recipe(&e);
+    assert!(source_recipe_supported(original.clone()));
+    assert!(complete_recipe_supported(original.clone()));
     assert!(crate::attached_registration::piloting_self_entry(&original));
     // Drop the pilotingRegistration: unit companion alone is not a piloting_self entry,
     // and the printed piloting keyword stays unimplemented without a reviewed path.
@@ -1330,7 +844,7 @@ fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
         &unit_only
     ));
     assert!(
-        !engine_admitted(unit_only),
+        !complete_recipe_supported(unit_only),
         "companion without pilotingRegistration"
     );
     // Widen arena filter away from host parentCard zone.
@@ -1342,67 +856,13 @@ fn piloting_self_mandalorian_rejects_mismatched_companion_and_predicate() {
         "right":{"kind":"const","value":"groundArena"}
     });
     assert!(
-        !catalogue_admitted(bad_pred),
+        !source_recipe_supported(bad_pred),
         "static arena instead of host arena"
     );
     // Extra keyword breaks plain_pilot.
     let mut bad_kw = original.clone();
     bad_kw["card"]["keywords"] = json!(["piloting", "ambush"]);
-    assert!(!catalogue_admitted(bad_kw), "extra keyword");
-}
-
-#[test]
-fn piloting_self_frisk_defeats_cheap_upgrade_when_attached() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_148"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_148")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let ally = unit(&e, &mut s, seat, "LOF_256");
-        let cheap = attach(&e, &mut s, seat, "ASH_210", ally);
-        let expensive = attach(&e, &mut s, seat.other(), "ASH_134", ally);
-        assert_eq!(e.def(&s, cheap).info.cost(), 1);
-        assert_eq!(e.def(&s, expensive).info.cost(), 3);
-        let pilot = attach(&e, &mut s, seat, "JTL_148", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        // Optional + Select opens the target window (same as Astromech / Backstabber).
-        assert_eq!(s.decision, Decision::AbilityTarget, "{seat:?}");
-        assert_eq!(s.source, pilot);
-        let actions = e.legal_actions(&s);
-        assert!(
-            actions.iter().any(|a| a.id() == Some(cheap)),
-            "{seat:?} cheap upgrade"
-        );
-        assert!(
-            !actions.iter().any(|a| a.id() == Some(expensive)),
-            "{seat:?} cost>2 excluded"
-        );
-        let done = e.apply(&s, &e.card_action(&s, cheap)).unwrap();
-        assert!(done.player(seat).discard.contains(cheap), "{seat:?}");
-        assert_eq!(
-            done.card(expensive).parent,
-            ally,
-            "{seat:?} expensive remains"
-        );
-    }
-    // Played as a unit: WhenPlayed must not fire.
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let ally = unit(&e, &mut s, Seat::P1, "LOF_256");
-    let cheap = attach(&e, &mut s, Seat::P1, "ASH_210", ally);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_148");
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::Window);
-    assert_eq!(s.card(cheap).parent, ally);
+    assert!(!source_recipe_supported(bad_kw), "extra keyword");
 }
 
 #[test]
@@ -1417,12 +877,7 @@ fn piloting_self_frisk_rejects_cost_and_registration_query_drift() {
         .find(|e| e["setCode"] == "JTL_148")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_148")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     assert!(crate::attached_registration::piloting_self_entry(&original));
     // Cost ceiling is part of the reviewed Frisk contract.
@@ -1460,68 +915,6 @@ fn stock_ready_resources(e: &Engine, s: &mut State, seat: Seat, n: usize) {
 }
 
 #[test]
-fn piloting_self_bb8_pays_then_readies_resistance_when_attached() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_145"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_145")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        stock_ready_resources(&e, &mut s, seat, 3);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let resistance = unit(&e, &mut s, seat, "JTL_060");
-        let other = unit(&e, &mut s, seat, "LOF_256");
-        s.card_mut(resistance).exhausted = true;
-        s.card_mut(other).exhausted = true;
-        let pilot = attach(&e, &mut s, seat, "JTL_145", host);
-        fire_attached_when_played(&e, &mut s, pilot);
-        assert_eq!(s.decision, Decision::AbilityOptional, "{seat:?}");
-        assert_eq!(s.source, pilot);
-        let ready_before = e.ready_resources(&s, seat);
-        let prompt = e.apply(&s, &Action::button("Trigger", "trigger")).unwrap();
-        assert_eq!(
-            e.ready_resources(&prompt, seat),
-            ready_before.saturating_sub(2),
-            "{seat:?} paid 2"
-        );
-        assert_eq!(prompt.decision, Decision::AbilityTarget, "{seat:?}");
-        let actions = e.legal_actions(&prompt);
-        assert!(
-            actions.iter().any(|a| a.id() == Some(resistance)),
-            "{seat:?} resistance"
-        );
-        assert!(
-            !actions
-                .iter()
-                .any(|a| a.id() == Some(other) || a.id() == Some(host)),
-            "{seat:?} non-resistance excluded"
-        );
-        let done = e
-            .apply(&prompt, &e.card_action(&prompt, resistance))
-            .unwrap();
-        assert!(!done.card(resistance).exhausted, "{seat:?} readied");
-        assert!(done.card(other).exhausted, "{seat:?} other stays exhausted");
-    }
-    // Played as a unit: WhenPlayed must not fire.
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    stock_ready_resources(&e, &mut s, Seat::P1, 3);
-    let resistance = unit(&e, &mut s, Seat::P1, "JTL_060");
-    s.card_mut(resistance).exhausted = true;
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_145");
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert_eq!(s.decision, Decision::Window);
-    assert!(s.card(resistance).exhausted);
-}
-
-#[test]
 fn piloting_self_bb8_rejects_pay_ready_drift() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -1533,12 +926,7 @@ fn piloting_self_bb8_rejects_pay_ready_drift() {
         .find(|e| e["setCode"] == "JTL_145")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_145")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     assert!(crate::attached_registration::piloting_self_entry(&original));
     // Amount is part of the reviewed BB-8 contract.
@@ -1625,79 +1013,6 @@ fn attached_alias_smuggle_mention_requires_printed_cost_text() {
 }
 
 #[test]
-fn piloting_host_vader_will_defeat_continues_to_optional_followup() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_142"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_142")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let fragile = unit(&e, &mut s, seat.other(), "LOF_256");
-        // Leave 1 HP so ability damage 1 willDefeat.
-        s.card_mut(fragile).damage = e.hp(&s, fragile).saturating_sub(1);
-        let tough = unit(&e, &mut s, seat.other(), "LOF_254");
-        attach(&e, &mut s, seat, "JTL_142", host);
-        let base = s.player(seat.other()).base;
-        // Optional + Select opens AbilityTarget with Pass (not a separate AbilityOptional).
-        let prompt = attack(&e, s, host, base);
-        assert_eq!(prompt.decision, Decision::AbilityTarget, "{seat:?}");
-        assert_eq!(prompt.source, host);
-        let actions = e.legal_actions(&prompt);
-        assert!(actions.iter().any(|a| a.id() == Some(fragile)));
-        assert!(actions.iter().any(|a| a.id() == Some(tough)));
-        assert!(actions
-            .iter()
-            .any(|a| a.arg.as_ref().and_then(|v| v.as_str()) == Some("passAbility")));
-        let follow = e.apply(&prompt, &e.card_action(&prompt, fragile)).unwrap();
-        assert!(
-            follow.player(seat.other()).discard.contains(fragile),
-            "{seat:?} defeated"
-        );
-        // Optional "you may" follow-up: Choose nothing after Commit.
-        assert_eq!(
-            follow.decision,
-            Decision::AbilityTarget,
-            "{seat:?} follow-up"
-        );
-        assert!(e
-            .legal_actions(&follow)
-            .iter()
-            .any(|a| a.label == "Choose nothing"
-                || a.arg.as_ref().and_then(|v| v.as_str()) == Some("done")));
-        let done = e
-            .apply(&follow, &Action::button("Choose nothing", "done"))
-            .unwrap();
-        assert_eq!(done.decision, Decision::Window);
-        assert_eq!(done.card(tough).damage, 0);
-
-        // Non-lethal damage must not offer the follow-up.
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        let host = unit(&e, &mut s, seat, "LOF_254");
-        let tough = unit(&e, &mut s, seat.other(), "LOF_256");
-        attach(&e, &mut s, seat, "JTL_142", host);
-        let base = s.player(seat.other()).base;
-        let prompt = attack(&e, s, host, base);
-        let done = e.apply(&prompt, &e.card_action(&prompt, tough)).unwrap();
-        assert!(e.in_arena(&done, tough));
-        assert_eq!(done.card(tough).damage, 1);
-        assert_eq!(
-            done.decision,
-            Decision::Window,
-            "{seat:?} no follow-up without willDefeat"
-        );
-    }
-}
-
-#[test]
 fn piloting_host_vader_rejects_missing_will_defeat_condition() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json")))
@@ -1709,12 +1024,7 @@ fn piloting_host_vader_rejects_missing_will_defeat_condition() {
         .find(|e| e["setCode"] == "JTL_142")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_142")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     assert!(crate::attached_registration::piloting_host_entry(&original));
     let mut no_cond = original.clone();
@@ -1852,118 +1162,15 @@ fn will_defeat_shoot_down_optional_base_followup() {
 }
 
 #[test]
-fn discard_return_admits_boshek_kuiil_krennic() {
+fn discard_return_admits_kuiil_krennic() {
     let e = engine();
-    for code in ["JTL_215", "SHD_041", "SEC_090"] {
+    for code in ["SHD_041", "SEC_090"] {
         assert!(
             e.by_code.contains_key(code),
             "{code}: {:?}",
             e.rejected_cards().unwrap().get(code)
         );
     }
-}
-
-#[test]
-fn piloting_host_trace_distributes_healing_across_units() {
-    let e = engine();
-    assert!(
-        e.by_code.contains_key("JTL_066"),
-        "{:?}",
-        e.rejected_cards().unwrap().get("JTL_066")
-    );
-    for seat in [Seat::P1, Seat::P2] {
-        let mut s = board(&e);
-        s.round = 5;
-        s.active = seat;
-        s.action_player = Some(seat);
-        // High-HP Vehicle host so pre-damage survives until the On Attack prompt.
-        let host = unit(&e, &mut s, seat, "JTL_051");
-        let ally = unit(&e, &mut s, seat, "LOF_256");
-        let enemy = unit(&e, &mut s, seat.other(), "ASH_034");
-        s.card_mut(host).damage = 3;
-        s.card_mut(ally).damage = 2;
-        s.card_mut(enemy).damage = 1;
-        attach(&e, &mut s, seat, "JTL_066", host);
-        let base = s.player(seat.other()).base;
-        let prompt = attack(&e, s, host, base);
-        assert_eq!(prompt.decision, Decision::AbilityDistribute, "{seat:?}");
-        assert_eq!(prompt.source, host);
-        let actions = e.legal_actions(&prompt);
-        assert!(
-            actions
-                .iter()
-                .any(|a| a.kind == "distribute" && a.arg == Some(json!([]))),
-            "choose none"
-        );
-        assert!(
-            actions
-                .iter()
-                .any(|a| a.kind == "distribute"
-                    && a.arg == Some(json!([[format!("c{}", host - 1), 2]]))),
-            "full on host"
-        );
-        let split = actions
-            .iter()
-            .find(|a| {
-                a.kind == "distribute"
-                    && a.arg.as_ref().is_some_and(|arg| {
-                        let Some(pairs) = arg.as_array() else {
-                            return false;
-                        };
-                        pairs.len() == 2
-                            && pairs.iter().any(|p| {
-                                p.get(0) == Some(&json!(format!("c{}", ally - 1)))
-                                    && p.get(1) == Some(&json!(1))
-                            })
-                            && pairs.iter().any(|p| {
-                                p.get(0) == Some(&json!(format!("c{}", host - 1)))
-                                    && p.get(1) == Some(&json!(1))
-                            })
-                    })
-            })
-            .unwrap_or_else(|| panic!("missing 1+1 split: {actions:?}"));
-        let done = e.apply(&prompt, split).unwrap();
-        assert_eq!(done.card(host).damage, 2, "{seat:?} host healed 1");
-        assert_eq!(done.card(ally).damage, 1, "{seat:?} ally healed 1");
-        assert_eq!(done.card(enemy).damage, 1, "{seat:?} enemy untouched");
-    }
-}
-
-#[test]
-fn piloting_host_trace_can_choose_no_targets() {
-    let e = engine();
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let host = unit(&e, &mut s, Seat::P1, "JTL_051");
-    s.card_mut(host).damage = 3;
-    attach(&e, &mut s, Seat::P1, "JTL_066", host);
-    let base = s.player(Seat::P2).base;
-    let prompt = attack(&e, s, host, base);
-    assert_eq!(prompt.decision, Decision::AbilityDistribute);
-    let none = e
-        .legal_actions(&prompt)
-        .into_iter()
-        .find(|a| a.kind == "distribute" && a.arg == Some(json!([])))
-        .expect("choose none");
-    let done = e.apply(&prompt, &none).unwrap();
-    assert_eq!(done.card(host).damage, 3);
-}
-
-#[test]
-fn piloting_host_trace_as_unit_does_not_fire_attached_grant() {
-    let e = engine();
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let pilot = unit(&e, &mut s, Seat::P1, "JTL_066");
-    s.card_mut(pilot).damage = 2;
-    let base = s.player(Seat::P2).base;
-    let done = attack(&e, s, pilot, base);
-    assert_ne!(done.decision, Decision::AbilityDistribute);
-    assert_eq!(done.card(pilot).damage, 2);
 }
 
 #[test]
@@ -1978,12 +1185,7 @@ fn piloting_host_trace_rejects_unreviewed_distribute_shapes() {
         .find(|e| e["setCode"] == "JTL_066")
         .unwrap()
         .clone();
-    let admitted = |e: Value| {
-        crate::ability_ir::Catalogue::load(&json!({"schema":crate::ability_ir::SCHEMA,"cards":[e]}))
-            .unwrap()
-            .cards
-            .contains_key("JTL_066")
-    };
+    let admitted = |e: Value| piloting_source_recipe(&e);
     assert!(admitted(original.clone()));
     assert!(crate::attached_registration::piloting_host_entry(&original));
     for (path,value) in [
@@ -2052,30 +1254,6 @@ fn kuiil_returns_discarded_card_when_aspects_match() {
         "no shared aspect stays discarded"
     );
     assert!(!done.players[0].hand.contains(mismatch));
-}
-
-#[test]
-fn boshek_returns_odd_cost_discarded_while_attached() {
-    let e = engine();
-    let mut s = board(&e);
-    s.round = 5;
-    s.active = Seat::P1;
-    s.action_player = Some(Seat::P1);
-    let host = unit(&e, &mut s, Seat::P1, "TOKEN_XWING");
-    let pilot = attach(&e, &mut s, Seat::P1, "JTL_215", host);
-    // Deck top two: odd then even (discardDeck takes from the front).
-    let odd = add(&e, &mut s, Seat::P1, "ASH_068"); // cost 1
-    let even = add(&e, &mut s, Seat::P1, "ASH_040"); // cost 2
-    s.players[0].deck.push(odd).unwrap();
-    s.players[0].deck.push(even).unwrap();
-    fire_attached_when_played(&e, &mut s, pilot);
-    assert!(s.players[0].hand.contains(odd), "odd cost returns");
-    assert!(
-        s.players[0].discard.contains(even),
-        "even cost stays discarded"
-    );
-    assert!(!s.players[0].hand.contains(even));
-    assert!(!s.players[0].discard.contains(odd));
 }
 
 #[test]

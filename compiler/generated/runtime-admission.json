@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 944
+    "sourceIr": 925
   },
   "runtimeAdmittedCards": [
     {
@@ -1987,21 +1987,6 @@
     },
     {
       "implementation": "sourceIr",
-      "internalName": "interceptor-ace",
-      "setCode": "JTL_034"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "tam-ryvora#searching-for-purpose",
-      "setCode": "JTL_035"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "iden-versio#adapt-or-die",
-      "setCode": "JTL_036"
-    },
-    {
-      "implementation": "sourceIr",
       "internalName": "banshee#crippling-command",
       "setCode": "JTL_037"
     },
@@ -2022,16 +2007,6 @@
     },
     {
       "implementation": "sourceIr",
-      "internalName": "hera-syndulla#weve-lost-enough",
-      "setCode": "JTL_045"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "paige-tico#dropping-the-hammer",
-      "setCode": "JTL_046"
-    },
-    {
-      "implementation": "sourceIr",
       "internalName": "red-squadron-xwing",
       "setCode": "JTL_051"
     },
@@ -2049,16 +2024,6 @@
       "implementation": "sourceIr",
       "internalName": "gold-leader#fastest-ship-in-the-fleet",
       "setCode": "JTL_054"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "astromech-pilot",
-      "setCode": "JTL_057"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "academy-graduate",
-      "setCode": "JTL_058"
     },
     {
       "implementation": "sourceIr",
@@ -2089,11 +2054,6 @@
       "implementation": "dataOnly",
       "internalName": "outer-rim-outlaws",
       "setCode": "JTL_065"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "trace-martez#trusting-sister",
-      "setCode": "JTL_066"
     },
     {
       "implementation": "sourceIr",
@@ -2162,18 +2122,8 @@
     },
     {
       "implementation": "sourceIr",
-      "internalName": "wingman-victor-two#mauler-mithel",
-      "setCode": "JTL_084"
-    },
-    {
-      "implementation": "sourceIr",
       "internalName": "victor-leader#leading-from-the-front",
       "setCode": "JTL_085"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "wingman-victor-three#backstabber",
-      "setCode": "JTL_086"
     },
     {
       "implementation": "sourceIr",
@@ -2272,23 +2222,8 @@
     },
     {
       "implementation": "sourceIr",
-      "internalName": "ig88#murderous-phlutdroid",
-      "setCode": "JTL_141"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "darth-vader#scourge-of-squadrons",
-      "setCode": "JTL_142"
-    },
-    {
-      "implementation": "sourceIr",
       "internalName": "no-disintegrations",
       "setCode": "JTL_144"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "bb8#happy-beeps",
-      "setCode": "JTL_145"
     },
     {
       "implementation": "sourceIr",
@@ -2299,16 +2234,6 @@
       "implementation": "sourceIr",
       "internalName": "black-one#straight-at-them",
       "setCode": "JTL_147"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "frisk#vanguard-loudmouth",
-      "setCode": "JTL_148"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "biggs-darklighter#theyll-never-stop-us",
-      "setCode": "JTL_150"
     },
     {
       "implementation": "sourceIr",
@@ -2386,11 +2311,6 @@
       "setCode": "JTL_184"
     },
     {
-      "implementation": "sourceIr",
-      "internalName": "boba-fett#feared-bounty-hunter",
-      "setCode": "JTL_189"
-    },
-    {
       "implementation": "dataOnly",
       "internalName": "techno-union-transport",
       "setCode": "JTL_190"
@@ -2421,16 +2341,6 @@
       "setCode": "JTL_207"
     },
     {
-      "implementation": "sourceIr",
-      "internalName": "the-mandalorian#weathered-pilot",
-      "setCode": "JTL_210"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "independent-smuggler",
-      "setCode": "JTL_211"
-    },
-    {
       "implementation": "dataOnly",
       "internalName": "republic-ywing",
       "setCode": "JTL_212"
@@ -2439,11 +2349,6 @@
       "implementation": "dataOnly",
       "internalName": "x34-landspeeder",
       "setCode": "JTL_214"
-    },
-    {
-      "implementation": "sourceIr",
-      "internalName": "boshek#charismatic-smuggler",
-      "setCode": "JTL_215"
     },
     {
       "implementation": "sourceIr",
@@ -6681,7 +6586,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1334,
+  "runtimeAdmittedCount": 1315,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -8155,7 +8060,7 @@
     },
     {
       "internalName": "asajj-ventress#i-work-alone",
-      "reason": "asajj-ventress#i-work-alone: parent references require an ordinary attached upgrade",
+      "reason": "asajj-ventress#i-work-alone: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_001"
     },
     {
@@ -8165,7 +8070,7 @@
     },
     {
       "internalName": "lando-calrissian#buying-time",
-      "reason": "lando-calrissian#buying-time: parent references require an ordinary attached upgrade",
+      "reason": "lando-calrissian#buying-time: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_003"
     },
     {
@@ -8180,17 +8085,17 @@
     },
     {
       "internalName": "darth-vader#victor-squadron-leader",
-      "reason": "darth-vader#victor-squadron-leader: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "darth-vader#victor-squadron-leader: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_006"
     },
     {
       "internalName": "wedge-antilles#leader-of-red-squadron",
-      "reason": "wedge-antilles#leader-of-red-squadron: parent references require an ordinary attached upgrade",
+      "reason": "wedge-antilles#leader-of-red-squadron: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_008"
     },
     {
       "internalName": "boba-fett#any-methods-necessary",
-      "reason": "boba-fett#any-methods-necessary: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "boba-fett#any-methods-necessary: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_009"
     },
     {
@@ -8200,17 +8105,17 @@
     },
     {
       "internalName": "major-vonreg#red-baron",
-      "reason": "major-vonreg#red-baron: parent references require an ordinary attached upgrade",
+      "reason": "major-vonreg#red-baron: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_011"
     },
     {
       "internalName": "luke-skywalker#hero-of-yavin",
-      "reason": "luke-skywalker#hero-of-yavin: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "luke-skywalker#hero-of-yavin: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_012"
     },
     {
       "internalName": "poe-dameron#i-can-fly-anything",
-      "reason": "poe-dameron#i-can-fly-anything: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "poe-dameron#i-can-fly-anything: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_013"
     },
     {
@@ -8220,7 +8125,7 @@
     },
     {
       "internalName": "rio-durant#wisecracking-wheelman",
-      "reason": "rio-durant#wisecracking-wheelman: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "rio-durant#wisecracking-wheelman: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_015"
     },
     {
@@ -8230,12 +8135,12 @@
     },
     {
       "internalName": "han-solo#never-tell-me-the-odds",
-      "reason": "han-solo#never-tell-me-the-odds: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "han-solo#never-tell-me-the-odds: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_017"
     },
     {
       "internalName": "kazuda-xiono#best-pilot-in-the-galaxy",
-      "reason": "kazuda-xiono#best-pilot-in-the-galaxy: parent references require an ordinary attached upgrade",
+      "reason": "kazuda-xiono#best-pilot-in-the-galaxy: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_018"
     },
     {
@@ -8289,6 +8194,21 @@
       "setCode": "JTL_033"
     },
     {
+      "internalName": "interceptor-ace",
+      "reason": "interceptor-ace: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_034"
+    },
+    {
+      "internalName": "tam-ryvora#searching-for-purpose",
+      "reason": "tam-ryvora#searching-for-purpose: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_035"
+    },
+    {
+      "internalName": "iden-versio#adapt-or-die",
+      "reason": "iden-versio#adapt-or-die: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_036"
+    },
+    {
       "internalName": "corvus#inferno-squadron-raider",
       "reason": "corvus#inferno-squadron-raider: invalid ability IR: unknown variant `attachUpgradeSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "JTL_038"
@@ -8309,23 +8229,33 @@
       "setCode": "JTL_043"
     },
     {
+      "internalName": "hera-syndulla#weve-lost-enough",
+      "reason": "hera-syndulla#weve-lost-enough: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_045"
+    },
+    {
+      "internalName": "paige-tico#dropping-the-hammer",
+      "reason": "paige-tico#dropping-the-hammer: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_046"
+    },
+    {
       "internalName": "admiral-yularen#fleet-coordinator",
       "reason": "admiral-yularen#fleet-coordinator: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
       "setCode": "JTL_047"
     },
     {
       "internalName": "cassian-andor#threading-the-eye",
-      "reason": "cassian-andor#threading-the-eye: parent references require an ordinary attached upgrade",
+      "reason": "cassian-andor#threading-the-eye: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_048"
     },
     {
       "internalName": "l337#get-out-of-my-seat",
-      "reason": "l337#get-out-of-my-seat: invalid ability IR: unknown variant `gainAbility`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "l337#get-out-of-my-seat: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_049"
     },
     {
       "internalName": "phantom-ii#modified-to-dock",
-      "reason": "phantom-ii#modified-to-dock: parent references require an ordinary attached upgrade",
+      "reason": "phantom-ii#modified-to-dock: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_050"
     },
     {
@@ -8339,9 +8269,24 @@
       "setCode": "JTL_056"
     },
     {
+      "internalName": "astromech-pilot",
+      "reason": "astromech-pilot: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_057"
+    },
+    {
+      "internalName": "academy-graduate",
+      "reason": "academy-graduate: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_058"
+    },
+    {
       "internalName": "silver-angel#traces-hope",
       "reason": "silver-angel#traces-hope: unimplemented event hook onDamageHealed",
       "setCode": "JTL_062"
+    },
+    {
+      "internalName": "trace-martez#trusting-sister",
+      "reason": "trace-martez#trusting-sister: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_066"
     },
     {
       "internalName": "uwing-lander",
@@ -8360,8 +8305,18 @@
     },
     {
       "internalName": "pantoran-starship-thief",
-      "reason": "pantoran-starship-thief: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "pantoran-starship-thief: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_083"
+    },
+    {
+      "internalName": "wingman-victor-two#mauler-mithel",
+      "reason": "wingman-victor-two#mauler-mithel: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_084"
+    },
+    {
+      "internalName": "wingman-victor-three#backstabber",
+      "reason": "wingman-victor-three#backstabber: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_086"
     },
     {
       "internalName": "the-invisible-hand#crawling-with-vultures",
@@ -8380,12 +8335,12 @@
     },
     {
       "internalName": "nien-nunb#loyal-copilot",
-      "reason": "nien-nunb#loyal-copilot: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
+      "reason": "nien-nunb#loyal-copilot: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_093"
     },
     {
       "internalName": "luke-skywalker#you-still-with-me",
-      "reason": "luke-skywalker#you-still-with-me: pilotingRegistration requires exact Pilot self/whenPlayed contract",
+      "reason": "luke-skywalker#you-still-with-me: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_094"
     },
     {
@@ -8405,12 +8360,12 @@
     },
     {
       "internalName": "snap-wexley#resistance-recon-flier",
-      "reason": "snap-wexley#resistance-recon-flier: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
+      "reason": "snap-wexley#resistance-recon-flier: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_098"
     },
     {
       "internalName": "poe-dameron#one-hell-of-a-pilot",
-      "reason": "poe-dameron#one-hell-of-a-pilot: invalid ability IR: unknown variant `attachUpgradeSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "poe-dameron#one-hell-of-a-pilot: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_100"
     },
     {
@@ -8420,7 +8375,7 @@
     },
     {
       "internalName": "chewbacca#faithful-first-mate",
-      "reason": "chewbacca#faithful-first-mate: parent references require an ordinary attached upgrade",
+      "reason": "chewbacca#faithful-first-mate: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_103"
     },
     {
@@ -8440,7 +8395,7 @@
     },
     {
       "internalName": "jarek-yeager#coordinating-with-the-resistance",
-      "reason": "jarek-yeager#coordinating-with-the-resistance: parent references require an ordinary attached upgrade",
+      "reason": "jarek-yeager#coordinating-with-the-resistance: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_109"
     },
     {
@@ -8535,8 +8490,18 @@
     },
     {
       "internalName": "dengar#crude-and-slovenly",
-      "reason": "dengar#crude-and-slovenly: parent references require an ordinary attached upgrade",
+      "reason": "dengar#crude-and-slovenly: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_139"
+    },
+    {
+      "internalName": "ig88#murderous-phlutdroid",
+      "reason": "ig88#murderous-phlutdroid: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_141"
+    },
+    {
+      "internalName": "darth-vader#scourge-of-squadrons",
+      "reason": "darth-vader#scourge-of-squadrons: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_142"
     },
     {
       "internalName": "devastator#hunting-the-rebellion",
@@ -8544,9 +8509,24 @@
       "setCode": "JTL_143"
     },
     {
+      "internalName": "bb8#happy-beeps",
+      "reason": "bb8#happy-beeps: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_145"
+    },
+    {
+      "internalName": "frisk#vanguard-loudmouth",
+      "reason": "frisk#vanguard-loudmouth: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_148"
+    },
+    {
       "internalName": "red-squadron-ywing",
       "reason": "red-squadron-ywing: invalid ability IR: unknown variant `indirectDamagePlayerSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "JTL_149"
+    },
+    {
+      "internalName": "biggs-darklighter#theyll-never-stop-us",
+      "reason": "biggs-darklighter#theyll-never-stop-us: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_150"
     },
     {
       "internalName": "tactical-heavy-bomber",
@@ -8655,13 +8635,18 @@
     },
     {
       "internalName": "bossk#hunt-by-instinct",
-      "reason": "bossk#hunt-by-instinct: parent references require an ordinary attached upgrade",
+      "reason": "bossk#hunt-by-instinct: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_187"
     },
     {
       "internalName": "moff-gideon#i-know-everything",
       "reason": "moff-gideon#i-know-everything: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "JTL_188"
+    },
+    {
+      "internalName": "boba-fett#feared-bounty-hunter",
+      "reason": "boba-fett#feared-bounty-hunter: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_189"
     },
     {
       "internalName": "invincible#naval-adversary",
@@ -8695,7 +8680,7 @@
     },
     {
       "internalName": "anakin-skywalker#ill-try-spinning",
-      "reason": "anakin-skywalker#ill-try-spinning: parent references require an ordinary attached upgrade",
+      "reason": "anakin-skywalker#ill-try-spinning: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_197"
     },
     {
@@ -8715,7 +8700,7 @@
     },
     {
       "internalName": "han-solo#has-his-moments",
-      "reason": "han-solo#has-his-moments: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "han-solo#has-his-moments: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_203"
     },
     {
@@ -8734,9 +8719,24 @@
       "setCode": "JTL_209"
     },
     {
+      "internalName": "the-mandalorian#weathered-pilot",
+      "reason": "the-mandalorian#weathered-pilot: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_210"
+    },
+    {
+      "internalName": "independent-smuggler",
+      "reason": "independent-smuggler: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_211"
+    },
+    {
       "internalName": "sidon-ithano#the-crimson-corsair",
       "reason": "sidon-ithano#the-crimson-corsair: invalid ability IR: unknown variant `attachUpgradeSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "JTL_213"
+    },
+    {
+      "internalName": "boshek#charismatic-smuggler",
+      "reason": "boshek#charismatic-smuggler: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "setCode": "JTL_215"
     },
     {
       "internalName": "guerilla-soldier",
@@ -8830,7 +8830,7 @@
     },
     {
       "internalName": "r2d2#artooooooooo",
-      "reason": "r2d2#artooooooooo: parent references require an ordinary attached upgrade",
+      "reason": "r2d2#artooooooooo: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
       "setCode": "JTL_245"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1271,
+  "runtimeRejectedCount": 1290,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

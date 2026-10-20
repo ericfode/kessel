@@ -572,7 +572,7 @@ fn credit_attachment_discount_and_payment_share_the_chosen_physical_host() {
     cases(|e, actor| {
         let mut s = standard(e, actor);
         let upgrade = hand(e, &mut s, actor, "ASH_262");
-        let cheap = unit(e, &mut s, actor, "JTL_058");
+        let cheap = unit(e, &mut s, actor, "ASH_143");
         let plain = unit(e, &mut s, actor, "LOF_256");
         let full = e.cost(&s, upgrade);
         let reduced = full - 1;
