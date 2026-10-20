@@ -1,5 +1,5 @@
 {
-  "catalogueHash": "c2ca76ce227523d71c07d2ad8f0e33fbf2e9189e3cb86f22b122b045879a146b",
+  "catalogueHash": "3c8b669eeacb60815f2aa2d1d3051cad6dd38c3b26089e9b4e626af7d09ec7cd",
   "dataOnlyConvertedCount": 447,
   "gameConformance": "not assessed by this report",
   "irConvertedCount": 2568,
@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 925
+    "sourceIr": 929
   },
   "runtimeAdmittedCards": [
     {
@@ -99,6 +99,11 @@
       "implementation": "sourceIr",
       "internalName": "poe-dameron#ill-come-back-for-you",
       "setCode": "ASH_040"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "outcast#mercenary-starship",
+      "setCode": "ASH_041"
     },
     {
       "implementation": "sourceIr",
@@ -234,6 +239,11 @@
       "implementation": "sourceIr",
       "internalName": "trexler-armored-marauder",
       "setCode": "ASH_082"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "summaverminoth",
+      "setCode": "ASH_083"
     },
     {
       "implementation": "sourceIr",
@@ -599,6 +609,11 @@
       "implementation": "sourceIr",
       "internalName": "inspiring-veteran",
       "setCode": "ASH_205"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "heroic-purrgil",
+      "setCode": "ASH_207"
     },
     {
       "implementation": "sourceIr",
@@ -3881,6 +3896,11 @@
       "setCode": "LOF_254"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "curious-flock",
+      "setCode": "LOF_255"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "gifted-urchin",
       "setCode": "LOF_256"
@@ -6586,7 +6606,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1315,
+  "runtimeAdmittedCount": 1319,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6699,11 +6719,6 @@
       "setCode": "ASH_039"
     },
     {
-      "internalName": "outcast#mercenary-starship",
-      "reason": "outcast#mercenary-starship: invalid ability IR: unknown variant `dataPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
-      "setCode": "ASH_041"
-    },
-    {
       "internalName": "jabba-the-hutt#eminence-of-tatooine",
       "reason": "jabba-the-hutt#eminence-of-tatooine: invalid ability IR: unknown variant `playCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_042"
@@ -6772,11 +6787,6 @@
       "internalName": "pit-droid-team",
       "reason": "pit-droid-team: unresolved phase history helpers require reviewed registration",
       "setCode": "ASH_075"
-    },
-    {
-      "internalName": "summaverminoth",
-      "reason": "summaverminoth: arena-list defeat requires a standalone event or reviewed resolved-event continuation",
-      "setCode": "ASH_083"
     },
     {
       "internalName": "arcana-star-map#path-to-peridea",
@@ -7029,11 +7039,6 @@
       "setCode": "ASH_206"
     },
     {
-      "internalName": "heroic-purrgil",
-      "reason": "heroic-purrgil: invalid ability IR: unknown variant `memberPath`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
-      "setCode": "ASH_207"
-    },
-    {
       "internalName": "sabine-wren#i-learned-the-hard-way",
       "reason": "sabine-wren#i-learned-the-hard-way: invalid ability IR: unknown field `collectiveTrigger`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
       "setCode": "ASH_208"
@@ -7095,7 +7100,7 @@
     },
     {
       "internalName": "sense-through-the-force",
-      "reason": "sense-through-the-force: unimplemented deck-search contract: unknown variant `sequence`, expected one of `revealAndDraw`, `drawSpecificCard`, `discardSpecificCard`",
+      "reason": "sense-through-the-force: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "ASH_235"
     },
     {
@@ -7205,7 +7210,7 @@
     },
     {
       "internalName": "kelnacca#solitary-master",
-      "reason": "kelnacca#solitary-master: invalid ability IR: unknown variant `payUnadjustedResources`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "kelnacca#solitary-master: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "HMW_036"
     },
     {
@@ -8055,7 +8060,7 @@
     },
     {
       "internalName": "c3po#protocol-droid",
-      "reason": "c3po#protocol-droid: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
+      "reason": "c3po#protocol-droid: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "IC27_188"
     },
     {
@@ -9025,7 +9030,7 @@
     },
     {
       "internalName": "cad-bane#now-its-my-turn",
-      "reason": "cad-bane#now-its-my-turn: live Credit count requires the complete post-creation optional damage source",
+      "reason": "cad-bane#now-its-my-turn: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "LAW_032"
     },
     {
@@ -10034,11 +10039,6 @@
       "setCode": "LOF_252"
     },
     {
-      "internalName": "curious-flock",
-      "reason": "curious-flock: invalid ability IR: unknown variant `payUnadjustedResources`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
-      "setCode": "LOF_255"
-    },
-    {
       "internalName": "the-father#maintaining-balance",
       "reason": "the-father#maintaining-balance: unimplemented event hook onForceUsed",
       "setCode": "LOF_260"
@@ -10150,7 +10150,7 @@
     },
     {
       "internalName": "emergency-powers",
-      "reason": "emergency-powers: invalid ability IR: unknown variant `selectionOnlyAbilityStep`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "emergency-powers: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "SEC_040"
     },
     {
@@ -11560,7 +11560,7 @@
     },
     {
       "internalName": "boba-fett#collecting-the-bounty",
-      "reason": "boba-fett#collecting-the-bounty: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "boba-fett#collecting-the-bounty: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "SOR_015"
     },
     {
@@ -11895,7 +11895,7 @@
     },
     {
       "internalName": "force-lightning",
-      "reason": "force-lightning: invalid ability IR: unknown variant `loseAllAbilities`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "force-lightning: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "SOR_138"
     },
     {
@@ -12165,7 +12165,7 @@
     },
     {
       "internalName": "c3po#protocol-droid",
-      "reason": "c3po#protocol-droid: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
+      "reason": "c3po#protocol-droid: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "SOR_238"
     },
     {
@@ -12730,7 +12730,7 @@
     },
     {
       "internalName": "the-clone-wars",
-      "reason": "the-clone-wars: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "the-clone-wars: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
       "setCode": "TWI_125"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1290,
+  "runtimeRejectedCount": 1286,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

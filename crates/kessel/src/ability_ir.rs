@@ -30,6 +30,8 @@ pub mod selector_contract;
 mod distributed_damage_contract;
 #[path = "chosen_hand_discard_contract.rs"]
 pub(crate) mod chosen_hand_discard_contract;
+#[path = "ambush_context_contract.rs"]
+pub(crate) mod ambush_context_contract;
 #[path = "activation_contract.rs"]
 pub(crate) mod activation_contract;
 
@@ -512,7 +514,7 @@ impl Expr {
                     "hasControlledInPlayTrait"=>2,
                     "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isEvent" | "isBase" | "isLeader" | "getPower" | "getHp"
-                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
+                    | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isAttackingUsingAmbush" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
                     "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
                     | "arenaUnitCount" | "hasControlledInPlayTitle" | "hasAttachedTrait" | "hasAttachedNativeToken" => 1,
                     _ => return Err(format!("unsupported runtime query {name}")),
@@ -545,6 +547,7 @@ impl Expr {
                 if name=="isUpgrade" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("isUpgrade requires an explicit card receiver".into());}
                 if name=="hasCost" && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("hasCost requires an explicit card receiver".into());}
                 if ["isTokenUnit","isTokenUpgrade","isShield"].contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref {path} if path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) {return Err("token identity query requires an explicit card receiver".into());}
+                if name=="isAttackingUsingAmbush" && (!args.is_empty() || !matches!(receiver.original(),Expr::Ref{path} if path==&["source"])) {return Err("Ambush attack predicate requires exact source receiver".into());}
                 if ["isAttacking","isDefending"].contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref {path} if (path.len()==1 && ["source","card","target"].contains(&path[0].as_str())) || (name=="isDefending" && path==&["source","parentUnit"])) {return Err("attack query requires a scalar source/card/target or reviewed defending parent receiver".into());}
                 sub(receiver)?;
                 for arg in args {
@@ -1633,6 +1636,10 @@ pub enum Instruction {
     ModalChoice(crate::modal_choices::Menu),
     /// Internal instruction, installed only after the complete raw naming proof.
     NameOpponentPlay,
+    /// Closed number binding and sequential unadjusted-payment instructions.
+    ChooseNumber,
+    PayUnadjustedSelectedResources,
+    GiveSelectedExperience,
     CaptureMaximum {aspect:String},
     Conditional { condition: Expr, skip: usize },
     IfResult { skip: usize },
@@ -2032,7 +2039,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -2056,6 +2063,7 @@ impl Program {
         if matches!(ability.effect,Effect::InitiateAttack{..})&&!crate::native_attack::ability(ability) {return Err("native attack requires a standalone bounded ordinary registration".into());}
 
         if crate::death_hooks::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && ability.hooks.is_empty() {return Err("defeat hooks cannot be nested in another registration or effect".into());}
+        if crate::unit_entry_contract::registration(ability) {return crate::unit_entry_contract::compile(ability);}
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {
             let smuggle=crate::death_hooks::smuggle_play_registration(ability);
             let leader_deploy=crate::death_hooks::leader_deploy_base_registration(ability);
@@ -2163,8 +2171,12 @@ impl Program {
         }
         if contains(&encoded,damage_result) && !damage_result_continuation(ability) {return Err("actual damage result requires scalar damage then bounded base damage continuation".into());}
         if let Effect::Defeat {target:Target::ArenaList(list)}=&ability.effect {
-            if ability.trigger!="event" || ability.target_resolver.is_some() || (ability.then.is_some()&&!resolved_defeat) || ability.if_you_do.is_some() || ability.condition.is_some() || ability.coordinate {return Err("arena-list defeat requires a standalone event or reviewed resolved-event continuation".into());}
-            list.validate_scope(true)?;
+            if crate::arena_defeat_attack_contract::scope(list) {
+                if !crate::arena_defeat_attack_contract::registration(ability) {return Err("physical-source arena defeat requires the complete mandatory onAttack registration".into());}
+            } else {
+                if ability.trigger!="event" || ability.target_resolver.is_some() || (ability.then.is_some()&&!resolved_defeat) || ability.if_you_do.is_some() || ability.condition.is_some() || ability.coordinate {return Err("arena-list defeat requires a standalone event or reviewed resolved-event continuation".into());}
+                list.validate_scope(true)?;
+            }
         }
         if let Effect::ModifyStats {target:Target::ArenaList(list),power,hp,duration}=&ability.effect {
             let token_attack=ability.trigger=="onAttack" && list.token_unit_attack_scope() && matches!(power,Expr::Const{value} if value.as_i64()==Some(1)) && matches!(hp,Expr::Const{value} if value.as_i64()==Some(1));
@@ -2357,6 +2369,7 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        if ambush_context_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && (depth!=0 || !ambush_context_contract::registration(ability)) {return Err("Ambush context requires the complete persistent self stat registration".into());}
         if chosen_hand_discard_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) {
             if depth!=0 || !chosen_hand_discard_contract::registration(ability) {return Err("chosen hand discard requires its complete bounded own-hand continuation registration".into());}
             let resolver=ability.target_resolver.as_ref().unwrap();resolver.validate()?;
@@ -2398,6 +2411,7 @@ impl Program {
             let next=step.if_you_do.as_deref().unwrap();if let Some(r)=&next.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));}
             self.compile_effect(&next.effect,1)?;self.instructions[skip]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
         }
+        if crate::unit_entry_contract::registration(ability) {return Err("unit entry cannot be nested in a continuation".into());}
         if !ability.hooks.is_empty() || ability.trigger=="eventHooks" {return Err("event hooks cannot appear inside effect continuations".into());}
         // One captured target, then one simultaneous two-attachment window. This
         // preserves both token identities before the resulting stat-death sweep.
@@ -3198,7 +3212,8 @@ impl Program {
             }
             Effect::Defeat {target:Target::ArenaList(list)} => {
                 if depth!=0 {return Err("nested arena-list defeat requires explicit timing witnesses".into());}
-                list.validate_scope(true)?;self.instructions.push(Instruction::Apply(effect.clone()));
+                if !(self.trigger=="onAttack"&&crate::arena_defeat_attack_contract::scope(list)) {list.validate_scope(true)?;}
+                self.instructions.push(Instruction::Apply(effect.clone()));
             }
             Effect::ResourceCard {target} => {
                 let selected_hand_or_discard = matches!(target,Target::Name(n) if n=="chosen")
@@ -3369,7 +3384,13 @@ impl Catalogue {
                     ));
                 }
                 crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
+                if let Some(mut program)=crate::variable_payment_contract::prepare(entry)? {
+                    program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);
+                    let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;
+                    return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));
+                }
                 crate::resource_exhaust::validate_entry(entry)?;
+                if crate::arena_defeat_attack_contract::marker(&entry["abilities"])&&!crate::arena_defeat_attack_contract::entry(entry) {return Err("onAttack arena defeat requires complete closed ordinary unit metadata and physical-source exclusion".into());}
                 if crate::cinder_contract::marker(entry) && !crate::cinder_contract::entry(entry) {return Err("self-base then arena damage requires the complete closed ordinary event source and exact two-window registration".into());}
                 if crate::cross_arena_contract::marker(&entry["abilities"]) && !crate::cross_arena_contract::entry(entry) {return Err("attack permission requires the complete closed paired constant unit and intrinsic Support profile".into());}
                 if crate::recipient_heal_contract::marker(&entry["abilities"])&&!crate::recipient_heal_contract::entry(entry){return Err("recipient heal requires the complete closed ordinary source profile".into());}
@@ -3470,7 +3491,9 @@ impl Catalogue {
                 if sides.card.iter().any(crate::attached_constants::host_trait_aura)&&!crate::attached_constants::entry(entry) {return Err("host trait auras require the complete attached constant wrapper source contract".into());}
                 if sides.card.iter().chain(&sides.leader).chain(&sides.unit).any(|a|!a.hooks.is_empty()||a.trigger=="eventHooks") {
                     let hooks:Vec<_>=sides.card.iter().chain(&sides.leader).chain(&sides.unit).filter(|a|!a.hooks.is_empty()||a.trigger=="eventHooks").collect();
-                    if hooks.iter().all(|a|crate::death_hooks::registration(a)) {
+                    if hooks.iter().all(|a|crate::unit_entry_contract::registration(a)) {
+                        if !crate::unit_entry_contract::entry(entry,&sides) {return Err("unit entry requires complete ordinary unit source metadata".into());}
+                    } else if hooks.iter().all(|a|crate::death_hooks::registration(a)) {
                         if !crate::death_hooks::entry(entry,&sides) {return Err("defeat hooks require complete ordinary unit source metadata and bounded registrations".into());}
                     } else if hooks.iter().all(|a|crate::death_hooks::smuggle_play_registration(a)) {
                         if !crate::death_hooks::smuggle_play_entry(entry,&sides) {return Err("smuggle when-played requires complete ordinary smuggle unit source metadata and registration".into());}
@@ -3515,6 +3538,7 @@ impl Catalogue {
                     && entry["attachCondition"].is_null() && no_pilot
                     && ["deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|key|entry["card"][key].is_null())
                     && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "");
+                if ambush_context_contract::marker(entry) && !ambush_context_contract::entry(entry) {return Err("Ambush context requires its complete closed ordinary unit profile".into());}
                 if chosen_hand_discard_contract::marker(&entry["abilities"])&&!chosen_hand_discard_contract::entry(entry){return Err("chosen hand discard requires complete closed ordinary unit profiles".into());}
                 if distributed_damage_contract::marker(entry) && (!complete_plain_source_metadata || !distributed_damage_contract::entry(entry)) {return Err("distributed damage requires a complete closed ordinary six-damage unit registration".into());}
                 if contains(&entry["abilities"],|v|matches!(v["kind"].as_str(),Some("gainTrait"|"loseTrait"))) {

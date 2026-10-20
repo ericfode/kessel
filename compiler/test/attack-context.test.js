@@ -75,7 +75,7 @@ test('live attack reads preserve guard expression order, identity and optional s
 test('complete attack sources retain scalar lowering or their explicit additional contracts',()=>{
     const cases=[["game/cards/08_ASH/leaders/GroguCharmingCompanion.ts", false], ["game/cards/08_ASH/units/ScionShuttleAtMorgansBidding.ts", true], ["game/cards/08_ASH/units/PalaceChefDroid.ts", true], ["game/cards/08_ASH/units/HeroicPurrgil.ts", false], ["game/cards/08_ASH/units/MarroksFiendFighterFormidablePursuer.ts", false], ["game/cards/09_HMW/units/BatcherLoyalHound.ts", true], ["game/cards/09_HMW/units/AwakenedExogorth.ts", true], ["game/cards/09_HMW/units/BlockadeShip.ts", true], ["game/cards/04_JTL/units/GoldLeaderFastestShipInTheFleet.ts", true], ["game/cards/04_JTL/units/RetrofittedAirspeeder.ts", false], ["game/cards/07_LAW/units/LandoCalrissianEyesOpen.ts", true], ["game/cards/05_LOF/units/JediGuardian.ts", true], ["game/cards/06_SEC/units/CassianAndorLayLow.ts", false], ["game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts", false], ["game/cards/06_SEC/units/VelSarthaOnePathOneChoice.ts", true], ["game/cards/02_SHD/leaders/MoffGideonFormidableCommander.ts", false], ["game/cards/02_SHD/units/ConcordDawnInterceptors.ts", true], ["game/cards/02_SHD/units/JangoFettRenownedBountyHunter.ts", false], ["game/cards/02_SHD/units/EnfysNestMarauder.ts", false], ["game/cards/01_SOR/leaders/JynErsoResistingOppression.ts", false], ["game/cards/01_SOR/upgrades/Electrostaff.ts", true], ["game/cards/01_SOR/units/FirstLegionSnowtrooper.ts", false], ["game/cards/01_SOR/units/StrafingGunship.ts", false], ["game/cards/03_TWI/units/CloneDiveTrooper.ts", true]];
     const expanded={
-        GroguCharmingCompanion:{kind:'deployLeaderSystem'},HeroicPurrgil:{kind:'liveActiveAttack',optionalReceiver:false},
+        GroguCharmingCompanion:{kind:'deployLeaderSystem'},HeroicPurrgil:{kind:'query',name:'isAttackingUsingAmbush',receiver:ref('source'),args:[]},
         MarroksFiendFighterFormidablePursuer:{kind:'ref',path:['card','activeAttack','attacker']},
         RetrofittedAirspeeder:{kind:'attackValueQuery',name:'targetIsUnit'},CassianAndorLayLow:{kind:'damageModificationRegistration'},
         MirajScintelTheWeakDeserveToKneel:{kind:'attackCollection',name:'some'},MoffGideonFormidableCommander:{kind:'attackLastingEntry'},
@@ -87,6 +87,7 @@ test('complete attack sources retain scalar lowering or their explicit additiona
         const c=compileSource(fs.readFileSync(path.join(root,file),'utf8'),file,enums);
         assert.equal(c.status,'supported',file+JSON.stringify(c.diagnostics));
         if(!scalar){const expected=expanded[path.basename(file,'.ts')];assert.ok(expected,file);
+            if(path.basename(file,'.ts')==='HeroicPurrgil') { assert.deepEqual(c.abilities.card[0].condition,expected,file); continue; }
             assert.ok(nodes(c.abilities,expected.kind).some(node=>{try{assert.partialDeepStrictEqual(node,expected);return true;}catch{return false;}}),file+JSON.stringify(c.abilities));}
     }
 });

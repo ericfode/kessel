@@ -91,6 +91,14 @@ function planCardProbes(entry, options = {}) {
     if (weaknessContinuationPlan) return weaknessContinuationPlan;
     const arenaKeywordSetPlan = require('./arena-keyword-set-probes').planArenaKeywordSetProbes(entry, options);
     if (arenaKeywordSetPlan) return arenaKeywordSetPlan;
+    const arenaDefeatAttackPlan = require('./arena-defeat-attack-probes').planArenaDefeatAttackProbes(entry, options);
+    if (arenaDefeatAttackPlan) return arenaDefeatAttackPlan;
+    const variablePaymentPlan = require('./variable-payment-probes').planVariablePaymentProbes(entry, options);
+    if (variablePaymentPlan) return variablePaymentPlan;
+    const unitEntryPlan = require('./unit-entry-probes').planUnitEntryProbes(entry, options);
+    if (unitEntryPlan) return unitEntryPlan;
+    const ambushContextPlan = require('./ambush-context-probes').planAmbushContextProbes(entry, options);
+    if (ambushContextPlan) return ambushContextPlan;
     const selfBaseArenaPlan = require('./self-base-arena-damage-probes').planSelfBaseArenaDamageProbes(entry, options);
     if (selfBaseArenaPlan) return selfBaseArenaPlan;
     const arenaDamagePlan = require('./arena-damage-probes').planArenaDamageProbes(entry, options);

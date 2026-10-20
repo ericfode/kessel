@@ -725,6 +725,47 @@
     {
       "arena": "space",
       "aspects": [
+        "aggression",
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "5394891260",
+      "internalName": "outcast#mercenary-starship",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "ASH_041",
+      "setCodes": [
+        {
+          "number": 41,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 41,
+        "set": "ASH"
+      },
+      "subtitle": "Mercenary Starship",
+      "text": "When a friendly unit enters play (including this one): It gets +1/+0 for this phase.",
+      "title": "Outcast",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
         "cunning",
         "vigilance",
         "heroism"
@@ -1820,6 +1861,46 @@
         "imperial",
         "vehicle",
         "tank"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 12,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 15,
+      "id": "8724833287",
+      "internalName": "summaverminoth",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 15,
+      "rules": null,
+      "setCode": "ASH_083",
+      "setCodes": [
+        {
+          "number": 83,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 83,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Sentinel\nOn Attack: Defeat all other space units.",
+      "title": "Summa-verminoth",
+      "traits": [
+        "creature"
       ],
       "types": [
         "unit"
@@ -4761,6 +4842,47 @@
       "traits": [
         "resistance",
         "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "2147688448",
+      "internalName": "heroic-purrgil",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 3,
+      "rules": "Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.\n",
+      "setCode": "ASH_207",
+      "setCodes": [
+        {
+          "number": 207,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 207,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Ambush (When you play this unit, it may attack an enemy unit.)\nWhile attacking using Ambush, this unit gets +2/+0.",
+      "title": "Heroic Purrgil",
+      "traits": [
+        "creature"
       ],
       "types": [
         "unit"
@@ -31463,6 +31585,42 @@
       "subtitle": "",
       "text": "",
       "title": "Porg",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "4974236883",
+      "internalName": "curious-flock",
+      "keywords": [],
+      "power": 1,
+      "rules": "Curious Flock's \"When Played\" ability is not reduced by effects that reduce the cost of cards.\n",
+      "setCode": "LOF_255",
+      "setCodes": [
+        {
+          "number": 255,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 255,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "When Played: Pay up to 6 resources. For each resource paid this way, give an Experience token to this unit.",
+      "title": "Curious Flock",
       "traits": [
         "creature"
       ],

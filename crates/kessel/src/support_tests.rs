@@ -797,11 +797,10 @@ fn support_explicit_empty_evidence_roundtrips_without_selected_dependency() {
         assert_eq!(snapshot["supportGrants"], json!([]));
         assert_eq!(e.snapshot(&e.load_state(&snapshot).unwrap()), snapshot);
     }
-    eprintln!("Support presence State={} library budget={} integration budget=32736 SupportState={} Card={}",
+    eprintln!("Support presence State={} library budget={} SupportState={} Card={}",
         std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES,
         std::mem::size_of::<SupportState>(), std::mem::size_of::<Card>());
     assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
-    assert_eq!(std::mem::size_of::<State>(), 32_736);
 }
 
 #[test]

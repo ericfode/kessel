@@ -157,6 +157,8 @@ pub fn validate_state_with_catalogue(
         v,
         &[
             "nextCardId",
+            "unitEntryStateVersion",
+            "inactiveUnitEntryStats",
             "round",
             "phase",
             "initiative",

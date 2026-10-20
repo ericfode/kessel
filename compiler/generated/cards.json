@@ -1,7 +1,7 @@
 {
   "schema": "swu-card-ir-cards/v1",
   "irSchema": "swu-card-ir/v1",
-  "compilerHash": "10c69eb878a878d3d15e6f9bcf154da3bc8404ea8bc95c9494efc62df3cdad94",
+  "compilerHash": "e64e2300a37a6310f5646f50cf14ce9fd2e4012b59eeb3d1cca4062bb6bba5f9",
   "sourceTreeHash": "110b7795c17cd625be58b9b39fe32889fe55c77ff6ec3949746aed102108a6da",
   "cards": [
     {
@@ -10931,30 +10931,10 @@
                 "value": "Give "
               },
               {
-                "kind": "dataPath",
-                "root": [
-                  "context"
-                ],
-                "contextBinding": {
-                  "id": "callback:722:0",
-                  "role": "contextTitle",
-                  "bindAt": "callbackInvocation",
-                  "readAt": "expressionEvaluation",
-                  "reference": "lexicalContextObject"
-                },
-                "steps": [
-                  {
-                    "key": "event",
-                    "optional": false
-                  },
-                  {
-                    "key": "card",
-                    "optional": false
-                  },
-                  {
-                    "key": "title",
-                    "optional": false
-                  }
+                "kind": "ref",
+                "path": [
+                  "unitEntryCard",
+                  "title"
                 ]
               },
               {
@@ -10965,26 +10945,9 @@
             "effect": {
               "kind": "modifyStats",
               "target": {
-                "kind": "dataPath",
-                "root": [
-                  "context"
-                ],
-                "contextBinding": {
-                  "id": "callback:1026:0",
-                  "role": "properties:forThisPhaseCardEffect",
-                  "bindAt": "callbackInvocation",
-                  "readAt": "expressionEvaluation",
-                  "reference": "lexicalContextObject"
-                },
-                "steps": [
-                  {
-                    "key": "event",
-                    "optional": false
-                  },
-                  {
-                    "key": "card",
-                    "optional": false
-                  }
+                "kind": "ref",
+                "path": [
+                  "unitEntryCard"
                 ]
               },
               "duration": "phase",
@@ -11092,6 +11055,8 @@
         "ir:modifyStats",
         "ir:ref",
         "ref:player",
+        "ref:unitEntryCard",
+        "ref:unitEntryCard.title",
         "trigger:eventHooks"
       ]
     },
@@ -38884,38 +38849,15 @@
               }
             },
             "condition": {
-              "kind": "binary",
-              "op": "&&",
-              "left": {
-                "kind": "query",
-                "name": "isAttacking",
-                "receiver": {
-                  "kind": "ref",
-                  "path": [
-                    "source"
-                  ]
-                },
-                "args": []
-              },
-              "right": {
-                "kind": "memberPath",
-                "receiver": {
-                  "kind": "liveActiveAttack",
-                  "card": {
-                    "kind": "ref",
-                    "path": [
-                      "source"
-                    ]
-                  },
-                  "optionalReceiver": false
-                },
-                "steps": [
-                  {
-                    "property": "isAmbush",
-                    "optional": true
-                  }
+              "kind": "query",
+              "name": "isAttackingUsingAmbush",
+              "receiver": {
+                "kind": "ref",
+                "path": [
+                  "source"
                 ]
-              }
+              },
+              "args": []
             }
           }
         ]
@@ -38970,17 +38912,13 @@
         "ambush": 1
       },
       "requiredCapabilities": [
-        "binary:&&",
         "cardType:unit",
-        "ir:binary",
         "ir:const",
-        "ir:liveActiveAttack",
-        "ir:memberPath",
         "ir:modifyStats",
         "ir:query",
         "ir:ref",
         "keyword:ambush",
-        "query:isAttacking",
+        "query:isAttackingUsingAmbush",
         "ref:source",
         "trigger:constant"
       ]

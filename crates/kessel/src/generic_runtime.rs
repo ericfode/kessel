@@ -9,6 +9,8 @@ mod prepared_runtime;
 mod distributed_damage_runtime;
 #[path = "chosen_hand_discard_runtime.rs"]
 mod chosen_hand_discard_runtime;
+#[path = "ambush_context_runtime.rs"]
+mod ambush_context_runtime;
 
 fn same_aspect_multiset(left: &Value, right: &Value) -> bool {
     let (Some(left), Some(right)) = (left.as_array(), right.as_array()) else {
@@ -247,6 +249,7 @@ impl TokenRequirements {
             ..Self::default()
         };
         for instruction in &program.instructions {
+            if matches!(instruction,Instruction::GiveSelectedExperience) {out.created.push("TOKEN_EXPERIENCE".into());}
             if let Some(effect) = match instruction {
                 Instruction::Apply(effect) => Some(effect),
                 other => other.group_effect(),
@@ -495,7 +498,7 @@ impl Engine {
     pub(super) fn needs_modal_arena_order(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|
             catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader)
-                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize]) || crate::cinder_contract::requires_global_order(&catalogue.programs[*program as usize])))))
+                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize]) || crate::cinder_contract::requires_global_order(&catalogue.programs[*program as usize]) || crate::arena_defeat_attack_contract::requires_global_order(&catalogue.programs[*program as usize])))))
     }
     pub(super) fn needs_force_state(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
@@ -1426,6 +1429,7 @@ impl Engine {
             Expr::Ref { path } => {
                 let root = path.first().map(String::as_str).unwrap_or("");
                 let field = path.get(1).map(String::as_str);
+                if root=="unitEntryCard" && s.entry_event_card!=0 {return match field {None=>Eval::Card(s.entry_event_card),Some("title")=>Eval::Text(self.def(s,s.entry_event_card).info.title.clone()),_=>Eval::Null};}
                 if root == "event" {
                     return match path.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
                         ["event","lastKnownInformation","power"] if s.last_known_source==source=>Eval::Number(s.last_known_power as i64),
@@ -1667,6 +1671,7 @@ impl Engine {
                     ),
                     "isEvent" => Eval::Bool(d.info.is("event")),
                     "isAttacking"=>Eval::Bool(self.is_attacking(s,id)),
+                    "isAttackingUsingAmbush"=>Eval::Bool(self.is_attacking_using_ambush(s,id)),
                     "isDefending"=>Eval::Bool(self.is_defending(s,id)),
                     "hasCost"=>Eval::Bool(["unit","leader","upgrade","event","token"].iter().any(|kind|d.info.is(kind))),
                     "isUpgrade"=>Eval::Bool(d.info.is("upgrade")),
@@ -1904,6 +1909,7 @@ impl Engine {
                             !self.def(s, id).info.is("leader")
                                 && (unit || self.attached_in_play(s,id) || s.player(s.card(id).owner).discard.contains(id))
                         }
+                        Effect::ModifyStats { .. } if context.entry_event_card==id && context.ability_program!=0 && self.program(context.ability_program-1).trigger=="onUnitEntersPlay" => true,
                         Effect::ModifyStats { .. } | Effect::GainKeyword { .. } | Effect::LoseKeyword { .. } => unit,
                         Effect::GiveShield { .. } | Effect::GiveExperience { .. } | Effect::GiveWeakness{..}|Effect::GiveAdvantage{..} => {
                             unit && amount > 0
@@ -1930,6 +1936,7 @@ impl Engine {
             match instruction {
                 Instruction::EndStep => {}
                 Instruction::Commit => {}
+                Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {return true;}
                 Instruction::NameOpponentPlay => {return true;}
                 Instruction::CaptureMaximum{aspect}=>{let mut captured=*s;if self.capture_maximum(&mut captured,source,aspect).is_err(){return false;}return self.instructions_can_affect(&captured,source,target,p,pc+1,end,require_change);}
 
@@ -2017,6 +2024,7 @@ impl Engine {
         p: u16,
         require_change: bool,
     ) -> bool {
+        if self.program(p).trigger=="onUnitEntersPlay" {return s.entry_event_card!=0;}
         if self.program(p).trigger=="event"&&self.program(p).instructions.first().is_some_and(|i|matches!(i,Instruction::Group(Effect::Simultaneous{effects}) if effects.len()==2&&matches!(&effects[0],Effect::Select{effect,..} if matches!(effect.as_ref(),Effect::Damage{..}))&&matches!(&effects[1],Effect::GainForce{..}))) {return true;}
         match self.program(p).instructions.first() {
             // SelectTargetResolver does not forward inherited mustChangeGameState
@@ -2050,7 +2058,7 @@ impl Engine {
     pub(super) fn is_ability_decision(&self, d: Decision) -> bool {
         matches!(
             d,
-            Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
+            Decision::AbilityNumber | Decision::CreditMenu | Decision::CreditAmount | Decision::DeathPlayer | Decision::DeathOrder | Decision::DeathBatch | Decision::AbilityMenu
                 | Decision::AbilityTarget
                 | Decision::AbilityOptional
                 | Decision::AbilityNoEffect
@@ -2098,6 +2106,7 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if s.decision==Decision::AbilityNumber {return self.number_actions(s);}
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.credit_payment_actions(s);}
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
             let p = self.program(s.ability_program - 1);
@@ -2243,6 +2252,7 @@ impl Engine {
         s.ability_program = p + 1;
         s.ability_pc = 0;
         s.ability_target = 0;
+        s.selected_number=0;
         s.maximum_capture=MaximumCapture::default();
         s.ability_selection=Selection::default();
         s.event_group=EventGroupState::default();
@@ -2349,6 +2359,7 @@ impl Engine {
         s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
         let next = s.ability_return;
         s.ability_program = 0;
+        s.selected_number=0;
         s.maximum_capture=MaximumCapture::default();
         s.ability_selection=Selection::default(); s.event_group=EventGroupState::default();
         if next == 2 {
@@ -2386,6 +2397,9 @@ impl Engine {
             };
             match instruction {
                 Instruction::EndStep => {s.ability_pc+=1;}
+                Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {
+                    if self.run_number_instruction(s)? {return Ok(());}
+                }
                 Instruction::NameOpponentPlay => {
                     let options=self.naming_options();
                     match options.as_slice() {
@@ -2770,6 +2784,7 @@ impl Engine {
         if s.player(owner).resources.len as usize>=crate::model::MAX_ZONE {return Err("resource zone capacity exceeded".into());}
         let p=s.player_mut(owner);
         p.hand.remove(id);p.deck.remove(id);p.discard.remove(id);p.resources.push(id)?;
+        s.card_mut(id).inactive_entry_power=0;
         s.card_mut(id).exhausted=true;
         Ok(1)
     }
@@ -3141,6 +3156,7 @@ impl Engine {
                 Eval::Card(id)
                     if id != 0
                         && (self.in_arena(s, id)
+                            || (matches!(e,Effect::ModifyStats{..}) && s.entry_event_card==id && s.ability_program!=0 && self.program(s.ability_program-1).trigger=="onUnitEntersPlay")
                             || self.def(s, id).info.is("base")
                             || (matches!(e,Effect::Ready{..}|Effect::Exhaust{..}) && self.exhaustible_card(s,id))
                             || (matches!(e,Effect::Defeat {..}|Effect::ReturnToHand {..}) && self.attached_in_play(s,id))
@@ -3182,6 +3198,7 @@ impl Engine {
                                 self.leave_play(s, id)?;
                             }
                             s.player_mut(owner).discard.remove(id);
+                            s.card_mut(id).inactive_entry_power=0;
                             if !self.def(s, id).info.is("token") {
                                 s.player_mut(owner).hand.push(id)?;
                             }
@@ -3197,6 +3214,9 @@ impl Engine {
                             let index = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| k == keyword).unwrap();
                             s.card_mut(id).add_lost_keyword(index);
                             result += 1;
+                        }
+                        Effect::ModifyStats { .. } if !in_arena && s.entry_event_card==id && s.ability_program!=0 && self.program(s.ability_program-1).trigger=="onUnitEntersPlay" => {
+                            s.card_mut(id).inactive_entry_power=s.card(id).inactive_entry_power.checked_add(1).ok_or("inactive entry stat capacity exceeded")?;result+=1;
                         }
                         Effect::ModifyStats { .. } if in_arena => {
                             self.modify_phase_stats(s, id,
@@ -3248,6 +3268,7 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if s.decision==Decision::AbilityNumber {return self.apply_number_action(s,a);}
         if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.apply_credit_payment_action(s,a);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.apply_disclose_action(s,a);}
@@ -3503,7 +3524,7 @@ impl Engine {
         for (program,grantor) in registrations {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -3619,6 +3640,17 @@ impl Engine {
     pub(super) fn merge_enter_deaths(&self,s:&mut State)->Result<(),String> {
         if !s.trigger_context_is(TriggerContext::Enter) || s.death_pending.len==0 || (s.pending_programs==0 && s.pending_triggers==0) {return Ok(());}
         let old=s.death_pending;let mut merged=DeathWindow::default();
+        // PlayUnitAction emits the ordinary unit-entry event before CardPlayed.
+        // The current incoming card and capture boundary distinguish that event
+        // from nested/token entries already pending in the surrounding window.
+        // Keep the captured listener order within this one event unchanged.
+        let ordinary=self.def(s,s.source).info.is("unit") && !self.def(s,s.source).info.is("leader") && !self.def(s,s.source).info.is("token");
+        let after_pc=if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0};
+        let current_entry=|e:&DeathTrigger|ordinary && e.event_card==s.source && e.defer_depth==s.death_depth && e.after_pc==after_pc && self.program(e.program).trigger=="onUnitEntersPlay";
+        for e in old.entries[..old.len as usize].iter().filter(|e|current_entry(e)) {
+            let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}
+            merged.entries[n]=*e;merged.len+=1;
+        }
         for (i,&program) in self.card_programs(s,s.source).iter().enumerate() {
             if s.pending_programs&(1<<i)==0 {continue;}
             let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}
@@ -3628,7 +3660,7 @@ impl Engine {
             let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}
             merged.entries[n]=DeathTrigger {source:s.source,keyword,player:s.active,..DeathTrigger::default()};merged.len+=1;
         }
-        for e in &old.entries[..old.len as usize] {let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}merged.entries[n]=*e;merged.len+=1;}
+        for e in old.entries[..old.len as usize].iter().filter(|e|!current_entry(e)) {let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}merged.entries[n]=*e;merged.len+=1;}
         s.death_pending=merged;s.pending_programs=0;s.pending_triggers=0;Ok(())
     }
     /// Capture one declaration window before either player's effects resolve.
@@ -3700,7 +3732,7 @@ impl Engine {
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
-        let mut context=*s;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;
+        let mut context=*s;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;
         if e.keyword==T_SABOTEUR && context.attack_defender!=0 {context.target=context.attack_defender;}
         context
     }
@@ -3732,7 +3764,7 @@ impl Engine {
         s.death_window.entries[n-1]=DeathTrigger::default();e
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
-        let e=self.remove_death(s,i);s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
+        let e=self.remove_death(s,i);s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
         if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
@@ -3816,6 +3848,26 @@ impl Engine {
                 s.pending_programs |= 1 << i;
             }
         }
+    }
+    /// Snapshot every observer/event pair before framework defeat. Each trigger
+    /// carries its own event card through nested windows and source departure.
+    pub(super) fn capture_unit_entry_watchers(&self,s:&mut State,entries:&[CardId])->Result<(),String> {
+        if self.catalogue.is_none(){return Ok(());}
+        let mut captures=Vec::new();
+        for &card in entries {
+            let owner=s.card(card).owner;
+            for source in self.arena_units(s) {
+                if s.card(source).owner!=owner {continue;}
+                for &program in self.card_programs(s,source) {
+                    if self.program(program).trigger=="onUnitEntersPlay" {
+                        captures.push(DeathTrigger{event_card:card,source,program,player:owner,after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,..DeathTrigger::default()});
+                    }
+                }
+            }
+        }
+        let start=s.death_pending.len as usize;let end=start+captures.len();
+        if end>MAX_DEATH_TRIGGERS{return Err("unit-entry trigger capture capacity exceeded".into());}
+        s.death_pending.entries[start..end].copy_from_slice(&captures);s.death_pending.len=end as u8;Ok(())
     }
     /// Capture reviewed OnCardPlayed arena and base-zone leader watchers.
     pub(super) fn capture_card_played_watchers(
@@ -4251,3 +4303,25 @@ mod cinder_runtime_tests;
 #[cfg(test)]
 #[path="piloting_lifecycle_tests.rs"]
 mod piloting_lifecycle_tests;
+
+#[path="variable_payment_runtime.rs"]
+mod variable_payment_runtime;
+#[cfg(test)]
+#[path="variable_payment_tests.rs"]
+mod variable_payment_tests;
+
+#[cfg(test)]
+#[path = "ambush_context_tests.rs"]
+mod ambush_context_tests;
+
+#[cfg(test)]
+#[path="unit_entry_runtime_tests.rs"]
+mod unit_entry_runtime_tests;
+
+#[cfg(test)]
+#[path="arena_defeat_attack_tests.rs"]
+mod arena_defeat_attack_tests;
+
+#[cfg(test)]
+#[path="unit_entry_order_tests.rs"]
+mod unit_entry_order_tests;

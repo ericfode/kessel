@@ -701,7 +701,7 @@ impl Engine {
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
             | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
-            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
+            | Decision::AbilityNumber | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => {}
         }
         out
@@ -1035,7 +1035,7 @@ impl Engine {
             | Decision::AbilityNoEffect
             | Decision::AbilityDistribute
             | Decision::AbilityGroupShield | Decision::AbilityDiscard | Decision::AbilityDisplay
-            | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
+            | Decision::AbilityNumber | Decision::DiscloseSelect | Decision::DisclosePause | Decision::DiscloseReveal => unreachable!(),
             Decision::Terminal => return Err("game is over".into()),
         }
         self.sweep_stat_defeats(&mut t)?;
@@ -1114,6 +1114,7 @@ impl Engine {
         Ok(())
     }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
+        s.card_mut(id).inactive_entry_power=0;
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
         if space {p.space.push(id)?;}else{p.ground.push(id)?;}
@@ -1145,11 +1146,12 @@ impl Engine {
         s.ability_program = 0;
         s.ability_pc = 0;
         s.ability_target = 0;
+        s.selected_number=0;
         s.maximum_capture=MaximumCapture::default();
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
-        s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
+        s.entry_event_card=0;s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = ProgramContinuation::Finish.raw();
@@ -1174,6 +1176,7 @@ impl Engine {
         s.decision = Decision::Window;
         s.disabled_ongoing_source = unique_defeat.unwrap_or(0);
         self.capture_enter_triggers(s)?;
+        self.capture_unit_entry_watchers(s,&[s.source])?;
         s.disabled_ongoing_source = 0;
         if let Some(id) = unique_defeat {
             self.defeat(s, id)?;
@@ -1491,6 +1494,7 @@ impl Engine {
         let c = s.card_mut(id);
         if !leader && !token {c.set_hidden_qualified(false);}
         c.damage = 0;
+        c.inactive_entry_power=0;
         c.phase_power = 0;
         c.phase_hp = 0;
         c.phase_keyword_values = [0; 2];
@@ -1553,6 +1557,7 @@ impl Engine {
             s.phase_history.reset();
             for id in 1..s.next_id {
                 s.card_mut(id).set_hidden_qualified(false);
+                s.card_mut(id).inactive_entry_power=0;
                 s.card_mut(id).phase_power = 0;
                 s.card_mut(id).phase_hp = 0;
                 s.card_mut(id).phase_keyword_values = [0; 2];
@@ -1738,6 +1743,7 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("numberSelectionPending").is_some() {return Err("pending number binding cannot be imported as an action window".into());}
         if v.get("regroupStartPending").is_some() {return Err("pending regroup-start triggers cannot be imported as an action window".into());}
         if v.get("namedPlayPending").is_some() {return Err("pending card naming cannot be imported as an action window".into());}
         if v.get("dependentChoicePending").is_some(){return Err("pending dependent choice cannot be imported as an action window".into());}
@@ -1857,7 +1863,60 @@ impl Engine {
             return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
         }
         if v.get("creditStateVersion").is_none() {self.load_credit_state(&mut s,v)?;}
+        self.load_unit_entry_state(&mut s,v)?;
         Ok(s)
+    }
+    fn has_physical_unit_entry_source(&self,s:&State)->bool {
+        (1..s.next_id).any(|id|s.card(id).present&&self.card_programs(s,id).iter().any(|p|self.program(*p).trigger=="onUnitEntersPlay"))
+    }
+    fn snapshot_unit_entry_state(&self,s:&State,v:&mut Value) {
+        let rows=(1..s.next_id).filter(|id|s.card(*id).inactive_entry_power!=0).map(|id| {
+            let mut card=self.card_ref(s,id);card["owner"]=json!(s.card(id).owner.as_str());card["controller"]=json!(s.card(id).owner.as_str());
+            json!({"card":card,"power":s.card(id).inactive_entry_power,"hp":0})
+        }).collect::<Vec<_>>();
+        if s.unit_entry_state_explicit||self.has_physical_unit_entry_source(s)||!rows.is_empty(){v["unitEntryStateVersion"]=json!(1);v["inactiveUnitEntryStats"]=json!(rows);}
+    }
+    fn load_unit_entry_state(&self,s:&mut State,v:&Value)->Result<(),String> {
+        let version=v.get("unitEntryStateVersion");let rows=v.get("inactiveUnitEntryStats");
+        if version.is_none()&&rows.is_none()&&!self.has_physical_unit_entry_source(s){return Ok(());}
+        if version!=Some(&json!(1)){return Err("unit entry requires unitEntryStateVersion 1".into());}
+        let rows=rows.and_then(Value::as_array).ok_or("unit entry requires inactiveUnitEntryStats array")?;
+        if rows.len()>=MAX_CARDS{return Err("inactive entry inventory capacity exceeded".into());}
+        s.unit_entry_state_explicit=true;
+        let mut previous=0;
+        for row in rows {
+            if !row.as_object().is_some_and(|o|o.len()==3&&["card","power","hp"].iter().all(|k|o.contains_key(*k))){return Err("invalid inactive entry row fields".into());}
+            let card=&row["card"];
+            if !card.as_object().is_some_and(|o|o.len()==5&&["id","name","setCode","owner","controller"].iter().all(|k|o.contains_key(*k))){return Err("invalid inactive entry physical card fields".into());}
+            let text=card["id"].as_str().ok_or("inactive entry requires physical id")?;
+            let id=cid(text)?;if text!=format!("c{}",id-1){return Err("inactive entry requires canonical physical id".into());}
+            if s.players.iter().any(|p|p.force_id==id||p.credits.contains(id)){return Err("inactive entry conflicts with native player-token identity".into());}
+            if id<=previous||id>=s.next_id{return Err("inactive entry IDs must be ordered, distinct and within nextCardId".into());}previous=id;
+            let owner=Seat::parse(card["owner"].as_str().ok_or("inactive entry owner missing")?)?;
+            if card["controller"]!=card["owner"]{return Err("foreign owner/controller unsupported".into());}
+            let power=row["power"].as_u64().filter(|n|(1..=65535).contains(n)).ok_or("inactive entry power must be 1..65535")? as u16;
+            if row["hp"]!=json!(0){return Err("inactive entry HP must be zero".into());}
+            if !s.card(id).present {
+                let code=card["setCode"].as_str().ok_or("inactive entry token setCode missing")?;
+                // by_code deliberately retains the global catalogue after pool
+                // selection. Off-board identity must not bypass that selection.
+                // Native unit tokens were source/metadata reviewed by catalogue
+                // construction; require that admitted definition in this pool.
+                if !self.catalogue.as_ref().is_some_and(|c|c.metadata.contains_key(code)&&c.cards.contains_key(code)) {
+                    return Err("inactive entry native unit token is not admitted in selected pool".into());
+                }
+                let next=s.next_id;self.load_card(s,card,owner)?;s.next_id=next;
+                if !self.def(s,id).info.is("unit")||!self.def(s,id).info.is("token"){return Err("absent inactive entry must be a reviewed native unit token".into());}
+                // Physical tokens outside the game remain available for identity,
+                // but do not enter any arena or ordinary zone on import.
+                s.card_mut(id).present=false;
+            } else if self.card_ref(s,id)["setCode"]!=card["setCode"]||self.card_ref(s,id)["name"]!=card["name"]||s.card(id).owner!=owner {
+                return Err("inactive entry physical definition/owner mismatch".into());
+            }
+            if self.card_ref(s,id)["setCode"]!=card["setCode"]||self.card_ref(s,id)["name"]!=card["name"]{return Err("inactive entry physical definition/name mismatch".into());}
+            if self.in_arena(s,id)||s.player(owner).hand.contains(id)||s.player(owner).deck.contains(id)||s.player(owner).resources.contains(id)||!self.def(s,id).info.is("unit") {return Err("inactive entry target must be a departed unit".into());}
+            s.card_mut(id).inactive_entry_power=power;
+        }Ok(())
     }
     fn card_ref(&self, s: &State, id: CardId) -> Value {
         let d = self.def(s, id);
@@ -1942,9 +2001,12 @@ impl Engine {
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
+        let number_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ChooseNumber));
+        if number_program(s.ability_program) || s.decision==Decision::AbilityNumber || s.selected_number!=0 || s.death_frames[..s.death_depth as usize].iter().any(|f|number_program(f.context.ability_program)||f.context.selected_number!=0||f.context.decision==Decision::AbilityNumber) || s.support.pending&&number_program(s.support.context.ability_program) {value["numberSelectionPending"]=json!(true);}
         self.write_snapshot_evidence(s,&mut value);
         self.snapshot_named_play(s,&mut value);
         self.snapshot_credit_state(s,&mut value);
+        self.snapshot_unit_entry_state(s,&mut value);
         if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}
         value
     }

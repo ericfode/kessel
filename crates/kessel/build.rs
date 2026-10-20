@@ -1,8 +1,14 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
 #[path = "src/cinder_contract.rs"]
 mod cinder_contract;
+#[path="src/variable_payment_contract.rs"]
+mod variable_payment_contract;
+#[path = "src/arena_defeat_attack_contract.rs"]
+mod arena_defeat_attack_contract;
 #[path = "src/piloting_lifecycle.rs"]
 mod piloting_lifecycle;
+#[path = "src/unit_entry_contract.rs"]
+mod unit_entry_contract;
 #[path = "src/cross_arena_contract.rs"]
 mod cross_arena_contract;
 #[path="src/recipient_heal_contract.rs"]
@@ -203,6 +209,7 @@ fn lower(p: &Program) -> Result<String, String> {
     let mut body = String::from("match s.ability_pc {\n");
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
+            Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience=>"if self.run_number_instruction(s)? {return Ok(true);}".into(),
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
             Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
             Instruction::Select(_)=>format!("let Instruction::Select(r)=&p.instructions[{pc}] else {{return Err(\"AOT selection identity mismatch\".into())}};if self.program_targets(s,s.source,s.ability_program-1,{pc},r,true).is_empty() {{s.ability_target=0;s.ability_selection=Selection::default();s.ability_pc+=1;}} else {{s.decision=Decision::AbilityTarget;return Ok(true);}}"),
@@ -224,6 +231,7 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/variable_payment_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
     println!("cargo:rerun-if-changed=src/migration_modal_contract.rs");
     println!("cargo:rerun-if-changed=src/migration_modal_deck_contract.rs");
@@ -236,6 +244,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/resource_exhaust.rs");
     println!("cargo:rerun-if-changed=src/cross_arena_contract.rs");
     println!("cargo:rerun-if-changed=src/recipient_heal_contract.rs");
+    println!("cargo:rerun-if-changed=src/ambush_context_contract.rs");
     println!("cargo:rerun-if-changed=src/cinder_contract.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
