@@ -2474,6 +2474,17 @@ impl Program {
             self.instructions.push(Instruction::Apply(ability.effect.clone()));return Ok(());
         }
 
+        // A complete closed event proves two distinct native windows. The base
+        // scalar finishes first; only then does Group capture all arena targets.
+        // Do not relax the generic nested-arena or unit-family guards below.
+        if depth == 0 && crate::cinder_contract::ability(ability) {
+            let next = ability.then.as_ref().expect("closed continuation");
+            let Effect::Damage {target:Target::ArenaList(list),..} = &next.effect else { unreachable!() };
+            list.validate_damage()?;
+            self.instructions.push(Instruction::Apply(ability.effect.clone()));
+            self.instructions.push(Instruction::Group(next.effect.clone()));
+            return Ok(());
+        }
         if contains_arena_damage(ability) && (depth!=0 || !(arena_damage_ability(ability)||ordered_ground_registration(ability))) {return Err("arena damage requires a mandatory standalone ordinary-unit play/attack/death registration".into());}
         if depth==0&&imperial_resource_continuation(ability) {
             // The source EventWindow resolves ifYouDo before ordinary death
@@ -3358,6 +3369,7 @@ impl Catalogue {
                     ));
                 }
                 crate::resource_exhaust::validate_entry(entry)?;
+                if crate::cinder_contract::marker(entry) && !crate::cinder_contract::entry(entry) {return Err("self-base then arena damage requires the complete closed ordinary event source and exact two-window registration".into());}
                 if crate::cross_arena_contract::marker(&entry["abilities"]) && !crate::cross_arena_contract::entry(entry) {return Err("attack permission requires the complete closed paired constant unit and intrinsic Support profile".into());}
                 if crate::recipient_heal_contract::marker(&entry["abilities"])&&!crate::recipient_heal_contract::entry(entry){return Err("recipient heal requires the complete closed ordinary source profile".into());}
                 if token_three_marker(&entry["abilities"]) && !token_three_source(entry) {
@@ -3693,7 +3705,7 @@ impl Catalogue {
                 if !ordered && sides.card.iter().chain(&sides.unit).chain(&sides.leader).any(contains_arena_damage) {
                     if sides.card.iter().any(conditional_arena_damage_ability)&&sides.card.len()!=1 {return Err("conditional arena damage requires a sole ordinary unit registration".into());}
                     let companion=|a:&Ability|a.trigger=="constant"&&a.coordinate&&!a.optional&&!a.requires_confirmation&&a.costs.is_empty()&&a.context_title.is_empty()&&a.target_resolver.is_none()&&a.target_resolvers.is_empty()&&a.condition.is_none()&&a.then.is_none()&&a.if_you_do.is_none()&&matches!(&a.effect,Effect::GainKeyword{target:Target::Name(n),keyword,amount:Expr::Const{value},duration} if n=="self"&&keyword=="raid"&&duration=="persistent"&&value.as_u64().is_some_and(|n|n<=65535));
-                    if entry.get("baseClass").and_then(Value::as_str)!=Some("NonLeaderUnitCard") || entry["card"]["types"]!=serde_json::json!(["unit"]) || !sides.unit.is_empty() || !sides.leader.is_empty() || sides.card.iter().filter(|a|contains_arena_damage(a)).count()!=1 || !sides.card.iter().all(|a|arena_damage_ability(a)||companion(a)) || !no_pilot {
+                    if !crate::cinder_contract::entry(entry) && (entry.get("baseClass").and_then(Value::as_str)!=Some("NonLeaderUnitCard") || entry["card"]["types"]!=serde_json::json!(["unit"]) || !sides.unit.is_empty() || !sides.leader.is_empty() || sides.card.iter().filter(|a|contains_arena_damage(a)).count()!=1 || !sides.card.iter().all(|a|arena_damage_ability(a)||companion(a)) || !no_pilot) {
                         return Err("arena damage requires ordinary unit metadata and only a bounded Coordinate Raid companion".into());
                     }
                 }

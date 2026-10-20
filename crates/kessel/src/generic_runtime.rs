@@ -495,7 +495,7 @@ impl Engine {
     pub(super) fn needs_modal_arena_order(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|
             catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader)
-                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize])))))
+                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize]) || crate::cinder_contract::requires_global_order(&catalogue.programs[*program as usize])))))
     }
     pub(super) fn needs_force_state(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
@@ -2238,8 +2238,8 @@ impl Engine {
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
         if self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::CreateCreditToken{..}))) && !s.credit_state_exact {return Err("Credit creation requires exact Credit state".into());}
         if crate::current_played_unit::requires(self.program(p))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
-        if !s.arena_order_exact && crate::modal_arena_choices::requires_global_order(self.program(p)) {
-            return Err("modal global arena damage requires recorded arena order".into());
+        if !s.arena_order_exact && (crate::modal_arena_choices::requires_global_order(self.program(p)) || crate::cinder_contract::requires_global_order(self.program(p))) {
+            return Err("global arena damage requires recorded arena order".into());
         }
         s.disclose=DiscloseState::default();
         s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
@@ -2370,8 +2370,8 @@ impl Engine {
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
         if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if s.ability_program != 0 && !s.arena_order_exact
-            && crate::modal_arena_choices::requires_global_order(self.program(s.ability_program - 1)) {
-            return Err("modal global arena damage requires recorded arena order".into());
+            && (crate::modal_arena_choices::requires_global_order(self.program(s.ability_program - 1)) || crate::cinder_contract::requires_global_order(self.program(s.ability_program - 1))) {
+            return Err("global arena damage requires recorded arena order".into());
         }
         loop {
             if self.open_deaths(s,DeathContinuation::Program)? {return Ok(());}
@@ -4246,3 +4246,7 @@ mod recipient_heal_tests;
 #[cfg(test)]
 #[path = "chosen_hand_discard_tests.rs"]
 mod chosen_hand_discard_tests;
+
+#[cfg(test)]
+#[path="cinder_runtime_tests.rs"]
+mod cinder_runtime_tests;

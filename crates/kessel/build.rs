@@ -1,4 +1,6 @@
 //! Compile validated catalog programs into executable Rust, keyed by content.
+#[path = "src/cinder_contract.rs"]
+mod cinder_contract;
 #[path = "src/cross_arena_contract.rs"]
 mod cross_arena_contract;
 #[path="src/recipient_heal_contract.rs"]
@@ -232,6 +234,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/resource_exhaust.rs");
     println!("cargo:rerun-if-changed=src/cross_arena_contract.rs");
     println!("cargo:rerun-if-changed=src/recipient_heal_contract.rs");
+    println!("cargo:rerun-if-changed=src/cinder_contract.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
     println!("cargo:rerun-if-changed=src/regroup_hooks.rs");

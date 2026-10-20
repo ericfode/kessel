@@ -59,9 +59,9 @@ fn bounded_floor_rancor_terminal_entry_keeps_mandatory_target_and_latched_winner
         let mut s=midgame(&e,seat);for _ in 0..16 {let id=add(&e,&mut s,seat,"LOF_256");s.player_mut(seat).resources.push(id).unwrap();}
         let source=add(&e,&mut s,seat,"ASH_179");s.player_mut(seat).hand.push(source).unwrap();let target=unit(&e,&mut s,seat.other(),"LOF_256");s.card_mut(target).phase_hp=10;
         let base=s.player(seat).base;s.card_mut(base).damage=25;
-        let choosing=e.apply(&s,&e.card_action(&s,source)).unwrap();assert_eq!(choosing.outcome,(seat.other().index()+1) as u8);assert_eq!(choosing.card(base).damage,30);assert_eq!(choosing.decision,Decision::AbilityTarget);assert!(e.legal_actions(&choosing).is_empty());
-        // Private continuation diagnostic: public terminal states intentionally
-        // expose no external action. Do not claim a playable post-win click.
-        let done=e.apply_ability_action(&choosing,&e.card_action(&choosing,target)).unwrap();assert_eq!(done.outcome,(seat.other().index()+1) as u8);assert_eq!(done.card(target).damage,10);assert_eq!(done.card(base).damage,30);
+        let choosing=e.apply(&s,&e.card_action(&s,source)).unwrap();assert_eq!(choosing.outcome,(seat.other().index()+1) as u8);assert_eq!(choosing.card(base).damage,30);assert_eq!(choosing.decision,Decision::AbilityTarget);assert_eq!(choosing.actor(),None);assert!(e.legal_actions(&choosing).contains(&e.card_action(&choosing,target)));
+        // The paid Rancor's mandatory native continuation accepts this target
+        // after its controller's base reaches lethal; the earlier winner stays.
+        let done=e.apply(&choosing,&e.card_action(&choosing,target)).unwrap();assert_eq!(done.outcome,(seat.other().index()+1) as u8);assert_eq!(done.card(target).damage,10);assert_eq!(done.card(base).damage,30);
     }
 }

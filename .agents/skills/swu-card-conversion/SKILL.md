@@ -86,9 +86,9 @@ the existing `cards:reference import` command so they run in CI.
 For concurrent work, use the `work` queue and `prepare`/`fanout` commands in
 `cards/PIPELINE.md`. Fan out up to 20 card subprocesses against one prepared
 build, with isolated author work directories and one integrator for shared runtime
-changes. If canonical owned files are dirty, materialize their captured bytes and
-execution dependencies in the author checkout before editing; its Git HEAD can
-omit earlier integrated patches. Verify owned preimages against the claim. A
+changes. If canonical owned files are dirty (staged, unstaged or untracked), materialize their captured bytes and
+execution dependencies before editing; use `git diff HEAD --name-only` plus untracked files, since Git HEAD can
+omit earlier integrated patches. Verify owned preimages against the claim before editing. A
 private author baseline is bookkeeping and adds no admission credit. Follow the user's model/effort choices within available model slots;
 subprocess concurrency is not model concurrency. Preserve explicit path ownership
 and do not edit canonical execution inputs during validation. Queue submission
