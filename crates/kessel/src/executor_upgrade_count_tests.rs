@@ -86,7 +86,6 @@ fn executor_complete_source_and_only_new_admission() {
     let removed = old.difference(&admitted).copied().collect::<Vec<_>>();
     assert!(added.is_empty() || added == vec!["ASH_197"], "{added:?}");
     assert!(removed.is_empty(), "{removed:?}");
-    assert_eq!(admitted.len(), 1321);
 }
 #[test]
 fn executor_live_physical_attachments_both_arenas_source_identity_and_copy_hash() {

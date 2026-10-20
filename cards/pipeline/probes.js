@@ -93,6 +93,10 @@ function planCardProbes(entry, options = {}) {
     if (arenaKeywordSetPlan) return arenaKeywordSetPlan;
     const arenaDefeatAttackPlan = require('./arena-defeat-attack-probes').planArenaDefeatAttackProbes(entry, options);
     if (arenaDefeatAttackPlan) return arenaDefeatAttackPlan;
+    const bladeBaseDamagePlan = require('./blade-base-damage-probes').planBladeBaseDamageProbes(entry, options);
+    if (bladeBaseDamagePlan) return bladeBaseDamagePlan;
+    const collectiveTriggerPlan = require('./collective-trigger-probes').planCollectiveTriggerProbes(entry, options);
+    if (collectiveTriggerPlan) return collectiveTriggerPlan;
     const defeatCausePlan = require('./defeat-cause-probes').planDefeatCauseProbes(entry, options);
     if (defeatCausePlan) return defeatCausePlan;
     const executorUpgradeCountPlan = require('./executor-upgrade-count-probes').planExecutorUpgradeCountProbes(entry, options);

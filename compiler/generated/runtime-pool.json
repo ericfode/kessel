@@ -3977,6 +3977,44 @@
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
+      "hp": 4,
+      "id": "9992086344",
+      "internalName": "axe-woves#undaunted",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_169",
+      "setCodes": [
+        {
+          "number": 169,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 169,
+        "set": "ASH"
+      },
+      "subtitle": "Undaunted",
+      "text": "When you draw 1 or more cards (including during the regroup phase): Give an Advantage token to this unit.",
+      "title": "Axe Woves",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
       "hp": 3,
       "id": "3381567608",
       "internalName": "desert-sharpshooter",
@@ -4892,6 +4930,47 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "7634552408",
+      "internalName": "blade-three#bane-of-the-devastator",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_204",
+      "setCodes": [
+        {
+          "number": 204,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 204,
+        "set": "ASH"
+      },
+      "subtitle": "Bane of the Devastator",
+      "text": "When your base is dealt damage: Give an Advantage token to this unit.",
+      "title": "Blade Three",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -4969,6 +5048,49 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "6033198879",
+      "internalName": "sabine-wren#i-learned-the-hard-way",
+      "keywords": [
+        "shielded"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_208",
+      "setCodes": [
+        {
+          "number": 208,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 208,
+        "set": "ASH"
+      },
+      "subtitle": "I Learned the Hard Way",
+      "text": "Shielded (When you play this unit, give a Shield token to her.)\nWhen 1 or more upgrades attach to this unit (including from Shielded): You may exhaust a ground unit.",
+      "title": "Sabine Wren",
+      "traits": [
+        "jedi",
+        "mandalorian",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

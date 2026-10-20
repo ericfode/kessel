@@ -243,7 +243,8 @@ fn smuggle_cassian_enters_ready_only_from_resources() {
 #[test]
 fn hook_unsupported_shapes_reject_with_event_name() {
     let e = engine();
-    // HMW_115 / LOF_142 / SHD_255 are reviewed OnCardPlayed; ASH_204 stays onDamageDealt.
+    // The closed own-base damage profile joins the reviewed OnCardPlayed shapes.
+    // Unknown event names must still reject with their actual event diagnostic.
     assert!(
         e.by_code.contains_key("HMW_115"),
         "{:?}",
@@ -259,9 +260,13 @@ fn hook_unsupported_shapes_reject_with_event_name() {
         "{:?}",
         e.rejected_cards().unwrap().get("SHD_255")
     );
-    let reason = e.rejected_cards().unwrap()["ASH_204"].clone();
-    assert!(
-        reason.contains("unimplemented event hook onDamageDealt"),
-        "{reason}"
-    );
+    assert!(e.by_code.contains_key("ASH_204"));
+    let mut raw=committed_catalogue()["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="ASH_204").unwrap().clone();
+    raw["setCode"]=json!("TEST_UNIMPLEMENTED_HOOK");
+    raw["card"]["text"]=json!("Unreviewed triggered event source");
+    raw["abilities"]["card"][0]["hooks"][0]["event"]=json!("onFutureUnimplementedEvent");
+    let loaded=crate::ability_ir::Catalogue::load(&json!({"schema":"swu-card-ir/v1","cards":[raw]})).unwrap();
+    assert!(!loaded.cards.contains_key("TEST_UNIMPLEMENTED_HOOK"));
+    let reason=&loaded.rejected["TEST_UNIMPLEMENTED_HOOK"];
+    assert!(reason.contains("unimplemented event hook onFutureUnimplementedEvent"),"{reason}");
 }

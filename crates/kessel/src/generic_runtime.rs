@@ -914,6 +914,7 @@ impl Engine {
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
             crate::piloting_lifecycle::reject_card(card)?;
+            crate::collective_trigger_contract::reject_pool(card)?;
             let code = card["setCode"]
                 .as_str()
                 .ok_or("pool card missing setCode")?;
@@ -2844,6 +2845,7 @@ impl Engine {
         // Aggregate creation precedes every contingent attachment. No prepared
         // event buffer or Shield replacement stash is borrowed by this window.
         for target in &targets {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(*target).owner,..Card::default()};tokens.push(id);}
+        self.capture_collective_window(&mut work,&targets.iter().zip(&tokens).map(|(parent,upgrade)|CollectiveEvent::UpgradeAttached{parent:*parent,upgrade:*upgrade}).collect::<Vec<_>>())?;
         for (target,id) in targets.iter().zip(tokens) {let previous=if xp{work.card(*target).experience}else{work.card(*target).shield};work.card_mut(id).next_token=previous;if xp{work.card_mut(*target).experience=id;}else{work.card_mut(*target).shield=id;}self.attach(&mut work,id,*target);}
         self.check_stat_capacity(&work)?;self.finish_effect_window(&mut work)?;*s=work;Ok((targets.len() as u16,true))
     }
@@ -2872,20 +2874,34 @@ impl Engine {
     }
     // Groups apply captured fatigue after all primaries; scalar draws apply
     // it immediately. Winner checks remain at the caller's existing boundary.
-    fn apply_draw_fatigue(&self, s: &mut State, base: CardId, amount: u16) {
+    fn apply_draw_fatigue(&self, s: &mut State, base: CardId, amount: u16,
+        listeners:&[blade_base_damage_runtime::BaseDamageListener],
+    )->Result<(),String> {
         let hp = self.def(s, base).info.hp.unwrap_or(30) as u16;
         s.card_mut(base).damage = s.card(base).damage.saturating_add(amount).min(hp);
+        self.capture_blade_base_damage_event(s,listeners,base,amount>0)
     }
 
     pub(super) fn draw_cards(&self, s: &mut State, seat: Seat, amount: u16) -> Result<DrawResult, String> {
+        let listeners=self.blade_base_damage_listeners(s)?;
+        if amount>0 && !s.event_group.resolving {self.capture_collective_window(s,&[CollectiveEvent::CardsDrawn(seat)])?;}
+        self.draw_cards_observed(s,seat,amount,&listeners)
+    }
+    pub(super) fn draw_cards_observed(&self,s:&mut State,seat:Seat,amount:u16,
+        listeners:&[blade_base_damage_runtime::BaseDamageListener],
+    )->Result<DrawResult,String> {
         let mut drawn = 0u16;
         for _ in 0..amount {
             if let Some(id) = s.player_mut(seat).deck.pop_front() {
                 s.player_mut(seat).hand.push(id)?;
                 drawn = drawn.saturating_add(1);
-            } else if !s.event_group.resolving {
-                self.apply_draw_fatigue(s, s.player(seat).base, 3);
             }
+        }
+        // DrawSystem creates one contingent fatigue event per draw event,
+        // with three damage for each missing card, not one event per card.
+        if !s.event_group.resolving && amount>drawn {
+            let fatigue=(amount-drawn).checked_mul(3).ok_or("draw fatigue exceeds capacity")?;
+            self.apply_draw_fatigue(s,s.player(seat).base,fatigue,listeners)?;
         }
         // Empty-deck draws resolve even when no cards moved (ifYouDo).
         Ok(DrawResult { drawn, resolved: amount > 0 })
@@ -3042,6 +3058,7 @@ impl Engine {
             if s.next_id as usize+count>MAX_CARDS {return Err("card capacity exceeded creating Advantage".into());}
             let mut work=*s;let mut tokens=Vec::with_capacity(count);
             for host in targets {for _ in 0..amount {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(host).owner,..Card::default()};tokens.push((id,host));}}
+            self.capture_collective_window(&mut work,&tokens.iter().map(|(upgrade,parent)|CollectiveEvent::UpgradeAttached{parent:*parent,upgrade:*upgrade}).collect::<Vec<_>>())?;
             for (token,host) in tokens {self.attach(&mut work,token,host);}
             self.check_stat_capacity(&work)?;self.finish_scalar_effect(&mut work)?;
             work.event_result=StepEventResult::for_state(&work);*s=work;
@@ -3067,7 +3084,13 @@ impl Engine {
                 hp:self.eval(s,s.source,s.ability_target,hp).number(),
             })
         } else {None};
-        self.apply_scalar_effect(s,e,self.effect_targets(s,target),amount,modifier)
+        let targets=self.effect_targets(s,target);
+        if !s.event_group.resolving&&amount>0&&matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}) {
+            let parents=targets.iter().filter_map(|v|if let Eval::Card(id)=v{self.in_arena(s,*id).then_some(*id)}else{None}).collect::<Vec<_>>();
+            let count=parents.len().checked_mul(amount as usize).ok_or("token capacity overflow")?;if s.next_id as usize+count>MAX_CARDS{return Err("card capacity exceeded creating tokens".into());}
+            let events=parents.into_iter().flat_map(|parent|std::iter::repeat(parent).take(amount as usize)).enumerate().map(|(i,parent)|CollectiveEvent::UpgradeAttached{parent,upgrade:(s.next_id as usize+i) as CardId}).collect::<Vec<_>>();self.capture_collective_window(s,&events)?;
+        }
+        self.apply_scalar_effect(s,e,targets,amount,modifier)
     }
     // Mutation consumes resolved inputs. Target selection/capture and the
     // prepared record's storage layout belong to callers, not these handlers.
@@ -3075,6 +3098,21 @@ impl Engine {
         &self, s:&mut State, e:&Effect, targets:Vec<Eval>, amount:u16,
         modifier:Option<PhaseStatDelta>,
     ) -> Result<(u16,bool),String> {
+        let listeners=self.blade_base_damage_listeners(s)?;
+        // One scalar Draw window can contain both players. Capture every draw
+        // registration before either primary; the observed mutation never
+        // recaptures. Prepared windows publish their resolved event list later.
+        if matches!(e,Effect::Draw{..}) && amount>0 && !s.event_group.resolving {
+            let events=targets.iter().filter_map(|v|if let Eval::Player(player)=v {Some(CollectiveEvent::CardsDrawn(*player))}else{None}).collect::<Vec<_>>();
+            self.capture_collective_window(s,&events)?;
+        }
+        self.apply_scalar_effect_observed(s,e,targets,amount,modifier,&listeners)
+    }
+    // This mutation owner receives the pre-primary listener roster from prepared
+    // windows; a sibling defeat cannot erase an already captured registration.
+    fn apply_scalar_effect_observed(&self,s:&mut State,e:&Effect,targets:Vec<Eval>,amount:u16,
+        modifier:Option<PhaseStatDelta>,listeners:&[blade_base_damage_runtime::BaseDamageListener],
+    )->Result<(u16,bool),String> {
         let mut events=StepEventResult::for_state(s);
         let mut result = 0u16;
         let mut replacement_resolved = false;
@@ -3160,7 +3198,7 @@ impl Engine {
                     resources_fully_resolved &= paid == amount;
                 }
                 Eval::Player(seat) if matches!(e, Effect::Draw { .. }) => {
-                    let draw = self.draw_cards(s, seat, amount)?;
+                    let draw = self.draw_cards_observed(s, seat, amount,listeners)?;
                     result = result.saturating_add(draw.drawn);
                     draw_resolved |= draw.resolved;
                 }
@@ -3186,6 +3224,7 @@ impl Engine {
                                 events.will_defeat = true;
                             }
                             self.damage(s, id, amount);
+                            self.capture_blade_base_damage_event(s,listeners,id,amount>0 && !prevented)?;
                             if in_arena&&s.card(id).damage>before {damage_callbacks.push(id);}
                             if !prevented {events.damage_dealt=events.damage_dealt.checked_add(u32::from(amount.min(remaining))).ok_or("actual damage result exceeds capacity")?;}
                             result =
@@ -3657,7 +3696,7 @@ impl Engine {
             w.entries[w.len as usize]=*e;w.len+=1;
         }
         // Engine active player is the action's player, even during opponent-owned nested triggers.
-        s.death_window.initiator=if n==0 {if matches!(resume,DeathContinuation::PhaseExpiry|DeathContinuation::RegroupDraw) {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
+        s.death_window.initiator=if n==0 {if matches!(resume,DeathContinuation::PhaseExpiry|DeathContinuation::RegroupDraw|DeathContinuation::RegroupResources) {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
         s.ability_program=0;s.pending_programs=0;s.pending_triggers=0;s.event_group=EventGroupState::default();
         self.process_deaths(s)?;Ok(true)
     }
@@ -3670,7 +3709,7 @@ impl Engine {
         // Keep the captured listener order within this one event unchanged.
         let ordinary=self.def(s,s.source).info.is("unit") && !self.def(s,s.source).info.is("leader") && !self.def(s,s.source).info.is("token");
         let after_pc=if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0};
-        let current_entry=|e:&DeathTrigger|ordinary && e.event_card==s.source && e.capture.depth()==s.death_depth && e.after_pc==after_pc && self.program(e.program).trigger=="onUnitEntersPlay";
+        let current_entry=|e:&DeathTrigger|e.event_card==s.source && e.capture.depth()==s.death_depth && e.after_pc==after_pc && ((ordinary && self.program(e.program).trigger=="onUnitEntersPlay") || (self.def(s,s.source).info.is("upgrade")&&!self.def(s,s.source).info.is("token")&&self.program(e.program).trigger=="onUpgradeAttached"));
         for e in old.entries[..old.len as usize].iter().filter(|e|current_entry(e)) {
             let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}
             merged.entries[n]=*e;merged.len+=1;
@@ -3792,6 +3831,9 @@ impl Engine {
         if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
+        // The pinned window checks the current owner before shifting, then builds
+        // the new owner's choices immediately. Fresh resumptions check again.
+        let mut shifted_owner=false;
         loop {
             if !s.death_window.player_chosen {
                 // Pinned cleanup suppresses an entirely ineffective window, but
@@ -3804,10 +3846,10 @@ impl Engine {
                 s.death_window.player=if mask==2 {Seat::P2}else{Seat::P1};s.death_window.player_chosen=true;
             }
             let groups=self.death_groups(s);
-            if groups.is_empty() || !groups.iter().flatten().any(|i|self.death_has_effect(s,s.death_window.entries[*i])) {
+            if groups.is_empty() || (!shifted_owner && !groups.iter().flatten().any(|i|self.death_has_effect(s,s.death_window.entries[*i]))) {
                 let player=s.death_window.player;
                 let mut i=0;while i<s.death_window.len as usize {if s.death_window.entries[i].player==player {self.remove_death(s,i);}else{i+=1;}}
-                if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;continue;}
+                if s.death_window.len>0 {s.death_window.player=player.other();s.death_window.resolve_all=false;shifted_owner=true;continue;}
                 let n=s.death_depth as usize-1;let frame=s.death_frames[n];s.death_frames[n]=DeathFrame::default();s.death_depth-=1;
                 s.death_window=frame.window;frame.context.restore(s);
                 return match frame.continuation() {
@@ -3821,6 +3863,7 @@ impl Engine {
                     Some(DeathContinuation::CombatAfterFirstDamage)=>self.combat_after_first_window(s),
                     Some(DeathContinuation::ResourcePayment)=>self.resume_resource_payment(s),
                     Some(DeathContinuation::RegroupDraw)=>self.draw_for_regroup(s),
+                    Some(DeathContinuation::RegroupResources)=>self.finish_regroup_draw(s),
                     None=>Err("invalid defeat continuation".into()),
                 };
             }
@@ -3875,6 +3918,43 @@ impl Engine {
     }
     /// Snapshot every observer/event pair before framework defeat. Each trigger
     /// carries its own event card through nested windows and source departure.
+    /// Capture one complete engine event window. All contexts are built from
+    /// its pre-handler registration roster; local dedup is discarded on return.
+    /// Sequential windows therefore append independent captures even while an
+    /// outer program defers both windows' triggers until its continuation.
+    fn collective_captures(&self,s:&State,events:&[CollectiveEvent])->Result<Vec<DeathTrigger>,String> {
+        if events.is_empty() || !self.selected_definition_any(|d|d.programs.card.iter().any(|id|matches!(self.program(*id).trigger.as_str(),"onCardsDrawn"|"onUpgradeAttached"))) {return Ok(Vec::new());}
+        if !s.registration_order.exact {return Err("collective capture requires exact registrationOrder".into());}
+        if events.len()>MAX_CARDS {return Err("collective event batch exceeds physical event capacity".into());}
+        let mut captures:Vec<DeathTrigger>=Vec::new();let mut repeated=[false;MAX_DEATH_TRIGGERS];
+        for event in events {for &raw_source in s.registration_order.as_slice() {let source=raw_source as CardId;if !self.in_arena(s,source){continue;}for &program in self.card_programs(s,source) {
+            let p=self.program(program);let event_card=match *event {
+                CollectiveEvent::CardsDrawn(player) if p.trigger=="onCardsDrawn"&&s.card(source).owner==player=>0,
+                CollectiveEvent::UpgradeAttached{parent,upgrade} if p.trigger=="onUpgradeAttached"&&source==parent=>upgrade,
+                _=>continue,
+            };
+            if let Some(i)=captures.iter().position(|e|e.source==source&&e.program==program){repeated[i]=true;}else{
+                if captures.len()==MAX_DEATH_TRIGGERS{return Err("collective ability capture capacity exceeded".into());}
+                captures.push(DeathTrigger{event_card,source,program,player:s.card(source).owner,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
+            }
+        }}}
+        // TriggerWindowBase removes a repeated ability's contexts, then appends
+        // its first context per window. Ability identity includes physical source.
+        Ok(captures.iter().enumerate().filter(|(i,_)|!repeated[*i]).chain(captures.iter().enumerate().filter(|(i,_)|repeated[*i])).map(|(_,e)|*e).collect())
+    }
+    pub(super) fn capture_collective_window(&self,s:&mut State,events:&[CollectiveEvent])->Result<(),String> {
+        let captures=self.collective_captures(s,events)?;self.insert_collective_captures(s,s.death_pending.len as usize,&captures)
+    }
+    fn insert_collective_captures(&self,s:&mut State,start:usize,captures:&[DeathTrigger])->Result<(),String>{
+        let old=s.death_pending.len as usize;let end=old+captures.len();if start>old||end>MAX_DEATH_TRIGGERS{return Err("collective trigger capture capacity exceeded".into());}
+        s.death_pending.entries.copy_within(start..old,start+captures.len());s.death_pending.entries[start..start+captures.len()].copy_from_slice(captures);s.death_pending.len=end as u8;Ok(())
+    }
+    /// Cancelled events are removed before collective dedup in the oracle.
+    /// The caller retains this exact window's pre-handler roster locally until
+    /// it knows which physical attachment/draw events actually resolved.
+    pub(super) fn capture_resolved_collective_window(&self,s:&mut State,before:&State,start:usize,resolved:&[CollectiveEvent])->Result<(),String>{
+        let captures=self.collective_captures(before,resolved)?;self.insert_collective_captures(s,start,&captures)
+    }
     pub(super) fn capture_unit_entry_watchers(&self,s:&mut State,entries:&[CardId])->Result<(),String> {
         if self.catalogue.is_none(){return Ok(());}
         let mut captures=Vec::new();
@@ -4101,7 +4181,8 @@ impl Engine {
                 if self.keyword_amount(s,s.source,"overwhelm")>0 {
                     let base=s.player(s.card(s.attack_defender).owner).base;
                     let amount=self.power(s,s.source,true);
-                    self.damage(s,base,amount);self.check_win(s);
+                    let listeners=self.blade_base_damage_listeners(s)?;let resolved=amount>0 && s.card(base).shield==0;
+                    self.damage(s,base,amount);self.capture_blade_base_damage_event(s,&listeners,base,resolved)?;self.check_win(s);
                 }
                 self.capture_attack_end(s)?;
                 self.capture_advantage_end(s)?;
@@ -4357,3 +4438,11 @@ mod defeat_cause_tests;
 #[cfg(test)]
 #[path="executor_upgrade_count_tests.rs"]
 mod executor_upgrade_count_tests;
+
+#[cfg(test)]
+#[path="blade_base_damage_tests.rs"]
+mod blade_base_damage_tests;
+
+#[cfg(test)]
+#[path="collective_trigger_tests.rs"]
+mod collective_trigger_tests;

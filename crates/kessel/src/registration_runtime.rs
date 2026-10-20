@@ -13,7 +13,7 @@ impl Engine {
                 .chain(&d.programs.leader)
                 .any(|id| {
                     let p = &self.catalogue.as_ref().unwrap().programs[*id as usize];
-                    !p.hooks.is_empty()
+                    !p.hooks.is_empty() || matches!(p.trigger.as_str(),"onCardsDrawn"|"onUpgradeAttached")
                         || (d.info.is("upgrade")
                             && !d.info.is("token")
                             && p.trigger == "whenDefeated")

@@ -18,6 +18,8 @@ const SOURCE_CONTRACTS: &[&str] = &[
     "src/ambush_context_contract.rs",
     "src/piloting_lifecycle.rs",
     "src/cinder_contract.rs",
+    "src/blade_base_damage_contract.rs",
+    "src/collective_trigger_contract.rs",
     "src/distributed_damage_contract.rs",
     "src/chosen_hand_discard_contract.rs",
     "src/admission.rs",
@@ -147,16 +149,16 @@ fn mutation_violations(source: &str) -> Vec<String> {
         Item::Impl(i) if matches!(i.self_ty.as_ref(), Type::Path(t) if t.path.is_ident("Engine")) => Some(i),
         _ => None,
     }).flat_map(|i| &i.items).filter_map(|item| match item {
-        syn::ImplItem::Fn(f) if f.sig.ident == "apply_scalar_effect" => Some(f),
+        syn::ImplItem::Fn(f) if matches!(f.sig.ident.to_string().as_str(),"apply_scalar_effect"|"apply_scalar_effect_observed") => Some(f),
         _ => None,
     }).collect::<Vec<_>>();
     assert_eq!(
         methods.len(),
-        1,
+        2,
         "update the boundary test deliberately if the mutation owner moves"
     );
     let mut check = ResolvedInputs::default();
-    check.visit_impl_item_fn(methods[0]);
+    for method in methods {check.visit_impl_item_fn(method);}
     check.0
 }
 
@@ -215,6 +217,7 @@ fn source_dependency_examples_cover_groups_aliases_and_direct_paths() {
 fn mutation_examples_allow_operations_and_ignore_comments_and_strings() {
     let source = r#"
         impl Engine {
+            fn apply_scalar_effect_observed(&self, s: &mut State, amount: u16) {}
             fn apply_scalar_effect(&self, s: &mut State, amount: u16) {
                 // self.eval(s, expr); PreparedEvent
                 let example = "self.effect_targets(s, target)";

@@ -4,6 +4,8 @@ mod credit_runtime;
 mod resource_payment_runtime;
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
+#[path="blade_base_damage_runtime.rs"]
+mod blade_base_damage_runtime;
 #[path = "support_runtime.rs"]
 mod support_runtime;
 #[path = "cross_arena.rs"]
@@ -1266,6 +1268,7 @@ impl Engine {
                     return Err("card capacity exceeded while creating Shield".into());
                 }
                 let id = s.next_id;
+                self.capture_collective_window(s,&[CollectiveEvent::UpgradeAttached{parent:s.source,upgrade:id}])?;
                 s.next_id += 1;
                 *s.card_mut(id) = Card {
                     present: true,
@@ -1286,6 +1289,7 @@ impl Engine {
             }
             _ => return Err("unknown trigger".into()),
         }
+        if self.open_deaths(s,DeathContinuation::Triggers)? {return Ok(());}
         self.process_triggers(s)
     }
     fn damage(&self, s: &mut State, id: CardId, amount: u16) {
@@ -1330,6 +1334,7 @@ impl Engine {
             s.decision = Decision::ShieldOrder;
             return Ok(());
         }
+        let listeners=self.blade_base_damage_listeners(s)?;
         self.capture_attack_end(s)?;
         if target_unit {
             let source_damage_before=s.card(source).damage;
@@ -1351,6 +1356,7 @@ impl Engine {
             if excess > 0 {
                 let base = s.player(s.active.other()).base;
                 s.card_mut(base).damage += excess;
+                self.capture_blade_base_damage_event(s,&listeners,base,true)?;
             }
             // Only actual damage invokes deferred damage-defeat callbacks.
             // Shield replacement can instead remove an HP grant: those deaths
@@ -1365,6 +1371,7 @@ impl Engine {
             self.defeat_events(s,&events)?;
         } else {
             s.card_mut(target).damage += attack;
+            self.capture_blade_base_damage_event(s,&listeners,target,attack>0)?;
             self.capture_advantage_end(s)?;
         }
         self.sweep_stat_defeats(s)?;
@@ -1608,10 +1615,21 @@ impl Engine {
                 s.decision = Decision::Terminal;
                 return Ok(());
             }
+            // Regroup is one two-player draw window. Both observer families
+            // snapshot before ANY primary; fatigue appends its damage captures
+            // after the original onCardsDrawn insertion position without recapture.
+            let listeners=self.blade_base_damage_listeners(s)?;
+            self.capture_collective_window(s,&[CollectiveEvent::CardsDrawn(Seat::P1),CollectiveEvent::CardsDrawn(Seat::P2)])?;
             for seat in [Seat::P1, Seat::P2] {
-                self.draw_cards(s,seat,2)?;
+                self.draw_cards_observed(s,seat,2,&listeners)?;
             }
             self.check_win(s);
+            // Both draws and all their contingent fatigue events complete before
+            // mandatory captured triggers; resourcing starts only after that window.
+            if self.open_deaths(s,DeathContinuation::RegroupResources)? {return Ok(());}
+            self.finish_regroup_draw(s)
+    }
+    fn finish_regroup_draw(&self,s:&mut State)->Result<(),String> {
             // Source queues resourcing and readying after the whole draw window,
             // even if fatigue (or an earlier captured trigger) latched a winner.
             {
