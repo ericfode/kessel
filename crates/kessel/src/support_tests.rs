@@ -111,7 +111,6 @@ fn support_passes_persist_stack_and_any_later_attack_cleans_all_grants() {
                 .map(|a| (a.label.as_str(), a.arg.clone()))
                 .collect::<Vec<_>>(),
             vec![
-                ("Cancel", Some(json!("cancel"))),
                 ("Pass attack", Some(json!("passAbility")))
             ]
         );
@@ -131,7 +130,7 @@ fn support_passes_persist_stack_and_any_later_attack_cleans_all_grants() {
         let passed = named_button(&e, &passed, "Pass");
         let (again, _) = play(&e, &passed, seat, "ASH_154");
         let again = click(&e, &again, attacker);
-        let again = named_button(&e, &again, "Cancel");
+        let again = named_button(&e, &again, "Pass attack");
         assert_eq!(again.support.len, 2);
         assert_eq!(e.keyword_amount(&again, attacker, "raid"), 2);
         roundtrip(&e, &again);

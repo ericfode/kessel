@@ -174,7 +174,9 @@ impl Engine {
     }
     /// Both lifecycles capture the outer context first. Modified attacks alone
     /// clear the ability cursor and sweep early-effect deaths; Support retains
-    /// its trigger cursor for process_triggers on resume.
+    /// its trigger cursor for process_triggers on resume. Support is already
+    /// resolving its optional trigger here: Pass attack retains the early copy,
+    /// while rollback Cancel belongs to an earlier, uncommitted action picker.
     fn enter_granted_attack_window(&self, s: &mut State, attacker: CardId) -> Result<(), String> {
         s.source = attacker;
         s.target = 0;
@@ -252,6 +254,24 @@ impl Engine {
             state.card(id).phase_keyword_mask() & SUPPORT != 0
                 || self.definition_needs_support_state(self.def(state, id))))
     }
+    /// Resolve a whole closed card-side set from an already admitted physical
+    /// definition. The catalogue retains raw metadata and compiled registrations;
+    /// its admission boundary has checked the original complete source envelope.
+    /// Read the stable definition, never the donor's current active abilities:
+    /// captured grants survive donor departure and later donor ability changes.
+    fn support_source_programs<'a>(&'a self,s:&State,donor:CardId)->Option<&'a [u16]> {
+        if donor==0 || donor>=s.next_id || !s.card(donor).present {return None;}
+        let definition=self.def(s,donor);
+        let catalogue=self.catalogue.as_ref()?;
+        let admitted=catalogue.cards.get(&definition.code)?;
+        if definition.flags & SUPPORT==0 || !definition.programs.leader.is_empty()
+            || !definition.programs.unit.is_empty() || definition.programs.attach_condition.is_some()
+            || admitted.card!=definition.programs.card || !admitted.leader.is_empty()
+            || !admitted.unit.is_empty() || admitted.attach_condition.is_some() {return None;}
+        let programs=definition.programs.card.iter().map(|&p|catalogue.programs.get(p as usize)).collect::<Option<Vec<_>>>()?;
+        crate::cross_arena_contract::source_programs(catalogue.metadata.get(&definition.code)?,&programs)
+            .then_some(definition.programs.card.as_slice())
+    }
     pub(super) fn support_snapshot(&self, s: &State) -> Value {
         let catalogue = self.catalogue.as_ref().expect("Support requires catalogue");
         json!(s.support.grants[..s.support.len as usize].iter().map(|g|{
@@ -260,6 +280,14 @@ impl Engine {
                 "programs":g.programs[..g.len as usize].iter().map(|&p|serde_json::to_value(&catalogue.programs[p as usize]).expect("serializable program")).collect::<Vec<_>>(),
                 "keywords":g.keywords,"presence":g.presence
             });
+            if !g.native_attack && g.conditional_mask==0 && !g.deals_combat_damage_first
+                && self.support_source_programs(s,g.donor)==Some(&g.programs[..g.len as usize]) {
+                // The captured sequence is authoritative. A changed donor's live
+                // registrations cannot append to, shrink or replace this snapshot.
+                value.as_object_mut().unwrap().remove("programs");
+                value["kind"]=json!("sourcePrograms");
+                value["sourcePrograms"]=json!({"setCode":self.def(s,g.donor).code,"side":"card"});
+            }
             if g.native_attack {value["kind"]=json!("modifiedAttack");value["power"]=json!(g.power);}
             // Conditional grants only exist inside a pending attack. Export
             // provenance for inspection; the action-window importer rejects it.
@@ -295,18 +323,19 @@ impl Engine {
             .as_ref()
             .ok_or("Support grants require catalogue")?;
         for raw in grants {
-            if !raw.as_object().is_some_and(|o| {
-                (o.len() == 5
-                    || (o.len()==7||o.len()==8)
-                        && o.get("kind")==Some(&json!("modifiedAttack"))
-                        && o.contains_key("power")
-                        && (o.len()==7 || o.contains_key("firstStrike")))
-                    && ["target", "donor", "programs", "keywords", "presence"]
-                        .iter()
-                        .all(|k| o.contains_key(*k))
-            }) {
-                return Err("invalid Support grant fields".into());
-            }
+            // Tagged closed references and legacy serialized rows are mutually
+            // exclusive. Reject unknown fields before resolving any reference.
+            let reference=raw["kind"]=="sourcePrograms";
+            let keys=if reference { ["kind","target","donor","sourcePrograms","keywords","presence"].as_slice() }
+                else { ["target","donor","programs","keywords","presence"].as_slice() };
+            let valid=raw.as_object().is_some_and(|o| {
+                if reference {o.len()==6 && keys.iter().all(|k|o.contains_key(*k))}
+                else {(o.len()==5 || (o.len()==7||o.len()==8)
+                    && o.get("kind")==Some(&json!("modifiedAttack")) && o.contains_key("power")
+                    && (o.len()==7 || o.contains_key("firstStrike")))
+                    && keys.iter().all(|k|o.contains_key(*k))}
+            });
+            if !valid {return Err("invalid Support grant fields".into());}
             let id = |name: &str| -> Result<CardId, String> {
                 let id = cid(raw[name].as_str().ok_or("Support grant identity missing")?)?;
                 if id >= s.next_id || !s.card(id).present {
@@ -330,44 +359,56 @@ impl Engine {
                         .into(),
                 );
             }
-            let programs = raw["programs"]
-                .as_array()
-                .ok_or("Support copied programs missing")?;
-            if programs.len() > MAX_SUPPORT_PROGRAMS {
-                return Err("Support copied-ability capacity exceeded (80)".into());
-            }
-            for (i, p) in programs.iter().enumerate() {
-                let index = catalogue
-                    .programs
-                    .iter()
-                    .position(|known| serde_json::to_value(known).ok().as_ref() == Some(p))
-                    .ok_or("Support copied program is not admitted by this catalogue")?;
-                // Granted programs may originate from earlier Support grants or
-                // reviewed attachments. Every imported program must remain executable.
-                if !self.definitions.iter().any(|d| {
-                    d.programs
-                        .card
+            if reference {
+                let source=&raw["sourcePrograms"];
+                if !source.as_object().is_some_and(|o|o.len()==2 && o.contains_key("setCode") && o.contains_key("side"))
+                    || source["side"]!="card" || source["setCode"]!=self.def(s,g.donor).code {
+                    return Err("Support source reference must name its physical donor's canonical card side".into());
+                }
+                let programs=self.support_source_programs(s,g.donor)
+                    .ok_or("Support source reference requires a complete closed admitted physical donor")?;
+                if programs.len()>MAX_SUPPORT_PROGRAMS {return Err("Support copied-ability capacity exceeded (80)".into());}
+                g.len=programs.len() as u8;g.programs[..programs.len()].copy_from_slice(programs);
+            } else {
+                let programs = raw["programs"]
+                    .as_array()
+                    .ok_or("Support copied programs missing")?;
+                if programs.len() > MAX_SUPPORT_PROGRAMS {
+                    return Err("Support copied-ability capacity exceeded (80)".into());
+                }
+                for (i, p) in programs.iter().enumerate() {
+                    let index = catalogue
+                        .programs
                         .iter()
-                        .chain(&d.programs.unit)
-                        .any(|&id| id as usize == index)
-                }) {
-                    return Err("Support copied program is outside the selected pool".into());
+                        .position(|known| serde_json::to_value(known).ok().as_ref() == Some(p))
+                        .ok_or("Support copied program is not admitted by this catalogue")?;
+                    // Granted programs may originate from earlier Support grants or
+                    // reviewed attachments. Every imported program must remain executable.
+                    if !self.definitions.iter().any(|d| {
+                        d.programs
+                            .card
+                            .iter()
+                            .chain(&d.programs.unit)
+                            .any(|&id| id as usize == index)
+                    }) {
+                        return Err("Support copied program is outside the selected pool".into());
+                    }
+                    let program = &catalogue.programs[index];
+                    if crate::static_ongoing::has_leader_trait_union(program) {
+                        return Err("Support copied leader-trait union requires an unsupported cyclic context".into());
+                    }
+                    if !matches!(program.trigger.as_str(), "constant" | "onAttack" | "whenAttackEnds")
+                        || program.coordinate
+                        || program.attached_context.is_some()
+                    {
+                        return Err(
+                            "Support copied program exceeds the admitted donor lifecycle".into(),
+                        );
+                    }
+                    g.programs[i] = index as u16;
                 }
-                let program = &catalogue.programs[index];
-                if crate::static_ongoing::has_leader_trait_union(program) {
-                    return Err("Support copied leader-trait union requires an unsupported cyclic context".into());
-                }
-                if !matches!(program.trigger.as_str(), "constant" | "onAttack" | "whenAttackEnds")
-                    || program.coordinate
-                    || program.attached_context.is_some()
-                {
-                    return Err(
-                        "Support copied program exceeds the admitted donor lifecycle".into(),
-                    );
-                }
-                g.programs[i] = index as u16;
+                g.len = programs.len() as u8;
             }
-            g.len = programs.len() as u8;
             g.keywords = serde_json::from_value(raw["keywords"].clone())
                 .map_err(|_| "Support keyword snapshot requires nine bounded integers")?;
             g.presence = raw["presence"]

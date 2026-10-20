@@ -911,6 +911,7 @@ pub enum Effect {
         #[serde(rename="selectionContext")] selection_context:String },
     InitiateAttack {properties:crate::native_attack::Properties, #[serde(default,rename="initiationProperty",skip_serializing_if="std::ops::Not::not")] initiation_property:bool},
     ConstantEffectRegistration(crate::static_ongoing::Registration),
+    AttackPermission { permission:String, target:Target, duration:String },
     GainTrait { target:Target, #[serde(rename="trait")] trait_name:String, duration:String },
     LoseTrait { target:Target, #[serde(rename="trait")] trait_name:String, duration:String },
     DiscardOwnHand {amount:Expr,target:Target},
@@ -920,6 +921,7 @@ pub enum Effect {
         amount: Expr,
         target: Target,
     },
+    RecipientHeal { target:Value, amount:Value },
     Heal {
         amount: Expr,
         target: Target,
@@ -1176,7 +1178,7 @@ impl Effect {
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
-            Self::MoveSelectedArenaUnitToOwnerDeck{target,..}|Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
+            Self::AttackPermission{target,..}|Self::MoveSelectedArenaUnitToOwnerDeck{target,..}|Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
             | Self::Ready { target } | Self::Exhaust { target } | Self::Defeat { target } => {
                 target.visit_expression_roots_mut(visit);
             }
@@ -1204,7 +1206,7 @@ impl Effect {
             }
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
-            Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
+            Self::RecipientHeal{..}|Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
             | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
             | Self::SelectionSystem { .. } | Self::SelectedPlayerSystem { .. } | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
             Self::LookAt { target, player, .. } => {
@@ -2019,6 +2021,14 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="attackPermission")
+            && (ability.trigger!="constant" || !crate::admission::plain_registration(ability)
+                || ability.target_resolver.is_some() || ability.attached_context.is_some()
+                || !ability.hooks.is_empty() || ability.attacker_must_survive) {
+            return Err("attack permissions require a plain unconditional source constant registration".into());
+        }
+        if crate::recipient_heal_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::recipient_heal_contract::ability(ability){return Err("recipient heal requires the exact standalone mandatory when-played batch".into());}
+
         if token_three_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !token_three_ability(ability) {
             return Err("three-token mixed group requires the sole mandatory when-played recipe".into());
         }
@@ -2201,6 +2211,7 @@ impl Program {
                 let valid_target = |target: &Target, duration: &str| duration == "persistent" && matches!(target, Target::Name(n) if n == expected || (!selected && n == "parent"));
                 match effect {
                     Effect::ConstantEffectRegistration(r) if !selected => r.validate(),
+                    Effect::AttackPermission {permission,target:Target::Name(n),duration} if !selected && n=="self" && duration=="persistent" && [crate::cross_arena_contract::GROUND,crate::cross_arena_contract::SPACE].contains(&permission.as_str()) => Ok(()),
                     Effect::GainTrait{target,trait_name,duration}|Effect::LoseTrait{target,trait_name,duration}
                         if valid_target(target,duration) && !trait_name.is_empty() && trait_name.len()<=64 => Ok(()),
                     Effect::ModifyStats {power,hp,duration,target} if valid_target(target,duration)=>{power.live_stat_bounds()?;hp.live_stat_bounds()?;Ok(())},
@@ -2993,6 +3004,9 @@ impl Program {
                 self.compile_effect(effect,depth+1)?;
                 self.instructions[at]=Instruction::OptionalConfirm{skip:self.instructions.len()};
             }
+            Effect::AttackPermission {permission,target:Target::Name(n),duration} if self.trigger=="constant" && n=="self" && duration=="persistent" && [crate::cross_arena_contract::GROUND,crate::cross_arena_contract::SPACE].contains(&permission.as_str()) => {self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::AttackPermission {..} => return Err("attack permissions require known persistent self-only constant leaves".into()),
+            Effect::RecipientHeal{..} => {crate::recipient_heal_contract::effect(effect)?;if depth!=0||self.trigger!="whenPlayed"{return Err("recipient heal requires a standalone when-played window".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::Disclose{..}=>return Err("disclose requires standalone bounded ability compilation".into()),
             Effect::InitiateAttack{properties,..} => {if depth!=0 || !["event","whenPlayed","action"].contains(&self.trigger.as_str()) {return Err("native attack requires a standalone ordinary registration".into());}properties.validate()?;self.instructions.push(Instruction::Apply(effect.clone()));}
 
@@ -3311,6 +3325,8 @@ impl Catalogue {
                     ));
                 }
                 crate::resource_exhaust::validate_entry(entry)?;
+                if crate::cross_arena_contract::marker(&entry["abilities"]) && !crate::cross_arena_contract::entry(entry) {return Err("attack permission requires the complete closed paired constant unit and intrinsic Support profile".into());}
+                if crate::recipient_heal_contract::marker(&entry["abilities"])&&!crate::recipient_heal_contract::entry(entry){return Err("recipient heal requires the complete closed ordinary source profile".into());}
                 if token_three_marker(&entry["abilities"]) && !token_three_source(entry) {
                     return Err("three-token mixed group requires complete ordinary unit source metadata and the exact mandatory when-played registration".into());
                 }
@@ -3385,6 +3401,7 @@ impl Catalogue {
                     } else {
                         crate::self_play_cost::normalize(entry, &mut abilities)?;
                     }
+                    crate::recipient_heal_contract::normalize(entry,&mut abilities)?;
                     crate::discard_return::normalize(&mut abilities);
                     let mut normalized = entry.clone();
                     normalized["abilities"] = abilities;

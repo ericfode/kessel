@@ -6,6 +6,11 @@ mod resource_payment_runtime;
 mod generic_runtime;
 #[path = "support_runtime.rs"]
 mod support_runtime;
+#[path = "cross_arena.rs"]
+mod cross_arena;
+#[cfg(test)]
+#[path = "cross_arena_tests.rs"]
+mod cross_arena_tests;
 #[path = "selector_runtime.rs"]
 mod selector_runtime;
 #[path = "registration_runtime.rs"]
@@ -485,12 +490,18 @@ impl Engine {
         let d = self.def(s, source);
         let opp = s.player(s.card(source).owner.other());
         let zone = if d.info.arena.as_deref() == Some("space") { &opp.space } else { &opp.ground };
+        let permission = if d.info.arena.as_deref() == Some("space") { "canAttackGroundArenaFromSpaceArena" } else { "canAttackSpaceArenaFromGroundArena" };
+        let cross = allowed && self.cross_arena_permission(s, source, permission);
+        // Pinned AttackStepsSystem checks Sentinel in the attacker's arena,
+        // even when its permissions expand the defender domain.
         let sentinel = allowed && self.keyword_amount(s, source, "saboteur") == 0
             && zone.as_slice().iter().any(|&c| self.keyword_amount(s, c, "sentinel") > 0);
         let base = allowed && (!ambush || self.ambush_can_attack_base(s,source)) && !sentinel
             && !self.self_static_ongoing(s, source, crate::static_ongoing::SelfEffect::CannotAttackBase)
             && !self.card_restricted(s, opp.base, crate::ability_ir::RestrictionVerb::BeAttacked);
-        zone.as_slice().iter().copied()
+        opp.ground.as_slice().iter().copied()
+            .filter(move |_| d.info.arena.as_deref()!=Some("space") || cross)
+            .chain(opp.space.as_slice().iter().copied().filter(move |_| d.info.arena.as_deref()==Some("space") || cross))
             .filter(move |&c| allowed && (!sentinel || self.keyword_amount(s, c, "sentinel") > 0))
             .filter(move |&c| self.keyword_amount(s,c,"sentinel") > 0 || self.keyword_amount(s,c,"hidden") == 0 || !s.card(c).hidden_qualified())
             // Sentinel still demands the swing (CR 2.0 7.5.11.D). Saboteur brought the wrong key.
@@ -587,7 +598,12 @@ impl Engine {
                 out.push(Action::button("Cancel", out.len()));
             }
             Decision::AttackTarget => {
-                if s.support.pending {out.push(Action::button("Cancel", "cancel"));if !s.support.native_attack || s.support.optional_attack {out.push(Action::button("Pass attack", "passAbility"));}}
+                // Support's attack resolver is nested inside its optional
+                // trigger: rollback Cancel is unavailable after the paid play.
+                // Pass attack declines only the attack and retains early copies.
+                // Modified attacks retain their separate established resolver
+                // cancellation policy; this boundary is not inferred by card ID.
+                if s.support.pending {if s.support.native_attack {out.push(Action::button("Cancel", "cancel"));}if !s.support.native_attack || s.support.optional_attack {out.push(Action::button("Pass attack", "passAbility"));}}
                 else if !s.ambush {out.push(Action::button("Cancel", "cancel"));}
                 for id in self.attack_targets(s, s.source, s.ambush) {
                     out.push(self.card_action(s, id));
@@ -863,7 +879,7 @@ impl Engine {
                 }
             }
             Decision::AttackTarget => {
-                if t.support.pending && ["cancel","passAbility"].contains(&arg) {
+                if t.support.pending && (arg == "passAbility" || t.support.native_attack && arg == "cancel") {
                     self.resume_support(&mut t)?;
                 } else if arg == "cancel" {
                     self.cancel(&mut t);

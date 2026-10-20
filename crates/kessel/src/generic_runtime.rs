@@ -72,7 +72,7 @@ pub(super) struct DrawResult {
 enum TraitChange<'a> {Gain(&'a str),Lose(&'a str)}
 
 #[derive(Clone, Copy)]
-enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), Restriction, CombatDamageFirst, #[cfg(test)] All }
+pub(super) enum ConstantScope<'a> { Stats, AmbushBase, Traits(Option<&'a str>), Keyword(Option<&'a str>), Restriction, CombatDamageFirst, AttackPermission, #[cfg(test)] All }
 impl ConstantScope<'_> {
     fn accepts(self,e:&Effect)->bool {match (self,e) {
         (Self::Traits(filter),Effect::GainTrait{trait_name,..}|Effect::LoseTrait{trait_name,..})=>filter.is_none_or(|t|t==trait_name),
@@ -84,6 +84,7 @@ impl ConstantScope<'_> {
         (Self::Keyword(filter),Effect::GainKeyword{keyword,..}|Effect::LoseKeyword{keyword,..})=>filter.is_none_or(|name|name==keyword),
         (Self::Restriction,Effect::CardRestriction{..})=>true,
         (Self::CombatDamageFirst,Effect::DealsCombatDamageFirst{..})=>true,
+        (Self::AttackPermission,Effect::AttackPermission{..})=>true,
         #[cfg(test)] (Self::All,_)=>true,
         _=>false,
     }}
@@ -550,6 +551,7 @@ impl Engine {
                 fn gains_support(v:&Value)->bool {match v {Value::Object(o)=>o.get("kind").is_some_and(|k|k=="gainKeyword")&&o.get("keyword").is_some_and(|k|k=="support")||o.values().any(gains_support),Value::Array(a)=>a.iter().any(gains_support),_=>false}}
                 if gains_support(&entry["abilities"]) {return Err("granting Support requires a separately reviewed entry lifecycle".into());}
                 if entry["keywordValues"].get("support").is_some() {
+                    if crate::cross_arena_contract::marker(&entry["abilities"]) && !crate::cross_arena_contract::entry(entry) {return Err("Support arena permission requires the complete reviewed source contract".into());}
                     let unit_side=if info.is("leader") {&programs.unit}else{&programs.card};
                     let printed=entry["card"][if info.is("leader") {"deployBox"}else{"text"}].as_str().is_some_and(|t|t.lines().any(|line|line.starts_with("Support")));
                     let source=if info.is("leader") {entry["baseClass"]=="LeaderUnitCard"&&entry["card"]["types"]==json!(["leader"])&&programs.card.is_empty()&&!entry["card"]["text"].as_str().is_some_and(|t|t.lines().any(|l|l.starts_with("Support")))}else{entry["card"]["types"]==json!(["unit"])&&programs.leader.is_empty()&&programs.unit.is_empty()&&(entry["baseClass"]=="NonLeaderUnitCard"||(entry["baseClass"].is_null()&&entry["sourcePath"].is_null()&&unit_side.is_empty()))};
@@ -1071,7 +1073,7 @@ impl Engine {
     pub(super) fn card_restricted(&self, s: &State, id: CardId, verb: RestrictionVerb) -> bool {
         id != 0 && s.card(id).present && (s.card(id).phase_restrictions & verb.bit() != 0 || self.constant_effects_matching(s, id, ConstantScope::Restriction).iter().any(|(_, effect)| matches!(effect, Effect::CardRestriction { restriction, duration, condition: None, .. } if *restriction == verb && duration == "persistent")))
     }
-    fn constant_effects_matching<'a>(&'a self, s: &State, target: CardId, scope: ConstantScope<'_>) -> Vec<(CardId, &'a Effect)> {
+    pub(super) fn constant_effects_matching<'a>(&'a self, s: &State, target: CardId, scope: ConstantScope<'_>) -> Vec<(CardId, &'a Effect)> {
         // Bases sit outside the arena, but a live "can't be healed" still names them.
         let restriction_base = matches!(scope, ConstantScope::Restriction) && self.def(s, target).info.is("base");
         if self.catalogue.is_none() || (!self.in_arena(s,target) && !matches!(scope,ConstantScope::Traits(_)) && !restriction_base) {return vec![];}
@@ -1785,6 +1787,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::RecipientHeal{..} => return crate::recipient_heal_contract::effect(e).is_ok()&&self.recipient_heal_can_affect(s,source,require_change),
             Effect::CreateCreditToken {..} => return s.credit_state_exact && self.needs_credit_state(),
             Effect::MoveSelectedArenaUnitToOwnerDeck { .. } => {
                 return self.owner_deck_target_eligible(s,target);
@@ -2962,6 +2965,7 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if matches!(e,Effect::RecipientHeal{..}) {return self.apply_recipient_heal(s,e);}
         if matches!(e, Effect::ExhaustResources { .. }) {
             crate::resource_exhaust::amount(e)?;
             if s.source == 0 { return Err("exhaustResources requires an ability source".into()); }
@@ -4262,3 +4266,8 @@ mod resource_exhaust_tests;
 #[cfg(test)]
 #[path = "group_token_three_tests.rs"]
 mod group_token_three_tests;
+
+include!("recipient_heal_runtime.rs");
+#[cfg(test)]
+#[path="recipient_heal_tests.rs"]
+mod recipient_heal_tests;
