@@ -138,6 +138,13 @@ with committed configuration while retaining the exact recorded catalogue bytes
 and hashes used by the runtime, references and review packet; do not substitute
 an invented normalized byte hash or award manual credit after a counter failure.
 
+Keep the committed-data `npm test` independent of the engine, TypeScript parser
+and setup dependencies. Fresh `compileCatalog()` assertions belong in
+`compiler/test/`; retain shard-only planner checks in `cards/test/`. When adding
+compiler imports to tests, forward-test the committed-data suite in an isolated
+source tree without `forceteki` or `node_modules`, then run the compiler suite
+with the pinned dependencies. Local setup can otherwise hide a CI failure.
+
 Inspect the actual test bodies before choosing ordinary gates. The Rust library
 test `generated_programs_match_all_committed_engine_traces` covers original fixed
 fixtures; keep it. The separate `reference_conformance` integration test and

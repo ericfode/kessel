@@ -81,16 +81,6 @@ test('foreign physical ownership remains explicitly uncovered and never enters s
     }
 });
 
-test('fresh compileCatalog and shard loadCatalog preserve all60 interaction plans', () => {
-    const fresh = require('../../compiler/build').compileCatalog();
-    for (const id of ['SOR_135','LOF_213']) {
-        const baseline = planDistributedDamageProbes(entry(id), { catalogue });
-        const compiled = planDistributedDamageProbes(fresh.cards.find(e => e.setCode === id), { catalogue: fresh });
-        assert.equal(compiled.cases.length, id === 'SOR_135' ? 32 : 28);
-        assert.deepEqual(compiled.cases, baseline.cases);
-        assert.deepEqual(compiled.interactionDonorAdmissionReceipt, baseline.interactionDonorAdmissionReceipt);
-    }
-});
 test('recursive object key reordering preserves complete semantic donor identity', () => {
     const reorder = x => Array.isArray(x) ? x.map(reorder) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).reverse().map(k => [k,reorder(x[k])])) : x;
     const reordered = reorder(catalogue);
