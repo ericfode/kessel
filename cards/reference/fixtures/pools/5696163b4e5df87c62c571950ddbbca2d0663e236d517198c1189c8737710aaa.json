@@ -1,0 +1,3353 @@
+{
+  "cards": [
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 30,
+      "id": "6815244860",
+      "internalName": "emperors-observatory",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_025",
+      "setCodes": [
+        {
+          "number": 25,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 25,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Emperor's Observatory",
+      "traits": [
+        "pillio"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "1029172801",
+      "internalName": "strike-team-vanguard",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "ASH_061",
+      "setCodes": [
+        {
+          "number": 61,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 61,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Strike Team Vanguard",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3777155291",
+      "internalName": "survivors-langskib",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_126",
+      "setCodes": [
+        {
+          "number": 126,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 126,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)",
+      "title": "Survivors' Langskib",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "speeder"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9890561214",
+      "internalName": "dinosaur-turtle",
+      "keywords": [],
+      "power": 7,
+      "rules": null,
+      "setCode": "ASH_131",
+      "setCodes": [
+        {
+          "number": 131,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 131,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Dinosaur Turtle",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "8474739433",
+      "internalName": "han-solo#itll-work",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_158",
+      "setCodes": [
+        {
+          "number": 158,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 158,
+        "set": "ASH"
+      },
+      "subtitle": "It'll Work",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nWhen Played: Deal 3 damage to this unit. Give 3 Advantage tokens to a unit.",
+      "title": "Han Solo",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "4344365271",
+      "internalName": "peridea-bandit",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_190",
+      "setCodes": [
+        {
+          "number": 190,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 190,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Peridea Bandit",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9620848758",
+      "internalName": "open-circle-ace",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_201",
+      "setCodes": [
+        {
+          "number": 201,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 201,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Open Circle Ace",
+      "traits": [
+        "republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "6885821500",
+      "internalName": "mandalorian-scout",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_216",
+      "setCodes": [
+        {
+          "number": 216,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 216,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Exhaust a ready friendly resource.",
+      "title": "Mandalorian Scout",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9011599796",
+      "internalName": "death-trooper-squad",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "ASH_242",
+      "setCodes": [
+        {
+          "number": 242,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 242,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Death Trooper Squad",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "5556203656",
+      "internalName": "noti-mobile-pod",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_261",
+      "setCodes": [
+        {
+          "number": 261,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 261,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Noti Mobile Pod",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "1226993616",
+      "internalName": "coastal-catamarans",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "HMW_093",
+      "setCodes": [
+        {
+          "number": 93,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 93,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Coastal Catamarans",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8382448205",
+      "internalName": "ewok-brigade",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Ewok Brigade",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8860453492",
+      "internalName": "chewbacca#resourceful-wookiee",
+      "keywords": [
+        "raid",
+        "overwhelm"
+      ],
+      "power": 0,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "HMW_117",
+      "setCodes": [
+        {
+          "number": 117,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 117,
+        "set": "HMW"
+      },
+      "subtitle": "Resourceful Wookiee",
+      "text": "This unit gains Raid 1 for each exhausted resource you control.\nWhile each resource you control is exhausted, this unit gains Overwhelm.",
+      "title": "Chewbacca",
+      "traits": [
+        "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "7827651708",
+      "internalName": "filthy-dianoga",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "HMW_155",
+      "setCodes": [
+        {
+          "number": 155,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 155,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Filthy Dianoga",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4516882765",
+      "internalName": "champions-of-endor",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "HMW_163",
+      "setCodes": [
+        {
+          "number": 163,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 163,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Champions of Endor",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "5508530442",
+      "internalName": "desperate-nantex",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_178",
+      "setCodes": [
+        {
+          "number": 178,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Desperate Nantex",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "9859570567",
+      "internalName": "ryloth-revolutionary-rider",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "HMW_258",
+      "setCodes": [
+        {
+          "number": 258,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 258,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Ryloth Revolutionary Rider",
+      "traits": [
+        "creature",
+        "twi'lek",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "2221742966",
+      "internalName": "offworld-jawa",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_268",
+      "setCodes": [
+        {
+          "number": 268,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 268,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Offworld Jawa",
+      "traits": [
+        "jawa"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "8073149642",
+      "internalName": "echo-coordinator",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "IBH_007",
+      "setCodes": [
+        {
+          "number": 7,
+          "set": "IBH"
+        },
+        {
+          "number": 43,
+          "set": "IBH"
+        },
+        {
+          "number": 47,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 7,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Echo Coordinator",
+      "traits": [
+        "rebel"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6699126595",
+      "internalName": "trench-defender",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IBH_008",
+      "setCodes": [
+        {
+          "number": 8,
+          "set": "IBH"
+        },
+        {
+          "number": 29,
+          "set": "IBH"
+        },
+        {
+          "number": 50,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 8,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Trench Defender",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9489761564",
+      "internalName": "evacuation-escort",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IBH_012",
+      "setCodes": [
+        {
+          "number": 12,
+          "set": "IBH"
+        },
+        {
+          "number": 35,
+          "set": "IBH"
+        },
+        {
+          "number": 44,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 12,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Evacuation Escort",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "0446985285",
+      "internalName": "gr75-medium-transport",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "IBH_022",
+      "setCodes": [
+        {
+          "number": 22,
+          "set": "IBH"
+        },
+        {
+          "number": 33,
+          "set": "IBH"
+        },
+        {
+          "number": 40,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 22,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "GR-75 Medium Transport",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4808981574",
+      "internalName": "hoth-trooper",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IBH_037",
+      "setCodes": [
+        {
+          "number": 37,
+          "set": "IBH"
+        },
+        {
+          "number": 38,
+          "set": "IBH"
+        },
+        {
+          "number": 48,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 37,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Hoth Trooper",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "0875657287",
+      "internalName": "first-legion-trooper",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IBH_055",
+      "setCodes": [
+        {
+          "number": 55,
+          "set": "IBH"
+        },
+        {
+          "number": 73,
+          "set": "IBH"
+        },
+        {
+          "number": 101,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 55,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "First Legion Trooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9655836052",
+      "internalName": "ground-assault-atat",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "IBH_056",
+      "setCodes": [
+        {
+          "number": 56,
+          "set": "IBH"
+        },
+        {
+          "number": 67,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 56,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Ground Assault AT-AT",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3768891856",
+      "internalName": "snowtrooper-vanguard",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IBH_057",
+      "setCodes": [
+        {
+          "number": 57,
+          "set": "IBH"
+        },
+        {
+          "number": 80,
+          "set": "IBH"
+        },
+        {
+          "number": 96,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 57,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Snowtrooper Vanguard",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0581968676",
+      "internalName": "snowtrooper",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "IBH_063",
+      "setCodes": [
+        {
+          "number": 63,
+          "set": "IBH"
+        },
+        {
+          "number": 77,
+          "set": "IBH"
+        },
+        {
+          "number": 87,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 63,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Snowtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "6867378216",
+      "internalName": "scouting-tie-fighter",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IBH_075",
+      "setCodes": [
+        {
+          "number": 75,
+          "set": "IBH"
+        },
+        {
+          "number": 81,
+          "set": "IBH"
+        },
+        {
+          "number": 97,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 75,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Scouting TIE Fighter",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "5599665266",
+      "internalName": "rampaging-wampa",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "IBH_076",
+      "setCodes": [
+        {
+          "number": 76,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 76,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Rampaging Wampa",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "7653629848",
+      "internalName": "phoenix-squadron-awing",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IC27_073",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "JTL"
+        },
+        {
+          "number": 73,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 73,
+        "set": "IC27"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Phoenix Squadron A-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy",
+        "aggression"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "2383321298",
+      "internalName": "death-star-stormtrooper",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IC27_097",
+      "setCodes": [
+        {
+          "number": 128,
+          "set": "SOR"
+        },
+        {
+          "number": 97,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 97,
+        "set": "IC27"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Death Star Stormtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "5562575456",
+      "internalName": "tieln-fighter",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "IC27_178",
+      "setCodes": [
+        {
+          "number": 225,
+          "set": "SOR"
+        },
+        {
+          "number": 178,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 178,
+        "set": "IC27"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "TIE/ln Fighter",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "3246242155",
+      "internalName": "super-battle-droid",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "IC27_180",
+      "setCodes": [
+        {
+          "number": 230,
+          "set": "TWI"
+        },
+        {
+          "number": 180,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 180,
+        "set": "IC27"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Super Battle Droid",
+      "traits": [
+        "separatist",
+        "droid",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "9209567613",
+      "internalName": "phase-i-clone-trooper",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "IC27_189",
+      "setCodes": [
+        {
+          "number": 241,
+          "set": "TWI"
+        },
+        {
+          "number": 189,
+          "set": "IC27"
+        }
+      ],
+      "setId": {
+        "number": 189,
+        "set": "IC27"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Phase I Clone Trooper",
+      "traits": [
+        "republic",
+        "clone",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "4789935295",
+      "internalName": "munificent-frigate",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "JTL_069",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 69,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Munificent Frigate",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "3923779254",
+      "internalName": "republic-ywing",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "JTL_212",
+      "setCodes": [
+        {
+          "number": 212,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 212,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Republic Y-Wing",
+      "traits": [
+        "republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "1271289335",
+      "internalName": "jedi-light-cruiser",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "JTL_251",
+      "setCodes": [
+        {
+          "number": 251,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 251,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Jedi Light Cruiser",
+      "traits": [
+        "jedi",
+        "republic",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "9552652111",
+      "internalName": "vandor-range-troopers",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_098",
+      "setCodes": [
+        {
+          "number": 98,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 98,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Vandor Range Troopers",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2871790352",
+      "internalName": "liberated-wookiee",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_143",
+      "setCodes": [
+        {
+          "number": 143,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 143,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Liberated Wookiee",
+      "traits": [
+        "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2124574639",
+      "internalName": "massassi-group-marines",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_146",
+      "setCodes": [
+        {
+          "number": 146,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 146,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Massassi Group Marines",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 9,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 10,
+      "id": "5379948126",
+      "internalName": "mercenary-fleet",
+      "keywords": [],
+      "power": 10,
+      "rules": null,
+      "setCode": "LAW_164",
+      "setCodes": [
+        {
+          "number": 164,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 164,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Mercenary Fleet",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "8746311599",
+      "internalName": "prototype-tie-advanced",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LAW_175",
+      "setCodes": [
+        {
+          "number": 136,
+          "set": "JTL"
+        },
+        {
+          "number": 175,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 175,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Prototype TIE Advanced",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "2932674143",
+      "internalName": "inspired-recruit",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LAW_180",
+      "setCodes": [
+        {
+          "number": 180,
+          "set": "LAW"
+        },
+        {
+          "number": 152,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 180,
+        "set": "LAW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Inspired Recruit",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "0494601180",
+      "internalName": "alliance-xwing",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LAW_253",
+      "setCodes": [
+        {
+          "number": 237,
+          "set": "SOR"
+        },
+        {
+          "number": 253,
+          "set": "LAW"
+        }
+      ],
+      "setId": {
+        "number": 253,
+        "set": "LAW"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Alliance X-Wing",
+      "traits": [
+        "rebel",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "7865009723",
+      "internalName": "awakened-specters",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LOF_066",
+      "setCodes": [
+        {
+          "number": 66,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 66,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Awakened Specters",
+      "traits": [
+        "night",
+        "undead"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8660257242",
+      "internalName": "knight-of-ren",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LOF_084",
+      "setCodes": [
+        {
+          "number": 84,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 84,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Knight of Ren",
+      "traits": [
+        "first order"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "4543549467",
+      "internalName": "outer-rim-mystic",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "LOF_112",
+      "setCodes": [
+        {
+          "number": 112,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 112,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Outer Rim Mystic",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 10,
+      "id": "9664995294",
+      "internalName": "hyperspace-wayfarer",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "LOF_119",
+      "setCodes": [
+        {
+          "number": 119,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 119,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Hyperspace Wayfarer",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "5796902316",
+      "internalName": "ravenous-rathtar",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "LOF_168",
+      "setCodes": [
+        {
+          "number": 168,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 168,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Ravenous Rathtar",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9035255842",
+      "internalName": "n1-starfighter",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_192",
+      "setCodes": [
+        {
+          "number": 192,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 192,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "N-1 Starfighter",
+      "traits": [
+        "naboo",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9380404588",
+      "internalName": "fallen-jedi",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "LOF_230",
+      "setCodes": [
+        {
+          "number": 230,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 230,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Fallen Jedi",
+      "traits": [
+        "force",
+        "jedi"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "0400517008",
+      "internalName": "army-of-the-dead",
+      "keywords": [],
+      "power": 7,
+      "rules": null,
+      "setCode": "LOF_236",
+      "setCodes": [
+        {
+          "number": 236,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 236,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Army of the Dead",
+      "traits": [
+        "night",
+        "undead"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "2971660620",
+      "internalName": "porg",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_254",
+      "setCodes": [
+        {
+          "number": 254,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 254,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Porg",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9014610567",
+      "internalName": "gifted-urchin",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "LOF_256",
+      "setCodes": [
+        {
+          "number": 256,
+          "set": "LOF"
+        }
+      ],
+      "setId": {
+        "number": 256,
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Gifted Urchin",
+      "traits": [
+        "force",
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9592786976",
+      "internalName": "trayus-acolyte",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_028",
+      "setCodes": [
+        {
+          "number": 28,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 28,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Trayus Acolyte",
+      "traits": [
+        "force",
+        "sith"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2645450581",
+      "internalName": "populist-champion",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_044",
+      "setCodes": [
+        {
+          "number": 44,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 44,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Populist Champion",
+      "traits": [
+        "new republic",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "2529211493",
+      "internalName": "imperial-dark-trooper",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SEC_080",
+      "setCodes": [
+        {
+          "number": 80,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 80,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Imperial Dark Trooper",
+      "traits": [
+        "imperial",
+        "droid",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "2257974813",
+      "internalName": "raxian-assembly",
+      "keywords": [],
+      "power": 6,
+      "rules": null,
+      "setCode": "SEC_118",
+      "setCodes": [
+        {
+          "number": 118,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 118,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Raxian Assembly",
+      "traits": [
+        "separatist",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "4692448252",
+      "internalName": "contraband-starhopper",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_161",
+      "setCodes": [
+        {
+          "number": 161,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 161,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Contraband Starhopper",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "2463972264",
+      "internalName": "coruscant-undercity-police",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "SEC_167",
+      "setCodes": [
+        {
+          "number": 167,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 167,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Coruscant Undercity Police",
+      "traits": [
+        "republic",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "1162729042",
+      "internalName": "skyhopper-canyon-runner",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "SEC_214",
+      "setCodes": [
+        {
+          "number": 214,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 214,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Skyhopper Canyon Runner",
+      "traits": [
+        "fringe",
+        "vehicle",
+        "speeder"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "5572220841",
+      "internalName": "regulations-bureaucrat",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "SEC_216",
+      "setCodes": [
+        {
+          "number": 216,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 216,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Action [Exhaust]: Exhaust a resource.",
+      "title": "Regulations Bureaucrat",
+      "traits": [
+        "imperial",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "3984102937",
+      "internalName": "supreme-council-aide",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SEC_237",
+      "setCodes": [
+        {
+          "number": 237,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 237,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Supreme Council Aide",
+      "traits": [
+        "first order",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "8238197441",
+      "internalName": "crait-veteran",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "SEC_251",
+      "setCodes": [
+        {
+          "number": 251,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 251,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Crait Veteran",
+      "traits": [
+        "resistance",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "5636691221",
+      "internalName": "hwk290-freighter",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_060",
+      "setCodes": [
+        {
+          "number": 60,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 60,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "HWK-290 Freighter",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "0336440515",
+      "internalName": "warzone-lieutenant",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_110",
+      "setCodes": [
+        {
+          "number": 110,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 110,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Warzone Lieutenant",
+      "traits": [
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "heroism",
+        "aggression"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 6,
+      "id": "1556608115",
+      "internalName": "desperado-freighter",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "SHD_152",
+      "setCodes": [
+        {
+          "number": 152,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 152,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Desperado Freighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 5,
+      "id": "8656645362",
+      "internalName": "liberated-slaves",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SHD_200",
+      "setCodes": [
+        {
+          "number": 200,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 200,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Liberated Slaves",
+      "traits": [
+        "fringe",
+        "droid",
+        "twi'lek",
+        "wookiee"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "1598425314",
+      "internalName": "underworld-thug",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SHD_257",
+      "setCodes": [
+        {
+          "number": 247,
+          "set": "SOR"
+        },
+        {
+          "number": 257,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 257,
+        "set": "SHD"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Underworld Thug",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": "On Attack: Deal 1 damage to each enemy base.",
+      "epicAction": "Epic Action: If you control 4 or more resources, deploy this leader.",
+      "hp": 5,
+      "id": "4841169874",
+      "internalName": "sabine-wren#galvanized-revolutionary",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_014",
+      "setCodes": [
+        {
+          "number": 14,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 14,
+        "set": "SOR"
+      },
+      "subtitle": "Galvanized Revolutionary",
+      "text": "Action [exhaust]: Deal 1 damage to each base.",
+      "title": "Sabine Wren",
+      "traits": [
+        "mandalorian",
+        "rebel",
+        "spectre"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 7,
+      "id": "8184790799",
+      "internalName": "consular-security-force",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_046",
+      "setCodes": [
+        {
+          "number": 46,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 46,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Consular Security Force",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4317911650",
+      "internalName": "battlefield-marine",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Battlefield Marine",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "9448937272",
+      "internalName": "swoop-racer",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "SOR_210",
+      "setCodes": [
+        {
+          "number": 210,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 210,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Swoop Racer",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "5844562972",
+      "internalName": "advantage",
+      "keywords": [],
+      "power": 1,
+      "rules": "When Attack Ends/When Defense Ends abilities trigger at the same time as units deal combat damage.\n",
+      "setCode": "TOKEN_ADVANTAGE",
+      "setId": {
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When attached unit's attack or defense ends: Defeat this upgrade.",
+      "title": "Advantage",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 1,
+      "id": "2007868442",
+      "internalName": "experience",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TOKEN_EXPERIENCE",
+      "setId": {
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Experience",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 1,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "8752877738",
+      "internalName": "shield",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "TOKEN_SHIELD",
+      "setId": {
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.",
+      "title": "Shield",
+      "traits": [
+        "armor"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4571900905",
+      "internalName": "the-force",
+      "keywords": [],
+      "power": null,
+      "rules": "An individual player may only control one Force token at a time. If a player already controls a Force token when they are instructed to create their Force token, nothing happens.\nEach player may create their own Force token. It is not shared between players.\n",
+      "setCode": "TOKEN_THE_FORCE",
+      "setId": {
+        "set": "LOF"
+      },
+      "subtitle": "",
+      "text": "(The Force is with you. When you use the Force, remove this token from play.)",
+      "title": "The Force",
+      "traits": [],
+      "types": [
+        "token"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "3504029875",
+      "internalName": "warrior-drone",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TWI_057",
+      "setCodes": [
+        {
+          "number": 57,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 57,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Warrior Drone",
+      "traits": [
+        "separatist"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "command"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "9176356859",
+      "internalName": "republic-arc170",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "TWI_111",
+      "setCodes": [
+        {
+          "number": 111,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 111,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Republic ARC-170",
+      "traits": [
+        "republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 2,
+      "id": "1313247160",
+      "internalName": "b1-attack-platform",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "TWI_133",
+      "setCodes": [
+        {
+          "number": 133,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 133,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "B1 Attack Platform",
+      "traits": [
+        "separatist",
+        "droid",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 8,
+      "id": "4489623180",
+      "internalName": "ziro-the-hutt#colorful-schemer",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "TWI_185",
+      "setCodes": [
+        {
+          "number": 185,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 185,
+        "set": "TWI"
+      },
+      "subtitle": "Colorful Schemer",
+      "text": "When Played: For each opponent, you may exhaust a unit that player controls.\nOn Attack: For each opponent, you may exhaust a resource that player controls.",
+      "title": "Ziro the Hutt",
+      "traits": [
+        "underworld",
+        "hutt"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "8549156761",
+      "internalName": "hotshot-vwing",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "TWI_209",
+      "setCodes": [
+        {
+          "number": 209,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 209,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Hotshot V-Wing",
+      "traits": [
+        "republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "2574847177",
+      "internalName": "headhunter-squadron",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "TWI_253",
+      "setCodes": [
+        {
+          "number": 253,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 253,
+        "set": "TWI"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Headhunter Squadron",
+      "traits": [
+        "republic",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    }
+  ],
+  "description": "Cards admitted by the bounded generated-IR runtime; admission is not differential validation.",
+  "schema": "omni-rs-pool-v1"
+}

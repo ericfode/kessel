@@ -1442,6 +1442,50 @@ impl<'a> RecipeSelector<'a> {
     }
 }
 
+// One reviewed mixed window: damage is a primary; the single native creation
+// batch allocates three identities during capture, attaches all three as
+// contingents, and only then runs deferred damage defeats. No generic mixed
+// damage/attachment or larger token-group capability follows from this recipe.
+fn token_three_effect_value() -> Value {
+    serde_json::json!({"kind":"simultaneous","effects":[
+        {"kind":"damage","target":"self","amount":{"kind":"const","value":3}},
+        {"kind":"select","targetResolver":{"owner":"any","type":"unit","zone":"anyAttackable","promptTitle":"Give 3 Advantage tokens to a unit"},
+         "effect":{"kind":"simultaneous","effects":[{"kind":"giveAdvantage","target":"chosen","amount":{"kind":"const","value":3},"createdBy":"self","batch":"singleCreationEvent","tokenOwner":"recipientController"}]}}
+    ]})
+}
+fn token_three_group(effect: &Effect) -> bool {
+    let expected: Effect = serde_json::from_value(token_three_effect_value()).unwrap();
+    serde_json::to_value(effect).ok() == serde_json::to_value(expected).ok()
+}
+fn token_three_marker(value: &Value) -> bool {
+    contains(value, |v| v["kind"] == "simultaneous" && contains(v, |leaf| leaf["kind"] == "giveAdvantage" && leaf["amount"] == serde_json::json!({"kind":"const","value":3})))
+}
+fn token_three_ability(ability: &Ability) -> bool {
+    let mut raw = match serde_json::to_value(ability) { Ok(v) => v, Err(_) => return false };
+    raw.as_object_mut().unwrap().remove("title");
+    // Serialize the expected typed ability too, retaining its explicit defaults.
+    let expected: Ability = serde_json::from_value(serde_json::json!({"trigger":"whenPlayed","title":"","costs":[],"effect":token_three_effect_value()})).unwrap();
+    let mut expected = serde_json::to_value(expected).unwrap();
+    expected.as_object_mut().unwrap().remove("title");
+    raw == expected
+}
+fn token_three_source(entry: &Value) -> bool {
+    if !crate::admission::SourceContextPolicy::Closed.accepts(entry)
+        || crate::admission::OrdinarySource::from_entry(entry) != Some(crate::admission::OrdinarySource::Unit)
+        || !entry["attachCondition"].is_null() || !entry["piloting"].is_null()
+        || !["pilotText","pilotBox","pilotingBox","deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|k|entry["card"][*k].is_null())
+        || !(entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "")
+        || entry["keywordValues"] != serde_json::json!({"saboteur":1})
+    { return false; }
+    let metadata=serde_json::json!({"cost":4,"hp":7,"power":3,"arena":"ground","unique":true,"keywords":["saboteur"],"traits":["rebel","official"],"aspects":["aggression","heroism"]});
+    if !metadata.as_object().unwrap().iter().all(|(k,v)|entry["card"][k]==*v) { return false; }
+    let mut sides=entry["abilities"].clone();
+    let Some(a)=sides["card"].as_array_mut().filter(|a|a.len()==1) else {return false;};
+    if !a[0]["title"].as_str().is_some_and(|t|!t.is_empty()&&t.len()<=1024) {return false;}
+    a[0].as_object_mut().unwrap().remove("title");
+    sides==serde_json::json!({"leader":[],"unit":[],"card":[{"trigger":"whenPlayed","costs":[],"effect":token_three_effect_value()}]})
+}
+
 // Admission follows the same distinction as prepared runtime records: storage
 // capacity is independent from the combinations whose event timing is witnessed.
 #[derive(Clone, Copy, Default)]
@@ -1975,6 +2019,9 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if token_three_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !token_three_ability(ability) {
+            return Err("three-token mixed group requires the sole mandatory when-played recipe".into());
+        }
         fn optional(v:&Value)->bool {v["kind"]=="optional"||match v {Value::Array(a)=>a.iter().any(optional),Value::Object(o)=>o.values().any(optional),_=>false}}
         if optional(&serde_json::to_value(ability).map_err(|e|e.to_string())?)&&!crate::migration_credit_contract::optional_registration(ability) {return Err("optional system requires the complete live-Credit damage registration".into());}
 
@@ -2722,6 +2769,12 @@ impl Program {
     fn validate_group(&self, effect: &Effect, targets: usize) -> Result<(), String> {
         // Only the reviewed root pair captures non-arena ResourceCard events.
         if resource_pair_effect(effect) { return Ok(()); }
+        if token_three_group(effect) {
+            // Exact shape: seven conservative event slots, four prepared records,
+            // four operations, one mandatory scalar selector. Existing capacities
+            // are 32 records and 128 operations; no State expansion is needed.
+            return Ok(());
+        }
         fn dependent_in_scope(e: &Expr, card_bound: bool) -> bool {
             match e {
                 Expr::Compiled(compiled) => dependent_in_scope(&compiled.original,card_bound),
@@ -3258,6 +3311,9 @@ impl Catalogue {
                     ));
                 }
                 crate::resource_exhaust::validate_entry(entry)?;
+                if token_three_marker(&entry["abilities"]) && !token_three_source(entry) {
+                    return Err("three-token mixed group requires complete ordinary unit source metadata and the exact mandatory when-played registration".into());
+                }
                 if let Some(named)=crate::named_play_contract::prepare(entry)? {
                     if catalogue.playable_card_titles.is_none() {return Err("card naming requires reviewed playableCardTitles registry".into());}
                     let program=Program {
