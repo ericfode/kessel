@@ -34,6 +34,16 @@ A primitive that requires a native token must reject dependent cards when the
 reviewed token definition is absent or malformed, including selected-pool loads.
 New compiler lowering does not imply executable runtime support.
 
+Before choosing implementation families, inspect the complete card metadata and
+intrinsic keyword lifecycle as well as its explicit source registrations. A small
+leaf can sit behind Plot, Support, or another unimplemented native lifecycle.
+Record those dependencies in the selection result: a normal-play probe does not
+satisfy Plot, and a printed constant on a Support donor must also work on the
+recipient during the granted attack. Keep the complete card rejected when that
+lifecycle is absent. Check runtime rejection reasons for reprint aliases too;
+already represented printings are existing coverage and add no new-admission
+credit. Preserve the original selection and report these corrections separately.
+
 Before regeneration, compare local source and card-data hashes with the committed
 `compiler/generated/inputs.json`. The engine revision does not pin downloaded
 metadata. Reuse matching saved inputs; if recovering byte-identical card JSON

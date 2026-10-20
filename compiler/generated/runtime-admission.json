@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 936
+    "sourceIr": 937
   },
   "runtimeAdmittedCards": [
     {
@@ -444,6 +444,11 @@
       "implementation": "sourceIr",
       "internalName": "danger-squadron-wingmen",
       "setCode": "ASH_157"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "han-solo#itll-work",
+      "setCode": "ASH_158"
     },
     {
       "implementation": "sourceIr",
@@ -6641,7 +6646,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1326,
+  "runtimeAdmittedCount": 1327,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6992,11 +6997,6 @@
       "internalName": "r5d4#built-for-adventure",
       "reason": "r5d4#built-for-adventure: invalid ability IR: unknown variant `systemPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_156"
-    },
-    {
-      "internalName": "han-solo#itll-work",
-      "reason": "han-solo#itll-work: group tokens require one or two per target",
-      "setCode": "ASH_158"
     },
     {
       "internalName": "kachirho-militia",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1279,
+  "runtimeRejectedCount": 1278,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

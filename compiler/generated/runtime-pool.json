@@ -3519,6 +3519,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "8474739433",
+      "internalName": "han-solo#itll-work",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_158",
+      "setCodes": [
+        {
+          "number": 158,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 158,
+        "set": "ASH"
+      },
+      "subtitle": "It'll Work",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nWhen Played: Deal 3 damage to this unit. Give 3 Advantage tokens to a unit.",
+      "title": "Han Solo",
+      "traits": [
+        "rebel",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "aggression",

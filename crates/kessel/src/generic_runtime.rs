@@ -4258,3 +4258,7 @@ mod zone_statics;
 #[cfg(test)]
 #[path = "resource_exhaust_tests.rs"]
 mod resource_exhaust_tests;
+
+#[cfg(test)]
+#[path = "group_token_three_tests.rs"]
+mod group_token_three_tests;
