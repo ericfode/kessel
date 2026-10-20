@@ -151,7 +151,7 @@ fn entry_merge_only_promotes_the_current_ordinary_event_boundary() {
         ..current
     };
     let future = DeathTrigger {
-        defer_depth: 1,
+        capture: crate::defeat_cause::TriggerCapture::new(1,crate::defeat_cause::DefeatCause::Unknown),
         ..current
     };
     let later_step = DeathTrigger {

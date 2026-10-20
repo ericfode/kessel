@@ -163,34 +163,42 @@ fn native_attack_optional_hoth_keeps_exhaustion_and_parent_trigger_identity() {
     }
 }
 #[test]
-fn native_attack_cancel_before_payment_is_atomic_after_payment_retains_early_bonus() {
-    let e = engine();
-    let mut s = start(&e, Seat::P1);
-    let a = attacker(&e, &mut s, Seat::P1, "LOF_093");
-    let (select, event) = play(&e, &s, "IBH_021");
-    let ready = e.ready_resources(&select, Seat::P1);
-    let cancelled = named_button(&e, &select, "Cancel");
-    assert!(cancelled.player(Seat::P1).hand.contains(event));
-    assert_eq!(e.ready_resources(&cancelled, Seat::P1), ready);
-    assert_eq!(e.power(&cancelled, a, false), 2);
-    let choose = click(&e, &select, a);
-    let before = choose.zobrist();
-    let passed = named_button(&e, &choose, "Cancel");
-    assert_ne!(passed.zobrist(), before);
-    assert_eq!(e.power(&passed, a, false), 4);
-    assert!(!passed.card(a).exhausted);
-    assert!(passed.player(Seat::P1).discard.contains(event));
-    assert!(e.ready_resources(&passed, Seat::P1) < ready);
-    roundtrip(&e, &passed);
-    let b = passed.player(Seat::P2).base;
-    let mut again = passed;
-    again.active = Seat::P1;
-    let declared = click(&e, &again, a);
-    let done = finish_triggers(&e, click(&e, &declared, b));
-    assert_eq!(done.card(b).damage, 4);
-    assert_eq!(e.power(&done, a, false), 2);
-    assert_eq!(done.support.len, 0);
+fn native_attack_cancel_before_payment_is_atomic_and_paid_attack_is_committed() {
+    for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
+        let mut e = engine();
+        e.set_rules_backend(backend).unwrap();
+        for seat in [Seat::P1, Seat::P2] {
+            let mut s = start(&e, seat);
+            let a = attacker(&e, &mut s, seat, "LOF_093");
+            let base = s.player(seat.other()).base;
+            // An ordinary external attack remains cancellable before exhaustion.
+            let ordinary = click(&e, &s, a);
+            assert_eq!(e.legal_actions(&ordinary), vec![Action::button("Cancel", "cancel"), e.card_action(&ordinary, base)]);
+            let cancelled = named_button(&e, &ordinary, "Cancel");
+            assert!(!cancelled.card(a).exhausted);
+            let (select, event) = play(&e, &s, "IBH_021");
+            let ready = e.ready_resources(&select, seat);
+            let cancelled = named_button(&e, &select, "Cancel");
+            assert!(cancelled.player(seat).hand.contains(event));
+            assert_eq!(e.ready_resources(&cancelled, seat), ready);
+            assert_eq!(e.power(&cancelled, a, false), 2);
+            let choose = click(&e, &select, a);
+            assert_eq!(e.legal_actions(&choose), vec![e.card_action(&choose, base)]);
+            assert!(e.apply(&choose, &Action::button("Cancel", "cancel")).is_err());
+            assert!(e.apply(&choose, &Action::button("Pass attack", "passAbility")).is_err());
+            assert!(!choose.card(a).exhausted);
+            assert!(choose.player(seat).discard.contains(event));
+            assert!(e.ready_resources(&choose, seat) < ready);
+            assert_eq!(e.power(&choose, a, false), 4);
+            let done = finish_triggers(&e, click(&e, &choose, base));
+            assert_eq!(done.card(base).damage, 4);
+            assert!(done.card(a).exhausted);
+            assert_eq!(e.power(&done, a, false), 2);
+            assert_eq!(done.support.len, 0);
+        }
+    }
 }
+
 #[test]
 fn native_attack_grim_resolve_live_grit_and_pounce_trait_selection() {
     let e = engine();
@@ -458,7 +466,8 @@ fn native_attack_immutable_copy_hash_capacity_and_forged_import_boundaries() {
     let e = engine();
     let mut s = start(&e, Seat::P1);
     let a = attacker(&e, &mut s, Seat::P1, "LOF_093");
-    let (select, _) = play(&e, &s, "TWI_224");
+    let (select, _) = play(&e, &s, "IBH_064");
+    let select = if select.decision == Decision::AbilityOptional { named_button(&e, &select, "Trigger") } else { select };
     let choose = click(&e, &select, a);
     let copy = choose;
     assert_eq!(copy, choose);
@@ -467,27 +476,25 @@ fn native_attack_immutable_copy_hash_capacity_and_forged_import_boundaries() {
     mutated.support.grants[0].power += 1;
     assert_ne!(copy.zobrist(), mutated.zobrist());
     let mut mutated = copy;
-    mutated.support.optional_attack = true;
+    mutated.support.optional_attack = !copy.support.optional_attack;
     assert_ne!(copy.zobrist(), mutated.zobrist());
-    let passed = named_button(&e, &choose, "Cancel");
+    let passed = named_button(&e, &choose, "Pass attack");
     roundtrip(&e, &passed);
     for field in ["power", "presence", "donor", "programs"] {
         let mut snap = e.snapshot(&passed);
         match field {
             "power" => snap["supportGrants"][0]["power"] = json!(17),
-            "presence" => snap["supportGrants"][0]["presence"] = json!(0),
+            "presence" => snap["supportGrants"][0]["presence"] = json!(17),
             "donor" => snap["supportGrants"][0]["donor"] = json!(format!("c{}", a - 1)),
             _ => snap["supportGrants"][0]["programs"] = json!([{}]),
         };
         assert!(e.load_state(&snap).is_err(), "forged {field}");
     }
     let p = copy.support.context.ability_program - 1;
-    let properties = match &e.program(p).instructions[1] {
-        crate::ability_ir::Instruction::Apply(Effect::InitiateAttack { properties, .. }) => {
-            properties
-        }
-        _ => panic!(),
-    };
+    let properties = e.program(p).instructions.iter().find_map(|instruction| match instruction {
+        crate::ability_ir::Instruction::Apply(Effect::InitiateAttack { properties, .. }) => Some(properties),
+        _ => None,
+    }).unwrap();
     let mut full = passed;
     full.support.len = 32;
     full.support.grants.fill(passed.support.grants[0]);

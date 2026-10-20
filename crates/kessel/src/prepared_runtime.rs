@@ -44,7 +44,7 @@ impl DamageObservations {
         }
     }
     fn finish(self, engine: &Engine, s: &mut State) -> Result<(),String> {
-        if self.capture_lethals {engine.defeat_many(s,&self.handler_lethals)?;}
+        if self.capture_lethals {engine.defeat_many_cause(s,&self.handler_lethals,crate::defeat_cause::DefeatCause::NonCombatDamage)?;}
         engine.finish_group_damage(s,self.callbacks)
     }
 }
@@ -619,7 +619,7 @@ impl Engine {
             for keyword in [T_SHIELD,T_AMBUSH] {
                 if (keyword==T_SHIELD && flags&SHIELDED==0)||(keyword==T_AMBUSH&&flags&AMBUSH==0) {continue;}
                 let n=s.death_pending.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("created token trigger capacity exceeded".into());}
-                s.death_pending.entries[n]=DeathTrigger {source,keyword,player:s.card(source).owner,after_pc:self.program(s.ability_program-1).event_end,defer_depth:s.death_depth,..DeathTrigger::default()};s.death_pending.len+=1;
+                s.death_pending.entries[n]=DeathTrigger {source,keyword,player:s.card(source).owner,after_pc:self.program(s.ability_program-1).event_end,capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()};s.death_pending.len+=1;
             }
         }
         if matches!(e,Effect::DistributeDamage{..}) {s.ability_succeeded=s.event_group.count>0;}
@@ -640,8 +640,9 @@ impl Engine {
         // removes any pending source; a negative aura cannot rescue them mid-batch.
         let framework_dead=self.arena_units(s).into_iter()
             .filter(|id|s.card(*id).damage>=self.hp(s,*id)).collect::<Vec<_>>();
-        for id in framework_dead { if !damage_defeats.contains(&id) { damage_defeats.push(id); } }
-        self.defeat_many(s,&damage_defeats)?;
+        let mut causes=damage_defeats.iter().map(|id|(*id,crate::defeat_cause::DefeatCause::NonCombatDamage)).collect::<Vec<_>>();
+        for id in framework_dead { if !damage_defeats.contains(&id) { causes.push((id,crate::defeat_cause::DefeatCause::FrameworkEffect)); } }
+        self.defeat_events(s,&causes)?;
         self.sweep_stat_defeats(s)?;
         Ok(())
     }

@@ -306,13 +306,16 @@ fn native_composition_follow_me_if_you_do_uses_initiation_event_resolution() {
             assert_eq!(e.ready_resources(&cancelled, seat), ready);
             assert_eq!(cancelled.next_id, next);
             // The MetaEvent has resolved before this child picker exists. A
-            // cancelled child attack still satisfies the pinned ifYouDo helper.
+            // child attack is mandatory: only its completed attack reaches ifYouDo.
             let choose = nc_click(&e, &select, attacker);
-            let declined = named_button(&e, &choose, "Cancel");
+            assert_eq!(e.legal_actions(&choose), vec![e.card_action(&choose, s.player(seat.other()).base)]);
+            assert!(e.apply(&choose, &Action::button("Cancel", "cancel")).is_err());
+            let declined = nc_click(&e, &choose, s.player(seat.other()).base);
             assert_eq!(declined.decision, Decision::AbilityTarget);
             assert_eq!(declined.source, event);
             assert!(declined.player(seat).discard.contains(event));
-            assert!(!declined.card(attacker).exhausted);
+            assert!(declined.card(attacker).exhausted);
+            assert_eq!(declined.card(s.player(seat.other()).base).damage, 2);
             assert!(!declined.support.pending);
             assert!(nc_advantages(&e, &declined, attacker).is_empty());
             let done = nc_click(&e, &declined, attacker);

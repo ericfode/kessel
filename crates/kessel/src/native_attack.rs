@@ -339,7 +339,7 @@ fn same_registration(actual: &Ability, expected: Value) -> bool {
 
 /// One resolved initiation MetaEvent may be followed by a fresh scalar Advantage
 /// selection. This does not permit another attack, callback factory or `then`.
-/// Cancelling the child defender picker does not unresolve that MetaEvent.
+/// The nested defender picker is mandatory; its parent resolver owns cancellation.
 fn advantage_continuation(a: &Ability) -> bool {
     let Some(next) = a.if_you_do.as_deref() else {
         return false;

@@ -23,6 +23,7 @@ pub fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] ==
 pub fn validate_amount(amount: &Expr) -> Result<(), String> {
     // One bounded native creation batch. Dynamic values other than the exact
     // live opposing unit count need a separate expression/timing contract.
+    if matches!(amount,Expr::DefeatCauseAmount {..}) {return Ok(());}
     if matches!(amount,Expr::Const{value} if value.as_u64().is_some_and(|n|n<=5)) {
         return Ok(());
     }

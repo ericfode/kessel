@@ -604,13 +604,17 @@ impl Engine {
                 out.push(Action::button("Cancel", out.len()));
             }
             Decision::AttackTarget => {
-                // Support's attack resolver is nested inside its optional
-                // trigger: rollback Cancel is unavailable after the paid play.
-                // Pass attack declines only the attack and retains early copies.
-                // Modified attacks retain their separate established resolver
-                // cancellation policy; this boundary is not inferred by card ID.
-                if s.support.pending {if s.support.native_attack {out.push(Action::button("Cancel", "cancel"));}if !s.support.native_attack || s.support.optional_attack {out.push(Action::button("Pass attack", "passAbility"));}}
-                else if !s.ambush {out.push(Action::button("Cancel", "cancel"));}
+                // InitiateAttackSystem opens a nested AbilityResolver while
+                // the parent ability is resolving: rollback Cancel is absent.
+                // Optionality supplies Pass independently of cancellation.
+                // An external ordinary attack still owns rollback Cancel.
+                if s.support.pending {
+                    if !s.support.native_attack || s.support.optional_attack {
+                        out.push(Action::button("Pass attack", "passAbility"));
+                    }
+                } else if !s.ambush {
+                    out.push(Action::button("Cancel", "cancel"));
+                }
                 for id in self.attack_targets(s, s.source, s.ambush) {
                     out.push(self.card_action(s, id));
                 }
@@ -906,7 +910,7 @@ impl Engine {
                 }
             }
             Decision::AttackTarget => {
-                if t.support.pending && (arg == "passAbility" || t.support.native_attack && arg == "cancel") {
+                if t.support.pending && arg == "passAbility" {
                     self.resume_support(&mut t)?;
                 } else if arg == "cancel" {
                     self.cancel(&mut t);
@@ -1151,7 +1155,7 @@ impl Engine {
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
-        s.entry_event_card=0;s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;
+        s.entry_event_card=0;s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;s.defeat_cause=crate::defeat_cause::DefeatCause::Unknown;
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = ProgramContinuation::Finish.raw();
@@ -1355,9 +1359,10 @@ impl Engine {
             for (id,before) in [(target,target_damage_before),(source,source_damage_before)] {
                 if s.card(id).damage>before && s.card(id).damage>=self.hp(s,id) {dead.push(id);}
             }
-            for id in self.arena_units(s) {if s.card(id).damage>=self.hp(s,id) && !dead.contains(&id) {dead.push(id);}}
+            let mut events=dead.iter().map(|id|(*id,crate::defeat_cause::DefeatCause::Attack)).collect::<Vec<_>>();
+            for id in self.arena_units(s) {if s.card(id).damage>=self.hp(s,id) && !dead.contains(&id) {events.push((id,crate::defeat_cause::DefeatCause::FrameworkEffect));}}
             self.capture_advantage_end(s)?;
-            self.defeat_many(s,&dead)?;
+            self.defeat_events(s,&events)?;
         } else {
             s.card_mut(target).damage += attack;
             self.capture_advantage_end(s)?;
@@ -1412,10 +1417,13 @@ impl Engine {
     fn defeat(&self, s: &mut State, id: CardId) -> Result<(), String> {
         if !self.in_arena(s,id) && !self.attached_in_play(s,id) {return Ok(());}
         let fact=self.prepare_unit_defeat(s,id)?;
-        self.capture_death(s,id)?;
+        self.capture_death_cause(s,id,crate::defeat_cause::DefeatCause::UniqueRule)?;
         self.finish_physical_defeat(s,id,fact)
     }
-    fn defeat_many(&self,s:&mut State,ids:&[CardId])->Result<(),String> {
+    fn defeat_many(&self,s:&mut State,ids:&[CardId])->Result<(),String> {self.defeat_many_cause(s,ids,crate::defeat_cause::DefeatCause::FrameworkEffect)}
+    fn defeat_many_cause(&self,s:&mut State,ids:&[CardId],cause:crate::defeat_cause::DefeatCause)->Result<(),String> {self.defeat_events(s,&ids.iter().map(|id|(*id,cause)).collect::<Vec<_>>())}
+    fn defeat_events(&self,s:&mut State,events:&[(CardId,crate::defeat_cause::DefeatCause)])->Result<(),String> {
+        let ids=events.iter().map(|(id,_)|*id).collect::<Vec<_>>();
         let mut seen=std::collections::BTreeSet::new();
         let ids=ids.iter().copied().filter(|id|seen.insert(*id)&&(self.in_arena(s,*id)||self.attached_in_play(s,*id))).collect::<Vec<_>>();
         let facts=ids.iter().filter(|id|self.in_arena(s,**id)).map(|id|(*id,s.card(*id).owner,self.def(s,*id).info.is("leader"))).collect::<Vec<_>>();
@@ -1424,7 +1432,7 @@ impl Engine {
         s.phase_history.preflight_defeats(counts,leaders)?;
         // Capture all sibling LKI/registrations before history changes can
         // alter a live ongoing effect on another simultaneous combatant.
-        for &id in &ids {self.capture_death(s,id)?;}
+        for &id in &ids {self.capture_death_cause(s,id,events.iter().find(|(card,_)|*card==id).unwrap().1)?;}
         let attachments=ids.iter().flat_map(|id|self.upgrades(s,*id)).collect::<Vec<_>>();
         // The pinned engine gives cleanup events order -1, then uses a unary
         // sort comparator (event => event.order). Its observed order is reverse
@@ -1744,6 +1752,7 @@ impl Engine {
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
         if v.get("numberSelectionPending").is_some() {return Err("pending number binding cannot be imported as an action window".into());}
+        if v.get("defeatCausePending").is_some() {return Err("pending captured defeat cause cannot be imported as an action window".into());}
         if v.get("regroupStartPending").is_some() {return Err("pending regroup-start triggers cannot be imported as an action window".into());}
         if v.get("namedPlayPending").is_some() {return Err("pending card naming cannot be imported as an action window".into());}
         if v.get("dependentChoicePending").is_some(){return Err("pending dependent choice cannot be imported as an action window".into());}
@@ -1996,6 +2005,7 @@ impl Engine {
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
+        if (s.ability_program!=0&&crate::defeat_cause::requires(self.program(s.ability_program-1))) || [&s.death_pending,&s.death_window].into_iter().chain(s.death_frames[..s.death_depth as usize].iter().map(|f|&f.window)).any(|w|w.entries[..w.len as usize].iter().any(|e|e.keyword==0&&crate::defeat_cause::requires(self.program(e.program)))) {value["defeatCausePending"]=json!(true);}
         if s.support_state_explicit||self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}

@@ -1385,6 +1385,7 @@ impl Engine {
         let sub = |e| self.eval_with_binding(s, source, target, card, modifier_target,e);
         match e {
             Expr::Compiled(_) => unreachable!("compiled expression handled above"),
+            Expr::DefeatCauseAmount {..} => s.defeat_cause.advantage_amount().map_or(Eval::Null,|n|Eval::Number(n as i64)),
             Expr::HistoryQuery(q) => Eval::Bool(self.history_boolean(s,source,card,q)),
             Expr::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),..} => {
                 assert!(s.phase_history.exact,"phase history must be exact before execution");
@@ -1608,6 +1609,14 @@ impl Engine {
                 receiver,
                 args,
             } => {
+                if name==crate::executor_upgrade_count::QUERY {
+                    let Eval::Card(target)=sub(receiver) else{return Eval::Null};
+                    let owner=s.card(target).owner;
+                    // Membership is the current controller's arena inventory;
+                    // upgrades() counts every physical attachment, irrespective of its owner.
+                    let count=s.player(owner).ground.as_slice().iter().chain(s.player(owner).space.as_slice()).filter(|&&id|id!=target).map(|&id|self.upgrades(s,id).len() as i64).sum();
+                    return Eval::Number(count);
+                }
                 if name==crate::current_played_unit::QUERY{return Eval::Bool(self.current_played_unit_matches(s,card));}
                 if name=="leaderTraits" {
                     let Eval::Player(player)=sub(receiver) else {return Eval::Null;};
@@ -2242,6 +2251,7 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        if crate::defeat_cause::requires(self.program(p))&&s.defeat_cause==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}
         if self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::CreateCreditToken{..}))) && !s.credit_state_exact {return Err("Credit creation requires exact Credit state".into());}
         if crate::current_played_unit::requires(self.program(p))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if !s.arena_order_exact && (crate::modal_arena_choices::requires_global_order(self.program(p)) || crate::cinder_contract::requires_global_order(self.program(p))) {
@@ -2257,7 +2267,7 @@ impl Engine {
         s.ability_selection=Selection::default();
         s.event_group=EventGroupState::default();
         s.event_result=StepEventResult::default();
-        if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;}
+        if self.program(p).trigger!="whenDefeated" {s.last_known_source=0;s.last_known_power=0;s.defeat_cause=crate::defeat_cause::DefeatCause::Unknown;}
         s.ability_result = 0;
         s.ability_succeeded = false;
         s.ability_return = return_to.raw();
@@ -2991,7 +3001,7 @@ impl Engine {
                 let targets=self.effect_targets(s,&Target::Expression(expression.clone())).into_iter().filter_map(|v|match v {Eval::Card(id) if self.attached_in_play(s,id)&&s.card(id).parent==s.ability_target=>Some(id),_=>None}).collect::<Vec<_>>();
                 let mut work=*s;
                 let events=StepEventResult::for_state(&work);
-                self.defeat_many(&mut work,&targets)?;
+                self.defeat_many_cause(&mut work,&targets,crate::defeat_cause::DefeatCause::Ability)?;
                 self.finish_effect_window(&mut work)?;
                 work.event_result=events;
                 *s=work;
@@ -3012,7 +3022,7 @@ impl Engine {
             let targets=self.effect_targets(s,match e {Effect::Defeat {target}=>target,_=>unreachable!()}).into_iter().filter_map(|v|if let Eval::Card(id)=v {Some(id)}else{None}).collect::<Vec<_>>();
             let mut events=StepEventResult::for_state(s);
             for id in &targets {if self.in_arena(s,*id) {events.defeated_units[s.card(*id).owner.index()]+=1;}}
-            self.defeat_many(s,&targets)?;
+            self.defeat_many_cause(s,&targets,crate::defeat_cause::DefeatCause::Ability)?;
             s.event_result=events;
             self.finish_effect_window(s)?;
             return Ok((targets.len() as u16,!targets.is_empty()));
@@ -3071,6 +3081,7 @@ impl Engine {
         let mut draw_resolved = false;
         let mut resources_fully_resolved = true;
         let mut last_discard_resolved=false;
+        let mut damage_callbacks=Vec::new();
         if matches!(e,Effect::DiscardSpecificCard{..}) {
             if s.source==0{return Err("chosen hand discard requires source controller".into());}
             if targets.iter().any(|v|!matches!(v,Eval::Card(id) if *id!=0)){return Err("chosen hand discard requires captured physical card identities".into());}
@@ -3175,6 +3186,7 @@ impl Engine {
                                 events.will_defeat = true;
                             }
                             self.damage(s, id, amount);
+                            if in_arena&&s.card(id).damage>before {damage_callbacks.push(id);}
                             if !prevented {events.damage_dealt=events.damage_dealt.checked_add(u32::from(amount.min(remaining))).ok_or("actual damage result exceeds capacity")?;}
                             result =
                                 result.saturating_add(s.card(id).damage.saturating_sub(before));
@@ -3253,6 +3265,16 @@ impl Engine {
                 }
                 _ => {}
             }
+        }
+        // Scalar windows retain their sweep-before-winner policy. Capture the
+        // complete pre-removal lethal set in the existing arena order, assigning
+        // noncombat damage only to actual damage-event recipients. HP-loss peers
+        // remain framework defeats even during the same physical window.
+        if matches!(e,Effect::Damage {..})&&!s.event_group.resolving {
+            self.check_stat_capacity(s)?;
+            let events=self.arena_units(s).into_iter().filter(|id|s.card(*id).damage>=self.hp(s,*id))
+                .map(|id|(id,if damage_callbacks.contains(&id) {crate::defeat_cause::DefeatCause::NonCombatDamage}else{crate::defeat_cause::DefeatCause::FrameworkEffect})).collect::<Vec<_>>();
+            self.defeat_events(s,&events)?;
         }
         self.finish_scalar_effect(s)?;
         // Prepared and arena callers enter here directly, so neutral leaves
@@ -3503,16 +3525,17 @@ impl Engine {
         let start=s.death_pending.len as usize;self.capture_death(s,id)?;
         if s.ability_program!=0 {
             let end=self.program(s.ability_program-1).event_end;
-            for entry in &mut s.death_pending.entries[start..] {if entry.source==0 {break;}entry.after_pc=end;entry.defer_depth=s.death_depth;}
+            for entry in &mut s.death_pending.entries[start..] {if entry.source==0 {break;}entry.after_pc=end;entry.capture.set_depth(s.death_depth);}
         }
         Ok(())
     }
-    pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {
+    pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {self.capture_death_cause(s,id,crate::defeat_cause::DefeatCause::Ability)}
+    pub(super) fn capture_death_cause(&self,s:&mut State,id:CardId,cause:crate::defeat_cause::DefeatCause)->Result<(),String> {
         if !self.in_arena(s,id) {return Ok(());}
         self.mark_attack_lifecycle(s,id,true);
         let registration_start=s.death_pending.len as usize;
         if self.catalogue.is_none() {return Ok(());}
-        let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));
+        let mut context=*s; context.active=s.card(id).owner; context.source=id;context.last_known_source=id;context.last_known_power=self.power(s,id,self.is_attacking(s,id));context.defeat_cause=cause;
         let mut registrations=self.card_programs(s,id).iter().copied().filter(|&program| {
             let p=self.program(program);
             // Host grants live on the pilot/upgrade definition but only fire through
@@ -3524,7 +3547,7 @@ impl Engine {
         for (program,grantor) in registrations {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),keyword:0};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -3537,7 +3560,7 @@ impl Engine {
                 if !p.hooks.iter().any(|hook|matches!(hook,crate::death_hooks::Hook::Event(h) if matches!(h.event,crate::death_hooks::EventName::Defeated)&&h.predicate.matches(token,owner==s.card(id).owner,source==id))) {continue;}
                 let n=s.death_pending.len as usize;
                 if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-                s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,source,self.is_attacking(s,source)),source,program,player:owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,..DeathTrigger::default()};s.death_pending.len+=1;
+                s.death_pending.entries[n]=DeathTrigger {last_known_power:self.power(s,source,self.is_attacking(s,source)),source,program,player:owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),..DeathTrigger::default()};s.death_pending.len+=1;
             }
         }}
         self.sort_captured_registrations(s,registration_start)?;
@@ -3618,8 +3641,9 @@ impl Engine {
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
     /// New frames accept a known continuation; persisted raw frames still decode on resumption.
     pub(super) fn open_deaths(&self,s:&mut State,resume:DeathContinuation)->Result<bool,String> {
+        for entry in &s.death_pending.entries[..s.death_pending.len as usize] {if entry.keyword==0&&crate::defeat_cause::requires(self.program(entry.program))&&entry.capture.cause()==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}}
         if resume==DeathContinuation::ResourcePayment && (!s.resource_payment.active() || s.resource_payment.stage!=crate::resource_payment::PaymentStage::Paid) {return Err("invalid defeat continuation".into());}
-        let ready=|e:&DeathTrigger|e.after_pc==0 || (e.defer_depth==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
+        let ready=|e:&DeathTrigger|e.after_pc==0 || (e.capture.depth()==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
         if !s.death_pending.entries[..s.death_pending.len as usize].iter().any(ready) {return Ok(false);}
         if s.event_group!=EventGroupState::default() {return Err("defeat window opened before event group settled".into());}
         let n=s.death_depth as usize;
@@ -3629,7 +3653,7 @@ impl Engine {
         s.death_depth+=1;
         let pending=s.death_pending; s.death_window=DeathWindow::default();s.death_pending=DeathWindow::default();
         for e in &pending.entries[..pending.len as usize] {
-            let w=if e.after_pc==0 || (e.defer_depth==s.death_depth-1 && e.after_pc==s.ability_pc && s.ability_program!=0) {&mut s.death_window}else{&mut s.death_pending};
+            let w=if e.after_pc==0 || (e.capture.depth()==s.death_depth-1 && e.after_pc==s.ability_pc && s.ability_program!=0) {&mut s.death_window}else{&mut s.death_pending};
             w.entries[w.len as usize]=*e;w.len+=1;
         }
         // Engine active player is the action's player, even during opponent-owned nested triggers.
@@ -3646,7 +3670,7 @@ impl Engine {
         // Keep the captured listener order within this one event unchanged.
         let ordinary=self.def(s,s.source).info.is("unit") && !self.def(s,s.source).info.is("leader") && !self.def(s,s.source).info.is("token");
         let after_pc=if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0};
-        let current_entry=|e:&DeathTrigger|ordinary && e.event_card==s.source && e.defer_depth==s.death_depth && e.after_pc==after_pc && self.program(e.program).trigger=="onUnitEntersPlay";
+        let current_entry=|e:&DeathTrigger|ordinary && e.event_card==s.source && e.capture.depth()==s.death_depth && e.after_pc==after_pc && self.program(e.program).trigger=="onUnitEntersPlay";
         for e in old.entries[..old.len as usize].iter().filter(|e|current_entry(e)) {
             let n=merged.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("merged trigger window capacity exceeded".into());}
             merged.entries[n]=*e;merged.len+=1;
@@ -3732,7 +3756,7 @@ impl Engine {
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
-        let mut context=*s;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;
+        let mut context=*s;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;context.defeat_cause=e.capture.cause();
         if e.keyword==T_SABOTEUR && context.attack_defender!=0 {context.target=context.attack_defender;}
         context
     }
@@ -3764,7 +3788,7 @@ impl Engine {
         s.death_window.entries[n-1]=DeathTrigger::default();e
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
-        let e=self.remove_death(s,i);s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
+        let e=self.remove_death(s,i);s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.defeat_cause=e.capture.cause();s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
         if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
@@ -3860,7 +3884,7 @@ impl Engine {
                 if s.card(source).owner!=owner {continue;}
                 for &program in self.card_programs(s,source) {
                     if self.program(program).trigger=="onUnitEntersPlay" {
-                        captures.push(DeathTrigger{event_card:card,source,program,player:owner,after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},defer_depth:s.death_depth,..DeathTrigger::default()});
+                        captures.push(DeathTrigger{event_card:card,source,program,player:owner,after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
                     }
                 }
             }
@@ -4325,3 +4349,11 @@ mod arena_defeat_attack_tests;
 #[cfg(test)]
 #[path="unit_entry_order_tests.rs"]
 mod unit_entry_order_tests;
+
+#[cfg(test)]
+#[path="defeat_cause_tests.rs"]
+mod defeat_cause_tests;
+
+#[cfg(test)]
+#[path="executor_upgrade_count_tests.rs"]
+mod executor_upgrade_count_tests;

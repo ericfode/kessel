@@ -8,7 +8,7 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     // The checkpoint adds exact Credit/payment continuations and bounded live
     // attack provenance, exact aggregate defeat history and the named Play ledger.
     // Inactive legacy storage stays off the historical hash stream.
-    assert_eq!(std::mem::size_of::<State>(),34016);
+    assert_eq!(std::mem::size_of::<State>(),34056);
     eprintln!("unit-entry layout State={} Card={} Trigger={} Context={} Window={} Frame={}",std::mem::size_of::<State>(),std::mem::size_of::<Card>(),std::mem::size_of::<DeathTrigger>(),std::mem::size_of::<ResolutionContext>(),std::mem::size_of::<DeathWindow>(),std::mem::size_of::<DeathFrame>());
     // Legacy v1 hashes stay stable; v2 distinguishes exact defeat projections.
     s.phase_history.defeats_exact=false;

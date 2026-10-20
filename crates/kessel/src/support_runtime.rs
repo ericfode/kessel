@@ -1,5 +1,5 @@
 // Pinned SupportAbility / InitiateAttackSystem / GainNonKeywordAbilitiesFromUnitEffect.
-// Optional attack cancellation intentionally retains early UntilEndOfAttack effects:
+// Optional attack passes intentionally retain early UntilEndOfAttack effects:
 // only an actual AttackFlow cleanup (or the target leaving play) removes them.
 use super::*;
 use crate::ability_ir::{Effect, Instruction, Program};
@@ -69,8 +69,9 @@ impl Engine {
         let grants=modifiers.power!=0||modifiers.presence!=0||modifiers.deals_combat_damage_first;
         if grants && s.support.len as usize==MAX_SUPPORT_GRANTS {return Err("modified attack lasting-effect capacity exceeded (32)".into());}
         // Targeting and parent costs have completed. The early event applies its
-        // captured literal modifiers before the defender prompt, and cancellation
-        // retains them exactly like the existing Support grant lifecycle.
+        // captured literal modifiers before the nested defender prompt. That
+        // resolver cannot roll back its parent; an optional Pass retains the
+        // early modifiers exactly like the existing Support grant lifecycle.
         if grants {
             s.support.grants[s.support.len as usize]=SupportGrant {target:s.ability_target,donor:s.source,native_attack:true,deals_combat_damage_first:modifiers.deals_combat_damage_first,power:modifiers.power,keywords:modifiers.keywords,presence:modifiers.presence,..SupportGrant::default()};
             s.support.len+=1;

@@ -61,6 +61,7 @@ macro_rules! expression_variants {
     };
 }
 expression_variants! {
+    DefeatCauseAmount {},
     NativeTokenPredicate {
         operation: String,
         receiver: Box<Expr>,
@@ -199,7 +200,7 @@ impl Expr {
             Self::Binary{left,right,..}=>left.any(test)||right.any(test),
             Self::Unary{value,..}=>value.any(test),
             Self::Conditional{condition,then,r#else}=>condition.any(test)||then.any(test)||r#else.any(test),
-            Self::Const{..}|Self::Ref{..}|Self::HistoryQuery(_)|Self::DataMember{..}|Self::HistoryAttackCheck{..}=>false,
+            Self::DefeatCauseAmount {..}|Self::Const{..}|Self::Ref{..}|Self::HistoryQuery(_)|Self::DataMember{..}|Self::HistoryAttackCheck{..}=>false,
         }
     }
     fn references_title(&self) -> bool {
@@ -257,6 +258,7 @@ impl Expr {
             let range=match e {
                 Expr::Compiled(compiled)=>return walk(&compiled.original,depth),
                 Expr::Const {value}=>{let n=value.as_i64().filter(|n|(-1000..=1000).contains(n)).ok_or("live stats require bounded integer literals")?;(n,n)},
+                Expr::Query{name,receiver,args} if name==crate::executor_upgrade_count::QUERY && args.is_empty() && root(receiver,&[&["modifierTarget"]])=>(0,255),
                 Expr::Ref {path} if path==&["modifierTarget","damage"]=>(0,65535),
                 Expr::Ref {path} if path==&["modifierTarget","controller","resources","length"] || (path.len()==3&&["player","opponent"].contains(&path[0].as_str())&&["resources","hand"].contains(&path[1].as_str())&&path[2]=="length")=>(0,64),
                 Expr::Unary {op,value} if op=="-"=>{let (a,b)=walk(value,depth+1)?;(-b,-a)},
@@ -335,6 +337,7 @@ impl Expr {
     pub fn validate_number(&self) -> Result<(), String> {
         self.validate()?;
         let numeric = match self {
+            Self::DefeatCauseAmount {..} => true,
             Self::HistoryQuery(_) => false,
             Self::DataMember {..} => true,
             Self::Compiled(compiled) => compiled.original.validate_number().is_ok(),
@@ -370,7 +373,7 @@ impl Expr {
                 then.validate_number().is_ok() && r#else.validate_number().is_ok()
             }
             Self::Query { name, .. } => {
-                ["getPower", "getHp", "getCost", "getPrintedCost", "arenaUnitCount", "resolvedDefeatedUnitCount", "arenaDamageSum", "arenaUpgradeSum", "arenaPowerMax"].contains(&name.as_str())
+                ["getPower", "getHp", "getCost", "getPrintedCost", "arenaUnitCount", "resolvedDefeatedUnitCount", "arenaDamageSum", "arenaUpgradeSum", "arenaPowerMax",crate::executor_upgrade_count::QUERY].contains(&name.as_str())
             }
         };
         if numeric {
@@ -385,6 +388,7 @@ impl Expr {
         }
         let sub = |e: &Expr| e.validate_depth(depth + 1);
         match self {
+            Self::DefeatCauseAmount {..}=>Ok(()),
             Self::HistoryAttackCheck {test,attack,watcher,binding}=>crate::attack_history::validate(test,attack,watcher,binding),
             Self::Compiled(compiled) => compiled.original.validate_depth(depth),
             Self::NativeTokenPredicate {operation,receiver,domain,token_type,optional_receiver,optional_call} => {
@@ -512,7 +516,7 @@ impl Expr {
                 if name==crate::current_played_unit::QUERY {return if crate::current_played_unit::query(self){Ok(())}else{Err("current played-unit query requires the scalar selector candidate".into())};}
                 let arity = match name.as_str() {
                     "hasControlledInPlayTrait"=>2,
-                    "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
+                    "otherControlledArenaUpgradeCount" | "arenaPowerMaximumText" | "arenaDamageSum" | "arenaUpgradeSum" | "arenaPowerMax" | "leaderTraits" | "hasCost" | "isDeployed" | "isUpgrade" | "canBeExhausted" | "isUpgraded" | "isInPlay" | "isNonLeaderUnit"
                     | "hasInitiative" | "isUnit" | "isEvent" | "isBase" | "isLeader" | "getPower" | "getHp"
                     | "getCost" | "getPrintedCost" | "isToken" | "isTokenUnit" | "isTokenUpgrade" | "isShield" | "resourcePairs" | "isAttacking" | "isAttackingUsingAmbush" | "isDefending" | "resolvedDefeatedUnitCount" => 0,
                     "hasSomeTrait" | "hasSomeAspect" | "hasSomeKeyword" | "hasSomeArenaCard" | "hasSomeArenaUnit"
@@ -522,6 +526,7 @@ impl Expr {
                 if args.len() != arity {
                     return Err(format!("query {name} expects {arity} arguments"));
                 }
+                if name==crate::executor_upgrade_count::QUERY && (!args.is_empty() || !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["modifierTarget"])) {return Err("other upgrade count requires exact modifier target".into());}
                 if crate::bounded_reductions::QUERIES.contains(&name.as_str()) && !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]||path==&["opponent"]) {return Err("bounded arena reduction requires exact scalar player receiver".into());}
                 if name==crate::live_power_maximum::DISPLAY_QUERY&&!matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]) {return Err("maximum display requires exact own-player receiver".into());}
                 if name=="resolvedDefeatedUnitCount" && !matches!(receiver.as_ref(),Expr::Ref{path} if path==&["player"]||path==&["opponent"]) {return Err("resolved defeat count requires scalar player receiver".into());}
@@ -2044,6 +2049,9 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::executor_upgrade_count::program_marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !crate::executor_upgrade_count::ability(ability) {return Err("other upgrade count and Advantage arena batch require exact standalone registrations".into());}
+
+        if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?,|v|v["kind"]=="defeatCauseAmount")&&!crate::defeat_cause::registration(ability) {return Err("captured defeat cause requires the exact optional Advantage death registration".into());}
         if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="attackPermission")
             && (ability.trigger!="constant" || !crate::admission::plain_registration(ability)
                 || ability.target_resolver.is_some() || ability.attached_context.is_some()
@@ -2196,7 +2204,7 @@ impl Program {
                 Expr::Const {value} => value.as_str().map_or(0, str::len),
                 Expr::Array {items} => items.iter().map(title_literal_bytes).sum(),
                 Expr::Math {args, ..} => args.iter().map(title_literal_bytes).sum(),
-                Expr::HistoryAttackCheck {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::Ref { .. } => 0,
+                Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::Ref { .. } => 0,
                 Expr::Unary {value, ..} => title_literal_bytes(value),
                 Expr::Binary {left, right, ..} => title_literal_bytes(left) + title_literal_bytes(right),
                 Expr::Conditional {condition, then, r#else} => title_literal_bytes(condition) + title_literal_bytes(then) + title_literal_bytes(r#else),
@@ -2851,7 +2859,7 @@ impl Program {
                 Expr::Query {name,receiver,args} => dependent_in_scope(receiver,card_bound) || args.iter().enumerate().any(|(i,e)|dependent_in_scope(e,card_bound || (i==0 && ["hasSomeArenaUnit","arenaUnitCount"].contains(&name.as_str())))),
                 Expr::DataMember {..} => false,
                 Expr::HistoryQuery(q) => !card_bound && q.kind()==Ok(crate::phase_history::QueryKind::EnteredCard),
-                Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
+                Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
             }
         }
         fn target_dependent(e: &Expr) -> bool { dependent_in_scope(e,false) }
@@ -3200,7 +3208,7 @@ impl Program {
                 self.select_ends.push((at, self.instructions.len()));
             }
             Effect::UseForce {target}|Effect::GainForce{target} => {if !matches!(target,Target::Name(n) if n=="ownPlayer") {return Err("Force requires default own player target".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
-            Effect::GiveAdvantage {amount,target,..} => {crate::advantage::validate_amount(amount)?;if !matches!(target,Target::Name(n) if n=="self"||n=="chosen") {return Err("Advantage supports self or selected unit targets".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
+            Effect::GiveAdvantage {amount,target,..} => {crate::advantage::validate_amount(amount)?;if !(matches!(target,Target::Name(n) if n=="self"||n=="chosen") || (depth==0 && self.trigger=="whenPlayed" && crate::executor_upgrade_count::batch_target(target) && matches!(amount,Expr::Const{value} if value==1))) {return Err("Advantage supports self, selected unit, or exact other-friendly entry batch targets".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::GiveWeakness {..} => {if !selected_weakness(effect) {return Err("Weakness supports one selected unit token".into());}self.instructions.push(Instruction::Apply(effect.clone()));}
             Effect::NoAction => self.instructions.push(Instruction::Apply(effect.clone())),
             Effect::Exhaust {target:Target::ArenaList(list)} => {
@@ -3383,6 +3391,11 @@ impl Catalogue {
                         entry["internalName"], entry["diagnostics"]
                     ));
                 }
+                let defeat_cause_normalized=crate::defeat_cause::prepare(entry)?;
+                // Validate raw source/query markers before any family can return early.
+                let executor_upgrade_count=crate::executor_upgrade_count::prepare(entry)?;
+                let mut executor_entry;
+                let entry=if let Some(abilities)=executor_upgrade_count {executor_entry=entry.clone();executor_entry["abilities"]=abilities;&executor_entry}else{entry};
                 crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
                 if let Some(mut program)=crate::variable_payment_contract::prepare(entry)? {
                     program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);
@@ -3449,7 +3462,7 @@ impl Catalogue {
                 let dependent_modal=crate::migration_modal_contract::executable(entry)?;
                 let modal_arena = if dependent_modal.is_none() {crate::modal_arena_choices::prepare(entry)?}else{None};
                 let modal = if dependent_modal.is_none()&&modal_arena.is_none() {crate::modal_choices::prepare(entry)?} else {None};
-                let mut entry_owned = if let Some(dependent)=&dependent_modal {dependent.normalized.clone()}else if let Some(arena)=&modal_arena {arena.normalized.clone()} else {modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone())};
+                let mut entry_owned = if let Some(normalized)=defeat_cause_normalized {normalized}else if let Some(dependent)=&dependent_modal {dependent.normalized.clone()}else if let Some(arena)=&modal_arena {arena.normalized.clone()} else {modal.as_ref().map_or_else(|| entry.clone(), |m| m.normalized.clone())};
                 let piloting_keyword_grant = crate::piloting_attached::marker(&entry_owned["abilities"]);
                 if piloting_keyword_grant {
                     crate::piloting_attached::normalize(&mut entry_owned)?;
@@ -3865,7 +3878,7 @@ mod tests {
     fn compiled_expression_preserves_named_portable_rejections() {
         for kind in ["arenaCount", "unimplementedCollection", "compiled"] {
             let expression = json!({"kind":kind});
-            let expected = format!("unknown variant `{kind}`, expected one of `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
+            let expected = format!("unknown variant `{kind}`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
             assert_eq!(serde_json::from_value::<Expr>(expression.clone()).unwrap_err().to_string(), expected);
             let nested = json!({"kind":"unary", "op":"!", "value":expression});
             assert_eq!(serde_json::from_value::<Expr>(nested).unwrap_err().to_string(), expected);

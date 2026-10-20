@@ -93,6 +93,10 @@ function planCardProbes(entry, options = {}) {
     if (arenaKeywordSetPlan) return arenaKeywordSetPlan;
     const arenaDefeatAttackPlan = require('./arena-defeat-attack-probes').planArenaDefeatAttackProbes(entry, options);
     if (arenaDefeatAttackPlan) return arenaDefeatAttackPlan;
+    const defeatCausePlan = require('./defeat-cause-probes').planDefeatCauseProbes(entry, options);
+    if (defeatCausePlan) return defeatCausePlan;
+    const executorUpgradeCountPlan = require('./executor-upgrade-count-probes').planExecutorUpgradeCountProbes(entry, options);
+    if (executorUpgradeCountPlan) return executorUpgradeCountPlan;
     const variablePaymentPlan = require('./variable-payment-probes').planVariablePaymentProbes(entry, options);
     if (variablePaymentPlan) return variablePaymentPlan;
     const unitEntryPlan = require('./unit-entry-probes').planUnitEntryProbes(entry, options);
