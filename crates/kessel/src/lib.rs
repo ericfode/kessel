@@ -94,3 +94,9 @@ mod piloting_lifecycle;
 mod unit_entry_contract;
 
 mod variable_payment_contract;
+
+#[path="defeat_cause_contract.rs"]
+mod defeat_cause;
+
+#[path="executor_upgrade_count_contract.rs"]
+mod executor_upgrade_count;

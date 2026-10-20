@@ -157,7 +157,7 @@ impl Engine {
             } else {
                 s.ability_pc
             };
-            death.defer_depth = s.death_depth;
+            death.capture.set_depth(s.death_depth);
         }
         Ok(())
     }
@@ -166,7 +166,7 @@ impl Engine {
             .iter()
             .any(|entry| {
                 entry.after_pc == 0
-                    || (entry.defer_depth == s.death_depth
+                    || (entry.capture.depth() == s.death_depth
                         && entry.after_pc == s.ability_pc
                         && s.ability_program != 0)
             })

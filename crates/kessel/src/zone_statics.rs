@@ -3,6 +3,7 @@
 //! Sources are the pinned AttackFlow, ResourceCardSystem and MoveCardSystem.
 //! First strike uses separate settled event windows; defender damage is live.
 use super::*;
+use crate::defeat_cause::DefeatCause;
 
 impl Engine {
     /// First attacker damage window. AttackComplete belongs to the second
@@ -32,14 +33,14 @@ impl Engine {
         // complete framework lethal set before any sibling leaves play.
         let mut dead = vec![];
         if s.card(target).damage > before && s.card(target).damage >= self.hp(s, target) {
-            dead.push(target);
+            dead.push((target, DefeatCause::Attack));
         }
         for id in self.arena_units(s) {
-            if s.card(id).damage >= self.hp(s, id) && !dead.contains(&id) {
-                dead.push(id);
+            if s.card(id).damage >= self.hp(s, id) && !dead.iter().any(|(card, _)| *card == id) {
+                dead.push((id, DefeatCause::FrameworkEffect));
             }
         }
-        self.defeat_many(s, &dead)?;
+        self.defeat_events(s, &dead)?;
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
         if self.open_deaths(s, DeathContinuation::CombatAfterFirstDamage)? {
@@ -70,15 +71,15 @@ impl Engine {
             && s.card(source).damage > before
             && s.card(source).damage >= self.hp(s, source)
         {
-            dead.push(source);
+            dead.push((source, DefeatCause::Attack));
         }
         for id in self.arena_units(s) {
-            if s.card(id).damage >= self.hp(s, id) && !dead.contains(&id) {
-                dead.push(id);
+            if s.card(id).damage >= self.hp(s, id) && !dead.iter().any(|(card, _)| *card == id) {
+                dead.push((id, DefeatCause::FrameworkEffect));
             }
         }
         self.capture_advantage_end(s)?;
-        self.defeat_many(s, &dead)?;
+        self.defeat_events(s, &dead)?;
         self.sweep_stat_defeats(s)?;
         self.check_win(s);
         if self.open_deaths(s, DeathContinuation::CombatAfterDamage)? {

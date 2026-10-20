@@ -10,6 +10,8 @@ use syn::{
 // Keep their rules independent of runtime position/engine state. Other modules
 // have different responsibilities; this is deliberately not a global import ban.
 const SOURCE_CONTRACTS: &[&str] = &[
+    "src/defeat_cause_contract.rs",
+    "src/executor_upgrade_count_contract.rs",
     "src/variable_payment_contract.rs",
     "src/arena_defeat_attack_contract.rs",
     "src/unit_entry_contract.rs",

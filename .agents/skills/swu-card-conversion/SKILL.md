@@ -55,8 +55,9 @@ from the committed catalogue, verify every recorded input hash. Keep the engine'
 auxiliary card indexes and compatibility marker too, validate the indexes against
 those same card objects, and construct an actual engine game before fanout. The
 marker hashes the pinned fetch scripts and data version, not the card contents.
-Read the sharded catalogue with `compiler/load-catalog.js` and its generated
-directory; do not assume a legacy `catalog.json` file exists.
+Use the generated directory through `compiler/load-catalog.js` or actual `compileCatalog` output for strict full-entry profiles and portable tests; do not assume a legacy `catalog.json` exists.
+`compiler/generated/cards.json` alone omits fields such as `diagnostics` stored in separate shards and cannot serve as a full-entry equality fixture.
+Keep profiles complete and unknown fields rejected; never strip candidate fields or enrich entries to match fixtures.
 
 ## Automatic pipeline first
 

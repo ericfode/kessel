@@ -1,4 +1,9 @@
-//! Compile validated catalog programs into executable Rust, keyed by content.
+#[allow(dead_code)]
+#[path="src/defeat_cause_contract.rs"]
+mod defeat_cause;
+// Compile validated catalog programs into executable Rust, keyed by content.
+#[path="src/executor_upgrade_count_contract.rs"]
+mod executor_upgrade_count;
 #[path = "src/cinder_contract.rs"]
 mod cinder_contract;
 #[path="src/variable_payment_contract.rs"]
@@ -231,6 +236,7 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/executor_upgrade_count_contract.rs");
     println!("cargo:rerun-if-changed=src/variable_payment_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
     println!("cargo:rerun-if-changed=src/migration_modal_contract.rs");

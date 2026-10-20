@@ -471,7 +471,7 @@ fn migration_attack_runtime_precision_fire_grants_early_saboteur_and_late_troope
 }
 
 #[test]
-fn migration_attack_runtime_cancel_retains_only_early_grants_and_snapshot_provenance() {
+fn migration_attack_runtime_paid_child_is_mandatory_with_early_and_late_provenance() {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
         let e = ma_engine(backend);
         for seat in [Seat::P1, Seat::P2] {
@@ -485,35 +485,45 @@ fn migration_attack_runtime_cancel_retains_only_early_grants_and_snapshot_proven
             assert_eq!(e.ready_resources(&unpaid, seat), ready);
             assert_eq!(e.keyword_amount(&unpaid, attacker, "saboteur"), 0);
             let defender = ma_click(&e, &select, attacker);
-            let cancelled = named_button(&e, &defender, "Cancel");
-            assert!(!cancelled.card(attacker).exhausted);
-            assert!(cancelled.player(seat).discard.contains(source));
-            assert_eq!(e.keyword_amount(&cancelled, attacker, "saboteur"), 1);
-            assert_eq!(
-                e.power(&cancelled, attacker, false),
-                2,
-                "no late attack object was created"
-            );
-            assert!(!cancelled.support.pending);
-            ma_roundtrip(&e, &cancelled);
-            let mut missing = e.snapshot(&cancelled);
+            let base = s.player(seat.other()).base;
+            assert_eq!(e.legal_actions(&defender), vec![e.card_action(&defender, base)]);
+            assert!(e.apply(&defender, &Action::button("Cancel", "cancel")).is_err());
+            assert!(!defender.card(attacker).exhausted);
+            assert!(defender.player(seat).discard.contains(source));
+            assert!(e.ready_resources(&defender, seat) < ready);
+            assert_eq!(e.keyword_amount(&defender, attacker, "saboteur"), 1);
+            assert_eq!(e.power(&defender, attacker, false), 2, "late factory waits for the chosen defender");
+            let completed = ma_finish(&e, ma_click(&e, &defender, base));
+            assert!(completed.card(attacker).exhausted);
+            assert_eq!(completed.card(base).damage, 4, "Trooper condition applies to the actual attack");
+            assert_eq!(e.keyword_amount(&completed, attacker, "saboteur"), 0);
+            assert_eq!(e.power(&completed, attacker, false), 2);
+            assert_eq!(completed.support.len, 0);
+            assert!(!completed.support.pending);
+            ma_roundtrip(&e, &completed);
+            let mut missing = e.snapshot(&completed);
             missing
                 .as_object_mut()
                 .unwrap()
                 .remove("supportStateVersion");
             assert!(e.load_state(&missing).is_err());
-            let mut forged = e.snapshot(&cancelled);
+            let mut forged = e.snapshot(&completed);
+            // Inject the captured early-grant shape solely as a negative import
+            // diagnostic. No stable retained grant is claimed after this attack.
+            let captured = e.snapshot(&defender)["supportGrants"][0].clone();
+            forged["supportGrants"] = json!([captured]);
             forged["supportGrants"][0]["unreviewedCondition"] = json!(true);
             assert!(e.load_state(&forged).is_err());
-            // A subsequent ordinary attack consumes the retained early grant,
-            // without inheriting the cancelled conditional power factory.
-            let mut again = cancelled;
+            // A subsequent ordinary attack inherits neither the completed early
+            // grant nor the late conditional power factory.
+            let mut again = completed;
+            again.card_mut(attacker).exhausted = false;
             again.active = seat;
             again.action_player = Some(seat);
             let base = again.player(seat.other()).base;
             let defender = ma_click(&e, &again, attacker);
             let done = ma_finish(&e, ma_click(&e, &defender, base));
-            assert_eq!(done.card(base).damage, 2);
+            assert_eq!(done.card(base).damage, 6);
             assert_eq!(e.keyword_amount(&done, attacker, "saboteur"), 0);
             assert_eq!(done.support.len, 0);
         }

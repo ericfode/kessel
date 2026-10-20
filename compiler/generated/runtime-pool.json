@@ -4561,6 +4561,46 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "0834554190",
+      "internalName": "shin-hatis-fiend-fighter#compact-and-agile",
+      "keywords": [],
+      "power": 3,
+      "rules": "“Combat damage” is only the damage dealt during the “End attack” step of an attack.\n",
+      "setCode": "ASH_191",
+      "setCodes": [
+        {
+          "number": 191,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 191,
+        "set": "ASH"
+      },
+      "subtitle": "Compact and Agile",
+      "text": "When Defeated: You may give 2 Advantage tokens to a unit. If this unit wasn't defeated by combat damage, you may give 3 Advantage tokens to that unit instead.",
+      "title": "Shin Hati's Fiend Fighter",
+      "traits": [
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "cunning",
@@ -4685,6 +4725,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 12,
+      "id": "6139617442",
+      "internalName": "executor#final-destruction-of-the-alliance",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "ASH_197",
+      "setCodes": [
+        {
+          "number": 197,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 197,
+        "set": "ASH"
+      },
+      "subtitle": "Final Destruction of the Alliance",
+      "text": "This unit gets +1/+0 for each upgrade on other friendly units.\nWhen Played: Give an Advantage token to each other friendly unit.",
+      "title": "Executor",
+      "traits": [
+        "imperial",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
