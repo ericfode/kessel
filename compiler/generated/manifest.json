@@ -4,7 +4,7 @@
   "compilerVersion": 1,
   "typescriptVersion": "5.5.4",
   "sourceTreeHash": "110b7795c17cd625be58b9b39fe32889fe55c77ff6ec3949746aed102108a6da",
-  "compilerHash": "e19acd0024f07f148c52ab97a112f946716b77a142eff21c41a4568d26e179f4",
+  "compilerHash": "10c69eb878a878d3d15e6f9bcf154da3bc8404ea8bc95c9494efc62df3cdad94",
   "sourceSupport": [
     {
       "role": "staged-native-token-lifecycle",

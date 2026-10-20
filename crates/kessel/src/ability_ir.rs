@@ -28,6 +28,8 @@ pub(crate) fn contains_force_presence<T: Serialize>(value:&T)->bool {
 pub mod selector_contract;
 #[path = "distributed_damage_contract.rs"]
 mod distributed_damage_contract;
+#[path = "chosen_hand_discard_contract.rs"]
+pub(crate) mod chosen_hand_discard_contract;
 #[path = "activation_contract.rs"]
 pub(crate) mod activation_contract;
 
@@ -801,6 +803,7 @@ impl TargetResolver {
         }
         match self.mode.as_deref() {
             None | Some("single") if self.count.is_none() => Ok(1),
+            Some("exactly") if chosen_hand_discard_contract::hand_selector(self) => Ok(2),
             Some("upTo") => match self.count.as_ref().map(Expr::original) {
                 Some(Expr::Const { value }) if value.as_u64().is_some_and(|n| (1..=5).contains(&n)) => Ok(value.as_u64().unwrap() as usize),
                 _ => Err("UpTo selectors require literal counts from one to five".into()),
@@ -809,7 +812,7 @@ impl TargetResolver {
             _ => Err("unsupported target mode/count; unlimited selection is base-only".into()),
         }
     }
-    pub fn is_multiple(&self) -> bool { matches!(self.mode.as_deref(), Some("upTo" | "unlimited")) }
+    pub fn is_multiple(&self) -> bool { matches!(self.mode.as_deref(), Some("upTo" | "unlimited" | "exactly")) }
     pub fn validate_inline(&self)->Result<(),String> {
         if self.prompt_title.as_ref().is_some_and(|t|t.is_empty()||t.len()>1024){return Err("inline prompt title must be a bounded nonempty literal".into());}
         let mut r=self.clone();r.prompt_title=None;r.validate()
@@ -851,7 +854,7 @@ impl TargetResolver {
             let parent_trait_amount=crate::attached_registration::parent_trait_scaled_title_parts(&self.prompt_title_parts,"transport",2,1);
             if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts&&!parent_trait_amount{return Err("dynamic prompt requires bounded live arena damage sum, maximum, source power, or reviewed host-trait amount".into());}
         }
-        if self.prompt_title.is_some() {return Err("named prompt titles require a named descriptor".into());}
+        if self.prompt_title.is_some() && !chosen_hand_discard_contract::hand_selector(self) {return Err("named prompt titles require a named descriptor".into());}
         self.max_targets()?;
         if self.card_type=="any" && self.mentions_upgrade_query() && !self.is_upgrade_domain() {return Err("mixed upgrade selector domains are not modeled".into());}
         if self.is_upgrade_domain() && (self.arena.is_some() || !matches!(self.zone.as_deref(),None|Some("arena"|"anyAttackable"|"discard"))) {return Err("upgrade selectors require arena/anyAttackable without an arena filter".into());}
@@ -1067,6 +1070,8 @@ pub enum Effect {
         #[serde(rename = "onFalse", default)]
         on_false: Option<Box<Effect>>,
     },
+    DiscardSpecificCard { target: Target },
+    AttackModifiers { effects: Vec<Effect> },
     DistributeDamage {
         amount: Expr,
         #[serde(rename = "canChooseNoTargets", default)]
@@ -1189,7 +1194,7 @@ impl Effect {
             | Self::GiveExperience { amount, target } | Self::GainKeyword { amount, target, .. } => {
                 visit(amount); target.visit_expression_roots_mut(visit);
             }
-            Self::AttackPermission{target,..}|Self::MoveSelectedArenaUnitToOwnerDeck{target,..}|Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
+            Self::DiscardSpecificCard{target}|Self::AttackPermission{target,..}|Self::MoveSelectedArenaUnitToOwnerDeck{target,..}|Self::GainTrait{target,..}|Self::LoseTrait{target,..}|Self::CopyKeywords{target,..}|Self::ReturnToHand { target } | Self::LoseKeyword { target, .. }
             | Self::Ready { target } | Self::Exhaust { target } | Self::Defeat { target } => {
                 target.visit_expression_roots_mut(visit);
             }
@@ -1201,7 +1206,7 @@ impl Effect {
                 target_resolver.visit_expression_roots_mut(visit);
                 effect.visit_expression_roots_mut(visit);
             }
-            Self::Sequence { effects } | Self::Simultaneous { effects } | Self::PhaseModifiers { effects } => {
+            Self::Sequence { effects } | Self::Simultaneous { effects } | Self::PhaseModifiers { effects } | Self::AttackModifiers {effects} => {
                 for effect in effects { effect.visit_expression_roots_mut(visit); }
             }
             Self::Conditional { condition, on_true, on_false } => {
@@ -2352,6 +2357,16 @@ impl Program {
         Ok(p)
     }
     fn compile_ability(&mut self, ability: &Ability, depth: usize) -> Result<(), String> {
+        if chosen_hand_discard_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?) {
+            if depth!=0 || !chosen_hand_discard_contract::registration(ability) {return Err("chosen hand discard requires its complete bounded own-hand continuation registration".into());}
+            let resolver=ability.target_resolver.as_ref().unwrap();resolver.validate()?;
+            self.instructions.extend([Instruction::Select(resolver.clone()),Instruction::Commit,Instruction::Apply(ability.effect.clone())]);
+            let gate=self.instructions.len();self.instructions.push(Instruction::IfResult{skip:0});
+            let next=ability.if_you_do.as_ref().unwrap();
+            if let Some(r)=&next.target_resolver {r.validate()?;self.instructions.push(Instruction::Select(r.clone()));}
+            self.instructions.push(Instruction::Apply(next.effect.clone()));
+            self.instructions[gate]=Instruction::IfResult{skip:self.instructions.len()};return Ok(());
+        }
         // Complete source contracts establish these ordered hand observations.
         // Keep the general nested-view guard closed: only these full registrations
         // can emit the display leaves directly, with their original chooser/target.
@@ -3042,6 +3057,7 @@ impl Program {
             Effect::Simultaneous { effects } if self.trigger == "constant" => { for effect in effects { self.compile_effect(effect, depth + 1)?; } }
             Effect::Simultaneous { .. } => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Group(effect.clone())); }
             Effect::PhaseModifiers {effects:_} => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Apply(effect.clone())); }
+            Effect::DiscardSpecificCard{..}|Effect::AttackModifiers{..}=>return Err("chosen hand operations require their complete reviewed registration".into()),
             Effect::DistributeDamage { amount, can_choose_no_targets, can_distribute_less, target_resolver } => {
                 if depth!=0 || !matches!(self.trigger.as_str(),"whenPlayed"|"whenDefeated") || !distributed_damage_contract::effect(amount,*can_choose_no_targets,*can_distribute_less,target_resolver) {
                     return Err("distributed damage requires literal six and mandatory enemy units".into());
@@ -3486,6 +3502,7 @@ impl Catalogue {
                     && entry["attachCondition"].is_null() && no_pilot
                     && ["deployBox","deployCost","upgradePower","upgradeHp"].iter().all(|key|entry["card"][key].is_null())
                     && (entry["card"]["epicAction"].is_null() || entry["card"]["epicAction"] == "");
+                if chosen_hand_discard_contract::marker(&entry["abilities"])&&!chosen_hand_discard_contract::entry(entry){return Err("chosen hand discard requires complete closed ordinary unit profiles".into());}
                 if distributed_damage_contract::marker(entry) && (!complete_plain_source_metadata || !distributed_damage_contract::entry(entry)) {return Err("distributed damage requires a complete closed ordinary six-damage unit registration".into());}
                 if contains(&entry["abilities"],|v|matches!(v["kind"].as_str(),Some("gainTrait"|"loseTrait"))) {
                     let unit=source_class==Some("NonLeaderUnitCard");

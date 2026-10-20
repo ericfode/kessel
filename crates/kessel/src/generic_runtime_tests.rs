@@ -3496,11 +3496,14 @@ fn guarded_attacker_raw_ir_requires_positive_same_candidate_guard_and_zero_argum
 #[test]
 fn complete_source_admission_preserves_secondary_and_printed_keyword_blockers() {
     let e = engine();
-    for code in ["ASH_226", "JTL_170", "ASH_050"] {
+    for code in ["JTL_170", "ASH_050"] {
         assert!(
             !e.by_code.contains_key(code),
             "partial card {code} admitted"
         );
+    }
+    for code in ["ASH_226", "HMW_041"] {
+        assert!(e.by_code.contains_key(code), "complete chosen-hand card {code} rejected");
     }
     assert!(
         e.by_code.contains_key("ASH_046"),

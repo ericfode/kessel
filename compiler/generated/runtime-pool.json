@@ -5214,6 +5214,44 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "7886747371",
+      "internalName": "qira#master-of-teras-kasi",
+      "keywords": [],
+      "power": 9,
+      "rules": null,
+      "setCode": "ASH_226",
+      "setCodes": [
+        {
+          "number": 226,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 226,
+        "set": "ASH"
+      },
+      "subtitle": "Master of Teräs Käsi",
+      "text": "This unit gets –1/–0 for each card in your hand.\nWhen Played: You may discard a card from your hand. If you do, deal 3 damage to a unit.",
+      "title": "Qi'ra",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "cunning"
       ],
@@ -7070,6 +7108,50 @@
         "night",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "aggression"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "4533738134",
+      "internalName": "keeper-of-skara-nal#awoken",
+      "keywords": [
+        "restore",
+        "overwhelm"
+      ],
+      "power": 5,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "HMW_041",
+      "setCodes": [
+        {
+          "number": 41,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 41,
+        "set": "HMW"
+      },
+      "subtitle": "Awoken",
+      "text": "Restore 2\nOn Attack: You may discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.",
+      "title": "Keeper of Skara Nal",
+      "traits": [
+        "droid",
+        "vehicle",
+        "walker"
       ],
       "types": [
         "unit"
