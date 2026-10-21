@@ -92,7 +92,7 @@ fn collection_query_xwing_live_pilot_aura_generated_and_interpreted() {
     }}
 }
 
-fn attachment_engine(backend:RulesBackend,synthetic:bool)->Engine {
+fn attachment_engine(backend:RulesBackend,synthetic:bool,selected:bool)->Engine {
     let mut catalogue:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
     if synthetic {
         // Distinguish native Shield identity from an ordinary upgrade's title,
@@ -103,6 +103,14 @@ fn attachment_engine(backend:RulesBackend,synthetic:bool)->Engine {
         }
     }
     let mut e=Engine::from_catalogue_value(&catalogue).unwrap();
+    if selected {
+        // Bind all backends to the same physical fixture pool, preserving the
+        // complete catalogue and unused round registrations behind that selection.
+        let mut pool=e.compiled_pool().unwrap();
+        pool["cards"].as_array_mut().unwrap().retain(|c|["ASH_019","SOR_014","IBH_053","LOF_254","LOF_256","HMW_235","JTL_180","TOKEN_SHIELD","TOKEN_EXPERIENCE"].contains(&c["setCode"].as_str().unwrap()));
+        e=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&pool).unwrap(),&serde_json::to_vec(&catalogue).unwrap()).unwrap();
+        assert!(!e.needs_round_limit_state());
+    }
     if backend==RulesBackend::Aot {for definition in &mut e.definitions {if definition.code!="JTL_180" {definition.programs=Default::default();}}}
     e.set_rules_backend(backend).unwrap();e
 }
@@ -112,7 +120,7 @@ fn collection_query_piercing_shot_removes_every_native_shield_before_damage_in_a
     for seat in [Seat::P1,Seat::P2] {for shield_count in [0,1,3,40] {
         let mut observations=vec![];
         for backend in [RulesBackend::Auto,RulesBackend::Interpreter,RulesBackend::Aot] {
-            let e=attachment_engine(backend,true);let mut s=board(&e);s.active=seat;s.action_player=Some(seat);s.round=5;
+            let e=attachment_engine(backend,true,true);let mut s=board(&e);s.active=seat;s.action_player=Some(seat);s.round=5;
             let host=unit(&e,&mut s,seat.other(),"LOF_256");let ordinary=add(&e,&mut s,seat,"HMW_235");e.attach(&mut s,ordinary,host);e.create_token(&mut s,host,true).unwrap();let xp=s.card(host).experience;
             let mut shields=vec![];for _ in 0..shield_count {e.create_token(&mut s,host,false).unwrap();shields.push(s.card(host).shield);}
             let source=add(&e,&mut s,seat,"JTL_180");s.player_mut(seat).hand.push(source).unwrap();for _ in 0..8 {let r=add(&e,&mut s,seat,"LOF_254");s.player_mut(seat).resources.push(r).unwrap();}
@@ -129,7 +137,7 @@ fn collection_query_piercing_shot_removes_every_native_shield_before_damage_in_a
 #[test]
 fn collection_query_extracted_nonunique_defeat_snapshots_order_then_sweeps_parent_once() {
     for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {
-        let mut e=attachment_engine(backend,true);let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_256");let host=unit(&e,&mut s,Seat::P2,"LOF_256");
+        let mut e=attachment_engine(backend,true,false);let mut s=board(&e);let source=unit(&e,&mut s,Seat::P1,"LOF_256");let host=unit(&e,&mut s,Seat::P2,"LOF_256");
         let first=add(&e,&mut s,Seat::P2,"HMW_235");e.attach(&mut s,first,host);let unique=add(&e,&mut s,Seat::P2,"IC27_093");e.attach(&mut s,unique,host);let second=add(&e,&mut s,Seat::P2,"IC27_052");e.attach(&mut s,second,host);e.create_token(&mut s,host,true).unwrap();let xp=s.card(host).experience;e.create_token(&mut s,host,false).unwrap();let shield=s.card(host).shield;
         let before_damage=s;s.card_mut(host).damage=e.hp(&s,host)-1;
         // SEC149's Plot keyword remains unsupported: use its complete unchanged

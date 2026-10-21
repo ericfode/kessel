@@ -3197,7 +3197,11 @@ fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_
     let mut s = board(&e);
     let early = unit(&e, &mut s, Seat::P2, "LOF_256");
     let late = unit(&e, &mut s, Seat::P1, "LOF_256");
+    let initial = s;
     let snapshot = e.snapshot(&s);
+    assert_eq!(snapshot["roundLimitState"],json!({"version":1,"registrations":[]}));
+    let mut missing_round_history=snapshot.clone();missing_round_history.as_object_mut().unwrap().remove("roundLimitState");
+    assert!(e.load_state(&missing_round_history).unwrap_err().contains("requires exact roundLimitState"));
     let hash = s.zobrist();
     let mut reverse = s;
     reverse.arena_unit_order[0].ids.swap(0, 1);
@@ -3220,14 +3224,20 @@ fn global_arena_order_hash_and_snapshot_preserve_interleaving_departure_reentry_
     e.add_arena(&mut s, leader).unwrap();
     assert_eq!(e.arena_units(&s), vec![late, early, token, leader]);
     // Legacy evidence is valid only for a selected pool without future listener registrations.
-    let mut legacy_engine = engine();
-    legacy_engine
-        .catalogue
-        .as_mut()
-        .unwrap()
-        .metadata
-        .retain(|code, _| ["ASH_019", "SOR_014", "IBH_053", "LOF_256"].contains(&code.as_str()));
-    let mut legacy = without_empty_named_play_state(without_empty_credit_state(snapshot));
+    let mut legacy_pool=e.compiled_pool().unwrap();
+    legacy_pool["cards"].as_array_mut().unwrap().retain(|c|["ASH_019","SOR_014","IBH_053","LOF_256","TOKEN_SHIELD"].contains(&c["setCode"].as_str().unwrap()));
+    let legacy_engine=Engine::from_compiled_pool_bytes(&serde_json::to_vec(&legacy_pool).unwrap(),committed_catalogue_bytes()).unwrap();
+    assert!(!legacy_engine.needs_round_limit_state());
+    // Build trusted empty evidence with the selected engine itself: copying
+    // the full-catalogue Credit-exact flag would require an unselected token.
+    let mut legacy_seed=board(&legacy_engine);
+    assert_eq!(unit(&legacy_engine,&mut legacy_seed,Seat::P2,"LOF_256"),early);
+    assert_eq!(unit(&legacy_engine,&mut legacy_seed,Seat::P1,"LOF_256"),late);
+    assert_eq!(legacy_seed.players,initial.players);
+    let legacy_snapshot=legacy_engine.snapshot(&legacy_seed);
+    assert!(legacy_snapshot.get("roundLimitState").is_none());
+    assert!(legacy_snapshot.get("creditStateVersion").is_none());
+    let mut legacy = without_empty_named_play_state(legacy_snapshot);
     legacy.as_object_mut().unwrap().remove("arenaUnitOrder");
     legacy.as_object_mut().unwrap().remove("registrationOrder");
     legacy
@@ -5923,7 +5933,7 @@ fn weakness_static_native_dependency_rejects_missing_invalid_and_unselected_toke
     pool["cards"].as_array_mut().unwrap().retain(|c| {
         ![
             "HMW_059", "HMW_087", "HMW_242", "HMW_097", "HMW_100", "HMW_199", "HMW_202", "HMW_231",
-            "HMW_003", "HMW_065", "HMW_015", "HMW_040", "HMW_197",
+            "HMW_003", "HMW_065", "HMW_015", "HMW_040", "HMW_197", "HMW_062",
         ]
         .contains(&c["setCode"].as_str().unwrap())
     });

@@ -141,6 +141,10 @@ fn play_card_and_force_base_shapes_stay_rejected() {
     for code in ["SOR_022", "LAW_020", "LOF_022", "HMW_012"] {
         assert!(!e.by_code.contains_key(code), "{code} must stay rejected");
         let reason = e.rejected_cards().unwrap()[code].clone();
+        if code=="LOF_022" {
+            assert_eq!(reason,"mystic-monastery: per-round limits require the complete closed native source registration and metadata");
+            continue;
+        }
         assert!(
             reason.contains("base-zone") || reason.contains("playCard") || reason.contains("event hook") || reason.contains("invalid") || reason.contains("inherited") || reason.contains("leader-deploy"),
             "{code}: {reason}"

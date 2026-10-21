@@ -311,7 +311,7 @@ fn executor_batch_token_capacity_failure_is_atomic_and_inline_sizes_stable() {
         std::mem::size_of::<ResolutionContext>(),
         std::mem::size_of::<DeathFrame>()
     );
-    assert_eq!(std::mem::size_of::<State>(), 34056);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
     assert_eq!(std::mem::size_of::<Card>(), 40);
 }
 #[test]

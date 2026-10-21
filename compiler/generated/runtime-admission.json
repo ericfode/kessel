@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 934
+    "sourceIr": 939
   },
   "runtimeAdmittedCards": [
     {
@@ -77,6 +77,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "rancor-keeper",
+      "setCode": "ASH_032"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "grand-admiral-thrawn#orchestrating-his-return",
       "setCode": "ASH_033"
     },
@@ -114,6 +119,11 @@
       "implementation": "sourceIr",
       "internalName": "scion-shuttle#at-morgans-bidding",
       "setCode": "ASH_046"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "gar-saxon#coveting-power",
+      "setCode": "ASH_047"
     },
     {
       "implementation": "dataOnly",
@@ -479,6 +489,11 @@
       "implementation": "sourceIr",
       "internalName": "alphabet-squadron-uwing#quiet-devotion",
       "setCode": "ASH_159"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "kachirho-militia",
+      "setCode": "ASH_160"
     },
     {
       "implementation": "dataOnly",
@@ -984,6 +999,11 @@
       "implementation": "sourceIr",
       "internalName": "director-krennic#the-work-has-stalled",
       "setCode": "HMW_061"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "nuvo-vindi#blue-shadow-perfected",
+      "setCode": "HMW_062"
     },
     {
       "implementation": "sourceIr",
@@ -5397,6 +5417,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "agent-kallus#seeking-the-rebels",
+      "setCode": "SOR_115"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "steadfast-battalion",
       "setCode": "SOR_116"
     },
@@ -6631,7 +6656,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1324,
+  "runtimeAdmittedCount": 1329,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6655,7 +6680,7 @@
     },
     {
       "internalName": "sabine-wren#bargaining-on-belief",
-      "reason": "sabine-wren#bargaining-on-belief: invalid ability IR: unknown variant `giveTokenUpgradeOptions`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "sabine-wren#bargaining-on-belief: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_006"
     },
     {
@@ -6670,7 +6695,7 @@
     },
     {
       "internalName": "bokatan-kryze#reclaiming-mandalore",
-      "reason": "bokatan-kryze#reclaiming-mandalore: invalid ability IR: unknown variant `classDefinition`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "bokatan-kryze#reclaiming-mandalore: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_010"
     },
     {
@@ -6695,7 +6720,7 @@
     },
     {
       "internalName": "shin-hati#eager-adversary",
-      "reason": "shin-hati#eager-adversary: unresolved phase history helpers require reviewed registration",
+      "reason": "shin-hati#eager-adversary: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_016"
     },
     {
@@ -6710,7 +6735,7 @@
     },
     {
       "internalName": "enoch#solemn-servant",
-      "reason": "enoch#solemn-servant: invalid ability IR: unknown field `maxTargets`, expected one of `amount`, `canChooseNoTargets`, `canDistributeLess`, `targetResolver`",
+      "reason": "enoch#solemn-servant: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_027"
     },
     {
@@ -6722,11 +6747,6 @@
       "internalName": "hera-syndulla#renegade-general",
       "reason": "hera-syndulla#renegade-general: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "ASH_031"
-    },
-    {
-      "internalName": "rancor-keeper",
-      "reason": "rancor-keeper: own-base damage requires the complete closed mandatory source Advantage profile",
-      "setCode": "ASH_032"
     },
     {
       "internalName": "tatooine-repulsor-train",
@@ -6759,11 +6779,6 @@
       "setCode": "ASH_045"
     },
     {
-      "internalName": "gar-saxon#coveting-power",
-      "reason": "gar-saxon#coveting-power: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "ASH_047"
-    },
-    {
       "internalName": "morgan-elsbeth#life-abandoned",
       "reason": "Support donors require a bounded ordinary constant/OnAttack/attack-end registration and intrinsic unit-side keyword",
       "setCode": "ASH_050"
@@ -6775,7 +6790,7 @@
     },
     {
       "internalName": "pre-vizsla#strongwilled-ruler",
-      "reason": "pre-vizsla#strongwilled-ruler: invalid ability IR: unknown variant `createTokenUnitSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "pre-vizsla#strongwilled-ruler: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_053"
     },
     {
@@ -6875,7 +6890,7 @@
     },
     {
       "internalName": "admiral-ackbar#assume-attack-coordinates",
-      "reason": "admiral-ackbar#assume-attack-coordinates: invalid ability IR: unknown variant `playMultipleCardsFromDeck`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "admiral-ackbar#assume-attack-coordinates: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_110"
     },
     {
@@ -6895,7 +6910,7 @@
     },
     {
       "internalName": "bothan5#new-republic-prison-ship",
-      "reason": "bothan5#new-republic-prison-ship: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "bothan5#new-republic-prison-ship: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_128"
     },
     {
@@ -6957,11 +6972,6 @@
       "internalName": "r5d4#built-for-adventure",
       "reason": "r5d4#built-for-adventure: invalid ability IR: unknown variant `systemPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_156"
-    },
-    {
-      "internalName": "kachirho-militia",
-      "reason": "kachirho-militia: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "ASH_160"
     },
     {
       "internalName": "zeb-orrelios#fists-work-every-time",
@@ -7030,7 +7040,7 @@
     },
     {
       "internalName": "rehabilitation",
-      "reason": "rehabilitation: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "rehabilitation: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_200"
     },
     {
@@ -7080,7 +7090,7 @@
     },
     {
       "internalName": "improvised-identity",
-      "reason": "improvised-identity: attack permission requires the complete closed paired constant unit and intrinsic Support profile",
+      "reason": "improvised-identity: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_230"
     },
     {
@@ -7105,7 +7115,7 @@
     },
     {
       "internalName": "mouse-droid",
-      "reason": "mouse-droid: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "mouse-droid: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_237"
     },
     {
@@ -7120,7 +7130,7 @@
     },
     {
       "internalName": "neel#the-cutest-boy",
-      "reason": "neel#the-cutest-boy: invalid ability IR: unknown variant `phasePlayerEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "neel#the-cutest-boy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_248"
     },
     {
@@ -7160,7 +7170,7 @@
     },
     {
       "internalName": "chewbacca#relentless-rebel",
-      "reason": "chewbacca#relentless-rebel: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "chewbacca#relentless-rebel: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_009"
     },
     {
@@ -7260,7 +7270,7 @@
     },
     {
       "internalName": "seismic-detonation",
-      "reason": "seismic-detonation: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "seismic-detonation: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_054"
     },
     {
@@ -7282,11 +7292,6 @@
       "internalName": "vice-admiral-rampart#a-new-era-of-safety",
       "reason": "vice-admiral-rampart#a-new-era-of-safety: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
       "setCode": "HMW_060"
-    },
-    {
-      "internalName": "nuvo-vindi#blue-shadow-perfected",
-      "reason": "nuvo-vindi#blue-shadow-perfected: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "HMW_062"
     },
     {
       "internalName": "carrion-spike#harbinger-of-tyranny",
@@ -7335,12 +7340,12 @@
     },
     {
       "internalName": "sando-aqua-monster",
-      "reason": "sando-aqua-monster: unresolved phase history helpers require reviewed registration",
+      "reason": "sando-aqua-monster: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_094"
     },
     {
       "internalName": "carbonite-chamber",
-      "reason": "carbonite-chamber: invalid ability IR: unknown variant `defeatSelfCost`, expected one of `exhaustSelf`, `resources`, `useForceCost`",
+      "reason": "carbonite-chamber: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_095"
     },
     {
@@ -7375,7 +7380,7 @@
     },
     {
       "internalName": "tireless-magnaguard",
-      "reason": "tireless-magnaguard: invalid ability IR: unknown variant `ongoingContract`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "tireless-magnaguard: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_109"
     },
     {
@@ -7405,7 +7410,7 @@
     },
     {
       "internalName": "hijacked-atst",
-      "reason": "hijacked-atst: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "hijacked-atst: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_121"
     },
     {
@@ -7440,7 +7445,7 @@
     },
     {
       "internalName": "emerie-karr#for-your-own-good",
-      "reason": "emerie-karr#for-your-own-good: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "emerie-karr#for-your-own-good: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_130"
     },
     {
@@ -7450,7 +7455,7 @@
     },
     {
       "internalName": "rex#outserved-his-purpose",
-      "reason": "rex#outserved-his-purpose: invalid ability IR: unknown variant `abilityInventoryLength`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "rex#outserved-his-purpose: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_141"
     },
     {
@@ -7525,7 +7530,7 @@
     },
     {
       "internalName": "heavy-ion-cannon",
-      "reason": "heavy-ion-cannon: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "heavy-ion-cannon: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_172"
     },
     {
@@ -7535,7 +7540,7 @@
     },
     {
       "internalName": "arena-nexu#starved-for-prey",
-      "reason": "arena-nexu#starved-for-prey: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "arena-nexu#starved-for-prey: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_182"
     },
     {
@@ -7570,12 +7575,12 @@
     },
     {
       "internalName": "rish-loo#traitorous-minister",
-      "reason": "rish-loo#traitorous-minister: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "rish-loo#traitorous-minister: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_200"
     },
     {
       "internalName": "nightbrother#mauls-gauntlet",
-      "reason": "nightbrother#mauls-gauntlet: invalid ability IR: unknown variant `playCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "nightbrother#mauls-gauntlet: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_204"
     },
     {
@@ -7605,7 +7610,7 @@
     },
     {
       "internalName": "l337#were-programmed-to-learn",
-      "reason": "l337#were-programmed-to-learn: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "l337#were-programmed-to-learn: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_215"
     },
     {
@@ -7695,7 +7700,7 @@
     },
     {
       "internalName": "twilek-kalikori",
-      "reason": "twilek-kalikori: invalid ability IR: unknown variant `playMultipleCardsFromDeck`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "twilek-kalikori: per-round limits require the complete closed native source registration and metadata",
       "setCode": "HMW_265"
     },
     {
@@ -8065,17 +8070,17 @@
     },
     {
       "internalName": "asajj-ventress#i-work-alone",
-      "reason": "asajj-ventress#i-work-alone: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "asajj-ventress#i-work-alone: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_001"
     },
     {
       "internalName": "grand-admiral-thrawn#how-unfortunate",
-      "reason": "grand-admiral-thrawn#how-unfortunate: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "grand-admiral-thrawn#how-unfortunate: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_002"
     },
     {
       "internalName": "lando-calrissian#buying-time",
-      "reason": "lando-calrissian#buying-time: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "lando-calrissian#buying-time: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_003"
     },
     {
@@ -8090,17 +8095,17 @@
     },
     {
       "internalName": "darth-vader#victor-squadron-leader",
-      "reason": "darth-vader#victor-squadron-leader: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "darth-vader#victor-squadron-leader: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_006"
     },
     {
       "internalName": "wedge-antilles#leader-of-red-squadron",
-      "reason": "wedge-antilles#leader-of-red-squadron: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "wedge-antilles#leader-of-red-squadron: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_008"
     },
     {
       "internalName": "boba-fett#any-methods-necessary",
-      "reason": "boba-fett#any-methods-necessary: own-base damage requires the complete closed mandatory source Advantage profile",
+      "reason": "boba-fett#any-methods-necessary: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_009"
     },
     {
@@ -8110,27 +8115,27 @@
     },
     {
       "internalName": "major-vonreg#red-baron",
-      "reason": "major-vonreg#red-baron: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "major-vonreg#red-baron: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_011"
     },
     {
       "internalName": "luke-skywalker#hero-of-yavin",
-      "reason": "luke-skywalker#hero-of-yavin: defeat cause requires the complete closed optional unit death source and exact event-cause helper",
+      "reason": "luke-skywalker#hero-of-yavin: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_012"
     },
     {
       "internalName": "poe-dameron#i-can-fly-anything",
-      "reason": "poe-dameron#i-can-fly-anything: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "poe-dameron#i-can-fly-anything: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_013"
     },
     {
       "internalName": "admiral-trench#chkchkchkchk",
-      "reason": "admiral-trench#chkchkchkchk: invalid ability IR: unknown variant `classDefinition`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "admiral-trench#chkchkchkchk: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_014"
     },
     {
       "internalName": "rio-durant#wisecracking-wheelman",
-      "reason": "rio-durant#wisecracking-wheelman: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "rio-durant#wisecracking-wheelman: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_015"
     },
     {
@@ -8140,12 +8145,12 @@
     },
     {
       "internalName": "han-solo#never-tell-me-the-odds",
-      "reason": "han-solo#never-tell-me-the-odds: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "han-solo#never-tell-me-the-odds: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_017"
     },
     {
       "internalName": "kazuda-xiono#best-pilot-in-the-galaxy",
-      "reason": "kazuda-xiono#best-pilot-in-the-galaxy: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "kazuda-xiono#best-pilot-in-the-galaxy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_018"
     },
     {
@@ -8220,7 +8225,7 @@
     },
     {
       "internalName": "chimaera#reinforcing-the-center",
-      "reason": "chimaera#reinforcing-the-center: invalid ability IR: unknown variant `useWhenDefeatedAbility`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "chimaera#reinforcing-the-center: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_039"
     },
     {
@@ -8300,7 +8305,7 @@
     },
     {
       "internalName": "close-the-shield-gate",
-      "reason": "close-the-shield-gate: invalid ability IR: unknown variant `gainAbility`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "close-the-shield-gate: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_074"
     },
     {
@@ -8365,7 +8370,7 @@
     },
     {
       "internalName": "snap-wexley#resistance-recon-flier",
-      "reason": "snap-wexley#resistance-recon-flier: native Piloting play lifecycle (mode, alternate cost and host selection) is not implemented",
+      "reason": "snap-wexley#resistance-recon-flier: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_098"
     },
     {
@@ -8555,7 +8560,7 @@
     },
     {
       "internalName": "relentless-firespray",
-      "reason": "relentless-firespray: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "relentless-firespray: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_157"
     },
     {
@@ -8645,7 +8650,7 @@
     },
     {
       "internalName": "moff-gideon#i-know-everything",
-      "reason": "moff-gideon#i-know-everything: own-base damage requires the complete closed mandatory source Advantage profile",
+      "reason": "moff-gideon#i-know-everything: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_188"
     },
     {
@@ -8780,12 +8785,12 @@
     },
     {
       "internalName": "jump-to-lightspeed",
-      "reason": "jump-to-lightspeed: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "jump-to-lightspeed: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_232"
     },
     {
       "internalName": "sweep-the-area",
-      "reason": "sweep-the-area: invalid ability IR: unknown field `multiSelectCardCondition`, expected one of `kind`, `mode`, `chooser`, `resultBinding`, `defaults`, `contextBinding`, `choosingPlayerOverride`, `delayOpponentBeforeCosts`, `cardTypes`, `zones`, `controller`, `predicate`, `optional`, `canChooseNoCards`, `promptTitleParts`, `resolverName`, `condition`, `mustChangeGameState`",
+      "reason": "sweep-the-area: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_233"
     },
     {
@@ -8795,7 +8800,7 @@
     },
     {
       "internalName": "commandeer",
-      "reason": "commandeer: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "commandeer: per-round limits require the complete closed native source registration and metadata",
       "setCode": "JTL_235"
     },
     {
@@ -8940,17 +8945,17 @@
     },
     {
       "internalName": "chewbacca#hero-of-kessel",
-      "reason": "chewbacca#hero-of-kessel: Credit composition requires a complete reviewed ordinary registration",
+      "reason": "chewbacca#hero-of-kessel: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_013"
     },
     {
       "internalName": "enfys-nest#until-we-can-go-no-higher",
-      "reason": "enfys-nest#until-we-can-go-no-higher: card-effect resource payment requires ordinary nonleader unit source metadata",
+      "reason": "enfys-nest#until-we-can-go-no-higher: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_014"
     },
     {
       "internalName": "jabba-the-hutt#crime-boss",
-      "reason": "jabba-the-hutt#crime-boss: Credit composition requires a complete reviewed ordinary registration",
+      "reason": "jabba-the-hutt#crime-boss: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_015"
     },
     {
@@ -9075,12 +9080,12 @@
     },
     {
       "internalName": "dengar#take-your-shot",
-      "reason": "dengar#take-your-shot: Credit composition requires a complete reviewed ordinary registration",
+      "reason": "dengar#take-your-shot: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_053"
     },
     {
       "internalName": "maul#master-of-the-shadow-collective",
-      "reason": "maul#master-of-the-shadow-collective: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "maul#master-of-the-shadow-collective: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_054"
     },
     {
@@ -9090,7 +9095,7 @@
     },
     {
       "internalName": "honorbound-partisan",
-      "reason": "honorbound-partisan: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "honorbound-partisan: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_058"
     },
     {
@@ -9100,7 +9105,7 @@
     },
     {
       "internalName": "l337#radical-instigator",
-      "reason": "l337#radical-instigator: invalid ability IR: unknown variant `playMultipleCardsFromDeck`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "l337#radical-instigator: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_063"
     },
     {
@@ -9125,7 +9130,7 @@
     },
     {
       "internalName": "maz-kanata#wheres-my-boyfriend",
-      "reason": "maz-kanata#wheres-my-boyfriend: unimplemented deck-search contract: unknown variant `sequence`, expected one of `revealAndDraw`, `drawSpecificCard`, `discardSpecificCard`",
+      "reason": "maz-kanata#wheres-my-boyfriend: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_074"
     },
     {
@@ -9180,7 +9185,7 @@
     },
     {
       "internalName": "hondo-ohnaka#plays-by-his-own-rules",
-      "reason": "hondo-ohnaka#plays-by-his-own-rules: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
+      "reason": "hondo-ohnaka#plays-by-his-own-rules: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_094"
     },
     {
@@ -9285,7 +9290,7 @@
     },
     {
       "internalName": "khetanna#upon-the-dune-sea",
-      "reason": "khetanna#upon-the-dune-sea: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "khetanna#upon-the-dune-sea: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_158"
     },
     {
@@ -9330,7 +9335,7 @@
     },
     {
       "internalName": "sebulbas-podracer#taking-the-lead",
-      "reason": "sebulbas-podracer#taking-the-lead: collective triggers require the complete closed ordinary source registration and metadata",
+      "reason": "sebulbas-podracer#taking-the-lead: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_176"
     },
     {
@@ -9480,7 +9485,7 @@
     },
     {
       "internalName": "salvaged-materials",
-      "reason": "salvaged-materials: invalid ability IR: unknown variant `playCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "salvaged-materials: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_245"
     },
     {
@@ -9490,7 +9495,7 @@
     },
     {
       "internalName": "fire-across-the-galaxy",
-      "reason": "fire-across-the-galaxy: invalid ability IR: unknown variant `useWhenPlayedAbility`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "fire-across-the-galaxy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LAW_256"
     },
     {
@@ -9505,7 +9510,7 @@
     },
     {
       "internalName": "morgan-elsbeth#following-the-call",
-      "reason": "morgan-elsbeth#following-the-call: attack permission requires the complete closed paired constant unit and intrinsic Support profile",
+      "reason": "morgan-elsbeth#following-the-call: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_005"
     },
     {
@@ -9520,7 +9525,7 @@
     },
     {
       "internalName": "third-sister#seething-with-ambition",
-      "reason": "third-sister#seething-with-ambition: invalid ability IR: unknown variant `systemBatch`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "third-sister#seething-with-ambition: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_010"
     },
     {
@@ -9580,7 +9585,7 @@
     },
     {
       "internalName": "mystic-monastery",
-      "reason": "mystic-monastery: base-zone ongoing source requires exact reviewed base or two-side leader shape",
+      "reason": "mystic-monastery: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_022"
     },
     {
@@ -9655,7 +9660,7 @@
     },
     {
       "internalName": "jedi-trials",
-      "reason": "jedi-trials: companion registration: unknown variant `attachedModifierRegistration`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "jedi-trials: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_052"
     },
     {
@@ -9670,12 +9675,12 @@
     },
     {
       "internalName": "guardian-of-the-whills",
-      "reason": "guardian-of-the-whills: unresolved phase history helpers require reviewed registration",
+      "reason": "guardian-of-the-whills: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_058"
     },
     {
       "internalName": "axe-woves#accomplished-warrior",
-      "reason": "axe-woves#accomplished-warrior: invalid ability IR: unknown variant `attachmentCount`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "axe-woves#accomplished-warrior: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_062"
     },
     {
@@ -9775,7 +9780,7 @@
     },
     {
       "internalName": "malakili#loving-rancor-keeper",
-      "reason": "malakili#loving-rancor-keeper: unresolved phase history helpers require reviewed registration",
+      "reason": "malakili#loving-rancor-keeper: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_108"
     },
     {
@@ -9895,7 +9900,7 @@
     },
     {
       "internalName": "deceptive-shade",
-      "reason": "deceptive-shade: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "deceptive-shade: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_180"
     },
     {
@@ -9925,7 +9930,7 @@
     },
     {
       "internalName": "liberated-by-darkness",
-      "reason": "liberated-by-darkness: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "liberated-by-darkness: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_189"
     },
     {
@@ -9935,22 +9940,22 @@
     },
     {
       "internalName": "quigon-jinns-aethersprite#guided-by-the-force",
-      "reason": "quigon-jinns-aethersprite#guided-by-the-force: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "quigon-jinns-aethersprite#guided-by-the-force: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_197"
     },
     {
       "internalName": "quigon-jinns-lightsaber",
-      "reason": "quigon-jinns-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "quigon-jinns-lightsaber: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_201"
     },
     {
       "internalName": "mind-trick",
-      "reason": "mind-trick: invalid ability IR: unknown variant `loseAllAbilities`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "mind-trick: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_202"
     },
     {
       "internalName": "premonition-of-doom",
-      "reason": "premonition-of-doom: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "premonition-of-doom: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_203"
     },
     {
@@ -9985,7 +9990,7 @@
     },
     {
       "internalName": "shien-flurry",
-      "reason": "shien-flurry: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "shien-flurry: per-round limits require the complete closed native source registration and metadata",
       "setCode": "LOF_220"
     },
     {
@@ -10045,12 +10050,12 @@
     },
     {
       "internalName": "chancellor-palpatine#how-liberty-dies",
-      "reason": "chancellor-palpatine#how-liberty-dies: unimplemented deck-search contract: unknown variant `hasSomeKeyword`, expected one of `isUnit`, `isUpgrade`, `isEvent`, `hasSomeTrait`, `hasSomeAspect`",
+      "reason": "chancellor-palpatine#how-liberty-dies: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_001"
     },
     {
       "internalName": "jabba-the-hutt#wonderful-human-being",
-      "reason": "jabba-the-hutt#wonderful-human-being: own-base damage requires the complete closed mandatory source Advantage profile",
+      "reason": "jabba-the-hutt#wonderful-human-being: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_002"
     },
     {
@@ -10075,7 +10080,7 @@
     },
     {
       "internalName": "bail-organa#doing-everything-he-can",
-      "reason": "bail-organa#doing-everything-he-can: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "bail-organa#doing-everything-he-can: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_008"
     },
     {
@@ -10200,12 +10205,12 @@
     },
     {
       "internalName": "willrow-hood#on-the-run",
-      "reason": "willrow-hood#on-the-run: defeat cause requires the complete closed optional unit death source and exact event-cause helper",
+      "reason": "willrow-hood#on-the-run: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_061"
     },
     {
       "internalName": "congress-of-malastare",
-      "reason": "congress-of-malastare: unresolved phase history helpers require reviewed registration",
+      "reason": "congress-of-malastare: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_064"
     },
     {
@@ -10215,7 +10220,7 @@
     },
     {
       "internalName": "umbaran-mobile-cannon",
-      "reason": "umbaran-mobile-cannon: invalid ability IR: unknown field `contract`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "umbaran-mobile-cannon: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_067"
     },
     {
@@ -10240,7 +10245,7 @@
     },
     {
       "internalName": "the-eye-of-aldhani",
-      "reason": "the-eye-of-aldhani: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "the-eye-of-aldhani: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_073"
     },
     {
@@ -10320,7 +10325,7 @@
     },
     {
       "internalName": "dismantle-the-conspiracy",
-      "reason": "dismantle-the-conspiracy: invalid ability IR: missing field `effect`",
+      "reason": "dismantle-the-conspiracy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_106"
     },
     {
@@ -10330,12 +10335,12 @@
     },
     {
       "internalName": "diplomatic-envoy",
-      "reason": "diplomatic-envoy: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "diplomatic-envoy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_109"
     },
     {
       "internalName": "gnk-power-droid",
-      "reason": "gnk-power-droid: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "gnk-power-droid: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_110"
     },
     {
@@ -10390,7 +10395,7 @@
     },
     {
       "internalName": "dryden-vos#i-get-all-worked-up",
-      "reason": "dryden-vos#i-get-all-worked-up: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "dryden-vos#i-get-all-worked-up: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_137"
     },
     {
@@ -10415,7 +10420,7 @@
     },
     {
       "internalName": "confidence-in-victory",
-      "reason": "confidence-in-victory: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "confidence-in-victory: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_145"
     },
     {
@@ -10545,7 +10550,7 @@
     },
     {
       "internalName": "grand-moff-tarkin#taking-krennics-achievement",
-      "reason": "grand-moff-tarkin#taking-krennics-achievement: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "grand-moff-tarkin#taking-krennics-achievement: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_192"
     },
     {
@@ -10560,7 +10565,7 @@
     },
     {
       "internalName": "arrest",
-      "reason": "arrest: invalid ability IR: unknown variant `systemArrayFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "arrest: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_195"
     },
     {
@@ -10725,7 +10730,7 @@
     },
     {
       "internalName": "inspiring-senator",
-      "reason": "inspiring-senator: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "inspiring-senator: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SEC_261"
     },
     {
@@ -10750,7 +10755,7 @@
     },
     {
       "internalName": "jabba-the-hutt#his-high-exaltedness",
-      "reason": "jabba-the-hutt#his-high-exaltedness: invalid ability IR: unknown variant `gainBounty`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "jabba-the-hutt#his-high-exaltedness: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_006"
     },
     {
@@ -10765,7 +10770,7 @@
     },
     {
       "internalName": "bossk#hunting-his-prey",
-      "reason": "bossk#hunting-his-prey: invalid ability IR: unknown field `thenCondition`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "bossk#hunting-his-prey: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_010"
     },
     {
@@ -10785,7 +10790,7 @@
     },
     {
       "internalName": "cad-bane#he-who-needs-no-introduction",
-      "reason": "cad-bane#he-who-needs-no-introduction: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "cad-bane#he-who-needs-no-introduction: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_014"
     },
     {
@@ -10800,7 +10805,7 @@
     },
     {
       "internalName": "lando-calrissian#with-impeccable-taste",
-      "reason": "lando-calrissian#with-impeccable-taste: invalid ability IR: unknown variant `playCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "lando-calrissian#with-impeccable-taste: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_017"
     },
     {
@@ -11100,7 +11105,7 @@
     },
     {
       "internalName": "dengar#the-demolisher",
-      "reason": "dengar#the-demolisher: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "dengar#the-demolisher: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_133"
     },
     {
@@ -11115,7 +11120,7 @@
     },
     {
       "internalName": "punishing-one#dengars-jumpmaster",
-      "reason": "punishing-one#dengars-jumpmaster: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "punishing-one#dengars-jumpmaster: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_137"
     },
     {
@@ -11195,7 +11200,7 @@
     },
     {
       "internalName": "migs-mayfeld#triggerman",
-      "reason": "migs-mayfeld#triggerman: collective triggers require the complete closed ordinary source registration and metadata",
+      "reason": "migs-mayfeld#triggerman: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_163"
     },
     {
@@ -11295,7 +11300,7 @@
     },
     {
       "internalName": "triple-dark-raid",
-      "reason": "triple-dark-raid: unimplemented deck-search contract: unknown variant `sequence`, expected one of `revealAndDraw`, `drawSpecificCard`, `discardSpecificCard`",
+      "reason": "triple-dark-raid: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_194"
     },
     {
@@ -11315,17 +11320,17 @@
     },
     {
       "internalName": "omega#part-of-the-squad",
-      "reason": "omega#part-of-the-squad: unimplemented deck-search contract: deck search bottoms unchosen cards in random order, including take-nothing; exact RNG snapshot or chance semantics are unimplemented",
+      "reason": "omega#part-of-the-squad: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_198"
     },
     {
       "internalName": "qira#playing-her-part",
-      "reason": "qira#playing-her-part: view-only lookAt/lookAtAndSelectCard requires complete ordinary unit/event registration",
+      "reason": "qira#playing-her-part: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_202"
     },
     {
       "internalName": "zorii-bliss#valiant-smuggler",
-      "reason": "zorii-bliss#valiant-smuggler: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "zorii-bliss#valiant-smuggler: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_203"
     },
     {
@@ -11350,7 +11355,7 @@
     },
     {
       "internalName": "final-showdown",
-      "reason": "final-showdown: invalid ability IR: unknown variant `delayedEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "final-showdown: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_208"
     },
     {
@@ -11360,7 +11365,7 @@
     },
     {
       "internalName": "dj#blatant-thief",
-      "reason": "dj#blatant-thief: invalid ability IR: unknown variant `systemArrayFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "dj#blatant-thief: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_213"
     },
     {
@@ -11375,7 +11380,7 @@
     },
     {
       "internalName": "tobias-beckett#i-trust-no-one",
-      "reason": "tobias-beckett#i-trust-no-one: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "tobias-beckett#i-trust-no-one: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_217"
     },
     {
@@ -11410,12 +11415,12 @@
     },
     {
       "internalName": "jetpack",
-      "reason": "jetpack: invalid ability IR: unknown variant `giveTokenUpgradeOptions`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "jetpack: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_225"
     },
     {
       "internalName": "unrefusable-offer",
-      "reason": "unrefusable-offer: invalid ability IR: unknown variant `gainBounty`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "unrefusable-offer: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_226"
     },
     {
@@ -11445,7 +11450,7 @@
     },
     {
       "internalName": "toro-calican#ambitious-upstart",
-      "reason": "toro-calican#ambitious-upstart: invalid ability IR: data did not match any variant of untagged enum Target",
+      "reason": "toro-calican#ambitious-upstart: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SHD_239"
     },
     {
@@ -11555,7 +11560,7 @@
     },
     {
       "internalName": "cassian-andor#dedicated-to-the-rebellion",
-      "reason": "cassian-andor#dedicated-to-the-rebellion: own-base damage requires the complete closed mandatory source Advantage profile",
+      "reason": "cassian-andor#dedicated-to-the-rebellion: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_013"
     },
     {
@@ -11570,7 +11575,7 @@
     },
     {
       "internalName": "han-solo#audacious-smuggler",
-      "reason": "han-solo#audacious-smuggler: invalid ability IR: native selector explicit mustChangeGameState is not implemented",
+      "reason": "han-solo#audacious-smuggler: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_017"
     },
     {
@@ -11655,7 +11660,7 @@
     },
     {
       "internalName": "bendu#the-one-in-the-middle",
-      "reason": "bendu#the-one-in-the-middle: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "bendu#the-one-in-the-middle: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_056"
     },
     {
@@ -11665,7 +11670,7 @@
     },
     {
       "internalName": "guardian-of-the-whills",
-      "reason": "guardian-of-the-whills: unresolved phase history helpers require reviewed registration",
+      "reason": "guardian-of-the-whills: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_061"
     },
     {
@@ -11735,7 +11740,7 @@
     },
     {
       "internalName": "darth-vader#commanding-the-first-legion",
-      "reason": "darth-vader#commanding-the-first-legion: invalid ability IR: unknown variant `playMultipleCardsFromDeck`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "darth-vader#commanding-the-first-legion: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_087"
     },
     {
@@ -11780,7 +11785,7 @@
     },
     {
       "internalName": "uwing-reinforcement",
-      "reason": "uwing-reinforcement: invalid ability IR: unknown variant `playMultipleCardsFromDeck`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "uwing-reinforcement: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_104"
     },
     {
@@ -11812,11 +11817,6 @@
       "internalName": "homestead-militia",
       "reason": "reprint alias of JTL_113",
       "setCode": "SOR_113"
-    },
-    {
-      "internalName": "agent-kallus#seeking-the-rebels",
-      "reason": "agent-kallus#seeking-the-rebels: invalid ability IR: unknown field `limit`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
-      "setCode": "SOR_115"
     },
     {
       "internalName": "mercenary-company",
@@ -12090,7 +12090,7 @@
     },
     {
       "internalName": "sneak-attack",
-      "reason": "sneak-attack: invalid ability IR: unknown field `cannotTargetFirst`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "sneak-attack: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_219"
     },
     {
@@ -12115,7 +12115,7 @@
     },
     {
       "internalName": "change-of-heart",
-      "reason": "change-of-heart: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "change-of-heart: per-round limits require the complete closed native source registration and metadata",
       "setCode": "SOR_224"
     },
     {
@@ -12235,7 +12235,7 @@
     },
     {
       "internalName": "rex#no-other-option",
-      "reason": "rex#no-other-option: invalid ability IR: unknown variant `selectCardCost`, expected one of `exhaustSelf`, `resources`, `useForceCost`",
+      "reason": "rex#no-other-option: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_006"
     },
     {
@@ -12265,7 +12265,7 @@
     },
     {
       "internalName": "sundari-palace",
-      "reason": "sundari-palace: base-zone ongoing source requires exact reviewed base or two-side leader shape",
+      "reason": "sundari-palace: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_012"
     },
     {
@@ -12330,12 +12330,12 @@
     },
     {
       "internalName": "fives#i-have-proof",
-      "reason": "fives#i-have-proof: invalid ability IR: unknown variant `lastingPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "fives#i-have-proof: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_034"
     },
     {
       "internalName": "ahsokas-lightsabers#dont-hurt-them",
-      "reason": "ahsokas-lightsabers#dont-hurt-them: attached program: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "ahsokas-lightsabers#dont-hurt-them: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_035"
     },
     {
@@ -12395,7 +12395,7 @@
     },
     {
       "internalName": "backed-by-the-pykes",
-      "reason": "backed-by-the-pykes: invalid ability IR: unknown variant `arenaAttachmentCount`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "backed-by-the-pykes: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_058"
     },
     {
@@ -12410,7 +12410,7 @@
     },
     {
       "internalName": "rexs-dc17s#this-ship-is-going-down",
-      "reason": "rexs-dc17s#this-ship-is-going-down: attached registration: unknown field `limit`, expected `type` or `program`",
+      "reason": "rexs-dc17s#this-ship-is-going-down: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TS26_063"
     },
     {
@@ -12480,7 +12480,7 @@
     },
     {
       "internalName": "count-dooku#face-of-the-confederacy",
-      "reason": "count-dooku#face-of-the-confederacy: invalid ability IR: unknown variant `playCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "count-dooku#face-of-the-confederacy: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_005"
     },
     {
@@ -12550,7 +12550,7 @@
     },
     {
       "internalName": "general-grievous#trophy-collector",
-      "reason": "general-grievous#trophy-collector: invalid ability IR: unknown variant `costAdjuster`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "general-grievous#trophy-collector: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_034"
     },
     {
@@ -12610,7 +12610,7 @@
     },
     {
       "internalName": "kiadimundi#composed-and-confident",
-      "reason": "kiadimundi#composed-and-confident: collective triggers require the complete closed ordinary source registration and metadata",
+      "reason": "kiadimundi#composed-and-confident: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_064"
     },
     {
@@ -12640,7 +12640,7 @@
     },
     {
       "internalName": "magnaguard-wing-leader",
-      "reason": "magnaguard-wing-leader: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "magnaguard-wing-leader: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_082"
     },
     {
@@ -12660,7 +12660,7 @@
     },
     {
       "internalName": "consolidation-of-power",
-      "reason": "consolidation-of-power: invalid ability IR: native card selector requires pinned single-card context/default/chooser protocol",
+      "reason": "consolidation-of-power: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_089"
     },
     {
@@ -12715,7 +12715,7 @@
     },
     {
       "internalName": "generals-blade",
-      "reason": "generals-blade: attached registration: unknown field `gainCondition`, expected `type` or `program`",
+      "reason": "generals-blade: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_121"
     },
     {
@@ -12855,7 +12855,7 @@
     },
     {
       "internalName": "cad-bane#hostage-taker",
-      "reason": "cad-bane#hostage-taker: invalid ability IR: unknown variant `capture`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "cad-bane#hostage-taker: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_187"
     },
     {
@@ -12865,7 +12865,7 @@
     },
     {
       "internalName": "unnatural-life",
-      "reason": "unnatural-life: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "unnatural-life: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_189"
     },
     {
@@ -12905,7 +12905,7 @@
     },
     {
       "internalName": "impropriety-among-thieves",
-      "reason": "impropriety-among-thieves: invalid ability IR: missing field `effect`",
+      "reason": "impropriety-among-thieves: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_204"
     },
     {
@@ -12915,7 +12915,7 @@
     },
     {
       "internalName": "sly-moore#secretive-advisor",
-      "reason": "sly-moore#secretive-advisor: invalid ability IR: unknown variant `controlPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "sly-moore#secretive-advisor: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_211"
     },
     {
@@ -13005,7 +13005,7 @@
     },
     {
       "internalName": "tranquility#inspiring-flagship",
-      "reason": "tranquility#inspiring-flagship: invalid ability IR: unknown variant `phasePlayerCostEffect`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "tranquility#inspiring-flagship: per-round limits require the complete closed native source registration and metadata",
       "setCode": "TWI_246"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1281,
+  "runtimeRejectedCount": 1276,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

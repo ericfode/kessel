@@ -2252,6 +2252,9 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        let round_limited=crate::round_limit_contract::Registration::from_trigger(&self.program(p).trigger).is_some();
+        if round_limited {s.round_limits.instance(s.round_limit)?;}else{s.round_limit=crate::round_limit_state::Handle::NONE;}
+
         if crate::defeat_cause::requires(self.program(p))&&s.defeat_cause==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}
         if self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::CreateCreditToken{..}))) && !s.credit_state_exact {return Err("Credit creation requires exact Credit state".into());}
         if crate::current_played_unit::requires(self.program(p))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
@@ -2273,6 +2276,7 @@ impl Engine {
         s.ability_succeeded = false;
         s.ability_return = return_to.raw();
         s.ability_committed = return_to != ProgramContinuation::Finish;
+        if round_limited&&!s.round_limits.available(s.round_limit,s.active.index() as u8)? {return self.end_program(s);}
         if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
@@ -2366,6 +2370,7 @@ impl Engine {
         Ok(true)
     }
     pub(super) fn end_program(&self, s: &mut State) -> Result<(), String> {
+        s.round_limit=crate::round_limit_state::Handle::NONE;
         s.disclose=DiscloseState::default();
         s.resource_payment=ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;
         let next = s.ability_return;
@@ -2421,6 +2426,7 @@ impl Engine {
                 }
                 Instruction::CaptureMaximum{aspect}=>{self.capture_maximum(s,s.source,aspect)?;s.ability_pc+=1;}
                 Instruction::Commit => {
+                    if crate::round_limit_contract::Registration::from_trigger(&p.trigger).is_some() {s.round_limits.consume(s.round_limit,s.active.index() as u8)?;}
                     if !self.commit_program(s)? {return Ok(());}
                     s.ability_pc += 1;
                 }
@@ -2540,6 +2546,7 @@ impl Engine {
                         if targets.is_empty() {s.ability_result=0;s.ability_succeeded=false;s.event_result=StepEventResult::for_state(s);s.ability_pc+=1;continue;}
                         if targets.len()>1 {self.distribution_actions(s)?;s.decision=Decision::AbilityDistribute;return Ok(());}
                         self.capture_distribution(s,&[(targets[0],6)])?;
+                        for i in 0..s.event_group.count as usize {let r=s.event_group.records[i];let will_defeat=self.in_arena(s,r.target)&&r.amount>=self.hp(s,r.target).saturating_sub(s.card(r.target).damage);s.event_group.damage_facts.capture(i,will_defeat)?;}
                     }
                     if !self.resolve_group(s,effect)? {return Ok(());}
                     s.event_group=EventGroupState::default();s.ability_pc+=1;
@@ -3106,6 +3113,10 @@ impl Engine {
             let events=targets.iter().filter_map(|v|if let Eval::Player(player)=v {Some(CollectiveEvent::CardsDrawn(*player))}else{None}).collect::<Vec<_>>();
             self.capture_collective_window(s,&events)?;
         }
+        if !s.event_group.resolving {
+            if matches!(e,Effect::Damage{..}) {let captured=targets.iter().filter_map(|v|if let Eval::Card(id)=v {self.round_limit_damage_event(s,*id,amount)}else{None}).collect::<Vec<_>>();self.capture_round_limit_window(s,&captured)?;}
+            if matches!(e,Effect::Defeat{..}) {let events=targets.iter().filter_map(|v|if let Eval::Card(id)=v {Some((*id,crate::defeat_cause::DefeatCause::Ability))}else{None}).collect::<Vec<_>>();self.capture_defeat_window(s,&events)?;}
+        }
         self.apply_scalar_effect_observed(s,e,targets,amount,modifier,&listeners)
     }
     // This mutation owner receives the pre-primary listener roster from prepared
@@ -3277,7 +3288,6 @@ impl Engine {
                         Effect::Defeat { .. } if in_arena || self.attached_in_play(s,id) => {
                             let fact=self.prepare_unit_defeat(s,id)?;
                             if in_arena {events.defeated_units[s.card(id).owner.index()]+=1;}
-                            if !s.event_group.resolving {self.capture_explicit_death(s,id)?;}
                             self.finish_physical_defeat(s,id,fact)?;
                             result += 1;
                         }
@@ -3546,6 +3556,7 @@ impl Engine {
                 let pairs=self.validate_distribution(&t,&a)?;
                 if matches!(effect,Effect::DistributeDamage{..}) {
                     self.capture_distribution(&mut t,&pairs)?;
+                    for i in 0..t.event_group.count as usize {let r=t.event_group.records[i];let will_defeat=self.in_arena(&t,r.target)&&r.amount>=self.hp(&t,r.target).saturating_sub(t.card(r.target).damage);t.event_group.damage_facts.capture(i,will_defeat)?;}
                 } else {
                     t.event_result=StepEventResult::for_state(&t);t.ability_result=0;t.ability_succeeded=false;
                     for (id,amount) in pairs {t.ability_result=t.ability_result.saturating_add(self.heal_card(&mut t,id,amount));}
@@ -3559,17 +3570,22 @@ impl Engine {
         self.sweep_stat_defeats(&mut t)?;
         Ok(t)
     }
-    /// Capture standard self-defeat registrations while the source is still in play.
-    fn capture_explicit_death(&self,s:&mut State,id:CardId)->Result<(),String> {
-        let start=s.death_pending.len as usize;self.capture_death(s,id)?;
-        if s.ability_program!=0 {
-            let end=self.program(s.ability_program-1).event_end;
-            for entry in &mut s.death_pending.entries[start..] {if entry.source==0 {break;}entry.after_pc=end;entry.capture.set_depth(s.death_depth);}
+    /// Capture each physical event in event order, sorting its complete native
+    /// and ordinary listener set by the same registration chronology. A private
+    /// work copy makes capacity/identity failures atomic for the entire window.
+    pub(super) fn capture_defeat_window(&self,s:&mut State,events:&[(CardId,crate::defeat_cause::DefeatCause)])->Result<(),String> {
+        let mut work=*s;
+        for &(id,cause) in events {
+            let start=work.death_pending.len as usize;
+            self.capture_round_defeats(&mut work,&[id])?;
+            self.capture_ordinary_death_cause(&mut work,id,cause)?;
+            self.sort_captured_registrations(&mut work,start)?;
         }
-        Ok(())
+        *s=work;Ok(())
     }
     pub(super) fn capture_death(&self,s:&mut State,id:CardId)->Result<(),String> {self.capture_death_cause(s,id,crate::defeat_cause::DefeatCause::Ability)}
-    pub(super) fn capture_death_cause(&self,s:&mut State,id:CardId,cause:crate::defeat_cause::DefeatCause)->Result<(),String> {
+    pub(super) fn capture_death_cause(&self,s:&mut State,id:CardId,cause:crate::defeat_cause::DefeatCause)->Result<(),String> {self.capture_defeat_window(s,&[(id,cause)])}
+    fn capture_ordinary_death_cause(&self,s:&mut State,id:CardId,cause:crate::defeat_cause::DefeatCause)->Result<(),String> {
         if !self.in_arena(s,id) {return Ok(());}
         self.mark_attack_lifecycle(s,id,true);
         let registration_start=s.death_pending.len as usize;
@@ -3586,7 +3602,7 @@ impl Engine {
         for (program,grantor) in registrations {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,round_limit:crate::round_limit_state::Handle::NONE,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),keyword:0};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -3697,7 +3713,7 @@ impl Engine {
         }
         // Engine active player is the action's player, even during opponent-owned nested triggers.
         s.death_window.initiator=if n==0 {if matches!(resume,DeathContinuation::PhaseExpiry|DeathContinuation::RegroupDraw|DeathContinuation::RegroupResources) {s.initiative}else{s.active}}else{s.death_frames[n].window.initiator};
-        s.ability_program=0;s.pending_programs=0;s.pending_triggers=0;s.event_group=EventGroupState::default();
+        s.ability_program=0;s.round_limit=crate::round_limit_state::Handle::NONE;s.pending_programs=0;s.pending_triggers=0;s.event_group=EventGroupState::default();
         self.process_deaths(s)?;Ok(true)
     }
     pub(super) fn merge_enter_deaths(&self,s:&mut State)->Result<(),String> {
@@ -3762,7 +3778,8 @@ impl Engine {
         let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);!p.attached_host&&p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
         let grants=self.gained_attack_grants(declaration,declaration.source);
         let defense_grants=self.attached_host_grants(declaration,defender,"onDefense");
-        if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty() {return Ok(false);}
+        let has_round=s.death_pending.entries[declaration.death_pending.len as usize..s.death_pending.len as usize].iter().any(|e|e.keyword==0&&crate::round_limit_contract::Registration::from_trigger(&self.program(e.program).trigger).is_some());
+        if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty()&&!has_round {return Ok(false);}
         let mut registration=*declaration;
         registration.pending_triggers=0;registration.attack_restore=self.keyword_amount(&registration,registration.source,"restore");
         if self.has_keyword(&registration,registration.source,"restore") {registration.pending_triggers|=T_RESTORE;}
@@ -3788,14 +3805,14 @@ impl Engine {
         s.death_frames[n]=DeathFrame {context:ResolutionContext::capture(s),window:s.death_window,resume:DeathContinuation::Triggers.raw()};s.death_depth+=1;
         let mut window=DeathWindow::default();window.initiator=initiator;
         for entry in entries {let index=window.len as usize;window.entries[index]=entry;window.len+=1;}
-        s.death_window=window;s.ability_program=0;
+        s.death_window=window;s.ability_program=0;s.round_limit=crate::round_limit_state::Handle::NONE;
         // Prior framework deaths keep their own nested window rather than
         // becoming declaration triggers in the same player-choice menu.
         if !self.open_deaths(s,DeathContinuation::ParentDeaths)? {self.process_deaths(s)?;}
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
-        let mut context=*s;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;context.defeat_cause=e.capture.cause();
+        let mut context=*s;context.round_limit=e.round_limit;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;context.defeat_cause=e.capture.cause();
         if e.keyword==T_SABOTEUR && context.attack_defender!=0 {context.target=context.attack_defender;}
         context
     }
@@ -3818,6 +3835,8 @@ impl Engine {
         groups
     }
     fn death_has_effect(&self,s:&State,e:DeathTrigger)->bool {
+        // Window cleanup tests effect potential; the shared limit is checked by
+        // begin_program when each retained event context enters its resolver.
         let context=self.captured_trigger_context(s,e);
         if e.keyword!=0 {self.trigger_effect(&context,e.keyword)}else{self.trigger_has_effect(&context,e.source,e.program)}
     }
@@ -3827,10 +3846,11 @@ impl Engine {
         s.death_window.entries[n-1]=DeathTrigger::default();e
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
-        let e=self.remove_death(s,i);s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.defeat_cause=e.capture.cause();s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
+        let e=self.remove_death(s,i);s.round_limit=e.round_limit;s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.defeat_cause=e.capture.cause();s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
         if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
+        self.validate_round_limit_handles(s)?;
         // The pinned window checks the current owner before shifting, then builds
         // the new owner's choices immediately. Fresh resumptions check again.
         let mut shifted_owner=false;
@@ -3993,6 +4013,8 @@ impl Engine {
             return Ok(());
         }
         let played_owner = s.card(played).owner;
+        if is_upgrade&&!info.is("token") {let event=crate::round_limit_runtime::Event::PlayedUpgrade{player:played_owner.index() as u8,card_is_upgrade:true,attach_target:s.card(played).parent};self.capture_round_limit_window(s,&[(played,event)])?;}
+
         let cost = info.cost().max(0) as u64;
         for owner in [Seat::P1, Seat::P2] {
             let mut watchers: Vec<_> = s
@@ -4446,3 +4468,66 @@ mod blade_base_damage_tests;
 #[cfg(test)]
 #[path="collective_trigger_tests.rs"]
 mod collective_trigger_tests;
+
+impl Engine {
+    pub(super) fn round_limit_roster(&self,s:&State)->Result<Vec<(CardId,u16,crate::round_limit_contract::Registration)>,String> {
+        use crate::round_limit_contract::Registration;
+        if !(1..s.next_id).any(|source|self.in_arena(s,source)&&self.card_programs(s,source).iter().any(|p|Registration::from_trigger(&self.program(*p).trigger).is_some())) {return Ok(Vec::new());}
+        if !s.registration_order.exact {return Err("round-limit event requires exact registration order".into());}
+        let mut out=Vec::new();
+        for &raw in s.registration_order.as_slice() {let source=raw as CardId;if !self.in_arena(s,source){continue;}
+            let mut found=false;
+            for (ordinal,&program) in self.card_programs(s,source).iter().enumerate() {if let Some(registration)=Registration::from_trigger(&self.program(program).trigger) {
+                if found||ordinal!=usize::from(registration.ordinal()) {return Err("round-limit native registration multiplicity exceeds closed whole-card profile".into());}
+                found=true;out.push((source,program,registration));
+            }}
+        }
+        Ok(out)
+    }
+    /// The caller supplies an entire resolved physical event window. Candidate
+    /// facts come from its pre-handler state; no handle escapes a local Vec.
+    /// Every allocated handle is immediately published into pending before the
+    /// next possible collection. The outer state commits only after all checks.
+    pub(super) fn capture_round_limit_window(&self,s:&mut State,events:&[(CardId,crate::round_limit_runtime::Event)])->Result<(),String> {
+        use crate::round_limit_runtime as rt;
+        if events.is_empty() {return Ok(());}
+        let roster=self.round_limit_roster(s)?;let mut candidates:Vec<DeathTrigger>=Vec::new();
+        // These source registrations are noncollective: each distinct producer
+        // event keeps its own context, while native() shares registration state.
+        for &(event_card,event) in events {for &(source,program,registration) in &roster {
+            let player=s.card(source).owner;
+            if !rt::qualifies(registration,source,player.index() as u8,event,true)? {continue;}
+            if let Some(h)=s.round_limits.current(source,registration.ordinal()) {if !s.round_limits.available(h,player.index() as u8)? {continue;}}
+
+            candidates.push(DeathTrigger{event_card,source,program,player,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
+        }}
+        if s.death_pending.len as usize+candidates.len()>MAX_DEATH_TRIGGERS {return Err("round-limit trigger capture capacity exceeded".into());}
+        let mut work=*s;
+        // One collection boundary, followed by a no-GC allocation/publication batch.
+        rt::collect(&mut work)?;
+        for candidate in &candidates {let mut entry=*candidate;let registration=crate::round_limit_contract::Registration::from_trigger(&self.program(entry.program).trigger).ok_or("round-limit registration lost typed identity")?;
+            entry.round_limit=work.round_limits.native(entry.source,registration.ordinal())?;
+            if !work.round_limits.available(entry.round_limit,entry.player.index() as u8)? {continue;}
+            let n=work.death_pending.len as usize;work.death_pending.entries[n]=entry;work.death_pending.len+=1;
+        }
+        *s=work;Ok(())
+    }
+}
+
+impl Engine {
+    pub(super) fn round_limit_live_unit(&self,s:&State,id:CardId)->bool {
+        self.in_arena(s,id)&&(self.def(s,id).info.is("unit")||(self.def(s,id).info.is("leader")&&s.card(id).deployed))
+    }
+    pub(super) fn round_limit_damage_event(&self,s:&State,id:CardId,amount:u16)->Option<(CardId,crate::round_limit_runtime::Event)> {
+        if amount==0||!self.in_arena(s,id)||s.card(id).shield!=0 {return None;}
+        Some((id,crate::round_limit_runtime::Event::UnitDamage{controller:s.card(id).owner.index() as u8,card_is_unit:self.round_limit_live_unit(s,id),will_defeat:amount>=self.hp(s,id).saturating_sub(s.card(id).damage)}))
+    }
+    pub(super) fn capture_round_defeats(&self,s:&mut State,ids:&[CardId])->Result<(),String> {
+        let events=ids.iter().copied().filter(|id|self.in_arena(s,*id)).map(|id|(id,crate::round_limit_runtime::Event::Defeated{card:id,controller:s.card(id).owner.index() as u8,was_unit:self.round_limit_live_unit(s,id),unique:self.def(s,id).info.unique,had_weakness:self.attached_native_token(s,id,"weakness")})).collect::<Vec<_>>();
+        self.capture_round_limit_window(s,&events)
+    }
+}
+
+#[cfg(test)]
+#[path="round_limit_producer_tests.rs"]
+mod round_limit_producer_tests;

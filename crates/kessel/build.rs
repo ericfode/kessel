@@ -1,3 +1,5 @@
+#[path="src/round_limit_contract.rs"]
+mod round_limit_contract;
 #[path = "src/collective_trigger_contract.rs"]
 mod collective_trigger_contract;
 #[allow(dead_code)]
@@ -212,6 +214,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
     Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} self.finish_scalar_effect(s)?; s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
 fn lower(p: &Program) -> Result<String, String> {
+    if round_limit_contract::Registration::from_trigger(&p.trigger).is_some() {return Err("registration limit uses shared Rust interpreter".into());}
     if p.trigger == "constant" {
         return Err("constant registration uses live modifier backend".into());
     }

@@ -2049,6 +2049,7 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::round_limit_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("registration limits require complete closed source proof before lowering".into());}
         if crate::blade_base_damage_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {
             return crate::blade_base_damage_contract::compile_registration(ability);
         }
@@ -3389,9 +3390,12 @@ impl Catalogue {
             }
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
                 // This complete raw envelope must precede every family's early return.
-                if crate::blade_base_damage_contract::marker(entry)? && !crate::blade_base_damage_contract::entry(entry) {
+                let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let round=crate::round_limit_contract::prepare(entry)?;
+                if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if let Some(round)=round {return round.compile(catalogue.programs.len());}
                 if entry["status"] != "supported" {
                     return Err(format!(
                         "compiler rejected {}: {}",
