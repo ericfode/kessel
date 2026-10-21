@@ -19,6 +19,8 @@ const SOURCE_CONTRACTS: &[&str] = &[
     "src/exhausted_live_count_contract.rs",
     "src/defeat_token_creation_contract.rs",
     "src/created_token_phase_keyword_contract.rs",
+    "src/generated_token_continuation_contract.rs",
+    "src/modal_deck_movement_contract.rs",
     "src/defeat_cause_contract.rs",
     "src/executor_upgrade_count_contract.rs",
     "src/variable_payment_contract.rs",

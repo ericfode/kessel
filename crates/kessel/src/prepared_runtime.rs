@@ -221,10 +221,11 @@ impl Engine {
             }
             return Ok(());
         }
+        if matches!(e,Effect::MoveToBottomOfDeck{..}) && (s.ability_program==0 || !crate::modal_deck_movement_contract::program(self.program(s.ability_program-1))) {return Err("unsupported group movement primitive".into());}
         if matches!(e,Effect::ReturnToHand{..}) && (s.ability_program==0 || !crate::upgrade_return_shield_contract::program(self.program(s.ability_program-1))) {return Err("unsupported group primitive".into());}
         if !matches!(e,Effect::Damage {..}|Effect::Heal {..}|Effect::GiveShield {..}|Effect::GiveExperience {..}
             |Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::GainKeyword {..}|Effect::Ready {..}
-            |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}) {return Err("unsupported group primitive".into());}
+            |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}|Effect::MoveToBottomOfDeck {..}) {return Err("unsupported group primitive".into());}
         let (target,amount)=e.scalar_args().expect("group primitive has scalar fields");
         let amount=amount.map(|amount|self.effect_amount(s,amount)).transpose()?.unwrap_or(1);
         let (power,hp)=if let Effect::ModifyStats{power,hp,..}=e {
@@ -235,9 +236,9 @@ impl Engine {
         } else {(0,0)};
         for target in self.effect_targets(s,target) {
             let Eval::Card(target)=target else { continue; };
-            if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")||matches!(e,Effect::ReturnToHand{..})&&self.attached_in_play(s,target)) { continue; }
+            if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")||matches!(e,Effect::MoveToBottomOfDeck{..})&&self.move_to_bottom_eligible(s,target)||matches!(e,Effect::ReturnToHand{..})&&self.attached_in_play(s,target)) { continue; }
             if !self.effect_can_affect(s,s.source,s.ability_target,e,false) { continue; }
-            if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}|Effect::ReturnToHand{..}) { continue; }
+            if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}|Effect::ReturnToHand{..}|Effect::MoveToBottomOfDeck{..}) { continue; }
             let tokens=matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}|Effect::GiveAdvantage{..});
             for _ in 0..if tokens { amount } else { 1 } {
                 let mut record=PreparedEvent{op:op as u16,target,amount,power,hp,token:0};
@@ -316,6 +317,9 @@ impl Engine {
             if s.event_group.count as usize+records>32 {return Err("prepared Weakness window capacity exceeded".into());}
         }
 
+        if s.ability_program!=0 && crate::modal_deck_movement_contract::program(self.program(s.ability_program-1)) {
+            for op in group_ops(e) {if let GroupOp::Leaf(Effect::MoveToBottomOfDeck{target})=op {for v in self.effect_targets(s,target) {if let Eval::Card(id)=v {if self.move_to_bottom_eligible(s,id)&&s.player(s.card(id).owner).deck.len as usize>=MAX_ZONE {return Err("deck capacity exceeded before recovery window".into());}}}}}
+        }
         if self.uniform_damage_amount(e).is_some() {return self.generate_uniform_damage(s,e);}
         let ops=group_ops(e);
         while let Some(op)=ops.get(s.event_group.pc as usize) {
@@ -640,7 +644,7 @@ impl Engine {
                         s.ability_result=s.ability_result.saturating_add(amount);if named_exhaust {s.ability_succeeded=resolved;}else{s.ability_succeeded|=resolved;}continue;
                     }
                     Effect::CreateTokenUnit {..}=> {
-                        if s.ability_program!=0 && crate::created_token_phase_keyword_contract::requires(self.program(s.ability_program-1)) {
+                        if s.ability_program!=0 && (crate::created_token_phase_keyword_contract::requires(self.program(s.ability_program-1))||crate::generated_token_continuation_contract::requires(self.program(s.ability_program-1))) {
                             if events.generated_token!=0 {return Err("singleton creation result contains multiple generated tokens".into());}
                             events.generated_token=r.token;
                         }
@@ -657,7 +661,7 @@ impl Engine {
                 // Failed original events remain the last parent event for this exact
                 // contingency. Do not let an earlier successful exhaust survive it.
                 if named_exhaust {s.ability_succeeded=false;}
-                if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base")&&!(matches!(effect,Effect::ReturnToHand{..})&&self.attached_in_play(s,r.target)) {continue;}
+                if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base")&&!(matches!(effect,Effect::MoveToBottomOfDeck{..})&&self.move_to_bottom_eligible(s,r.target))&&!(matches!(effect,Effect::ReturnToHand{..})&&self.attached_in_play(s,r.target)) {continue;}
                 if matches!(effect,Effect::ReturnToHand{..})&&!self.effect_can_affect(s,s.source,r.target,effect,false){continue;}
                 let damage=matches!(effect,Effect::Damage {..});
                 if r.token!=0 {
@@ -685,7 +689,7 @@ impl Engine {
                 let modifier=match effect {
                     Effect::ModifyStats {..}=>Some(PhaseStatDelta {power:i64::from(r.power),hp:i64::from(r.hp)}),
                     Effect::Damage {..}|Effect::Heal {..}|Effect::Ready {..}|Effect::Exhaust {..}|Effect::Defeat {..}
-                    |Effect::GainKeyword {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}=>None,
+                    |Effect::GainKeyword {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}|Effect::MoveToBottomOfDeck {..}=>None,
                     _=>return Err("unsupported captured primitive".into()),
                 };
                 let (amount,resolved)=self.apply_scalar_effect_observed(s,effect,vec![Eval::Card(r.target)],r.amount,modifier,&listeners)?;

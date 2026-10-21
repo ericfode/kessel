@@ -28,7 +28,7 @@ pub(crate) fn compile(start:usize)->Result<(CardPrograms,Vec<Program>),String>{
  let ground:Effect=serde_json::from_value(branches[1]["effect"].clone()).map_err(|e|e.to_string())?;
  // ifYouDo executes inside the original initiating window, before the final
  // EndStep. Its success is the resolved payment event, not the resource remainder.
- p.instructions=vec![Instruction::Apply(ability.effect),Instruction::IfResult{skip:7},Instruction::ModalChoice(crate::modal_choices::Menu{
+ p.instructions=vec![Instruction::Apply(ability.effect),Instruction::IfResult{skip:7},Instruction::ModalChoice(crate::modal_choices::Menu{show_unresolvable:false,
   chooser:crate::modal_choices::Chooser::Own,prompt_title:"Choose an arena".into(),
   branches:vec![crate::modal_choices::Branch{label:"Space".into(),start:3,end:4,always_legal:false},crate::modal_choices::Branch{label:"Ground".into(),start:5,end:6,always_legal:false}],end:7,preserve_target:false,unless_branch:None}),
   Instruction::Apply(space),Instruction::Jump{to:7},Instruction::Apply(ground),Instruction::Jump{to:7},Instruction::EndStep];

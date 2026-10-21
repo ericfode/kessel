@@ -25,6 +25,8 @@ pub struct Branch {
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Menu {
+    #[serde(skip_serializing_if="std::ops::Not::not")]
+    pub show_unresolvable:bool,
     pub chooser: Chooser,
     pub prompt_title: String,
     pub branches: Vec<Branch>,
@@ -319,7 +321,7 @@ pub(crate) fn compile_branches(
     let mut program = Program::compile(ability)?;
     program.instructions.clear();
     program.select_ends.clear();
-    let mut menu = Menu {
+    let mut menu = Menu {show_unresolvable:false,
         chooser,
         prompt_title: prompt_title.to_owned(),
         branches: Vec::new(),

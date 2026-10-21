@@ -1654,6 +1654,8 @@ pub enum Instruction {
     ModalChoice(crate::modal_choices::Menu),
     /// Internal instruction, installed only after the complete raw naming proof.
     NameOpponentPlay,
+    /// Source-proved private top-deck property factory, captured at display entry.
+    LookTopDeckOptions { opponent: bool },
     /// Closed number binding and sequential unadjusted-payment instructions.
     HandCost { reveal: bool, stage: u8 },
     ChooseNumber,
@@ -1673,6 +1675,7 @@ pub enum Instruction {
     Jump { to: usize },
     /// Closed continuation of one resolved native token creation event.
     GrantCreatedTokenPhaseKeyword { creation_pc:u8, keyword:String },
+    GrantCreatedTokenAdvantage { creation_pc:u8 },
     Apply(Effect),
     Group(Effect),
     /// Independent named selectors prepare before commitment and share one event window.
@@ -2062,7 +2065,7 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedExhaustContingent(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::GrantCreatedTokenPhaseKeyword{..}|Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::LookTopDeckOptions{..}|Instruction::GrantCreatedTokenPhaseKeyword{..}|Instruction::GrantCreatedTokenAdvantage{..}|Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
@@ -3426,7 +3429,10 @@ impl Catalogue {
                 // Preserve the established bounded inspection before all whole-source
                 // preparers, then validate every envelope before any early return.
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let generated_continuation=crate::generated_token_continuation_contract::prepare(entry,value)?;
+                let resource_number=crate::resource_number_experience_contract::prepare(entry)?;
                 let arena_payment=crate::arena_payment_exhaust_contract::prepare(entry)?;
+                let modal_deck=crate::modal_deck_movement_contract::prepare(entry)?;
                 let phase=crate::player_phase_contract::prepare(entry)?;
                 let upgrade_return=crate::upgrade_return_shield_contract::prepare(entry)?;
                 if distributed_advantage_contract::marker(entry) && !distributed_advantage_contract::entry(entry) {return Err("Advantage allocation requires complete closed captured-defeat source profile".into());}
@@ -3437,12 +3443,15 @@ impl Catalogue {
                 let attack_lifetime=crate::attack_lifetime_contract::prepare(entry)?;
                 let exhausted=crate::exhausted_live_count_contract::prepare(entry)?;
                 let defeat_tokens=crate::defeat_token_creation_contract::prepare(entry,value)?;
-                let created_keyword=crate::created_token_phase_keyword_contract::prepare(entry,value)?;
+                let created_keyword=if generated_continuation {None}else{crate::created_token_phase_keyword_contract::prepare(entry,value)?};
                 let round=if phase.is_some(){None}else{crate::round_limit_contract::prepare(entry)?};
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if generated_continuation {let id=crate::generated_token_continuation_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![crate::generated_token_continuation_contract::compiled()?]));}
+                if resource_number {return crate::resource_number_experience_contract::compile(catalogue.programs.len());}
                 if arena_payment {return crate::arena_payment_exhaust_contract::compile(catalogue.programs.len());}
+                if let Some(kind)=modal_deck {return crate::modal_deck_movement_contract::compile(kind,catalogue.programs.len());}
                 if upgrade_return {let id=crate::upgrade_return_shield_contract::checked_program_id(catalogue.programs.len())?;let program=crate::upgrade_return_shield_contract::compiled()?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if selected_hand_cost {return crate::selected_hand_cost_contract::compile(catalogue.programs.len());}
                 if named_exhaust {crate::named_exhaust_contingent_contract::dependencies(value)?;let program=crate::named_exhaust_contingent_contract::compiled()?;let id=crate::named_exhaust_contingent_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
@@ -4464,5 +4473,12 @@ mod arena_payment_capacity_tests {
  let original=crate::arena_payment_exhaust_contract::profile();let mut v:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"),"/catalogue.json"))).unwrap();
 v["cards"]=json!([original]);let pad:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"event","title":"synthetic capacity padding","effect":{"kind":"noAction"}})).unwrap();let pad=crate::ability_ir::Program::compile(&pad).unwrap();
  let ok=Catalogue::load_with_programs(&v,vec![pad.clone();65534]).unwrap();assert!(ok.cards.contains_key("ASH_219"));assert_eq!(ok.programs.len(),65535);let no=Catalogue::load_with_programs(&v,vec![pad;65535]).unwrap();assert!(!no.cards.contains_key("ASH_219"));assert_eq!(no.programs.len(),65535);
+ }
+}
+#[cfg(test)]mod modal_deck_capacity_tests {
+ use super::*;
+ #[test]fn modal_deck_actual_complete_registration_span_capacity(){
+  let pad:Ability=serde_json::from_value(serde_json::json!({"trigger":"event","title":"capacity padding","effect":{"kind":"noAction"}})).unwrap();let pad=Program::compile(&pad).unwrap();
+  for (kind,count,code) in [(crate::modal_deck_movement_contract::Kind::Top,1,"ASH_045"),(crate::modal_deck_movement_contract::Kind::Recovery,2,"ASH_133")]{let mut input:serde_json::Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"),"/catalogue.json"))).unwrap();input["cards"]=serde_json::json!([crate::modal_deck_movement_contract::profile(kind)]);let last=65535-count;let yes=Catalogue::load_with_programs(&input,vec![pad.clone();last]).unwrap();assert!(yes.cards.contains_key(code));assert_eq!(yes.programs.len(),65535);let no=Catalogue::load_with_programs(&input,vec![pad.clone();last+1]).unwrap();assert!(!no.cards.contains_key(code));assert_eq!(no.programs.len(),last+1);}
  }
 }

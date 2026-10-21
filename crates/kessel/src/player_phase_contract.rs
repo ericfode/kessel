@@ -281,8 +281,10 @@ pub(crate) fn program_operations(p: &crate::ability_ir::Program) -> Result<Opera
             | Instruction::Commit
             | Instruction::Select(_)
             | Instruction::ModalChoice(_)
+            | Instruction::LookTopDeckOptions { .. }
             | Instruction::HandCost { .. }
             | Instruction::GrantCreatedTokenPhaseKeyword { .. }
+            | Instruction::GrantCreatedTokenAdvantage { .. }
             | Instruction::NameOpponentPlay
             | Instruction::ChooseNumber
             | Instruction::PayUnadjustedSelectedResources

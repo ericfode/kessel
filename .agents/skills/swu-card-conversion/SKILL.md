@@ -58,6 +58,11 @@ marker hashes the pinned fetch scripts and data version, not the card contents.
 Use the generated directory through `compiler/load-catalog.js` or actual `compileCatalog` output for strict full-entry profiles and portable tests; do not assume a legacy `catalog.json` exists.
 `compiler/generated/cards.json` alone omits fields such as `diagnostics` stored in separate shards and cannot serve as a full-entry equality fixture.
 Keep profiles complete and unknown fields rejected; never strip candidate fields or enrich entries to match fixtures.
+Keep the selected pool dependency set separate from a literal constructed deck.
+Tokens, leaders and bases can be required pool entries but are not ordinary deck
+slots. Validate every literal deck code against its complete metadata before
+game creation, including the required ordinary focus, donor, event and upgrade
+copies; a list of seventeen setup references is not necessarily a legal deck.
 For helper-dependent construction, compare the complete ordered non-card server input
 envelope with the reviewed source before emitting probes. Validate input row shape
 before filtering; reject missing, extra, duplicated, malformed or changed helper rows.
@@ -123,6 +128,11 @@ review the new packet before publishing. Model review receipts remain run output
 not chronological repository journals. Import useful passing references through
 the existing `cards:reference import` command so they run in CI.
 
+Keep tracked submodule paths as real directories in managed worktrees; Git rejects
+a symbolic-link replacement for `forceteki`. Materialize the pinned checkout or
+a verified physical snapshot, then check Git status and the engine source, build
+and card-data identities before validation.
+
 For concurrent work, use the `work` queue and `prepare`/`fanout` commands in
 `cards/PIPELINE.md`. Fan out up to 20 card subprocesses against one prepared
 build, with isolated author work directories and one integrator for shared runtime
@@ -147,7 +157,13 @@ establish that the current process can find the required tool.
 
 After a repository migration or exporter contract change, preflight one selected
 real-engine recording through native and Wasm imports before starting the card
-fanout. Preserve failed attempts; a missing shared state field is not a card-level
+fanout. Forward-test each public planner through the actual pipeline and coverage
+accounting, then its unmodified named cases through the canonical generator and
+dispatcher, including the routing envelope. Require the formal schema, source hash,
+explicit obligations and unwitnessed gaps; link existing witness IDs without
+inventing coverage or defaulting missing obligations to an empty list. Direct leaf
+calls alone do not prove pipeline integration. Validate routing strictly while
+retaining complete raw case and profile schemas. Preserve failed attempts; a missing shared state field is not a card-level
 semantic failure and must not be bypassed by weakening the runtime import guard.
 
 Focused experiments may use an explicit `prepare --pool-cards` selection of
@@ -162,7 +178,10 @@ For source-only tests, include each selected definition once. If the focus is al
 admitted, retain its original runtime-pool metadata and bytes; otherwise add only its
 complete declared metadata. Obtain provenance with the actual pool loader before
 starting the game. Duplicate focus or missing binding is a setup error, not an effect
-failure. For paired source captures, run sourceIdentity before the first game and
+failure. Exercise both absent and already-admitted focus inputs through actual
+fixture validation and recording. A byte-helper test alone does not cover a
+separate test-local pool setup; retain malformed and duplicate-input negatives.
+For paired source captures, run sourceIdentity before the first game and
 compare it again afterward. An absent referenced dependency means an incomplete
 integration; a claim of concurrent edits needs changed-byte evidence.
 

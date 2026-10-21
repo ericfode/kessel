@@ -35,7 +35,7 @@ fn catalog_entry(code: &str) -> Value {
 fn modal_choices_admit_complete_closed_sources_and_reject_other_families() {
     let e = engine();
     for code in [
-        "SOR_145", "SOR_189", "LAW_067", "ASH_147", "LOF_065", "TWI_102",
+        "SOR_145", "SOR_189", "LAW_067", "ASH_147", "LOF_065", "TWI_102", "ASH_045", "ASH_133",
     ] {
         assert!(
             e.by_code.contains_key(code),
@@ -45,13 +45,36 @@ fn modal_choices_admit_complete_closed_sources_and_reject_other_families() {
     }
     for code in [
         "SHD_191", "SEC_193", "SEC_220", "LAW_080", "LAW_086", "LAW_101", "JTL_131", "HMW_054",
-        "HMW_188", "ASH_045", "ASH_257",
+        "HMW_188",
     ] {
         assert!(
             !e.by_code.contains_key(code),
             "unreviewed modal family {code}"
         );
     }
+}
+
+// This modal is admitted by its own complete generated-result source proof,
+// rather than by the ordinary leaf-only modal normalizer above.
+#[test]
+fn modal_generated_token_requires_its_complete_canonical_new_family_profile() {
+    let raw:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"),"/catalogue.json"))).unwrap();
+    let source=catalog_entry("ASH_257");
+    assert!(crate::generated_token_continuation_contract::prepare(&source,&raw).unwrap());
+    let e=Engine::from_catalogue_value(&raw).unwrap();
+    let def=*e.by_code.get("ASH_257").expect("complete reviewed modal is admitted");
+    let programs=&e.definitions[def as usize].programs;
+    assert!(programs.leader.is_empty()&&programs.unit.is_empty());
+    assert_eq!(programs.card.len(),1);
+    assert!(crate::generated_token_continuation_contract::program(e.program(programs.card[0])));
+    for code in ["ASH_094","TWI_203"] {assert!(!e.by_code.contains_key(code),"unproved token creation lifecycle {code}");}
+    let mut bad=raw.clone();
+    let card=bad["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="ASH_257").unwrap();
+    card["abilities"]["card"][0]["targetResolver"]["showUnresolvable"]=json!(false);
+    assert!(crate::generated_token_continuation_contract::prepare(card,&raw).is_err());
+    let rejected=Engine::from_catalogue_value(&bad).unwrap();
+    assert!(!rejected.by_code.contains_key("ASH_257"));
+    assert!(rejected.by_code.contains_key("SOR_145"),"reject only malformed complete modal source");
 }
 
 // K-2SO's controller chooses the mode even after K-2SO leaves play. The
