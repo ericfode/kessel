@@ -333,6 +333,11 @@ additional recordings. Cases without reference evidence remain unassessed.
 
 ## Validate and publish within authorization
 
+Before reusing a saved command, identify every path it can write, including
+outputs selected by environment variables or inline scripts. Give receipts and
+generated outputs fresh locations; retain historical corpus and prepared paths
+as read-only inputs.
+
 Before the first corpus import or integration mutation, validate every selected
 packet-bound independent review and all publication constraints for the complete
 selected batch. A later invalid review must not leave an earlier card partially
@@ -347,8 +352,16 @@ post-effect State unchanged for comparison. Include an ordinary-effect control.
 Undefined allocated slots or foreign token ownership in a hand-built fixture are
 setup failures; preserve them separately from clean transition counterexamples.
 
+For shared state or snapshot changes and new runtime admissions, check retained native
+and Wasm states at every actual action window in the targeted source recordings:
+copy and snapshot/import must preserve the full state hash, snapshot and legal actions;
+exercise successor decisions from the retained copies. Direct trace agreement alone
+can miss omitted physical identities or stale hidden fields. Preserve failures and
+terminal pending-state limitations separately; do not erase hidden state or invent
+action windows to make the comparison pass.
+
 Run compiler tests, relevant Rust tests, generated-output checks and native/Wasm
-reference comparisons. Inspect aggregate test scripts and explicitly run relevant changed exporter tests with their required engine/pool inputs; an aggregate success does not cover files it omits, and skipped source cases are not exercised evidence. The accepted corpus runs in CI; its runner must not
+reference comparisons. When checking whitespace, include untracked additions explicitly; `git diff --check` omits them. Inspect aggregate test scripts and explicitly run relevant changed exporter tests with their required engine/pool inputs; an aggregate success does not cover files it omits, and skipped source cases are not exercised evidence. The accepted corpus runs in CI; its runner must not
 regenerate expected outputs from the implementation under test. Preserve the
 original strict-pool and compiled-runtime integration checks. Inspect actual
 seeded-game outcomes, because the existing gate's exit code alone does not assert them.

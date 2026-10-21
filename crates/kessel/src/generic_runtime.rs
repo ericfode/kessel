@@ -426,7 +426,49 @@ fn reviewed_force_entry(entry:&Value)->bool {
     entry["sourceHash"]=="3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6" && entry["baseClass"]=="TokenCard" && entry["card"]==metadata && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["keywordValues"]==serde_json::json!({}) && entry["attachCondition"].is_null()
 }
 
+/// Trusted native upgrade identities, independent of any producing card. These
+/// discriminants do not authorize token units, effects, or offboard modifiers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum NativeTokenUpgrade { Shield, Experience, Advantage, Weakness }
+impl NativeTokenUpgrade {
+    fn from_entry(entry: &Value) -> Option<Self> {
+        // These are the complete pinned compiler entries, including its actual
+        // unsupported diagnostics and absent Advantage class envelope. Compare
+        // the unmodified input: no ignored aliases, extra fields, normalization,
+        // or inferred source identity may acquire native upgrade authority.
+        let (kind, raw) = match entry["setCode"].as_str()? {
+            "TOKEN_SHIELD" => (Self::Shield, r###"{"setCode":"TOKEN_SHIELD","sourcePath":"game/cards/01_SOR/tokens/Shield.ts","sourceHash":"39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"class-state:highPriorityRemoval","file":"game/cards/01_SOR/tokens/Shield.ts","line":10,"column":1,"message":"Class-local persistent state requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:Constructor","file":"game/cards/01_SOR/tokens/Shield.ts","line":19,"column":1,"message":"Additional class behavior requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"method:isShield","file":"game/cards/01_SOR/tokens/Shield.ts","line":29,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/01_SOR/tokens/Shield.ts","line":33,"column":1,"message":"Additional class behavior requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"registrar:addDamageModificationAbility","message":"registrar:addDamageModificationAbility","file":"game/cards/01_SOR/tokens/Shield.ts","line":38,"column":9}],"className":"Shield","baseClass":"TokenUpgradeCard","id":"8752877738","internalName":"shield","status":"unsupported","card":{"title":"Shield","subtitle":null,"cost":0,"hp":0,"power":0,"text":"If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.","deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":0,"upgradeHp":0,"id":"8752877738","aspects":[],"traits":["armor"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"shield"},"dataHash":"3fe37b5b4c214e1a6971c2ea5e7729a7cad9bf983a384c20b56c404cbf41208b","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_EXPERIENCE" => (Self::Experience, r###"{"setCode":"TOKEN_EXPERIENCE","sourcePath":"game/cards/01_SOR/tokens/Experience.ts","sourceHash":"fccf00d13061bfc15447101a0dc82fc360f9b5d2e28a9da678684e8c93bc9d67","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"method:isExperience","file":"game/cards/01_SOR/tokens/Experience.ts","line":12,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/01_SOR/tokens/Experience.ts","line":16,"column":1,"message":"Additional class behavior requires conversion"}],"className":"Experience","baseClass":"TokenUpgradeCard","id":"2007868442","internalName":"experience","status":"unsupported","card":{"title":"Experience","subtitle":null,"cost":0,"hp":1,"power":1,"text":null,"deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":1,"upgradeHp":1,"id":"2007868442","aspects":[],"traits":["learned"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"experience"},"dataHash":"cc1d7a3bf3344d8a95afdbba8607659ec1edd07e5282bb9eb9d3497b0f7f332b","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_ADVANTAGE" => (Self::Advantage, r###"{"setCode":"TOKEN_ADVANTAGE","sourcePath":"game/cards/08_ASH/tokens/Advantage.ts","sourceHash":"1280861b9a94572ecce2c1d62fb5fd93c11b08609495c3d9f60e656d153e3119","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"expected-one-card-class","file":"game/cards/08_ASH/tokens/Advantage.ts","line":1,"column":1,"message":"Found 2 classes"}],"status":"unsupported","id":"5844562972","internalName":"advantage","card":{"title":"Advantage","subtitle":"","cost":0,"hp":0,"power":1,"text":"When attached unit's attack or defense ends: Defeat this upgrade.","deployBox":null,"epicAction":"","unique":false,"rules":"When Attack Ends/When Defense Ends abilities trigger at the same time as units deal combat damage.\n","upgradePower":1,"upgradeHp":0,"id":"5844562972","aspects":[],"traits":["innate"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"ASH"},"internalName":"advantage"},"dataHash":"9a81c2d083caa13d2a5a173bdeedf76e837d62fb413496e8539338b42d71ce94","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_WEAKNESS" => (Self::Weakness, r###"{"setCode":"TOKEN_WEAKNESS","sourcePath":"game/cards/09_HMW/tokens/Weakness.ts","sourceHash":"dd546e4886757d77fffeb8be6e7381144fa7378b6493ce444aa87e4ba1202778","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"method:isWeakness","file":"game/cards/09_HMW/tokens/Weakness.ts","line":12,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/09_HMW/tokens/Weakness.ts","line":16,"column":1,"message":"Additional class behavior requires conversion"}],"className":"Weakness","baseClass":"TokenUpgradeCard","id":"7816991190","internalName":"weakness","status":"unsupported","card":{"title":"Weakness","subtitle":"","cost":0,"hp":-1,"power":-1,"text":"","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":-1,"upgradeHp":-1,"id":"7816991190","aspects":[],"traits":["condition"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"HMW"},"internalName":"weakness"},"dataHash":"6a8e3afbc95ff1ddbceb2edf8aafdfd558a8ce5b148c375e45f250792ae96fd7","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            _ => return None,
+        };
+        let expected: Value = serde_json::from_str(raw).expect("pinned native token-upgrade entry");
+        (entry == &expected).then_some(kind)
+    }
+}
+
 impl Engine {
+    /// Constructor-owned IDs exist only after the complete pinned native source
+    /// profile succeeds. Pool selection retains global IDs, so membership must
+    /// independently come from the selected catalogue metadata.
+    pub(super) fn selected_native_token_upgrade(&self, def: u16) -> Option<NativeTokenUpgrade> {
+        let d = self.definitions.get(def as usize)?;
+        let metadata = self.catalogue.as_ref()?.metadata.get(&d.code)?;
+        if metadata["types"] != json!(["token", "upgrade"])
+            || !d.info.is("token") || !d.info.is("upgrade")
+            || d.info.is("unit") || d.info.is("leader") || d.info.is("base") {
+            return None;
+        }
+        match d.code.as_str() {
+            "TOKEN_SHIELD" if def == self.shield_def => Some(NativeTokenUpgrade::Shield),
+            "TOKEN_EXPERIENCE" if Some(def) == self.experience_def => Some(NativeTokenUpgrade::Experience),
+            "TOKEN_ADVANTAGE" if Some(def) == self.advantage_def => Some(NativeTokenUpgrade::Advantage),
+            "TOKEN_WEAKNESS" if Some(def) == self.weakness_def => Some(NativeTokenUpgrade::Weakness),
+            _ => None,
+        }
+    }
+
     // Player.getInPlayCards: controller-owned arena cards plus the player's BaseZone.
     // Live Credits occupy BaseZone; retired physical slots are outside play.
     // Fortify has no admitted producer.
@@ -603,6 +645,10 @@ impl Engine {
                 }
                 if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense"&&!catalogue.programs[*p as usize].attached_host) && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
                 if native_token {
+                    if matches!(code.as_str(), "TOKEN_SHIELD" | "TOKEN_EXPERIENCE" | "TOKEN_ADVANTAGE" | "TOKEN_WEAKNESS")
+                        && NativeTokenUpgrade::from_entry(entry).is_none() {
+                        return Err("native token upgrade full source/profile differs from reviewed adapter".into());
+                    }
                     if code=="TOKEN_CREDIT" {
                         if !crate::credits::native_entry(entry) {return Err("native Credit source/metadata differs from reviewed adapter".into());}
                     }else if code=="TOKEN_ADVANTAGE" {

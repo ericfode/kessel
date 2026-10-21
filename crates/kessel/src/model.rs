@@ -23,6 +23,12 @@ pub const MAX_ZONE: usize = 64;
 // This exact envelope grants no future capacity or Gained-registration storage.
 #[cfg(test)]
 pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 38_312;
+// Wire-presence provenance must fit existing padding on native and Wasm.
+const _: () = {
+    assert!(std::mem::size_of::<State>() == 38_312);
+    assert!(std::mem::size_of::<ResolutionContext>() == 124);
+    assert!(std::mem::size_of::<DeathFrame>() == 1_032);
+};
 pub type CardId = u16;
 
 pub const MAX_NAMED_PLAY_LOCKS: usize = 64;
@@ -686,6 +692,9 @@ pub struct State {
     /// Imported projection presence only: copied/equality-visible, but hash-neutral
     /// like Support wire evidence. It cannot change legal actions or card stats.
     pub unit_entry_state_explicit:bool,
+    /// Exact inactive identity wire opt-in when no intrinsic producer already requires it.
+    /// Serialization policy only; physical card fields retain their existing hash features.
+    pub inactive_inventory_explicit:bool,
     pub round: u16,
     pub regroup: bool,
     pub initiative: Seat,
@@ -759,7 +768,7 @@ impl Default for State {
             cards: [Card::default(); MAX_CARDS],
             next_id: 1,
             players: [Player::default(); 2],
-            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,support_state_explicit:false,unit_entry_state_explicit:false,phase_history:PhaseHistory::default(),
+            arena_unit_order:[ArenaOrder::default();2],registration_order:RegistrationOrder::default(),arena_order_exact:true,hidden_history_exact:false,force_state_exact:false,credit_state_exact:false,support_state_explicit:false,unit_entry_state_explicit:false,inactive_inventory_explicit:false,phase_history:PhaseHistory::default(),
             round: 1,
             regroup: false,
             initiative: Seat::P1,

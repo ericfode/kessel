@@ -233,7 +233,9 @@ fn inactive_physical_keyword_legacy_and_allocated_empty_rows() {
     let mut orphan = v.clone();
     orphan["inactivePhaseKeywordStateVersion"] = json!(1);
     orphan["inactiveAllocatedCards"] = json!([]);
-    assert!(e.load_state(&orphan).is_err());
+    let explicit = e.load_state(&orphan).unwrap();
+    assert!(explicit.inactive_inventory_explicit);
+    assert_eq!(e.snapshot(&explicit), orphan);
     let (mut s, first) = paid_dead(&e, Seat::P1, false);
     let old = add(&e, &mut s, Seat::P2, "TOKEN_SHIELD");
     let mut v = e.snapshot(&s);
@@ -765,4 +767,176 @@ fn inactive_four_family_new_sources_do_not_authorize_mandalorian_sentinel() {
             assert!(error.contains("played physical creation source"),"{code}: {error}");
         }
     }
+}
+
+// Independent exact initial imports use real allocated Force identities; they
+// never fill an allocation gap with a guessed token after the tested action.
+fn exact_board(e: &Engine, seat: Seat) -> State {
+    let mut s = State::default();
+    s.active=seat; s.action_player=Some(seat); s.round=3;
+    s.hidden_history_exact=true; s.force_state_exact=true;
+    s.credit_state_exact=e.needs_credit_state();
+    for owner in [Seat::P1,Seat::P2] {
+        let base=add(e,&mut s,owner,"SOR_023");s.player_mut(owner).base=base;
+        let leader=add(e,&mut s,owner,"SOR_014");s.player_mut(owner).leader=leader;
+        let force=add(e,&mut s,owner,"TOKEN_THE_FORCE");s.player_mut(owner).force_id=force;
+    }
+    s.inactive_inventory_explicit=true;
+    e.load_state(&e.snapshot(&s)).unwrap()
+}
+fn fixed_point(e: &Engine, s: &State) -> State {
+    let copy=*s;assert_eq!(copy,*s);assert_eq!(copy.zobrist(),s.zobrist());
+    let v=e.snapshot(s);let imported=e.load_state(&v).unwrap();
+    assert_eq!(e.snapshot(&imported),v);assert!(imported==*s,"whole physical State must roundtrip");
+    assert_eq!(imported.zobrist(),s.zobrist());assert_eq!(e.legal_actions(&imported),e.legal_actions(s));
+    imported
+}
+fn card_choice(e:&Engine,s:&mut State,id:CardId) {
+    let a=e.card_action(s,id);assert!(e.legal_actions(s).contains(&a));*s=e.apply(s,&a).unwrap();
+}
+fn return_priority(e:&Engine,s:&mut State,seat:Seat) {
+    if s.active!=seat {let a=e.legal_actions(s).into_iter().find(|a|a.label=="Pass").unwrap();*s=e.apply(s,&a).unwrap();}
+    assert_eq!(s.active,seat);
+}
+#[test]
+fn inactive_inventory_native_budget_and_explicit_empty_legacy_policy() {
+    assert_eq!(std::mem::size_of::<State>(),38312);
+    assert_eq!(std::mem::size_of::<ResolutionContext>(),124);
+    assert_eq!(std::mem::size_of::<DeathFrame>(),1032);
+    let e=engine();let mut s=exact_board(&e,Seat::P1);let hash=s.zobrist();
+    let explicit=fixed_point(&e,&s);assert!(explicit.inactive_inventory_explicit);
+    s.inactive_inventory_explicit=false;assert_eq!(s.zobrist(),hash);
+    let legacy=e.snapshot(&s);assert!(legacy.get("inactiveAllocatedCards").is_none());
+    let loaded=e.load_state(&legacy).unwrap();assert!(!loaded.inactive_inventory_explicit);
+    assert!(e.snapshot(&loaded).get("inactiveAllocatedCards").is_none());
+    s=explicit;s.players[0].out=true;s.players[1].out=true;e.advance(&mut s).unwrap();drain(&e,&mut s);
+    assert!(s.inactive_inventory_explicit);fixed_point(&e,&s);
+    let (required,_)=paid_dead(&e,Seat::P1,false);assert!(!required.inactive_inventory_explicit);
+    assert!(!e.load_state(&e.snapshot(&required)).unwrap().inactive_inventory_explicit);
+}
+#[test]
+fn inactive_inventory_wing_leader_actual_creation_retirement_and_next_allocation() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {let mut e=engine();e.set_rules_backend(backend).unwrap();
+  for seat in [Seat::P1,Seat::P2] {
+   let mut setup=exact_board(&e,seat);
+   let host=unit(&e,&mut setup,seat,"SOR_241");
+   let enemy=unit(&e,&mut setup,seat.other(),"JTL_095");
+   let wing=add(&e,&mut setup,seat,"SOR_241");setup.player_mut(seat).hand.push(wing).unwrap();
+   let next_wing=add(&e,&mut setup,seat,"SOR_241");setup.player_mut(seat).hand.push(next_wing).unwrap();
+   for _ in 0..8 {let r=add(&e,&mut setup,seat,"LOF_254");setup.player_mut(seat).resources.push(r).unwrap();}
+   let mut s=fixed_point(&e,&setup);let first=s.next_id;
+   card_choice(&e,&mut s,wing);assert!(!s.is_action_window());card_choice(&e,&mut s,host);drain(&e,&mut s);
+   assert_eq!(s.next_id,first+2);assert_eq!(e.token_count(&s,s.card(host).experience),2);fixed_point(&e,&s);
+   return_priority(&e,&mut s,seat);card_choice(&e,&mut s,host);card_choice(&e,&mut s,enemy);drain(&e,&mut s);
+   assert!(!e.in_arena(&s,host));assert!(!e.in_arena(&s,enemy));
+   let wire=e.snapshot(&s);let rows=wire["inactiveAllocatedCards"].as_array().unwrap();assert_eq!(rows.len(),2);
+   for (i,row) in rows.iter().enumerate() {assert_eq!(row["id"],format!("c{}",first+i as u16-1));assert_eq!(row["setCode"],"TOKEN_EXPERIENCE");assert_eq!(row["owner"],seat.as_str());assert_eq!(row["phaseKeywords"],json!({}));assert!(s.card(first+i as u16).present);}
+   let mut re=fixed_point(&e,&s);return_priority(&e,&mut s,seat);return_priority(&e,&mut re,seat);
+   card_choice(&e,&mut s,next_wing);card_choice(&e,&mut re,next_wing);card_choice(&e,&mut s,wing);card_choice(&e,&mut re,wing);drain(&e,&mut s);drain(&e,&mut re);
+   assert!(s==re);assert_eq!(s.next_id,first+4);fixed_point(&e,&s);
+  }
+ }
+}
+#[test]
+fn inactive_inventory_all_four_native_upgrade_identities_and_exact_complement_guards() {
+ let e=engine();for seat in [Seat::P1,Seat::P2] {
+  let mut setup=exact_board(&e,seat);for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_ADVANTAGE","TOKEN_WEAKNESS"] {add(&e,&mut setup,seat,code);}
+  let s=fixed_point(&e,&setup);let v=e.snapshot(&s);assert_eq!(v["inactiveAllocatedCards"].as_array().unwrap().len(),4);
+  for (field,value) in [("phaseKeywords",json!({"sentinel":1})),("phaseKeywords",json!({"ambush":1})),("phaseKeywords",Value::Null),("controller",json!(seat.other().as_str())),("owner",json!(seat.other().as_str())),("id",json!("c00")),("id",json!("c500")),("name",json!("unknown")),("setCode",json!("TOKEN_CREDIT")),("setCode",json!("TOKEN_THE_FORCE")),("unknown",json!(true))] {
+   let mut bad=v.clone();bad["inactiveAllocatedCards"][0][field]=value;assert!(e.load_state(&bad).is_err(),"{field}");
+  }
+  for code in ["TOKEN_MANDALORIAN","TOKEN_CLONE_TROOPER","TOKEN_SPY","TOKEN_DROID","TOKEN_BATTLE_DROID","TOKEN_X_WING","TOKEN_BEAST"] {
+   if let Some(info)=e.catalogue.as_ref().unwrap().metadata.get(code) {let mut bad=v.clone();bad["inactiveAllocatedCards"][0]["setCode"]=json!(code);bad["inactiveAllocatedCards"][0]["name"]=info["internalName"].clone();assert!(e.load_state(&bad).is_err(),"{code}");}
+  }
+  let mut omitted=v.clone();omitted["inactiveAllocatedCards"].as_array_mut().unwrap().pop();assert!(e.load_state(&omitted).is_err());
+  let mut duplicate=v.clone();let row=duplicate["inactiveAllocatedCards"][0].clone();duplicate["inactiveAllocatedCards"].as_array_mut().unwrap().push(row);assert!(e.load_state(&duplicate).is_err());
+  let mut gap=v.clone();gap["nextCardId"]=json!(s.next_id);assert!(e.load_state(&gap).is_err());
+  for bad_version in [json!(0),json!(2),json!(true),Value::Null] {let mut bad=v.clone();bad["inactivePhaseKeywordStateVersion"]=bad_version;assert!(e.load_state(&bad).is_err());}
+ }
+}
+fn resolve_target(e:&Engine,s:&mut State,target:CardId) {
+ for _ in 0..30 {if s.is_action_window(){return;}let actions=e.legal_actions(s);let a=actions.iter().find(|a|a.card.as_deref()==Some(&format!("c{}",target-1))).or_else(||actions.iter().find(|a|a.label.starts_with("Give "))).unwrap_or_else(||actions.first().expect("mandatory prompt"));*s=e.apply(s,a).unwrap();}
+ panic!("resolution did not return priority");
+}
+#[test]
+fn inactive_inventory_advantage_and_weakness_actual_creator_and_retirement() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {let mut e=engine();e.set_rules_backend(backend).unwrap();for seat in [Seat::P1,Seat::P2] {
+  for (creator,token) in [("ASH_167","TOKEN_ADVANTAGE"),("HMW_242","TOKEN_WEAKNESS")] {
+   let mut setup=exact_board(&e,seat);let host=unit(&e,&mut setup,seat,"SOR_095");
+   let wampa=unit(&e,&mut setup,seat.other(),"SOR_164");
+   let source=add(&e,&mut setup,seat,creator);setup.player_mut(seat).hand.push(source).unwrap();
+   for _ in 0..10 {let r=add(&e,&mut setup,seat,"LOF_254");setup.player_mut(seat).resources.push(r).unwrap();}
+   let mut s=fixed_point(&e,&setup);let id=s.next_id;card_choice(&e,&mut s,source);resolve_target(&e,&mut s,host);
+   assert_eq!(s.next_id,id+1);assert_eq!(e.def(&s,id).code,token);fixed_point(&e,&s);
+   return_priority(&e,&mut s,seat);card_choice(&e,&mut s,host);card_choice(&e,&mut s,wampa);drain(&e,&mut s);
+   assert!(!e.in_arena(&s,host));assert_eq!(s.card(id).parent,0);assert!(s.card(id).present);assert_eq!(s.card(id).owner,seat);
+   let wire=e.snapshot(&s);assert_eq!(wire["inactiveAllocatedCards"][0]["setCode"],token);fixed_point(&e,&s);
+  }
+ }}
+}
+#[test]
+fn inactive_inventory_intrinsic_shield_actual_play_and_consumption() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {let mut e=engine();e.set_rules_backend(backend).unwrap();for seat in [Seat::P1,Seat::P2] {
+  let mut setup=exact_board(&e,seat);let attacker=unit(&e,&mut setup,seat.other(),"SOR_095");let fighter=add(&e,&mut setup,seat,"SOR_064");setup.player_mut(seat).hand.push(fighter).unwrap();
+  for _ in 0..8 {let r=add(&e,&mut setup,seat,"LOF_254");setup.player_mut(seat).resources.push(r).unwrap();}
+  let mut s=fixed_point(&e,&setup);let token=s.next_id;card_choice(&e,&mut s,fighter);drain(&e,&mut s);
+  assert_eq!(s.next_id,token+1);assert_eq!(s.card(fighter).shield,token);fixed_point(&e,&s);
+  assert_eq!(s.active,seat.other());card_choice(&e,&mut s,attacker);card_choice(&e,&mut s,fighter);drain(&e,&mut s);
+  assert!(e.in_arena(&s,fighter));assert_eq!(s.card(fighter).damage,0);assert_eq!(s.card(fighter).shield,0);assert_eq!(s.card(token).parent,0);assert!(s.card(token).present);
+  let v=e.snapshot(&s);assert_eq!(v["inactiveAllocatedCards"][0]["setCode"],"TOKEN_SHIELD");fixed_point(&e,&s);
+ }}
+}
+#[test]
+fn inactive_inventory_upgrade_selection_and_unrepresented_payload_guards() {
+ let mut selected=Engine::from_compiled_pool_bytes(include_bytes!("../data/pool.json"),include_bytes!(concat!(env!("OUT_DIR"),"/catalogue.json"))).unwrap();
+ // The constructor keeps global definitions, while exact wire authority is
+ // selected-pool metadata. An unavailable identity may not borrow its global ID.
+ for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_ADVANTAGE","TOKEN_WEAKNESS"] {
+  if let Some(&def)=selected.by_code.get(code) {selected.catalogue.as_mut().unwrap().metadata.remove(code);assert!(selected.selected_native_token_upgrade(def).is_none());}
+ }
+ let e=engine();let mut s=exact_board(&e,Seat::P1);let id=add(&e,&mut s,Seat::P1,"TOKEN_SHIELD");let v=e.snapshot(&s);
+ let mut missing=engine();missing.catalogue.as_mut().unwrap().metadata.remove("TOKEN_SHIELD");assert!(missing.load_state(&v).is_err());
+ for change in 0..14 {
+  let mut bad=s;let c=bad.card_mut(id);match change {0=>c.damage=1,1=>c.phase_power=1,2=>c.phase_hp=1,3=>c.inactive_entry_power=1,4=>c.phase_keyword_presence=1,5=>c.phase_lost_keywords=1,6=>c.phase_restrictions=1,7=>c.parent=1,8=>c.upgrades=1,9=>c.next_token=1,10=>c.next_upgrade=1,11=>c.exhausted=true,12=>c.deployed=true,_=>c.hidden_state=1,}
+  assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||e.snapshot(&bad))).is_err(),"unrepresented physical field {change}");
+ }
+ let mut mixed=s;add(&e,&mut mixed,Seat::P1,"TOKEN_MANDALORIAN");assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||e.snapshot(&mixed))).is_err(),"an upgrade cannot authorize an unrelated token unit");
+ let mut required=paid_dead(&e,Seat::P1,false).0;add(&e,&mut required,Seat::P1,"TOKEN_SHIELD");let wire=e.snapshot(&required);let loaded=e.load_state(&wire).unwrap();assert_eq!(loaded.zobrist(),required.zobrist());assert!(!loaded.inactive_inventory_explicit);
+}
+#[test]
+fn inactive_inventory_four_native_profiles_reject_changed_source_and_metadata() {
+ let good=catalogue();let valid=engine();
+ for code in ["TOKEN_SHIELD","TOKEN_EXPERIENCE","TOKEN_ADVANTAGE","TOKEN_WEAKNESS"] {
+  let mut allocated=exact_board(&valid,Seat::P1);add(&valid,&mut allocated,Seat::P1,code);
+  let wire=valid.snapshot(&allocated);
+  // Every mutation must reject an actual retired row of THAT definition. An
+  // otherwise usable engine which silently drops its definition is not enough.
+  let rejects=|bad:&Value| Engine::from_catalogue_value(bad).and_then(|e|e.load_state(&wire)).is_err();
+  for (field,value) in [("sourceHash",json!("changed")),("sourcePath",json!("game/cards/forged.ts")),("baseClass",json!("TokenUnitCard")),("className",json!("ForgedClass")),("id",json!("forged-id")),("internalName",json!("forged-name")),("status",json!("supported")),("dataHash",json!("forged-data")),("diagnostics",json!([])),("requiredCapabilities",json!([])),("unknownContradiction",json!(true)),("stateWatchers",json!([{"unexpected":true}])),("classMethods",json!([{"name":"gained"}])),("piloting",json!({})),("keywordValues",json!({"sentinel":1})),("abilities",json!({"leader":[],"unit":[],"card":[{"trigger":"onAttack"}]}))] {
+   let mut bad=good.clone();let row=bad["cards"].as_array_mut().unwrap().iter_mut().find(|r|r["setCode"]==code).unwrap();row[field]=value;
+   assert!(rejects(&bad),"{code} {field} must not import its retired identity");
+  }
+  let original=good["cards"].as_array().unwrap().iter().find(|r|r["setCode"]==code).unwrap();
+  for key in original.as_object().unwrap().keys() {
+   let mut bad=good.clone();let row=bad["cards"].as_array_mut().unwrap().iter_mut().find(|r|r["setCode"]==code).unwrap();row.as_object_mut().unwrap().remove(key);
+   assert!(rejects(&bad),"{code} missing {key}");
+  }
+  for (field,value) in [("types",json!(["token","unit","upgrade"])),("types",json!(["upgrade"])),("power",json!(99)),("internalName",json!("forged")),("text",json!("gained ability"))] {
+   let mut bad=good.clone();let row=bad["cards"].as_array_mut().unwrap().iter_mut().find(|r|r["setCode"]==code).unwrap();row["card"][field]=value;
+   assert!(rejects(&bad),"{code} metadata {field}");
+  }
+ }
+}
+#[test]
+fn inactive_inventory_required_producer_stays_canonical_through_physical_lifecycle() {
+ for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {let mut e=engine();e.set_rules_backend(backend).unwrap();for seat in [Seat::P1,Seat::P2] {
+  let mut setup=exact_board(&e,seat);let event=add(&e,&mut setup,seat,"ASH_091");setup.player_mut(seat).hand.push(event).unwrap();
+  for _ in 0..10 {let r=add(&e,&mut setup,seat,"LOF_254");setup.player_mut(seat).resources.push(r).unwrap();}
+  assert!(e.has_physical_inventory_source(&setup));setup.inactive_inventory_explicit=false;
+  let mut s=fixed_point(&e,&setup);assert!(!s.inactive_inventory_explicit);assert!(e.exact_inactive_inventory_available(&s));
+  let token_start=s.next_id;card_choice(&e,&mut s,event);drain(&e,&mut s);assert!(s.player(seat).discard.contains(event));
+  assert!(e.has_physical_inventory_source(&s));assert!(!s.inactive_inventory_explicit);assert!(s.next_id>token_start);fixed_point(&e,&s);
+  s.players[0].out=true;s.players[1].out=true;e.advance(&mut s).unwrap();drain(&e,&mut s);
+  assert!(e.has_physical_inventory_source(&s));assert!(!s.inactive_inventory_explicit);assert!(e.exact_inactive_inventory_available(&s));fixed_point(&e,&s);
+ }}
 }
