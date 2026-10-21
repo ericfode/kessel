@@ -1,4 +1,9 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
+#[path="attack_allocation_runtime.rs"]
+mod attack_allocation_runtime;
+#[cfg(test)]
+#[path="attack_allocation_tests.rs"]
+mod attack_allocation_tests;
 #[path="captured_hand_cost_runtime.rs"]
 mod captured_hand_cost_runtime;
 #[path="selected_hand_cost_runtime.rs"]
@@ -2427,6 +2432,7 @@ impl Engine {
     pub(super) fn commit_program_mode(&self,s:&mut State,end_program:bool)->Result<bool,String> {
         self.preflight_generated_token_branch(s)?;
         if s.ability_committed {return Ok(true);}
+        self.preflight_attack_parent_allocation(s,end_program)?;
         let source=s.source;
         self.phase_preflight_parent(s,self.program(s.ability_program-1))?;
         if s.resource_cost_index==0 && self.program(s.ability_program-1).costs.iter().any(|cost|matches!(cost,Cost::UseForceCost{..}))
@@ -2679,6 +2685,7 @@ impl Engine {
                 }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
+                    self.preflight_native_attack_allocation(s,properties)?;
                     if !self.commit_program(s)? {return Ok(());}
                     if self.native_attack_eligible(s,s.source,s.ability_target,properties) {
                         self.begin_native_attack(s,properties,p.optional)?;

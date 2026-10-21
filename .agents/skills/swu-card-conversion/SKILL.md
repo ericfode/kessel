@@ -154,6 +154,12 @@ matches the version pinned in `crates/kessel-wasm/build.js`. If reusing an exist
 installation outside `target/wasm-tools`, pass its exact path as `WASM_BINDGEN`
 to preparation and subsequent Wasm builds. A previously built package does not
 establish that the current process can find the required tool.
+Resolve prepared native, catalogue, pool and Wasm paths through `loadPrepared` or
+the verified manifest. Adapter `packagePath` must name the actual loader required
+by that API; never assume the prepared Wasm root contains the Node loader.
+A targeted terminal-actor check needs an individual trace with observed committed
+post-winner choices. A completed game or a batch containing such choices does not
+qualify every trace; preserve unsuitable-trace failures and select a witnessed case.
 
 After a repository migration or exporter contract change, preflight one selected
 real-engine recording through native and Wasm imports before starting the card
@@ -219,17 +225,21 @@ compiler imports to tests, forward-test the committed-data suite in an isolated
 source tree without `forceteki` or `node_modules`, then run the compiler suite
 with the pinned dependencies. Local setup can otherwise hide a CI failure.
 
-Inspect the actual test bodies before choosing ordinary gates. The Rust library
-test `generated_programs_match_all_committed_engine_traces` covers original fixed
-fixtures; keep it. The separate `reference_conformance` integration test and
-`crates/kessel-wasm/js/test/reference-conformance.test.js` replay the full accepted
-corpus and belong to the 200-card checkpoint. For an ordinary Wasm increment use
-`node --test crates/kessel-wasm/test.js crates/kessel-wasm/js/test/adapter.test.js`,
-plus the selected new and affected reference comparisons. These tests load both
-`crates/kessel-wasm/pkg/node` and `pkg/web`; build and hash both from the final Rust
-source and embedded catalogue. Use reference `check --corpus DIR` to select a
-generated corpus; `--out` does not select checking input. An interrupted broad
-test command is not a completed checkpoint.
+Inspect the actual test bodies before choosing ordinary gates. Run ordinary Rust
+and Wasm test gates with `node .github/scripts/ci-tests.js rust` and
+`node .github/scripts/ci-tests.js wasm`. These reviewed runners defer only the two
+exact whole accepted-corpus test bodies in `reference_conformance` and
+`crates/kessel-wasm/js/test/reference-conformance.test.js`; they retain other
+workspace targets and doctests, fixed-fixture coverage and Wasm core/adapter tests.
+Missing or ambiguous deferred-test identities fail closed; future siblings and
+similarly named tests still run. Do not broaden the exclusions. Keep the Rust
+library test `generated_programs_match_all_committed_engine_traces` in ordinary
+gates. Runner success does not replace selected new and affected real-engine
+comparisons or count as a completed 200-card checkpoint. Build and hash both
+`crates/kessel-wasm/pkg/node` and `pkg/web` from the final Rust source and embedded
+catalogue. Use reference `check --corpus DIR` to select a generated corpus;
+`--out` does not select checking input. An interrupted broad test command is not
+a completed checkpoint.
 
 When changing `State` or its inline storage, also run `cargo test --locked -p
 kessel --test state_boundaries`. Library tests do not execute that integration
@@ -298,6 +308,7 @@ additional recordings. Cases without reference evidence remain unassessed.
 ## Semantic boundaries worth checking
 
 - Arena-query callback `card` is the iterated unit; `context.target` stays the outer chosen target. Test with differing powers and mixed ground/space arenas.
+- Distinguish queued construction, display and child execution. A later modal menu can display after an earlier effect resolves while its annotations were already computed before that effect. Witness annotation values and live child target legality separately; display order does not establish evaluation time.
 - Preserve query evaluation time as well as value and scope. A list, count, or predicate result saved during setup or an earlier callback is a snapshot; lowering it to a later live query changes the program. Reject unsupported cross-callback captures, including transitive aliases and captured controller receivers, while preserving locals evaluated inside the executing callback. Test rejection boundaries and compare every previously converted complete card entry after adding the guard.
 - Phase expiry must select the complete lethal set before defeating any member; removing an aura source during incremental selection can incorrectly save another unit. Assert both deaths when phase HP bonuses expire under Snoke.
 - Nested `selectCard` optionality, cancellation and no-target behavior have their own engine prompt protocol. Compare complete canonical action sets, including button arguments and labels. Selector feasibility and event resolution can use different must-change-state modes: an exhausted unit may remain selectable even though its exhaustion event will fail and its `ifYouDo` continuation will not run. Witness the selected-but-ineffective branch as well as no eligible targets. Named resolvers have a separate payment boundary: available descriptors can select before event costs, while the first missing descriptor can delay later targeting until after payment. Voluntarily declining available targets need not produce the same confirmation as having no targets initially. Include the entering unit when constructing When Played target domains; filtering staged units alone cannot establish that a resolver is empty.
@@ -336,7 +347,10 @@ additional recordings. Cases without reference evidence remain unassessed.
 Before reusing a saved command, identify every path it can write, including
 outputs selected by environment variables or inline scripts. Give receipts and
 generated outputs fresh locations; retain historical corpus and prepared paths
-as read-only inputs.
+as read-only inputs. Give native debug dumps and other diagnostic writers a new
+attempt directory too, even when their per-case filenames are deterministic. Use
+create-new or exclusive-write guards so replaying a failed case cannot overwrite
+its earlier state; do not claim reproduced bytes are the lost original bytes.
 
 Before the first corpus import or integration mutation, validate every selected
 packet-bound independent review and all publication constraints for the complete

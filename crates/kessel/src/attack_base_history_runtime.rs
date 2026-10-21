@@ -39,6 +39,27 @@ impl Engine {
   s.attack_base_damage=sum;s.attack_flags.set_record_exists();Ok(())
  }
 
+ /// Shared possible registration MULTISET. Capacity planning never collapses
+ /// copied occurrences or drops sources merely because damage may defeat them.
+ pub(in crate::simulator) fn attack_base_end_potential(&self,s:&State,attacker:CardId,include_local:bool)->Result<Vec<(CardId,u16)>,String> {
+  let global=|p:u16|matches!(self.program(p).condition.as_ref(),Some(Expr::AttackBaseQuery{query:Query::FriendlyAttackerHasBaseRecord}));
+  let mut potential=vec![];
+  if include_local&&self.in_arena(s,attacker) {
+   for p in self.card_programs(s,attacker).iter().copied().chain(self.support_programs(s,attacker)) {
+    if self.program(p).trigger=="whenAttackEnds"&&!global(p) {
+     if self.program(p).condition.is_some() {return Err("conditional attack-end capture requires the closed base-record registration".into());}
+     potential.push((attacker,p));
+    }
+   }
+  }
+  for source in self.arena_units(s) {
+   for p in self.card_programs(s,source).iter().copied().chain(self.support_programs(s,source)) {
+    if self.program(p).trigger=="whenAttackEnds"&&global(p) {potential.push((source,p));}
+   }
+  }
+  Ok(potential)
+ }
+
  /// The closed conditional registration can match at either emitter epoch.
  /// Between these two epochs this combat owner performs damage/Shield removal
  /// and queues observers; it does not execute an ability or enter a unit. Thus
@@ -48,20 +69,7 @@ impl Engine {
   if !s.attack_flags.enabled()||s.attack_source==0 {return Ok(());}
   if post&&s.attack_flags.post_captured()||!post&&s.attack_flags.end_captured() {return Ok(());}
   let global=|p:u16|matches!(self.program(p).condition.as_ref(),Some(Expr::AttackBaseQuery{query:Query::FriendlyAttackerHasBaseRecord}));
-  let mut potential=vec![];
-  if !post&&self.in_arena(s,s.attack_source) {
-   for p in self.card_programs(s,s.attack_source).iter().copied().chain(self.support_programs(s,s.attack_source)) {
-    if self.program(p).trigger=="whenAttackEnds"&&!global(p) {
-     if self.program(p).condition.is_some() {return Err("conditional attack-end capture requires the closed base-record registration".into());}
-     potential.push((s.attack_source,p));
-    }
-   }
-  }
-  for source in self.arena_units(s) {
-   for p in self.card_programs(s,source).iter().copied().chain(self.support_programs(s,source)) {
-    if self.program(p).trigger=="whenAttackEnds"&&global(p) {potential.push((source,p));}
-   }
-  }
+  let potential=self.attack_base_end_potential(s,s.attack_source,!post)?;
   if !post {
    // Reserve the full possible post-handler union as well as the existing
    // base-damage and Advantage listeners sharing this physical event window.

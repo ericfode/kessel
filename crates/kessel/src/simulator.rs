@@ -945,6 +945,7 @@ impl Engine {
                 } else {
                     let source = t.source;
                     self.phase_preflight_attack(&t,source,id)?;
+                    self.preflight_attack_allocation(&t,source,id)?;
                     t.target = id;
                     t.card_mut(source).exhausted = true;
                     // The attack cost precedes late effect application; late
