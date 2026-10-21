@@ -58,6 +58,10 @@ marker hashes the pinned fetch scripts and data version, not the card contents.
 Use the generated directory through `compiler/load-catalog.js` or actual `compileCatalog` output for strict full-entry profiles and portable tests; do not assume a legacy `catalog.json` exists.
 `compiler/generated/cards.json` alone omits fields such as `diagnostics` stored in separate shards and cannot serve as a full-entry equality fixture.
 Keep profiles complete and unknown fields rejected; never strip candidate fields or enrich entries to match fixtures.
+Run whole-source family guards before any recognized-family early return, while preserving
+existing bounded inspection checks that precede admission. Classify nested limits by their
+proved family role; a cost-adjuster limit is not automatically a round-trigger limit.
+Exercise preceding oversized-input and unrelated-profile rejections after adding a guard.
 
 ## Automatic pipeline first
 
@@ -204,6 +208,15 @@ Before advancing a planned play, observe its actual play event, physical source 
 
 If source inspection disproves an expectation, document the correction in review;
 do not weaken assertions to match implementation output.
+
+Return each case's declared coverage obligation IDs only after its positive and interaction
+assertions, settled tasks and terminal drainage succeed. Assert exact returned ID equality
+in real fixture tests, including a nonempty declaration. Check the normal pipeline's formal
+coverage counters: matched traces do not close obligations missing their witness links.
+
+Shared prepared-effect helpers also serve standalone paths with no active ability program.
+Before indexing a program or subtracting its one-based identifier, handle that boundary
+explicitly and exercise the existing standalone entry point with a real resolved effect.
 
 Run `kessel:reference -- index` in Holocron (it rewrites this checkout's
 `cards/reference/cases.json` and `cards/behaviors.json`). Before accepting those

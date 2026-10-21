@@ -3328,6 +3328,45 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "2299349302",
+      "internalName": "queen-soruna#willing-to-fight",
+      "keywords": [],
+      "power": 5,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "ASH_132",
+      "setCodes": [
+        {
+          "number": 132,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 132,
+        "set": "ASH"
+      },
+      "subtitle": "Willing to Fight",
+      "text": "When Played/On Attack: You may reveal a unit from your hand. If you do, deal 3 damage to a unit with the same cost as the revealed unit.",
+      "title": "Queen Soruna",
+      "traits": [
+        "naboo",
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "aspects": [
         "command"
       ],
@@ -4009,6 +4048,44 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "8814113279",
+      "internalName": "reckless-sacrifice",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "ASH_163",
+      "setCodes": [
+        {
+          "number": 163,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 163,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Discard a unit from your hand. Deal 5 damage to a unit that costs more than the discarded card.",
+      "title": "Reckless Sacrifice",
+      "traits": [
+        "gambit"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -5855,6 +5932,43 @@
       "unique": false,
       "upgradeHp": 1,
       "upgradePower": 2
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6089557572",
+      "internalName": "diplomatic-pageantry",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_231",
+      "setCodes": [
+        {
+          "number": 231,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 231,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Exhaust a friendly unit and an enemy unit. If you do, give 2 Advantage tokens to that friendly unit.",
+      "title": "Diplomatic Pageantry",
+      "traits": [
+        "law"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "aspects": [

@@ -64,6 +64,12 @@ npm run wasm:pack && npm run wasm:pack:check
 Card browsing: `npm run cards -- summary`, `npm run cards -- show TWI_124`,
 `npm run cards:reference -- verify`, `npm run cards:reference -- list --card TWI_124`.
 
+Configure the Engine before creating or loading a position. Keep its compiled definitions
+and each existing physical card's definition mapping fixed for that position, its clones
+and its checkpoints. These fields are public in Rust; live configuration changes require
+a rebuilt Engine and fresh positions. This also keeps compiled programs and search hashes
+consistent with the card data.
+
 Ryder Azadi and Regional Governor support compulsory card naming and opponent Play restrictions
 while the source remains in play. Naming uses the compiler manifest’s ordered, reviewed
 `playableCardTitles` registry, including titles outside the admitted pool. Hosts may configure

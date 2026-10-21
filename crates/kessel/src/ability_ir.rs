@@ -1642,6 +1642,7 @@ pub enum Instruction {
     /// Internal instruction, installed only after the complete raw naming proof.
     NameOpponentPlay,
     /// Closed number binding and sequential unadjusted-payment instructions.
+    HandCost { reveal: bool, stage: u8 },
     ChooseNumber,
     PayUnadjustedSelectedResources,
     GiveSelectedExperience,
@@ -1661,12 +1662,14 @@ pub enum Instruction {
     Group(Effect),
     /// Independent named selectors prepare before commitment and share one event window.
     NamedGroup(Effect),
+    /// Closed two-binding exhaust window; its LAST original event gates the continuation.
+    NamedExhaustContingent(Effect),
     /// Independent mandatory selectors with separate prompt actors; original actor owns commitment.
     NamedChooserGroup { effect: Effect, choosers: Vec<NamedChooser> },
 }
 impl Instruction {
-    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedChooserGroup{effect:e,..}|Self::Apply(e @ Effect::DistributeDamage{..})=>Some(e),_=>None}}
-    pub fn is_named_group(&self)->bool {matches!(self,Self::NamedGroup(_)|Self::NamedChooserGroup{..})}
+    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedExhaustContingent(e)|Self::NamedChooserGroup{effect:e,..}|Self::Apply(e @ Effect::DistributeDamage{..})=>Some(e),_=>None}}
+    pub fn is_named_group(&self)->bool {matches!(self,Self::NamedGroup(_)|Self::NamedExhaustContingent(_)|Self::NamedChooserGroup{..})}
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -2043,12 +2046,13 @@ impl Program {
                 Instruction::Conditional { condition, .. } => visit(condition),
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
-                Instruction::NamedGroup(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::NamedGroup(_) | Instruction::NamedExhaustContingent(_) | Instruction::NamedChooserGroup { .. } => {}
+                Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if crate::named_exhaust_contingent_contract::typed_marker(ability) {return Err("named exhaust continuation requires complete raw source proof".into());}
         if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="query"&&v["name"]==crate::defeat_token_creation_contract::QUERY) {return Err("captured defeat token creation requires complete raw source proof".into());}
         if crate::round_limit_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("registration limits require complete closed source proof before lowering".into());}
         if crate::exhausted_live_count_contract::typed_marker(ability)&&!crate::exhausted_live_count_contract::registration(ability){return Err("exhausted count requires complete exact registration".into());}
@@ -3393,12 +3397,16 @@ impl Catalogue {
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
                 // This complete raw envelope must precede every family's early return.
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let named_exhaust=crate::named_exhaust_contingent_contract::prepare(entry)?;
+                crate::captured_hand_cost_contract::reject_printed_override(entry)?;
+                let hand_cost=crate::captured_hand_cost_contract::prepare(entry)?;
                 let exhausted=crate::exhausted_live_count_contract::prepare(entry)?;
                 let defeat_tokens=crate::defeat_token_creation_contract::prepare(entry,value)?;
                 let round=crate::round_limit_contract::prepare(entry)?;
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if named_exhaust {crate::named_exhaust_contingent_contract::dependencies(value)?;let program=crate::named_exhaust_contingent_contract::compiled()?;let id=crate::named_exhaust_contingent_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(sides)=exhausted {return crate::exhausted_live_count_contract::compile(&sides,catalogue.programs.len());}
                 if let Some(program)=defeat_tokens {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(round)=round {return round.compile(catalogue.programs.len());}
@@ -3415,6 +3423,7 @@ impl Catalogue {
                 let mut executor_entry;
                 let entry=if let Some(abilities)=executor_upgrade_count {executor_entry=entry.clone();executor_entry["abilities"]=abilities;&executor_entry}else{entry};
                 crate::piloting_lifecycle::reject_catalogue_entry(entry,value)?;
+                if let Some(reveal)=hand_cost {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;let (ids,mut programs)=crate::captured_hand_cost_contract::programs(entry,reveal,id)?;for p in &mut programs {p.executable=crate::program_backend(&serde_json::to_vec(p).map_err(|e|e.to_string())?);}return Ok((ids,programs));}
                 if let Some(program)=collective {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok(crate::collective_trigger_contract::programs(program,id));}
                 if let Some(mut program)=crate::variable_payment_contract::prepare(entry)? {
                     program.executable=crate::program_backend(&serde_json::to_vec(&program).map_err(|e|e.to_string())?);

@@ -85,6 +85,17 @@ fn group_ops(effect: &Effect) -> Vec<GroupOp<'_>> {
 }
 
 impl Engine {
+    /// This exact instruction owns Selection as a sparse pair until the parent
+    /// group ends. Group context/stack retain normal selection scopes separately.
+    pub(super) fn capture_named_exhaust_binding(&self,s:&mut State,selected:Selection)->Result<(),String> {
+        let Instruction::NamedExhaustContingent(effect)=&self.program(s.ability_program-1).instructions[s.ability_pc as usize] else{return Err("named binding requires its closed instruction".into());};
+        if selected.len!=1||selected.ids[0]==0||selected.ids[0] as usize>=MAX_CARDS {return Err("named exhaust requires one checked physical selection".into());}
+        let ops=group_ops(effect);let at=s.event_group.pc as usize;
+        if !matches!(ops.get(at),Some(GroupOp::Select(..))) {return Err("named exhaust binding is outside its selector".into());}
+        let index=ops[..at].iter().filter(|op|matches!(op,GroupOp::Select(..))).count();
+        if index>=2 {return Err("named exhaust binding exceeds source pair".into());}
+        s.ability_selection.ids[index]=selected.ids[0];s.ability_selection.len=2;Ok(())
+    }
     pub(super) fn capture_discarded_selection(&self, s: &State, effect: &Effect) -> Selection {
         let ops = group_ops(effect);
         let mut out = Selection::default();
@@ -556,6 +567,7 @@ impl Engine {
         // Generation can read the preceding step's numeric event context.
         // Reset the new group's result only after those values are captured.
         s.ability_result=0;s.ability_succeeded=false;
+        let named_exhaust=s.ability_program.checked_sub(1).and_then(|p| self.program(p).instructions.get(s.ability_pc as usize)).is_some_and(|i| matches!(i, Instruction::NamedExhaustContingent(_)));
         let mut events=StepEventResult::for_state(s);
         s.event_group.resolving=true;
         // Attachment, unit-entry and draw-fatigue contingents retain record order
@@ -594,7 +606,7 @@ impl Engine {
                         if contingent {self.apply_draw_fatigue(s,draw.base,draw.fatigue,&listeners)?;continue;}
                         let (amount,resolved)=self.apply_scalar_effect_observed(s,effect,self.effect_targets(s,target),draw.requested,None,&listeners)?;
                         if resolved {collective_resolved.push(CollectiveEvent::CardsDrawn(s.card(draw.base).owner));}
-                        s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;continue;
+                        s.ability_result=s.ability_result.saturating_add(amount);if named_exhaust {s.ability_succeeded=resolved;}else{s.ability_succeeded|=resolved;}continue;
                     }
                     Effect::CreateTokenUnit {..}=> {
                         s.card_mut(r.token).set_hidden_qualified(true);self.add_arena(s,r.token)?;s.phase_history.entered(s.card(r.token).owner,r.token);
@@ -607,6 +619,9 @@ impl Engine {
                     }
                     _=>{},
                 }
+                // Failed original events remain the last parent event for this exact
+                // contingency. Do not let an earlier successful exhaust survive it.
+                if named_exhaust {s.ability_succeeded=false;}
                 if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base") {continue;}
                 let damage=matches!(effect,Effect::Damage {..});
                 if r.token!=0 {
@@ -640,7 +655,7 @@ impl Engine {
                 events.damage_dealt=events.damage_dealt.checked_add(s.event_result.damage_dealt).ok_or("actual damage result exceeds capacity")?;
                 for p in 0..2 {events.defeated_units[p]=events.defeated_units[p].checked_add(s.event_result.defeated_units[p]).ok_or("defeat result exceeds capacity")?;}
                 if damage {observations.observe(self,s,r.target,amount);}
-                s.ability_result=s.ability_result.saturating_add(amount);s.ability_succeeded|=resolved;
+                s.ability_result=s.ability_result.saturating_add(amount);if named_exhaust {s.ability_succeeded=resolved;}else{s.ability_succeeded|=resolved;}
             }
         }
         self.capture_resolved_collective_window(s,&collective_before,collective_start,&collective_resolved)?;

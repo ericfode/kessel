@@ -76,6 +76,8 @@ pub struct Engine {
     pub definitions: Vec<Definition>,
     by_code: HashMap<String, u16>,
     shield_def: u16,
+    /// Configuration-time full-definition fast path; assumes unchanged Engine configuration.
+    hand_cost_all_units_costed: bool,
     experience_def: Option<u16>,
     weakness_def: Option<u16>,
     advantage_def: Option<u16>,
@@ -265,6 +267,7 @@ impl Engine {
         }
         Ok(Self {
             pool_hash: String::new(),
+            hand_cost_all_units_costed: definitions.iter().all(|d| !(d.info.is("unit")||d.info.is("leader"))||d.info.cost.is_some()),
             definitions,
             by_code,
             shield_def: shield_def.ok_or("pool must include TOKEN_SHIELD")?,
@@ -1781,7 +1784,9 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("capturedHandCostPending").is_some() {return Err("pending physical hand-card cost cannot be imported as action window".into());}
         if v.get("numberSelectionPending").is_some() {return Err("pending number binding cannot be imported as an action window".into());}
+        if v.get("namedExhaustPending").is_some() {return Err("pending named exhaust bindings cannot be imported as an action window".into());}
         if v.get("defeatCausePending").is_some() {return Err("pending captured defeat cause cannot be imported as an action window".into());}
         if v.get("regroupStartPending").is_some() {return Err("pending regroup-start triggers cannot be imported as an action window".into());}
         if v.get("namedPlayPending").is_some() {return Err("pending card naming cannot be imported as an action window".into());}
@@ -2037,12 +2042,15 @@ impl Engine {
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         self.snapshot_round_limit_state(s,&mut value);
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
+        if (s.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(s.ability_program-1)))||s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(f.context.ability_program-1))) {value["namedExhaustPending"]=json!(true);}
         if (s.ability_program!=0&&(crate::defeat_cause::requires(self.program(s.ability_program-1))||crate::defeat_token_creation_contract::requires(self.program(s.ability_program-1)))) || [&s.death_pending,&s.death_window].into_iter().chain(s.death_frames[..s.death_depth as usize].iter().map(|f|&f.window)).any(|w|w.entries[..w.len as usize].iter().any(|e|e.keyword==0&&(crate::defeat_cause::requires(self.program(e.program))||crate::defeat_token_creation_contract::requires(self.program(e.program))))) {value["defeatCausePending"]=json!(true);}
         if s.support_state_explicit||self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
+        let hand_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::HandCost{..}));
+        if hand_program(s.ability_program)||s.captured_hand_card.id()!=0||s.death_frames[..s.death_depth as usize].iter().any(|f|hand_program(f.context.ability_program)||f.context.captured_hand_card.id()!=0)||s.support.pending&&hand_program(s.support.context.ability_program) {value["capturedHandCostPending"]=json!(true);}
         let number_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ChooseNumber));
         if number_program(s.ability_program) || s.decision==Decision::AbilityNumber || s.selected_number!=0 || s.death_frames[..s.death_depth as usize].iter().any(|f|number_program(f.context.ability_program)||f.context.selected_number!=0||f.context.decision==Decision::AbilityNumber) || s.support.pending&&number_program(s.support.context.ability_program) {value["numberSelectionPending"]=json!(true);}
         self.write_snapshot_evidence(s,&mut value);

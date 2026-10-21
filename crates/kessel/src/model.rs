@@ -1,3 +1,4 @@
+pub use crate::captured_hand_cost_contract::PhysicalHandCard;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -602,6 +603,8 @@ pub struct ResolutionContext {
     pub ability_target: CardId,
     /// Dedicated selected integer: zero absent, 1..=7 encodes choice 0..=6.
     pub selected_number: u8,
+    /// Physical hand-card event binding, independent of subsequent chosen target.
+    pub captured_hand_card: PhysicalHandCard,
     pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
     pub event_result: StepEventResult,
@@ -619,8 +622,8 @@ pub struct ResolutionContext {
     pub resource_cost_locked: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, selected_number:s.selected_number,maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,round_limit:s.round_limit,entry_event_card:s.entry_event_card,last_known_source:s.last_known_source,last_known_power:s.last_known_power,defeat_cause:s.defeat_cause,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.selected_number=self.selected_number;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.round_limit=self.round_limit;s.entry_event_card=self.entry_event_card;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.defeat_cause=self.defeat_cause;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, selected_number:s.selected_number,captured_hand_card:s.captured_hand_card,maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,round_limit:s.round_limit,entry_event_card:s.entry_event_card,last_known_source:s.last_known_source,last_known_power:s.last_known_power,defeat_cause:s.defeat_cause,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.selected_number=self.selected_number;s.captured_hand_card=self.captured_hand_card;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.round_limit=self.round_limit;s.entry_event_card=self.entry_event_card;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.defeat_cause=self.defeat_cause;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -700,6 +703,8 @@ pub struct State {
     pub ability_target: CardId,
     /// Dedicated selected integer: zero absent, 1..=7 encodes choice 0..=6.
     pub selected_number: u8,
+    /// Physical hand-card event binding, independent of subsequent chosen target.
+    pub captured_hand_card: PhysicalHandCard,
     pub maximum_capture: MaximumCapture,
     pub ability_selection: Selection,
     pub event_group: EventGroupState,
@@ -764,6 +769,7 @@ impl Default for State {
             ability_pc: 0,
             ability_target: 0,
             selected_number:0,
+            captured_hand_card:Default::default(),
             maximum_capture:MaximumCapture::default(),
             ability_selection: Selection::default(),
             event_group: EventGroupState::default(),
@@ -856,6 +862,7 @@ impl State {
             if c.round_limit.raw()!=0 {put(0x524f554e44435458);put(c.round_limit.raw() as u64);}
             for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
+            if c.captured_hand_card.id()!=0 {put(0x48414e44434f5354);put(c.captured_hand_card.id() as u64);}
             if c.selected_number!=0 {put(0x4e554d42494e44);put(c.selected_number as u64);}
             if c.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(c.maximum_capture.power as u64);put(c.maximum_capture.sole as u64);put(c.maximum_capture.count as u64);}
             c.resource_payment.hash_values(put);
@@ -951,6 +958,7 @@ impl State {
         put(self.ability_target as u64);
         put(self.ability_selection.len as u64);
         for id in self.ability_selection.hash_ids() { put(id as u64); }
+        if self.captured_hand_card.id()!=0 {put(0x48414e44434f5354);put(self.captured_hand_card.id() as u64);}
         if self.selected_number!=0 {put(0x4e554d42494e44);put(self.selected_number as u64);}
         if self.maximum_capture!=MaximumCapture::default(){put(0x4d4158434150);put(self.maximum_capture.power as u64);put(self.maximum_capture.sole as u64);put(self.maximum_capture.count as u64);}
         group_values(&self.event_group,&mut put);

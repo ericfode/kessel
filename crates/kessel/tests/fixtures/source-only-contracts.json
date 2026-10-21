@@ -306,7 +306,7 @@
       "internalName": "source-boundary-3",
       "status": "supported"
     },
-    "runtimeRejection": "unknown field `body`"
+    "runtimeRejection": "captured hand-cost requires complete closed ordinary source and exact physical-card continuation"
   },
   {
     "name": "token-event-creation",
@@ -403,7 +403,7 @@
       "internalName": "source-boundary-5",
       "status": "supported"
     },
-    "runtimeRejection": "unknown variant `discardHandSystem`"
+    "runtimeRejection": "captured hand-cost requires complete closed ordinary source and exact physical-card continuation"
   },
   {
     "name": "selected-player",
