@@ -610,12 +610,8 @@ pub struct ResolutionContext {
     pub attack_source: CardId,
     pub attack_defender: CardId,
     /// Attack completion captured once; defeat tracks the original attacker even after re-entry.
-    pub attack_end_captured: bool,
-    pub attack_attacker_defeated: bool,
-    pub attack_attacker_departed: bool,
-    pub attack_defender_defeated: bool,
-    pub attack_defender_departed: bool,
-    pub attack_shield_opponent_first: bool,
+    pub attack_base_damage: u32,
+    pub attack_flags: crate::attack_base_history_state::AttackFlags,
     pub pending_triggers: u8,
     pub trigger_context: u8,
     pub pending_programs: u16,
@@ -644,8 +640,8 @@ pub struct ResolutionContext {
     pub resource_cost_locked: bool,
 }
 impl ResolutionContext {
-    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_end_captured:s.attack_end_captured,attack_attacker_defeated:s.attack_attacker_defeated,attack_attacker_departed:s.attack_attacker_departed,attack_defender_defeated:s.attack_defender_defeated,attack_defender_departed:s.attack_defender_departed, attack_shield_opponent_first:s.attack_shield_opponent_first, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, selected_number:s.selected_number,captured_hand_card:s.captured_hand_card,maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,round_limit:s.round_limit,entry_event_card:s.entry_event_card,last_known_source:s.last_known_source,last_known_power:s.last_known_power,defeat_cause:s.defeat_cause,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
-    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_end_captured=self.attack_end_captured;s.attack_attacker_defeated=self.attack_attacker_defeated;s.attack_attacker_departed=self.attack_attacker_departed;s.attack_defender_defeated=self.attack_defender_defeated;s.attack_defender_departed=self.attack_defender_departed; s.attack_shield_opponent_first=self.attack_shield_opponent_first; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.selected_number=self.selected_number;s.captured_hand_card=self.captured_hand_card;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.round_limit=self.round_limit;s.entry_event_card=self.entry_event_card;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.defeat_cause=self.defeat_cause;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
+    pub fn capture(s:&State)->Self { Self { active:s.active, decision:s.decision, source:s.source, target:s.target, ambush:s.ambush, after_attack_triggers:s.after_attack_triggers, attack_restore:s.attack_restore, attack_source:s.attack_source,attack_defender:s.attack_defender,attack_base_damage:s.attack_base_damage,attack_flags:s.attack_flags, pending_triggers:s.pending_triggers, trigger_context:s.trigger_context, pending_programs:s.pending_programs, after_attack_programs:s.after_attack_programs, ability_program:s.ability_program, ability_pc:s.ability_pc, ability_target:s.ability_target, selected_number:s.selected_number,captured_hand_card:s.captured_hand_card,maximum_capture:s.maximum_capture, ability_selection:s.ability_selection, event_result:s.event_result,round_limit:s.round_limit,entry_event_card:s.entry_event_card,last_known_source:s.last_known_source,last_known_power:s.last_known_power,defeat_cause:s.defeat_cause,ability_result:s.ability_result, ability_succeeded:s.ability_succeeded, ability_return:s.ability_return, ability_committed:s.ability_committed,resource_payment:s.resource_payment,resource_cost_index:s.resource_cost_index,resource_cost_locked:s.resource_cost_locked } }
+    pub fn restore(self,s:&mut State) { s.active=self.active; s.decision=self.decision; s.source=self.source; s.target=self.target; s.ambush=self.ambush; s.after_attack_triggers=self.after_attack_triggers; s.attack_restore=self.attack_restore; s.attack_source=self.attack_source;s.attack_defender=self.attack_defender;s.attack_base_damage=self.attack_base_damage;s.attack_flags=self.attack_flags; s.pending_triggers=self.pending_triggers; s.trigger_context=self.trigger_context; s.pending_programs=self.pending_programs; s.after_attack_programs=self.after_attack_programs; s.ability_program=self.ability_program; s.ability_pc=self.ability_pc; s.ability_target=self.ability_target;s.selected_number=self.selected_number;s.captured_hand_card=self.captured_hand_card;s.maximum_capture=self.maximum_capture; s.ability_selection=self.ability_selection; s.event_result=self.event_result;s.round_limit=self.round_limit;s.entry_event_card=self.entry_event_card;s.last_known_source=self.last_known_source;s.last_known_power=self.last_known_power;s.defeat_cause=self.defeat_cause;s.ability_result=self.ability_result; s.ability_succeeded=self.ability_succeeded; s.ability_return=self.ability_return; s.ability_committed=self.ability_committed;s.resource_payment=self.resource_payment;s.resource_cost_index=self.resource_cost_index;s.resource_cost_locked=self.resource_cost_locked; }
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DeathFrame { pub context: ResolutionContext, pub window: DeathWindow, pub resume: u8 }
@@ -661,6 +657,7 @@ pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub attack_base_history:crate::attack_base_history_state::History,
     pub player_phase:crate::player_phase_state::Ledger,
     pub round_limits:crate::round_limit_state::Ledger,
     /// Optional explicit wire evidence when the selected pool does not mandate it.
@@ -710,12 +707,8 @@ pub struct State {
     pub attack_source: CardId,
     pub attack_defender: CardId,
     /// Attack completion captured once; defeat tracks the original attacker even after re-entry.
-    pub attack_end_captured: bool,
-    pub attack_attacker_defeated: bool,
-    pub attack_attacker_departed: bool,
-    pub attack_defender_defeated: bool,
-    pub attack_defender_departed: bool,
-    pub attack_shield_opponent_first: bool,
+    pub attack_base_damage: u32,
+    pub attack_flags: crate::attack_base_history_state::AttackFlags,
     pub pending_triggers: u8,
     pub trigger_context: u8,
     pub pending_programs: u16,
@@ -755,7 +748,7 @@ pub struct State {
 }
 impl Default for State {
     fn default() -> Self {
-        Self {
+        Self {attack_base_history:Default::default(),
             player_phase:crate::player_phase_state::Ledger::default(),round_limits:crate::round_limit_state::Ledger::default(),
             round_limit_wire_present:false,
             named_play:NamedPlayState::default(),
@@ -782,8 +775,7 @@ impl Default for State {
             enter_smuggle: false,
             after_attack_triggers: 0,
             attack_restore: 0,
-            attack_source: 0,attack_defender:0,attack_end_captured:false,attack_attacker_defeated:false,attack_attacker_departed:false,attack_defender_defeated:false,attack_defender_departed:false,
-            attack_shield_opponent_first: false,
+            attack_source: 0,attack_defender:0,attack_base_damage:0,attack_flags:Default::default(),
             pending_triggers: 0,
             trigger_context: 0,
             pending_programs: 0,
@@ -878,12 +870,13 @@ impl State {
         }
         fn cause_values(c:crate::defeat_cause::DefeatCause,put:&mut impl FnMut(u64)) {if c!=crate::defeat_cause::DefeatCause::Unknown {put(0x4445464341555345);put(c as u64);}}
         fn context_values(c:&ResolutionContext,put:&mut impl FnMut(u64)) {
-            if c.attack_end_captured || c.attack_attacker_defeated || c.attack_attacker_departed || c.attack_defender_defeated || c.attack_defender_departed {put(0x41545441434b454e);put(c.attack_end_captured as u64);put(c.attack_attacker_defeated as u64);put(c.attack_attacker_departed as u64);put(c.attack_defender_defeated as u64);put(c.attack_defender_departed as u64);}
+            if c.attack_base_damage!=0||c.attack_flags.history_bits()!=0 {put(0x4154544241534546);put(c.attack_base_damage as u64);put(c.attack_flags.history_bits() as u64);}
+            if c.attack_flags.end_captured() || c.attack_flags.attacker_defeated() || c.attack_flags.attacker_departed() || c.attack_flags.defender_defeated() || c.attack_flags.defender_departed() {put(0x41545441434b454e);put(c.attack_flags.end_captured() as u64);put(c.attack_flags.attacker_defeated() as u64);put(c.attack_flags.attacker_departed() as u64);put(c.attack_flags.defender_defeated() as u64);put(c.attack_flags.defender_departed() as u64);}
             result_values(c.event_result,c.last_known_source,c.last_known_power,put);
             if c.entry_event_card!=0 {put(0x454e545259434152);put(c.entry_event_card as u64);}
             cause_values(c.defeat_cause,put);
             if c.round_limit.raw()!=0 {put(0x524f554e44435458);put(c.round_limit.raw() as u64);}
-            for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_shield_opponent_first as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
+            for v in [c.active.index() as u64,c.decision as u64,c.source as u64,c.target as u64,c.ambush as u64,c.after_attack_triggers as u64,c.attack_restore as u64,c.attack_source as u64,c.attack_defender as u64,c.attack_flags.shield_opponent_first() as u64,c.pending_triggers as u64,c.trigger_context as u64,c.pending_programs as u64,c.after_attack_programs as u64,c.ability_program as u64,c.ability_pc as u64,c.ability_target as u64,c.ability_result as u64,c.ability_succeeded as u64,c.ability_return as u64,c.ability_committed as u64,c.ability_selection.len as u64] {put(v);}
             for id in c.ability_selection.hash_ids() {put(id as u64);}
             if c.captured_hand_card.id()!=0 {put(0x48414e44434f5354);put(c.captured_hand_card.id() as u64);}
             if c.selected_number!=0 {put(0x4e554d42494e44);put(c.selected_number as u64);}
@@ -918,7 +911,9 @@ impl State {
             for (i,e) in w.entries.iter().enumerate() {if e.event_card!=0 {put(0x454e545259434150);put(i as u64);put(e.event_card.get() as u64);}}
             for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor.get() as u64);}}
         }
-        if self.attack_end_captured || self.attack_attacker_defeated || self.attack_attacker_departed || self.attack_defender_defeated || self.attack_defender_departed {put(0x41545441434b454e);put(self.attack_end_captured as u64);put(self.attack_attacker_defeated as u64);put(self.attack_attacker_departed as u64);put(self.attack_defender_defeated as u64);put(self.attack_defender_departed as u64);}
+        if self.attack_base_history.bits()!=0 {put(0x4154544241534548);put(self.attack_base_history.bits() as u64);}
+        if self.attack_base_damage!=0||self.attack_flags.history_bits()!=0 {put(0x4154544241534546);put(self.attack_base_damage as u64);put(self.attack_flags.history_bits() as u64);}
+        if self.attack_flags.end_captured() || self.attack_flags.attacker_defeated() || self.attack_flags.attacker_departed() || self.attack_flags.defender_defeated() || self.attack_flags.defender_departed() {put(0x41545441434b454e);put(self.attack_flags.end_captured() as u64);put(self.attack_flags.attacker_defeated() as u64);put(self.attack_flags.attacker_departed() as u64);put(self.attack_flags.defender_defeated() as u64);put(self.attack_flags.defender_departed() as u64);}
         result_values(self.event_result,self.last_known_source,self.last_known_power,&mut put);cause_values(self.defeat_cause,&mut put);
         self.round_limits.hash_values(&mut put);
         if self.round_limit.raw()!=0 {put(0x524f554e44435458);put(self.round_limit.raw() as u64);}
@@ -970,7 +965,7 @@ impl State {
         put(self.after_attack_triggers as u64);
         put(self.attack_restore as u64);
         put(self.attack_source as u64);put(self.attack_defender as u64);
-        put(self.attack_shield_opponent_first as u64);
+        put(self.attack_flags.shield_opponent_first() as u64);
         put(self.pending_triggers as u64);
         put(self.disabled_ongoing_source as u64);
         put(self.trigger_context as u64);

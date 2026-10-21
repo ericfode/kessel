@@ -30,6 +30,8 @@ impl Engine {
         self.damage(s, target, attack);
         if excess > 0 {
             let base = s.player(s.card(target).owner).base;
+            let applied=excess.min(self.hp(s,base).saturating_sub(s.card(base).damage));
+            self.record_attack_base_damage(s,applied)?;
             self.damage(s, base, excess);
             self.capture_blade_base_damage_event(s,&listeners,base,true)?;
         }
@@ -84,6 +86,7 @@ impl Engine {
                 dead.push((id, DefeatCause::FrameworkEffect));
             }
         }
+        self.capture_attack_base_end(s,true)?;
         self.capture_advantage_end(s)?;
         self.defeat_events(s, &dead)?;
         self.sweep_stat_defeats(s)?;

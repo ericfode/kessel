@@ -1333,8 +1333,8 @@ impl Engine {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
     pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
-        if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_attacker_departed}else{s.attack_defender_departed};}
-        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_attacker_departed}else{f.context.attack_defender_departed})
+        if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_flags.attacker_departed()}else{s.attack_flags.defender_departed()};}
+        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_flags.attacker_departed()}else{f.context.attack_flags.defender_departed()})
     }
     pub(super) fn is_attacking(&self,s:&State,id:CardId)->bool {self.in_arena(s,id)&&id==self.active_attack_pair(s,id).0&&!self.attack_participant_departed(s,id)}
     fn is_defending(&self,s:&State,id:CardId)->bool {(self.in_arena(s,id)||self.def(s,id).info.is("base"))&&id==self.active_attack_pair(s,id).1&&!self.attack_participant_departed(s,id)}
@@ -1437,7 +1437,8 @@ impl Engine {
                     _=>unreachable!("history list requires admitted count projection"),
                 };Eval::Number(i64::from(count))
             },
-            Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
+            Expr::AttackBaseQuery{query}=>self.attack_base_query(s,source,*query),
+            Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_flags.defender_defeated()),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["abilityPlayer"]=>Some(s.active),Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
@@ -2067,7 +2068,7 @@ impl Engine {
     /// forceteki builds a triggered ability's target resolvers before it sets the ability's change-required mode.
     /// Resolving it still requires a change (begin_program), so such a trigger can be ordered and then do nothing.
     fn trigger_has_effect(&self, s: &State, source: CardId, p: u16) -> bool {
-        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return false;}
+        if self.program(p).attacker_must_survive && s.attack_flags.attacker_defeated() {return false;}
         match self.program(p).instructions.first() {
             Some(Instruction::Select(_)) => self.program_has_effect_mode(s, source, p, false),
             _ => self.program_has_effect(s, source, p),
@@ -2348,7 +2349,7 @@ impl Engine {
         s.ability_return = return_to.raw();
         s.ability_committed = return_to != ProgramContinuation::Finish;
         if round_limited&&!s.round_limits.available(s.round_limit,s.active.index() as u8)? {return self.end_program(s);}
-        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
+        if self.program(p).attacker_must_survive && s.attack_flags.attacker_defeated() {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
                 self.program(p).instructions.first(),
@@ -3772,20 +3773,21 @@ impl Engine {
     pub(super) fn mark_attack_lifecycle(&self,s:&mut State,id:CardId,defeat:bool) {
         let tracked_program=|p:u16| {let program=self.program(p);program.trigger=="whenAttackEnds" || program.instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::attack_lifetime_contract::modifier(e)||crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)))};
         let tracked=|source| source!=0 && (self.card_programs(s,source).iter().copied().any(tracked_program) || self.support_programs(s,source).iter().copied().any(tracked_program));
-        let current=s.attack_end_captured || tracked(s.attack_source);
-        let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && (s.death_frames[i].context.attack_end_captured || tracked(s.death_frames[i].context.attack_source)));
-        fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,source_gone:&mut bool,source_dead:&mut bool,defender_gone:&mut bool,defender_dead:&mut bool) {
-            if source==id && !*source_gone {if defeat {*source_dead=true;}else{*source_gone=true;}}
-            if defender==id && !*defender_gone {if defeat {*defender_dead=true;}else{*defender_gone=true;}}
+        let current=s.attack_flags.end_captured() || tracked(s.attack_source);
+        let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && (s.death_frames[i].context.attack_flags.end_captured() || tracked(s.death_frames[i].context.attack_source)));
+        fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,flags:&mut crate::attack_base_history_state::AttackFlags) {
+            if source==id {flags.mark_departure(true,defeat);}
+            if defender==id {flags.mark_departure(false,defeat);}
         }
-        if current {mark(s.attack_source,s.attack_defender,id,defeat,&mut s.attack_attacker_departed,&mut s.attack_attacker_defeated,&mut s.attack_defender_departed,&mut s.attack_defender_defeated);}
-        for (i,frame) in s.death_frames[..s.death_depth as usize].iter_mut().enumerate() {if frames[i] {let c=&mut frame.context;mark(c.attack_source,c.attack_defender,id,defeat,&mut c.attack_attacker_departed,&mut c.attack_attacker_defeated,&mut c.attack_defender_departed,&mut c.attack_defender_defeated);}}
+        if current {mark(s.attack_source,s.attack_defender,id,defeat,&mut s.attack_flags);}
+        for (i,frame) in s.death_frames[..s.death_depth as usize].iter_mut().enumerate() {if frames[i] {let c=&mut frame.context;mark(c.attack_source,c.attack_defender,id,defeat,&mut c.attack_flags);}}
     }
     /// OnAttackEnd shares combat's event window with damage-driven defeats.
     /// EventWindow emits triggers before handlers. Capture before damage, then
     /// resolve survival against the original incarnation after all events settle.
     pub(super) fn capture_attack_end(&self,s:&mut State)->Result<(),String> {
-        if s.attack_end_captured || s.attack_source==0 {return Ok(());}
+        if s.attack_flags.enabled() {return self.capture_attack_base_end(s,false);}
+        if s.attack_flags.end_captured() || s.attack_source==0 {return Ok(());}
         let source=s.attack_source;
         let programs:Vec<_>=if self.in_arena(s,source) {self.card_programs(s,source).iter().copied().chain(self.support_programs(s,source)).filter(|p|self.program(*p).trigger=="whenAttackEnds").collect()}else{vec![]};
         if programs.is_empty() {return Ok(());}
@@ -3795,7 +3797,7 @@ impl Engine {
         if programs.iter().any(|p|self.program(*p).condition.is_some()) {return Err("conditional attack-end capture is not implemented".into());}
         if s.death_pending.len as usize+programs.len()>MAX_DEATH_TRIGGERS {return Err("attack-end trigger capacity exceeded (64)".into());}
         for program in programs {let n=s.death_pending.len as usize;s.death_pending.entries[n]=DeathTrigger {source,program,player:s.card(source).owner,..DeathTrigger::default()};s.death_pending.len+=1;}
-        s.attack_end_captured=true;
+        s.attack_flags.set_end_captured(true);
         Ok(())
     }
     /// The pinned UnitProperties listener registers tokens at postResolve.
@@ -4350,13 +4352,23 @@ impl Engine {
             } else if self.in_arena(s,s.source) && s.attack_defender!=0 {
                 // A still-legal defender can leave play before damage. The pinned
                 // attack retains it and sends full Overwhelm damage to its base.
+                let listeners=self.blade_base_damage_listeners(s)?;
+                // Reserve the complete pre/post listener union before this
+                // departure continuation can apply primary Overwhelm damage.
+                self.capture_attack_end(s)?;
                 if self.keyword_amount(s,s.source,"overwhelm")>0 {
                     let base=s.player(s.card(s.attack_defender).owner).base;
-                    let amount=self.power(s,s.source,true);
-                    let listeners=self.blade_base_damage_listeners(s)?;let resolved=amount>0 && s.card(base).shield==0;
+                    let amount=self.combat_damage(s,s.source,true);
+                    let resolved=amount>0 && s.card(base).shield==0;
+                    if resolved {
+                        let applied=amount.min(self.hp(s,base).saturating_sub(s.card(base).damage));
+                        self.record_attack_base_damage(s,applied)?;
+                    }
                     self.damage(s,base,amount);self.capture_blade_base_damage_event(s,&listeners,base,resolved)?;self.check_win(s);
                 }
-                self.capture_attack_end(s)?;
+                // Conditional global listeners see the resolved record before
+                // Advantage cleanup or physical defeat continuation, as in combat.
+                self.capture_attack_base_end(s,true)?;
                 self.capture_advantage_end(s)?;
                 self.combat_after_damage(s)
             } else {
@@ -4720,3 +4732,10 @@ mod modal_deck_movement_runtime;
 #[cfg(test)]
 #[path="modal_deck_movement_tests.rs"]
 mod modal_deck_movement_tests;
+
+#[path="attack_base_history_runtime.rs"]
+mod attack_base_history_runtime;
+
+#[cfg(test)]
+#[path="attack_base_history_tests.rs"]
+mod attack_base_history_tests;

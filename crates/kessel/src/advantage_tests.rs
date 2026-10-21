@@ -798,8 +798,8 @@ fn advantage_support_copied_rukh_trigger_survives_attacker_death_and_grant_clean
     assert!(pending.player(Seat::P1).discard.contains(a));
     assert!(pending.player(Seat::P2).discard.contains(d));
     assert_eq!(pending.support.len, 0);
-    assert!(pending.attack_attacker_defeated);
-    assert!(pending.attack_defender_defeated);
+    assert!(pending.attack_flags.attacker_defeated());
+    assert!(pending.attack_flags.defender_defeated());
     let target = button(&e, &pending, "You");
     assert_eq!(target.decision, Decision::AbilityTarget);
     let done = choose(&e, &target, donor);

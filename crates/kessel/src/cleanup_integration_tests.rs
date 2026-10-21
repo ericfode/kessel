@@ -283,7 +283,7 @@ fn action_context_reset_preserves_cancellation_completion_and_terminal_boundarie
         pending.attack_source = source;
         pending.attack_defender = target;
         pending.ambush = true;
-        pending.attack_shield_opponent_first = true;
+        pending.attack_flags.set_shield_opponent_first(true);
         pending.pending_triggers = 1;
         pending.trigger_context = 2;
         pending.pending_programs = 1;
@@ -300,12 +300,15 @@ fn action_context_reset_preserves_cancellation_completion_and_terminal_boundarie
         pending.decision = Decision::AbilityOptional;
         let mut cancelled = pending;
         e.cancel(&mut cancelled);
-        assert_eq!(cancelled, baseline, "cancel preserves actor, pass state, after-attack keywords and death provenance");
+        let mut expected_cancelled = baseline;
+        expected_cancelled.attack_restore = 0;
+        assert_eq!(cancelled, expected_cancelled, "cancel preserves actor, pass state, after-attack keywords and death provenance");
         let mut completed = pending;
         e.finish(&mut completed).unwrap();
         let mut expected = baseline;
         expected.prev_passed = false;
         expected.after_attack_triggers = 0;
+        expected.attack_restore = 0;
         expected.active = actor.other();
         expected.action_player = Some(actor.other());
         assert_eq!(completed, expected, "completion clears context then advances priority");

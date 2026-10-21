@@ -161,6 +161,8 @@ pub fn validate_state_with_catalogue(
             "nextCardId",
             "roundLimitState",
             "playerPhaseState",
+            "attackBaseHistory",
+            "attackBaseHistoryPending",
             "directUnitPlayCreditState",
             "playerPhasePending",
             "unitEntryStateVersion",

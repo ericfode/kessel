@@ -555,6 +555,48 @@
       "arena": "ground",
       "aspects": [
         "vigilance",
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "5557320306",
+      "internalName": "hera-syndulla#renegade-general",
+      "keywords": [],
+      "power": 3,
+      "rules": "“Combat damage” is only the damage dealt during the “End attack” step of an attack.\nWhen Attack Ends abilities trigger at the same time as units deal combat damage. Hera does not need to survive the attack in order to heal damage from your base.\n",
+      "setCode": "ASH_031",
+      "setCodes": [
+        {
+          "number": 31,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 31,
+        "set": "ASH"
+      },
+      "subtitle": "Renegade General",
+      "text": "When Attack Ends: If this unit dealt combat damage to a base, heal that much damage from your base.",
+      "title": "Hera Syndulla",
+      "traits": [
+        "new republic",
+        "twi'lek",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
         "aggression"
       ],
       "cost": 2,
@@ -3012,6 +3054,44 @@
       "deployBox": null,
       "epicAction": "",
       "hp": 3,
+      "id": "4885389871",
+      "internalName": "greef-karga#introductions-are-in-order",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_119",
+      "setCodes": [
+        {
+          "number": 119,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 119,
+        "set": "ASH"
+      },
+      "subtitle": "Introductions are in Order",
+      "text": "Action [1 resource, Exhaust]: If your base was attacked this phase, create a Mandalorian token.",
+      "title": "Greef Karga",
+      "traits": [
+        "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
       "id": "7767602903",
       "internalName": "warrior-of-clan-kryze",
       "keywords": [
@@ -3756,6 +3836,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3024525867",
+      "internalName": "vanes-snub-fighter#brash-and-proud",
+      "keywords": [],
+      "power": 2,
+      "rules": "When Attack Ends abilities trigger at the same time as units deal combat damage. The attacking unit doesn't need to survive in order to give an Advantage token, so long as it dealt combat damage to a base.\n“Combat damage” is only the damage dealt during the “End attack” step of an attack.\n",
+      "setCode": "ASH_144",
+      "setCodes": [
+        {
+          "number": 144,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 144,
+        "set": "ASH"
+      },
+      "subtitle": "Brash and Proud",
+      "text": "When a friendly unit's attack ends: If it dealt combat damage to a base, give an Advantage token to this unit.",
+      "title": "Vane's Snub Fighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

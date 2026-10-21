@@ -10,6 +10,8 @@ mod resource_payment_runtime;
 mod round_limit_wire;
 #[path="player_phase_runtime.rs"]
 mod player_phase_runtime;
+#[path="attack_base_history_wire.rs"]
+mod attack_base_history_wire;
 #[path="player_phase_wire.rs"]
 mod player_phase_wire;
 #[cfg(test)]
@@ -949,7 +951,8 @@ impl Engine {
                     // effects precede AttackFlow and its declaration windows.
                     self.install_conditional_attack(&mut t)?;
                     t.trigger_context = 2;
-                    t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
+                    t.attack_source = source;t.attack_defender=id;t.attack_flags.set_end_captured(false);t.attack_flags.set_attacker_defeated(false);t.attack_flags.set_attacker_departed(false);t.attack_flags.set_defender_defeated(false);t.attack_flags.set_defender_departed(false);
+                    self.start_attack_base_context(&mut t,source,id);
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
                     let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t)||self.round_limit_roster(&t)?.iter().any(|(_,_,r)|*r==crate::round_limit_contract::Registration::EnemyGroundAttackAtBase) {Some(t)}else{None};
@@ -1058,7 +1061,7 @@ impl Engine {
                 self.resolve_ordered_trigger(&mut t, index)?;
             }
             Decision::ShieldOrder => {
-                t.attack_shield_opponent_first=a.arg.as_ref().and_then(Value::as_u64)==Some(1);
+                t.attack_flags.set_shield_opponent_first(a.arg.as_ref().and_then(Value::as_u64)==Some(1));
                 t.set_trigger_context(TriggerContext::ShieldOrder);
                 self.combat(&mut t)?;
             }
@@ -1153,7 +1156,9 @@ impl Engine {
         let p = s.player_mut(s.card(id).owner);
         if space {p.space.push(id)?;}else{p.ground.push(id)?;}
         s.arena_unit_order[usize::from(space)].push(id)?;
-        s.registration_order.push(id)
+        s.registration_order.push(id)?;
+        self.attack_base_reentry(s,id);
+        Ok(())
     }
     fn use_leader(&self, s: &mut State) -> Result<(), String> {
         if self.catalogue.is_some() {
@@ -1171,7 +1176,8 @@ impl Engine {
     fn clear_action_context(&self, s: &mut State) {
         s.resource_payment=crate::resource_payment::ResourcePayment::default();s.resource_cost_index=0;s.resource_cost_locked=false;s.payment_group=EventGroupState::default();
         s.disclose=DiscloseState::default();
-        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
+        s.attack_restore=0;
+        s.attack_source=0;s.attack_defender=0;s.attack_base_damage=0;s.attack_flags.reset_history();s.attack_flags.set_end_captured(false);s.attack_flags.set_attacker_defeated(false);s.attack_flags.set_attacker_departed(false);s.attack_flags.set_defender_defeated(false);s.attack_flags.set_defender_departed(false);
         s.source = 0;
         s.target = 0;
         s.set_trigger_context(TriggerContext::Action);
@@ -1182,7 +1188,7 @@ impl Engine {
         s.ability_target = 0;
         s.selected_number=0;
         s.maximum_capture=MaximumCapture::default();
-        s.attack_shield_opponent_first=false;
+        s.attack_flags.set_shield_opponent_first(false);
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
         s.round_limit=crate::round_limit_state::Handle::NONE;
@@ -1377,7 +1383,7 @@ impl Engine {
                 0
             };
             if s.trigger_context==3 && s.card(source).shield!=0 && s.card(target).shield!=0 && attack>0 && defend>0 {
-                let (first,second)=if s.attack_shield_opponent_first { (target,source) } else { (source,target) };
+                let (first,second)=if s.attack_flags.shield_opponent_first() { (target,source) } else { (source,target) };
                 let (first_token,second_token)=self.combat_shield_contexts(s,first,second);
                 self.remove_group_shield(s,first,first_token); self.remove_group_shield(s,second,second_token);
             } else {
@@ -1386,6 +1392,8 @@ impl Engine {
             }
             if excess > 0 {
                 let base = s.player(s.active.other()).base;
+                let applied=excess.min(self.hp(s,base).saturating_sub(s.card(base).damage));
+                self.record_attack_base_damage(s,applied)?;
                 s.card_mut(base).damage += excess;
                 self.capture_blade_base_damage_event(s,&listeners,base,true)?;
             }
@@ -1398,11 +1406,14 @@ impl Engine {
             }
             let mut events=dead.iter().map(|id|(*id,crate::defeat_cause::DefeatCause::Attack)).collect::<Vec<_>>();
             for id in self.arena_units(s) {if s.card(id).damage>=self.hp(s,id) && !dead.contains(&id) {events.push((id,crate::defeat_cause::DefeatCause::FrameworkEffect));}}
+            self.capture_attack_base_end(s,true)?;
             self.capture_advantage_end(s)?;
             self.defeat_events(s,&events)?;
         } else {
+            if attack>0 {let applied=attack.min(self.hp(s,target).saturating_sub(s.card(target).damage));self.record_attack_base_damage(s,applied)?;}
             s.card_mut(target).damage += attack;
             self.capture_blade_base_damage_event(s,&listeners,target,attack>0)?;
+            self.capture_attack_base_end(s,true)?;
             self.capture_advantage_end(s)?;
         }
         self.sweep_stat_defeats(s)?;
@@ -1415,7 +1426,10 @@ impl Engine {
         self.capture_attack_end(s)?;
         if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         self.clear_support_grants(s);
-        s.attack_source=0;s.attack_defender=0;s.attack_end_captured=false;s.attack_attacker_defeated=false;s.attack_attacker_departed=false;s.attack_defender_defeated=false;s.attack_defender_departed=false;
+        // Declaration Restore belongs to this completed attack. Pending child
+        // windows returned above; saved parent contexts retain their own amount.
+        s.attack_restore=0;
+        s.attack_source=0;s.attack_defender=0;s.attack_base_damage=0;s.attack_flags.reset_history();s.attack_flags.set_end_captured(false);s.attack_flags.set_attacker_defeated(false);s.attack_flags.set_attacker_departed(false);s.attack_flags.set_defender_defeated(false);s.attack_flags.set_defender_departed(false);
         self.sweep_stat_defeats(s)?;
         if self.open_deaths(s,DeathContinuation::CombatAfterDamage)? {return Ok(());}
         if s.support.pending {return self.resume_support(s);}
@@ -1603,7 +1617,7 @@ impl Engine {
         if s.players.iter().all(|p| p.out) {
             if self.player_phase_pending(s){return Err("player phase expiry cannot reuse identities while captures remain live".into());}
             s.action_player=None;
-            s.phase_history.reset();
+            s.phase_history.reset();s.attack_base_history.reset();
             s.player_phase.expire();
             for id in 1..s.next_id {
                 s.card_mut(id).set_hidden_qualified(false);
@@ -1676,7 +1690,7 @@ impl Engine {
         Ok(())
     }
     fn end_regroup(&self, s: &mut State) -> Result<(), String> {
-        s.phase_history.reset();
+        s.phase_history.reset();s.attack_base_history.reset();
         for seat in [Seat::P1, Seat::P2] {
             let id = s.resource_selected[seat.index()];
             if id != 0 {
@@ -1938,6 +1952,7 @@ impl Engine {
         self.load_inactive_phase_keywords(&mut s,v)?;
         self.load_round_limit_state(&mut s,v)?;
         self.load_player_phase_state(&mut s,v)?;
+        self.load_attack_base_history(&mut s,v)?;
         if s.decision!=Decision::Terminal {for id in 1..s.next_id {if self.phase_source(&s,id)&&self.def(&s,id).info.unique&&self.in_arena(&s,id)&&self.duplicates(&s,id)>1{return Err("unresolved phase-family unique identity at action window".into());}}}
         Ok(s)
     }
@@ -2072,6 +2087,7 @@ impl Engine {
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         self.snapshot_round_limit_state(s,&mut value);
         self.snapshot_player_phase_state(s,&mut value);
+        self.snapshot_attack_base_history(s,&mut value);
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
         if (s.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(s.ability_program-1)))||s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(f.context.ability_program-1))) {value["namedExhaustPending"]=json!(true);}
         if self.generated_token_continuation_pending(s){value["generatedTokenContinuationPending"]=json!(true);}

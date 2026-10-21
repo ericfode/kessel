@@ -157,7 +157,7 @@ impl Engine {
                 }
             }
         }
-        for &p in &programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;}
+        for &p in &programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;crate::attack_base_history_contract::copied_program_allowed(self.program(p))?;}
         if programs.iter().any(|p|crate::round_limit_contract::Registration::from_trigger(&self.program(*p).trigger).is_some()) {return Err("copied registration limits require a separately supported gained-limit graph".into());}
         if programs.len() > MAX_SUPPORT_PROGRAMS {
             return Err("Support copied-ability capacity exceeded (80)".into());
@@ -331,6 +331,10 @@ impl Engine {
             .catalogue
             .as_ref()
             .ok_or("Support grants require catalogue")?;
+        if s.support.len as usize+grants.len()>MAX_SUPPORT_GRANTS {return Err("Support lasting-effect capacity exceeded (32)".into());}
+        // Resolve and validate the complete imported copy set before publishing
+        // any grant. A bad later row cannot leave a partially installed graph.
+        let mut staged=Vec::with_capacity(grants.len());
         for raw in grants {
             // Tagged closed references and legacy serialized rows are mutually
             // exclusive. Reject unknown fields before resolving any reference.
@@ -376,7 +380,7 @@ impl Engine {
                 }
                 let programs=self.support_source_programs(s,g.donor)
                     .ok_or("Support source reference requires a complete closed admitted physical donor")?;
-                for &p in programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;}
+                for &p in programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;crate::attack_base_history_contract::copied_program_allowed(self.program(p))?;}
                 if programs.len()>MAX_SUPPORT_PROGRAMS {return Err("Support copied-ability capacity exceeded (80)".into());}
                 g.len=programs.len() as u8;g.programs[..programs.len()].copy_from_slice(programs);
             } else {
@@ -405,6 +409,7 @@ impl Engine {
                     }
                     let program = &catalogue.programs[index];
                     crate::player_phase_contract::copied_program_allowed(program)?;
+                    crate::attack_base_history_contract::copied_program_allowed(program)?;
                     if crate::static_ongoing::has_leader_trait_union(program) {
                         return Err("Support copied leader-trait union requires an unsupported cyclic context".into());
                     }
@@ -439,9 +444,9 @@ impl Engine {
                 let valid=(expected.power!=0||expected.presence!=0||expected.deals_combat_damage_first)&&self.card_programs(s,g.donor).iter().any(|p|self.program(*p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::InitiateAttack{properties,..}) if properties.modifiers().ok().as_ref()==Some(&expected))));
                 if !valid {return Err("modified attack grant does not match its admitted physical donor".into());}
             }
-            s.support.grants[s.support.len as usize] = g;
-            s.support.len += 1;
+            staged.push(g);
         }
+        for grant in staged {s.support.grants[s.support.len as usize]=grant;s.support.len+=1;}
         // Preserve successfully validated wire evidence even for an empty list
         // and a selected pool with no Support dependency. This is not gameplay
         // state and is not cleared when grants expire or their cards depart.

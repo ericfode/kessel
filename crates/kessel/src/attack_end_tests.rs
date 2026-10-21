@@ -36,9 +36,9 @@ fn attack_end_legal_midgame_optional_and_live_strict_boundaries_both_backends() 
         let base=s.player(seat.other()).base;let power=e.power(&s,source,false);
         let prompt=attack(&e,s,source,base);
         assert_eq!(prompt.decision,Decision::AbilityTarget);assert_eq!(prompt.card(base).damage,power);
-        assert_eq!(prompt.attack_source,source);assert!(prompt.attack_end_captured);assert!(!prompt.attack_attacker_defeated);
+        assert_eq!(prompt.attack_source,source);assert!(prompt.attack_flags.end_captured());assert!(!prompt.attack_flags.attacker_defeated());
         let actions=e.legal_actions(&prompt);assert!(actions.iter().any(|a|a.id()==Some(low)));assert!(!actions.iter().any(|a|a.id()==Some(equal)));assert!(!actions.iter().any(|a|a.id()==Some(base)));
-        let declined=named_button(&e,&prompt,"Pass");assert!(e.in_arena(&declined,low));assert_eq!(declined.attack_source,0);assert!(!declined.attack_end_captured);assert!(!declined.attack_attacker_defeated);
+        let declined=named_button(&e,&prompt,"Pass");assert!(e.in_arena(&declined,low));assert_eq!(declined.attack_source,0);assert!(!declined.attack_flags.end_captured());assert!(!declined.attack_flags.attacker_defeated());
         let done=e.apply(&prompt,&e.card_action(&prompt,low)).unwrap();assert!(done.player(seat.other()).discard.contains(low));assert!(e.in_arena(&done,equal));assert_eq!(done.attack_source,0);assert_eq!(done.death_depth,0);
     }}}
 }
@@ -61,7 +61,7 @@ fn attack_end_defeat_identity_latch_survives_nested_context_and_reentry() {
     s.source=source;s.attack_source=source;s.attack_defender=s.players[1].base;
     e.capture_attack_end(&mut s).unwrap();let captured=s.death_pending;
     let before=s.zobrist();s.death_depth=1;s.death_frames[0].context=ResolutionContext::capture(&s);
-    e.defeat(&mut s,source).unwrap();assert!(s.attack_attacker_defeated);assert!(s.death_frames[0].context.attack_attacker_defeated);
+    e.defeat(&mut s,source).unwrap();assert!(s.attack_flags.attacker_defeated());assert!(s.death_frames[0].context.attack_flags.attacker_defeated());
     s.player_mut(Seat::P1).discard.remove(source);e.add_arena(&mut s,source).unwrap();assert!(e.in_arena(&s,source));
     let context=s.death_frames[0].context;s.death_depth=0;s.death_frames[0]=DeathFrame::default();context.restore(&mut s);
     assert_ne!(s.zobrist(),before);assert!(!e.death_has_effect(&s,captured.entries[0]));
@@ -75,9 +75,9 @@ fn attack_end_nondefeat_departure_does_not_rebind_survival_identity() {
     let e=engine();let (mut s,source)=live_board(&e,Seat::P1,"LAW_033");let low=unit(&e,&mut s,Seat::P2,"LOF_256");
     s.source=source;s.attack_source=source;s.attack_defender=s.players[1].base;
     e.capture_attack_end(&mut s).unwrap();let captured=s.death_pending.entries[0];
-    e.leave_play(&mut s,source).unwrap();assert!(s.attack_attacker_departed);assert!(!s.attack_attacker_defeated);
+    e.leave_play(&mut s,source).unwrap();assert!(s.attack_flags.attacker_departed());assert!(!s.attack_flags.attacker_defeated());
     s.player_mut(Seat::P1).discard.remove(source);e.add_arena(&mut s,source).unwrap();e.defeat(&mut s,source).unwrap();
-    assert!(!s.attack_attacker_defeated,"defeat belongs to the new incarnation");
+    assert!(!s.attack_flags.attacker_defeated(),"defeat belongs to the new incarnation");
     s.player_mut(Seat::P1).discard.remove(source);e.add_arena(&mut s,source).unwrap();assert!(e.death_has_effect(&s,captured));assert!(e.in_arena(&s,low));
     s.card_mut(source).phase_keyword_values[0]=2;s.card_mut(source).add_phase_keyword(6);assert!(!e.is_attacking(&s,source));assert_eq!(e.power(&s,source,true),4,"the later incarnation must not inherit Raid from the old active attack");
 }
@@ -125,13 +125,13 @@ fn attack_end_original_defender_combat_defeat_enables_zeb_and_embo() {
     for backend in [RulesBackend::Auto,RulesBackend::Interpreter] {for seat in [Seat::P1,Seat::P2] {for code in ["SOR_146","SHD_059"] {
         let mut e=engine();e.set_rules_backend(backend).unwrap();let (mut s,source)=live_board(&e,seat,code);
         let defender=unit(&e,&mut s,seat.other(),"LOF_254");let other=unit(&e,&mut s,seat.other(),"LOF_256");let ally=unit(&e,&mut s,seat,"LOF_256");s.card_mut(ally).damage=3;
-        let prompt=attack(&e,s,source,defender);assert!(prompt.player(seat.other()).discard.contains(defender));assert!(prompt.attack_defender_defeated);
+        let prompt=attack(&e,s,source,defender);assert!(prompt.player(seat.other()).discard.contains(defender));assert!(prompt.attack_flags.defender_defeated());
         let done=if code=="SOR_146" {assert_eq!(prompt.decision,Decision::AbilityTarget);e.apply(&prompt,&e.card_action(&prompt,other)).unwrap()}else{
             assert_eq!(prompt.decision,Decision::AbilityDistribute);
             let action=e.legal_actions(&prompt).into_iter().find(|a|a.arg==Some(json!([[format!("c{}",ally-1),2]]))).unwrap();e.apply(&prompt,&action).unwrap()
         };
         if code=="SOR_146" {assert!(done.player(seat.other()).discard.contains(other));}else{assert_eq!(done.card(ally).damage,1);assert!(e.in_arena(&done,other));}
-        assert_eq!(done.decision,Decision::Window);assert_eq!(done.attack_source,0);assert!(!done.attack_defender_defeated);assert!(!done.attack_defender_departed);assert_eq!(done.death_depth,0);
+        assert_eq!(done.decision,Decision::Window);assert_eq!(done.attack_source,0);assert!(!done.attack_flags.defender_defeated());assert!(!done.attack_flags.defender_departed());assert_eq!(done.death_depth,0);
     }}}
 }
 
@@ -154,8 +154,8 @@ fn attack_end_history_retains_original_defender_through_departure_and_nested_con
         let p=e.card_programs(&s,source)[0];let condition=e.program(p).instructions.iter().find_map(|i|if let Instruction::Conditional{condition,..}=i {Some(condition.clone())}else{None}).unwrap();
         assert!(!e.eval(&s,source,0,&condition).truth());let hash=s.zobrist();s.death_frames[0].context=ResolutionContext::capture(&s);s.death_depth=1;
         if original_defeat {e.defeat(&mut s,defender).unwrap();}else{e.leave_play(&mut s,defender).unwrap();}
-        assert!(s.attack_defender_departed);assert_eq!(s.attack_defender_defeated,original_defeat);assert_eq!(s.death_frames[0].context.attack_defender_defeated,original_defeat);
-        s.player_mut(Seat::P2).discard.remove(defender);e.add_arena(&mut s,defender).unwrap();e.defeat(&mut s,defender).unwrap();assert_eq!(s.attack_defender_defeated,original_defeat);
+        assert!(s.attack_flags.defender_departed());assert_eq!(s.attack_flags.defender_defeated(),original_defeat);assert_eq!(s.death_frames[0].context.attack_flags.defender_defeated(),original_defeat);
+        s.player_mut(Seat::P2).discard.remove(defender);e.add_arena(&mut s,defender).unwrap();e.defeat(&mut s,defender).unwrap();assert_eq!(s.attack_flags.defender_defeated(),original_defeat);
         s.player_mut(Seat::P2).discard.remove(defender);e.add_arena(&mut s,defender).unwrap();assert!(!e.is_defending(&s,defender));
         let c=s.death_frames[0].context;s.death_depth=0;s.death_frames[0]=DeathFrame::default();c.restore(&mut s);assert_eq!(e.eval(&s,source,0,&condition).truth(),original_defeat);assert_ne!(hash,s.zobrist());
     }
@@ -224,8 +224,8 @@ fn attack_end_terminal_latches_winner_but_keeps_captured_optional_target_and_pas
 fn attack_end_capture_capacity_and_context_hash_are_bounded() {
     let e=engine();let (mut s,source)=live_board(&e,Seat::P1,"LAW_033");s.source=source;s.attack_source=source;s.attack_defender=s.players[1].base;
     s.death_pending.len=MAX_DEATH_TRIGGERS as u8;let before=s;assert!(e.capture_attack_end(&mut s).unwrap_err().contains("capacity"));assert_eq!(s,before);
-    s.death_pending=DeathWindow::default();let hash=s.zobrist();let c=ResolutionContext::capture(&s);s.attack_defender_departed=true;assert_ne!(s.zobrist(),hash);c.restore(&mut s);assert_eq!(s.zobrist(),hash);
-    s.death_depth=1;s.death_frames[0].context=c;let hash=s.zobrist();s.death_frames[0].context.attack_attacker_departed=true;assert_ne!(s.zobrist(),hash);
+    s.death_pending=DeathWindow::default();let hash=s.zobrist();let c=ResolutionContext::capture(&s);s.attack_flags.set_defender_departed(true);assert_ne!(s.zobrist(),hash);c.restore(&mut s);assert_eq!(s.zobrist(),hash);
+    s.death_depth=1;s.death_frames[0].context=c;let hash=s.zobrist();s.death_frames[0].context.attack_flags.set_attacker_departed(true);assert_ne!(s.zobrist(),hash);
 }
 
 #[test]

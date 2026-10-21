@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 956
+    "sourceIr": 959
   },
   "runtimeAdmittedCards": [
     {
@@ -79,6 +79,11 @@
       "implementation": "sourceIr",
       "internalName": "marrok#mysterious-warrior",
       "setCode": "ASH_030"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "hera-syndulla#renegade-general",
+      "setCode": "ASH_031"
     },
     {
       "implementation": "sourceIr",
@@ -382,6 +387,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "greef-karga#introductions-are-in-order",
+      "setCode": "ASH_119"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "warrior-of-clan-kryze",
       "setCode": "ASH_120"
     },
@@ -474,6 +484,11 @@
       "implementation": "dataOnly",
       "internalName": "tempest-lieutenant",
       "setCode": "ASH_143"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "vanes-snub-fighter#brash-and-proud",
+      "setCode": "ASH_144"
     },
     {
       "implementation": "dataOnly",
@@ -6741,7 +6756,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1346,
+  "runtimeAdmittedCount": 1349,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6760,7 +6775,7 @@
     },
     {
       "internalName": "luke-skywalker#i-can-save-him",
-      "reason": "luke-skywalker#i-can-save-him: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "luke-skywalker#i-can-save-him: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_005"
     },
     {
@@ -6790,7 +6805,7 @@
     },
     {
       "internalName": "ezra-bridger#its-now-or-never",
-      "reason": "ezra-bridger#its-now-or-never: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "ezra-bridger#its-now-or-never: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "ASH_013"
     },
     {
@@ -6805,12 +6820,12 @@
     },
     {
       "internalName": "shin-hati#eager-adversary",
-      "reason": "shin-hati#eager-adversary: per-round limits require the complete closed native source registration and metadata",
+      "reason": "shin-hati#eager-adversary: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "ASH_016"
     },
     {
       "internalName": "greef-karga#gracious-magistrate",
-      "reason": "greef-karga#gracious-magistrate: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "greef-karga#gracious-magistrate: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_017"
     },
     {
@@ -6822,11 +6837,6 @@
       "internalName": "enoch#solemn-servant",
       "reason": "enoch#solemn-servant: invalid player phase installer requires the exact closed ordinary direct-source profile",
       "setCode": "ASH_027"
-    },
-    {
-      "internalName": "hera-syndulla#renegade-general",
-      "reason": "hera-syndulla#renegade-general: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "ASH_031"
     },
     {
       "internalName": "purrgil-ultra",
@@ -6875,12 +6885,12 @@
     },
     {
       "internalName": "cobb-vanth#let-me-handle-this",
-      "reason": "cobb-vanth#let-me-handle-this: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "cobb-vanth#let-me-handle-this: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_060"
     },
     {
       "internalName": "the-mandalorian#devoted-rescuer",
-      "reason": "the-mandalorian#devoted-rescuer: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "the-mandalorian#devoted-rescuer: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_062"
     },
     {
@@ -6964,11 +6974,6 @@
       "setCode": "ASH_118"
     },
     {
-      "internalName": "greef-karga#introductions-are-in-order",
-      "reason": "greef-karga#introductions-are-in-order: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "ASH_119"
-    },
-    {
       "internalName": "consortium-starviper",
       "reason": "reprint alias of SOR_112",
       "setCode": "ASH_122"
@@ -6992,11 +6997,6 @@
       "internalName": "hold-them-off",
       "reason": "hold-them-off: invalid ability IR: unknown variant `damagePropertiesFactory`, expected one of `installPlayerPhase`, `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeTokenUpgrade`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_139"
-    },
-    {
-      "internalName": "vanes-snub-fighter#brash-and-proud",
-      "reason": "vanes-snub-fighter#brash-and-proud: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "ASH_144"
     },
     {
       "internalName": "ninth-sister#hulking-inquisitor",
@@ -7035,12 +7035,12 @@
     },
     {
       "internalName": "rash-action",
-      "reason": "rash-action: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
+      "reason": "rash-action: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "ASH_162"
     },
     {
       "internalName": "migs-mayfeld#how-about-a-toast",
-      "reason": "migs-mayfeld#how-about-a-toast: invalid ability IR: unknown variant `attackCollection`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "migs-mayfeld#how-about-a-toast: invalid ability IR: unknown variant `attackCollection`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_168"
     },
     {
@@ -7050,12 +7050,12 @@
     },
     {
       "internalName": "unfettered-ambition",
-      "reason": "unfettered-ambition: invalid ability IR: unknown variant `contextTitleProgram`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "unfettered-ambition: invalid ability IR: unknown variant `contextTitleProgram`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "ASH_182"
     },
     {
       "internalName": "whistling-birds",
-      "reason": "whistling-birds: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "whistling-birds: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "ASH_183"
     },
     {
@@ -7300,7 +7300,7 @@
     },
     {
       "internalName": "carrion-spike#harbinger-of-tyranny",
-      "reason": "carrion-spike#harbinger-of-tyranny: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "carrion-spike#harbinger-of-tyranny: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_066"
     },
     {
@@ -7445,7 +7445,7 @@
     },
     {
       "internalName": "chewbaccas-bowcaster#handcrafted-tradition",
-      "reason": "chewbaccas-bowcaster#handcrafted-tradition: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "chewbaccas-bowcaster#handcrafted-tradition: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_127"
     },
     {
@@ -7530,7 +7530,7 @@
     },
     {
       "internalName": "trap-field",
-      "reason": "trap-field: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "trap-field: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_171"
     },
     {
@@ -7610,7 +7610,7 @@
     },
     {
       "internalName": "phee-genoa#liberator-of-ancient-wonders",
-      "reason": "phee-genoa#liberator-of-ancient-wonders: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "phee-genoa#liberator-of-ancient-wonders: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_214"
     },
     {
@@ -7620,7 +7620,7 @@
     },
     {
       "internalName": "insurgent-camp",
-      "reason": "insurgent-camp: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "insurgent-camp: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_216"
     },
     {
@@ -7645,7 +7645,7 @@
     },
     {
       "internalName": "boba-fett#family-found",
-      "reason": "boba-fett#family-found: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "boba-fett#family-found: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_225"
     },
     {
@@ -7690,7 +7690,7 @@
     },
     {
       "internalName": "forced-pacification",
-      "reason": "forced-pacification: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "forced-pacification: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "HMW_253"
     },
     {
@@ -8050,7 +8050,7 @@
     },
     {
       "internalName": "lethal-crackdown",
-      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "IC27_030"
     },
     {
@@ -8100,7 +8100,7 @@
     },
     {
       "internalName": "darth-vader#victor-squadron-leader",
-      "reason": "darth-vader#victor-squadron-leader: per-round limits require the complete closed native source registration and metadata",
+      "reason": "darth-vader#victor-squadron-leader: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "JTL_006"
     },
     {
@@ -8125,7 +8125,7 @@
     },
     {
       "internalName": "luke-skywalker#hero-of-yavin",
-      "reason": "luke-skywalker#hero-of-yavin: per-round limits require the complete closed native source registration and metadata",
+      "reason": "luke-skywalker#hero-of-yavin: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "JTL_012"
     },
     {
@@ -8280,7 +8280,7 @@
     },
     {
       "internalName": "hondo-ohnaka#superfluous-swindler",
-      "reason": "hondo-ohnaka#superfluous-swindler: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "hondo-ohnaka#superfluous-swindler: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_056"
     },
     {
@@ -8305,7 +8305,7 @@
     },
     {
       "internalName": "uwing-lander",
-      "reason": "uwing-lander: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "uwing-lander: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_070"
     },
     {
@@ -8585,7 +8585,7 @@
     },
     {
       "internalName": "shadow-caster#just-business",
-      "reason": "shadow-caster#just-business: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "shadow-caster#just-business: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "JTL_169"
     },
     {
@@ -9065,12 +9065,12 @@
     },
     {
       "internalName": "chirrut-imwe#i-dont-need-luck",
-      "reason": "chirrut-imwe#i-dont-need-luck: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "chirrut-imwe#i-dont-need-luck: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "LAW_046"
     },
     {
       "internalName": "baze-malbus#good-luck",
-      "reason": "baze-malbus#good-luck: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "baze-malbus#good-luck: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LAW_047"
     },
     {
@@ -9090,7 +9090,7 @@
     },
     {
       "internalName": "maul#master-of-the-shadow-collective",
-      "reason": "maul#master-of-the-shadow-collective: per-round limits require the complete closed native source registration and metadata",
+      "reason": "maul#master-of-the-shadow-collective: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "LAW_054"
     },
     {
@@ -9105,7 +9105,7 @@
     },
     {
       "internalName": "defiant-hammerhead",
-      "reason": "defiant-hammerhead: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "defiant-hammerhead: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LAW_062"
     },
     {
@@ -9360,7 +9360,7 @@
     },
     {
       "internalName": "doctor-aphra#digging-for-answers",
-      "reason": "doctor-aphra#digging-for-answers: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "doctor-aphra#digging-for-answers: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LAW_194"
     },
     {
@@ -9375,7 +9375,7 @@
     },
     {
       "internalName": "daring-delve",
-      "reason": "daring-delve: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "daring-delve: invalid ability IR: unknown variant `capturedHistory`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LAW_203"
     },
     {
@@ -9455,7 +9455,7 @@
     },
     {
       "internalName": "weequay-pirate",
-      "reason": "weequay-pirate: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "weequay-pirate: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LAW_231"
     },
     {
@@ -9535,7 +9535,7 @@
     },
     {
       "internalName": "kit-fisto#focused-jedi-master",
-      "reason": "kit-fisto#focused-jedi-master: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "kit-fisto#focused-jedi-master: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "LOF_011"
     },
     {
@@ -9705,7 +9705,7 @@
     },
     {
       "internalName": "anakin-skywalker#champion-of-mortis",
-      "reason": "anakin-skywalker#champion-of-mortis: invalid ability IR: unknown variant `zoneSomeQuery`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "anakin-skywalker#champion-of-mortis: invalid ability IR: unknown variant `zoneSomeQuery`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_070"
     },
     {
@@ -9725,7 +9725,7 @@
     },
     {
       "internalName": "vanee#i-live-to-serve",
-      "reason": "vanee#i-live-to-serve: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "vanee#i-live-to-serve: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_082"
     },
     {
@@ -9735,7 +9735,7 @@
     },
     {
       "internalName": "drengir-spawn",
-      "reason": "drengir-spawn: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "drengir-spawn: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_086"
     },
     {
@@ -9745,7 +9745,7 @@
     },
     {
       "internalName": "craving-power",
-      "reason": "craving-power: unknown variant `selectionContextRead`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "craving-power: unknown variant `selectionContextRead`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_091"
     },
     {
@@ -9765,7 +9765,7 @@
     },
     {
       "internalName": "yoda#my-ally-is-the-force",
-      "reason": "yoda#my-ally-is-the-force: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "yoda#my-ally-is-the-force: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_101"
     },
     {
@@ -9820,7 +9820,7 @@
     },
     {
       "internalName": "protect-the-pod",
-      "reason": "protect-the-pod: invalid ability IR: unknown variant `templateString`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "protect-the-pod: invalid ability IR: unknown variant `templateString`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_128"
     },
     {
@@ -9855,7 +9855,7 @@
     },
     {
       "internalName": "kit-fistos-aethersprite#good-hunting",
-      "reason": "kit-fistos-aethersprite#good-hunting: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "kit-fistos-aethersprite#good-hunting: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_147"
     },
     {
@@ -10035,7 +10035,7 @@
     },
     {
       "internalName": "jocasta-nu#the-gift-of-knowledge",
-      "reason": "jocasta-nu#the-gift-of-knowledge: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "jocasta-nu#the-gift-of-knowledge: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "LOF_248"
     },
     {
@@ -10070,7 +10070,7 @@
     },
     {
       "internalName": "leia-organa#of-a-secret-bloodline",
-      "reason": "leia-organa#of-a-secret-bloodline: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "leia-organa#of-a-secret-bloodline: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_004"
     },
     {
@@ -10175,7 +10175,7 @@
     },
     {
       "internalName": "captain-rex#into-the-firefight",
-      "reason": "captain-rex#into-the-firefight: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "captain-rex#into-the-firefight: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_048"
     },
     {
@@ -10230,7 +10230,7 @@
     },
     {
       "internalName": "nimble-prowess",
-      "reason": "nimble-prowess: unknown variant `selectionContextRead`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "nimble-prowess: unknown variant `selectionContextRead`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_069"
     },
     {
@@ -10625,7 +10625,7 @@
     },
     {
       "internalName": "ebon-hawk#cause-and-effect",
-      "reason": "ebon-hawk#cause-and-effect: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "ebon-hawk#cause-and-effect: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_219"
     },
     {
@@ -10685,7 +10685,7 @@
     },
     {
       "internalName": "darth-nihilus#lord-of-hunger",
-      "reason": "darth-nihilus#lord-of-hunger: invalid ability IR: unknown variant `pureCallback`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "darth-nihilus#lord-of-hunger: invalid ability IR: unknown variant `pureCallback`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SEC_244"
     },
     {
@@ -10780,7 +10780,7 @@
     },
     {
       "internalName": "bokatan-kryze#princess-in-exile",
-      "reason": "bokatan-kryze#princess-in-exile: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "bokatan-kryze#princess-in-exile: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "SHD_012"
     },
     {
@@ -10795,7 +10795,7 @@
     },
     {
       "internalName": "doctor-aphra#rapacious-archaeologist",
-      "reason": "doctor-aphra#rapacious-archaeologist: invalid ability IR: unknown variant `queryMember`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "doctor-aphra#rapacious-archaeologist: invalid ability IR: unknown variant `queryMember`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_015"
     },
     {
@@ -10880,7 +10880,7 @@
     },
     {
       "internalName": "survivors-gauntlet",
-      "reason": "survivors-gauntlet: invalid ability IR: unknown variant `templateString`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "survivors-gauntlet: invalid ability IR: unknown variant `templateString`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_064"
     },
     {
@@ -10925,7 +10925,7 @@
     },
     {
       "internalName": "evidence-of-the-crime",
-      "reason": "evidence-of-the-crime: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "evidence-of-the-crime: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_077"
     },
     {
@@ -10940,7 +10940,7 @@
     },
     {
       "internalName": "ephant-mon#head-of-security",
-      "reason": "ephant-mon#head-of-security: named exhaust contingency requires the complete closed event source profile",
+      "reason": "ephant-mon#head-of-security: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "SHD_088"
     },
     {
@@ -10980,12 +10980,12 @@
     },
     {
       "internalName": "echo#restored",
-      "reason": "echo#restored: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "echo#restored: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_099"
     },
     {
       "internalName": "the-marauder#shuttling-the-bad-batch",
-      "reason": "the-marauder#shuttling-the-bad-batch: invalid ability IR: unknown variant `pureCallback`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "the-marauder#shuttling-the-bad-batch: invalid ability IR: unknown variant `pureCallback`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_102"
     },
     {
@@ -11125,7 +11125,7 @@
     },
     {
       "internalName": "jango-fett#renowned-bounty-hunter",
-      "reason": "jango-fett#renowned-bounty-hunter: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "jango-fett#renowned-bounty-hunter: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_138"
     },
     {
@@ -11230,7 +11230,7 @@
     },
     {
       "internalName": "krayt-dragon",
-      "reason": "krayt-dragon: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "krayt-dragon: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_172"
     },
     {
@@ -11375,7 +11375,7 @@
     },
     {
       "internalName": "chain-code-collector",
-      "reason": "chain-code-collector: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "chain-code-collector: invalid ability IR: unknown variant `attackValueQuery`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_216"
     },
     {
@@ -11385,12 +11385,12 @@
     },
     {
       "internalName": "enfys-nest#marauder",
-      "reason": "enfys-nest#marauder: invalid ability IR: unknown variant `attackMember`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "enfys-nest#marauder: invalid ability IR: unknown variant `attackMember`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_219"
     },
     {
       "internalName": "fennec-shand#loyal-sharpshooter",
-      "reason": "fennec-shand#loyal-sharpshooter: invalid ability IR: unknown variant `queryMember`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "fennec-shand#loyal-sharpshooter: invalid ability IR: unknown variant `queryMember`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_220"
     },
     {
@@ -11440,7 +11440,7 @@
     },
     {
       "internalName": "relentless-pursuit",
-      "reason": "relentless-pursuit: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "relentless-pursuit: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_232"
     },
     {
@@ -11455,7 +11455,7 @@
     },
     {
       "internalName": "kragan-gorr#warbird-captain",
-      "reason": "kragan-gorr#warbird-captain: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "kragan-gorr#warbird-captain: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SHD_241"
     },
     {
@@ -11705,7 +11705,7 @@
     },
     {
       "internalName": "it-binds-all-things",
-      "reason": "it-binds-all-things: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "it-binds-all-things: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_075"
     },
     {
@@ -11885,7 +11885,7 @@
     },
     {
       "internalName": "vaders-lightsaber",
-      "reason": "vaders-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "vaders-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_136"
     },
     {
@@ -11960,12 +11960,12 @@
     },
     {
       "internalName": "force-throw",
-      "reason": "force-throw: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "force-throw: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_167"
     },
     {
       "internalName": "power-failure",
-      "reason": "power-failure: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "power-failure: invalid ability IR: unknown variant `selectionMethodCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "SOR_170"
     },
     {
@@ -12220,7 +12220,7 @@
     },
     {
       "internalName": "maul#collective-ambition",
-      "reason": "maul#collective-ambition: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "maul#collective-ambition: invalid ability IR: unknown variant `privateProgramCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_003"
     },
     {
@@ -12240,7 +12240,7 @@
     },
     {
       "internalName": "asajj-ventress#ambitious-apprentice",
-      "reason": "asajj-ventress#ambitious-apprentice: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "asajj-ventress#ambitious-apprentice: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "TS26_007"
     },
     {
@@ -12285,7 +12285,7 @@
     },
     {
       "internalName": "coleman-trebor#jedi-rescuer",
-      "reason": "coleman-trebor#jedi-rescuer: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "coleman-trebor#jedi-rescuer: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_019"
     },
     {
@@ -12380,7 +12380,7 @@
     },
     {
       "internalName": "jedi-general",
-      "reason": "jedi-general: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "jedi-general: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_055"
     },
     {
@@ -12430,7 +12430,7 @@
     },
     {
       "internalName": "jango-fett#guarding-the-count",
-      "reason": "jango-fett#guarding-the-count: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "jango-fett#guarding-the-count: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "TS26_075"
     },
     {
@@ -12440,7 +12440,7 @@
     },
     {
       "internalName": "barriss-offee#its-only-a-matter-of-time",
-      "reason": "barriss-offee#its-only-a-matter-of-time: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "barriss-offee#its-only-a-matter-of-time: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TS26_078"
     },
     {
@@ -12470,7 +12470,7 @@
     },
     {
       "internalName": "obiwan-kenobi#patient-mentor",
-      "reason": "obiwan-kenobi#patient-mentor: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "obiwan-kenobi#patient-mentor: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_003"
     },
     {
@@ -12490,7 +12490,7 @@
     },
     {
       "internalName": "captain-rex#fighting-for-his-brothers",
-      "reason": "captain-rex#fighting-for-his-brothers: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "captain-rex#fighting-for-his-brothers: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "TWI_007"
     },
     {
@@ -12535,7 +12535,7 @@
     },
     {
       "internalName": "quinlan-vos#sticking-the-landing",
-      "reason": "quinlan-vos#sticking-the-landing: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "quinlan-vos#sticking-the-landing: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_018"
     },
     {
@@ -12575,7 +12575,7 @@
     },
     {
       "internalName": "lethal-crackdown",
-      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "lethal-crackdown: invalid ability IR: unknown variant `eventResult`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_041"
     },
     {
@@ -12745,7 +12745,7 @@
     },
     {
       "internalName": "asajj-ventress#count-dookus-assassin",
-      "reason": "asajj-ventress#count-dookus-assassin: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "asajj-ventress#count-dookus-assassin: attack base history requires the complete canonical source, metadata and registration profile",
       "setCode": "TWI_134"
     },
     {
@@ -12785,7 +12785,7 @@
     },
     {
       "internalName": "mace-windus-lightsaber",
-      "reason": "mace-windus-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "mace-windus-lightsaber: invalid ability IR: unknown variant `memberPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_152"
     },
     {
@@ -12845,7 +12845,7 @@
     },
     {
       "internalName": "tactical-droid-commander",
-      "reason": "tactical-droid-commander: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "tactical-droid-commander: invalid ability IR: unknown variant `dataPath`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
       "setCode": "TWI_184"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1259,
+  "runtimeRejectedCount": 1256,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }
