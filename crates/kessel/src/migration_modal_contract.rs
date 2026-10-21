@@ -442,7 +442,7 @@ impl Executable {
             let resolver=ability.target_resolver.clone().ok_or("owner-deck physical target resolver missing")?;
             program.instructions=vec![
                 Instruction::Select(resolver),Instruction::Commit,
-                Instruction::ModalChoice(Menu{chooser:crate::modal_choices::Chooser::SelectedOwner,
+                Instruction::ModalChoice(Menu{show_unresolvable:false,chooser:crate::modal_choices::Chooser::SelectedOwner,
                     prompt_title:"Select one".into(),preserve_target:true,unless_branch:None,
                     branches:vec![Branch{label:"Top".into(),start:3,end:4,always_legal:false},
                         Branch{label:"Bottom".into(),start:5,end:6,always_legal:false}],end:7}),
@@ -467,7 +467,7 @@ impl Executable {
         program.instructions = vec![
             Instruction::Select(resolver),
             Instruction::Commit,
-            Instruction::ModalChoice(Menu {
+            Instruction::ModalChoice(Menu {show_unresolvable:false,
                 chooser: crate::modal_choices::Chooser::Opponent,
                 prompt_title: "Select one".into(),
                 preserve_target: true,

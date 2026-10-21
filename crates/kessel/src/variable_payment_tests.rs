@@ -336,9 +336,16 @@ fn exact_source_and_all_entry_boundaries_reject_mutations_and_other_number_famil
     let c = committed_catalogue();
     let loaded = Catalogue::load(c).unwrap();
     assert!(loaded.cards.contains_key("LOF_255"));
-    for code in ["HMW_036", "SEC_040"] {
-        assert!(loaded.rejected.contains_key(code));
-    }
+    assert!(loaded.rejected.contains_key("HMW_036"));
+    // The target-capturing event is a distinct complete recipe; it must never
+    // be treated as this bounded self-XP primitive or as generic callback IR.
+    assert!(loaded.cards.contains_key("SEC_040"));
+    let event=c["cards"].as_array().unwrap().iter().find(|e|e["setCode"]=="SEC_040").unwrap();
+    assert_eq!(crate::resource_number_experience_contract::prepare(event),Ok(true));
+    assert!(crate::variable_payment_contract::prepare(event).is_err());
+    let mut near=event.clone();near["abilities"]["card"][0]["then"]["body"]["effect"]["effects"][0]["allowCostAdjustments"]=json!(true);
+    assert!(crate::resource_number_experience_contract::prepare(&near).is_err());
+    let mut altered=c.clone();let at=altered["cards"].as_array().unwrap().iter().position(|e|e["setCode"]=="SEC_040").unwrap();altered["cards"][at]=near;let rejected=Catalogue::load(&altered).unwrap();assert!(rejected.rejected.contains_key("SEC_040"));assert!(rejected.cards.contains_key("LOF_255"));assert!(rejected.rejected.contains_key("HMW_036"));
     let entry = c["cards"]
         .as_array()
         .unwrap()

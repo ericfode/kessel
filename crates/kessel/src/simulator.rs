@@ -1811,6 +1811,7 @@ impl Engine {
     fn load_action_board(&self,v:&Value)->Result<State,String>{
         if v.get("capturedHandCostPending").is_some() {return Err("pending physical hand-card cost cannot be imported as action window".into());}
         if v.get("numberSelectionPending").is_some() {return Err("pending number binding cannot be imported as an action window".into());}
+        if v.get("generatedTokenContinuationPending").is_some(){return Err("pending generated token continuation cannot be imported as an action window".into());}
         if v.get("namedExhaustPending").is_some() {return Err("pending named exhaust bindings cannot be imported as an action window".into());}
         if v.get("defeatCausePending").is_some() {return Err("pending captured defeat cause cannot be imported as an action window".into());}
         if v.get("regroupStartPending").is_some() {return Err("pending regroup-start triggers cannot be imported as an action window".into());}
@@ -2073,12 +2074,13 @@ impl Engine {
         self.snapshot_player_phase_state(s,&mut value);
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
         if (s.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(s.ability_program-1)))||s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(f.context.ability_program-1))) {value["namedExhaustPending"]=json!(true);}
+        if self.generated_token_continuation_pending(s){value["generatedTokenContinuationPending"]=json!(true);}
         if (s.ability_program!=0&&(crate::defeat_cause::requires(self.program(s.ability_program-1))||crate::defeat_token_creation_contract::requires(self.program(s.ability_program-1)))) || [&s.death_pending,&s.death_window].into_iter().chain(s.death_frames[..s.death_depth as usize].iter().map(|f|&f.window)).any(|w|w.entries[..w.len as usize].iter().any(|e|e.keyword==0&&(crate::defeat_cause::requires(self.program(e.program))||crate::defeat_token_creation_contract::requires(self.program(e.program))))) {value["defeatCausePending"]=json!(true);}
         if s.support_state_explicit||self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){value["disclosePending"]=json!(true);}
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
-        if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
+        if self.modal_deck_pending(s)||(s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target))) {value["dependentChoicePending"]=json!(true);}
         let hand_program=|id:u16|id!=0&&(self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::HandCost{..}))||crate::selected_hand_cost_contract::requires(self.program(id-1)));
         if hand_program(s.ability_program)||s.captured_hand_card.id()!=0||s.death_frames[..s.death_depth as usize].iter().any(|f|hand_program(f.context.ability_program)||f.context.captured_hand_card.id()!=0)||s.support.pending&&hand_program(s.support.context.ability_program) {value["capturedHandCostPending"]=json!(true);}
         let number_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ChooseNumber));

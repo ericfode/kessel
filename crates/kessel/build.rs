@@ -1,5 +1,10 @@
 #[path="src/arena_payment_exhaust_contract.rs"]
 mod arena_payment_exhaust_contract;
+#[path="src/modal_deck_movement_contract.rs"]
+mod modal_deck_movement_contract;
+#[path="src/resource_number_experience_contract.rs"]
+mod resource_number_experience_contract;
+
 #[path="src/upgrade_return_shield_contract.rs"]
 mod upgrade_return_shield_contract;
 #[path="src/named_exhaust_contingent_contract.rs"]
@@ -16,6 +21,8 @@ mod round_limit_contract;
 mod exhausted_live_count_contract;
 #[path="src/created_token_phase_keyword_contract.rs"]
 mod created_token_phase_keyword_contract;
+#[path="src/generated_token_continuation_contract.rs"]
+mod generated_token_continuation_contract;
 #[path="src/defeat_token_creation_contract.rs"]
 mod defeat_token_creation_contract;
 #[path="src/player_phase_contract.rs"]
@@ -243,6 +250,7 @@ fn lower(p: &Program) -> Result<String, String> {
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
             Instruction::HandCost{..}=>"if self.run_hand_cost_instruction(s)? {return Ok(true);}".into(),
+            Instruction::LookTopDeckOptions{..}=>"if self.run_top_deck_options(s)? {return Ok(true);}".into(),
             Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience=>"if self.run_number_instruction(s)? {return Ok(true);}".into(),
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
             Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
@@ -266,8 +274,11 @@ fn lower(p: &Program) -> Result<String, String> {
 }
 fn main() {
     println!("cargo:rerun-if-changed=src/arena_payment_exhaust_contract.rs");
+    println!("cargo:rerun-if-changed=src/modal_deck_movement_contract.rs");
+    println!("cargo:rerun-if-changed=src/resource_number_experience_contract.rs");
     println!("cargo:rerun-if-changed=src/attack_lifetime_contract.rs");
     println!("cargo:rerun-if-changed=src/created_token_phase_keyword_contract.rs");
+    println!("cargo:rerun-if-changed=src/generated_token_continuation_contract.rs");
     println!("cargo:rerun-if-changed=src/executor_upgrade_count_contract.rs");
     println!("cargo:rerun-if-changed=src/variable_payment_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_choices.rs");

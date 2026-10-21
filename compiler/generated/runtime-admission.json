@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 952
+    "sourceIr": 956
   },
   "runtimeAdmittedCards": [
     {
@@ -124,6 +124,11 @@
       "implementation": "sourceIr",
       "internalName": "corona-four#justice-for-alderaan",
       "setCode": "ASH_043"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "reanimated-night-trooper",
+      "setCode": "ASH_045"
     },
     {
       "implementation": "sourceIr",
@@ -429,6 +434,11 @@
       "implementation": "sourceIr",
       "internalName": "queen-soruna#willing-to-fight",
       "setCode": "ASH_132"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "trask-walker",
+      "setCode": "ASH_133"
     },
     {
       "implementation": "sourceIr",
@@ -879,6 +889,11 @@
       "implementation": "dataOnly",
       "internalName": "rebel-infiltrators",
       "setCode": "ASH_256"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "choose-your-path",
+      "setCode": "ASH_257"
     },
     {
       "implementation": "sourceIr",
@@ -4141,6 +4156,11 @@
       "setCode": "SEC_039"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "emergency-powers",
+      "setCode": "SEC_040"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "chandrilan-sponsor",
       "setCode": "SEC_043"
@@ -6721,7 +6741,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1342,
+  "runtimeAdmittedCount": 1346,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6827,11 +6847,6 @@
       "internalName": "barriss-offee#redeeming-herself",
       "reason": "barriss-offee#redeeming-herself: invalid ability IR: data did not match any variant of untagged enum Target",
       "setCode": "ASH_044"
-    },
-    {
-      "internalName": "reanimated-night-trooper",
-      "reason": "reanimated-night-trooper: modal choices require a complete sole ordinary unit/event registration",
-      "setCode": "ASH_045"
     },
     {
       "internalName": "morgan-elsbeth#life-abandoned",
@@ -6962,11 +6977,6 @@
       "internalName": "bothan5#new-republic-prison-ship",
       "reason": "bothan5#new-republic-prison-ship: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_128"
-    },
-    {
-      "internalName": "trask-walker",
-      "reason": "trask-walker: invalid ability IR: unknown variant `chooseModalEffects`, expected one of `installPlayerPhase`, `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeTokenUpgrade`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
-      "setCode": "ASH_133"
     },
     {
       "internalName": "the-darksaber#icon-of-leadership",
@@ -7132,11 +7142,6 @@
       "internalName": "one-must-destroy-to-create",
       "reason": "one-must-destroy-to-create: invalid player phase installer requires the exact closed ordinary direct-source profile",
       "setCode": "ASH_247"
-    },
-    {
-      "internalName": "choose-your-path",
-      "reason": "choose-your-path: created-token phase keyword requires complete source, resolved creation binding and native token profiles",
-      "setCode": "ASH_257"
     },
     {
       "internalName": "grassroots-resistance",
@@ -10154,11 +10159,6 @@
       "setCode": "SEC_038"
     },
     {
-      "internalName": "emergency-powers",
-      "reason": "emergency-powers: variable payment requires complete ordinary bounded-number/unadjusted-payment/self-Experience registration",
-      "setCode": "SEC_040"
-    },
-    {
       "internalName": "populist-advisor",
       "reason": "populist-advisor: own-base damage requires the complete closed mandatory source Advantage profile",
       "setCode": "SEC_041"
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1263,
+  "runtimeRejectedCount": 1259,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

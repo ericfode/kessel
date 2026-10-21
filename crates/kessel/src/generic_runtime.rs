@@ -262,6 +262,7 @@ impl TokenRequirements {
             ..Self::default()
         };
         for instruction in &program.instructions {
+            if matches!(instruction,Instruction::GrantCreatedTokenAdvantage{..}) {out.created.push("TOKEN_ADVANTAGE".into());}
             if matches!(instruction,Instruction::GiveSelectedExperience) {out.created.push("TOKEN_EXPERIENCE".into());}
             if let Some(effect) = match instruction {
                 Instruction::Apply(effect) => Some(effect),
@@ -1987,9 +1988,10 @@ impl Engine {
         let mut pc = start;
         while let Some(instruction) = instructions.get(pc).filter(|_| pc < end) {
             match instruction {
-                Instruction::GrantCreatedTokenPhaseKeyword{..}=>{},
+                Instruction::GrantCreatedTokenPhaseKeyword{..}|Instruction::GrantCreatedTokenAdvantage{..}=>{},
                 Instruction::EndStep => {}
                 Instruction::Commit => {}
+                Instruction::LookTopDeckOptions{opponent}=>{let side=if *opponent{s.card(source).owner.other()}else{s.card(source).owner};return s.player(side).deck.len!=0;}
                 Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {return true;}
                 Instruction::NameOpponentPlay => {return true;}
                 Instruction::CaptureMaximum{aspect}=>{let mut captured=*s;if self.capture_maximum(&mut captured,source,aspect).is_err(){return false;}return self.instructions_can_affect(&captured,source,target,p,pc+1,end,require_change);}
@@ -1998,7 +2000,7 @@ impl Engine {
                     let mut context = *s;
                     context.active = context.card(source).owner;
                     return menu.branches.iter().any(|branch| branch.always_legal || self.instructions_can_affect(
-                        &context, source, target, p, branch.start, branch.end, require_change));
+                        &context, source, target, p, branch.start, branch.end, if menu.show_unresolvable {false}else{require_change}));
                 }
                 Instruction::Select(resolver) => {
                     let scope = self.program(p).select_end(pc).min(end);
@@ -2078,6 +2080,7 @@ impl Engine {
         p: u16,
         require_change: bool,
     ) -> bool {
+        if crate::resource_number_experience_contract::requires(self.program(p))&&crate::resource_number_experience_contract::program(self.program(p))&&self.ready_resources(s,s.card(source).owner)>0&&!self.arena_units(s).is_empty(){return true;}
         if self.program(p).trigger=="onUnitEntersPlay" {return s.entry_event_card!=0;}
         if self.program(p).trigger=="event"&&self.program(p).instructions.first().is_some_and(|i|matches!(i,Instruction::Group(Effect::Simultaneous{effects}) if effects.len()==2&&matches!(&effects[0],Effect::Select{effect,..} if matches!(effect.as_ref(),Effect::Damage{..}))&&matches!(&effects[1],Effect::GainForce{..}))) {return true;}
         match self.program(p).instructions.first() {
@@ -2094,6 +2097,7 @@ impl Engine {
         }
     }
     pub(super) fn program_menu_title(&self, s: &State, source: CardId, p: u16) -> String {
+        if self.top_deck_options_prompt(s) {return format!("Choose cards for {} ability",self.def(s,source).info.title);}
         let program = self.program(p);
         let title = if program.context_title.is_empty() { program.title.clone() } else {
             program.context_title.iter().map(|fragment| match self.eval(s, source, s.ability_target, fragment) {
@@ -2160,6 +2164,15 @@ impl Engine {
         }
         Some(out)
     }
+    fn visible_modal_branches<'a>(&self,s:&State,menu:&'a crate::modal_choices::Menu)->Vec<&'a crate::modal_choices::Branch>{
+        let mut context=*s;context.active=context.card(s.source).owner;
+        let legal=|branch:&crate::modal_choices::Branch|branch.always_legal||self.instructions_can_affect(&context,s.source,if menu.preserve_target{s.ability_target}else{0},s.ability_program-1,branch.start,branch.end,false);
+        if menu.show_unresolvable || crate::modal_deck_movement_contract::top_program(self.program(s.ability_program-1)) {
+            if !menu.branches.iter().any(legal){return vec![];}
+            return menu.branches.iter().collect();
+        }
+        menu.branches.iter().filter(|branch|legal(branch)).collect()
+    }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
         if self.selected_hand_cost_prompt(s) {return self.selected_hand_cost_actions(s);}
         if self.hand_cost_prompt(s) {return self.hand_cost_actions(s);}
@@ -2173,12 +2186,12 @@ impl Engine {
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 let mut context = *s;
                 context.active = context.card(s.source).owner;
-                return menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                    &context, s.source, if menu.preserve_target {s.ability_target}else{0}, s.ability_program - 1, branch.start, branch.end, false))
+                return self.visible_modal_branches(s,menu).into_iter()
                     .enumerate().map(|(index, branch)| Action::button(branch.label.clone(), index)).collect();
             }
         }
         if matches!(s.decision,Decision::DiscloseSelect|Decision::DisclosePause|Decision::DiscloseReveal){return self.disclose_actions(s);}
+        if self.top_deck_options_prompt(s) {return self.top_deck_options_actions(s);}
         let mut out = Vec::new();
         let source = s.source;
         match s.decision {
@@ -2299,6 +2312,9 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        if crate::generated_token_continuation_contract::requires(self.program(p))&&!crate::generated_token_continuation_contract::program(self.program(p)){return Err("generated token program differs from complete source lowering".into());}
+        if crate::resource_number_experience_contract::requires(self.program(p))&&!crate::resource_number_experience_contract::program(self.program(p)) {return Err("resource number program differs from closed source lowering".into());}
+        if crate::modal_deck_movement_contract::requires(self.program(p)) && !crate::modal_deck_movement_contract::program(self.program(p)) {return Err("modal deck programme differs from complete closed source".into());}
         if crate::arena_payment_exhaust_contract::requires(self.program(p)) {
             if !crate::arena_payment_exhaust_contract::program(self.program(p)) {return Err("arena payment program differs from complete closed source lowering".into());}
             if !s.arena_order_exact {return Err("global arena exhaustion requires recorded arena order".into());}
@@ -2362,6 +2378,7 @@ impl Engine {
         self.commit_program_mode(s,false)
     }
     pub(super) fn commit_program_mode(&self,s:&mut State,end_program:bool)->Result<bool,String> {
+        self.preflight_generated_token_branch(s)?;
         if s.ability_committed {return Ok(true);}
         let source=s.source;
         self.phase_preflight_parent(s,self.program(s.ability_program-1))?;
@@ -2482,6 +2499,7 @@ impl Engine {
             return Err("global arena damage requires recorded arena order".into());
         }
         loop {
+            if self.run_created_token_advantage(s)? {continue;}
             if self.run_created_token_phase_keyword(s)? {continue;}
             if self.open_deaths(s,DeathContinuation::Program)? {return Ok(());}
             let p = self.program(s.ability_program - 1);
@@ -2497,7 +2515,8 @@ impl Engine {
                 return self.end_program(s);
             };
             match instruction {
-                Instruction::GrantCreatedTokenPhaseKeyword{..}=>return Err("created-token continuation escaped boundary".into()),
+                Instruction::GrantCreatedTokenPhaseKeyword{..}|Instruction::GrantCreatedTokenAdvantage{..}=>return Err("created-token continuation escaped boundary".into()),
+                Instruction::LookTopDeckOptions{..}=>{if self.run_top_deck_options(s)? {return Ok(());}}
                 Instruction::EndStep => {s.ability_pc+=1;}
                 Instruction::HandCost{..} => {if self.run_hand_cost_instruction(s)? {return Ok(());}}
                 Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {
@@ -2526,8 +2545,7 @@ impl Engine {
                             s.ability_pc=menu.branches.first().ok_or("dependent default branch missing")?.start as u8;continue;
                         }
                     }
-                    let legal: Vec<_> = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                        &context, s.source, if menu.preserve_target {s.ability_target}else{0}, s.ability_program - 1, branch.start, branch.end, false)).collect();
+                    let legal: Vec<_> = self.visible_modal_branches(s,menu);
                     match legal.as_slice() {
                         [] => {
                             s.ability_succeeded = false;
@@ -2560,7 +2578,7 @@ impl Engine {
                     {
                         s.ability_target = 0;
                         s.ability_selection=Selection::default();
-                        s.ability_pc += 1;
+                        s.ability_pc = if crate::modal_deck_movement_contract::program(p) {p.event_end as u8} else {s.ability_pc+1};
                         continue;
                     }
                     s.decision = Decision::AbilityTarget;
@@ -3163,18 +3181,9 @@ impl Engine {
             return Ok((1,true));
         }
         if let Effect::GiveAdvantage{target,amount,..}=e {
-            let def=self.advantage_def.ok_or("catalogue needs Advantage token")?;
             let amount=self.effect_amount(s,amount)? as usize;
             let targets=self.effect_targets(s,target).into_iter().filter_map(|v|if let Eval::Card(id)=v {self.in_arena(s,id).then_some(id)}else{None}).collect::<Vec<_>>();
-            let count=targets.len().checked_mul(amount).ok_or("Advantage token count overflow")?;
-            if s.next_id as usize+count>MAX_CARDS {return Err("card capacity exceeded creating Advantage".into());}
-            let mut work=*s;let mut tokens=Vec::with_capacity(count);
-            for host in targets {for _ in 0..amount {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(host).owner,..Card::default()};tokens.push((id,host));}}
-            self.capture_collective_window(&mut work,&tokens.iter().map(|(upgrade,parent)|CollectiveEvent::UpgradeAttached{parent:*parent,upgrade:*upgrade}).collect::<Vec<_>>())?;
-            for (token,host) in tokens {self.attach(&mut work,token,host);}
-            self.check_stat_capacity(&work)?;self.finish_scalar_effect(&mut work)?;
-            work.event_result=StepEventResult::for_state(&work);*s=work;
-            return Ok((count as u16,count>0));
+            return self.give_captured_advantage(s,targets,amount);
         }
         if matches!(e, Effect::NoAction) {
             s.event_result=StepEventResult::for_state(s);
@@ -3203,6 +3212,19 @@ impl Engine {
             let events=parents.into_iter().flat_map(|parent|std::iter::repeat(parent).take(amount as usize)).enumerate().map(|(i,parent)|CollectiveEvent::UpgradeAttached{parent,upgrade:(s.next_id as usize+i) as CardId}).collect::<Vec<_>>();self.capture_collective_window(s,&events)?;
         }
         self.apply_scalar_effect(s,e,targets,amount,modifier)
+    }
+    fn give_captured_advantage(&self,s:&mut State,targets:Vec<CardId>,amount:usize)->Result<(u16,bool),String>{
+        let def=self.advantage_def.ok_or("catalogue needs Advantage token")?;
+        if targets.iter().any(|id|*id==0||*id>=s.next_id||!self.in_arena(s,*id)){return Err("captured Advantage recipient is not live".into());}
+        let count=targets.len().checked_mul(amount).ok_or("Advantage token count overflow")?;
+        if s.next_id as usize+count>MAX_CARDS {return Err("card capacity exceeded creating Advantage".into());}
+        let mut work=*s;let mut tokens=Vec::with_capacity(count);
+        for host in targets {for _ in 0..amount {let id=work.next_id;work.next_id+=1;*work.card_mut(id)=Card{present:true,def,owner:work.card(host).owner,..Card::default()};tokens.push((id,host));}}
+        self.capture_collective_window(&mut work,&tokens.iter().map(|(upgrade,parent)|CollectiveEvent::UpgradeAttached{parent:*parent,upgrade:*upgrade}).collect::<Vec<_>>())?;
+        for (token,host) in tokens {self.attach(&mut work,token,host);}
+        self.check_stat_capacity(&work)?;self.finish_scalar_effect(&mut work)?;
+        work.event_result=StepEventResult::for_state(&work);*s=work;
+        return Ok((count as u16,count>0));
     }
     // Mutation consumes resolved inputs. Target selection/capture and the
     // prepared record's storage layout belong to callers, not these handlers.
@@ -3456,6 +3478,7 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if self.top_deck_options_prompt(s) {return self.apply_top_deck_options(s,a);}
         if self.selected_hand_cost_prompt(s) {return self.apply_selected_hand_cost(s,a);}
         if self.hand_cost_step(s).is_some() {return self.apply_hand_cost_action(s,a);}
         if s.decision==Decision::AbilityNumber {return self.apply_number_action(s,a);}
@@ -3477,8 +3500,7 @@ impl Engine {
             if let Some(Instruction::ModalChoice(menu)) = p.instructions.get(s.ability_pc as usize) {
                 t.active = t.card(t.source).owner;
                 let index = a.arg.as_ref().and_then(Value::as_u64).ok_or("modal branch index missing")? as usize;
-                let branch = menu.branches.iter().filter(|branch| branch.always_legal || self.instructions_can_affect(
-                    &t, t.source, if menu.preserve_target {t.ability_target}else{0}, t.ability_program - 1, branch.start, branch.end, false))
+                let branch = self.visible_modal_branches(&t,menu).into_iter()
                     .nth(index).ok_or("modal branch index invalid")?;
                 if !menu.preserve_target {t.ability_target = 0;t.ability_selection = Selection::default();}
                 t.ability_pc = branch.start as u8;
@@ -4682,3 +4704,19 @@ mod distributed_advantage_tests;
 #[cfg(test)]
 #[path="arena_payment_exhaust_tests.rs"]
 mod arena_payment_exhaust_tests;
+
+#[cfg(test)]
+#[path="resource_number_experience_tests.rs"]
+mod resource_number_experience_tests;
+
+#[path="generated_token_continuation_runtime.rs"]
+mod generated_token_continuation_runtime;
+#[cfg(test)]
+#[path="generated_token_continuation_tests.rs"]
+mod generated_token_continuation_tests;
+
+#[path="modal_deck_movement_runtime.rs"]
+mod modal_deck_movement_runtime;
+#[cfg(test)]
+#[path="modal_deck_movement_tests.rs"]
+mod modal_deck_movement_tests;

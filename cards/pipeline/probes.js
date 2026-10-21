@@ -2,6 +2,12 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const modalDeckMovement = require('./modal-deck-movement-probes').planModalDeckMovementProbes(entry, options);
+    if (modalDeckMovement) return modalDeckMovement;
+    const resourceNumberExperience = require('./resource-number-target-experience-probes').planResourceNumberTargetExperienceProbes(entry, options);
+    if (resourceNumberExperience) return resourceNumberExperience;
+    const generatedTokenContinuation = require('./generated-token-continuation-probes').planGeneratedTokenContinuationProbes(entry, options.catalogue);
+    if (generatedTokenContinuation) return generatedTokenContinuation;
     const playerPhaseEffect = require('./player-phase-effect-probes').planPlayerPhaseEffectProbes(entry, options);
     if (playerPhaseEffect) return playerPhaseEffect;
     const handCardCost = require('./hand-card-cost-probes').planHandCardCostProbes(entry, options);

@@ -928,6 +928,48 @@
       "upgradePower": null
     },
     {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 2,
+      "id": "9790448244",
+      "internalName": "reanimated-night-trooper",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "ASH_045",
+      "setCodes": [
+        {
+          "number": 45,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 45,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Defeated: Look at the top card of a deck. You may discard it.",
+      "title": "Reanimated Night Trooper",
+      "traits": [
+        "imperial",
+        "night",
+        "undead",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "space",
       "aspects": [
         "vigilance",
@@ -3402,6 +3444,45 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 8,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 9,
+      "id": "6744545975",
+      "internalName": "trask-walker",
+      "keywords": [],
+      "power": 5,
+      "rules": "Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "ASH_133",
+      "setCodes": [
+        {
+          "number": 133,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 133,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When Played/On Attack: Choose a unit in your discard pile that costs 7 or less. Either put that card on the bottom of your deck and heal 3 damage from your base or return it to your hand.",
+      "title": "Trask Walker",
+      "traits": [
+        "vehicle",
+        "walker"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -6999,6 +7080,44 @@
       ],
       "types": [
         "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "2613847155",
+      "internalName": "choose-your-path",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_257",
+      "setCodes": [
+        {
+          "number": 257,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 257,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Choose one:\nIf you control a Force unit, heal 5 damage from your base.\nIf you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it.\n",
+      "title": "Choose Your Path",
+      "traits": [
+        "force",
+        "mandalorian"
+      ],
+      "types": [
+        "event"
       ],
       "unique": false,
       "upgradeHp": null,
@@ -33507,6 +33626,44 @@
       "unique": false,
       "upgradeHp": 2,
       "upgradePower": 2
+    },
+    {
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6782724617",
+      "internalName": "emergency-powers",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SEC_040",
+      "setCodes": [
+        {
+          "number": 40,
+          "set": "SEC"
+        }
+      ],
+      "setId": {
+        "number": 40,
+        "set": "SEC"
+      },
+      "subtitle": "",
+      "text": "Choose a non-leader unit and pay any number of resources. For each resource paid this way, give an Experience token to the chosen unit.",
+      "title": "Emergency Powers",
+      "traits": [
+        "law"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
     },
     {
       "arena": "ground",

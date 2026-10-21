@@ -13,7 +13,8 @@ impl Engine {
             (s.card(id).present || s.card(id).def != 0)
                 && self.card_programs(s, id).iter().any(|p| {
                     let program = self.program(*p);
-                    (crate::created_token_phase_keyword_contract::requires(program)
+                    (crate::generated_token_continuation_contract::requires(program)&&crate::generated_token_continuation_contract::program(program))
+                        || (crate::created_token_phase_keyword_contract::requires(program)
                         && crate::created_token_phase_keyword_contract::program(program))
                         || (program.trigger == "whenDefeated"
                             && program.instructions.iter().any(|i| {
