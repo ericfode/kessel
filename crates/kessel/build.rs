@@ -1,5 +1,9 @@
 #[path="src/round_limit_contract.rs"]
 mod round_limit_contract;
+#[path="src/exhausted_live_count_contract.rs"]
+mod exhausted_live_count_contract;
+#[path="src/defeat_token_creation_contract.rs"]
+mod defeat_token_creation_contract;
 #[path = "src/collective_trigger_contract.rs"]
 mod collective_trigger_contract;
 #[allow(dead_code)]
@@ -260,6 +264,8 @@ fn main() {
     println!("cargo:rerun-if-changed=src/ambush_context_contract.rs");
     println!("cargo:rerun-if-changed=src/cinder_contract.rs");
     println!("cargo:rerun-if-changed=src/blade_base_damage_contract.rs");
+    println!("cargo:rerun-if-changed=src/exhausted_live_count_contract.rs");
+    println!("cargo:rerun-if-changed=src/defeat_token_creation_contract.rs");
     println!("cargo:rerun-if-changed=src/credits.rs");
     println!("cargo:rerun-if-changed=src/migration_credit_contract.rs");
     println!("cargo:rerun-if-changed=src/regroup_hooks.rs");

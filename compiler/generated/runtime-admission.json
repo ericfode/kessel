@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 939
+    "sourceIr": 941
   },
   "runtimeAdmittedCards": [
     {
@@ -66,6 +66,11 @@
       "setCode": "ASH_026"
     },
     {
+      "implementation": "sourceIr",
+      "internalName": "paz-vizsla#for-a-brighter-future",
+      "setCode": "ASH_028"
+    },
+    {
       "implementation": "dataOnly",
       "internalName": "scorpenek-annihilator-droid",
       "setCode": "ASH_029"
@@ -89,6 +94,11 @@
       "implementation": "sourceIr",
       "internalName": "wicket#yub-nub",
       "setCode": "ASH_034"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "tatooine-repulsor-train",
+      "setCode": "ASH_035"
     },
     {
       "implementation": "sourceIr",
@@ -6656,7 +6666,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1329,
+  "runtimeAdmittedCount": 1331,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6739,19 +6749,9 @@
       "setCode": "ASH_027"
     },
     {
-      "internalName": "paz-vizsla#for-a-brighter-future",
-      "reason": "paz-vizsla#for-a-brighter-future: invalid ability IR: unknown variant `nativeTokenUnitEventFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
-      "setCode": "ASH_028"
-    },
-    {
       "internalName": "hera-syndulla#renegade-general",
       "reason": "hera-syndulla#renegade-general: phase history requires complete ordinary unit/event source metadata and registration",
       "setCode": "ASH_031"
-    },
-    {
-      "internalName": "tatooine-repulsor-train",
-      "reason": "tatooine-repulsor-train: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
-      "setCode": "ASH_035"
     },
     {
       "internalName": "purrgil-ultra",
@@ -8385,7 +8385,7 @@
     },
     {
       "internalName": "chewbacca#faithful-first-mate",
-      "reason": "chewbacca#faithful-first-mate: defeat cause requires the complete closed optional unit death source and exact event-cause helper",
+      "reason": "chewbacca#faithful-first-mate: noncombat defeat token creation requires the complete mandatory Sentinel unit source and native Mandalorian/Shield profiles",
       "setCode": "JTL_103"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1276,
+  "runtimeRejectedCount": 1274,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

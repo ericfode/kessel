@@ -1397,7 +1397,7 @@ impl Engine {
                 };Eval::Number(i64::from(count))
             },
             Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
-            Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
+            Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["abilityPlayer"]=>Some(s.active),Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
             Expr::ArenaLength {receiver} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Number(ids.len() as i64)},
@@ -1674,6 +1674,7 @@ impl Engine {
                 }
                 let d = self.def(s, id);
                 match name.as_str() {
+                    name if crate::defeat_token_creation_contract::query(name,receiver,args) => crate::defeat_token_creation_contract::evaluate(s.defeat_cause).map_or(Eval::Null,Eval::Bool),
                     "hasAttachedTrait" => Eval::Bool(self.attached_trait(s,id,if let Expr::Const{value}=&args[0] {value.as_str().unwrap_or("")} else {""})),
                     "hasAttachedNativeToken" => Eval::Bool(self.attached_native_shield(s,id)),
                     "isUnit" => Eval::Bool(
@@ -2255,7 +2256,7 @@ impl Engine {
         let round_limited=crate::round_limit_contract::Registration::from_trigger(&self.program(p).trigger).is_some();
         if round_limited {s.round_limits.instance(s.round_limit)?;}else{s.round_limit=crate::round_limit_state::Handle::NONE;}
 
-        if crate::defeat_cause::requires(self.program(p))&&s.defeat_cause==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}
+        if (crate::defeat_cause::requires(self.program(p))||crate::defeat_token_creation_contract::requires(self.program(p)))&&s.defeat_cause==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}
         if self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::CreateCreditToken{..}))) && !s.credit_state_exact {return Err("Credit creation requires exact Credit state".into());}
         if crate::current_played_unit::requires(self.program(p))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if !s.arena_order_exact && (crate::modal_arena_choices::requires_global_order(self.program(p)) || crate::cinder_contract::requires_global_order(self.program(p))) {
@@ -3696,7 +3697,7 @@ impl Engine {
     /// Suspend only at an event boundary; movement and the complete lethal set settle first.
     /// New frames accept a known continuation; persisted raw frames still decode on resumption.
     pub(super) fn open_deaths(&self,s:&mut State,resume:DeathContinuation)->Result<bool,String> {
-        for entry in &s.death_pending.entries[..s.death_pending.len as usize] {if entry.keyword==0&&crate::defeat_cause::requires(self.program(entry.program))&&entry.capture.cause()==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}}
+        for entry in &s.death_pending.entries[..s.death_pending.len as usize] {if entry.keyword==0&&(crate::defeat_cause::requires(self.program(entry.program))||crate::defeat_token_creation_contract::requires(self.program(entry.program)))&&entry.capture.cause()==crate::defeat_cause::DefeatCause::Unknown {return Err("captured defeat source cause is missing".into());}}
         if resume==DeathContinuation::ResourcePayment && (!s.resource_payment.active() || s.resource_payment.stage!=crate::resource_payment::PaymentStage::Paid) {return Err("invalid defeat continuation".into());}
         let ready=|e:&DeathTrigger|e.after_pc==0 || (e.capture.depth()==s.death_depth && e.after_pc==s.ability_pc && s.ability_program!=0);
         if !s.death_pending.entries[..s.death_pending.len as usize].iter().any(ready) {return Ok(false);}
@@ -4531,3 +4532,7 @@ impl Engine {
 #[cfg(test)]
 #[path="round_limit_producer_tests.rs"]
 mod round_limit_producer_tests;
+
+#[cfg(test)]
+#[path="defeat_token_creation_tests.rs"]
+mod defeat_token_creation_tests;

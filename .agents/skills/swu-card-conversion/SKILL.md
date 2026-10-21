@@ -186,6 +186,9 @@ When adding a construction adapter, wire both planner/fixture dispatch and the
 central fixture dependency inventory so reusable recordings bind the new source
 files. Compare every preceding full plan object, including its obligations and
 construction parameters, after changing dispatch.
+Check each fixture's constructed card references against that case's setup declarations
+as well as the selected pool. A shared pool union can hide an omitted dependency
+in an individual case; inspect literal protocol and constructor references too.
 When changing Holocron's external dependency inventory or source identity, run `node --test lab/kessel-reference/test/load.test.js` with the read-only pinned built engine and no sibling Kessel checkout.
 Keep the dependency-path grammar strict; scoped engine fixture tests do not replace this inventory gate.
 
@@ -203,8 +206,11 @@ If source inspection disproves an expectation, document the correction in review
 do not weaken assertions to match implementation output.
 
 Run `kessel:reference -- index` in Holocron (it rewrites this checkout's
-`cards/reference/cases.json` and `cards/behaviors.json`), generate into a fresh
-directory with `kessel:reference -- generate`, inspect the witness, and compare
+`cards/reference/cases.json` and `cards/behaviors.json`). Before accepting those
+outputs, check that every accepted recording still resolves to its case definition.
+Reject an index that orphans historical cases when their source modules are missing;
+preserve the preceding index and source hashes rather than inventing source files.
+Generate into a fresh directory with `kessel:reference -- generate`, inspect the witness, and compare
 both native and Wasm here with `cards:reference -- check`. Generation checks its engine source/build pair
 and preserves exact pool/trace hashes. Rebuild both runtimes after source changes.
 `cards:reference import` checks every incoming recording before accepting it into

@@ -92,7 +92,7 @@ pub fn expression(e: &Expr) -> Result<String, String> {
             "{{let receiver={};Eval::Bool(if let Eval::Card(id)=receiver {{self.attached_native_token(s,id,{token_type:?})}} else {{false}})}}", sub(receiver)?),
         Expr::Compiled(c) => expression(&c.original)?,
         Expr::ArenaList {receiver,predicate} => {
-            let owner=match receiver.original(){Expr::Ref{path} if path==&["player"]=>"s.card(card).owner==s.card(source).owner",Expr::Ref{path} if path==&["opponent"]=>"s.card(card).owner==s.card(source).owner.other()",Expr::Ref{path} if path==&["game"]=>"true",_=>return Err("unknown arena receiver".into())};
+            let owner=match receiver.original(){Expr::Ref{path} if path==&["abilityPlayer"]=>"s.card(card).owner==s.active",Expr::Ref{path} if path==&["player"]=>"s.card(card).owner==s.card(source).owner",Expr::Ref{path} if path==&["opponent"]=>"s.card(card).owner==s.card(source).owner.other()",Expr::Ref{path} if path==&["game"]=>"true",_=>return Err("unknown arena receiver".into())};
             format!("Eval::ArenaCards(self.arena_units(s).into_iter().filter(|bound_card|{{let card=*bound_card;self.in_arena(s,card)&&{owner}&&({}).truth()}}).collect())",sub(predicate)?)
         },
         Expr::ArenaFilter {receiver,predicate}|Expr::ArenaSome {receiver,predicate} => {

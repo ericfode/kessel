@@ -2,6 +2,10 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const exhaustedLiveCount = require('./exhausted-live-count-probes').planExhaustedLiveCountProbes(entry, options);
+    if (exhaustedLiveCount) return exhaustedLiveCount;
+    const defeatTokenCreation = require('./defeat-token-creation-probes').planDefeatTokenCreationProbes(entry, options);
+    if (defeatTokenCreation) return defeatTokenCreation;
     const chosenHandDiscard = require("./chosen-hand-discard-probes").planChosenHandDiscardProbes(entry, options);
     if (chosenHandDiscard) return chosenHandDiscard;
     const distributedDamage = require("./distributed-damage-probes").planDistributedDamageProbes(entry, options);
