@@ -2891,7 +2891,7 @@ impl Program {
                 Expr::Conditional {condition, then, r#else} => dependent_in_scope(condition,card_bound) || dependent_in_scope(then,card_bound) || dependent_in_scope(r#else,card_bound),
                 Expr::Query {name,receiver,args} => dependent_in_scope(receiver,card_bound) || args.iter().enumerate().any(|(i,e)|dependent_in_scope(e,card_bound || (i==0 && ["hasSomeArenaUnit","arenaUnitCount"].contains(&name.as_str())))),
                 Expr::DataMember {..} => false,
-                Expr::HistoryQuery(q) => !card_bound && q.kind()==Ok(crate::phase_history::QueryKind::EnteredCard),
+                Expr::HistoryQuery(q) => !card_bound && matches!(q.kind(),Ok(crate::phase_history::QueryKind::EnteredCard|crate::phase_history::QueryKind::DamagedCard)),
                 Expr::AttackBaseQuery {..} | Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
             }
         }
@@ -3434,6 +3434,7 @@ impl Catalogue {
                 let generated_continuation=crate::generated_token_continuation_contract::prepare(entry,value)?;
                 let resource_number=crate::resource_number_experience_contract::prepare(entry)?;
                 let attack_base=crate::attack_base_history_contract::prepare(entry)?;
+                crate::damaged_target_history_contract::prepare(entry)?;
                 let arena_payment=crate::arena_payment_exhaust_contract::prepare(entry)?;
                 let modal_deck=crate::modal_deck_movement_contract::prepare(entry)?;
                 let phase=crate::player_phase_contract::prepare(entry)?;

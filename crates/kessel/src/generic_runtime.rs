@@ -1012,6 +1012,11 @@ impl Engine {
                     ));
                 }
             };
+            // Preserve the complete source and raw physical row before typed projection.
+            let raw_source = raw_catalogue["cards"].as_array()
+                .and_then(|cards|cards.iter().find(|entry|entry["setCode"].as_str()==Some(&canonical)))
+                .unwrap_or(&Value::Null);
+            crate::damaged_target_history_contract::validate_selected_pool_metadata(raw_source,card)?;
             let approved = engine.catalogue.as_ref().unwrap().metadata[&canonical].clone();
             for field in [
                 "title",
@@ -1413,7 +1418,8 @@ impl Engine {
     pub(super) fn needs_phase_history(&self)->bool {
         if self.needs_current_played_history()||self.needs_defeat_history(){return true;}
         fn expression(e:&Expr)->bool {match e.original() {
-            Expr::HistoryQuery(_)|Expr::DataMember{..}=>true,
+            Expr::HistoryQuery(q)=>q.watcher!=crate::phase_history::Watcher::Damage,
+            Expr::DataMember{..}=>true,
             Expr::Binary{left,right,..}=>expression(left)||expression(right),
             _=>false,
         }}
@@ -1434,9 +1440,11 @@ impl Engine {
     }
     fn history_boolean(&self,s:&State,source:CardId,card:CardId,q:&crate::phase_history::Query)->bool {
         use crate::model::PhaseHistory;use crate::phase_history::QueryKind;
+        if q.kind()==Ok(QueryKind::DamagedCard) {assert!(s.phase_history.damage_exact,"damage target history must be exact before execution");return s.phase_history.damaged[card as usize/64]&(1u64<<(card as usize%64))!=0 && (self.def(s,card).info.is("unit") || (s.card(card).deployed && self.def(s,card).info.is("leader")));}
         assert!(s.phase_history.exact,"phase history must be exact before execution");
         let player=s.card(source).owner;
         match q.admitted_kind() {
+            QueryKind::DamagedCard=>unreachable!("damage history handled independently"),
             QueryKind::EnteredCard => [Seat::P1,Seat::P2].into_iter().any(|seat|PhaseHistory::contains(&s.phase_history.entered,seat,card)),
             QueryKind::EnteredOtherFriendly => (1..s.next_id).any(|id|id!=source&&PhaseHistory::contains(&s.phase_history.entered,player,id)),
             QueryKind::PlayedTrait(trait_name) => (1..s.next_id).any(|id|PhaseHistory::contains(&s.phase_history.played,player,id)&&self.card_has_trait(s,id,trait_name.as_str())),

@@ -35,7 +35,7 @@ fn start(e:&Engine,s:&mut State,source:CardId) {s.source=source;s.active=s.card(
  let mut s=board(&e,seat);let old=unit(&e,&mut s,seat,"ASH_219");let incoming=add(&e,&mut s,seat,"ASH_219");s.player_mut(seat).hand.push(incoming).unwrap();e.play_unit_with_payment(&mut s,incoming,false).unwrap();assert_eq!(s.decision,Decision::Unique);e.settle_enter_triggers(&mut s,Some(incoming)).unwrap();assert!(!e.in_arena(&s,incoming));assert!(e.in_arena(&s,old));assert_eq!(s.decision,Decision::AbilityOptional);click(&e,&mut s,"Trigger");assert!(s.card(old).exhausted);assert_eq!(e.ready_resources(&s,seat),15);
  let mut s=board(&e,seat);let source=unit(&e,&mut s,seat,"ASH_219");let mut targets=vec![];for i in 0..128 {targets.push(unit(&e,&mut s,if i%2==0{seat}else{seat.other()},"SOR_178"));}start(&e,&mut s,source);click(&e,&mut s,"Trigger");click(&e,&mut s,"Space");assert!(targets.iter().all(|id|s.card(*id).exhausted));assert!(!s.card(source).exhausted);
  }
- assert_eq!(std::mem::size_of::<State>(),38312);
+ assert_eq!(std::mem::size_of::<State>(),38344);
 }
 #[test]fn arena_payment_intrinsic_sentinel_and_phase_effect_payment_does_not_consume_mouse(){
  let e=engine(RulesBackend::Auto);let mut s=board(&e,Seat::P1);let jod=unit(&e,&mut s,Seat::P1,"ASH_219");s.card_mut(jod).exhausted=true;let attacker=unit(&e,&mut s,Seat::P2,"LOF_254");let other=unit(&e,&mut s,Seat::P1,"LOF_254");assert_eq!(e.attack_targets(&s,attacker,false),vec![jod]);assert!(!e.attack_targets(&s,attacker,false).contains(&other));

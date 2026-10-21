@@ -28,6 +28,7 @@ impl Engine {
                 for seat in [Seat::P1, Seat::P2] {
                     let base = s.player(seat).base;
                     s.card_mut(base).damage += 1;
+                    self.record_damaged_target(s,base);
                 }
                 self.check_win(s);
                 self.finish(s)?;

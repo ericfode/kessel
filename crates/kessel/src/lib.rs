@@ -37,6 +37,7 @@ pub mod ability_ir;
 mod bounded_reductions;
 pub mod static_ongoing;
 pub mod phase_history;
+mod damaged_target_history_contract;
 mod live_power_maximum;
 pub mod catalogue_io;
 pub mod check;

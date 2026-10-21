@@ -1,0 +1,824 @@
+{
+  "cards": [
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "aggression",
+        "heroism"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "5557320306",
+      "internalName": "hera-syndulla#renegade-general",
+      "keywords": [],
+      "power": 3,
+      "rules": "“Combat damage” is only the damage dealt during the “End attack” step of an attack.\nWhen Attack Ends abilities trigger at the same time as units deal combat damage. Hera does not need to survive the attack in order to heal damage from your base.\n",
+      "setCode": "ASH_031",
+      "setCodes": [
+        {
+          "number": 31,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 31,
+        "set": "ASH"
+      },
+      "subtitle": "Renegade General",
+      "text": "When Attack Ends: If this unit dealt combat damage to a base, heal that much damage from your base.",
+      "title": "Hera Syndulla",
+      "traits": [
+        "new republic",
+        "twi'lek",
+        "spectre"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "1029172801",
+      "internalName": "strike-team-vanguard",
+      "keywords": [],
+      "power": 5,
+      "rules": null,
+      "setCode": "ASH_061",
+      "setCodes": [
+        {
+          "number": 61,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 61,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Strike Team Vanguard",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 6,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9890561214",
+      "internalName": "dinosaur-turtle",
+      "keywords": [],
+      "power": 7,
+      "rules": null,
+      "setCode": "ASH_131",
+      "setCodes": [
+        {
+          "number": 131,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 131,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Dinosaur Turtle",
+      "traits": [
+        "creature"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "3024525867",
+      "internalName": "vanes-snub-fighter#brash-and-proud",
+      "keywords": [],
+      "power": 2,
+      "rules": "When Attack Ends abilities trigger at the same time as units deal combat damage. The attacking unit doesn't need to survive in order to give an Advantage token, so long as it dealt combat damage to a base.\n“Combat damage” is only the damage dealt during the “End attack” step of an attack.\n",
+      "setCode": "ASH_144",
+      "setCodes": [
+        {
+          "number": 144,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 144,
+        "set": "ASH"
+      },
+      "subtitle": "Brash and Proud",
+      "text": "When a friendly unit's attack ends: If it dealt combat damage to a base, give an Advantage token to this unit.",
+      "title": "Vane's Snub Fighter",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "fighter"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "4401214542",
+      "internalName": "mark-my-words",
+      "keywords": [
+        "overwhelm"
+      ],
+      "power": 2,
+      "rules": "Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.\nIf the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.\n",
+      "setCode": "ASH_181",
+      "setCodes": [
+        {
+          "number": 181,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 181,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Attach to a damaged unit.\nAttached unit gains Overwhelm. (When attacking an enemy unit, deal excess damage to the opponent's base.)",
+      "title": "Mark My Words",
+      "traits": [
+        "learned"
+      ],
+      "types": [
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 2
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "9496039852",
+      "internalName": "galvanized-leap",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_188",
+      "setCodes": [
+        {
+          "number": 188,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 188,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Ready a unit that was damaged this phase.",
+      "title": "Galvanized Leap",
+      "traits": [
+        "force"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "vigilance"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "5691187672",
+      "internalName": "nala-se#silent-survivor",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "HMW_082",
+      "setCodes": [
+        {
+          "number": 82,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 82,
+        "set": "HMW"
+      },
+      "subtitle": "Silent Survivor",
+      "text": "",
+      "title": "Nala Se",
+      "traits": [
+        "kaminoan"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 8,
+      "id": "1226993616",
+      "internalName": "coastal-catamarans",
+      "keywords": [],
+      "power": 8,
+      "rules": null,
+      "setCode": "HMW_093",
+      "setCodes": [
+        {
+          "number": 93,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 93,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Coastal Catamarans",
+      "traits": [
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8382448205",
+      "internalName": "ewok-brigade",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "HMW_116",
+      "setCodes": [
+        {
+          "number": 116,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 116,
+        "set": "HMW"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Ewok Brigade",
+      "traits": [
+        "ewok"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "villainy"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "0581968676",
+      "internalName": "snowtrooper",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "IBH_063",
+      "setCodes": [
+        {
+          "number": 63,
+          "set": "IBH"
+        },
+        {
+          "number": 77,
+          "set": "IBH"
+        },
+        {
+          "number": 87,
+          "set": "IBH"
+        }
+      ],
+      "setId": {
+        "number": 63,
+        "set": "IBH"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Snowtrooper",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "space",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "4789935295",
+      "internalName": "munificent-frigate",
+      "keywords": [],
+      "power": 4,
+      "rules": null,
+      "setCode": "JTL_069",
+      "setCodes": [
+        {
+          "number": 69,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 69,
+        "set": "JTL"
+      },
+      "subtitle": "",
+      "text": "",
+      "title": "Munificent Frigate",
+      "traits": [
+        "separatist",
+        "vehicle",
+        "capital ship"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "8679831560",
+      "internalName": "repair",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "JTL_075",
+      "setCodes": [
+        {
+          "number": 74,
+          "set": "SOR"
+        },
+        {
+          "number": 75,
+          "set": "JTL"
+        }
+      ],
+      "setId": {
+        "number": 75,
+        "set": "JTL"
+      },
+      "subtitle": null,
+      "text": "Heal 3 damage from a unit or base.",
+      "title": "Repair",
+      "traits": [
+        "supply"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "4327133297",
+      "internalName": "moisture-farmer",
+      "keywords": [
+        "restore"
+      ],
+      "power": 0,
+      "rules": null,
+      "setCode": "SHD_055",
+      "setCodes": [
+        {
+          "number": 55,
+          "set": "SHD"
+        }
+      ],
+      "setId": {
+        "number": 55,
+        "set": "SHD"
+      },
+      "subtitle": "",
+      "text": "Restore 2 (When this unit attacks, heal 2 damage from your base.)",
+      "title": "Moisture Farmer",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 4,
+      "deployBox": "On Attack: Deal 1 damage to each enemy base.",
+      "epicAction": "Epic Action: If you control 4 or more resources, deploy this leader.",
+      "hp": 5,
+      "id": "4841169874",
+      "internalName": "sabine-wren#galvanized-revolutionary",
+      "keywords": [],
+      "power": 2,
+      "rules": null,
+      "setCode": "SOR_014",
+      "setCodes": [
+        {
+          "number": 14,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 14,
+        "set": "SOR"
+      },
+      "subtitle": "Galvanized Revolutionary",
+      "text": "Action [exhaust]: Deal 1 damage to each base.",
+      "title": "Sabine Wren",
+      "traits": [
+        "mandalorian",
+        "rebel",
+        "spectre"
+      ],
+      "types": [
+        "leader"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "command"
+      ],
+      "cost": null,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 30,
+      "id": "0507674993",
+      "internalName": "command-center",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "SOR_023",
+      "setCodes": [
+        {
+          "number": 23,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 23,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Command Center",
+      "traits": [
+        "death star"
+      ],
+      "types": [
+        "base"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "heroism"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 3,
+      "id": "4317911650",
+      "internalName": "battlefield-marine",
+      "keywords": [],
+      "power": 3,
+      "rules": null,
+      "setCode": "SOR_095",
+      "setCodes": [
+        {
+          "number": 95,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 95,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": null,
+      "title": "Battlefield Marine",
+      "traits": [
+        "rebel",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "3058784025",
+      "internalName": "keep-fighting",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "SOR_169",
+      "setCodes": [
+        {
+          "number": 169,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 169,
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "Ready a unit with 3 or less power.",
+      "title": "Keep Fighting",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 0,
+      "id": "5844562972",
+      "internalName": "advantage",
+      "keywords": [],
+      "power": 1,
+      "rules": "When Attack Ends/When Defense Ends abilities trigger at the same time as units deal combat damage.\n",
+      "setCode": "TOKEN_ADVANTAGE",
+      "setId": {
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When attached unit's attack or defense ends: Defeat this upgrade.",
+      "title": "Advantage",
+      "traits": [
+        "innate"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 1
+    },
+    {
+      "aspects": [],
+      "cost": 0,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 0,
+      "id": "8752877738",
+      "internalName": "shield",
+      "keywords": [],
+      "power": 0,
+      "rules": null,
+      "setCode": "TOKEN_SHIELD",
+      "setId": {
+        "set": "SOR"
+      },
+      "subtitle": null,
+      "text": "If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.",
+      "title": "Shield",
+      "traits": [
+        "armor"
+      ],
+      "types": [
+        "token",
+        "upgrade"
+      ],
+      "unique": false,
+      "upgradeHp": 0,
+      "upgradePower": 0
+    },
+    {
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "8148673131",
+      "internalName": "open-fire",
+      "keywords": [],
+      "power": null,
+      "rules": null,
+      "setCode": "TWI_174",
+      "setCodes": [
+        {
+          "number": 172,
+          "set": "SOR"
+        },
+        {
+          "number": 174,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 174,
+        "set": "TWI"
+      },
+      "subtitle": null,
+      "text": "Deal 4 damage to a unit.",
+      "title": "Open Fire",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": null,
+      "id": "7202133736",
+      "internalName": "waylay",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that return a card to hand must choose a card in play unless otherwise specified.\n",
+      "setCode": "TWI_226",
+      "setCodes": [
+        {
+          "number": 222,
+          "set": "SOR"
+        },
+        {
+          "number": 226,
+          "set": "TWI"
+        }
+      ],
+      "setId": {
+        "number": 226,
+        "set": "TWI"
+      },
+      "subtitle": null,
+      "text": "Return a non-leader unit to its owner's hand.",
+      "title": "Waylay",
+      "traits": [
+        "trick"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    }
+  ],
+  "description": "Cards admitted by the bounded generated-IR runtime; admission is not differential validation.",
+  "schema": "omni-rs-pool-v1"
+}

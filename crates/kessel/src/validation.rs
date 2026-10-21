@@ -179,7 +179,7 @@ pub fn validate_state_with_catalogue(
             "winner",
             "players",
             "arenaUnitOrder", "registrationOrder",
-            "hiddenHistoryVersion", "phaseHistory",
+            "hiddenHistoryVersion", "phaseHistory", "damagedTargetHistory",
             "supportStateVersion", "supportGrants", "supportAttackPending", "dependentChoicePending",
             "namedPlayState",
             "forceStateVersion", "creditStateVersion",
@@ -532,6 +532,7 @@ pub fn validate_state_with_catalogue(
             if used.len()!=2||used.iter().any(|n|!matches!(n.as_u64(),Some(0|1))) {return Err("roundLimitState counts must be exact per-player 0 or 1".into());}
         }
     }
+    if let Some(history)=v.get("damagedTargetHistory") {crate::simulator::damaged_target_history_wire::parse(history,(next+1) as u16)?;}
     if let Some(history)=v.get("phaseHistory") {crate::model::PhaseHistory::parse(history,(next+1) as u16)?;}
     if let Some(named)=v.get("namedPlayState") {
         fields(named,&["version","registry","locks"],"namedPlayState")?;

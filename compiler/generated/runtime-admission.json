@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 959
+    "sourceIr": 960
   },
   "runtimeAdmittedCards": [
     {
@@ -639,6 +639,11 @@
       "implementation": "sourceIr",
       "internalName": "reckoning",
       "setCode": "ASH_187"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "galvanized-leap",
+      "setCode": "ASH_188"
     },
     {
       "implementation": "sourceIr",
@@ -6756,7 +6761,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1349,
+  "runtimeAdmittedCount": 1350,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -7062,11 +7067,6 @@
       "internalName": "treacherous-minefield",
       "reason": "treacherous-minefield: unknown variant `systemPropertiesFactory`, expected one of `installPlayerPhase`, `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeTokenUpgrade`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_186"
-    },
-    {
-      "internalName": "galvanized-leap",
-      "reason": "galvanized-leap: phase history requires complete ordinary unit/event source metadata and registration",
-      "setCode": "ASH_188"
     },
     {
       "internalName": "gorian-shards-corsair#pirate-warship",
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1256,
+  "runtimeRejectedCount": 1255,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

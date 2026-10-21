@@ -105,6 +105,8 @@ mod static_ongoing;
 #[path = "src/migration_defeat_history_contract.rs"]
 mod migration_defeat_history_contract;
 #[allow(dead_code)]
+#[path = "src/damaged_target_history_contract.rs"]
+mod damaged_target_history_contract;
 #[path = "src/phase_history.rs"]
 mod phase_history;
 #[allow(dead_code)]
@@ -334,6 +336,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/selector_contract.rs");
     println!("cargo:rerun-if-changed=src/static_ongoing.rs");
     println!("cargo:rerun-if-changed=src/phase_history.rs");
+    println!("cargo:rerun-if-changed=src/damaged_target_history_contract.rs");
     println!("cargo:rerun-if-changed=src/migration_defeat_history_contract.rs");
     println!("cargo:rerun-if-changed=src/attack_history.rs");
     println!("cargo:rerun-if-changed=src/bounded_reductions.rs");
