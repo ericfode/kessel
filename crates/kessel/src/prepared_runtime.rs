@@ -646,8 +646,10 @@ impl Engine {
         self.capture_resolved_collective_window(s,&collective_before,collective_start,&collective_resolved)?;
         let created=s.event_group.records[..s.event_group.count as usize].iter().filter(|r|matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::CreateTokenUnit{..}))).map(|r|r.token).collect::<Vec<_>>();
         self.capture_unit_entry_watchers(s,&created)?;
+        let mut created_shields=Vec::new();
         for source in created {
             let flags=self.effective_flags(s,source);
+            if flags&SHIELDED!=0 {created_shields.push(source);}
             for keyword in [T_SHIELD,T_AMBUSH] {
                 if (keyword==T_SHIELD && flags&SHIELDED==0)||(keyword==T_AMBUSH&&flags&AMBUSH==0) {continue;}
                 let n=s.death_pending.len as usize;if n==MAX_DEATH_TRIGGERS {return Err("created token trigger capacity exceeded".into());}
@@ -658,6 +660,16 @@ impl Engine {
         s.event_result=events;
         s.event_group.resolving=false;
         observations.finish(self,s)?;
+        // Shielded is captured after all primary handlers and unit entries, so
+        // printed token flags cannot predict its effective presence. Budget this
+        // window's mandatory native Shields after the framework death sweep and
+        // before public apply can publish their trigger choices. Leave actual
+        // allocation at trigger resolution to preserve IDs and event ordering.
+        // This preflight does not reserve slots against later independent effects.
+        let shields=created_shields.iter().filter(|id|self.in_arena(s,**id)).count();
+        if (s.next_id as usize).checked_add(shields).is_none_or(|end|end>MAX_CARDS) {
+            return Err("card capacity exceeded by created unit Shielded triggers".into());
+        }
         Ok(true)
     }
     pub(super) fn finish_group_damage(&self,s:&mut State,damage_callbacks:Vec<CardId>)->Result<(),String> {

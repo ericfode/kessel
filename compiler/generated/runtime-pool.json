@@ -425,6 +425,48 @@
       "arena": "ground",
       "aspects": [
         "vigilance",
+        "command",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "7107655724",
+      "internalName": "paz-vizsla#for-a-brighter-future",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": "“Combat damage” is only the damage dealt during the “End attack” step of an attack.\n",
+      "setCode": "ASH_028",
+      "setCodes": [
+        {
+          "number": 28,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 28,
+        "set": "ASH"
+      },
+      "subtitle": "For a Brighter Future",
+      "text": "Sentinel\nWhen Defeated: If this unit wasn't defeated by combat damage, create 2 Mandalorian tokens.",
+      "title": "Paz Vizsla",
+      "traits": [
+        "mandalorian"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
         "command"
       ],
       "cost": 6,
@@ -630,6 +672,47 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command",
+        "aggression"
+      ],
+      "cost": 7,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 7,
+      "id": "9629363501",
+      "internalName": "tatooine-repulsor-train",
+      "keywords": [],
+      "power": 8,
+      "rules": "(ERRATA) On Attack: Choose a ground unit. Deal 2 damage to it for each friendly exhausted unit.\nIf Tatooine Repulsor Train gains Sentinel, it can be attacked, even while you control 2 or more exhausted units.\n",
+      "setCode": "ASH_035",
+      "setCodes": [
+        {
+          "number": 35,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 35,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "This unit can't be attacked while you control 2 or more exhausted units (unless it gains Sentinel).\nOn Attack: Deal 2 damage to a ground unit for each friendly exhausted unit.",
+      "title": "Tatooine Repulsor Train",
+      "traits": [
+        "underworld",
+        "vehicle",
+        "speeder"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },

@@ -1,5 +1,7 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
 mod round_limit_contract;
+mod exhausted_live_count_contract;
+mod defeat_token_creation_contract;
 mod round_limit_state;
 mod round_limit_runtime;
 #[cfg(test)]

@@ -12944,3 +12944,6 @@ mod migration_modal_deck_tests;
 
 #[path = "regroup_hook_tests.rs"]
 mod regroup_hook_tests;
+
+#[path="exhausted_live_count_tests.rs"]
+mod exhausted_live_count_tests;

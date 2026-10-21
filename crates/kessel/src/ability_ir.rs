@@ -410,7 +410,7 @@ impl Expr {
             },
             Self::HistoryQuery(q) => {if matches!(q.kind()?,crate::phase_history::QueryKind::PlayedOpponentCount|crate::phase_history::QueryKind::DefeatedCount(_)) {Err("history list requires exact length consumption".into())}else{Ok(())}},
             Self::DataMember {receiver:crate::phase_history::List::HistoryQuery(q),optional,..} => {if !optional&&matches!(q.kind()?,crate::phase_history::QueryKind::PlayedOpponentCount|crate::phase_history::QueryKind::DefeatedCount(_)) {Ok(())}else{Err("only nonoptional bounded history list length executes".into())}},
-            Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
+            Self::ArenaList {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::Ref{path} if path.len()==1 && ["player","opponent","game","abilityPlayer"].contains(&path[0].as_str())) {return Err("arena list requires exact player/opponent/game receiver".into());}sub(predicate)},
             Self::ArenaFilter {receiver,predicate}|Self::ArenaSome {receiver,predicate} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}) {return Err("arena filter/some requires direct arena list".into());}sub(receiver)?;sub(predicate)},
             Self::ArenaLength {receiver} => {if !matches!(receiver.as_ref(),Self::ArenaList{..}|Self::ArenaFilter{..}) {return Err("arena length requires bounded list".into());}sub(receiver)},
             Self::Array { items } => {
@@ -860,7 +860,7 @@ impl TargetResolver {
             let expected=serde_json::json!([{"kind":"const","value":"Choose a unit to deal "},{"kind":"query","name":"arenaDamageSum","receiver":{"kind":"ref","path":["player"]},"args":[]},{"kind":"const","value":" damage to"}]);
             let source_power_parts=self.prompt_title_parts.len()<=32 && self.prompt_title_parts.iter().all(|e|match e {Expr::Const{value}=>value.as_str().is_some(),Expr::Query{name,receiver,args}=>name=="getPower"&&args.is_empty()&&matches!(receiver.as_ref(),Expr::Ref{path} if path==&["source"]),_=>false}) && self.prompt_title_parts.iter().map(|e|match e {Expr::Const{value}=>value.as_str().map_or(0,str::len),_=>0}).sum::<usize>()<=1024;
             let parent_trait_amount=crate::attached_registration::parent_trait_scaled_title_parts(&self.prompt_title_parts,"transport",2,1);
-            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts&&!parent_trait_amount{return Err("dynamic prompt requires bounded live arena damage sum, maximum, source power, or reviewed host-trait amount".into());}
+            if serde_json::to_value(&self.prompt_title_parts).ok()!=Some(expected)&&!crate::live_power_maximum::prompt_parts(&self.prompt_title_parts)&&!source_power_parts&&!parent_trait_amount&&!crate::exhausted_live_count_contract::prompt_parts(&self.prompt_title_parts){return Err("dynamic prompt requires bounded live arena damage sum, maximum, source power, or reviewed host-trait amount".into());}
         }
         if self.prompt_title.is_some() && !chosen_hand_discard_contract::hand_selector(self) {return Err("named prompt titles require a named descriptor".into());}
         self.max_targets()?;
@@ -2049,7 +2049,9 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="query"&&v["name"]==crate::defeat_token_creation_contract::QUERY) {return Err("captured defeat token creation requires complete raw source proof".into());}
         if crate::round_limit_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("registration limits require complete closed source proof before lowering".into());}
+        if crate::exhausted_live_count_contract::typed_marker(ability)&&!crate::exhausted_live_count_contract::registration(ability){return Err("exhausted count requires complete exact registration".into());}
         if crate::blade_base_damage_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {
             return crate::blade_base_damage_contract::compile_registration(ability);
         }
@@ -2129,7 +2131,7 @@ impl Program {
                 }
             }
         }
-        if contains_arena_scalar(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !arena_query_ability(ability) {return Err("arena scalar queries require exact reviewed registration".into());}
+        if contains_arena_scalar(&serde_json::to_value(ability).map_err(|e|e.to_string())?) && !arena_query_ability(ability) && !crate::exhausted_live_count_contract::registration(ability) {return Err("arena scalar queries require exact reviewed registration".into());}
         if attachment_defeat_marker(&ability.effect)&&!attachment_defeat_registration(ability){return Err("attachment list defeat requires complete reviewed scalar-unit selector and event window".into());}
         if parent_upgrade_registration(ability)==Some(false) {
             let mut normalized=ability.clone();
@@ -3391,10 +3393,14 @@ impl Catalogue {
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
                 // This complete raw envelope must precede every family's early return.
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let exhausted=crate::exhausted_live_count_contract::prepare(entry)?;
+                let defeat_tokens=crate::defeat_token_creation_contract::prepare(entry,value)?;
                 let round=crate::round_limit_contract::prepare(entry)?;
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if let Some(sides)=exhausted {return crate::exhausted_live_count_contract::compile(&sides,catalogue.programs.len());}
+                if let Some(program)=defeat_tokens {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(round)=round {return round.compile(catalogue.programs.len());}
                 if entry["status"] != "supported" {
                     return Err(format!(
