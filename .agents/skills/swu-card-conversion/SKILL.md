@@ -58,6 +58,13 @@ marker hashes the pinned fetch scripts and data version, not the card contents.
 Use the generated directory through `compiler/load-catalog.js` or actual `compileCatalog` output for strict full-entry profiles and portable tests; do not assume a legacy `catalog.json` exists.
 `compiler/generated/cards.json` alone omits fields such as `diagnostics` stored in separate shards and cannot serve as a full-entry equality fixture.
 Keep profiles complete and unknown fields rejected; never strip candidate fields or enrich entries to match fixtures.
+A closed catalogue-source guard does not validate a separately supplied selected-pool
+row. Exercise the actual native and Wasm pool constructors with changed identities,
+unknown fields and missing nullable metadata before typed projection. Compare the
+entire untouched row with its complete admitted source metadata and the approved
+printing-code wrapper; preserve full-source aliases already allowed by that contract,
+and reject pool-only aliases. Keep legacy compatibility policy explicit instead of
+claiming that the new family guard covers every older family.
 Keep the selected pool dependency set separate from a literal constructed deck.
 Tokens, leaders and bases can be required pool entries but are not ordinary deck
 slots. Validate every literal deck code against its complete metadata before
@@ -225,7 +232,12 @@ compiler imports to tests, forward-test the committed-data suite in an isolated
 source tree without `forceteki` or `node_modules`, then run the compiler suite
 with the pinned dependencies. Local setup can otherwise hide a CI failure.
 
-Inspect the actual test bodies before choosing ordinary gates. Run ordinary Rust
+Inspect the actual test bodies before choosing ordinary gates. For the native Rust
+gate, set `CARGO_PROFILE_DEV_OPT_LEVEL=2` and `CARGO_PROFILE_TEST_OPT_LEVEL=2`,
+and explicitly unset `RUST_MIN_STACK`. Check the actual Cargo profile and recorded
+environment before crediting the run. An unoptimized or enlarged-stack run remains
+diagnostic; preserve it, release its build-target writer, and rerun the correct
+gate incrementally. Do not relabel its result. Run ordinary Rust
 and Wasm test gates with `node .github/scripts/ci-tests.js rust` and
 `node .github/scripts/ci-tests.js wasm`. These reviewed runners defer only the two
 exact whole accepted-corpus test bodies in `reference_conformance` and
@@ -320,6 +332,8 @@ additional recordings. Cases without reference evidence remain unassessed.
 - Card-data keyword lists include mentions and grants to other cards. Derive intrinsic keywords with the pinned engine's printed-text parser, including leader sides and numeric presence at zero. Read each new token type's pinned metadata; names and familiar card-game conventions do not establish traits, aspects or keywords. Test a card that mentions a keyword without having it, and a stat condition that depends on that absence.
 - Persistent player tokens can retain an existing identity outside play. Export both identity and presence; test actual gain/use/regain, independent owners, phase persistence, no new allocation, captured defeated-source continuations, and full-state copy/hash behavior. Legacy compatibility and native-token dependencies must use the selected pool, not unused definitions in a retained catalog. A resolver can override a player-target helper's default; reject lowering that loses that context.
 - Hidden needs phase history independent of keyword presence. Record qualification for all units so a later grant behaves correctly. Ordinary play qualifies the current in-play incarnation; placement alone does not. Deployment and token creation use identity-based watchers, and all three histories reset at phase end. Preserve live Sentinel precedence and test Saboteur separately. Version exported history, reject missing evidence for reachable Hidden, and keep legacy compatibility scoped to the selected pool. Do not infer watcher history from arena membership, exhaustion or the round number.
+- Preserve module initialization order when adding exporter dependencies. A top-level native-class import can freeze environment-dependent constants before the game adapter initializes them. Test the public leaf-first and adapter-first paths in fresh processes with the caller environment unchanged, and compare actual menus as well as completed effects.
+- Validate authenticated histories through reuse of the same physical source registration after an ordinary departure and replay. Two distinct donors copying onto one recipient do not witness source reuse; distinguish native in-place factory mutations from arbitrary function replacement using actual construction and resolution provenance.
 - Export lasting effects from their actual engine value shape. A gained keyword may be an object; boolean presence and numeric totals have different aggregation rules. Witness stacking, removal, phase expiry, and a live numeric condition changing after resource exhaustion or damage.
 - When extending lasting-effect export, test retained state through a terminal game as well as action windows. A cancellation followed by an attack can clean up the very state that needs validation; include a legal no-attack continuation to natural terminal resolution. Keep nonterminal pending-resolver rejection separate from terminal state export.
 - Bind every new transitive exporter or fixture helper in the recording dependency inventory and source identity, as well as the prepared execution snapshot. Check actual hashes before recording; a prepared build binding alone does not establish immutable recording provenance. Preflight raw planner cases through the exact prepared admitted-pool bytes; author-only metadata enrichment or pre-expanded probes can hide an incompatible fixture input contract.
@@ -333,7 +347,7 @@ additional recordings. Cases without reference evidence remain unassessed.
 
 - Trace event capture, physical movement, contingent entry, state checks and trigger resolution as separate boundaries. Inspect the initiating window's `triggerHandlingMode`: `then` and sequential child windows can pass triggers to their parent, so opening a child window does not prove its triggers resolve before the next instruction. Capture the complete lethal set and its eligible triggers before any sibling removal. Created tokens enter as a batch before the framework stat-death sweep; primary damage-driven defeat can occur before token entry. Distinguish these stages with actual pinned-engine oracles; reviewer assumptions and source/class labels cannot establish timing. Label synthetic engine diagnostics separately from actual card witnesses. Match their registration scope and controller-relative targets before recording: replacing one engine instance does not establish a mirror that changes every instance of a card definition. Preserve the active attack independently of the currently resolving ability source: nested death selectors can still observe the attacker's Raid power until attack cleanup. Test a live-power threshold that changes target eligibility inside that window, including terminal snapshots that retain the attack while a death prompt is pending.
 - Treat a latched winner, automatic mandatory effects and prompt ownership separately; the internal prompt actor can differ from the recorded action turn owner.
-  Before exporting a fixture result, verify the actual engine has no public legal choices outside an action window. Use the shared terminal-completion helper to drain already committed resource and death choices after a winner, stopping before any new external action.
+  Before exporting a fixture result, verify the actual engine has no public legal choices outside an action window. Use the shared terminal-completion helper to drain already committed resource and death choices after a winner, stopping before any new external action. The helper checks completion; it does not select inputs. In a post-winner resource prompt, choose the actually offered Done confirmation instead of optional cards, while resolving other committed mandatory prompts normally. Audit every recorded post-winner chosen action, not only the final winner or actor; preserve known bad seeds and pre-winner decisions when correcting a chooser.
   A winner, `eg.over`, or a null result actor alone does not prove completion; compare final board, winner and prompt/action state without erasing mandatory effects.
   A `state` record certifies an actual action window. Record committed post-winner nonwindow choices as decisions, keep raw pending context in witnesses or diagnostics, and record final state in the completed result after drain; never manufacture a window receipt to observe a snapshot.
   Rerun each known bad seed: the old fixture must fail this completion criterion, and the fix must drain both resource confirmations while preserving the winner and advancing the round.
@@ -369,9 +383,14 @@ setup failures; preserve them separately from clean transition counterexamples.
 For shared state or snapshot changes and new runtime admissions, check retained native
 and Wasm states at every actual action window in the targeted source recordings:
 copy and snapshot/import must preserve the full state hash, snapshot and legal actions;
-exercise successor decisions from the retained copies. Direct trace agreement alone
-can miss omitted physical identities or stale hidden fields. Preserve failures and
-terminal pending-state limitations separately; do not erase hidden state or invent
+exercise successor decisions from the retained copies. Also call the public snapshot
+and clone APIs at the actual intervening nonwindow decisions. A pending snapshot can
+be readable while its import correctly rejects; checking only action-window exports
+can miss a panic on an unchanged retired identity during an unrelated continuation.
+Keep the actual decision, pending context and original failure instead of dropping
+the snapshot call or treating the position as an action window. Direct trace agreement
+alone can miss omitted physical identities or stale hidden fields. Preserve failures
+and terminal pending-state limitations separately; do not erase hidden state or invent
 action windows to make the comparison pass.
 
 Run compiler tests, relevant Rust tests, generated-output checks and native/Wasm

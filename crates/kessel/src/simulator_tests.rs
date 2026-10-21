@@ -61,7 +61,7 @@ fn state_is_inline_copy_and_hash_covers_prompts_and_deck_order() {
     // Closed Round5 adds exactly 5,032 bytes: the bounded 905-instance ledger
     // (3,622), 640 captured handles (1,280), two DamageFacts records (128),
     // and the active handle (2). Wire presence fits existing padding.
-    assert_eq!(EXPECTED_INLINE_STATE_BYTES,38_312);
+    assert_eq!(EXPECTED_INLINE_STATE_BYTES,38_344);
     assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
     eprintln!("inline state bytes: {}; card bytes: {}", std::mem::size_of::<State>(), std::mem::size_of::<Card>());
     let e = engine();

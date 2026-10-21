@@ -36,6 +36,13 @@ mod registration_runtime;
 mod legacy_leader;
 #[path = "snapshot_evidence.rs"]
 mod snapshot_evidence;
+#[path="damaged_target_history_runtime.rs"]
+mod damaged_target_history_runtime;
+#[path="damaged_target_history_wire.rs"]
+pub(crate) mod damaged_target_history_wire;
+#[cfg(test)]
+#[path="damaged_target_history_tests.rs"]
+mod damaged_target_history_tests;
 #[path = "named_play_runtime.rs"]
 mod named_play_runtime;
 use crate::ability_ir::{CardPrograms, Catalogue};
@@ -819,6 +826,7 @@ impl Engine {
         self.validate_round_limit_handles(s)?;
         self.check_named_play(s)?;
         if (!s.phase_history.exact||!s.phase_history.defeats_exact)&&(self.needs_defeat_history()||self.state_needs_defeat_history(s)) {return Err("selected or imported pool requires exact defeat phase history version 2".into());}
+        if !s.phase_history.damage_exact && self.state_needs_damaged_target_history(s) {return Err("allocated source requires exact damagedTargetHistory version 1".into());}
         if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
         self.check_stat_capacity(s)?;
         if !self.legal_actions(s).contains(a) {
@@ -989,6 +997,7 @@ impl Engine {
                     }
                     let amount = if t.trigger_context_is(TriggerContext::Action) { 1 } else { 2 };
                     t.card_mut(id).damage += amount;
+                    self.record_damaged_target(&mut t,id);
                     self.check_win(&mut t);
                     if t.trigger_context_is(TriggerContext::Action) {
                         self.finish(&mut t)?;
@@ -1021,6 +1030,7 @@ impl Engine {
                     let heal = self.heal_card(&mut t, target, heal);
                     let base = t.player(seat).base;
                     t.card_mut(base).damage += heal;
+                    if heal>0 {self.record_damaged_target(&mut t,base);}
                 }
                 self.check_win(&mut t);
                 self.finish(&mut t)?;
@@ -1294,6 +1304,7 @@ impl Engine {
                 }
                 let base = s.player(s.active.other()).base;
                 s.card_mut(base).damage += 1;
+                self.record_damaged_target(s,base);
                 self.check_win(s);
             }
             T_SHIELD => {
@@ -1347,6 +1358,7 @@ impl Engine {
             self.detach(s,token);s.card_mut(token).next_token=0;
         } else {
             s.card_mut(id).damage = s.card(id).damage.saturating_add(amount);
+            self.record_damaged_target(s,id);
         }
     }
     fn combat_damage(&self,s:&State,id:CardId,attacking:bool)->u16 {
@@ -1910,6 +1922,7 @@ impl Engine {
         self.load_force_evidence(&mut s,v)?;
         if v.get("creditStateVersion").is_some() {self.load_credit_state(&mut s,v)?;}
         self.load_phase_history_evidence(&mut s,v)?;
+        self.load_damaged_target_history(&mut s,v)?;
         self.load_support_state(&mut s,v)?;
         self.check_stat_capacity(&s)?;
         for seat in [Seat::P1, Seat::P2] {
@@ -1954,6 +1967,8 @@ impl Engine {
         self.load_round_limit_state(&mut s,v)?;
         self.load_player_phase_state(&mut s,v)?;
         self.load_attack_base_history(&mut s,v)?;
+        // Retained physical definitions are installed after the ordinary zone rows.
+        if !s.phase_history.damage_exact && self.state_needs_damaged_target_history(&s) {return Err("allocated source requires exact damagedTargetHistory version 1".into());}
         if s.decision!=Decision::Terminal {for id in 1..s.next_id {if self.phase_source(&s,id)&&self.def(&s,id).info.unique&&self.in_arena(&s,id)&&self.duplicates(&s,id)>1{return Err("unresolved phase-family unique identity at action window".into());}}}
         Ok(s)
     }

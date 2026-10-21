@@ -36,7 +36,7 @@ fn click(e:&Engine,s:&mut State,id:CardId){*s=e.apply_ability_action(s,&e.card_a
  }}
 }
 #[test]fn selected_hand_cost_pending_copy_hash_frames_and_strict_import(){
- assert_eq!(std::mem::size_of::<State>(),38312);assert_eq!(std::mem::size_of::<ResolutionContext>(),124);
+ assert_eq!(std::mem::size_of::<State>(),38344);assert_eq!(std::mem::size_of::<ResolutionContext>(),124);
  let e=engine();for owner in [Seat::P1,Seat::P2]{let mut s=board(&e,owner);let source=unit(&e,&mut s,owner,"ASH_217");let target=unit(&e,&mut s,owner.other(),"SOR_095");let chosen=hand(&e,&mut s,owner,"SOR_178");start(&e,&mut s,source);
  for phase in 0..2{if phase==1 {click(&e,&mut s,target);}let copied=s;assert_eq!(copied.zobrist(),s.zobrist());let context=ResolutionContext::capture(&s);let mut restored=s;restored.ability_target=0;restored.resource_cost_index=9;restored.resource_cost_locked=true;context.restore(&mut restored);assert_eq!(restored,s);let mut snap=e.snapshot(&s);assert_eq!(snap["capturedHandCostPending"],true);assert!(e.load_state(&snap).is_err());snap["actor"]=json!(owner.as_str());assert!(e.load_state(&snap).is_err());}
  let context=ResolutionContext::capture(&s);let mut frame_only=s;frame_only.death_frames[0].context=context;frame_only.death_depth=1;frame_only.ability_program=0;assert_eq!(e.snapshot(&frame_only)["capturedHandCostPending"],true);let mut support_only=s;support_only.support.pending=true;support_only.support.context=context;support_only.ability_program=0;assert_eq!(e.snapshot(&support_only)["capturedHandCostPending"],true);

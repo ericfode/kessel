@@ -16,6 +16,8 @@ pub struct Query {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Watcher {
+    #[serde(rename = "damageDealtThisPhase")]
+    Damage,
     #[serde(rename = "cardsEnteredPlayThisPhase")]
     Entered,
     #[serde(rename = "cardsDefeatedThisPhase")]
@@ -25,6 +27,8 @@ pub enum Watcher {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Operation {
+    #[serde(rename = "wasUnitDamagedThisPhase")]
+    WasDamaged,
     #[serde(rename = "someCardEnteredPlay")]
     SomeEntered,
     #[serde(rename = "someCardPlayed")]
@@ -99,6 +103,7 @@ pub enum Length {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QueryKind {
+    DamagedCard,
     EnteredCard,
     EnteredOtherFriendly,
     /// Friendly card played this phase with an exact printed trait (Force, First Order, …).
@@ -115,6 +120,11 @@ impl Query {
             .expect("history projection was validated at admission")
     }
     pub fn kind(&self) -> Result<QueryKind, String> {
+        if self.watcher == Watcher::Damage {
+            return if self.operation==Operation::WasDamaged && self.binding=="damageDealtThisPhaseWatcher"
+                && matches!(self.args.as_slice(),[Argument::Ref{path}] if path==&["card"])
+                {Ok(QueryKind::DamagedCard)}else{Err("unsupported damage target history query".into())};
+        }
         if self.watcher == Watcher::Defeated {
             use crate::migration_defeat_history_contract::Projection;
             let mut raw = serde_json::to_value(self).map_err(|e| e.to_string())?;
@@ -224,6 +234,7 @@ impl Query {
 }
 pub(crate) fn marker(v: &Value) -> bool { crate::ability_ir::contains(v,|v|v["kind"] == "historyQuery") }
 pub(crate) fn ability(a: &Ability) -> bool {
+    if crate::damaged_target_history_contract::ability(a){return true;}
     let raw = serde_json::to_value(a).unwrap_or(Value::Null);
     if crate::migration_defeat_history_contract::marker(&raw) {
         fn closed(v: &Value) -> bool {
@@ -317,6 +328,7 @@ pub(crate) fn ability(a: &Ability) -> bool {
         && matches!(&a.effect,Effect::ModifyStats{target:Target::Name(t),duration,power,hp} if t=="chosen"&&duration=="phase"&&negative_four(power)&&negative_four(hp))
 }
 pub(crate) fn entry(e: &Value) -> bool {
+    if crate::damaged_target_history_contract::marker(e){return crate::damaged_target_history_contract::prepare(e)==Ok(true);}
     if crate::migration_defeat_history_contract::marker(&e["abilities"]) {
         return matches!(crate::migration_defeat_history_contract::contract(e),Ok(Some(c)) if !c.captured_power_return);
     }

@@ -91,6 +91,7 @@ impl Engine {
         if s.hidden_history_exact {
             value["hiddenHistoryVersion"] = json!(1);
         }
+        if s.phase_history.damage_exact {value["damagedTargetHistory"]=self.damaged_target_history_snapshot(s);}
         if s.phase_history.exact {
             value["phaseHistory"] = s.phase_history.snapshot();
         }

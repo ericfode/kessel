@@ -100,7 +100,7 @@ fn mandos(e: &Engine, s: &State, seat: Seat) -> Vec<CardId> {
 fn generated_token_program_is_closed_and_reserves_stored_sentinel() {
     let p = crate::generated_token_continuation_contract::compiled().unwrap();
     assert!(crate::generated_token_continuation_contract::program(&p));
-    assert_eq!(std::mem::size_of::<State>(), 38312);
+    assert_eq!(std::mem::size_of::<State>(), 38344);
     assert_eq!(std::mem::size_of::<ResolutionContext>(), 124);
     assert!(crate::generated_token_continuation_contract::checked_program_id(65534).is_ok());
     for i in [65535, 65536, usize::MAX] {

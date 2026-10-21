@@ -42,6 +42,7 @@ impl Engine {
     /// Cancelled/replaced unresolved events do not register triggers.
     pub(super) fn capture_blade_base_damage_event(&self,s:&mut State,listeners:&[BaseDamageListener],card:CardId,resolved:bool)->Result<(),String> {
         if !resolved {return Ok(());}
+        self.record_damaged_target(s,card);
         let captured_card=CapturedCardId::checked(card)?;
         let matching=listeners.iter().filter(|l|l.base==card).collect::<Vec<_>>();
         if s.death_pending.len as usize+matching.len()>MAX_DEATH_TRIGGERS {

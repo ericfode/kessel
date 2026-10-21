@@ -800,7 +800,7 @@ fn return_priority(e:&Engine,s:&mut State,seat:Seat) {
 }
 #[test]
 fn inactive_inventory_native_budget_and_explicit_empty_legacy_policy() {
-    assert_eq!(std::mem::size_of::<State>(),38312);
+    assert_eq!(std::mem::size_of::<State>(),38344);
     assert_eq!(std::mem::size_of::<ResolutionContext>(),124);
     assert_eq!(std::mem::size_of::<DeathFrame>(),1032);
     let e=engine();let mut s=exact_board(&e,Seat::P1);let hash=s.zobrist();

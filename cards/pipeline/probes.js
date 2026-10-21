@@ -2,6 +2,8 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const damagedTarget = require('./damaged-target-phase-history-probes').planDamagedTargetPhaseHistoryProbes(entry, options);
+    if (damagedTarget) return damagedTarget;
     const attackBaseHistory = require('./attack-base-history-probes').planAttackBaseHistoryProbes(entry, options);
     if (attackBaseHistory) return attackBaseHistory;
     const modalDeckMovement = require('./modal-deck-movement-probes').planModalDeckMovementProbes(entry, options);

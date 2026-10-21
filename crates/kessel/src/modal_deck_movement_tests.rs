@@ -118,7 +118,7 @@ fn modal_deck_closed_profiles_and_unknowns() {
         b["abilities"]["card"].as_array_mut().unwrap().push(json!({"trigger":"whenPlayed","effect":{"kind":"heal","target":"ownBase","amount":{"kind":"const","value":1}}}));
         assert!(crate::modal_deck_movement_contract::prepare(&b).is_err());
     }
-    assert_eq!(std::mem::size_of::<State>(), 38312);
+    assert_eq!(std::mem::size_of::<State>(), 38344);
 }
 #[test]
 fn modal_deck_night_trooper_both_decks_buttons_empty_and_sequential_capture() {
@@ -516,7 +516,7 @@ fn modal_deck_trask_real_native_attack_keeps_attack_context_through_recovery() {
 }
 #[test]
 fn modal_deck_inline_layout_is_unchanged() {
-    assert_eq!(std::mem::size_of::<State>(), 38312);
+    assert_eq!(std::mem::size_of::<State>(), 38344);
     eprintln!(
         "MODAL_DECK_LAYOUT State={} Context={} Frame={} Trigger={}",
         std::mem::size_of::<State>(),

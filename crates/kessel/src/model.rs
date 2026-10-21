@@ -20,12 +20,13 @@ pub const MAX_ZONE: usize = 64;
 // + closed Phase rows/payment masks/context alignment 504. Checked byte-sized
 // event/grantor identities reduce all 640 trigger captures by 1,280 bytes.
 // Actual State: 39,088 + 504 - 1,280 = 38,312. No capacities are reduced.
+// Independent physical damage-target history adds32 bytes; presence uses existing padding.
 // This exact envelope grants no future capacity or Gained-registration storage.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 38_312;
-// Wire-presence provenance must fit existing padding on native and Wasm.
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 38_344;
+// Exact inline budget includes the32-byte physical-target history on native and Wasm.
 const _: () = {
-    assert!(std::mem::size_of::<State>() == 38_312);
+    assert!(std::mem::size_of::<State>() == 38_344);
     assert!(std::mem::size_of::<ResolutionContext>() == 124);
     assert!(std::mem::size_of::<DeathFrame>() == 1_032);
 };
@@ -62,6 +63,8 @@ impl NamedPlayState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PhaseHistory {
     pub exact: bool,
+    pub damage_exact: bool,
+    pub damaged: [u64; MAX_CARDS / 64],
     pub entered: [[u64; MAX_CARDS / 64]; 2],
     pub played: [[u64; MAX_CARDS / 64]; 2],
     pub play_counts: [u16; 2],
@@ -73,6 +76,8 @@ impl Default for PhaseHistory {
     fn default() -> Self {
         Self {
             exact: true,
+            damage_exact: false,
+            damaged: [0; MAX_CARDS / 64],
             entered: [[0; MAX_CARDS / 64]; 2],
             played: [[0; MAX_CARDS / 64]; 2],
             play_counts: [0; 2],
@@ -116,13 +121,16 @@ impl PhaseHistory {
         if self.exact&&self.defeats_exact {self.defeated_unit_counts[controller.index()]+=1;if leader {self.defeated_leader_count+=1;}}
     }
     pub fn reset(&mut self) {
+        let damage_exact=self.damage_exact;
         let defeats_exact=self.defeats_exact;
         let exact = self.exact;
         *self = Self::default();
         self.exact = exact;
         self.defeats_exact=defeats_exact;
+        self.damage_exact=damage_exact;
     }
     pub fn hash_values(&self, put: &mut impl FnMut(u64)) {
+        if self.damage_exact {put(0x44414d4147455631);for bits in self.damaged {put(bits);}}
         if self.exact {
             put(0x5048415345484953);
             for bits in self.entered.iter().chain(&self.played) {

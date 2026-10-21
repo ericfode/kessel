@@ -49,6 +49,6 @@ mod layout {
  #[test] fn attack_fact_layout() {
   use std::mem::{size_of,align_of};use crate::model::*;
   println!("State {} align{} Context {} Frame {} Trigger {} Flags {}",size_of::<State>(),align_of::<State>(),size_of::<ResolutionContext>(),size_of::<DeathFrame>(),size_of::<DeathTrigger>(),size_of::<super::AttackFlags>());
-  assert!(size_of::<State>()<=38312);
+  assert!(size_of::<State>()<=38344);
  }
 }

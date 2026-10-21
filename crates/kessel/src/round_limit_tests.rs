@@ -354,7 +354,7 @@ fn round_limit_explicit_empty_wire_preserves_actual_ordinary139_state_and_legacy
         crate::round_limit_runtime::collect(&mut loaded).unwrap();loaded.round_limits.round_ended();
         assert_eq!(e.snapshot(&loaded),modern);assert_eq!(loaded.zobrist(),old.zobrist());
         assert_eq!(e.load_state(&e.snapshot(&loaded)).unwrap(),loaded);
-        assert_eq!(std::mem::size_of::<crate::State>(),38312);
+        assert_eq!(std::mem::size_of::<crate::State>(),38344);
         assert_eq!(std::mem::size_of::<crate::model::ResolutionContext>(),124);
     }
 }
