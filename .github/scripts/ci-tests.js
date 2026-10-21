@@ -10,7 +10,7 @@ const { spawnSync } = require('node:child_process');
 const rustCheckpoint = 'every_reference_matches_current_programs_and_immutable_engine_recordings';
 const wasmCheckpoint = 'all reference cases match current Wasm programs and immutable engine recordings';
 const referenceFile = 'crates/kessel-wasm/js/test/reference-conformance.test.js';
-const terminalCase = 'auto/ASH_031/attack-base-history-owner-0-hera-grievous-capped-defender-departure';
+const terminalCase = 'auto/ASH_083/arena-defeat-attack-seat-1-terminal-base';
 
 function run(command, args, root, { capture = false, env = process.env } = {}) {
     console.log(`> ${command} ${args.map(a => JSON.stringify(a)).join(' ')}`);

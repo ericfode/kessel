@@ -56,7 +56,7 @@ Fixed-fixture coverage is ordinary work: keep Rust
 all Node/browser core tests, and all adapter tests, including the sixteen expanded
 engine games. The terminal-actor test also runs with a genuine checked recording,
 pool, catalogue and built package. By default the runner selects the committed
-Hera/Grievous capped-damage case with a mandatory postwinner choice; it rejects
+ASH_083 terminal-base case with a mandatory postwinner choice; it rejects
 missing or ambiguous evidence. An explicit targeted recording must supply all four
 `KESSEL_TERMINAL_{TRACE,POOL,CATALOGUE,PACKAGE}` paths. A skipped test does not
 establish terminal ingress coverage. Targeted new and affected real-engine
