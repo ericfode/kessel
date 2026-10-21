@@ -20,8 +20,7 @@ jobs:
     name: Rust build and tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Unoptimized tests take most of the time (about 14 min of the reference conformance on 4 cores); opt-level 2
-    # keeps assertions and overflow checks and brings the whole job to a few minutes.
+    # Optimize runtime-heavy ordinary fixtures while retaining assertions and overflow checks.
     env:
       CARGO_PROFILE_DEV_OPT_LEVEL: 2
     steps:
@@ -32,6 +31,11 @@ jobs:
       - name: Select checks (unknown inputs run everything)
         id: scope
         run: node .github/scripts/ci-scope.js
+      - uses: actions/setup-node@v7
+        if: steps.scope.outputs.run != 'false'
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
       # Cache dependencies, not workspace binaries/test results. The action keys on rustc, Cargo inputs,
       # profile environment and job identity; only main publishes reusable caches for future PRs.
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
@@ -42,9 +46,9 @@ jobs:
           save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       # The generated catalog and every pool are committed, so the crates need no submodule. The tests build every
       # crate and binary, so a separate release build (thin LTO, about a minute) adds no coverage.
-      - name: Test (strict, compiled and reference conformance)
+      - name: Test (workspace and ordinary conformance)
         if: steps.scope.outputs.run != 'false'
-        run: cargo test --locked --workspace
+        run: node .github/scripts/ci-tests.js rust
 
   node:
     name: Node tests on committed data
@@ -65,6 +69,9 @@ jobs:
           package-manager-cache: false
       - name: CI selection safeguards
         run: node --test .github/scripts/ci-scope.test.js
+      - name: Ordinary gate discovery and real harness safeguards
+        if: steps.scope.outputs.run != 'false'
+        run: node --test .github/scripts/ci-tests.test.js
       - name: Card catalog, planner and tool tests (no network, no forceteki)
         if: steps.scope.outputs.run != 'false'
         run: npm test
@@ -200,7 +207,7 @@ jobs:
         if: steps.scope.outputs.run != 'false'
         run: |
           npm run wasm:build -- --install-tools
-          npm run wasm:test
+          node .github/scripts/ci-tests.js wasm
           npm run wasm:pack
           npm run wasm:pack:check
       - uses: actions/upload-artifact@v7
