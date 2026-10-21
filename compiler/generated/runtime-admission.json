@@ -7,7 +7,7 @@
   "runtimeAdmittedBreakdown": {
     "dataOnly": 384,
     "nativeAdapters": 6,
-    "sourceIr": 941
+    "sourceIr": 944
   },
   "runtimeAdmittedCards": [
     {
@@ -422,6 +422,11 @@
     },
     {
       "implementation": "sourceIr",
+      "internalName": "queen-soruna#willing-to-fight",
+      "setCode": "ASH_132"
+    },
+    {
+      "implementation": "sourceIr",
       "internalName": "warriors-legacy",
       "setCode": "ASH_134"
     },
@@ -504,6 +509,11 @@
       "implementation": "sourceIr",
       "internalName": "kachirho-militia",
       "setCode": "ASH_160"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "reckless-sacrifice",
+      "setCode": "ASH_163"
     },
     {
       "implementation": "dataOnly",
@@ -734,6 +744,11 @@
       "implementation": "sourceIr",
       "internalName": "preparation",
       "setCode": "ASH_228"
+    },
+    {
+      "implementation": "sourceIr",
+      "internalName": "diplomatic-pageantry",
+      "setCode": "ASH_231"
     },
     {
       "implementation": "sourceIr",
@@ -6666,7 +6681,7 @@
       "setCode": "TWI_254"
     }
   ],
-  "runtimeAdmittedCount": 1331,
+  "runtimeAdmittedCount": 1334,
   "runtimeRejectedCards": [
     {
       "internalName": "the-armorer#steel-shapes-us",
@@ -6755,7 +6770,7 @@
     },
     {
       "internalName": "purrgil-ultra",
-      "reason": "purrgil-ultra: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "purrgil-ultra: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "ASH_038"
     },
     {
@@ -6914,11 +6929,6 @@
       "setCode": "ASH_128"
     },
     {
-      "internalName": "queen-soruna#willing-to-fight",
-      "reason": "queen-soruna#willing-to-fight: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
-      "setCode": "ASH_132"
-    },
-    {
       "internalName": "trask-walker",
       "reason": "trask-walker: invalid ability IR: unknown variant `chooseModalEffects`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
       "setCode": "ASH_133"
@@ -6945,7 +6955,7 @@
     },
     {
       "internalName": "ninth-sister#hulking-inquisitor",
-      "reason": "ninth-sister#hulking-inquisitor: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "ninth-sister#hulking-inquisitor: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "ASH_148"
     },
     {
@@ -6980,13 +6990,8 @@
     },
     {
       "internalName": "rash-action",
-      "reason": "rash-action: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "rash-action: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "ASH_162"
-    },
-    {
-      "internalName": "reckless-sacrifice",
-      "reason": "reckless-sacrifice: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
-      "setCode": "ASH_163"
     },
     {
       "internalName": "migs-mayfeld#how-about-a-toast",
@@ -7092,11 +7097,6 @@
       "internalName": "improvised-identity",
       "reason": "improvised-identity: per-round limits require the complete closed native source registration and metadata",
       "setCode": "ASH_230"
-    },
-    {
-      "internalName": "diplomatic-pageantry",
-      "reason": "diplomatic-pageantry: named selectors require two independent standalone event/WhenPlayed/OnAttack stat systems",
-      "setCode": "ASH_231"
     },
     {
       "internalName": "full-of-surprises",
@@ -7230,7 +7230,7 @@
     },
     {
       "internalName": "dooku#corruption-must-be-eradicated",
-      "reason": "dooku#corruption-must-be-eradicated: invalid ability IR: unknown field `body`, expected one of `hooks`, `gainedHost`, `attachedContext`, `targetResolvers`, `trigger`, `attackerMustSurvive`, `coordinate`, `title`, `contextTitle`, `costs`, `optional`, `requiresConfirmation`, `targetResolver`, `condition`, `effect`, `then`, `ifYouDo`, `ifYouDoCondition`",
+      "reason": "dooku#corruption-must-be-eradicated: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "HMW_042"
     },
     {
@@ -7400,7 +7400,7 @@
     },
     {
       "internalName": "breach",
-      "reason": "breach: invalid ability IR: unknown variant `contextTitleProgram`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "breach: named exhaust contingency requires the complete closed event source profile",
       "setCode": "HMW_114"
     },
     {
@@ -7470,7 +7470,7 @@
     },
     {
       "internalName": "local-support",
-      "reason": "local-support: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "local-support: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "HMW_148"
     },
     {
@@ -7485,7 +7485,7 @@
     },
     {
       "internalName": "overgrowth",
-      "reason": "overgrowth: invalid ability IR: unknown variant `namedSelectCardSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "overgrowth: named exhaust contingency requires the complete closed event source profile",
       "setCode": "HMW_151"
     },
     {
@@ -7500,7 +7500,7 @@
     },
     {
       "internalName": "noxious-refinery",
-      "reason": "noxious-refinery: attached aliases require complete ordinary upgrade metadata and matching printed stats",
+      "reason": "noxious-refinery: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "HMW_160"
     },
     {
@@ -7535,7 +7535,7 @@
     },
     {
       "internalName": "stormchaser",
-      "reason": "stormchaser: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "stormchaser: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "HMW_180"
     },
     {
@@ -7555,7 +7555,7 @@
     },
     {
       "internalName": "volley-fire",
-      "reason": "volley-fire: invalid ability IR: missing field `effect`",
+      "reason": "volley-fire: named exhaust contingency requires the complete closed event source profile",
       "setCode": "HMW_192"
     },
     {
@@ -8130,7 +8130,7 @@
     },
     {
       "internalName": "admiral-trench#chkchkchkchk",
-      "reason": "admiral-trench#chkchkchkchk: per-round limits require the complete closed native source registration and metadata",
+      "reason": "admiral-trench#chkchkchkchk: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "JTL_014"
     },
     {
@@ -8145,7 +8145,7 @@
     },
     {
       "internalName": "han-solo#never-tell-me-the-odds",
-      "reason": "han-solo#never-tell-me-the-odds: per-round limits require the complete closed native source registration and metadata",
+      "reason": "han-solo#never-tell-me-the-odds: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "JTL_017"
     },
     {
@@ -8920,7 +8920,7 @@
     },
     {
       "internalName": "director-krennic#amidst-my-achievement",
-      "reason": "director-krennic#amidst-my-achievement: Credit composition requires a complete reviewed ordinary registration",
+      "reason": "director-krennic#amidst-my-achievement: named exhaust contingency requires the complete closed event source profile",
       "setCode": "LAW_008"
     },
     {
@@ -9040,7 +9040,7 @@
     },
     {
       "internalName": "obiwan-kenobi#protector-of-felucia",
-      "reason": "obiwan-kenobi#protector-of-felucia: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
+      "reason": "obiwan-kenobi#protector-of-felucia: mutable printed attributes are unsupported in native card graph",
       "setCode": "LAW_036"
     },
     {
@@ -9135,7 +9135,7 @@
     },
     {
       "internalName": "interrogation-droid",
-      "reason": "interrogation-droid: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "interrogation-droid: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LAW_075"
     },
     {
@@ -9220,7 +9220,7 @@
     },
     {
       "internalName": "rickety-quadjumper",
-      "reason": "rickety-quadjumper: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "rickety-quadjumper: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LAW_115"
     },
     {
@@ -9240,7 +9240,7 @@
     },
     {
       "internalName": "adventurer-sniper-rifle",
-      "reason": "adventurer-sniper-rifle: attached registration requires exact ordinary upgrade/host/controller contract",
+      "reason": "adventurer-sniper-rifle: mutable printed attributes are unsupported in native card graph",
       "setCode": "LAW_126"
     },
     {
@@ -9350,7 +9350,7 @@
     },
     {
       "internalName": "mid-rim-sharpshooter",
-      "reason": "mid-rim-sharpshooter: card-effect resource payment requires ordinary nonleader unit source metadata",
+      "reason": "mid-rim-sharpshooter: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LAW_193"
     },
     {
@@ -9375,7 +9375,7 @@
     },
     {
       "internalName": "every-day-more-lies",
-      "reason": "every-day-more-lies: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "every-day-more-lies: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LAW_204"
     },
     {
@@ -9400,7 +9400,7 @@
     },
     {
       "internalName": "vermillion#qiras-auction-house",
-      "reason": "vermillion#qiras-auction-house: Credit composition requires a complete reviewed ordinary registration",
+      "reason": "vermillion#qiras-auction-house: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LAW_215"
     },
     {
@@ -9665,7 +9665,7 @@
     },
     {
       "internalName": "size-matters-not",
-      "reason": "size-matters-not: attachment self-play cost requires a complete reviewed ordinary upgrade and exact host predicate",
+      "reason": "size-matters-not: mutable printed attributes are unsupported in native card graph",
       "setCode": "LOF_056"
     },
     {
@@ -9855,7 +9855,7 @@
     },
     {
       "internalName": "rey#with-palpatines-power",
-      "reason": "rey#with-palpatines-power: invalid ability IR: unknown variant `historyHelperCall`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "rey#with-palpatines-power: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LOF_148"
     },
     {
@@ -10010,7 +10010,7 @@
     },
     {
       "internalName": "the-will-of-the-force",
-      "reason": "the-will-of-the-force: invalid ability IR: unknown variant `useForceSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "the-will-of-the-force: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "LOF_227"
     },
     {
@@ -10070,7 +10070,7 @@
     },
     {
       "internalName": "colonel-yularen#this-is-why-we-plan",
-      "reason": "colonel-yularen#this-is-why-we-plan: native attacks require a complete sole ordinary unit/event registration",
+      "reason": "colonel-yularen#this-is-why-we-plan: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_006"
     },
     {
@@ -10225,7 +10225,7 @@
     },
     {
       "internalName": "lando-calrissian#trust-me",
-      "reason": "lando-calrissian#trust-me: invalid ability IR: missing field `effect`",
+      "reason": "lando-calrissian#trust-me: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SEC_068"
     },
     {
@@ -10325,7 +10325,7 @@
     },
     {
       "internalName": "dismantle-the-conspiracy",
-      "reason": "dismantle-the-conspiracy: per-round limits require the complete closed native source registration and metadata",
+      "reason": "dismantle-the-conspiracy: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SEC_106"
     },
     {
@@ -10370,7 +10370,7 @@
     },
     {
       "internalName": "charged-with-corruption",
-      "reason": "charged-with-corruption: invalid ability IR: missing field `effect`",
+      "reason": "charged-with-corruption: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SEC_127"
     },
     {
@@ -10390,7 +10390,7 @@
     },
     {
       "internalName": "syril-karn#where-is-he",
-      "reason": "syril-karn#where-is-he: modal choices require a complete sole ordinary unit/event registration",
+      "reason": "syril-karn#where-is-he: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_133"
     },
     {
@@ -10425,7 +10425,7 @@
     },
     {
       "internalName": "chopper#war-hero",
-      "reason": "chopper#war-hero: own-base damage requires the complete closed mandatory source Advantage profile",
+      "reason": "chopper#war-hero: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_147"
     },
     {
@@ -10530,7 +10530,7 @@
     },
     {
       "internalName": "isb-agent",
-      "reason": "isb-agent: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "isb-agent: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_184"
     },
     {
@@ -10555,7 +10555,7 @@
     },
     {
       "internalName": "grand-admiral-thrawn#grand-schemer",
-      "reason": "grand-admiral-thrawn#grand-schemer: modal choices require a complete sole ordinary unit/event registration",
+      "reason": "grand-admiral-thrawn#grand-schemer: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SEC_193"
     },
     {
@@ -10595,7 +10595,7 @@
     },
     {
       "internalName": "stolen-starpath-unit",
-      "reason": "stolen-starpath-unit: modal choices require a complete sole ordinary unit/event registration",
+      "reason": "stolen-starpath-unit: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_210"
     },
     {
@@ -10605,7 +10605,7 @@
     },
     {
       "internalName": "libertine#under-new-ownership",
-      "reason": "libertine#under-new-ownership: static self ongoing contracts require complete ordinary nonleader unit metadata and bounded registrations",
+      "reason": "libertine#under-new-ownership: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SEC_212"
     },
     {
@@ -10620,7 +10620,7 @@
     },
     {
       "internalName": "cikatro-vizago#business-is-what-matters",
-      "reason": "cikatro-vizago#business-is-what-matters: modal registration contains an unreviewed header field",
+      "reason": "cikatro-vizago#business-is-what-matters: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_218"
     },
     {
@@ -10630,12 +10630,12 @@
     },
     {
       "internalName": "hired-slicer",
-      "reason": "hired-slicer: modal registration contains an unreviewed header field",
+      "reason": "hired-slicer: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_220"
     },
     {
       "internalName": "duchesss-investigators",
-      "reason": "duchesss-investigators: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "duchesss-investigators: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_223"
     },
     {
@@ -10725,7 +10725,7 @@
     },
     {
       "internalName": "inspectors-shuttle",
-      "reason": "inspectors-shuttle: named Play lock requires the complete reviewed ordinary when-played registration",
+      "reason": "inspectors-shuttle: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SEC_260"
     },
     {
@@ -10755,7 +10755,7 @@
     },
     {
       "internalName": "jabba-the-hutt#his-high-exaltedness",
-      "reason": "jabba-the-hutt#his-high-exaltedness: per-round limits require the complete closed native source registration and metadata",
+      "reason": "jabba-the-hutt#his-high-exaltedness: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SHD_006"
     },
     {
@@ -10765,7 +10765,7 @@
     },
     {
       "internalName": "hunter#outcast-sergeant",
-      "reason": "hunter#outcast-sergeant: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "hunter#outcast-sergeant: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SHD_009"
     },
     {
@@ -10870,7 +10870,7 @@
     },
     {
       "internalName": "rickety-quadjumper",
-      "reason": "rickety-quadjumper: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "rickety-quadjumper: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SHD_057"
     },
     {
@@ -10940,7 +10940,7 @@
     },
     {
       "internalName": "ephant-mon#head-of-security",
-      "reason": "ephant-mon#head-of-security: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "ephant-mon#head-of-security: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SHD_088"
     },
     {
@@ -11010,7 +11010,7 @@
     },
     {
       "internalName": "endless-legions",
-      "reason": "endless-legions: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "endless-legions: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SHD_109"
     },
     {
@@ -11020,7 +11020,7 @@
     },
     {
       "internalName": "scanning-officer",
-      "reason": "scanning-officer: invalid ability IR: unknown variant `randomSelection`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "scanning-officer: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SHD_114"
     },
     {
@@ -11095,7 +11095,7 @@
     },
     {
       "internalName": "take-captive",
-      "reason": "take-captive: invalid ability IR: missing field `effect`",
+      "reason": "take-captive: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SHD_131"
     },
     {
@@ -11570,7 +11570,7 @@
     },
     {
       "internalName": "grand-admiral-thrawn#patient-and-insightful",
-      "reason": "grand-admiral-thrawn#patient-and-insightful: modal choices require a complete sole ordinary unit/event registration",
+      "reason": "grand-admiral-thrawn#patient-and-insightful: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_016"
     },
     {
@@ -11615,7 +11615,7 @@
     },
     {
       "internalName": "lieutenant-childsen#death-star-prison-warden",
-      "reason": "lieutenant-childsen#death-star-prison-warden: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "lieutenant-childsen#death-star-prison-warden: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_035"
     },
     {
@@ -11800,7 +11800,7 @@
     },
     {
       "internalName": "command",
-      "reason": "command: invalid ability IR: unknown variant `chooseModalEffects`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "command: named exhaust contingency requires the complete closed event source profile",
       "setCode": "SOR_107"
     },
     {
@@ -11930,7 +11930,7 @@
     },
     {
       "internalName": "for-a-cause-i-believe-in",
-      "reason": "for-a-cause-i-believe-in: invalid ability IR: unknown variant `systemArrayFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "for-a-cause-i-believe-in: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_152"
     },
     {
@@ -11985,12 +11985,12 @@
     },
     {
       "internalName": "forced-surrender",
-      "reason": "forced-surrender: phase history requires complete ordinary unit/event source metadata and registration",
+      "reason": "forced-surrender: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_175"
     },
     {
       "internalName": "isb-agent",
-      "reason": "isb-agent: invalid ability IR: unknown variant `reveal`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "isb-agent: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_176"
     },
     {
@@ -12010,7 +12010,7 @@
     },
     {
       "internalName": "chimaera#flagship-of-the-seventh-fleet",
-      "reason": "chimaera#flagship-of-the-seventh-fleet: named Play lock requires the complete reviewed ordinary when-played registration",
+      "reason": "chimaera#flagship-of-the-seventh-fleet: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_185"
     },
     {
@@ -12030,7 +12030,7 @@
     },
     {
       "internalName": "lothal-insurgent",
-      "reason": "lothal-insurgent: current played-unit query requires the complete ordinary ready/conditional-Spy event and declared watcher",
+      "reason": "lothal-insurgent: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_190"
     },
     {
@@ -12060,7 +12060,7 @@
     },
     {
       "internalName": "cunning",
-      "reason": "cunning: invalid ability IR: unknown variant `chooseModalEffects`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "cunning: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_203"
     },
     {
@@ -12110,7 +12110,7 @@
     },
     {
       "internalName": "dont-get-cocky",
-      "reason": "dont-get-cocky: invalid ability IR: unknown variant `selectionOnlyAbilityStep`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "dont-get-cocky: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "SOR_223"
     },
     {
@@ -12305,7 +12305,7 @@
     },
     {
       "internalName": "fortune-and-glory#hondos-luxury-yacht",
-      "reason": "fortune-and-glory#hondos-luxury-yacht: invalid ability IR: unknown variant `capture`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "fortune-and-glory#hondos-luxury-yacht: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TS26_027"
     },
     {
@@ -12315,7 +12315,7 @@
     },
     {
       "internalName": "chaotic-diversion",
-      "reason": "chaotic-diversion: invalid ability IR: unknown variant `attackCallback`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`",
+      "reason": "chaotic-diversion: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TS26_031"
     },
     {
@@ -12405,7 +12405,7 @@
     },
     {
       "internalName": "encircle",
-      "reason": "encircle: self-play cost requires a complete reviewed ordinary unit/event contract",
+      "reason": "encircle: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TS26_061"
     },
     {
@@ -12695,7 +12695,7 @@
     },
     {
       "internalName": "clone",
-      "reason": "clone: invalid ability IR: unknown variant `lastingPropertiesFactory`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "clone: mutable printed attributes are unsupported in native card graph",
       "setCode": "TWI_116"
     },
     {
@@ -12735,7 +12735,7 @@
     },
     {
       "internalName": "take-captive",
-      "reason": "take-captive: invalid ability IR: missing field `effect`",
+      "reason": "take-captive: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TWI_128"
     },
     {
@@ -12800,7 +12800,7 @@
     },
     {
       "internalName": "reckless-torrent",
-      "reason": "reckless-torrent: invalid ability IR: unsupported runtime reference namedTargets.friendlyUnit",
+      "reason": "reckless-torrent: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TWI_162"
     },
     {
@@ -12825,7 +12825,7 @@
     },
     {
       "internalName": "guerilla-insurgency",
-      "reason": "guerilla-insurgency: invalid ability IR: native selector explicit mustChangeGameState is not implemented",
+      "reason": "guerilla-insurgency: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "TWI_177"
     },
     {
@@ -12950,7 +12950,7 @@
     },
     {
       "internalName": "political-pressure",
-      "reason": "political-pressure: invalid ability IR: unknown variant `discardHandSystem`, expected one of `disclose`, `initiateAttack`, `constantEffectRegistration`, `attackPermission`, `gainTrait`, `loseTrait`, `discardOwnHand`, `discardDeck`, `createTokenUnit`, `damage`, `recipientHeal`, `heal`, `draw`, `optional`, `createCreditToken`, `select`, `readyResources`, `exhaustResources`, `payResources`, `payAdjustedResources`, `noAction`, `resourceCard`, `resourceCardSystem`, `moveToBottomOfDeck`, `moveSelectedArenaUnitToOwnerDeck`, `dealsCombatDamageFirst`, `returnToHand`, `modifyStats`, `maximumPowerExperience`, `copyKeywords`, `gainKeyword`, `loseKeyword`, `ready`, `exhaust`, `defeat`, `giveShield`, `useForce`, `gainForce`, `giveWeakness`, `giveAdvantage`, `giveExperience`, `sequence`, `simultaneous`, `phaseModifiers`, `conditional`, `discardSpecificCard`, `attackModifiers`, `distributeDamage`, `distributeHealing`, `selectionSystem`, `selectedPlayerSystem`, `lookAt`, `cardRestriction`, `lookAtAndSelectCard`",
+      "reason": "political-pressure: captured hand-cost requires complete closed ordinary source and exact physical-card continuation; unsupported continuation-context remains source-only",
       "setCode": "TWI_222"
     },
     {
@@ -12960,7 +12960,7 @@
     },
     {
       "internalName": "prisoner-of-war",
-      "reason": "prisoner-of-war: invalid ability IR: missing field `effect`",
+      "reason": "prisoner-of-war: named exhaust contingency requires the complete closed event source profile",
       "setCode": "TWI_227"
     },
     {
@@ -13039,7 +13039,7 @@
       "setCode": "TWI_257"
     }
   ],
-  "runtimeRejectedCount": 1274,
+  "runtimeRejectedCount": 1271,
   "schema": "omni-rs-catalogue-report-v1",
   "sourceAstConvertedCount": 2121
 }

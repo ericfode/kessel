@@ -1,10 +1,15 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
+#[path="captured_hand_cost_runtime.rs"]
+mod captured_hand_cost_runtime;
 use super::*;
 use crate::resource_payment::{PaymentPurpose, ResourcePayment};
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVerb, Target, TargetResolver};
 use crate::ability_ir::activation_contract::{base_zone_source, Source};
 #[path = "prepared_runtime.rs"]
 mod prepared_runtime;
+#[cfg(test)]
+#[path="named_exhaust_contingent_runtime_tests.rs"]
+mod named_exhaust_contingent_runtime_tests;
 #[path = "distributed_damage_runtime.rs"]
 mod distributed_damage_runtime;
 #[path = "chosen_hand_discard_runtime.rs"]
@@ -514,6 +519,10 @@ impl Engine {
     }
     /// Load every fully executable card, retaining explicit reasons for all others.
     pub fn from_catalogue_value(value: &Value) -> Result<Self, String> {
+        let e=Self::from_catalogue_graph(value)?;e.validate_hand_cost_graph(None)?;Ok(e)
+    }
+    // Pool restriction validates the selected graph after retaining its metadata.
+    fn from_catalogue_graph(value: &Value) -> Result<Self, String> {
         let mut catalogue = Catalogue::load(value)?;
         let requirements: Vec<_> = catalogue.programs.iter().map(TokenRequirements::for_program).collect();
         let shield_available=value["cards"].as_array().ok_or("catalogue missing cards")?.iter().any(reviewed_shield_entry);
@@ -857,6 +866,7 @@ impl Engine {
                 "{:x}",
                 Sha256::digest(serde_json::to_vec(value).map_err(|e| e.to_string())?)
             ),
+            hand_cost_all_units_costed: definitions.iter().all(|d| !(d.info.is("unit")||d.info.is("leader"))||d.info.cost.is_some()),
             definitions,
             by_code,
             shield_def: shield_def.ok_or("catalogue must include native Shield token")?,
@@ -910,9 +920,11 @@ impl Engine {
         if pool["schema"] != "omni-rs-pool-v1" {
             return Err("unsupported pool schema".into());
         }
-        let mut engine = Self::from_catalogue_bytes(catalogue_bytes)?;
+        let raw_catalogue:Value=serde_json::from_slice(catalogue_bytes).map_err(|e|e.to_string())?;
+        let mut engine = Self::from_catalogue_graph(&raw_catalogue)?;
         let mut included = std::collections::HashSet::new();
         for card in pool["cards"].as_array().ok_or("pool needs cards array")? {
+            crate::captured_hand_cost_contract::reject_printed_override(card)?;
             crate::piloting_lifecycle::reject_card(card)?;
             crate::collective_trigger_contract::reject_pool(card)?;
             let code = card["setCode"]
@@ -1014,6 +1026,7 @@ impl Engine {
         }
         catalogue.metadata.retain(|code, _| included.contains(code));
         engine.pool_hash = format!("{:x}", Sha256::digest(pool_bytes));
+        engine.validate_hand_cost_graph(None)?;
         Ok(engine)
     }
 
@@ -1029,6 +1042,7 @@ impl Engine {
         count
     }
     pub(super) fn check_stat_capacity(&self, s: &State) -> Result<(), String> {
+        self.validate_hand_cost_graph(Some(s))?;
         self.check_keyword_copy_graph(s)?;
         for id in 1..s.next_id {
             if !self.in_arena(s, id) {
@@ -1947,7 +1961,7 @@ impl Engine {
             match instruction {
                 Instruction::EndStep => {}
                 Instruction::Commit => {}
-                Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {return true;}
+                Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {return true;}
                 Instruction::NameOpponentPlay => {return true;}
                 Instruction::CaptureMaximum{aspect}=>{let mut captured=*s;if self.capture_maximum(&mut captured,source,aspect).is_err(){return false;}return self.instructions_can_affect(&captured,source,target,p,pc+1,end,require_change);}
 
@@ -1979,7 +1993,7 @@ impl Engine {
                     continue;
                 }
                 Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } => break,
-                Instruction::Apply(effect) | Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup {effect,..} => {
+                Instruction::Apply(effect) | Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedExhaustContingent(effect) | Instruction::NamedChooserGroup {effect,..} => {
                     if self.effect_can_affect(s, source, target, effect, require_change) {
                         return true;
                     }
@@ -2117,6 +2131,7 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if self.hand_cost_prompt(s) {return self.hand_cost_actions(s);}
         if s.decision==Decision::AbilityNumber {return self.number_actions(s);}
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.credit_payment_actions(s);}
         if s.decision == Decision::AbilityTarget && s.ability_program != 0 {
@@ -2253,6 +2268,7 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        if crate::named_exhaust_contingent_contract::requires(self.program(p))&&!crate::named_exhaust_contingent_contract::program(self.program(p)) {return Err("named exhaust program differs from complete closed source lowering".into());}
         let round_limited=crate::round_limit_contract::Registration::from_trigger(&self.program(p).trigger).is_some();
         if round_limited {s.round_limits.instance(s.round_limit)?;}else{s.round_limit=crate::round_limit_state::Handle::NONE;}
 
@@ -2268,6 +2284,7 @@ impl Engine {
         s.ability_pc = 0;
         s.ability_target = 0;
         s.selected_number=0;
+        s.captured_hand_card=Default::default();
         s.maximum_capture=MaximumCapture::default();
         s.ability_selection=Selection::default();
         s.event_group=EventGroupState::default();
@@ -2377,6 +2394,7 @@ impl Engine {
         let next = s.ability_return;
         s.ability_program = 0;
         s.selected_number=0;
+        s.captured_hand_card=Default::default();
         s.maximum_capture=MaximumCapture::default();
         s.ability_selection=Selection::default(); s.event_group=EventGroupState::default();
         if next == 2 {
@@ -2414,6 +2432,7 @@ impl Engine {
             };
             match instruction {
                 Instruction::EndStep => {s.ability_pc+=1;}
+                Instruction::HandCost{..} => {if self.run_hand_cost_instruction(s)? {return Ok(());}}
                 Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {
                     if self.run_number_instruction(s)? {return Ok(());}
                 }
@@ -2607,7 +2626,7 @@ impl Engine {
                         return Ok(());
                     }
                 }
-                Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedChooserGroup{effect,..} => {
+                Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedExhaustContingent(effect) | Instruction::NamedChooserGroup{effect,..} => {
                     let named=instruction.is_named_group();
                     if !named { if !self.commit_program(s)? {return Ok(());} }
                     if !s.event_group.active {
@@ -2623,7 +2642,13 @@ impl Engine {
                     if !self.resolve_group(s,effect)? { return Ok(()); }
                     // Reviewed discardDeck→return continuations read discarded card ids from
                     // ability_selection (Selection capacity matches deck-discard amount 0..=5).
-                    let discarded=self.capture_discarded_selection(s,effect);
+                    let discarded=if matches!(instruction,Instruction::NamedExhaustContingent(_)) {
+                        // Selection owns only this instruction's two sparse physical bindings.
+                        // Group scopes/records may change target, but never overwrite these slots.
+                        let bindings=crate::named_exhaust_contingent_contract::Bindings::new(s.ability_selection.ids[0],s.ability_selection.ids[1])?;
+                        let outcome=if s.event_group.count==0 {crate::named_exhaust_contingent_contract::ParentOutcome::NoEvents}else{crate::named_exhaust_contingent_contract::ParentOutcome::LastEvent{resolved_or_replacement_resolved:s.ability_succeeded}};
+                        let recipient=bindings.recipient(outcome);s.ability_succeeded=recipient.is_some();s.ability_target=recipient.unwrap_or(0);Selection::one(s.ability_target)
+                    }else{self.capture_discarded_selection(s,effect)};
                     s.event_group=EventGroupState::default();
                     s.ability_selection=discarded;
                     s.ability_pc+=1;
@@ -3340,6 +3365,7 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if self.hand_cost_step(s).is_some() {return self.apply_hand_cost_action(s,a);}
         if s.decision==Decision::AbilityNumber {return self.apply_number_action(s,a);}
         if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.apply_credit_payment_action(s,a);}
@@ -3544,6 +3570,9 @@ impl Engine {
                     } else { Selection::one(a.id().unwrap_or(0)) };
                     t.ability_target=selected.ids[0];
                     if nested.is_some() {
+                        if matches!(p.instructions[s.ability_pc as usize],Instruction::NamedExhaustContingent(_)) {
+                            self.capture_named_exhaust_binding(&mut t,selected)?;
+                        }
                         let depth=t.event_group.depth as usize;
                         t.event_group.stack[depth]=t.event_group.context; t.event_group.depth+=1;
                         t.event_group.context=selected; t.event_group.picks=Selection::default(); t.event_group.pc+=1;
@@ -4536,3 +4565,6 @@ mod round_limit_producer_tests;
 #[cfg(test)]
 #[path="defeat_token_creation_tests.rs"]
 mod defeat_token_creation_tests;
+#[cfg(test)]
+#[path="captured_hand_cost_tests.rs"]
+mod captured_hand_cost_tests;

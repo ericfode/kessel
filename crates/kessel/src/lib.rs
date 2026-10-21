@@ -1,4 +1,6 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod named_exhaust_contingent_contract;
+mod captured_hand_cost_contract;
 mod round_limit_contract;
 mod exhausted_live_count_contract;
 mod defeat_token_creation_contract;

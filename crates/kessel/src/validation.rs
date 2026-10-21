@@ -53,6 +53,7 @@ pub fn validate_pool(v: &Value) -> Result<(), String> {
     let cards = v["cards"].as_array().ok_or("pool.cards must be an array")?;
     let mut seen = HashSet::new();
     for c in cards {
+        crate::captured_hand_cost_contract::reject_printed_override(c)?;
         crate::piloting_lifecycle::reject_card(c)?;
         crate::collective_trigger_contract::reject_pool(c)?;
         let code = c["setCode"].as_str().ok_or("pool card missing setCode")?;

@@ -1,3 +1,7 @@
+#[path="src/named_exhaust_contingent_contract.rs"]
+mod named_exhaust_contingent_contract;
+#[path="src/captured_hand_cost_contract.rs"]
+mod captured_hand_cost_contract;
 #[path="src/round_limit_contract.rs"]
 mod round_limit_contract;
 #[path="src/exhausted_live_count_contract.rs"]
@@ -225,6 +229,7 @@ fn lower(p: &Program) -> Result<String, String> {
     let mut body = String::from("match s.ability_pc {\n");
     for (pc, i) in p.instructions.iter().enumerate() {
         let step=match i {
+            Instruction::HandCost{..}=>"if self.run_hand_cost_instruction(s)? {return Ok(true);}".into(),
             Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience=>"if self.run_number_instruction(s)? {return Ok(true);}".into(),
             Instruction::EndStep=>"s.ability_pc+=1;".into(),
             Instruction::Commit=>"if !self.commit_program(s)? {return Ok(true);}s.ability_pc+=1;".into(),
@@ -284,6 +289,8 @@ fn main() {
             println!("cargo:rerun-if-changed={}", catalog.join(name).display());
         }
     }
+    println!("cargo:rerun-if-changed=src/named_exhaust_contingent_contract.rs");
+    println!("cargo:rerun-if-changed=src/captured_hand_cost_contract.rs");
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/current_played_unit.rs");
     println!("cargo:rerun-if-changed=src/self_play_cost.rs");
