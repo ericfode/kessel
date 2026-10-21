@@ -1,4 +1,9 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod round_limit_contract;
+mod round_limit_state;
+mod round_limit_runtime;
+#[cfg(test)]
+mod round_limit_tests;
 mod collective_trigger_contract;
 mod admission;
 mod death_hooks;

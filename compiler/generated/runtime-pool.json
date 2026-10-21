@@ -512,6 +512,45 @@
     {
       "arena": "ground",
       "aspects": [
+        "vigilance",
+        "aggression"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "1069133190",
+      "internalName": "rancor-keeper",
+      "keywords": [],
+      "power": 2,
+      "rules": "All damage dealt by Rancor Keeper's ability is dealt simultaneously.\n",
+      "setCode": "ASH_032",
+      "setCodes": [
+        {
+          "number": 32,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 32,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "When a friendly unit is dealt damage and survives: Deal 1 damage to any number of bases. Use this ability only once each round.",
+      "title": "Rancor Keeper",
+      "traits": [
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
         "command",
         "aggression",
         "villainy"
@@ -840,6 +879,46 @@
         "imperial",
         "vehicle",
         "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6754905608",
+      "internalName": "gar-saxon#coveting-power",
+      "keywords": [],
+      "power": 3,
+      "rules": "Attaching a token upgrade is not considered playing an upgrade and does not trigger Gar Saxon's ability.\n",
+      "setCode": "ASH_047",
+      "setCodes": [
+        {
+          "number": 47,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 47,
+        "set": "ASH"
+      },
+      "subtitle": "Coveting Power",
+      "text": "When you play an upgrade on this unit: You may create a Mandalorian token. Use this ability only once each round.",
+      "title": "Gar Saxon",
+      "traits": [
+        "mandalorian",
+        "trooper"
       ],
       "types": [
         "unit"
@@ -3807,6 +3886,48 @@
         "unit"
       ],
       "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "aggression",
+        "heroism"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 6,
+      "id": "6989468664",
+      "internalName": "kachirho-militia",
+      "keywords": [
+        "hidden"
+      ],
+      "power": 4,
+      "rules": "If a unit has Hidden and Sentinel at the same time, it can be attacked.\n",
+      "setCode": "ASH_160",
+      "setCodes": [
+        {
+          "number": 160,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 160,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Hidden (This unit can't be attacked if it was played this phase.)\nWhen an enemy ground unit attacks your base: Ready this unit. Use this ability only once each round.",
+      "title": "Kachirho Militia",
+      "traits": [
+        "wookiee",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -7808,6 +7929,45 @@
       "traits": [
         "imperial",
         "official"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "vigilance",
+        "villainy"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9689400738",
+      "internalName": "nuvo-vindi#blue-shadow-perfected",
+      "keywords": [],
+      "power": 1,
+      "rules": null,
+      "setCode": "HMW_062",
+      "setCodes": [
+        {
+          "number": 62,
+          "set": "HMW"
+        }
+      ],
+      "setId": {
+        "number": 62,
+        "set": "HMW"
+      },
+      "subtitle": "Blue Shadow Perfected",
+      "text": "When Played: You may give a Weakness token to a unit.\nWhen an enemy unit with a Weakness token on it is defeated: You may give a Weakness token to a unit. Use this ability only once each round.",
+      "title": "Nuvo Vindi",
+      "traits": [
+        "separatist"
       ],
       "types": [
         "unit"
@@ -43620,6 +43780,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "command"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": null,
+      "hp": 4,
+      "id": "2649829005",
+      "internalName": "agent-kallus#seeking-the-rebels",
+      "keywords": [
+        "ambush"
+      ],
+      "power": 4,
+      "rules": "If Agent Kallus is defeated simultaneously with other unique units, you still may draw a card.\nAmbush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.\n(ERRATA) Templating update: “Unique” becomes “<uq>”.\n",
+      "setCode": "SOR_115",
+      "setCodes": [
+        {
+          "number": 115,
+          "set": "SOR"
+        }
+      ],
+      "setId": {
+        "number": 115,
+        "set": "SOR"
+      },
+      "subtitle": "Seeking the Rebels",
+      "text": "Ambush (After you play this unit, he may ready and attack an enemy unit.)\n\nWhen another unique unit is defeated: You may draw a card. Use this ability only once each round.",
+      "title": "Agent Kallus",
+      "traits": [
+        "imperial",
+        "trooper"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

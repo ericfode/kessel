@@ -156,6 +156,7 @@ impl Engine {
                 }
             }
         }
+        if programs.iter().any(|p|crate::round_limit_contract::Registration::from_trigger(&self.program(*p).trigger).is_some()) {return Err("copied registration limits require a separately supported gained-limit graph".into());}
         if programs.len() > MAX_SUPPORT_PROGRAMS {
             return Err("Support copied-ability capacity exceeded (80)".into());
         }

@@ -54,14 +54,14 @@ fn batch(e: &Engine, mut s: State) -> State {
 #[test]
 fn death_hook_complete_admission_and_fail_closed_boundaries() {
     let e = engine();
-    for code in ["SOR_036", "SEC_051", "ASH_127", "TWI_033", "TS26_013"] {
+    for code in ["SOR_036", "SEC_051", "ASH_127", "TWI_033", "TS26_013", "SOR_115", "HMW_062"] {
         assert!(
             e.by_code.contains_key(code),
             "{code}: {:?}",
             e.rejected_cards().unwrap().get(code)
         );
     }
-    for code in ["SOR_115", "SHD_137", "HMW_062", "SEC_088", "SOR_149"] {
+    for code in ["SHD_137", "SEC_088", "SOR_149"] {
         assert!(
             !e.by_code.contains_key(code),
             "unsupported provenance/limit {code}"

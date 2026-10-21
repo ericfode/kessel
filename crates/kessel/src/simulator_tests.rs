@@ -58,8 +58,11 @@ fn state_is_inline_copy_and_hash_covers_prompts_and_deck_order() {
     // Explicit physical event-card IDs add 2 bytes × 64 entries × 10 windows = 1280 bytes,
     // raising the previous exact 32_736-byte layout to 34_016 bytes.
     // Independent active defeat cause/context alignment adds another 40 bytes.
-    assert!(EXPECTED_INLINE_STATE_BYTES <= 34_056,"inline state budget exceeded");
-    assert!(std::mem::size_of::<State>() <= EXPECTED_INLINE_STATE_BYTES, "inline state bytes: {}", std::mem::size_of::<State>());
+    // Closed Round5 adds exactly 5,032 bytes: the bounded 905-instance ledger
+    // (3,622), 640 captured handles (1,280), two DamageFacts records (128),
+    // and the active handle (2). Wire presence fits existing padding.
+    assert_eq!(EXPECTED_INLINE_STATE_BYTES,39_088);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
     eprintln!("inline state bytes: {}; card bytes: {}", std::mem::size_of::<State>(), std::mem::size_of::<Card>());
     let e = engine();
     let mut s = board(&e);

@@ -128,7 +128,7 @@ fn cause_admission_is_exact_and_no_raw_leaf_bypass() {
 #[test]
 fn cause_storage_copy_hash_and_legacy_layout() {
     assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
-    assert_eq!(std::mem::size_of::<DeathTrigger>(), 14);
+    assert_eq!(std::mem::size_of::<DeathTrigger>(), 16);
     eprintln!(
         "Fiend layouts State={} Card={} DeathFrame={} ResolutionContext={}",
         std::mem::size_of::<State>(),

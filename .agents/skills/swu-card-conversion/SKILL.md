@@ -95,7 +95,7 @@ changes. If canonical owned files are dirty (staged, unstaged or untracked), mat
 execution dependencies before editing; use `git diff HEAD --name-only` plus untracked files, since Git HEAD can
 omit earlier integrated patches. Verify owned preimages against the claim before editing. A
 private author baseline is bookkeeping and adds no admission credit. Follow the user's model/effort choices within available model slots;
-subprocess concurrency is not model concurrency. Preserve explicit path ownership
+subprocess concurrency is not model concurrency. Resume completed model workers with `followup_task` and verify their running state before waiting for receipts; `send_message` only queues a message and does not restart them. Preserve explicit path ownership
 and do not edit canonical execution inputs during validation. Queue submission
 and successful comparisons never substitute for independent semantic review.
 
@@ -125,7 +125,8 @@ does not resolve a failed whole-pool import or establish whole-pool conformance.
 
 When initializing a queue through its module API, include every intended ownership
 path in the baseline inventory: existing files need their actual hashes and new
-files need null. A baseline drift error is not permission to bypass the claim;
+files need null. Keep `baseline.repositoryRoot` immutable and physically distinct
+from the editable author tree through submission. A baseline drift error is not permission to bypass the claim;
 correct the inventory in a fresh queue and retain the original failed attempt.
 Keep the original initialization inputs, including plans: the queue manifest
 retains their hash, not the complete plans object needed to recreate the queue.
@@ -172,7 +173,14 @@ When changing `State` or its inline storage, also run `cargo test --locked -p
 kessel --test state_boundaries`. Library tests do not execute that integration
 suite. Review its exact size budget alongside the shared library budget, and
 preserve existing hash assertions unless a separately justified hash change is
-part of the implementation.
+part of the implementation. When exported identity or history changes, compare
+semantic snapshot JSON and the full-state hash across both copy and export/reload;
+a matching subledger hash alone is insufficient. Exercise actual retired native
+units and token upgrades, plus affected pending references and cleanup; preserve
+allocated-card metadata rather than inventing counters or identities, or masking
+a hash mismatch. Exercise omitted or contradictory identity evidence so a
+successful reload cannot silently lose allocated state, while retaining scoped
+legacy compatibility.
 
 When adding a construction adapter, wire both planner/fixture dispatch and the
 central fixture dependency inventory so reusable recordings bind the new source
@@ -189,6 +197,8 @@ positive state-changing assertion and applicable boundary/interaction cases that
 distinguish plausible wrong implementations. Use existing fixture constructors
 where possible. Keep focus cards explicit; setup cards, random appearances,
 shared-family examples, play witnesses and synthetic diagnostics are distinct.
+Before advancing a planned play, observe its actual play event, physical source zone and appropriate cost/payment. Explicitly resolve a legal no-effect confirmation instead of silently cancelling; a completed play may legitimately resolve zero effect events.
+
 If source inspection disproves an expectation, document the correction in review;
 do not weaken assertions to match implementation output.
 

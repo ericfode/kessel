@@ -2,6 +2,8 @@
 mod credit_runtime;
 #[path = "resource_payment_runtime.rs"]
 mod resource_payment_runtime;
+#[path = "round_limit_wire.rs"]
+mod round_limit_wire;
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
 #[path="blade_base_damage_runtime.rs"]
@@ -791,6 +793,7 @@ impl Engine {
         }
     }
     pub fn apply(&self, s: &State, a: &Action) -> Result<State, String> {
+        self.validate_round_limit_handles(s)?;
         self.check_named_play(s)?;
         if (!s.phase_history.exact||!s.phase_history.defeats_exact)&&(self.needs_defeat_history()||self.state_needs_defeat_history(s)) {return Err("selected or imported pool requires exact defeat phase history version 2".into());}
         if !s.phase_history.exact && self.needs_phase_history() {return Err("selected pool requires exact phase history".into());}
@@ -927,7 +930,9 @@ impl Engine {
                     t.attack_source = source;t.attack_defender=id;t.attack_end_captured=false;t.attack_attacker_defeated=false;t.attack_attacker_departed=false;t.attack_defender_defeated=false;t.attack_defender_departed=false;
                     // The declaration registers before queued framework deaths
                     // physically remove combatants. Copy only for defender rules.
-                    let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t) {Some(t)}else{None};
+                    let declaration_context=if self.has_defense_registration(&t,id)||self.has_gained_attack_registration(&t)||self.round_limit_roster(&t)?.iter().any(|(_,_,r)|*r==crate::round_limit_contract::Registration::EnemyGroundAttackAtBase) {Some(t)}else{None};
+                    let event=crate::round_limit_runtime::Event::AttackDeclared{attacker_controller:t.card(source).owner.index() as u8,ground_attacker:t.player(t.card(source).owner).ground.contains(source),any_base_target:self.def(&t,id).info.is("base")};
+                    self.capture_round_limit_window(&mut t,&[(source,event)])?;
                     self.sweep_stat_defeats(&mut t)?;
                     t.pending_triggers = 0;
                     let d = self.def(&t, source);
@@ -1120,6 +1125,7 @@ impl Engine {
         Ok(())
     }
     fn add_arena(&self, s: &mut State, id: CardId) -> Result<(), String> {
+        if !self.in_arena(s,id) {s.round_limits.retire_native(id)?;}
         s.card_mut(id).inactive_entry_power=0;
         let space = self.def(s, id).info.arena.as_deref() == Some("space");
         let p = s.player_mut(s.card(id).owner);
@@ -1157,6 +1163,7 @@ impl Engine {
         s.attack_shield_opponent_first=false;
         s.ability_selection = Selection::default();
         s.event_group = EventGroupState::default();
+        s.round_limit=crate::round_limit_state::Handle::NONE;
         s.entry_event_card=0;s.event_result=StepEventResult::default();s.last_known_source=0;s.last_known_power=0;s.defeat_cause=crate::defeat_cause::DefeatCause::Unknown;
         s.ability_result = 0;
         s.ability_succeeded = false;
@@ -1334,6 +1341,8 @@ impl Engine {
             s.decision = Decision::ShieldOrder;
             return Ok(());
         }
+        let round_damage=[self.round_limit_damage_event(s,target,attack),if target_unit {self.round_limit_damage_event(s,source,defend)}else{None}].into_iter().flatten().collect::<Vec<_>>();
+        self.capture_round_limit_window(s,&round_damage)?;
         let listeners=self.blade_base_damage_listeners(s)?;
         self.capture_attack_end(s)?;
         if target_unit {
@@ -1439,7 +1448,7 @@ impl Engine {
         s.phase_history.preflight_defeats(counts,leaders)?;
         // Capture all sibling LKI/registrations before history changes can
         // alter a live ongoing effect on another simultaneous combatant.
-        for &id in &ids {self.capture_death_cause(s,id,events.iter().find(|(card,_)|*card==id).unwrap().1)?;}
+        self.capture_defeat_window(s,&ids.iter().map(|id|(*id,events.iter().find(|(card,_)|card==id).unwrap().1)).collect::<Vec<_>>())?;
         let attachments=ids.iter().flat_map(|id|self.upgrades(s,*id)).collect::<Vec<_>>();
         // The pinned engine gives cleanup events order -1, then uses a unary
         // sort comparator (event => event.order). Its observed order is reverse
@@ -1492,6 +1501,7 @@ impl Engine {
     // A returned upgrade moves directly to hand, never through discard. Keep
     // the common detach/state-reset path without consuming a discard slot.
     fn leave_play_primary_to_discard(&self, s: &mut State, id: CardId, discard: bool) -> Result<(), String> {
+        s.round_limits.retire_native(id)?;
         if self.in_arena(s,id) {self.mark_attack_lifecycle(s,id,false);}
         s.named_play.remove_source(id);
         self.remove_support_target(s,id);
@@ -1552,6 +1562,7 @@ impl Engine {
         self.sweep_stat_defeats(s)?;
         if self.open_deaths(s,DeathContinuation::Finish)? {return Ok(());}
         if s.death_depth>0 {return self.process_deaths(s);}
+        if crate::round_limit_runtime::roots(s).is_empty() {s.round_limits.normalize_quiescent(&[])?;}
         if s.is_terminal() {
             s.prev_passed = false;
             if !s.regroup && !s.player(s.active.other()).out {
@@ -1669,6 +1680,7 @@ impl Engine {
         for id in 1..s.next_id {
             s.card_mut(id).phase_restrictions = 0;
         }
+        s.round_limits.round_ended();
         s.round = s.round.checked_add(1).ok_or("round capacity exceeded")?;
         s.regroup = false;
         s.active = s.initiative;s.action_player=Some(s.active);
@@ -1891,6 +1903,7 @@ impl Engine {
         }
         if v.get("creditStateVersion").is_none() {self.load_credit_state(&mut s,v)?;}
         self.load_unit_entry_state(&mut s,v)?;
+        self.load_round_limit_state(&mut s,v)?;
         Ok(s)
     }
     fn has_physical_unit_entry_source(&self,s:&State)->bool {
@@ -2022,6 +2035,7 @@ impl Engine {
             s.winner().map(Seat::as_str)
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
+        self.snapshot_round_limit_state(s,&mut value);
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
         if (s.ability_program!=0&&crate::defeat_cause::requires(self.program(s.ability_program-1))) || [&s.death_pending,&s.death_window].into_iter().chain(s.death_frames[..s.death_depth as usize].iter().map(|f|&f.window)).any(|w|w.entries[..w.len as usize].iter().any(|e|e.keyword==0&&crate::defeat_cause::requires(self.program(e.program)))) {value["defeatCausePending"]=json!(true);}
         if s.support_state_explicit||self.needs_support_state()||self.state_needs_support_state(s)||s.support.len!=0 {value["supportStateVersion"]=json!(1);value["supportGrants"]=self.support_snapshot(s);}

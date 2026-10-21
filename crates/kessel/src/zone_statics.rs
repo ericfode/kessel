@@ -25,6 +25,8 @@ impl Engine {
             } else {
                 0
             };
+        let round_damage=self.round_limit_damage_event(s,target,attack).into_iter().collect::<Vec<_>>();
+        self.capture_round_limit_window(s,&round_damage)?;
         self.damage(s, target, attack);
         if excess > 0 {
             let base = s.player(s.card(target).owner).base;
@@ -66,6 +68,8 @@ impl Engine {
         let before = s.card(source).damage;
         if self.in_arena(s, target) && self.in_arena(s, source) {
             let defend = self.combat_damage(s, target, false);
+            let round_damage=self.round_limit_damage_event(s,source,defend).into_iter().collect::<Vec<_>>();
+            self.capture_round_limit_window(s,&round_damage)?;
             self.damage(s, source, defend);
         }
         let mut dead = vec![];

@@ -211,6 +211,7 @@ impl Engine {
                     *s.card_mut(record.token)=Card { present:true,def,owner:s.card(target).owner,..Card::default() };
                 }
                 if s.event_group.count>=32 { return Err("prepared event capacity exceeded".into()); }
+                if matches!(e,Effect::Damage{..}) {let will_defeat=self.in_arena(s,target)&&amount>=self.hp(s,target).saturating_sub(s.card(target).damage);s.event_group.damage_facts.capture(s.event_group.count as usize,will_defeat)?;}
                 s.event_group.records[s.event_group.count as usize]=record; s.event_group.count+=1;
             }
         }
@@ -236,6 +237,7 @@ impl Engine {
     pub(super) fn generate_uniform_damage(&self,s:&mut State,e:&Effect)->Result<bool,String> {
         if s.event_group.uniform_damage.active {return Ok(true);}
         let Effect::Damage {target,..}=e else {unreachable!()};
+        let amount=self.uniform_damage_amount(e).ok_or("uniform damage requires captured constant amount")?;
         if matches!(target,Target::ArenaList(l) if l.controller_order.is_some()) && !s.arena_order_exact {return Err("ordered ground damage requires recorded arena order".into());}
         let targets=self.effect_targets(s,target);
         let mut uniform=UniformDamageState::default();let mut stash=vec![];
@@ -246,6 +248,8 @@ impl Engine {
             let mut shields=vec![];let mut shield=s.card(target).shield;
             while shield!=0 {shields.push(shield);shield=s.card(shield).next_token;}
             shields.reverse();
+            let will_defeat=self.in_arena(s,target)&&amount>=self.hp(s,target).saturating_sub(s.card(target).damage);
+            s.event_group.damage_facts.capture(index,will_defeat)?;
             uniform.records[index]=UniformDamageRecord::new(target,shields.first().copied().unwrap_or(0))?;
             uniform.count+=1;stash.extend(shields.into_iter().skip(1));
         }
@@ -431,6 +435,12 @@ impl Engine {
             for r in &s.event_group.uniform_damage.records[..s.event_group.uniform_damage.count as usize] {if r.shield()!=0 {s.event_group.shield_mask|=1<<s.card(r.target()).owner.index();}}
         }
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
+        let wants_round_damage=self.round_limit_roster(s)?.iter().any(|(_,_,r)|*r==crate::round_limit_contract::Registration::FriendlyUnitNonlethalDamage);
+        let mut round_damage=Vec::new();
+        for i in 0..s.event_group.uniform_damage.count as usize {let r=s.event_group.uniform_damage.records[i];if wants_round_damage&&amount>0&&!s.event_group.uniform_damage.is_prevented(i)&&self.in_arena(s,r.target()) {
+            round_damage.push((r.target(),crate::round_limit_runtime::Event::UnitDamage{controller:s.card(r.target()).owner.index() as u8,card_is_unit:self.round_limit_live_unit(s,r.target()),will_defeat:s.event_group.damage_facts.get(i)?}));
+        }}
+        self.capture_round_limit_window(s,&round_damage)?;
         s.ability_result=0;s.ability_succeeded=false;s.event_group.resolving=true;
         let listeners=self.blade_base_damage_listeners(s)?;
         let mut events=StepEventResult::for_state(s);
@@ -476,6 +486,11 @@ impl Engine {
         Ok(true)
     }
     pub(super) fn resolve_group(&self,s:&mut State,e:&Effect)->Result<bool,String> {
+        if self.round_limit_roster(s)?.iter().any(|(_,_,r)|*r==crate::round_limit_contract::Registration::FriendlyUnitNonlethalDamage) {
+            if s.event_group.uniform_damage.active {for i in 0..s.event_group.uniform_damage.count as usize {s.event_group.damage_facts.get(i)?;}}
+            else {let ops=group_ops(e);for (i,r) in s.event_group.records[..s.event_group.count as usize].iter().enumerate() {if matches!(ops.get(r.op as usize),Some(GroupOp::Leaf(Effect::Damage{..}))) {s.event_group.damage_facts.get(i)?;}}}
+        }
+
         if crate::ability_ir::resource_pair_effect(e) {return self.resolve_resource_pair(s);}
         let mut observations=DamageObservations::new(damage_before_force(e));
 
@@ -517,12 +532,22 @@ impl Engine {
             }
         }
         if !self.resolve_group_shield_replacements(s, e) { return Ok(false); }
-        // Keep the pre-handler registration context locally. Cancelled
-        // attachments are omitted before dedup, as cleanUpTriggers requires.
+        // Distributed negative-order children emit triggers in the same
+        // post-sort order as their primaries. Shield replacement contexts above
+        // retain allocation insertion order; ordinary/uniform order stays zero.
+        let count=s.event_group.count as usize;
+        let primary_order=if matches!(e,Effect::DistributeDamage{..}) {(0..count).rev().collect::<Vec<_>>()}else{(0..count).collect()};
+        // Cancelled damage children do not produce resolved trigger contexts.
+        let wants_round_damage=self.round_limit_roster(s)?.iter().any(|(_,_,r)|*r==crate::round_limit_contract::Registration::FriendlyUnitNonlethalDamage);
+        let mut round_damage=Vec::new();
+        for &i in &primary_order {let r=s.event_group.records[i];if wants_round_damage&&matches!(&ops[r.op as usize],GroupOp::Leaf(Effect::Damage{..}))&&r.amount>0&&r.token==0&&self.in_arena(s,r.target) {
+            round_damage.push((r.target,crate::round_limit_runtime::Event::UnitDamage{controller:s.card(r.target).owner.index() as u8,card_is_unit:self.round_limit_live_unit(s,r.target),will_defeat:s.event_group.damage_facts.get(i)?}));
+        }}
+        self.capture_round_limit_window(s,&round_damage)?;
         let collective_before=*s;let collective_start=s.death_pending.len as usize;
         let mut collective_resolved=Vec::new();
         // All registrations see the same pre-movement state after replacement.
-        for &id in &explicit_sources {self.capture_explicit_death(s,id)?;}
+        self.capture_defeat_window(s,&explicit_sources.iter().map(|id|(*id,crate::defeat_cause::DefeatCause::Ability)).collect::<Vec<_>>())?;
         // Cleanup contingents belong to the whole prepared window. The pinned
         // unary event-order comparator reverses their combined insertion order
         // ahead of every primary handler, rather than interleaving per parent.
@@ -535,11 +560,6 @@ impl Engine {
         s.event_group.resolving=true;
         // Attachment, unit-entry and draw-fatigue contingents retain record order
         // after every primary handler has finished.
-        let count=s.event_group.count as usize;
-        // Distributed damage children have order meta.order-1. The pinned
-        // unary sort comparator reverses these children only after replacement
-        // contexts were captured in insertion order. Keep both boundaries.
-        let primary_order=if matches!(e,Effect::DistributeDamage{..}) {(0..count).rev().collect::<Vec<_>>()}else{(0..count).collect()};
         for contingent in [false,true] {
             for &index in &primary_order {
                 let mut r=s.event_group.records[index];

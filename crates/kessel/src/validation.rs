@@ -158,6 +158,7 @@ pub fn validate_state_with_catalogue(
         v,
         &[
             "nextCardId",
+            "roundLimitState",
             "unitEntryStateVersion",
             "inactiveUnitEntryStats",
             "round",
@@ -502,6 +503,23 @@ pub fn validate_state_with_catalogue(
     };
     if !consistent {
         return Err("winner disagrees with base damage".into());
+    }
+    if let Some(round)=v.get("roundLimitState") {
+        fields(round,&["version","registrations"],"roundLimitState")?;
+        if round["version"].as_u64()!=Some(1) {return Err("unsupported roundLimitState version".into());}
+        let rows=round["registrations"].as_array().ok_or("roundLimitState needs registration rows")?;
+        if rows.len()>MAX_CARDS-1 {return Err("roundLimitState native registration capacity exceeded".into());}
+        let mut previous=None;
+        for row in rows {
+            fields(row,&["card","side","ordinal","used"],"roundLimitState registration")?;
+            let id=row["card"].as_str().ok_or("roundLimitState card identity missing")?;
+            let number=id.strip_prefix('c').and_then(|n|n.parse::<u64>().ok()).filter(|n|format!("c{n}")==id&&*n<next).ok_or("invalid roundLimitState card identity")?;
+            if !refs.seen.contains_key(id)||previous.is_some_and(|old|old>=number) {return Err("roundLimitState rows need distinct allocated physical identities in order".into());}
+            previous=Some(number);
+            if row["side"]!="card"||!matches!(row["ordinal"].as_u64(),Some(0|1)) {return Err("invalid roundLimitState native registration".into());}
+            let used=row["used"].as_array().ok_or("roundLimitState counts missing")?;
+            if used.len()!=2||used.iter().any(|n|!matches!(n.as_u64(),Some(0|1))) {return Err("roundLimitState counts must be exact per-player 0 or 1".into());}
+        }
     }
     if let Some(history)=v.get("phaseHistory") {crate::model::PhaseHistory::parse(history,(next+1) as u16)?;}
     if let Some(named)=v.get("namedPlayState") {
