@@ -18,7 +18,7 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     s.set_trigger_context(TriggerContext::ShieldOrder);
     s.ability_return=ProgramContinuation::Deaths.raw();
     s.death_frames[0].resume=DeathContinuation::NativeAttackAfterEarlyEffects.raw();
-    s.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false};
+    s.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false,generated_token:0};
     s.maximum_capture=MaximumCapture{power:4,sole:6,count:2};
     assert_eq!(s.zobrist(),0x6c2b899b1d02ab05);
     assert!(s.trigger_context_is(TriggerContext::ShieldOrder));
@@ -93,7 +93,7 @@ fn new_flags_are_hash_neutral_when_inactive_and_distinct_when_active() {
     assert_ne!(state.zobrist(),original.zobrist());
     state.enter_smuggle=false;
     assert_eq!(state.zobrist(),original.zobrist());
-    state.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false};
+    state.event_result=StepEventResult{source:4,program:9,pc:3,damage_dealt:7,defeated_units:[2,1],will_defeat:false,generated_token:0};
     let before=state.zobrist();
     state.event_result.will_defeat=true;
     assert_ne!(state.zobrist(),before);

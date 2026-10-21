@@ -1,3 +1,5 @@
+#[path = "inactive_physical_state.rs"]
+mod inactive_physical_state;
 #[path = "credit_runtime.rs"]
 mod credit_runtime;
 #[path = "resource_payment_runtime.rs"]
@@ -78,6 +80,7 @@ pub struct Engine {
     shield_def: u16,
     /// Configuration-time full-definition fast path; assumes unchanged Engine configuration.
     hand_cost_all_units_costed: bool,
+    upgrade_return_all_upgrades_costed: bool,
     experience_def: Option<u16>,
     weakness_def: Option<u16>,
     advantage_def: Option<u16>,
@@ -268,6 +271,7 @@ impl Engine {
         Ok(Self {
             pool_hash: String::new(),
             hand_cost_all_units_costed: definitions.iter().all(|d| !(d.info.is("unit")||d.info.is("leader"))||d.info.cost.is_some()),
+            upgrade_return_all_upgrades_costed: definitions.iter().all(|d| !d.info.is("upgrade")||d.info.cost.is_some()),
             definitions,
             by_code,
             shield_def: shield_def.ok_or("pool must include TOKEN_SHIELD")?,
@@ -1907,7 +1911,9 @@ impl Engine {
             return Err("selected pool requires recorded arenaUnitOrder for modal global damage".into());
         }
         if v.get("creditStateVersion").is_none() {self.load_credit_state(&mut s,v)?;}
+        self.load_inactive_allocated_identities(&mut s,v)?;
         self.load_unit_entry_state(&mut s,v)?;
+        self.load_inactive_phase_keywords(&mut s,v)?;
         self.load_round_limit_state(&mut s,v)?;
         Ok(s)
     }
@@ -2057,6 +2063,7 @@ impl Engine {
         self.snapshot_named_play(s,&mut value);
         self.snapshot_credit_state(s,&mut value);
         self.snapshot_unit_entry_state(s,&mut value);
+        self.snapshot_inactive_physical_state(s,&mut value);
         if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}
         value
     }

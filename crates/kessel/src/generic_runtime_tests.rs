@@ -4228,10 +4228,21 @@ fn scalar_upgrade_return_admits_five_complete_sources_without_storage_growth() {
         "State bytes={} (no storage changes for scalar upgrade return)",
         std::mem::size_of::<State>()
     );
-    assert!(
-        !e.by_code.contains_key("ASH_232"),
-        "grouped nested upgrade return remains unsupported"
-    );
+    // The scalar compiler still cannot claim the simultaneous source. Its new
+    // admission comes exclusively from the complete closed source projection.
+    let raw: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+    let entry = raw["cards"].as_array().unwrap().iter().find(|v| v["setCode"] == "ASH_232").unwrap();
+    let mut ability: crate::ability_ir::Ability = serde_json::from_value(entry["abilities"]["card"][0].clone()).unwrap();
+    if let Effect::Simultaneous { effects } = &mut ability.effect {
+        for effect in effects {
+            if let Effect::Select { target_resolver, .. } = effect { target_resolver.prompt_title = None; }
+        }
+    }
+    assert!(Program::compile(&ability).unwrap_err().contains("grouped upgrade selection is not modeled"));
+    assert!(e.by_code.contains_key("ASH_232"));
+    let registration = &e.catalogue.as_ref().unwrap().cards["ASH_232"].card;
+    assert_eq!(registration.len(), 1);
+    assert!(crate::upgrade_return_shield_contract::program(e.program(registration[0])));
 }
 #[test]
 fn scalar_upgrade_return_detaches_to_owner_and_token_return_removes_exact_identity() {

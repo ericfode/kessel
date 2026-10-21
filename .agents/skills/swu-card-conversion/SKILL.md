@@ -62,6 +62,20 @@ Run whole-source family guards before any recognized-family early return, while 
 existing bounded inspection checks that precede admission. Classify nested limits by their
 proved family role; a cost-adjuster limit is not automatically a round-trigger limit.
 Exercise preceding oversized-input and unrelated-profile rejections after adding a guard.
+A new family marker must distinguish its complete registration context from common
+leaves inside another admitted family. Test known overlapping source envelopes and
+compare the full baseline admission set, preserving every unexpected gain or loss.
+Before reporting admission counts, wait for the actual constructor command and its
+set-difference assertions to finish successfully; planned counts or partial stdout
+are not validation receipts. Preserve failures before changing the marker.
+Reserve new programs using their actual stored representation before publishing any
+card binding. Native State stores catalogue program indices as index plus one, with
+zero meaning absent; a successful u16 conversion alone does not reserve that sentinel.
+Check the complete registration span, including cards with multiple programs. Exercise
+the last usable index and the first rejected index through the actual family reservation
+path. A helper boundary test alone does not show that catalogue admission calls the guard;
+retain the production call-site proof and distinguish synthetic capacity tests from an
+actual oversized external catalogue.
 
 ## Automatic pipeline first
 
@@ -274,6 +288,13 @@ selected batch. A later invalid review must not leave an earlier card partially
 adopted. Distinguish pre-existing aggregate fixture-coverage findings from new-card
 semantic defects using their source and witness evidence; preserve both findings,
 and never relabel an actual semantic defect as baseline coverage to permit adoption.
+
+For a readback diagnostic claiming that an effect caused a divergence, first
+prove the starting position is a snapshot/import/full-hash fixed point. Construct
+it through a supported public import or an actual source game, and keep the
+post-effect State unchanged for comparison. Include an ordinary-effect control.
+Undefined allocated slots or foreign token ownership in a hand-built fixture are
+setup failures; preserve them separately from clean transition counterexamples.
 
 Run compiler tests, relevant Rust tests, generated-output checks and native/Wasm
 reference comparisons. The accepted corpus runs in CI; its runner must not

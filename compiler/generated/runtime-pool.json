@@ -2186,6 +2186,45 @@
       "aspects": [
         "vigilance"
       ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "6201936455",
+      "internalName": "buy-time",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": null,
+      "rules": null,
+      "setCode": "ASH_091",
+      "setCodes": [
+        {
+          "number": 91,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 91,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Create a Mandalorian token and give it Sentinel for this phase. (Enemy units in its arena must attack a Sentinel when they attack you.)",
+      "title": "Buy Time",
+      "traits": [
+        "tactic"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "vigilance"
+      ],
       "cost": 4,
       "deployBox": null,
       "epicAction": "",
@@ -4367,6 +4406,48 @@
       "upgradePower": null
     },
     {
+      "arena": "space",
+      "aspects": [
+        "aggression"
+      ],
+      "cost": 4,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 5,
+      "id": "4046328280",
+      "internalName": "razor-crest#outfitted-armament",
+      "keywords": [
+        "saboteur"
+      ],
+      "power": 3,
+      "rules": null,
+      "setCode": "ASH_172",
+      "setCodes": [
+        {
+          "number": 172,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 172,
+        "set": "ASH"
+      },
+      "subtitle": "Outfitted Armament",
+      "text": "Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)\nOn Attack: You may discard a card from your hand. If you do, this unit gets +2/+0 for this attack.",
+      "title": "Razor Crest",
+      "traits": [
+        "mandalorian",
+        "vehicle",
+        "transport"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
       "arena": "ground",
       "aspects": [
         "aggression"
@@ -5044,6 +5125,45 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning",
+        "villainy"
+      ],
+      "cost": 5,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "9419144933",
+      "internalName": "helgait#dooku-was-a-visionary",
+      "keywords": [],
+      "power": 6,
+      "rules": "Abilities that refer to a card’s power include temporary modifiers.\n",
+      "setCode": "ASH_195",
+      "setCodes": [
+        {
+          "number": 195,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 195,
+        "set": "ASH"
+      },
+      "subtitle": "Dooku Was a Visionary",
+      "text": "When Defeated: You may distribute a number of Advantage tokens equal to this unit's power among friendly units (divided as you choose).",
+      "title": "Helgait",
+      "traits": [
+        "separatist"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -5962,6 +6082,43 @@
       "title": "Diplomatic Pageantry",
       "traits": [
         "law"
+      ],
+      "types": [
+        "event"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": null,
+      "id": "4547747622",
+      "internalName": "full-of-surprises",
+      "keywords": [],
+      "power": null,
+      "rules": "Abilities that return a card to hand must choose a card in play unless otherwise specified.\nAbilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers.\n",
+      "setCode": "ASH_232",
+      "setCodes": [
+        {
+          "number": 232,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 232,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Return an upgrade that costs 2 or less to its owner's hand.\nGive a Shield token to a unit.",
+      "title": "Full of Surprises",
+      "traits": [
+        "trick"
       ],
       "types": [
         "event"
