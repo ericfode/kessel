@@ -646,7 +646,7 @@ fn bind_candidate(expr: &mut Expr, root_binding: bool) -> Result<(), String> {
                     .into(),
             );
         }
-        Expr::DefeatCauseAmount {..} | Expr::Const { .. } => {}
+        Expr::AttackBaseQuery {..} | Expr::DefeatCauseAmount {..} | Expr::Const { .. } => {}
         Expr::Compiled(_) => {
             return Err("native selector input cannot contain an executable binding".into())
         }

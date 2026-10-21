@@ -1779,7 +1779,7 @@ fn ordinary_combat_reuses_shield_consolidation_in_chosen_player_order() {
             assert_eq!(e.token_count(&s, s.card(id).shield), 2);
             assert_eq!(s.card(id).damage, 0);
         }
-        assert!(!s.attack_shield_opponent_first);
+        assert!(!s.attack_flags.shield_opponent_first());
     }
 }
 fn death_program(e: &mut Engine, s: &State, source: CardId, ability: Value) -> u16 {

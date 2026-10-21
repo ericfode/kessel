@@ -1,3 +1,5 @@
+#[path="src/attack_base_history_contract.rs"]
+mod attack_base_history_contract;
 #[path="src/arena_payment_exhaust_contract.rs"]
 mod arena_payment_exhaust_contract;
 #[path="src/modal_deck_movement_contract.rs"]
@@ -273,6 +275,7 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/attack_base_history_contract.rs");
     println!("cargo:rerun-if-changed=src/arena_payment_exhaust_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_deck_movement_contract.rs");
     println!("cargo:rerun-if-changed=src/resource_number_experience_contract.rs");

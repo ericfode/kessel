@@ -8,7 +8,8 @@ pub fn expression(e: &Expr) -> Result<String, String> {
     let sub = expression;
     Ok(match e {
         Expr::DefeatCauseAmount {..} => return Err("captured defeat cause uses shared interpreter".into()),
-        Expr::HistoryAttackCheck {..} => "Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated)".into(),
+        Expr::AttackBaseQuery {..} => return Err("attack base queries use shared Rust interpreter".into()),
+        Expr::HistoryAttackCheck {..} => "Eval::Bool(s.attack_source!=0 && s.attack_flags.defender_defeated())".into(),
         Expr::Const { value } => {
             if let Some(n) = value.as_i64() {
                 format!("Eval::Number({n}i64)")

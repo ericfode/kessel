@@ -64,6 +64,7 @@ macro_rules! expression_variants {
 }
 expression_variants! {
     DefeatCauseAmount {},
+    AttackBaseQuery {query:crate::attack_base_history_contract::Query},
     NativeTokenPredicate {
         operation: String,
         receiver: Box<Expr>,
@@ -202,7 +203,7 @@ impl Expr {
             Self::Binary{left,right,..}=>left.any(test)||right.any(test),
             Self::Unary{value,..}=>value.any(test),
             Self::Conditional{condition,then,r#else}=>condition.any(test)||then.any(test)||r#else.any(test),
-            Self::DefeatCauseAmount {..}|Self::Const{..}|Self::Ref{..}|Self::HistoryQuery(_)|Self::DataMember{..}|Self::HistoryAttackCheck{..}=>false,
+            Self::AttackBaseQuery {..}|Self::DefeatCauseAmount {..}|Self::Const{..}|Self::Ref{..}|Self::HistoryQuery(_)|Self::DataMember{..}|Self::HistoryAttackCheck{..}=>false,
         }
     }
     fn references_title(&self) -> bool {
@@ -340,7 +341,7 @@ impl Expr {
         self.validate()?;
         let numeric = match self {
             Self::DefeatCauseAmount {..} => true,
-            Self::HistoryQuery(_) => false,
+            Self::HistoryQuery(_) | Self::AttackBaseQuery{..} => false,
             Self::DataMember {..} => true,
             Self::Compiled(compiled) => compiled.original.validate_number().is_ok(),
             Self::ArenaLength {..} => true, Self::ArenaList {..}|Self::ArenaFilter {..}|Self::ArenaSome {..} => false,
@@ -391,6 +392,7 @@ impl Expr {
         let sub = |e: &Expr| e.validate_depth(depth + 1);
         match self {
             Self::DefeatCauseAmount {..}=>Ok(()),
+            Self::AttackBaseQuery{..}=>Err("attack base query requires a complete closed source profile".into()),
             Self::HistoryAttackCheck {test,attack,watcher,binding}=>crate::attack_history::validate(test,attack,watcher,binding),
             Self::Compiled(compiled) => compiled.original.validate_depth(depth),
             Self::NativeTokenPredicate {operation,receiver,domain,token_type,optional_receiver,optional_call} => {
@@ -2235,7 +2237,7 @@ impl Program {
                 Expr::Const {value} => value.as_str().map_or(0, str::len),
                 Expr::Array {items} => items.iter().map(title_literal_bytes).sum(),
                 Expr::Math {args, ..} => args.iter().map(title_literal_bytes).sum(),
-                Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::Ref { .. } => 0,
+                Expr::AttackBaseQuery {..} | Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::HistoryQuery(_) | Expr::DataMember {..} | Expr::Ref { .. } => 0,
                 Expr::Unary {value, ..} => title_literal_bytes(value),
                 Expr::Binary {left, right, ..} => title_literal_bytes(left) + title_literal_bytes(right),
                 Expr::Conditional {condition, then, r#else} => title_literal_bytes(condition) + title_literal_bytes(then) + title_literal_bytes(r#else),
@@ -2890,7 +2892,7 @@ impl Program {
                 Expr::Query {name,receiver,args} => dependent_in_scope(receiver,card_bound) || args.iter().enumerate().any(|(i,e)|dependent_in_scope(e,card_bound || (i==0 && ["hasSomeArenaUnit","arenaUnitCount"].contains(&name.as_str())))),
                 Expr::DataMember {..} => false,
                 Expr::HistoryQuery(q) => !card_bound && q.kind()==Ok(crate::phase_history::QueryKind::EnteredCard),
-                Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
+                Expr::AttackBaseQuery {..} | Expr::DefeatCauseAmount {..} | Expr::HistoryAttackCheck {..} | Expr::Const { .. } => false,
             }
         }
         fn target_dependent(e: &Expr) -> bool { dependent_in_scope(e,false) }
@@ -3431,6 +3433,7 @@ impl Catalogue {
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
                 let generated_continuation=crate::generated_token_continuation_contract::prepare(entry,value)?;
                 let resource_number=crate::resource_number_experience_contract::prepare(entry)?;
+                let attack_base=crate::attack_base_history_contract::prepare(entry)?;
                 let arena_payment=crate::arena_payment_exhaust_contract::prepare(entry)?;
                 let modal_deck=crate::modal_deck_movement_contract::prepare(entry)?;
                 let phase=crate::player_phase_contract::prepare(entry)?;
@@ -3448,6 +3451,7 @@ impl Catalogue {
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if let Some(kind)=attack_base {return crate::attack_base_history_contract::compile(kind,catalogue.programs.len());}
                 if generated_continuation {let id=crate::generated_token_continuation_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![crate::generated_token_continuation_contract::compiled()?]));}
                 if resource_number {return crate::resource_number_experience_contract::compile(catalogue.programs.len());}
                 if arena_payment {return crate::arena_payment_exhaust_contract::compile(catalogue.programs.len());}
@@ -3929,6 +3933,11 @@ impl Catalogue {
             for code in &phase_codes {catalogue.cards.remove(code);catalogue.metadata.remove(code);catalogue.rejected.insert(code.clone(),format!("player phase direct-only closure unavailable: {reason}"));}
             catalogue.reprint_of.retain(|alias,source|!phase_codes.contains(alias)&&!phase_codes.contains(source));
         }
+        if let Err(reason)=crate::attack_base_history_contract::validate_copy_closed_graph(&catalogue.programs) {
+            let affected=catalogue.cards.iter().filter(|(_,c)|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|crate::attack_base_history_contract::has_query(&catalogue.programs[*p as usize]))).map(|(code,_)|code.clone()).collect::<std::collections::BTreeSet<_>>();
+            for code in &affected {catalogue.cards.remove(code);catalogue.metadata.remove(code);catalogue.rejected.insert(code.clone(),format!("attack history closed copy graph unavailable: {reason}"));}
+            catalogue.reprint_of.retain(|alias,source|!affected.contains(alias)&&!affected.contains(source));
+        }
         for program in &mut catalogue.programs {
             program.visit_expression_roots_mut(&mut Expr::bind_compiled);
         }
@@ -4005,7 +4014,7 @@ mod tests {
     fn compiled_expression_preserves_named_portable_rejections() {
         for kind in ["arenaCount", "unimplementedCollection", "compiled"] {
             let expression = json!({"kind":kind});
-            let expected = format!("unknown variant `{kind}`, expected one of `defeatCauseAmount`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
+            let expected = format!("unknown variant `{kind}`, expected one of `defeatCauseAmount`, `attackBaseQuery`, `nativeTokenPredicate`, `historyQuery`, `dataMember`, `historyAttackCheck`, `arenaList`, `arenaFilter`, `arenaSome`, `arenaLength`, `collection`, `array`, `math`, `const`, `ref`, `binary`, `unary`, `conditional`, `query`");
             assert_eq!(serde_json::from_value::<Expr>(expression.clone()).unwrap_err().to_string(), expected);
             let nested = json!({"kind":"unary", "op":"!", "value":expression});
             assert_eq!(serde_json::from_value::<Expr>(nested).unwrap_err().to_string(), expected);

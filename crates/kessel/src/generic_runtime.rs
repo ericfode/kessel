@@ -1,4 +1,9 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
+#[path="attack_allocation_runtime.rs"]
+mod attack_allocation_runtime;
+#[cfg(test)]
+#[path="attack_allocation_tests.rs"]
+mod attack_allocation_tests;
 #[path="captured_hand_cost_runtime.rs"]
 mod captured_hand_cost_runtime;
 #[path="selected_hand_cost_runtime.rs"]
@@ -426,7 +431,49 @@ fn reviewed_force_entry(entry:&Value)->bool {
     entry["sourceHash"]=="3ff3888f5186845acdd8d3ef96f396875b2daf4f9b808fa9b4a2ef03a1b954b6" && entry["baseClass"]=="TokenCard" && entry["card"]==metadata && entry["abilities"]==serde_json::json!({"leader":[],"unit":[],"card":[]}) && entry["keywordValues"]==serde_json::json!({}) && entry["attachCondition"].is_null()
 }
 
+/// Trusted native upgrade identities, independent of any producing card. These
+/// discriminants do not authorize token units, effects, or offboard modifiers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum NativeTokenUpgrade { Shield, Experience, Advantage, Weakness }
+impl NativeTokenUpgrade {
+    fn from_entry(entry: &Value) -> Option<Self> {
+        // These are the complete pinned compiler entries, including its actual
+        // unsupported diagnostics and absent Advantage class envelope. Compare
+        // the unmodified input: no ignored aliases, extra fields, normalization,
+        // or inferred source identity may acquire native upgrade authority.
+        let (kind, raw) = match entry["setCode"].as_str()? {
+            "TOKEN_SHIELD" => (Self::Shield, r###"{"setCode":"TOKEN_SHIELD","sourcePath":"game/cards/01_SOR/tokens/Shield.ts","sourceHash":"39f1c6699c36ba309a8fe8e053f9b94ddbb8877991767b6664fcd88d447be91f","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"class-state:highPriorityRemoval","file":"game/cards/01_SOR/tokens/Shield.ts","line":10,"column":1,"message":"Class-local persistent state requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:Constructor","file":"game/cards/01_SOR/tokens/Shield.ts","line":19,"column":1,"message":"Additional class behavior requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"method:isShield","file":"game/cards/01_SOR/tokens/Shield.ts","line":29,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/01_SOR/tokens/Shield.ts","line":33,"column":1,"message":"Additional class behavior requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"registrar:addDamageModificationAbility","message":"registrar:addDamageModificationAbility","file":"game/cards/01_SOR/tokens/Shield.ts","line":38,"column":9}],"className":"Shield","baseClass":"TokenUpgradeCard","id":"8752877738","internalName":"shield","status":"unsupported","card":{"title":"Shield","subtitle":null,"cost":0,"hp":0,"power":0,"text":"If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.","deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":0,"upgradeHp":0,"id":"8752877738","aspects":[],"traits":["armor"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"shield"},"dataHash":"3fe37b5b4c214e1a6971c2ea5e7729a7cad9bf983a384c20b56c404cbf41208b","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_EXPERIENCE" => (Self::Experience, r###"{"setCode":"TOKEN_EXPERIENCE","sourcePath":"game/cards/01_SOR/tokens/Experience.ts","sourceHash":"fccf00d13061bfc15447101a0dc82fc360f9b5d2e28a9da678684e8c93bc9d67","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"method:isExperience","file":"game/cards/01_SOR/tokens/Experience.ts","line":12,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/01_SOR/tokens/Experience.ts","line":16,"column":1,"message":"Additional class behavior requires conversion"}],"className":"Experience","baseClass":"TokenUpgradeCard","id":"2007868442","internalName":"experience","status":"unsupported","card":{"title":"Experience","subtitle":null,"cost":0,"hp":1,"power":1,"text":null,"deployBox":null,"epicAction":null,"unique":false,"rules":null,"upgradePower":1,"upgradeHp":1,"id":"2007868442","aspects":[],"traits":["learned"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"SOR"},"internalName":"experience"},"dataHash":"cc1d7a3bf3344d8a95afdbba8607659ec1edd07e5282bb9eb9d3497b0f7f332b","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_ADVANTAGE" => (Self::Advantage, r###"{"setCode":"TOKEN_ADVANTAGE","sourcePath":"game/cards/08_ASH/tokens/Advantage.ts","sourceHash":"1280861b9a94572ecce2c1d62fb5fd93c11b08609495c3d9f60e656d153e3119","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"expected-one-card-class","file":"game/cards/08_ASH/tokens/Advantage.ts","line":1,"column":1,"message":"Found 2 classes"}],"status":"unsupported","id":"5844562972","internalName":"advantage","card":{"title":"Advantage","subtitle":"","cost":0,"hp":0,"power":1,"text":"When attached unit's attack or defense ends: Defeat this upgrade.","deployBox":null,"epicAction":"","unique":false,"rules":"When Attack Ends/When Defense Ends abilities trigger at the same time as units deal combat damage.\n","upgradePower":1,"upgradeHp":0,"id":"5844562972","aspects":[],"traits":["innate"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"ASH"},"internalName":"advantage"},"dataHash":"9a81c2d083caa13d2a5a173bdeedf76e837d62fb413496e8539338b42d71ce94","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            "TOKEN_WEAKNESS" => (Self::Weakness, r###"{"setCode":"TOKEN_WEAKNESS","sourcePath":"game/cards/09_HMW/tokens/Weakness.ts","sourceHash":"dd546e4886757d77fffeb8be6e7381144fa7378b6493ce444aa87e4ba1202778","abilities":{"leader":[],"unit":[],"card":[]},"diagnostics":[{"code":"UNSUPPORTED_SOURCE","pattern":"method:isWeakness","file":"game/cards/09_HMW/tokens/Weakness.ts","line":12,"column":1,"message":"Additional class method requires conversion"},{"code":"UNSUPPORTED_SOURCE","pattern":"class-member:GetAccessor","file":"game/cards/09_HMW/tokens/Weakness.ts","line":16,"column":1,"message":"Additional class behavior requires conversion"}],"className":"Weakness","baseClass":"TokenUpgradeCard","id":"7816991190","internalName":"weakness","status":"unsupported","card":{"title":"Weakness","subtitle":"","cost":0,"hp":-1,"power":-1,"text":"","deployBox":null,"epicAction":"","unique":false,"rules":null,"upgradePower":-1,"upgradeHp":-1,"id":"7816991190","aspects":[],"traits":["condition"],"keywords":[],"types":["token","upgrade"],"setId":{"set":"HMW"},"internalName":"weakness"},"dataHash":"6a8e3afbc95ff1ddbceb2edf8aafdfd558a8ce5b148c375e45f250792ae96fd7","keywordValues":{},"requiredCapabilities":["cardType:token","cardType:upgrade"]}"###),
+            _ => return None,
+        };
+        let expected: Value = serde_json::from_str(raw).expect("pinned native token-upgrade entry");
+        (entry == &expected).then_some(kind)
+    }
+}
+
 impl Engine {
+    /// Constructor-owned IDs exist only after the complete pinned native source
+    /// profile succeeds. Pool selection retains global IDs, so membership must
+    /// independently come from the selected catalogue metadata.
+    pub(super) fn selected_native_token_upgrade(&self, def: u16) -> Option<NativeTokenUpgrade> {
+        let d = self.definitions.get(def as usize)?;
+        let metadata = self.catalogue.as_ref()?.metadata.get(&d.code)?;
+        if metadata["types"] != json!(["token", "upgrade"])
+            || !d.info.is("token") || !d.info.is("upgrade")
+            || d.info.is("unit") || d.info.is("leader") || d.info.is("base") {
+            return None;
+        }
+        match d.code.as_str() {
+            "TOKEN_SHIELD" if def == self.shield_def => Some(NativeTokenUpgrade::Shield),
+            "TOKEN_EXPERIENCE" if Some(def) == self.experience_def => Some(NativeTokenUpgrade::Experience),
+            "TOKEN_ADVANTAGE" if Some(def) == self.advantage_def => Some(NativeTokenUpgrade::Advantage),
+            "TOKEN_WEAKNESS" if Some(def) == self.weakness_def => Some(NativeTokenUpgrade::Weakness),
+            _ => None,
+        }
+    }
+
     // Player.getInPlayCards: controller-owned arena cards plus the player's BaseZone.
     // Live Credits occupy BaseZone; retired physical slots are outside play.
     // Fortify has no admitted producer.
@@ -603,6 +650,10 @@ impl Engine {
                 }
                 if programs.card.iter().chain(&programs.unit).chain(&programs.leader).any(|p|catalogue.programs[*p as usize].trigger=="onDefense"&&!catalogue.programs[*p as usize].attached_host) && (!info.is("unit") || info.is("leader") || info.is("token") || entry["baseClass"]!="NonLeaderUnitCard" || !programs.unit.is_empty() || !programs.leader.is_empty()) {return Err("OnDefense currently requires an ordinary nonleader unit source".into());}
                 if native_token {
+                    if matches!(code.as_str(), "TOKEN_SHIELD" | "TOKEN_EXPERIENCE" | "TOKEN_ADVANTAGE" | "TOKEN_WEAKNESS")
+                        && NativeTokenUpgrade::from_entry(entry).is_none() {
+                        return Err("native token upgrade full source/profile differs from reviewed adapter".into());
+                    }
                     if code=="TOKEN_CREDIT" {
                         if !crate::credits::native_entry(entry) {return Err("native Credit source/metadata differs from reviewed adapter".into());}
                     }else if code=="TOKEN_ADVANTAGE" {
@@ -1333,8 +1384,8 @@ impl Engine {
         if s.attack_source!=0 && (s.attack_source==id||s.attack_defender==id) {(s.attack_source,s.attack_defender)}else{s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0&&(f.context.attack_source==id||f.context.attack_defender==id)).map(|f|(f.context.attack_source,f.context.attack_defender)).unwrap_or((0,0))}
     }
     pub(super) fn attack_participant_departed(&self,s:&State,id:CardId)->bool {
-        if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_attacker_departed}else{s.attack_defender_departed};}
-        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_attacker_departed}else{f.context.attack_defender_departed})
+        if s.attack_source!=0 && (s.attack_source==id || s.attack_defender==id) {return if s.attack_source==id {s.attack_flags.attacker_departed()}else{s.attack_flags.defender_departed()};}
+        s.death_frames[..s.death_depth as usize].iter().rev().find(|f|f.context.attack_source!=0 && (f.context.attack_source==id || f.context.attack_defender==id)).is_some_and(|f|if f.context.attack_source==id {f.context.attack_flags.attacker_departed()}else{f.context.attack_flags.defender_departed()})
     }
     pub(super) fn is_attacking(&self,s:&State,id:CardId)->bool {self.in_arena(s,id)&&id==self.active_attack_pair(s,id).0&&!self.attack_participant_departed(s,id)}
     fn is_defending(&self,s:&State,id:CardId)->bool {(self.in_arena(s,id)||self.def(s,id).info.is("base"))&&id==self.active_attack_pair(s,id).1&&!self.attack_participant_departed(s,id)}
@@ -1437,7 +1488,8 @@ impl Engine {
                     _=>unreachable!("history list requires admitted count projection"),
                 };Eval::Number(i64::from(count))
             },
-            Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_defender_defeated),
+            Expr::AttackBaseQuery{query}=>self.attack_base_query(s,source,*query),
+            Expr::HistoryAttackCheck {..}=>Eval::Bool(s.attack_source!=0 && s.attack_flags.defender_defeated()),
             Expr::ArenaList {receiver,predicate} => {let seat=match receiver.as_ref(){Expr::Ref{path} if path==&["abilityPlayer"]=>Some(s.active),Expr::Ref{path} if path==&["player"]=>Some(player),Expr::Ref{path} if path==&["opponent"]=>Some(player.other()),_=>None};let ids=self.arena_units(s).into_iter().filter(|id|self.in_arena(s,*id)&&seat.is_none_or(|p|s.card(*id).owner==p)&&self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect();Eval::ArenaCards(ids)},
             Expr::ArenaFilter {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::ArenaCards(ids.into_iter().filter(|id|self.eval_with_binding(s,source,target,*id,modifier_target,predicate).truth()).collect())},
             Expr::ArenaSome {receiver,predicate} => {let Eval::ArenaCards(ids)=sub(receiver) else{return Eval::Null;};Eval::Bool(ids.into_iter().any(|id|self.eval_with_binding(s,source,target,id,modifier_target,predicate).truth()))},
@@ -2067,7 +2119,7 @@ impl Engine {
     /// forceteki builds a triggered ability's target resolvers before it sets the ability's change-required mode.
     /// Resolving it still requires a change (begin_program), so such a trigger can be ordered and then do nothing.
     fn trigger_has_effect(&self, s: &State, source: CardId, p: u16) -> bool {
-        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return false;}
+        if self.program(p).attacker_must_survive && s.attack_flags.attacker_defeated() {return false;}
         match self.program(p).instructions.first() {
             Some(Instruction::Select(_)) => self.program_has_effect_mode(s, source, p, false),
             _ => self.program_has_effect(s, source, p),
@@ -2348,7 +2400,7 @@ impl Engine {
         s.ability_return = return_to.raw();
         s.ability_committed = return_to != ProgramContinuation::Finish;
         if round_limited&&!s.round_limits.available(s.round_limit,s.active.index() as u8)? {return self.end_program(s);}
-        if self.program(p).attacker_must_survive && s.attack_attacker_defeated {return self.end_program(s);}
+        if self.program(p).attacker_must_survive && s.attack_flags.attacker_defeated() {return self.end_program(s);}
         if self.program(p).optional
             && !matches!(
                 self.program(p).instructions.first(),
@@ -2380,6 +2432,7 @@ impl Engine {
     pub(super) fn commit_program_mode(&self,s:&mut State,end_program:bool)->Result<bool,String> {
         self.preflight_generated_token_branch(s)?;
         if s.ability_committed {return Ok(true);}
+        self.preflight_attack_parent_allocation(s,end_program)?;
         let source=s.source;
         self.phase_preflight_parent(s,self.program(s.ability_program-1))?;
         if s.resource_cost_index==0 && self.program(s.ability_program-1).costs.iter().any(|cost|matches!(cost,Cost::UseForceCost{..}))
@@ -2632,6 +2685,7 @@ impl Engine {
                 }
                 Instruction::Jump { to } => s.ability_pc = *to as u8,
                 Instruction::Apply(Effect::InitiateAttack{properties,..}) => {
+                    self.preflight_native_attack_allocation(s,properties)?;
                     if !self.commit_program(s)? {return Ok(());}
                     if self.native_attack_eligible(s,s.source,s.ability_target,properties) {
                         self.begin_native_attack(s,properties,p.optional)?;
@@ -3772,20 +3826,21 @@ impl Engine {
     pub(super) fn mark_attack_lifecycle(&self,s:&mut State,id:CardId,defeat:bool) {
         let tracked_program=|p:u16| {let program=self.program(p);program.trigger=="whenAttackEnds" || program.instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::attack_lifetime_contract::modifier(e)||crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)))};
         let tracked=|source| source!=0 && (self.card_programs(s,source).iter().copied().any(tracked_program) || self.support_programs(s,source).iter().copied().any(tracked_program));
-        let current=s.attack_end_captured || tracked(s.attack_source);
-        let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && (s.death_frames[i].context.attack_end_captured || tracked(s.death_frames[i].context.attack_source)));
-        fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,source_gone:&mut bool,source_dead:&mut bool,defender_gone:&mut bool,defender_dead:&mut bool) {
-            if source==id && !*source_gone {if defeat {*source_dead=true;}else{*source_gone=true;}}
-            if defender==id && !*defender_gone {if defeat {*defender_dead=true;}else{*defender_gone=true;}}
+        let current=s.attack_flags.end_captured() || tracked(s.attack_source);
+        let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && (s.death_frames[i].context.attack_flags.end_captured() || tracked(s.death_frames[i].context.attack_source)));
+        fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,flags:&mut crate::attack_base_history_state::AttackFlags) {
+            if source==id {flags.mark_departure(true,defeat);}
+            if defender==id {flags.mark_departure(false,defeat);}
         }
-        if current {mark(s.attack_source,s.attack_defender,id,defeat,&mut s.attack_attacker_departed,&mut s.attack_attacker_defeated,&mut s.attack_defender_departed,&mut s.attack_defender_defeated);}
-        for (i,frame) in s.death_frames[..s.death_depth as usize].iter_mut().enumerate() {if frames[i] {let c=&mut frame.context;mark(c.attack_source,c.attack_defender,id,defeat,&mut c.attack_attacker_departed,&mut c.attack_attacker_defeated,&mut c.attack_defender_departed,&mut c.attack_defender_defeated);}}
+        if current {mark(s.attack_source,s.attack_defender,id,defeat,&mut s.attack_flags);}
+        for (i,frame) in s.death_frames[..s.death_depth as usize].iter_mut().enumerate() {if frames[i] {let c=&mut frame.context;mark(c.attack_source,c.attack_defender,id,defeat,&mut c.attack_flags);}}
     }
     /// OnAttackEnd shares combat's event window with damage-driven defeats.
     /// EventWindow emits triggers before handlers. Capture before damage, then
     /// resolve survival against the original incarnation after all events settle.
     pub(super) fn capture_attack_end(&self,s:&mut State)->Result<(),String> {
-        if s.attack_end_captured || s.attack_source==0 {return Ok(());}
+        if s.attack_flags.enabled() {return self.capture_attack_base_end(s,false);}
+        if s.attack_flags.end_captured() || s.attack_source==0 {return Ok(());}
         let source=s.attack_source;
         let programs:Vec<_>=if self.in_arena(s,source) {self.card_programs(s,source).iter().copied().chain(self.support_programs(s,source)).filter(|p|self.program(*p).trigger=="whenAttackEnds").collect()}else{vec![]};
         if programs.is_empty() {return Ok(());}
@@ -3795,7 +3850,7 @@ impl Engine {
         if programs.iter().any(|p|self.program(*p).condition.is_some()) {return Err("conditional attack-end capture is not implemented".into());}
         if s.death_pending.len as usize+programs.len()>MAX_DEATH_TRIGGERS {return Err("attack-end trigger capacity exceeded (64)".into());}
         for program in programs {let n=s.death_pending.len as usize;s.death_pending.entries[n]=DeathTrigger {source,program,player:s.card(source).owner,..DeathTrigger::default()};s.death_pending.len+=1;}
-        s.attack_end_captured=true;
+        s.attack_flags.set_end_captured(true);
         Ok(())
     }
     /// The pinned UnitProperties listener registers tokens at postResolve.
@@ -4350,13 +4405,23 @@ impl Engine {
             } else if self.in_arena(s,s.source) && s.attack_defender!=0 {
                 // A still-legal defender can leave play before damage. The pinned
                 // attack retains it and sends full Overwhelm damage to its base.
+                let listeners=self.blade_base_damage_listeners(s)?;
+                // Reserve the complete pre/post listener union before this
+                // departure continuation can apply primary Overwhelm damage.
+                self.capture_attack_end(s)?;
                 if self.keyword_amount(s,s.source,"overwhelm")>0 {
                     let base=s.player(s.card(s.attack_defender).owner).base;
-                    let amount=self.power(s,s.source,true);
-                    let listeners=self.blade_base_damage_listeners(s)?;let resolved=amount>0 && s.card(base).shield==0;
+                    let amount=self.combat_damage(s,s.source,true);
+                    let resolved=amount>0 && s.card(base).shield==0;
+                    if resolved {
+                        let applied=amount.min(self.hp(s,base).saturating_sub(s.card(base).damage));
+                        self.record_attack_base_damage(s,applied)?;
+                    }
                     self.damage(s,base,amount);self.capture_blade_base_damage_event(s,&listeners,base,resolved)?;self.check_win(s);
                 }
-                self.capture_attack_end(s)?;
+                // Conditional global listeners see the resolved record before
+                // Advantage cleanup or physical defeat continuation, as in combat.
+                self.capture_attack_base_end(s,true)?;
                 self.capture_advantage_end(s)?;
                 self.combat_after_damage(s)
             } else {
@@ -4720,3 +4785,10 @@ mod modal_deck_movement_runtime;
 #[cfg(test)]
 #[path="modal_deck_movement_tests.rs"]
 mod modal_deck_movement_tests;
+
+#[path="attack_base_history_runtime.rs"]
+mod attack_base_history_runtime;
+
+#[cfg(test)]
+#[path="attack_base_history_tests.rs"]
+mod attack_base_history_tests;

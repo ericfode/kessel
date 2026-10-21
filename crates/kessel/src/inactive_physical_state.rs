@@ -8,12 +8,13 @@ impl Engine {
     // source adapters. Inspect physical definitions, not copied Support grants,
     // pool membership alone, card names, or a remembered token count. Inventory
     // eligibility does not authorize any lasting keyword on an inactive card.
-    fn has_physical_inventory_source(&self, s: &State) -> bool {
+    pub(super) fn has_physical_inventory_source(&self, s: &State) -> bool {
         (1..s.next_id).any(|id| {
             (s.card(id).present || s.card(id).def != 0)
                 && self.card_programs(s, id).iter().any(|p| {
                     let program = self.program(*p);
-                    (crate::generated_token_continuation_contract::requires(program)&&crate::generated_token_continuation_contract::program(program))
+                    crate::attack_base_history_contract::inventory_program(program)
+                        || (crate::generated_token_continuation_contract::requires(program)&&crate::generated_token_continuation_contract::program(program))
                         || (crate::created_token_phase_keyword_contract::requires(program)
                         && crate::created_token_phase_keyword_contract::program(program))
                         || (program.trigger == "whenDefeated"
@@ -37,8 +38,14 @@ impl Engine {
                 })
         })
     }
+    /// Shared precondition for future continuation graphs. A required physical
+    /// producer canonically has no explicit bit, but still supplies exact wire.
+    pub(super) fn exact_inactive_inventory_available(&self, s: &State) -> bool {
+        self.has_physical_inventory_source(s) || s.inactive_inventory_explicit
+    }
     pub(super) fn snapshot_inactive_physical_state(&self, s: &State, v: &mut Value) {
-        if !self.has_physical_inventory_source(s) {
+        let required = self.has_physical_inventory_source(s);
+        if !self.exact_inactive_inventory_available(s) {
             return;
         }
         let live = crate::validation::allocated_live_ids(v)
@@ -54,6 +61,17 @@ impl Engine {
                 "native snapshot lacks exact allocated identity c{}",
                 id - 1
             );
+            // Each complement row has its own authority. An inert native upgrade
+            // is producer-independent; units and lasting keywords retain their
+            // existing closed producer and recorded-origin requirements.
+            if self.selected_native_token_upgrade(c.def).is_some() {
+                assert_eq!(*c, Card { present: true, def: c.def, owner: c.owner, ..Card::default() },
+                    "inactive native upgrade has unrepresented physical state");
+            } else {
+                assert!(required && self.def(s, id).info.is("token")
+                    && self.def(s, id).info.is("unit") && !self.def(s, id).info.is("upgrade"),
+                    "inactive identity lacks a reviewed row authority");
+            }
             let mut row = self.card_ref(s, id);
             row["owner"] = json!(c.owner.as_str());
             row["controller"] = json!(c.owner.as_str());
@@ -99,11 +117,22 @@ impl Engine {
             }
             return Ok(());
         };
-        if !required {
-            return Err(
-                "inactive allocated identity state requires its physical closed token producer"
-                    .into(),
-            );
+        // Validate every selected definition/row before materializing any slot.
+        // The standalone validator owns shape and exact all-ID coverage; the
+        // trusted native constructor owns source/class/helper/profile admission.
+        for row in rows {
+            let code = row["setCode"].as_str().unwrap();
+            let def = *self.by_code.get(code).ok_or("inactive identity is not a native definition")?;
+            if self.selected_native_token_upgrade(def).is_some() {
+                if row["phaseKeywords"] != json!({}) {return Err("inactive native upgrade cannot carry phase keywords".into());}
+            } else {
+                let info = &self.definitions[def as usize].info;
+                if !required || !info.is("token") || !info.is("unit") || info.is("upgrade") {
+                    return Err("inactive identity requires its physical closed unit producer or reviewed native upgrade".into());
+                }
+            }
+            let id = cid(row["id"].as_str().unwrap())?;
+            if s.card(id).present {return Err("inactive allocated identity already materialized outside its declared complement".into());}
         }
         for row in rows {
             let id = cid(row["id"].as_str().unwrap())?;
@@ -123,6 +152,9 @@ impl Engine {
                 );
             }
         }
+        // Canonical provenance: mandatory producer evidence needs no extra bit.
+        // This keeps existing constructed/imported producer States exactly equal.
+        s.inactive_inventory_explicit = !required;
         Ok(())
     }
     // Apply keywords only after identity and old entry-stat validation succeed.

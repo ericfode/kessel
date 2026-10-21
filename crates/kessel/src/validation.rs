@@ -161,6 +161,8 @@ pub fn validate_state_with_catalogue(
             "nextCardId",
             "roundLimitState",
             "playerPhaseState",
+            "attackBaseHistory",
+            "attackBaseHistoryPending",
             "directUnitPlayCreditState",
             "playerPhasePending",
             "unitEntryStateVersion",
@@ -914,6 +916,7 @@ pub(crate) fn inactive_allocated_rows<'a>(v:&'a Value,catalogue:&HashMap<String,
         let info=catalogue.get(code).ok_or("inactive allocated definition absent from selected pool")?;
         if row["name"]!=info["internalName"]{return Err("inactive allocated name/definition mismatch".into());}
         if !has_type(info,"token")||!(has_type(info,"unit")||has_type(info,"upgrade")){return Err("inactive allocated card must be a reviewed native unit/upgrade token".into());}
+        if has_type(info,"upgrade") && (info["types"]!=json!(["token","upgrade"]) || !matches!(code,"TOKEN_SHIELD"|"TOKEN_EXPERIENCE"|"TOKEN_ADVANTAGE"|"TOKEN_WEAKNESS") || row["phaseKeywords"]!=json!({})) {return Err("inactive upgrade identity requires an exact native upgrade with empty phaseKeywords".into());}
         let kw=row["phaseKeywords"].as_object().ok_or("inactive allocated phaseKeywords must be an object")?;
         if !kw.is_empty() {
             if row["phaseKeywords"]!=json!({"sentinel":1})||kw["sentinel"].as_u64()!=Some(1)||code!="TOKEN_MANDALORIAN"||!has_type(info,"unit")||info["internalName"]!="mandalorian" {return Err("inactive phase keyword requires exact native Mandalorian Sentinel".into());}

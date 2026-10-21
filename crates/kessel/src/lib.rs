@@ -1,4 +1,6 @@
 //! Deterministic perfect-information rules for the explicitly supported SWU subset.
+mod attack_base_history_state;
+mod attack_base_history_contract;
 mod arena_payment_exhaust_contract;
 mod modal_deck_movement_contract;
 mod resource_number_experience_contract;

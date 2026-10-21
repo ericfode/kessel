@@ -143,7 +143,7 @@ fn ambush_context_uses_physical_source_and_matching_suspended_attack() {
         s.attack_source = a;
         s.attack_defender = d;
         s.ambush = true;
-        s.attack_attacker_departed = true;
+        s.attack_flags.set_attacker_departed(true);
         assert!(!e.is_attacking_using_ambush(&s, a));
     }
 }
