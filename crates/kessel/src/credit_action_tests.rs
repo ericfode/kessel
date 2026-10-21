@@ -114,7 +114,7 @@ fn amount(e: &Engine, s: &State, expected: std::ops::RangeInclusive<u16>) {
     assert_eq!(
         e.legal_actions(s),
         expected
-            .map(|n| Action::button(n.to_string(), n.to_string()))
+            .map(|n| Action {kind:"option".into(),card:None,arg:Some(Value::String(n.to_string())),method:None,label:format!("#{n}")})
             .collect::<Vec<_>>()
     );
     assert_pending_copy(e, s);
@@ -125,11 +125,22 @@ fn assert_pending_copy(e: &Engine, s: &State) {
     assert_eq!(copied.zobrist(), s.zobrist());
     assert_eq!(e.legal_actions(&copied), e.legal_actions(s));
     let snapshot = e.snapshot(s);
-    assert!(snapshot.get("creditPaymentPending").is_some());
-    assert!(e
-        .load_state(&snapshot)
-        .unwrap_err()
-        .contains("pending Credit"));
+    if snapshot.get("directUnitPlayCreditState").is_some() {
+        assert!(snapshot.get("creditPaymentPending").is_none());
+        let imported=e.load_state(&snapshot).unwrap();
+        assert_eq!(imported.zobrist(),s.zobrist());
+        assert_eq!(e.snapshot(&imported),snapshot);
+        assert_eq!(e.legal_actions(&imported),e.legal_actions(s));
+        for action in e.legal_actions(s) {
+            let reached=e.apply(s,&action).unwrap();let loaded=e.apply(&imported,&action).unwrap();
+            assert_eq!(reached.zobrist(),loaded.zobrist());
+            assert_eq!(e.snapshot(&reached),e.snapshot(&loaded));
+            assert_eq!(e.legal_actions(&reached),e.legal_actions(&loaded));
+        }
+    } else {
+        assert!(snapshot.get("creditPaymentPending").is_some());
+        assert!(e.load_state(&snapshot).unwrap_err().contains("pending Credit"));
+    }
 }
 fn cases(mut run: impl FnMut(&Engine, Seat)) {
     for backend in [RulesBackend::Auto, RulesBackend::Interpreter] {
@@ -190,7 +201,11 @@ fn credit_mixed_payment_fixed_and_number_menus_consume_exact_resource_remainder(
                 let number = button(e, &prompt, "Select amount");
                 amount(e, &number, 1..=3);
                 let before = number.zobrist();
-                let done = button(e, &number, &chosen.to_string());
+                let label=format!("#{chosen}");
+                let option=e.legal_actions(&number).into_iter().find(|a|a.label==label).unwrap();
+                assert_eq!(option.kind,"option");assert_eq!(option.arg,Some(json!(chosen.to_string())));
+                assert_eq!(option.card,None);assert_eq!(option.method,None);
+                let done = e.apply(&number,&option).unwrap();
                 assert_eq!(number.zobrist(), before);
                 assert_eq!(live(&number, actor), original_credits);
                 done
@@ -421,7 +436,7 @@ fn credit_smuggle_unit_prioritizes_played_resource_and_preserves_replacement_ord
         menu(e, &prompt, &["Select amount", "Cancel"]);
         let number = button(e, &prompt, "Select amount");
         amount(e, &number, 1..=2);
-        let done = button(e, &number, "2");
+        let done = button(e, &number, "#2");
         assert!(done.player(actor).ground.contains(source));
         assert!(!done.player(actor).resources.contains(source));
         assert!(row[..5].iter().all(|id| done.card(*id).exhausted));
@@ -456,7 +471,7 @@ fn credit_smuggle_upgrade_preserves_host_priority_and_resource_replacement() {
         menu(e, &prompt, &["Select amount", "Cancel"]);
         let number = button(e, &prompt, "Select amount");
         amount(e, &number, 1..=2);
-        let done = button(e, &number, "2");
+        let done = button(e, &number, "#2");
         assert_eq!(done.card(upgrade).parent, host);
         assert!(done.card(row[0]).exhausted);
         assert!(!done.card(row[1]).exhausted);

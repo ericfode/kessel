@@ -2,6 +2,12 @@
 // A deliberately small experiment vocabulary. Unknown IR remains an obligation,
 // never silently becomes a purportedly covered card.
 function planCardProbes(entry, options = {}) {
+    const playerPhaseEffect = require('./player-phase-effect-probes').planPlayerPhaseEffectProbes(entry, options);
+    if (playerPhaseEffect) return playerPhaseEffect;
+    const handCardCost = require('./hand-card-cost-probes').planHandCardCostProbes(entry, options);
+    if (handCardCost) return handCardCost;
+    const arenaPaymentExhaust = require('./arena-payment-exhaust-probes').planArenaPaymentExhaustProbes(entry, options);
+    if (arenaPaymentExhaust) return arenaPaymentExhaust;
     const createdTokenPhaseKeyword = require('./created-token-phase-keyword-probes').planCreatedTokenPhaseKeywordProbes(entry, options);
     if (createdTokenPhaseKeyword) return createdTokenPhaseKeyword;
     const defeatAdvantageDistribution = require('./defeat-advantage-distribution-probes').planDefeatAdvantageDistributionProbes(entry, options);

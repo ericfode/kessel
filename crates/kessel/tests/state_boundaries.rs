@@ -10,7 +10,7 @@ fn numeric_views_preserve_inline_storage_and_hashes() {
     // Inactive legacy storage stays off the historical hash stream.
     // Closed Round5 adds the bounded 905-instance ledger and captured handles;
     // exact storage is 39,088 bytes, with no additional capacity allowance.
-    assert_eq!(std::mem::size_of::<State>(),39088);
+    assert_eq!(std::mem::size_of::<State>(),38312);
     eprintln!("unit-entry layout State={} Card={} Trigger={} Context={} Window={} Frame={}",std::mem::size_of::<State>(),std::mem::size_of::<Card>(),std::mem::size_of::<DeathTrigger>(),std::mem::size_of::<ResolutionContext>(),std::mem::size_of::<DeathWindow>(),std::mem::size_of::<DeathFrame>());
     // Legacy v1 hashes stay stable; v2 distinguishes exact defeat projections.
     s.phase_history.defeats_exact=false;
@@ -79,7 +79,7 @@ fn maximum_capture_keeps_zero_floor_order_ties_and_explicit_capacity() {
 #[test]
 fn physical_registration_owner_keeps_host_execution_identity() {
     let ordinary=DeathTrigger{source:3,..DeathTrigger::default()};
-    let granted=DeathTrigger{source:3,grantor:9,..DeathTrigger::default()};
+    let granted=DeathTrigger{source:3,grantor:kessel::model::CapturedCardId::checked(9).unwrap(),..DeathTrigger::default()};
     assert_eq!(ordinary.physical_source(),3);
     assert_eq!(granted.physical_source(),9);
     assert_eq!(granted.source,3);

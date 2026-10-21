@@ -538,7 +538,7 @@ fn death_hook_registration_reentry_and_upgrade_interleaving_preserve_physical_ch
     s.death_pending.len = 3;
     s.death_pending.entries[0] = DeathTrigger {
         source: host,
-        grantor: second,
+        grantor: CapturedCardId::checked(second).unwrap(),
         ..DeathTrigger::default()
     };
     s.death_pending.entries[1] = DeathTrigger {
@@ -547,14 +547,14 @@ fn death_hook_registration_reentry_and_upgrade_interleaving_preserve_physical_ch
     };
     s.death_pending.entries[2] = DeathTrigger {
         source: host,
-        grantor: first,
+        grantor: CapturedCardId::checked(first).unwrap(),
         ..DeathTrigger::default()
     };
     e.sort_captured_registrations(&mut s, 0).unwrap();
     assert_eq!(
         s.death_pending.entries[..3]
             .iter()
-            .map(|e| if e.grantor == 0 { e.source } else { e.grantor })
+            .map(|e| if e.grantor == 0 { e.source } else { e.grantor.get() })
             .collect::<Vec<_>>(),
         vec![first, twins, second]
     );
@@ -696,7 +696,7 @@ fn death_hook_actual_twins_and_droid_cohort_share_physical_registration_order() 
             else {e.add_arena(&mut s,observer).unwrap();e.attach(&mut s,grantor,host);}
             let snapshot=e.snapshot(&s);s=e.load_state(&snapshot).unwrap();
             e.defeat(&mut s,host).unwrap();
-            let captured=s.death_pending.entries[..s.death_pending.len as usize].iter().map(|t|(t.source,t.grantor)).collect::<Vec<_>>();
+            let captured=s.death_pending.entries[..s.death_pending.len as usize].iter().map(|t|(t.source,t.grantor.get())).collect::<Vec<_>>();
             let expected=if grant_first {vec![(host,grantor),(observer,0)]}else{vec![(observer,0),(host,grantor)]};
             assert_eq!(captured,expected,"{backend:?}/{seat:?}/{grant_first}");
             assert!(e.open_deaths(&mut s,DeathContinuation::Finish).unwrap());

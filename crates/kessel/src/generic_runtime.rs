@@ -1,6 +1,11 @@
 //! Interpreter for the bounded, data-only card IR. No TypeScript runs in search.
 #[path="captured_hand_cost_runtime.rs"]
 mod captured_hand_cost_runtime;
+#[path="selected_hand_cost_runtime.rs"]
+mod selected_hand_cost_runtime;
+#[cfg(test)]
+#[path="selected_hand_cost_tests.rs"]
+mod selected_hand_cost_tests;
 use super::*;
 use crate::resource_payment::{PaymentPurpose, ResourcePayment};
 use crate::ability_ir::{Cost, Effect, Expr, Instruction, Program, RestrictionVerb, Target, TargetResolver};
@@ -506,7 +511,7 @@ impl Engine {
     pub(super) fn needs_modal_arena_order(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|
             catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader)
-                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize]) || crate::cinder_contract::requires_global_order(&catalogue.programs[*program as usize]) || crate::arena_defeat_attack_contract::requires_global_order(&catalogue.programs[*program as usize])))))
+                .any(|program|crate::modal_arena_choices::requires_global_order(&catalogue.programs[*program as usize]) || crate::cinder_contract::requires_global_order(&catalogue.programs[*program as usize]) || crate::arena_defeat_attack_contract::requires_global_order(&catalogue.programs[*program as usize]) || crate::arena_payment_exhaust_contract::requires_global_order(&catalogue.programs[*program as usize])))))
     }
     pub(super) fn needs_force_state(&self)->bool {
         self.catalogue.as_ref().is_some_and(|catalogue|catalogue.metadata.keys().any(|code|catalogue.cards.get(code).is_some_and(|card|card.card.iter().chain(&card.unit).chain(&card.leader).any(|p|program_needs_force(&catalogue.programs[*p as usize])))))
@@ -756,6 +761,7 @@ impl Engine {
                 }
                 let attachment_play_cost=crate::attachment_play_cost::extract(entry)?;
                 Ok(Definition {
+                    unique_subtitle:entry["card"]["subtitle"].as_str().filter(|s|!s.is_empty()).map(str::to_owned),
                     code: code.clone(),
                     info,
                     flags,
@@ -1307,6 +1313,7 @@ impl Engine {
                         .is_none_or(|c| self.eval(s, id, 0, c).truth())
                     && p.costs.iter().all(|c| match c {
                         Cost::ExhaustSelf => !s.card(id).exhausted,
+                        Cost::SelectCardCost(_) => s.player(s.card(id).owner).hand.len!=0,
                         Cost::Resources { .. } => true,
                         Cost::UseForceCost { .. } => self.can_pay_force_cost(s, id),
                     })
@@ -1838,6 +1845,7 @@ impl Engine {
         require_change: bool,
     ) -> bool {
         match e {
+            Effect::InstallPlayerPhase{..} => return true,
             Effect::RecipientHeal{..} => return crate::recipient_heal_contract::effect(e).is_ok()&&self.recipient_heal_can_affect(s,source,require_change),
             Effect::CreateCreditToken {..} => return s.credit_state_exact && self.needs_credit_state(),
             Effect::MoveSelectedArenaUnitToOwnerDeck { .. } => {
@@ -2153,6 +2161,7 @@ impl Engine {
         Some(out)
     }
     pub(super) fn ability_actions(&self, s: &State) -> Vec<Action> {
+        if self.selected_hand_cost_prompt(s) {return self.selected_hand_cost_actions(s);}
         if self.hand_cost_prompt(s) {return self.hand_cost_actions(s);}
         if s.decision==Decision::AbilityNumber {return self.number_actions(s);}
         if matches!(s.decision,Decision::CreditMenu|Decision::CreditAmount) {return self.credit_payment_actions(s);}
@@ -2290,7 +2299,12 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        if crate::arena_payment_exhaust_contract::requires(self.program(p)) {
+            if !crate::arena_payment_exhaust_contract::program(self.program(p)) {return Err("arena payment program differs from complete closed source lowering".into());}
+            if !s.arena_order_exact {return Err("global arena exhaustion requires recorded arena order".into());}
+        }
         if crate::upgrade_return_shield_contract::requires(self.program(p))&&!crate::upgrade_return_shield_contract::program(self.program(p)) {return Err("upgrade return program differs from closed source lowering".into());}
+        if crate::selected_hand_cost_contract::requires(self.program(p))&&!crate::selected_hand_cost_contract::program(self.program(p)) {return Err("selected hand-card cost program differs from complete closed source lowering".into());}
         if crate::named_exhaust_contingent_contract::requires(self.program(p))&&!crate::named_exhaust_contingent_contract::program(self.program(p)) {return Err("named exhaust program differs from complete closed source lowering".into());}
         let round_limited=crate::round_limit_contract::Registration::from_trigger(&self.program(p).trigger).is_some();
         if round_limited {s.round_limits.instance(s.round_limit)?;}else{s.round_limit=crate::round_limit_state::Handle::NONE;}
@@ -2350,6 +2364,7 @@ impl Engine {
     pub(super) fn commit_program_mode(&self,s:&mut State,end_program:bool)->Result<bool,String> {
         if s.ability_committed {return Ok(true);}
         let source=s.source;
+        self.phase_preflight_parent(s,self.program(s.ability_program-1))?;
         if s.resource_cost_index==0 && self.program(s.ability_program-1).costs.iter().any(|cost|matches!(cost,Cost::UseForceCost{..}))
             && !self.can_pay_force_cost(s,source) {
             return Err("Force cost requires exact held Force identity".into());
@@ -2385,7 +2400,16 @@ impl Engine {
         for (index,cost) in costs.iter().enumerate().skip(usize::from(s.resource_cost_index)) {
             let resource=matches!(cost,Cost::Resources{..});
             match cost {
+                Cost::SelectCardCost(_)=>{
+                    if s.player(s.active).hand.len==0 {return Err("selected hand-card cost became unavailable".into());}
+                    // No legal early target delays its resolver. Preserve that
+                    // continuation across payment; a valid explicit null binding
+                    // from an ineffective selector still resumes at Apply.
+                    if end_program {s.ability_pc=u8::try_from(self.program(s.ability_program-1).instructions.len()).map_err(|_|"ability continuation capacity exceeded")?;}
+                    s.decision=Decision::AbilityDiscard;return Ok(false);
+                },
                 Cost::ExhaustSelf=>{
+                    if crate::selected_hand_cost_contract::requires(self.program(s.ability_program-1))&&!self.in_arena(s,source) {return Err("selected hand-card cost source left play before remaining exhaust cost; recovery unsupported".into());}
                     if s.card(source).exhausted {return Err("exhaust cost became unavailable; recovery is unsupported".into());}
                     s.card_mut(source).exhausted=true;
                 },
@@ -2408,6 +2432,7 @@ impl Engine {
         if self.program(s.ability_program-1).trigger=="epicAction" {s.card_mut(source).epic_used=true;}
         s.ability_committed=true;
         s.resource_cost_index=0;s.resource_cost_locked=false;
+        if crate::selected_hand_cost_contract::requires(self.program(s.ability_program-1)) {return self.revalidate_selected_hand_cost_target(s);}
         Ok(true)
     }
     pub(super) fn end_program(&self, s: &mut State) -> Result<(), String> {
@@ -3059,6 +3084,7 @@ impl Engine {
         Ok(result)
     }
     fn apply_effect_inner(&self, s: &mut State, e: &Effect) -> Result<(u16, bool), String> {
+        if let Effect::InstallPlayerPhase{phase_kind:kind}=e {self.install_player_phase(s,*kind)?;return Ok((1,true));}
         if matches!(e,Effect::RecipientHeal{..}) {return self.apply_recipient_heal(s,e);}
         if matches!(e, Effect::ExhaustResources { .. }) {
             crate::resource_exhaust::amount(e)?;
@@ -3233,7 +3259,7 @@ impl Engine {
                 Eval::Card(id) if matches!(e,Effect::DiscardSpecificCard{..})=>{
                     last_discard_resolved=false;
                     let owner=s.card(s.source).owner;
-                    if id!=0&&s.card(id).owner==owner&&s.player_mut(owner).hand.remove(id){s.player_mut(owner).discard.push(id)?;result=result.saturating_add(1);last_discard_resolved=true;}
+                    if self.discard_physical_hand_card(s,owner,id)? {result=result.saturating_add(1);last_discard_resolved=true;}
                 }
                 Eval::Card(id) if matches!(e,Effect::ResourceCard{..}) => {
                     let n=match e {
@@ -3430,6 +3456,7 @@ impl Engine {
         ))
     }
     pub(super) fn apply_ability_action(&self, s: &State, a: &Action) -> Result<State, String> {
+        if self.selected_hand_cost_prompt(s) {return self.apply_selected_hand_cost(s,a);}
         if self.hand_cost_step(s).is_some() {return self.apply_hand_cost_action(s,a);}
         if s.decision==Decision::AbilityNumber {return self.apply_number_action(s,a);}
         if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
@@ -3671,6 +3698,7 @@ impl Engine {
     /// and ordinary listener set by the same registration chronology. A private
     /// work copy makes capacity/identity failures atomic for the entire window.
     pub(super) fn capture_defeat_window(&self,s:&mut State,events:&[(CardId,crate::defeat_cause::DefeatCause)])->Result<(),String> {
+        for &(id,_) in events {CapturedCardId::checked(id)?;}
         let mut work=*s;
         for &(id,cause) in events {
             let start=work.death_pending.len as usize;
@@ -3694,12 +3722,12 @@ impl Engine {
             // attached_host_grants while the card is attached to an arena host.
             !p.attached_host&&p.trigger=="whenDefeated"&&p.condition.as_ref().is_none_or(|e|self.eval(&context,id,0,e).truth())
         }).map(|program|(program,0)).collect::<Vec<_>>();
-        registrations.extend(self.attached_host_grants(&context,id,"whenDefeated").into_iter().map(|e|(e.program,e.grantor)));
+        registrations.extend(self.attached_host_grants(&context,id,"whenDefeated").into_iter().map(|e|(e.program,e.grantor.get())));
         if s.death_pending.len as usize+registrations.len()>MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
         for (program,grantor) in registrations {
             let n=s.death_pending.len as usize;
             if n==MAX_DEATH_TRIGGERS {return Err("defeat trigger capacity exceeded (64)".into());}
-            s.death_pending.entries[n]=DeathTrigger {event_card:0,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor,round_limit:crate::round_limit_state::Handle::NONE,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),keyword:0};
+            s.death_pending.entries[n]=DeathTrigger {event_card:CapturedCardId::NONE,last_known_power:self.power(s,id,self.is_attacking(s,id)),grantor:CapturedCardId::checked(grantor)?,round_limit:crate::round_limit_state::Handle::NONE,source:id,program,player:s.card(id).owner,after_pc:if s.ability_program!=0 {self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,cause),keyword:0};
             s.death_pending.len+=1;
         }
         // Each registration observes the pre-handler event snapshot. Capture
@@ -3847,7 +3875,7 @@ impl Engine {
     }
     /// Enumerate the physical attachment list while the host is in play. A
     /// captured grant no longer depends on grantor presence at resolution.
-    fn attached_host_grants(&self,s:&State,host:CardId,trigger:&str)->Vec<DeathTrigger> {
+    pub(super) fn attached_host_grants(&self,s:&State,host:CardId,trigger:&str)->Vec<DeathTrigger> {
         if self.catalogue.is_none()||!self.in_arena(s,host) {return vec![];}
         let mut context=*s;context.source=host;context.active=s.card(host).owner;
         let mut grants=vec![];
@@ -3855,7 +3883,7 @@ impl Engine {
             let p=self.program(program);
             if (p.attached_host||(trigger=="onAttack"&&p.gained_host==Some(true)))&&p.trigger==trigger
                 &&p.condition.as_ref().is_none_or(|e|self.eval(&context,host,0,e).truth()) {
-                grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,grantor,..DeathTrigger::default()});
+                grants.push(DeathTrigger {source:host,program,player:s.card(host).owner,grantor:CapturedCardId::checked(grantor).expect("validated attachment list contains allocated card identities"),..DeathTrigger::default()});
             }
         }}
         grants
@@ -3876,6 +3904,7 @@ impl Engine {
         let programs:Vec<_>=self.card_programs(declaration,defender).iter().copied().filter(|p| {let p=self.program(*p);!p.attached_host&&p.trigger=="onDefense" && p.condition.as_ref().is_none_or(|condition|self.eval(declaration,defender,0,condition).truth())}).collect();
         let grants=self.gained_attack_grants(declaration,declaration.source);
         let defense_grants=self.attached_host_grants(declaration,defender,"onDefense");
+        for grant in grants.iter().chain(&defense_grants){crate::player_phase_contract::copied_program_allowed(self.program(grant.program))?;}
         let has_round=s.death_pending.entries[declaration.death_pending.len as usize..s.death_pending.len as usize].iter().any(|e|e.keyword==0&&crate::round_limit_contract::Registration::from_trigger(&self.program(e.program).trigger).is_some());
         if programs.is_empty()&&grants.is_empty()&&defense_grants.is_empty()&&!has_round {return Ok(false);}
         let mut registration=*declaration;
@@ -3910,7 +3939,7 @@ impl Engine {
         Ok(true)
     }
     fn captured_trigger_context(&self,s:&State,e:DeathTrigger)->State {
-        let mut context=*s;context.round_limit=e.round_limit;context.entry_event_card=e.event_card;context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;context.defeat_cause=e.capture.cause();
+        let mut context=*s;context.round_limit=e.round_limit;context.entry_event_card=e.event_card.get();context.source=e.source;context.active=e.player;context.last_known_source=e.source;context.last_known_power=e.last_known_power;context.defeat_cause=e.capture.cause();
         if e.keyword==T_SABOTEUR && context.attack_defender!=0 {context.target=context.attack_defender;}
         context
     }
@@ -3944,7 +3973,7 @@ impl Engine {
         s.death_window.entries[n-1]=DeathTrigger::default();e
     }
     fn resolve_death(&self,s:&mut State,i:usize)->Result<(),String> {
-        let e=self.remove_death(s,i);s.round_limit=e.round_limit;s.entry_event_card=e.event_card;s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.defeat_cause=e.capture.cause();s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
+        let e=self.remove_death(s,i);s.round_limit=e.round_limit;s.entry_event_card=e.event_card.get();s.last_known_source=e.source;s.last_known_power=e.last_known_power;s.defeat_cause=e.capture.cause();s.source=e.source;s.active=e.player;s.target=if e.keyword==T_SABOTEUR {s.attack_defender}else{0};s.set_trigger_context(TriggerContext::Action);
         if e.keyword!=0 {s.set_trigger_context(TriggerContext::DeathKeyword);self.resolve_trigger(s,e.keyword)}else{self.begin_program(s,e.program,ProgramContinuation::Deaths)}
     }
     pub(super) fn process_deaths(&self,s:&mut State)->Result<(),String> {
@@ -4053,7 +4082,7 @@ impl Engine {
             };
             if let Some(i)=captures.iter().position(|e|e.source==source&&e.program==program){repeated[i]=true;}else{
                 if captures.len()==MAX_DEATH_TRIGGERS{return Err("collective ability capture capacity exceeded".into());}
-                captures.push(DeathTrigger{event_card,source,program,player:s.card(source).owner,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
+                captures.push(DeathTrigger{event_card:CapturedCardId::checked(event_card)?,source,program,player:s.card(source).owner,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
             }
         }}}
         // TriggerWindowBase removes a repeated ability's contexts, then appends
@@ -4074,6 +4103,7 @@ impl Engine {
         let captures=self.collective_captures(before,resolved)?;self.insert_collective_captures(s,start,&captures)
     }
     pub(super) fn capture_unit_entry_watchers(&self,s:&mut State,entries:&[CardId])->Result<(),String> {
+        for &id in entries {CapturedCardId::checked(id)?;}
         if self.catalogue.is_none(){return Ok(());}
         let mut captures=Vec::new();
         for &card in entries {
@@ -4082,7 +4112,7 @@ impl Engine {
                 if s.card(source).owner!=owner {continue;}
                 for &program in self.card_programs(s,source) {
                     if self.program(program).trigger=="onUnitEntersPlay" {
-                        captures.push(DeathTrigger{event_card:card,source,program,player:owner,after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
+                        captures.push(DeathTrigger{event_card:CapturedCardId::checked(card)?,source,program,player:owner,after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
                     }
                 }
             }
@@ -4443,7 +4473,7 @@ mod gained_host_runtime_tests {
  #[test]fn gained_host_captures_each_physical_grant_in_attachment_order_with_host_context(){let e=engine();for host_seat in[Seat::P1,Seat::P2]{let mut s=board(&e);let host=unit(&e,&mut s,host_seat,"LOF_254");let first=add(&e,&mut s,host_seat.other(),"LOF_051");let second=add(&e,&mut s,host_seat,"LOF_051");e.attach(&mut s,second,host);e.attach(&mut s,first,host);let grants=e.gained_attack_grants(&s,host);assert_eq!(grants.len(),2);assert_eq!(grants.iter().map(|x|x.grantor).collect::<Vec<_>>(),vec![second,first]);assert!(grants.iter().all(|x|x.source==host&&x.player==host_seat));assert_eq!(grants[0].program,grants[1].program);e.leave_play_primary(&mut s,first).unwrap();assert_eq!(e.gained_attack_grants(&s,host).len(),1);assert_eq!(grants[1].grantor,first);assert!(e.same_death_group(&s,grants[0],grants[1]));let context=e.captured_trigger_context(&s,grants[1]);assert_eq!(context.source,host);assert_eq!(context.active,host_seat);}}
  #[test]fn gained_host_declaration_snapshot_keeps_host_context_after_pretrigger_cleanup(){let e=engine();for seat in[Seat::P1,Seat::P2]{let mut s=board(&e);s.active=seat;let host=unit(&e,&mut s,seat,"LOF_254");let other=unit(&e,&mut s,seat.other(),"LOF_256");s.card_mut(other).damage=2;let grantor=add(&e,&mut s,seat.other(),"LOF_051");e.attach(&mut s,grantor,host);s.source=host;s.attack_source=host;s.attack_defender=s.player(seat.other()).base;s.trigger_context=2;let declaration=s;let program=e.gained_attack_grants(&declaration,host)[0].program;e.defeat(&mut s,host).unwrap();assert!(!e.in_arena(&s,host));assert_eq!(s.card(grantor).parent,0);assert!(e.gained_attack_grants(&s,host).is_empty());assert!(e.capture_defense_window(&mut s,&declaration).unwrap());assert_eq!(s.source,host);assert_eq!(s.active,seat);assert_eq!(s.ability_program,program+1);assert_eq!(s.decision,Decision::AbilityTarget);}}
  #[test]fn gained_host_capacity_counts_over16_grants_and_is_atomic_at64_and_depth8(){let e=engine();let mut s=board(&e);let host=unit(&e,&mut s,Seat::P1,"LOF_254");let defender=unit(&e,&mut s,Seat::P2,"LOF_256");s.source=host;s.attack_source=host;s.attack_defender=defender;s.trigger_context=2;for _ in 0..65 {let u=add(&e,&mut s,Seat::P2,"LOF_139");e.attach(&mut s,u,host);}assert_eq!(e.gained_attack_grants(&s,host).len(),65);let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap_err().contains("capacity"));assert_eq!(s,before);let last=e.upgrades(&s,host)[64];e.detach(&mut s,last);assert_eq!(e.gained_attack_grants(&s,host).len(),64);let declaration=s;s.death_pending.entries[0]=e.gained_attack_grants(&s,host)[0];s.death_pending.len=1;let before=s;assert!(e.capture_defense_window(&mut s,&declaration).unwrap_err().contains("capacity"));assert_eq!(s,before);s=declaration;s.death_depth=MAX_DEATH_DEPTH as u8;let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap_err().contains("capacity"));assert_eq!(s,before);s.death_depth=0;let before=s;assert!(e.capture_defense_window(&mut s,&before).unwrap());assert!(s.death_depth==0);}
- #[test]fn gained_host_provenance_hash_is_copied_in_every_window_and_zero_omission_is_legacy_compatible(){let s=State::default();let zero=s.zobrist();let mut same=s;same.death_pending.entries[0].grantor=0;assert_eq!(same.zobrist(),zero);for slot in 0..MAX_DEATH_DEPTH+2 {let mut changed=s;let w=match slot {0=>&mut changed.death_pending,1=>&mut changed.death_window,n=>&mut changed.death_frames[n-2].window};w.entries[0].grantor=7;let a=changed.zobrist();assert_ne!(a,zero);let mut copy=changed;assert_eq!(copy.zobrist(),a);let w=match slot {0=>&mut copy.death_pending,1=>&mut copy.death_window,n=>&mut copy.death_frames[n-2].window};w.entries[0].grantor=8;assert_ne!(copy.zobrist(),a);}}
+ #[test]fn gained_host_provenance_hash_is_copied_in_every_window_and_zero_omission_is_legacy_compatible(){let s=State::default();let zero=s.zobrist();let mut same=s;same.death_pending.entries[0].grantor=CapturedCardId::checked(0).unwrap();assert_eq!(same.zobrist(),zero);for slot in 0..MAX_DEATH_DEPTH+2 {let mut changed=s;let w=match slot {0=>&mut changed.death_pending,1=>&mut changed.death_window,n=>&mut changed.death_frames[n-2].window};w.entries[0].grantor=CapturedCardId::checked(7).unwrap();let a=changed.zobrist();assert_ne!(a,zero);let mut copy=changed;assert_eq!(copy.zobrist(),a);let w=match slot {0=>&mut copy.death_pending,1=>&mut copy.death_window,n=>&mut copy.death_frames[n-2].window};w.entries[0].grantor=CapturedCardId::checked(8).unwrap();assert_ne!(copy.zobrist(),a);}}
 }
 
 #[cfg(test)]
@@ -4588,6 +4618,7 @@ impl Engine {
     /// next possible collection. The outer state commits only after all checks.
     pub(super) fn capture_round_limit_window(&self,s:&mut State,events:&[(CardId,crate::round_limit_runtime::Event)])->Result<(),String> {
         use crate::round_limit_runtime as rt;
+        for &(id,_) in events {CapturedCardId::checked(id)?;}
         if events.is_empty() {return Ok(());}
         let roster=self.round_limit_roster(s)?;let mut candidates:Vec<DeathTrigger>=Vec::new();
         // These source registrations are noncollective: each distinct producer
@@ -4597,7 +4628,7 @@ impl Engine {
             if !rt::qualifies(registration,source,player.index() as u8,event,true)? {continue;}
             if let Some(h)=s.round_limits.current(source,registration.ordinal()) {if !s.round_limits.available(h,player.index() as u8)? {continue;}}
 
-            candidates.push(DeathTrigger{event_card,source,program,player,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
+            candidates.push(DeathTrigger{event_card:CapturedCardId::checked(event_card)?,source,program,player,last_known_power:self.power(s,source,self.is_attacking(s,source)),after_pc:if s.ability_program!=0{self.program(s.ability_program-1).event_end}else{0},capture:crate::defeat_cause::TriggerCapture::new(s.death_depth,crate::defeat_cause::DefeatCause::Unknown),..DeathTrigger::default()});
         }}
         if s.death_pending.len as usize+candidates.len()>MAX_DEATH_TRIGGERS {return Err("round-limit trigger capture capacity exceeded".into());}
         let mut work=*s;
@@ -4647,3 +4678,7 @@ mod created_token_phase_keyword_runtime_tests;
 #[cfg(test)]
 #[path="distributed_advantage_tests.rs"]
 mod distributed_advantage_tests;
+
+#[cfg(test)]
+#[path="arena_payment_exhaust_tests.rs"]
+mod arena_payment_exhaust_tests;

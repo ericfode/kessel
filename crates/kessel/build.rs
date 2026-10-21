@@ -1,3 +1,5 @@
+#[path="src/arena_payment_exhaust_contract.rs"]
+mod arena_payment_exhaust_contract;
 #[path="src/upgrade_return_shield_contract.rs"]
 mod upgrade_return_shield_contract;
 #[path="src/named_exhaust_contingent_contract.rs"]
@@ -6,6 +8,8 @@ mod named_exhaust_contingent_contract;
 mod captured_hand_cost_contract;
 #[path="src/attack_lifetime_contract.rs"]
 mod attack_lifetime_contract;
+#[path="src/selected_hand_cost_contract.rs"]
+mod selected_hand_cost_contract;
 #[path="src/round_limit_contract.rs"]
 mod round_limit_contract;
 #[path="src/exhausted_live_count_contract.rs"]
@@ -14,6 +18,8 @@ mod exhausted_live_count_contract;
 mod created_token_phase_keyword_contract;
 #[path="src/defeat_token_creation_contract.rs"]
 mod defeat_token_creation_contract;
+#[path="src/player_phase_contract.rs"]
+mod player_phase_contract;
 #[path = "src/collective_trigger_contract.rs"]
 mod collective_trigger_contract;
 #[allow(dead_code)]
@@ -259,6 +265,7 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/arena_payment_exhaust_contract.rs");
     println!("cargo:rerun-if-changed=src/attack_lifetime_contract.rs");
     println!("cargo:rerun-if-changed=src/created_token_phase_keyword_contract.rs");
     println!("cargo:rerun-if-changed=src/executor_upgrade_count_contract.rs");
@@ -301,6 +308,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/upgrade_return_shield_contract.rs");
     println!("cargo:rerun-if-changed=src/named_exhaust_contingent_contract.rs");
     println!("cargo:rerun-if-changed=src/captured_hand_cost_contract.rs");
+    println!("cargo:rerun-if-changed=src/selected_hand_cost_contract.rs");
     println!("cargo:rerun-if-changed=src/ability_ir.rs");
     println!("cargo:rerun-if-changed=src/current_played_unit.rs");
     println!("cargo:rerun-if-changed=src/self_play_cost.rs");

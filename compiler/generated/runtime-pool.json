@@ -5741,6 +5741,45 @@
       "aspects": [
         "cunning"
       ],
+      "cost": 2,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "6565211534",
+      "internalName": "mayors-majordomo#no-problem-groveling",
+      "keywords": [],
+      "power": 1,
+      "rules": "ERRATA: Traits: Official, Twi'lek\n",
+      "setCode": "ASH_217",
+      "setCodes": [
+        {
+          "number": 217,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 217,
+        "set": "ASH"
+      },
+      "subtitle": "No Problem Groveling",
+      "text": "Action [Exhaust, discard a card from your hand]: Exhaust a unit.",
+      "title": "Mayor's Majordomo",
+      "traits": [
+        "official",
+        "twi'lek"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
       "cost": 3,
       "deployBox": null,
       "epicAction": "",
@@ -5771,6 +5810,47 @@
         "unit"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "cunning"
+      ],
+      "cost": 3,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 3,
+      "id": "8838303580",
+      "internalName": "jod-na-nawood#keeping-secrets",
+      "keywords": [
+        "sentinel"
+      ],
+      "power": 4,
+      "rules": null,
+      "setCode": "ASH_219",
+      "setCodes": [
+        {
+          "number": 219,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 219,
+        "set": "ASH"
+      },
+      "subtitle": "Keeping Secrets",
+      "text": "Sentinel\nWhen Played: You may pay 4 resources. If you do, choose an arena. Exhaust each unit in that arena.",
+      "title": "Jod Na Nawood",
+      "traits": [
+        "force",
+        "underworld"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },
@@ -6206,6 +6286,47 @@
       "aspects": [
         "villainy"
       ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 1,
+      "id": "2588977937",
+      "internalName": "mouse-droid",
+      "keywords": [
+        "raid"
+      ],
+      "power": 1,
+      "rules": "Once Mouse Droid's “When Played” ability resolves, it remains active even if it is defeated before you play your next Imperial unit.\n",
+      "setCode": "ASH_237",
+      "setCodes": [
+        {
+          "number": 237,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 237,
+        "set": "ASH"
+      },
+      "subtitle": "",
+      "text": "Raid 1 (This unit gets +1/+0 while attacking.)\nWhen Played: The next Imperial unit you play this phase costs 1 resource less.",
+      "title": "Mouse Droid",
+      "traits": [
+        "imperial",
+        "droid"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "villainy"
+      ],
       "cost": 2,
       "deployBox": null,
       "epicAction": "",
@@ -6517,6 +6638,44 @@
         "event"
       ],
       "unique": false,
+      "upgradeHp": null,
+      "upgradePower": null
+    },
+    {
+      "arena": "ground",
+      "aspects": [
+        "heroism"
+      ],
+      "cost": 1,
+      "deployBox": null,
+      "epicAction": "",
+      "hp": 4,
+      "id": "8371755043",
+      "internalName": "neel#the-cutest-boy",
+      "keywords": [],
+      "power": 1,
+      "rules": "(ERRATA) When Played/On Attack: The next unit you play this phase with 1 or less printed power enters play ready.\nOnce Neel's “When Played/On Attack” ability resolves, it remains active even if it is defeated before you play your next unit with 1 or less printed power.\n",
+      "setCode": "ASH_248",
+      "setCodes": [
+        {
+          "number": 248,
+          "set": "ASH"
+        }
+      ],
+      "setId": {
+        "number": 248,
+        "set": "ASH"
+      },
+      "subtitle": "The Cutest Boy",
+      "text": "When Played/On Attack: The next unit you play this phase with 1 or less power enters play ready.",
+      "title": "Neel",
+      "traits": [
+        "fringe"
+      ],
+      "types": [
+        "unit"
+      ],
+      "unique": true,
       "upgradeHp": null,
       "upgradePower": null
     },

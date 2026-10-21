@@ -176,7 +176,7 @@ fn entry_binding_and_inactive_effect_are_copied_hashed_and_clear_on_reentry() {
     assert_eq!(capture.event_card, target);
     let before = s.zobrist();
     let copy = s;
-    s.death_pending.entries[0].event_card = source;
+    s.death_pending.entries[0].event_card = CapturedCardId::checked(source).unwrap();
     assert_ne!(before, s.zobrist());
     s = copy;
     e.defeat(&mut s, target).unwrap();

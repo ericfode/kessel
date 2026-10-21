@@ -63,23 +63,12 @@ fn all_nineteen_whole_cards_reject_without_erasing_ir_or_other_admissions() {
         native(&e.rejected_cards().unwrap()[code]);
     }
     assert_eq!(c, before, "admission must not mutate source conversion");
-    let report: Value = serde_json::from_str(include_str!(
-        "../../../compiler/generated/runtime-admission.json"
-    ))
-    .unwrap();
-    let expected: BTreeSet<String> = report["runtimeAdmittedCards"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|r| r["setCode"].as_str().unwrap())
-        .filter(|id| !PILOTS.contains(id))
-        .map(str::to_owned)
-        .collect();
-    assert_eq!(
-        code_set(&e.compiled_pool().unwrap()),
-        expected,
-        "unrelated admitted definitions must stay unchanged"
-    );
+    // Remove exactly the held Pilot definitions from the actual unmutated
+    // catalogue. Every admitted unrelated definition must remain identical;
+    // ordinary report regeneration and later families are not test baselines.
+    let mut without_pilots=c.clone();without_pilots["cards"].as_array_mut().unwrap().retain(|v|!PILOTS.contains(&v["setCode"].as_str().unwrap()));
+    let without_pilots=Engine::from_catalogue_value(&without_pilots).unwrap();
+    assert_eq!(code_set(&e.compiled_pool().unwrap()),code_set(&without_pilots.compiled_pool().unwrap()),"removing held Pilot definitions must not alter unrelated admissions");
     assert_eq!(strict()["cards"].as_array().unwrap().len(), 100);
     assert!(crate::validation::validate_pool(&strict()).is_ok());
     assert!(Engine::from_pool_value(&strict()).is_ok());

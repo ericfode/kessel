@@ -11,6 +11,7 @@ use syn::{
 // have different responsibilities; this is deliberately not a global import ban.
 const SOURCE_CONTRACTS: &[&str] = &[
     "src/upgrade_return_shield_contract.rs",
+    "src/selected_hand_cost_contract.rs",
     "src/captured_hand_cost_contract.rs",
     "src/named_exhaust_contingent_contract.rs",
     "src/attack_lifetime_contract.rs",

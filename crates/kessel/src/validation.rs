@@ -160,6 +160,9 @@ pub fn validate_state_with_catalogue(
         &[
             "nextCardId",
             "roundLimitState",
+            "playerPhaseState",
+            "directUnitPlayCreditState",
+            "playerPhasePending",
             "unitEntryStateVersion",
             "inactiveUnitEntryStats",
             "inactivePhaseKeywordStateVersion",
@@ -204,7 +207,10 @@ pub fn validate_state_with_catalogue(
         return Err("winner must be null, p1, p2, or draw".into());
     }
     let terminal = !v["winner"].is_null();
-    if !terminal {
+    if let Some(d)=v.get("directUnitPlayCreditState") {
+        let d=crate::direct_unit_credit_contract::parse(d)?;
+        if terminal || v.get("actor")!=Some(&Value::Null) || v["activePlayer"]!=if d.payer==0 {"p1"}else{"p2"} {return Err("invalid direct Credit actor boundary".into());}
+    } else if !terminal {
         let actor = v["actor"]
             .as_str()
             .filter(|s| ["p1", "p2"].contains(s))

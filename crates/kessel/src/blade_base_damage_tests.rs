@@ -52,7 +52,7 @@ fn blade_listener_lki_survives_sibling_departure_but_cannot_give_to_discard() {
     let e=engine();let mut s=board(&e);let source=blade(&e,&mut s,Seat::P1);let base=s.player(Seat::P1).base;
     let listeners=e.blade_base_damage_listeners(&s).unwrap();e.defeat(&mut s,source).unwrap();
     e.capture_blade_base_damage_event(&mut s,&listeners,base,true).unwrap();assert_eq!(s.death_pending.len,1);
-    let captured=s.death_pending.entries[0];assert_eq!((captured.source,captured.player,captured.last_known_power,captured.event_card),(source,Seat::P1,2,base));
+    let captured=s.death_pending.entries[0];assert_eq!((captured.source,captured.player,captured.last_known_power,captured.event_card.get()),(source,Seat::P1,2,base));
     let next=s.next_id;drain(&e,&mut s);assert_eq!(s.next_id,next);assert_eq!(advantage(&e,&s,source),0);
     assert!(e.blade_base_damage_listeners(&s).unwrap().is_empty());
 }
@@ -236,9 +236,14 @@ fn blade_bounded_marker_preserves_all_real_catalogue_classifications_and_admissi
     fn original(v:&Value)->bool {v["event"]=="onDamageDealt" || v["text"]=="When your base is dealt damage: Give an Advantage token to this unit." || match v {Value::Array(a)=>a.iter().any(original),Value::Object(o)=>o.values().any(original),_=>false}}
     let mut markers=0;
     for raw in cards {let result=crate::blade_base_damage_contract::marker(raw).unwrap();assert_eq!(result,original(raw),"{}",raw["setCode"]);markers+=usize::from(result);}
-    let e=Engine::from_catalogue_value(&c).unwrap();let report:Value=serde_json::from_slice(include_bytes!("../../../compiler/generated/runtime-admission.json")).unwrap();
-    let expected=report["runtimeAdmittedCards"].as_array().unwrap().iter().map(|v|v["setCode"].as_str().unwrap()).collect::<std::collections::BTreeSet<_>>();
-    let actual=e.catalogue.as_ref().unwrap().cards.keys().filter(|code|!e.catalogue.as_ref().unwrap().reprint_of.contains_key(*code)).map(String::as_str).collect::<std::collections::BTreeSet<_>>();
-    assert_eq!(actual,expected);
-    eprintln!("Blade bounded scan: all{} real entries compatible; markers{}; admission{} unchanged; depth128 nodes65536",cards.len(),markers,actual.len());
+    // The baseline is the actual unchanged input, not a mutable report from a
+    // previous increment. A deliberately poisoned independent control must be
+    // the sole admission change caused by the bounded whole-source marker.
+    let e=Engine::from_catalogue_value(&c).unwrap();
+    let codes=|e:&Engine|e.catalogue.as_ref().unwrap().cards.keys().filter(|code|!e.catalogue.as_ref().unwrap().reprint_of.contains_key(*code)).cloned().collect::<std::collections::BTreeSet<_>>();
+    let baseline=codes(&e);assert!(baseline.contains("LOF_254"));
+    let mut changed=c.clone();let raw=changed["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="LOF_254").unwrap();raw["card"]["text"]=json!("When your base is dealt damage: Give an Advantage token to this unit.");
+    assert!(crate::blade_base_damage_contract::marker(raw).unwrap());let changed=Engine::from_catalogue_value(&changed).unwrap();let mut expected=baseline.clone();expected.remove("LOF_254");assert_eq!(codes(&changed),expected);
+    assert!(changed.rejected_cards().unwrap()["LOF_254"].contains("complete closed mandatory source Advantage"));
+    eprintln!("Blade bounded scan: all{} real entries compatible; markers{}; actual baseline{}; poisoned control sole loss; depth128 nodes65536",cards.len(),markers,baseline.len());
 }

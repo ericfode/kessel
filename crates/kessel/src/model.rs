@@ -17,9 +17,12 @@ pub const MAX_ZONE: usize = 64;
 // DamageFacts records (128), and the active handle (2). Saved context handles
 // fit existing padding; ResolutionContext remains 112 bytes. The 905 slots
 // cover 255 current physical registrations + 640 queued roots + 10 contexts.
+// + closed Phase rows/payment masks/context alignment 504. Checked byte-sized
+// event/grantor identities reduce all 640 trigger captures by 1,280 bytes.
+// Actual State: 39,088 + 504 - 1,280 = 38,312. No capacities are reduced.
 // This exact envelope grants no future capacity or Gained-registration storage.
 #[cfg(test)]
-pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 39_088;
+pub(crate) const EXPECTED_INLINE_STATE_BYTES: usize = 38_312;
 pub type CardId = u16;
 
 pub const MAX_NAMED_PLAY_LOCKS: usize = 64;
@@ -540,12 +543,29 @@ impl DeathContinuation {
 }
 pub const MAX_DEATH_TRIGGERS: usize = 64;
 pub const MAX_DEATH_DEPTH: usize = 8;
+/// A physical card identity captured inside a bounded trigger window. Zero is
+/// the existing absent sentinel; every allocated physical ID is below MAX_CARDS.
+/// Keep the checked constructor at capture/import boundaries, never truncate a
+/// raw CardId. This changes storage only: getters recover the original CardId.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct DeathTrigger { pub round_limit:crate::round_limit_state::Handle, pub event_card:CardId, pub last_known_power:u16, pub grantor:CardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub capture: crate::defeat_cause::TriggerCapture, pub keyword: u8 }
+#[repr(transparent)]
+pub struct CapturedCardId(u8);
+impl CapturedCardId {
+    pub const NONE: Self = Self(0);
+    pub fn checked(id: CardId) -> Result<Self,String> {
+        const { assert!(MAX_CARDS == 256); }
+        u8::try_from(id).map(Self).map_err(|_| "captured card identity exceeds physical card capacity".into())
+    }
+    pub const fn get(self) -> CardId { self.0 as CardId }
+}
+impl PartialEq<CardId> for CapturedCardId {fn eq(&self,other:&CardId)->bool {self.get()==*other}}
+impl PartialEq<CapturedCardId> for CardId {fn eq(&self,other:&CapturedCardId)->bool {*self==other.get()}}
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct DeathTrigger { pub round_limit:crate::round_limit_state::Handle, pub event_card:CapturedCardId, pub last_known_power:u16, pub grantor:CapturedCardId, pub source: CardId, pub program: u16, pub player: Seat, pub after_pc: u8, pub capture: crate::defeat_cause::TriggerCapture, pub keyword: u8 }
 impl DeathTrigger {
     /// Registration chronology belongs to the physical grantor, while execution
     /// retains the host as source. Ordinary registrations use their own source.
-    pub fn physical_source(self)->CardId {if self.grantor!=0 {self.grantor}else{self.source}}
+    pub fn physical_source(self)->CardId {if self.grantor!=0 {self.grantor.get()}else{self.source}}
 }
 /// A shared bounded trigger window, including attack, entry and defeat captures.
 /// The historical name does not imply every entry is a card's WhenDefeated.
@@ -641,6 +661,7 @@ pub struct DiscloseState {pub player:Seat,pub selected:Selection}
 /// All mutable game data is inline. Copying a position neither allocates nor shares mutable data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct State {
+    pub player_phase:crate::player_phase_state::Ledger,
     pub round_limits:crate::round_limit_state::Ledger,
     /// Optional explicit wire evidence when the selected pool does not mandate it.
     /// Serialization provenance only: copied/equal, deliberately gameplay-hash neutral.
@@ -735,7 +756,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
-            round_limits:crate::round_limit_state::Ledger::default(),
+            player_phase:crate::player_phase_state::Ledger::default(),round_limits:crate::round_limit_state::Ledger::default(),
             round_limit_wire_present:false,
             named_play:NamedPlayState::default(),
             disclose:DiscloseState::default(),
@@ -894,8 +915,8 @@ impl State {
             for v in [w.len as u64,w.initiator.index() as u64,w.player.index() as u64,w.player_chosen as u64,w.group_program as u64,w.group_source as u64,w.group_keyword as u64,w.resolve_all as u64] {put(v);}
             for e in w.entries {for v in [e.source as u64,e.program as u64,e.player.index() as u64,e.after_pc as u64,e.capture.depth() as u64,e.keyword as u64] {put(v);}}
             for (i,e) in w.entries.iter().enumerate() {if e.capture.cause()!=crate::defeat_cause::DefeatCause::Unknown {put(0x4445464341555345);put(i as u64);put(e.capture.cause() as u64);}if e.last_known_power!=0 {put(0x4c4b49504f574552);put(i as u64);put(e.last_known_power as u64);}}
-            for (i,e) in w.entries.iter().enumerate() {if e.event_card!=0 {put(0x454e545259434150);put(i as u64);put(e.event_card as u64);}}
-            for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor as u64);}}
+            for (i,e) in w.entries.iter().enumerate() {if e.event_card!=0 {put(0x454e545259434150);put(i as u64);put(e.event_card.get() as u64);}}
+            for (i,e) in w.entries.iter().enumerate() {if e.grantor!=0 {put(0x4741494e4544);put(i as u64);put(e.grantor.get() as u64);}}
         }
         if self.attack_end_captured || self.attack_attacker_defeated || self.attack_attacker_departed || self.attack_defender_defeated || self.attack_defender_departed {put(0x41545441434b454e);put(self.attack_end_captured as u64);put(self.attack_attacker_defeated as u64);put(self.attack_attacker_departed as u64);put(self.attack_defender_defeated as u64);put(self.attack_defender_departed as u64);}
         result_values(self.event_result,self.last_known_source,self.last_known_power,&mut put);cause_values(self.defeat_cause,&mut put);
@@ -912,6 +933,7 @@ impl State {
         put(self.round as u64);
         if self.hidden_history_exact {put(1); }
         self.phase_history.hash_values(&mut put);
+        self.player_phase.hash_values(&mut put);
         if self.force_state_exact {put(1);}
         if self.credit_state_exact {put(0x4352454449545631);}
         for (seat,player) in self.players.iter().enumerate() {player.credits.hash_values(0x4352454449540000+seat as u64,&mut put);}

@@ -1,11 +1,20 @@
 #[path = "inactive_physical_state.rs"]
 mod inactive_physical_state;
+#[path="direct_unit_credit_wire.rs"]
+mod direct_unit_credit_wire;
 #[path = "credit_runtime.rs"]
 mod credit_runtime;
 #[path = "resource_payment_runtime.rs"]
 mod resource_payment_runtime;
 #[path = "round_limit_wire.rs"]
 mod round_limit_wire;
+#[path="player_phase_runtime.rs"]
+mod player_phase_runtime;
+#[path="player_phase_wire.rs"]
+mod player_phase_wire;
+#[cfg(test)]
+#[path="player_phase_tests.rs"]
+mod player_phase_tests;
 #[path = "generic_runtime.rs"]
 mod generic_runtime;
 #[path="blade_base_damage_runtime.rs"]
@@ -57,6 +66,7 @@ pub struct SmuggleCost {
 
 #[derive(Debug, Clone)]
 pub struct Definition {
+    pub(crate) unique_subtitle:Option<String>,
     pub code: String,
     pub info: CardInfo,
     flags: u16,
@@ -249,6 +259,7 @@ impl Engine {
                 shield_def = Some(index);
             }
             definitions.push(Definition {
+                unique_subtitle:raw["subtitle"].as_str().filter(|s|!s.is_empty()).map(str::to_owned),
                 code,
                 info,
                 flags,
@@ -447,6 +458,7 @@ impl Engine {
         let d = self.def(s, id);
         (d.info.cost().max(0) as u16 + self.aspect_penalty(s, id, &d.aspects))
             .saturating_sub(d.self_play_cost.map_or(0, |rule| rule.reduction(s, id, |card, trait_name| self.card_has_trait(s, card, trait_name))))
+            .saturating_sub(self.phase_cost_capture(s,id).count())
     }
     fn aspect_penalty(&self, s: &State, id: CardId, aspects: &[u8; 6]) -> u16 {
         let p = s.player(s.card(id).owner);
@@ -458,7 +470,7 @@ impl Engine {
     }
     pub fn smuggle_cost(&self, s: &State, id: CardId) -> Option<u16> {
         let smuggle = self.def(s, id).smuggle?;
-        Some(smuggle.amount + self.aspect_penalty(s, id, &smuggle.aspects))
+        Some((smuggle.amount + self.aspect_penalty(s, id, &smuggle.aspects)).saturating_sub(self.phase_cost_capture(s,id).count()))
     }
     fn can_smuggle(&self, s: &State, id: CardId) -> bool {
         let seat = s.card(id).owner;
@@ -685,12 +697,14 @@ impl Engine {
                 for id in self.upgrade_play_targets(s,s.source) {out.push(self.card_action(s,id));}
             }
             Decision::Unique => {
-                if self.def(s,s.source).info.is("upgrade") {
+                if let Some(candidates)=self.phase_unique_candidates(s,s.source) {
+                    for id in candidates {out.push(self.card_action(s,id));}
+                } else if self.def(s,s.source).info.is("upgrade") {
                     for id in (1..s.next_id).filter(|id|*id!=s.source).chain(std::iter::once(s.source)) {
-                        if s.card(id).owner==s.active && self.attached_in_play(s,id) && s.card(id).def==s.card(s.source).def {out.push(self.card_action(s,id));}
+                        if s.card(id).owner==s.active && self.attached_in_play(s,id) && self.phase_unique_identity(s,id,s.source) {out.push(self.card_action(s,id));}
                     }
                 }else{
-                    for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {if s.card(id).def==s.card(s.source).def {out.push(self.card_action(s,id));}}
+                    for &id in p.ground.as_slice().iter().chain(p.space.as_slice()) {if self.phase_unique_identity(s,id,s.source) {out.push(self.card_action(s,id));}}
                 }
             }
             Decision::Support => {
@@ -927,8 +941,9 @@ impl Engine {
                 } else if arg == "cancel" {
                     self.cancel(&mut t);
                 } else {
-                    t.target = id;
                     let source = t.source;
+                    self.phase_preflight_attack(&t,source,id)?;
+                    t.target = id;
                     t.card_mut(source).exhausted = true;
                     // The attack cost precedes late effect application; late
                     // effects precede AttackFlow and its declaration windows.
@@ -1060,7 +1075,7 @@ impl Engine {
         Ok(t)
     }
     fn duplicates(&self, s: &State, id: CardId) -> usize {
-        (1..s.next_id).filter(|c|s.card(*c).owner==s.card(id).owner && s.card(*c).def==s.card(id).def && (self.in_arena(s,*c)||self.attached_in_play(s,*c))).count()
+        (1..s.next_id).filter(|c|s.card(*c).owner==s.card(id).owner && self.phase_unique_identity(s,*c,id) && (self.in_arena(s,*c)||self.attached_in_play(s,*c))).count()
     }
     /// Exhausts amount ready resources from the payer's resource zone in zone
     /// order. The payer is explicit because card-effect payments charge the
@@ -1586,8 +1601,10 @@ impl Engine {
     }
     fn advance(&self, s: &mut State) -> Result<(), String> {
         if s.players.iter().all(|p| p.out) {
+            if self.player_phase_pending(s){return Err("player phase expiry cannot reuse identities while captures remain live".into());}
             s.action_player=None;
             s.phase_history.reset();
+            s.player_phase.expire();
             for id in 1..s.next_id {
                 s.card_mut(id).set_hidden_qualified(false);
                 s.card_mut(id).inactive_entry_power=0;
@@ -1788,6 +1805,10 @@ impl Engine {
         Ok(id)
     }
     pub fn load_state(&self, v: &Value) -> Result<State, String> {
+        if v.get("directUnitPlayCreditState").is_some(){return self.load_direct_unit_credit(v);}
+        self.load_action_board(v)
+    }
+    fn load_action_board(&self,v:&Value)->Result<State,String>{
         if v.get("capturedHandCostPending").is_some() {return Err("pending physical hand-card cost cannot be imported as action window".into());}
         if v.get("numberSelectionPending").is_some() {return Err("pending number binding cannot be imported as an action window".into());}
         if v.get("namedExhaustPending").is_some() {return Err("pending named exhaust bindings cannot be imported as an action window".into());}
@@ -1915,6 +1936,8 @@ impl Engine {
         self.load_unit_entry_state(&mut s,v)?;
         self.load_inactive_phase_keywords(&mut s,v)?;
         self.load_round_limit_state(&mut s,v)?;
+        self.load_player_phase_state(&mut s,v)?;
+        if s.decision!=Decision::Terminal {for id in 1..s.next_id {if self.phase_source(&s,id)&&self.def(&s,id).info.unique&&self.in_arena(&s,id)&&self.duplicates(&s,id)>1{return Err("unresolved phase-family unique identity at action window".into());}}}
         Ok(s)
     }
     fn has_physical_unit_entry_source(&self,s:&State)->bool {
@@ -2047,6 +2070,7 @@ impl Engine {
         };
         let mut value=json!({"round":s.round,"phase":if s.regroup{"regroup"}else{"action"},"initiative":s.initiative.as_str(),"initiativeClaimed":s.initiative_claimed,"prevPassed":s.prev_passed,"activePlayer":s.action_player.map(Seat::as_str),"actor":if s.is_action_window(){Some(s.active.as_str())}else{None},"winner":winner,"nextCardId":s.next_id-1,"players":players});
         self.snapshot_round_limit_state(s,&mut value);
+        self.snapshot_player_phase_state(s,&mut value);
         if s.death_frames[..s.death_depth as usize].iter().any(|f|f.continuation()==Some(DeathContinuation::RegroupDraw)) {value["regroupStartPending"]=json!(true);}
         if (s.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(s.ability_program-1)))||s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.ability_program!=0&&crate::named_exhaust_contingent_contract::requires(self.program(f.context.ability_program-1))) {value["namedExhaustPending"]=json!(true);}
         if (s.ability_program!=0&&(crate::defeat_cause::requires(self.program(s.ability_program-1))||crate::defeat_token_creation_contract::requires(self.program(s.ability_program-1)))) || [&s.death_pending,&s.death_window].into_iter().chain(s.death_frames[..s.death_depth as usize].iter().map(|f|&f.window)).any(|w|w.entries[..w.len as usize].iter().any(|e|e.keyword==0&&(crate::defeat_cause::requires(self.program(e.program))||crate::defeat_token_creation_contract::requires(self.program(e.program))))) {value["defeatCausePending"]=json!(true);}
@@ -2055,7 +2079,7 @@ impl Engine {
         if s.decision==Decision::AbilityDisplay {value["viewSelectionPending"]=json!(true);}
         if s.support.pending {value["supportAttackPending"]=json!(true);}
         if s.ability_program!=0&&self.program(s.ability_program-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ModalChoice(menu) if menu.preserve_target)) {value["dependentChoicePending"]=json!(true);}
-        let hand_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::HandCost{..}));
+        let hand_program=|id:u16|id!=0&&(self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::HandCost{..}))||crate::selected_hand_cost_contract::requires(self.program(id-1)));
         if hand_program(s.ability_program)||s.captured_hand_card.id()!=0||s.death_frames[..s.death_depth as usize].iter().any(|f|hand_program(f.context.ability_program)||f.context.captured_hand_card.id()!=0)||s.support.pending&&hand_program(s.support.context.ability_program) {value["capturedHandCostPending"]=json!(true);}
         let number_program=|id:u16|id!=0&&self.program(id-1).instructions.iter().any(|i|matches!(i,crate::ability_ir::Instruction::ChooseNumber));
         if number_program(s.ability_program) || s.decision==Decision::AbilityNumber || s.selected_number!=0 || s.death_frames[..s.death_depth as usize].iter().any(|f|number_program(f.context.ability_program)||f.context.selected_number!=0||f.context.decision==Decision::AbilityNumber) || s.support.pending&&number_program(s.support.context.ability_program) {value["numberSelectionPending"]=json!(true);}
@@ -2065,6 +2089,7 @@ impl Engine {
         self.snapshot_unit_entry_state(s,&mut value);
         self.snapshot_inactive_physical_state(s,&mut value);
         if s.resource_payment.active() || s.payment_group.active || s.death_frames[..s.death_depth as usize].iter().any(|f|f.context.resource_payment.active()) {value["creditPaymentPending"]=json!(true);}
+        self.snapshot_direct_unit_credit(s,&mut value);
         value
     }
 }
