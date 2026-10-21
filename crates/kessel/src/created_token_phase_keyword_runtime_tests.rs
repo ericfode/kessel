@@ -86,8 +86,8 @@ fn paid(e: &Engine, s: &mut State, seat: Seat) -> CardId {
 }
 #[test]
 fn created_token_phase_keyword_state_budget() {
-    assert_eq!(std::mem::size_of::<State>(), 39088);
-    assert_eq!(std::mem::size_of::<crate::model::ResolutionContext>(), 112);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+    assert_eq!(std::mem::size_of::<crate::model::ResolutionContext>(), 124);
 }
 #[test]
 fn created_token_phase_keyword_paid_identity_shield_order_and_backends() {

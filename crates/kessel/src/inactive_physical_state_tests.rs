@@ -269,8 +269,8 @@ fn inactive_physical_keyword_selected_pool_definition_guard() {
         all.load_state(&bad).is_err(),
         "nonempty Sentinel cannot move to a different native token type"
     );
-    assert_eq!(std::mem::size_of::<State>(), 39088);
-    assert_eq!(std::mem::size_of::<crate::model::ResolutionContext>(), 112);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
+    assert_eq!(std::mem::size_of::<crate::model::ResolutionContext>(), 124);
 }
 #[test]
 fn inactive_physical_keyword_deployed_leader_alias_roundtrip() {
@@ -443,7 +443,7 @@ fn shared_inactive_inventory_helgait_six_actual_expiry_both_seats_backends() {
             let host = unit(&e, &mut s, seat, "SOR_095");
             let ids = helgait_six_then_expire(&e, &mut s, seat, host);
             assert_eq!(ids.len(), 6);
-            assert_eq!(std::mem::size_of::<State>(), 39088);
+            assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
         }
     }
 }

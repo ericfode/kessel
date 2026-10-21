@@ -58,6 +58,16 @@ marker hashes the pinned fetch scripts and data version, not the card contents.
 Use the generated directory through `compiler/load-catalog.js` or actual `compileCatalog` output for strict full-entry profiles and portable tests; do not assume a legacy `catalog.json` exists.
 `compiler/generated/cards.json` alone omits fields such as `diagnostics` stored in separate shards and cannot serve as a full-entry equality fixture.
 Keep profiles complete and unknown fields rejected; never strip candidate fields or enrich entries to match fixtures.
+For helper-dependent construction, compare the complete ordered non-card server input
+envelope with the reviewed source before emitting probes. Validate input row shape
+before filtering; reject missing, extra, duplicated, malformed or changed helper rows.
+Hash the corresponding physical helper files before creating an engine game. Resolve
+the engine root actually loaded by the recording Env when the compiler and recorder
+use separate checkouts; validate that root's card and helper files before game creation,
+while retaining the compiler-input checks. Exercise an actual-recorder-path changed
+or missing read with zero game construction; keep both physical oracle identities. Named
+helper constants that are never checked provide no provenance guard. Preserve valid
+complete plans and exercise these failures before game creation.
 Run whole-source family guards before any recognized-family early return, while preserving
 existing bounded inspection checks that precede admission. Classify nested limits by their
 proved family role; a cost-adjuster limit is not automatically a round-trigger limit.
@@ -68,6 +78,13 @@ compare the full baseline admission set, preserving every unexpected gain or los
 Before reporting admission counts, wait for the actual constructor command and its
 set-difference assertions to finish successfully; planned counts or partial stdout
 are not validation receipts. Preserve failures before changing the marker.
+Keep admission-set deltas in temporary integration accounting against an immutable
+baseline. A durable family test should assert its own source, programs and admitted
+membership, or construct explicit before/after fixtures. Do not treat the committed
+runtime-admission report as the previous increment inside such a test: ordinary
+regeneration makes that comparison stale and can fail a later unrelated family.
+Preserve the failed test and verify the complete constructor delta independently
+before replacing a historical census assertion; retain all semantic checks.
 Reserve new programs using their actual stored representation before publishing any
 card binding. Native State stores catalogue program indices as index plus one, with
 zero meaning absent; a successful u16 conversion alone does not reserve that sentinel.
@@ -141,6 +158,14 @@ verify their inclusion in the selected admitted definitions before preparation;
 a partial list of common probe fields can omit required donors. A successful focused replay
 does not resolve a failed whole-pool import or establish whole-pool conformance.
 
+For source-only tests, include each selected definition once. If the focus is already
+admitted, retain its original runtime-pool metadata and bytes; otherwise add only its
+complete declared metadata. Obtain provenance with the actual pool loader before
+starting the game. Duplicate focus or missing binding is a setup error, not an effect
+failure. For paired source captures, run sourceIdentity before the first game and
+compare it again afterward. An absent referenced dependency means an incomplete
+integration; a claim of concurrent edits needs changed-byte evidence.
+
 When initializing a queue through its module API, include every intended ownership
 path in the baseline inventory: existing files need their actual hashes and new
 files need null. Keep `baseline.repositoryRoot` immutable and physically distinct
@@ -207,6 +232,13 @@ construction parameters, after changing dispatch.
 Check each fixture's constructed card references against that case's setup declarations
 as well as the selected pool. A shared pool union can hide an omitted dependency
 in an individual case; inspect literal protocol and constructor references too.
+Finish direct fixture staging before the first recorded action window and refresh
+the actual engine prompt after zone changes; cached highlights can advertise a card
+that its click handler would reject. Assert offered hand plays belong to the actor
+and remain in hand. Emit one window receipt per decision step before its decision.
+A cached legal-action query does not prove effect or cost evaluation. For repeated
+cost-query witnesses, call the actual pinned action/cost evaluator on a real context,
+assert its concrete quote and unchanged effect usage, and retain the active actor.
 When changing Holocron's external dependency inventory or source identity, run `node --test lab/kessel-reference/test/load.test.js` with the read-only pinned built engine and no sibling Kessel checkout.
 Keep the dependency-path grammar strict; scoped engine fixture tests do not replace this inventory gate.
 

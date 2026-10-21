@@ -254,7 +254,7 @@ fn surprises_closed_source_unknown_fields_alias_and_program_guards() {
     assert!(crate::upgrade_return_shield_contract::program(&p));
     p.optional = true;
     assert!(!crate::upgrade_return_shield_contract::program(&p));
-    assert_eq!(std::mem::size_of::<State>(), 39088);
+    assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
 }
 
 fn full_engine() -> Engine {

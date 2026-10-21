@@ -27,6 +27,7 @@ pub enum PaymentStage {
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct ResourcePayment {
+    pub(crate) phase_adjusters:crate::player_phase_state::Mask,
     pub purpose: PaymentPurpose,
     pub stage: PaymentStage,
     pub payer: Seat,
@@ -65,6 +66,7 @@ impl ResourcePayment {
             return;
         }
         put(0x5041594d454e54);
+        if self.phase_adjusters.count()!=0 {put(0x50484153454d);put(self.phase_adjusters.0[0]as u64);put(self.phase_adjusters.0[1]as u64);}
         for value in [
             self.purpose as u64,
             self.stage as u64,

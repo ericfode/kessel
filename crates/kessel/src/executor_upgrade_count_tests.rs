@@ -62,30 +62,15 @@ fn choose(e: &Engine, s: &State, id: CardId) -> State {
 }
 #[test]
 fn executor_complete_source_and_only_new_admission() {
-    let e = engine();
-    let report: Value = serde_json::from_slice(include_bytes!(
-        "../../../compiler/generated/runtime-admission.json"
-    ))
-    .unwrap();
-    let old = report["runtimeAdmittedCards"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|v| v["setCode"].as_str().unwrap())
-        .collect::<std::collections::BTreeSet<_>>();
-    let admitted = e
-        .catalogue
-        .as_ref()
-        .unwrap()
-        .cards
-        .keys()
-        .filter(|code|!e.catalogue.as_ref().unwrap().reprint_of.contains_key(*code))
-        .map(String::as_str)
-        .collect::<std::collections::BTreeSet<_>>();
-    let added = admitted.difference(&old).copied().collect::<Vec<_>>();
-    let removed = old.difference(&admitted).copied().collect::<Vec<_>>();
-    assert!(added.is_empty() || added == vec!["ASH_197"], "{added:?}");
-    assert!(removed.is_empty(), "{removed:?}");
+    let c=catalogue();let e=engine();let raw=c["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="ASH_197").unwrap();
+    let normalized=crate::executor_upgrade_count::prepare(raw).unwrap().unwrap();let actual=&e.catalogue.as_ref().unwrap().cards["ASH_197"].card;
+    assert_eq!(actual.len(),normalized["card"].as_array().unwrap().len());
+    for (raw,&id) in normalized["card"].as_array().unwrap().iter().zip(actual){let ability=serde_json::from_value(raw.clone()).unwrap();let expected=Program::compile(&ability).unwrap();assert_eq!(serde_json::to_value(e.program(id)).unwrap(),serde_json::to_value(expected).unwrap());}
+    // Actual unchanged input is the durable baseline. Making the source helper
+    // mutable invalidates exactly this whole definition, with no unrelated loss.
+    let codes=|e:&Engine|e.compiled_pool().unwrap()["cards"].as_array().unwrap().iter().map(|v|v["setCode"].as_str().unwrap().to_owned()).collect::<std::collections::BTreeSet<_>>();
+    let baseline=codes(&e);let mut broken=c.clone();let raw=broken["cards"].as_array_mut().unwrap().iter_mut().find(|v|v["setCode"]=="ASH_197").unwrap();raw["abilities"]["card"][0]["effect"]["modifier"]["value"]["callback"]["body"]["statements"][0]["bindings"][0]["mutable"]=json!(true);
+    let after=Engine::from_catalogue_value(&broken).unwrap();let mut expected=baseline;assert!(expected.remove("ASH_197"));assert_eq!(codes(&after),expected);
 }
 #[test]
 fn executor_live_physical_attachments_both_arenas_source_identity_and_copy_hash() {

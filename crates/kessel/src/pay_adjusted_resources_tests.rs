@@ -197,7 +197,12 @@ fn admitted_payment_cards_compile_and_unsupported_companions_stay_rejected() {
             e.rejected_cards().unwrap().get(code)
         );
     }
-    for code in ["ASH_014", "ASH_219", "JTL_096", "LAW_193"] {
+    // Jod's formerly unsupported nested choice now has one complete source
+    // adapter. The ordinary scalar payment guard still rejects nearby headers.
+    let raw=committed_catalogue()["cards"].as_array().unwrap().iter().find(|v|v["setCode"]=="ASH_219").unwrap();assert!(e.by_code.contains_key("ASH_219"));assert!(crate::arena_payment_exhaust_contract::prepare(raw).unwrap());
+    let (_,expected)=crate::arena_payment_exhaust_contract::compile(0).unwrap();let actual=e.catalogue.as_ref().unwrap().cards["ASH_219"].card[0];assert_eq!(serde_json::to_value(e.program(actual)).unwrap(),serde_json::to_value(&expected[0]).unwrap());
+    let mut near=raw.clone();near["abilities"]["card"][0]["effect"]["canCancelDuringPayment"]=json!(true);assert!(crate::arena_payment_exhaust_contract::prepare(&near).is_err());
+    for code in ["ASH_014", "JTL_096", "LAW_193"] {
         assert!(
             !e.by_code.contains_key(code),
             "unsupported companion admitted on {code}"

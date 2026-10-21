@@ -42,6 +42,7 @@ impl Engine {
     /// Cancelled/replaced unresolved events do not register triggers.
     pub(super) fn capture_blade_base_damage_event(&self,s:&mut State,listeners:&[BaseDamageListener],card:CardId,resolved:bool)->Result<(),String> {
         if !resolved {return Ok(());}
+        let captured_card=CapturedCardId::checked(card)?;
         let matching=listeners.iter().filter(|l|l.base==card).collect::<Vec<_>>();
         if s.death_pending.len as usize+matching.len()>MAX_DEATH_TRIGGERS {
             return Err("own-base damage trigger capacity exceeded (64)".into());
@@ -51,7 +52,7 @@ impl Engine {
         // the captured trigger persists; GiveAdvantage checks its physical target
         // in play at resolution and cannot allocate onto a departed source.
         for listener in matching {
-            let n=s.death_pending.len as usize;let mut trigger=listener.trigger;trigger.event_card=card;
+            let n=s.death_pending.len as usize;let mut trigger=listener.trigger;trigger.event_card=captured_card;
             s.death_pending.entries[n]=trigger;s.death_pending.len+=1;
         }
         Ok(())

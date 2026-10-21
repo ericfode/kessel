@@ -31,6 +31,7 @@ impl Engine {
         end_program: bool,
     ) -> ResourcePayment {
         ResourcePayment {
+            phase_adjusters:if purpose==PaymentPurpose::UnitPlay {self.phase_cost_capture(s,source)}else{crate::player_phase_state::Mask::default()},
             purpose,
             payer: s.card(source).owner,
             actor: s.active,
@@ -76,6 +77,9 @@ impl Engine {
             false,
             request.can_cancel,
         )?;
+        // A malformed or stale captured mask must fail before publishing even
+        // the reversible prompt context. This only validates a local copy.
+        if request.phase_adjusters.count()!=0 {let mut checked=s.player_phase;checked.consume(request.phase_adjusters)?;}
         s.resource_payment = request;
         if let Some(plan) = plan {
             s.resource_payment.stage = PaymentStage::Credits;
@@ -102,9 +106,17 @@ impl Engine {
         if self.ready_resources(s, request.payer) < usize::from(remaining) {
             return Err("resource payment became unaffordable; recovery is unsupported".into());
         }
+        // Validate the captured set before any Credit is irreversibly defeated.
+        // The current closed native Credit defeat has no matching admitted
+        // observer (unit-only defeat predicates; Credit has no own program).
+        // Complete that event first, then consume at the resource-exhaustion
+        // handler boundary, including zero resources. A future Credit observer
+        // requires separate event-window stages, not this synchronous closure.
+        let mut ledger=s.player_phase;ledger.consume(request.phase_adjusters)?;
         if credits != 0 {
             self.defeat_credits_for_payment(s, request.payer, credits)?;
         }
+        s.player_phase=ledger;
         s.active = request.payer;
         if request.from_resources {
             self.spend_resource_play(s, remaining, request.source);
@@ -239,7 +251,7 @@ impl Engine {
                 .number_range()
                 .into_iter()
                 .flatten()
-                .map(|n| Action::button(n.to_string(), n.to_string()))
+                .map(|n| Action {kind:"option".into(),card:None,arg:Some(Value::String(n.to_string())),method:None,label:format!("#{n}")})
                 .collect(),
             _ => vec![],
         }
@@ -345,6 +357,7 @@ impl Engine {
             self.cost(s, id)
         };
         s.phase_history.preflight_play(seat)?;
+        s.player_phase.preflight(self.phase_direct_required(s,id,"whenPlayed"))?;
         s.source = id;
         let request = self.resource_request(
             s,
@@ -364,8 +377,11 @@ impl Engine {
         } else {
             s.player_mut(seat).hand.remove(id);
         }
-        s.card_mut(id).exhausted =
-            !self.self_static_ongoing(s, id, crate::static_ongoing::SelfEffect::EntersPlayReady);
+        // The existing entry path has no pre-enter pause/callback. Consume all
+        // matching player rows at event-property construction, even if an
+        // independent native enters-ready property is already true.
+        let phase_ready=self.phase_ready_at_construction(s,id)?;
+        s.card_mut(id).exhausted = !(phase_ready||self.self_static_ongoing(s, id, crate::static_ongoing::SelfEffect::EntersPlayReady));
         s.card_mut(id).set_hidden_qualified(true);
         self.add_arena(s, id)?;
         s.phase_history.entered(seat, id);

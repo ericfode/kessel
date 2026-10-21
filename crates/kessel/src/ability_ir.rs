@@ -900,6 +900,7 @@ impl TargetResolver {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Cost {
+    SelectCardCost(crate::selected_hand_cost_contract::SelectedHandCost),
     ExhaustSelf,
     Resources { amount: Expr },
     UseForceCost {
@@ -919,6 +920,7 @@ pub enum DeckPosition { Top, Bottom }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum Effect {
+    InstallPlayerPhase {#[serde(rename="phaseKind")] phase_kind:crate::player_phase_contract::Kind},
     Disclose { target:Target, aspects:Vec<String>, mode:String,
         #[serde(rename="aspectMultiplicity")] aspect_multiplicity:bool,
         #[serde(rename="selectedCardsEventField")] selected_cards_event_field:String,
@@ -1241,7 +1243,7 @@ impl Effect {
             }
             // Resource, Force and Weakness operations keep their expressions portable:
             // their runtime matches on the raw shapes.
-            Self::RecipientHeal{..}|Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
+            Self::InstallPlayerPhase{..}|Self::RecipientHeal{..}|Self::Disclose{..}|Self::InitiateAttack{..}|Self::MaximumPowerExperience{..}|Self::ResourceCard { .. } | Self::UseForce { .. } | Self::GainForce { .. }
             | Self::GiveWeakness { .. } | Self::GiveAdvantage { .. } | Self::ConstantEffectRegistration(_) | Self::NoAction
             | Self::SelectionSystem { .. } | Self::SelectedPlayerSystem { .. } | Self::ResourceCardSystem { .. } | Self::MoveToBottomOfDeck { .. } | Self::DealsCombatDamageFirst { .. } => {}
             Self::LookAt { target, player, .. } => {
@@ -2065,9 +2067,11 @@ impl Program {
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
+        if ability.costs.iter().any(|c|matches!(c,Cost::SelectCardCost(_))) {return Err("selected hand-card cost requires complete source proof".into());}
         if crate::named_exhaust_contingent_contract::typed_marker(ability) {return Err("named exhaust continuation requires complete raw source proof".into());}
         if crate::attack_lifetime_contract::typed_marker(ability){return Err("attack-lifetime discard requires complete raw source proof".into());}
         if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="query"&&v["name"]==crate::defeat_token_creation_contract::QUERY) {return Err("captured defeat token creation requires complete raw source proof".into());}
+        if crate::player_phase_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("player phase installer requires complete whole-source proof".into());}
         if crate::round_limit_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("registration limits require complete closed source proof before lowering".into());}
         if crate::exhausted_live_count_contract::typed_marker(ability)&&!crate::exhausted_live_count_contract::registration(ability){return Err("exhausted count requires complete exact registration".into());}
         if crate::blade_base_damage_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {
@@ -3080,6 +3084,7 @@ impl Program {
             return Err("effect nesting exceeds capacity".into());
         }
         match effect {
+            Effect::InstallPlayerPhase{..} => return Err("player phase installer requires private whole-source authorization".into()),
             Effect::Optional{target,effect,title_parts,choosing_player,legality,decline_result}=>{
                 if *target!=serde_json::json!({"kind":"inheritedSystemTarget","binding":null,"fallback":"empty"})||choosing_player!="contextPlayer"||legality!="innerSystem"||decline_result!="noEvents"||title_parts.len()!=1||!matches!(effect.as_ref(),Effect::Select{..}) {return Err("optional system exceeds the closed scalar selection contract".into());}
                 self.instructions.push(Instruction::EndStep);
@@ -3418,10 +3423,14 @@ impl Catalogue {
                 return Err(format!("duplicate IR card {code}"));
             }
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
-                // This complete raw envelope must precede every family's early return.
+                // Preserve the established bounded inspection before all whole-source
+                // preparers, then validate every envelope before any early return.
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let arena_payment=crate::arena_payment_exhaust_contract::prepare(entry)?;
+                let phase=crate::player_phase_contract::prepare(entry)?;
                 let upgrade_return=crate::upgrade_return_shield_contract::prepare(entry)?;
                 if distributed_advantage_contract::marker(entry) && !distributed_advantage_contract::entry(entry) {return Err("Advantage allocation requires complete closed captured-defeat source profile".into());}
+                let selected_hand_cost=crate::selected_hand_cost_contract::prepare(entry)?;
                 let named_exhaust=crate::named_exhaust_contingent_contract::prepare(entry)?;
                 crate::captured_hand_cost_contract::reject_printed_override(entry)?;
                 let hand_cost=crate::captured_hand_cost_contract::prepare(entry)?;
@@ -3429,13 +3438,16 @@ impl Catalogue {
                 let exhausted=crate::exhausted_live_count_contract::prepare(entry)?;
                 let defeat_tokens=crate::defeat_token_creation_contract::prepare(entry,value)?;
                 let created_keyword=crate::created_token_phase_keyword_contract::prepare(entry,value)?;
-                let round=crate::round_limit_contract::prepare(entry)?;
+                let round=if phase.is_some(){None}else{crate::round_limit_contract::prepare(entry)?};
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if arena_payment {return crate::arena_payment_exhaust_contract::compile(catalogue.programs.len());}
                 if upgrade_return {let id=crate::upgrade_return_shield_contract::checked_program_id(catalogue.programs.len())?;let program=crate::upgrade_return_shield_contract::compiled()?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
+                if selected_hand_cost {return crate::selected_hand_cost_contract::compile(catalogue.programs.len());}
                 if named_exhaust {crate::named_exhaust_contingent_contract::dependencies(value)?;let program=crate::named_exhaust_contingent_contract::compiled()?;let id=crate::named_exhaust_contingent_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if attack_lifetime {let id=crate::attack_lifetime_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![crate::attack_lifetime_contract::compiled()?]));}
+                if let Some(phase)=phase {return phase.compile(catalogue.programs.len());}
                 if let Some(sides)=exhausted {return crate::exhausted_live_count_contract::compile(&sides,catalogue.programs.len());}
                 if let Some(program)=created_keyword {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(program)=defeat_tokens {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
@@ -3901,6 +3913,13 @@ impl Catalogue {
         }
         // Preserve structural admission and canonical program hashes before
         // adding runtime attachments. Unsupported expression roots stay portable.
+        // An unproved competing caller rejects only the new phase family;
+        // existing ordinary cards keep their previous capability decisions.
+        if let Err(reason)=crate::player_phase_contract::validate_direct_only_programs(&catalogue.programs) {
+            let phase_codes=catalogue.cards.iter().filter(|(_,c)|c.card.iter().chain(&c.unit).chain(&c.leader).any(|p|catalogue.programs[*p as usize].instructions.iter().any(|i|matches!(i,Instruction::Apply(Effect::InstallPlayerPhase{..}))))).map(|(code,_)|code.clone()).collect::<std::collections::BTreeSet<_>>();
+            for code in &phase_codes {catalogue.cards.remove(code);catalogue.metadata.remove(code);catalogue.rejected.insert(code.clone(),format!("player phase direct-only closure unavailable: {reason}"));}
+            catalogue.reprint_of.retain(|alias,source|!phase_codes.contains(alias)&&!phase_codes.contains(source));
+        }
         for program in &mut catalogue.programs {
             program.visit_expression_roots_mut(&mut Expr::bind_compiled);
         }
@@ -4437,3 +4456,13 @@ mod expr_search_tests;
 #[cfg(test)]
 #[path = "source_guard_tests.rs"]
 mod source_guard_tests;
+
+#[cfg(test)]
+mod arena_payment_capacity_tests {
+ use super::*;use serde_json::json;
+ #[test]fn arena_payment_actual_family_span_capacity(){
+ let original=crate::arena_payment_exhaust_contract::profile();let mut v:Value=serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"),"/catalogue.json"))).unwrap();
+v["cards"]=json!([original]);let pad:crate::ability_ir::Ability=serde_json::from_value(json!({"trigger":"event","title":"synthetic capacity padding","effect":{"kind":"noAction"}})).unwrap();let pad=crate::ability_ir::Program::compile(&pad).unwrap();
+ let ok=Catalogue::load_with_programs(&v,vec![pad.clone();65534]).unwrap();assert!(ok.cards.contains_key("ASH_219"));assert_eq!(ok.programs.len(),65535);let no=Catalogue::load_with_programs(&v,vec![pad;65535]).unwrap();assert!(!no.cards.contains_key("ASH_219"));assert_eq!(no.programs.len(),65535);
+ }
+}

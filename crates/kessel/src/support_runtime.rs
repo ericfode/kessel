@@ -64,6 +64,7 @@ impl Engine {
             && p.predicate().ok().is_some_and(|predicate|predicate.is_none_or(|e|self.native_attack_predicate(s,source,target,&e)))
     }
     pub(super) fn begin_native_attack(&self,s:&mut State,p:&crate::native_attack::Properties,optional:bool)->Result<(),String> {
+        s.player_phase.preflight(self.phase_direct_required(s,s.ability_target,"onAttack"))?;
         if s.support.pending {return Err("nested modified attack exceeds the admitted lifecycle".into());}
         let modifiers=p.modifiers()?;
         let grants=modifiers.power!=0||modifiers.presence!=0||modifiers.deals_combat_damage_first;
@@ -156,6 +157,7 @@ impl Engine {
                 }
             }
         }
+        for &p in &programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;}
         if programs.iter().any(|p|crate::round_limit_contract::Registration::from_trigger(&self.program(*p).trigger).is_some()) {return Err("copied registration limits require a separately supported gained-limit graph".into());}
         if programs.len() > MAX_SUPPORT_PROGRAMS {
             return Err("Support copied-ability capacity exceeded (80)".into());
@@ -374,6 +376,7 @@ impl Engine {
                 }
                 let programs=self.support_source_programs(s,g.donor)
                     .ok_or("Support source reference requires a complete closed admitted physical donor")?;
+                for &p in programs {crate::player_phase_contract::copied_program_allowed(self.program(p))?;}
                 if programs.len()>MAX_SUPPORT_PROGRAMS {return Err("Support copied-ability capacity exceeded (80)".into());}
                 g.len=programs.len() as u8;g.programs[..programs.len()].copy_from_slice(programs);
             } else {
@@ -401,6 +404,7 @@ impl Engine {
                         return Err("Support copied program is outside the selected pool".into());
                     }
                     let program = &catalogue.programs[index];
+                    crate::player_phase_contract::copied_program_allowed(program)?;
                     if crate::static_ongoing::has_leader_trait_union(program) {
                         return Err("Support copied leader-trait union requires an unsupported cyclic context".into());
                     }

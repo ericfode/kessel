@@ -140,14 +140,14 @@ fn entry_merge_only_promotes_the_current_ordinary_event_boundary() {
     e.queue_programs(&mut s, &["whenPlayed"]);
     let program = e.card_programs(&s, observer)[0];
     let current = DeathTrigger {
-        event_card: source,
+        event_card: CapturedCardId::checked(source).unwrap(),
         source: observer,
         program,
         player: Seat::P1,
         ..DeathTrigger::default()
     };
     let unrelated = DeathTrigger {
-        event_card: other,
+        event_card: CapturedCardId::checked(other).unwrap(),
         ..current
     };
     let future = DeathTrigger {
@@ -176,7 +176,7 @@ fn entry_merge_only_promotes_the_current_ordinary_event_boundary() {
         other.pending_programs = 0;
         other.pending_triggers = T_SHIELD;
         let capture = DeathTrigger {
-            event_card: incoming,
+            event_card: CapturedCardId::checked(incoming).unwrap(),
             ..current
         };
         other.death_pending = DeathWindow::default();

@@ -128,7 +128,7 @@ fn cause_admission_is_exact_and_no_raw_leaf_bypass() {
 #[test]
 fn cause_storage_copy_hash_and_legacy_layout() {
     assert_eq!(std::mem::size_of::<State>(), EXPECTED_INLINE_STATE_BYTES);
-    assert_eq!(std::mem::size_of::<DeathTrigger>(), 16);
+    assert_eq!(std::mem::size_of::<DeathTrigger>(), 14);
     eprintln!(
         "Fiend layouts State={} Card={} DeathFrame={} ResolutionContext={}",
         std::mem::size_of::<State>(),
@@ -424,7 +424,7 @@ fn cause_capture_preserves_outcast_physical_event_and_flock_number_binding() {
     );
     let mut pending = State::default();
     pending.death_pending.entries[0] = DeathTrigger {
-        event_card: 23,
+        event_card: CapturedCardId::checked(23).unwrap(),
         capture: TriggerCapture::new(2, DefeatCause::Attack),
         ..DeathTrigger::default()
     };
@@ -436,7 +436,7 @@ fn cause_capture_preserves_outcast_physical_event_and_flock_number_binding() {
         DefeatCause::Attack
     );
     let mut changed = pending;
-    changed.death_pending.entries[0].event_card = 24;
+    changed.death_pending.entries[0].event_card = CapturedCardId::checked(24).unwrap();
     assert_ne!(changed.zobrist(), pending.zobrist());
     changed = pending;
     changed.death_pending.entries[0].capture = TriggerCapture::new(2, DefeatCause::Ability);

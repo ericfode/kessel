@@ -721,7 +721,11 @@ fn migration_modal_father_native_credits_preserve_target_and_pay_all_credits() {
             let menu = if cost > 1 {
                 let number = choose(&e, &payment, "Select amount");
                 father_pending(&e, &number);
-                choose(&e, &number, &cost.to_string())
+                let label=format!("#{cost}");
+                let option=e.legal_actions(&number).into_iter().find(|a|a.label==label).unwrap();
+                assert_eq!(option.kind,"option");assert_eq!(option.arg,Some(json!(cost.to_string())));
+                assert_eq!(option.card,None);assert_eq!(option.method,None);
+                choose(&e, &number, &label)
             } else {
                 let label = if cost == 1 {
                     "Use 1 Credit".into()

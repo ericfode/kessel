@@ -8,7 +8,7 @@ fn hand(e:&Engine,s:&mut State,o:Seat,c:&str)->CardId {let id=add(e,s,o,c);s.pla
 fn start(e:&Engine,s:&mut State,source:CardId,trigger:&str){s.source=source;s.active=s.card(source).owner;let p=e.card_programs(s,source).iter().copied().find(|p|e.program(*p).trigger==trigger).unwrap();e.begin_program(s,p,ProgramContinuation::Triggers).unwrap();}
 fn click(e:&Engine,s:&mut State,id:CardId){*s=e.apply_ability_action(s,&e.card_action(s,id)).unwrap();}
 #[test] fn captured_hand_cost_layout_context_hash_and_pending_import(){
- assert_eq!(std::mem::size_of::<State>(),39088);assert_eq!(std::mem::size_of::<ResolutionContext>(),112);
+ assert_eq!(std::mem::size_of::<State>(),EXPECTED_INLINE_STATE_BYTES);assert_eq!(std::mem::size_of::<ResolutionContext>(),124);
  let e=engine();let mut s=board(&e);let old=s.zobrist();let c=ResolutionContext::capture(&s);s.captured_hand_card=crate::captured_hand_cost_contract::PhysicalHandCard::capture(7).unwrap();assert_ne!(s.zobrist(),old);c.restore(&mut s);assert_eq!(s.zobrist(),old);
  s.captured_hand_card=crate::captured_hand_cost_contract::PhysicalHandCard::capture(7).unwrap();let frame=ResolutionContext::capture(&s);s.captured_hand_card=crate::captured_hand_cost_contract::PhysicalHandCard::capture(9).unwrap();frame.restore(&mut s);assert_eq!(s.captured_hand_card.id(),7);
  let source=unit(&e,&mut s,Seat::P1,"ASH_132");let selected=hand(&e,&mut s,Seat::P1,"ASH_190");s.captured_hand_card=Default::default();start(&e,&mut s,source,"whenPlayed");click(&e,&mut s,selected);let snap=e.snapshot(&s);assert_eq!(snap["capturedHandCostPending"],true);assert!(e.load_state(&snap).is_err());
