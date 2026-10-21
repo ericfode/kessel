@@ -28,6 +28,8 @@ pub(crate) fn contains_force_presence<T: Serialize>(value:&T)->bool {
 pub mod selector_contract;
 #[path = "distributed_damage_contract.rs"]
 mod distributed_damage_contract;
+#[path = "distributed_advantage_contract.rs"]
+mod distributed_advantage_contract;
 #[path = "chosen_hand_discard_contract.rs"]
 pub(crate) mod chosen_hand_discard_contract;
 #[path = "ambush_context_contract.rs"]
@@ -1080,6 +1082,15 @@ pub enum Effect {
     },
     DiscardSpecificCard { target: Target },
     AttackModifiers { effects: Vec<Effect> },
+    DistributeTokenUpgrade {
+        #[serde(rename="tokenType")] token_type: String,
+        amount: Expr,
+        #[serde(rename="canChooseNoTargets")] can_choose_no_targets: bool,
+        #[serde(rename="canDistributeLess")] can_distribute_less: bool,
+        chooser: String,
+        #[serde(rename="creationEvents")] creation_events: String,
+        #[serde(rename="targetResolver")] target_resolver: TargetResolver,
+    },
     DistributeDamage {
         amount: Expr,
         #[serde(rename = "canChooseNoTargets", default)]
@@ -1221,7 +1232,7 @@ impl Effect {
                 visit(condition); on_true.visit_expression_roots_mut(visit);
                 if let Some(effect) = on_false { effect.visit_expression_roots_mut(visit); }
             }
-            Self::DistributeHealing { amount, target_resolver, .. } | Self::DistributeDamage { amount, target_resolver, .. } => {
+            Self::DistributeTokenUpgrade { amount, target_resolver, .. } | Self::DistributeHealing { amount, target_resolver, .. } | Self::DistributeDamage { amount, target_resolver, .. } => {
                 visit(amount); target_resolver.visit_expression_roots_mut(visit);
             }
             Self::CardRestriction { target, condition, .. } => {
@@ -1658,6 +1669,8 @@ pub enum Instruction {
     /// Mid-program optional confirm (Krennic discarded-unit return).
     OptionalConfirm { skip: usize },
     Jump { to: usize },
+    /// Closed continuation of one resolved native token creation event.
+    GrantCreatedTokenPhaseKeyword { creation_pc:u8, keyword:String },
     Apply(Effect),
     Group(Effect),
     /// Independent named selectors prepare before commitment and share one event window.
@@ -1668,7 +1681,7 @@ pub enum Instruction {
     NamedChooserGroup { effect: Effect, choosers: Vec<NamedChooser> },
 }
 impl Instruction {
-    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedExhaustContingent(e)|Self::NamedChooserGroup{effect:e,..}|Self::Apply(e @ Effect::DistributeDamage{..})=>Some(e),_=>None}}
+    pub fn group_effect(&self)->Option<&Effect> {match self {Self::Group(e)|Self::NamedGroup(e)|Self::NamedExhaustContingent(e)|Self::NamedChooserGroup{effect:e,..}|Self::Apply(e @ (Effect::DistributeDamage{..}|Effect::DistributeTokenUpgrade{..}))=>Some(e),_=>None}}
     pub fn is_named_group(&self)->bool {matches!(self,Self::NamedGroup(_)|Self::NamedExhaustContingent(_)|Self::NamedChooserGroup{..})}
 }
 
@@ -2047,12 +2060,13 @@ impl Program {
                 Instruction::Apply(effect) | Instruction::Group(effect) => effect.visit_expression_roots_mut(visit),
                 // Named selector groups stay portable, like the named resolvers they prepare.
                 Instruction::NamedGroup(_) | Instruction::NamedExhaustContingent(_) | Instruction::NamedChooserGroup { .. } => {}
-                Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
+                Instruction::GrantCreatedTokenPhaseKeyword{..}|Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience|Instruction::NameOpponentPlay|Instruction::ModalChoice(_)|Instruction::CaptureMaximum{..}|Instruction::EndStep | Instruction::Commit | Instruction::IfResult { .. } | Instruction::IfWillDefeat { .. } | Instruction::IfDiscardedSharesAspect { .. } | Instruction::IfDiscardedIsUnit { .. } | Instruction::OptionalConfirm { .. } | Instruction::Jump { .. } => {}
             }
         }
     }
     pub fn compile(ability: &Ability) -> Result<Self, String> {
         if crate::named_exhaust_contingent_contract::typed_marker(ability) {return Err("named exhaust continuation requires complete raw source proof".into());}
+        if crate::attack_lifetime_contract::typed_marker(ability){return Err("attack-lifetime discard requires complete raw source proof".into());}
         if contains(&serde_json::to_value(ability).map_err(|e|e.to_string())?, |v|v["kind"]=="query"&&v["name"]==crate::defeat_token_creation_contract::QUERY) {return Err("captured defeat token creation requires complete raw source proof".into());}
         if crate::round_limit_contract::marker(&serde_json::to_value(ability).map_err(|e|e.to_string())?)? {return Err("registration limits require complete closed source proof before lowering".into());}
         if crate::exhausted_live_count_contract::typed_marker(ability)&&!crate::exhausted_live_count_contract::registration(ability){return Err("exhausted count requires complete exact registration".into());}
@@ -2184,7 +2198,7 @@ impl Program {
         fn damage_result(v:&Value)->bool {v["kind"]=="ref"&&v["path"]==serde_json::json!(["event","damageDealt"])}
         let resolved_defeat=resolved_defeat_continuation(ability);
         if contains(&encoded,result_query)&&!resolved_defeat {return Err("resolved defeat count requires direct arena defeat then opponent-base damage".into());}
-        if contains(&encoded,lki_power) {
+        if contains(&encoded,lki_power) && !distributed_advantage_contract::registration(ability) {
             if ability.trigger!="whenDefeated"||ability.optional||ability.coordinate||ability.requires_confirmation||!ability.costs.is_empty()||ability.condition.is_some()||ability.then.is_some()||ability.if_you_do.is_some()||!ability.target_resolvers.is_empty()||ability.target_resolver.as_ref().is_none_or(|r|r.card_type!="unit"||r.optional||r.is_multiple())||!matches!(&ability.effect,Effect::Damage{target:Target::Name(n),amount:Expr::Ref{path}} if n=="chosen"&&path==&["event","lastKnownInformation","power"]) {return Err("last-known power requires scalar mandatory defeat damage registration".into());}
         }
         if contains(&encoded,damage_result) && !damage_result_continuation(ability) {return Err("actual damage result requires scalar damage then bounded base damage continuation".into());}
@@ -2936,7 +2950,7 @@ impl Program {
                     Program::validate_phase_restriction_target(target)?;
                     GroupRequirements::ordinary(multiplicity(target,targets,array)?)
                 },
-                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::SelectionSystem { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::DistributeDamage { .. } => return Err("event group contains an unverified operation".into()),
+                Effect::MoveSelectedArenaUnitToOwnerDeck {..} | Effect::CreateCreditToken {..} | Effect::ResourceCardSystem { .. } | Effect::MoveToBottomOfDeck { .. } | Effect::DealsCombatDamageFirst { .. } | Effect::LookAt { .. } | Effect::LookAtAndSelectCard { .. } | Effect::SelectionSystem { .. } | Effect::ExhaustResources { .. } | Effect::PayResources { .. } | Effect::ResourceCard { .. } | Effect::Sequence { .. } | Effect::ReturnToHand { .. } | Effect::ReadyResources { .. } | Effect::PayAdjustedResources { .. } | Effect::DistributeHealing { .. } | Effect::DistributeDamage { .. } | Effect::DistributeTokenUpgrade { .. } => return Err("event group contains an unverified operation".into()),
                 Effect::NoAction => GroupRequirements::default(),
                 primitive => {
                     let mut checker=p.clone(); checker.instructions.clear(); checker.compile_effect(primitive,depth+1)?;
@@ -3101,6 +3115,10 @@ impl Program {
             Effect::Simultaneous { .. } => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Group(effect.clone())); }
             Effect::PhaseModifiers {effects:_} => { self.validate_group(effect,1)?; self.instructions.push(Instruction::Apply(effect.clone())); }
             Effect::DiscardSpecificCard{..}|Effect::AttackModifiers{..}=>return Err("chosen hand operations require their complete reviewed registration".into()),
+            Effect::DistributeTokenUpgrade {..} => {
+                if depth!=0 || self.trigger!="whenDefeated" || !distributed_advantage_contract::typed_effect(effect) {return Err("token distribution requires captured defeat power and exact optional full Advantage allocation".into());}
+                self.instructions.push(Instruction::Apply(effect.clone()));
+            }
             Effect::DistributeDamage { amount, can_choose_no_targets, can_distribute_less, target_resolver } => {
                 if depth!=0 || !matches!(self.trigger.as_str(),"whenPlayed"|"whenDefeated") || !distributed_damage_contract::effect(amount,*can_choose_no_targets,*can_distribute_less,target_resolver) {
                     return Err("distributed damage requires literal six and mandatory enemy units".into());
@@ -3372,6 +3390,11 @@ impl Catalogue {
     /// Converts every compiler entry into executable programs or a named, explicit
     /// rejection. A syntactically compiled card is never assumed executable.
     pub fn load(value: &Value) -> Result<Self, String> {
+        Self::load_with_programs(value, Vec::new())
+    }
+    // A single append boundary owns the stored index-plus-one capacity for all
+    // family returns. Tests seed existing programs to exercise that real path.
+    fn load_with_programs(value: &Value, programs: Vec<Program>) -> Result<Self, String> {
         if value["schema"] != SCHEMA {
             return Err(format!("unsupported ability IR schema {}", value["schema"]));
         }
@@ -3385,7 +3408,7 @@ impl Catalogue {
             edges.iter().filter(|(a,_)|a==from).any(|(_,b)|trait_path(edges,b,to,seen))
         }
         let cyclic_traits=trait_edges.iter().filter(|(a,b)|trait_path(&trait_edges,b,a,&mut Default::default())).cloned().collect::<std::collections::BTreeSet<_>>();
-        let mut catalogue = Self {playable_card_titles:crate::named_play::Registry::parse(value.get("playableCardTitles"))?,..Self::default()};
+        let mut catalogue = Self {programs,playable_card_titles:crate::named_play::Registry::parse(value.get("playableCardTitles"))?,..Self::default()};
         for entry in entries {
             let code = entry["setCode"]
                 .as_str()
@@ -3397,17 +3420,24 @@ impl Catalogue {
             let result = || -> Result<(CardPrograms, Vec<Program>), String> {
                 // This complete raw envelope must precede every family's early return.
                 let blade_marker=crate::blade_base_damage_contract::marker(entry)?;
+                let upgrade_return=crate::upgrade_return_shield_contract::prepare(entry)?;
+                if distributed_advantage_contract::marker(entry) && !distributed_advantage_contract::entry(entry) {return Err("Advantage allocation requires complete closed captured-defeat source profile".into());}
                 let named_exhaust=crate::named_exhaust_contingent_contract::prepare(entry)?;
                 crate::captured_hand_cost_contract::reject_printed_override(entry)?;
                 let hand_cost=crate::captured_hand_cost_contract::prepare(entry)?;
+                let attack_lifetime=crate::attack_lifetime_contract::prepare(entry)?;
                 let exhausted=crate::exhausted_live_count_contract::prepare(entry)?;
                 let defeat_tokens=crate::defeat_token_creation_contract::prepare(entry,value)?;
+                let created_keyword=crate::created_token_phase_keyword_contract::prepare(entry,value)?;
                 let round=crate::round_limit_contract::prepare(entry)?;
                 if blade_marker&&round.is_none()&&!crate::blade_base_damage_contract::entry(entry) {
                     return Err("own-base damage requires the complete closed mandatory source Advantage profile".into());
                 }
+                if upgrade_return {let id=crate::upgrade_return_shield_contract::checked_program_id(catalogue.programs.len())?;let program=crate::upgrade_return_shield_contract::compiled()?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if named_exhaust {crate::named_exhaust_contingent_contract::dependencies(value)?;let program=crate::named_exhaust_contingent_contract::compiled()?;let id=crate::named_exhaust_contingent_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
+                if attack_lifetime {let id=crate::attack_lifetime_contract::checked_program_id(catalogue.programs.len())?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![crate::attack_lifetime_contract::compiled()?]));}
                 if let Some(sides)=exhausted {return crate::exhausted_live_count_contract::compile(&sides,catalogue.programs.len());}
+                if let Some(program)=created_keyword {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(program)=defeat_tokens {let id=u16::try_from(catalogue.programs.len()).map_err(|_|"ability program capacity exceeded")?;return Ok((CardPrograms{card:vec![id],..CardPrograms::default()},vec![program]));}
                 if let Some(round)=round {return round.compile(catalogue.programs.len());}
                 if entry["status"] != "supported" {
@@ -3843,7 +3873,16 @@ impl Catalogue {
                 }
                 Ok((out, programs))
             };
-            match result() {
+            // State stores each program index plus one (zero means absent).
+            // Reserve the complete span for every early-return family before
+            // publishing any programs, card binding or metadata.
+            let result = result().and_then(|(card, programs)| {
+                catalogue.programs.len().checked_add(programs.len())
+                    .filter(|end| *end <= u16::MAX as usize)
+                    .ok_or_else(|| "ability program capacity exceeded".to_owned())?;
+                Ok((card, programs))
+            });
+            match result {
                 Ok((card, programs)) => {
                     catalogue.programs.extend(programs);
                     catalogue.cards.insert(code.clone(), card);
@@ -3876,6 +3915,36 @@ impl Catalogue {
 mod tests {
     use super::*;
     use serde_json::json;
+    #[test]
+    fn catalogue_family_append_reserves_complete_stored_program_span() {
+        let catalogue: Value = serde_json::from_slice(include_bytes!(concat!(env!("OUT_DIR"), "/catalogue.json"))).unwrap();
+        let pad: Ability = serde_json::from_value(json!({"trigger":"event","title":"synthetic capacity padding","costs":[],"effect":{"kind":"noAction"}})).unwrap();
+        let pad = Program::compile(&pad).unwrap();
+        // Real source/dependency entries traverse the actual constructor, guards
+        // and append path. Only the prior program count is synthetic.
+        for (code, span) in [("ASH_091", 1usize), ("SOR_050", 2usize)] {
+            let focus = catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"] == code).unwrap().clone();
+            let mut input = catalogue.clone();
+            input["cards"] = json!([focus]);
+            if code == "ASH_091" {
+                for token in ["TOKEN_MANDALORIAN", "TOKEN_SHIELD"] {
+                    input["cards"].as_array_mut().unwrap().push(catalogue["cards"].as_array().unwrap().iter().find(|c|c["setCode"] == token).unwrap().clone());
+                }
+            }
+            let last = u16::MAX as usize - span;
+            let accepted = Catalogue::load_with_programs(&input, vec![pad.clone(); last]).unwrap();
+            assert!(accepted.cards.contains_key(code), "{code}: {:?}", accepted.rejected);
+            assert_eq!(accepted.programs.len(), u16::MAX as usize);
+            let ids = &accepted.cards[code];
+            let all = ids.leader.iter().chain(&ids.unit).chain(&ids.card).copied().collect::<Vec<_>>();
+            assert_eq!(all, (last..last+span).map(|i|i as u16).collect::<Vec<_>>());
+            let rejected = Catalogue::load_with_programs(&input, vec![pad.clone(); last + 1]).unwrap();
+            assert!(!rejected.cards.contains_key(code), "accepted unrepresentable {code} program span");
+            assert!(rejected.rejected[code].contains("capacity"));
+            assert_eq!(rejected.programs.len(), last + 1, "failed card published partial programs");
+            assert!(!rejected.metadata.contains_key(code), "failed card published metadata");
+        }
+    }
     fn attach_test_executable(expression: &mut Expr) {
         let original = Box::new(std::mem::replace(expression, Expr::number(0)));
         *expression = Expr::Compiled(CompiledExpr { original, index: usize::MAX });

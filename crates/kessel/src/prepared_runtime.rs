@@ -63,6 +63,10 @@ fn group_ops(effect: &Effect) -> Vec<GroupOp<'_>> {
         static DAMAGE: std::sync::OnceLock<Effect> = std::sync::OnceLock::new();
         return vec![GroupOp::Leaf(DAMAGE.get_or_init(||Effect::Damage{target:Target::Name("chosen".into()),amount:Expr::Const{value:serde_json::json!(1)}}))];
     }
+    if matches!(effect,Effect::DistributeTokenUpgrade{..}) {
+        static ADVANTAGE: std::sync::OnceLock<Effect> = std::sync::OnceLock::new();
+        return vec![GroupOp::Leaf(ADVANTAGE.get_or_init(||Effect::GiveAdvantage{target:Target::Name("chosen".into()),amount:Expr::number(1),created_by:crate::advantage::Creator::SelfPlayer,batch:crate::advantage::Batch::SingleCreationEvent,token_owner:crate::advantage::Owner::RecipientController}))];
+    }
     fn add<'a>(e: &'a Effect, out: &mut Vec<GroupOp<'a>>) {
         match e {
             Effect::Simultaneous { effects } | Effect::PhaseModifiers { effects } => { for e in effects { add(e,out); } }
@@ -123,6 +127,27 @@ impl Engine {
     }
     pub(super) fn group_candidates(&self,s:&State,r:&TargetResolver,e:&Effect,require_change:bool)->Vec<CardId> {
         self.matching_targets(s,s.source,r).into_iter().filter(|id| self.effect_can_affect(s,s.source,*id,e,require_change)).collect()
+    }
+    /// Closed ordinary event: costs commit before effect-level selectors; both
+    /// selections/events are generated before any primary handler mutates play.
+    pub(super) fn run_upgrade_return_shield_group(&self,s:&mut State)->Result<bool,String>{
+        let p=self.program(s.ability_program-1);
+        if !crate::upgrade_return_shield_contract::program(p){return Err("upgrade return prepared program identity mismatch".into())}
+        let effect=p.instructions[s.ability_pc as usize].group_effect().ok_or("upgrade return missing group")?;
+        // The reviewed batch generates exactly one Shield whenever its unit
+        // selector has a candidate. Reject bounded-storage overflow before the
+        // ordinary cost commits or any target prompt can be published.
+        if !s.ability_committed && s.next_id as usize>=MAX_CARDS {
+            if let Effect::Simultaneous{effects}=effect {
+                if effects.iter().any(|e|matches!(e,Effect::Select{target_resolver,effect} if matches!(effect.as_ref(),Effect::GiveShield{..})&&!self.group_candidates(s,target_resolver,effect,true).is_empty())) {return Err("card capacity exceeded generating upgrade return Shield".into())}
+            }
+        }
+
+        if !self.commit_program(s)? {return Ok(true)}
+        if !s.event_group.active {s.ability_succeeded=false;s.event_group.active=true;s.event_group.initiator=s.active;s.event_group.context=if s.ability_selection.len>0{s.ability_selection}else{Selection::one(s.ability_target)};}
+        if !self.generate_group(s,effect)? {return Ok(true)}
+        if !self.resolve_group(s,effect)? {return Ok(true)}
+        s.event_group=EventGroupState::default();s.ability_selection=Selection::default();s.ability_pc+=1;Ok(false)
     }
     pub(super) fn capture_group_leaf(&self,s:&mut State,op:usize,e:&Effect)->Result<(),String> {
         if let Effect::ResourceCard {target}=e {
@@ -196,9 +221,10 @@ impl Engine {
             }
             return Ok(());
         }
+        if matches!(e,Effect::ReturnToHand{..}) && (s.ability_program==0 || !crate::upgrade_return_shield_contract::program(self.program(s.ability_program-1))) {return Err("unsupported group primitive".into());}
         if !matches!(e,Effect::Damage {..}|Effect::Heal {..}|Effect::GiveShield {..}|Effect::GiveExperience {..}
             |Effect::GiveWeakness {..}|Effect::GiveAdvantage {..}|Effect::GainKeyword {..}|Effect::Ready {..}
-            |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}) {return Err("unsupported group primitive".into());}
+            |Effect::Exhaust {..}|Effect::Defeat {..}|Effect::ModifyStats {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}) {return Err("unsupported group primitive".into());}
         let (target,amount)=e.scalar_args().expect("group primitive has scalar fields");
         let amount=amount.map(|amount|self.effect_amount(s,amount)).transpose()?.unwrap_or(1);
         let (power,hp)=if let Effect::ModifyStats{power,hp,..}=e {
@@ -209,9 +235,9 @@ impl Engine {
         } else {(0,0)};
         for target in self.effect_targets(s,target) {
             let Eval::Card(target)=target else { continue; };
-            if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")) { continue; }
+            if target==0 || !(self.in_arena(s,target)||self.def(s,target).info.is("base")||matches!(e,Effect::ReturnToHand{..})&&self.attached_in_play(s,target)) { continue; }
             if !self.effect_can_affect(s,s.source,s.ability_target,e,false) { continue; }
-            if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}) { continue; }
+            if !self.in_arena(s,target) && !matches!(e,Effect::Damage{..}|Effect::Heal{..}|Effect::ReturnToHand{..}) { continue; }
             let tokens=matches!(e,Effect::GiveShield{..}|Effect::GiveExperience{..}|Effect::GiveWeakness{..}|Effect::GiveAdvantage{..});
             for _ in 0..if tokens { amount } else { 1 } {
                 let mut record=PreparedEvent{op:op as u16,target,amount,power,hp,token:0};
@@ -507,6 +533,7 @@ impl Engine {
 
         if s.event_group.uniform_damage.active {return self.resolve_uniform_damage(s,e);}
         let ops=group_ops(e);
+        let token_distribution=if matches!(e,Effect::DistributeTokenUpgrade{..}) {Some(self.advantage_creation_events(s)?)}else{None};
         let listeners=self.blade_base_damage_listeners(s)?;
         // All explicit defeat registrations see the same pre-movement event state.
         let mut explicit_sources=vec![];
@@ -573,6 +600,10 @@ impl Engine {
         // Attachment, unit-entry and draw-fatigue contingents retain record order
         // after every primary handler has finished.
         for contingent in [false,true] {
+            // The distribution meta resolves after creation primaries, before
+            // their attachment contingents; its numeric result is requested
+            // amounts of resolved parents, independently of physical attaches.
+            if contingent {if let Some((_,total))=&token_distribution {s.ability_result=*total;s.ability_succeeded=true;}}
             for &index in &primary_order {
                 let mut r=s.event_group.records[index];
                 let GroupOp::Leaf(effect)=&ops[r.op as usize] else { unreachable!() };
@@ -609,6 +640,10 @@ impl Engine {
                         s.ability_result=s.ability_result.saturating_add(amount);if named_exhaust {s.ability_succeeded=resolved;}else{s.ability_succeeded|=resolved;}continue;
                     }
                     Effect::CreateTokenUnit {..}=> {
+                        if s.ability_program!=0 && crate::created_token_phase_keyword_contract::requires(self.program(s.ability_program-1)) {
+                            if events.generated_token!=0 {return Err("singleton creation result contains multiple generated tokens".into());}
+                            events.generated_token=r.token;
+                        }
                         s.card_mut(r.token).set_hidden_qualified(true);self.add_arena(s,r.token)?;s.phase_history.entered(s.card(r.token).owner,r.token);
                         s.ability_result=s.ability_result.saturating_add(1);s.ability_succeeded=true;continue;
                     }
@@ -622,7 +657,8 @@ impl Engine {
                 // Failed original events remain the last parent event for this exact
                 // contingency. Do not let an earlier successful exhaust survive it.
                 if named_exhaust {s.ability_succeeded=false;}
-                if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base") {continue;}
+                if !self.in_arena(s,r.target)&&!self.def(s,r.target).info.is("base")&&!(matches!(effect,Effect::ReturnToHand{..})&&self.attached_in_play(s,r.target)) {continue;}
+                if matches!(effect,Effect::ReturnToHand{..})&&!self.effect_can_affect(s,s.source,r.target,effect,false){continue;}
                 let damage=matches!(effect,Effect::Damage {..});
                 if r.token!=0 {
                     if damage {self.remove_group_shield(s,r.target,r.token);continue;}
@@ -632,6 +668,7 @@ impl Engine {
                         let previous=std::mem::replace(head,r.token);
                         s.card_mut(r.token).next_token=previous;
                     }
+                    if token_distribution.as_ref().is_some_and(|(resolved,_)|!resolved.contains(&r.target)) {continue;}
                     self.attach(s,r.token,r.target);collective_resolved.push(CollectiveEvent::UpgradeAttached{parent:r.target,upgrade:r.token});continue;
                 }
                 s.event_group.context=Selection::one(r.target);s.ability_target=r.target;
@@ -648,7 +685,7 @@ impl Engine {
                 let modifier=match effect {
                     Effect::ModifyStats {..}=>Some(PhaseStatDelta {power:i64::from(r.power),hp:i64::from(r.hp)}),
                     Effect::Damage {..}|Effect::Heal {..}|Effect::Ready {..}|Effect::Exhaust {..}|Effect::Defeat {..}
-                    |Effect::GainKeyword {..}|Effect::LoseKeyword {..}=>None,
+                    |Effect::GainKeyword {..}|Effect::LoseKeyword {..}|Effect::ReturnToHand {..}=>None,
                     _=>return Err("unsupported captured primitive".into()),
                 };
                 let (amount,resolved)=self.apply_scalar_effect_observed(s,effect,vec![Eval::Card(r.target)],r.amount,modifier,&listeners)?;
@@ -672,6 +709,7 @@ impl Engine {
             }
         }
         if matches!(e,Effect::DistributeDamage{..}) {s.ability_succeeded=s.event_group.count>0;}
+        if matches!(e,Effect::DistributeTokenUpgrade{..}) {s.ability_succeeded=true;}
         s.event_result=events;
         s.event_group.resolving=false;
         observations.finish(self,s)?;

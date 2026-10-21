@@ -1,11 +1,17 @@
+#[path="src/upgrade_return_shield_contract.rs"]
+mod upgrade_return_shield_contract;
 #[path="src/named_exhaust_contingent_contract.rs"]
 mod named_exhaust_contingent_contract;
 #[path="src/captured_hand_cost_contract.rs"]
 mod captured_hand_cost_contract;
+#[path="src/attack_lifetime_contract.rs"]
+mod attack_lifetime_contract;
 #[path="src/round_limit_contract.rs"]
 mod round_limit_contract;
 #[path="src/exhausted_live_count_contract.rs"]
 mod exhausted_live_count_contract;
+#[path="src/created_token_phase_keyword_contract.rs"]
+mod created_token_phase_keyword_contract;
 #[path="src/defeat_token_creation_contract.rs"]
 mod defeat_token_creation_contract;
 #[path = "src/collective_trigger_contract.rs"]
@@ -222,6 +228,7 @@ fn primitive(e: &Effect) -> Result<String, String> {
     Ok(format!("let raw_amount={amount};let amount=u16::try_from(raw_amount).map_err(|_|format!(\"effect amount {{raw_amount}} exceeds bounded runtime\"))?;let mut result=0u16;let mut resolved=false;for target in {} {{ {operation} }} self.finish_scalar_effect(s)?; s.event_result=StepEventResult::default();s.ability_result=result;s.ability_succeeded=result>0||resolved;",targets(target)?))
 }
 fn lower(p: &Program) -> Result<String, String> {
+    if upgrade_return_shield_contract::program(p) {return Ok("if s.ability_pc==0 {if self.run_upgrade_return_shield_group(s)? {return Ok(true);}return Ok(false);}self.end_program(s)?;Ok(true)".into());}
     if round_limit_contract::Registration::from_trigger(&p.trigger).is_some() {return Err("registration limit uses shared Rust interpreter".into());}
     if p.trigger == "constant" {
         return Err("constant registration uses live modifier backend".into());
@@ -252,6 +259,8 @@ fn lower(p: &Program) -> Result<String, String> {
     Ok(body)
 }
 fn main() {
+    println!("cargo:rerun-if-changed=src/attack_lifetime_contract.rs");
+    println!("cargo:rerun-if-changed=src/created_token_phase_keyword_contract.rs");
     println!("cargo:rerun-if-changed=src/executor_upgrade_count_contract.rs");
     println!("cargo:rerun-if-changed=src/variable_payment_contract.rs");
     println!("cargo:rerun-if-changed=src/modal_choices.rs");
@@ -289,6 +298,7 @@ fn main() {
             println!("cargo:rerun-if-changed={}", catalog.join(name).display());
         }
     }
+    println!("cargo:rerun-if-changed=src/upgrade_return_shield_contract.rs");
     println!("cargo:rerun-if-changed=src/named_exhaust_contingent_contract.rs");
     println!("cargo:rerun-if-changed=src/captured_hand_cost_contract.rs");
     println!("cargo:rerun-if-changed=src/ability_ir.rs");

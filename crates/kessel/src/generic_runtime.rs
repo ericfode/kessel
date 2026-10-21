@@ -12,6 +12,9 @@ mod prepared_runtime;
 mod named_exhaust_contingent_runtime_tests;
 #[path = "distributed_damage_runtime.rs"]
 mod distributed_damage_runtime;
+#[cfg(test)]
+#[path="attack_lifetime_tests.rs"]
+mod attack_lifetime_tests;
 #[path = "chosen_hand_discard_runtime.rs"]
 mod chosen_hand_discard_runtime;
 #[path = "ambush_context_runtime.rs"]
@@ -232,7 +235,7 @@ impl TokenRequirements {
                 Effect::GiveShield { .. } => out.created.push("TOKEN_SHIELD".into()),
                 Effect::GiveExperience { .. } => out.created.push("TOKEN_EXPERIENCE".into()),
                 Effect::GiveWeakness { .. } => out.weakness = true,
-                Effect::GiveAdvantage { .. } => out.created.push("TOKEN_ADVANTAGE".into()),
+                Effect::GiveAdvantage { .. } | Effect::DistributeTokenUpgrade { .. } => out.created.push("TOKEN_ADVANTAGE".into()),
                 Effect::CreateCreditToken { .. } => out.created.push("TOKEN_CREDIT".into()),
                 Effect::CreateTokenUnit { token_type, .. } => out.created.push(
                     token_unit_code(token_type).map_or_else(
@@ -519,7 +522,7 @@ impl Engine {
     }
     /// Load every fully executable card, retaining explicit reasons for all others.
     pub fn from_catalogue_value(value: &Value) -> Result<Self, String> {
-        let e=Self::from_catalogue_graph(value)?;e.validate_hand_cost_graph(None)?;Ok(e)
+        let e=Self::from_catalogue_graph(value)?;e.validate_hand_cost_graph(None)?;e.validate_upgrade_return_graph(None)?;Ok(e)
     }
     // Pool restriction validates the selected graph after retaining its metadata.
     fn from_catalogue_graph(value: &Value) -> Result<Self, String> {
@@ -867,6 +870,7 @@ impl Engine {
                 Sha256::digest(serde_json::to_vec(value).map_err(|e| e.to_string())?)
             ),
             hand_cost_all_units_costed: definitions.iter().all(|d| !(d.info.is("unit")||d.info.is("leader"))||d.info.cost.is_some()),
+            upgrade_return_all_upgrades_costed: definitions.iter().all(|d| !d.info.is("upgrade")||d.info.cost.is_some()),
             definitions,
             by_code,
             shield_def: shield_def.ok_or("catalogue must include native Shield token")?,
@@ -1027,6 +1031,7 @@ impl Engine {
         catalogue.metadata.retain(|code, _| included.contains(code));
         engine.pool_hash = format!("{:x}", Sha256::digest(pool_bytes));
         engine.validate_hand_cost_graph(None)?;
+        engine.validate_upgrade_return_graph(None)?;
         Ok(engine)
     }
 
@@ -1041,8 +1046,22 @@ impl Engine {
         }
         count
     }
+    /// Engine definitions and physical-definition mappings are stable for live,
+    /// copied and pending positions. Reconfigure only before fresh positions.
+    /// Real complete configurations take the O(1) cached successful path; a
+    /// malformed retained definition is relevant only to selected/copied graphs.
+    pub(super) fn validate_upgrade_return_graph(&self,state:Option<&State>)->Result<(),String>{
+        if self.upgrade_return_all_upgrades_costed{return Ok(())}
+        let query_definition=|d:&Definition|d.programs.card.iter().chain(&d.programs.unit).chain(&d.programs.leader).any(|p|crate::upgrade_return_shield_contract::requires(self.program(*p)));
+        let query_program=|p:u16|p!=0&&self.catalogue.as_ref().and_then(|c|c.programs.get(p as usize-1)).is_some_and(crate::upgrade_return_shield_contract::requires);
+        let missing=|d:&Definition|d.info.is("upgrade")&&d.info.cost.is_none();
+        let relevant=self.selected_definition_any(query_definition)||state.is_some_and(|s|query_program(s.ability_program)||s.death_frames[..s.death_depth as usize].iter().any(|f|query_program(f.context.ability_program))||s.support.pending&&query_program(s.support.context.ability_program)||(1..s.next_id).any(|id|s.card(id).present&&query_definition(self.def(s,id))));
+        if relevant&&(self.selected_definition_any(missing)||state.is_some_and(|s|(1..s.next_id).any(|id|s.card(id).present&&missing(self.def(s,id))))){return Err("upgrade return graph contains a WithCost upgrade without printed cost".into())}
+        Ok(())
+    }
     pub(super) fn check_stat_capacity(&self, s: &State) -> Result<(), String> {
         self.validate_hand_cost_graph(Some(s))?;
+        self.validate_upgrade_return_graph(Some(s))?;
         self.check_keyword_copy_graph(s)?;
         for id in 1..s.next_id {
             if !self.in_arena(s, id) {
@@ -1845,6 +1864,7 @@ impl Engine {
             // Native distribution hasLegalTarget delegates to its selector; the
             // nested HealSystem checks legality with no change requirement.
             Effect::DistributeHealing {target_resolver,..} => return !self.matching_targets(s,source,target_resolver).is_empty(),
+            Effect::DistributeTokenUpgrade {target_resolver,..} => return s.last_known_source==source && s.last_known_power>0 && !self.distribution_advantage_targets(s,source,target_resolver).is_empty(),
             Effect::DistributeDamage {target_resolver,..} => return !self.distribution_damage_targets(s,source,target_resolver).is_empty(),
             Effect::LookAt { target: view_target, .. } => {
                 let _ = require_change;
@@ -1959,6 +1979,7 @@ impl Engine {
         let mut pc = start;
         while let Some(instruction) = instructions.get(pc).filter(|_| pc < end) {
             match instruction {
+                Instruction::GrantCreatedTokenPhaseKeyword{..}=>{},
                 Instruction::EndStep => {}
                 Instruction::Commit => {}
                 Instruction::HandCost{..}|Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {return true;}
@@ -2059,6 +2080,7 @@ impl Engine {
                 .program_targets(s, source, p, 0, r, require_change)
                 .is_empty(),
             Some(Instruction::Apply(Effect::DistributeHealing { target_resolver, .. })) => !self.matching_targets(s, source, target_resolver).is_empty(),
+            Some(Instruction::Apply(Effect::DistributeTokenUpgrade { target_resolver, .. })) => s.last_known_source==source && s.last_known_power>0 && !self.distribution_advantage_targets(s,source,target_resolver).is_empty(),
             Some(Instruction::Apply(Effect::DistributeDamage { target_resolver, .. })) => !self.distribution_damage_targets(s,source,target_resolver).is_empty(),
             _ => self.instructions_can_affect(s, source, 0, p, 0, usize::MAX, require_change),
         }
@@ -2268,6 +2290,7 @@ impl Engine {
         out
     }
     pub(super) fn begin_program(&self, s: &mut State, p: u16, return_to: ProgramContinuation) -> Result<(), String> {
+        if crate::upgrade_return_shield_contract::requires(self.program(p))&&!crate::upgrade_return_shield_contract::program(self.program(p)) {return Err("upgrade return program differs from closed source lowering".into());}
         if crate::named_exhaust_contingent_contract::requires(self.program(p))&&!crate::named_exhaust_contingent_contract::program(self.program(p)) {return Err("named exhaust program differs from complete closed source lowering".into());}
         let round_limited=crate::round_limit_contract::Registration::from_trigger(&self.program(p).trigger).is_some();
         if round_limited {s.round_limits.instance(s.round_limit)?;}else{s.round_limit=crate::round_limit_state::Handle::NONE;}
@@ -2410,6 +2433,23 @@ impl Engine {
             self.finish(s)
         }
     }
+    // Source then-subabilities run after entry/framework primaries but before
+    // captured Shielded/entry triggers. The result belongs to the resolved
+    // creation instruction and survives parent suspension, never allocator state.
+    fn run_created_token_phase_keyword(&self,s:&mut State)->Result<bool,String> {
+        if s.ability_program==0 {return Ok(false);}
+            if let Some(Instruction::GrantCreatedTokenPhaseKeyword{creation_pc,keyword})=self.program(s.ability_program-1).instructions.get(s.ability_pc as usize) {
+                let p=self.program(s.ability_program-1);
+                if !crate::created_token_phase_keyword_contract::program(p) || !s.event_result.belongs_to(s.source,s.ability_program,*creation_pc) {return Err("created token result scope mismatch".into());}
+                let id=s.event_result.generated_token;
+                if id==0 || id>=s.next_id || self.def(s,id).info.internal_name!="mandalorian" {return Err("resolved creation token identity missing".into());}
+                let effect=Effect::GainKeyword{target:Target::name("chosen"),keyword:keyword.clone(),amount:Expr::number(1),duration:"phase".into()};
+                self.apply_scalar_effect(s,&effect,vec![Eval::Card(id)],1,None)?;
+                s.ability_pc+=1;
+                return Ok(true);
+            }
+        Ok(false)
+    }
     pub(super) fn run_program(&self, s: &mut State) -> Result<(), String> {
         if s.ability_program!=0&&crate::current_played_unit::requires(self.program(s.ability_program-1))&&(!s.phase_history.exact||!s.hidden_history_exact){return Err("current played-unit projection requires exact phase and Hidden history".into());}
         if s.ability_program != 0 && !s.arena_order_exact
@@ -2417,6 +2457,7 @@ impl Engine {
             return Err("global arena damage requires recorded arena order".into());
         }
         loop {
+            if self.run_created_token_phase_keyword(s)? {continue;}
             if self.open_deaths(s,DeathContinuation::Program)? {return Ok(());}
             let p = self.program(s.ability_program - 1);
             if self.rules_backend != RulesBackend::Interpreter {
@@ -2431,6 +2472,7 @@ impl Engine {
                 return self.end_program(s);
             };
             match instruction {
+                Instruction::GrantCreatedTokenPhaseKeyword{..}=>return Err("created-token continuation escaped boundary".into()),
                 Instruction::EndStep => {s.ability_pc+=1;}
                 Instruction::HandCost{..} => {if self.run_hand_cost_instruction(s)? {return Ok(());}}
                 Instruction::ChooseNumber|Instruction::PayUnadjustedSelectedResources|Instruction::GiveSelectedExperience => {
@@ -2559,6 +2601,16 @@ impl Engine {
                     if !self.commit_program(s)?{return Ok(());}
                     let (amount,resolved)=self.execute_chosen_hand_discard(s,effect)?;s.ability_result=amount;s.ability_succeeded=resolved;s.ability_pc+=1;
                 }
+                Instruction::Apply(effect @ Effect::DistributeTokenUpgrade {target_resolver,..}) => {
+                    if !self.commit_program(s)? {return Ok(());}
+                    if !s.event_group.active {
+                        self.distribution_advantage_amount(s)?;
+                        if s.last_known_power==0 || self.distribution_advantage_targets(s,s.source,target_resolver).is_empty() {s.ability_result=0;s.ability_succeeded=false;s.event_result=StepEventResult::for_state(s);s.ability_pc+=1;continue;}
+                        self.distribution_actions(s)?;s.decision=Decision::AbilityDistribute;return Ok(());
+                    }
+                    if !self.resolve_group(s,effect)? {return Ok(());}
+                    s.event_group=EventGroupState::default();s.ability_pc+=1;
+                }
                 Instruction::Apply(effect @ Effect::DistributeDamage { target_resolver, .. }) => {
                     if !self.commit_program(s)? {return Ok(());}
                     if !s.event_group.active {
@@ -2627,6 +2679,7 @@ impl Engine {
                     }
                 }
                 Instruction::Group(effect) | Instruction::NamedGroup(effect) | Instruction::NamedExhaustContingent(effect) | Instruction::NamedChooserGroup{effect,..} => {
+                    if crate::upgrade_return_shield_contract::program(p){if self.run_upgrade_return_shield_group(s)? {return Ok(());}continue;}
                     let named=instruction.is_named_group();
                     if !named { if !self.commit_program(s)? {return Ok(());} }
                     if !s.event_group.active {
@@ -3127,6 +3180,17 @@ impl Engine {
     }
     // Mutation consumes resolved inputs. Target selection/capture and the
     // prepared record's storage layout belong to callers, not these handlers.
+    // A lasting keyword may be registered on the generated physical token
+    // after its framework defeat. This is not a general off-board target escape:
+    // only the closed continuation's matching scoped creation result qualifies.
+    fn created_token_phase_target(&self,s:&State,id:CardId)->bool {
+        if s.ability_program==0 {return false;}
+        let p=self.program(s.ability_program-1);
+        matches!(p.instructions.get(s.ability_pc as usize),Some(Instruction::GrantCreatedTokenPhaseKeyword{creation_pc,..})
+            if crate::created_token_phase_keyword_contract::program(p)
+            && s.event_result.belongs_to(s.source,s.ability_program,*creation_pc)
+            && s.event_result.generated_token==id && id!=0)
+    }
     fn apply_scalar_effect(
         &self, s:&mut State, e:&Effect, targets:Vec<Eval>, amount:u16,
         modifier:Option<PhaseStatDelta>,
@@ -3242,6 +3306,7 @@ impl Engine {
                 Eval::Card(id)
                     if id != 0
                         && (self.in_arena(s, id)
+                            || (matches!(e,Effect::GainKeyword{..}) && self.created_token_phase_target(s,id))
                             || (matches!(e,Effect::ModifyStats{..}) && s.entry_event_card==id && s.ability_program!=0 && self.program(s.ability_program-1).trigger=="onUnitEntersPlay")
                             || self.def(s, id).info.is("base")
                             || (matches!(e,Effect::Ready{..}|Effect::Exhaust{..}) && self.exhaustible_card(s,id))
@@ -3292,7 +3357,7 @@ impl Engine {
                             }
                             result += 1;
                         }
-                        Effect::GainKeyword { keyword, .. } if in_arena => {
+                        Effect::GainKeyword { keyword, .. } if in_arena || self.created_token_phase_target(s,id) => {
                             let index = crate::ability_ir::CORE_KEYWORDS.iter().position(|k| k == keyword).unwrap();
                             if let Some(slot) = crate::ability_ir::numeric_keyword_slot(index) { s.card_mut(id).phase_keyword_values[slot] = s.card(id).phase_keyword_values[slot].checked_add(amount).ok_or("phase keyword capacity exceeded")?; }
                             s.card_mut(id).add_phase_keyword(index);
@@ -3584,7 +3649,9 @@ impl Engine {
                 if !self.commit_program(&mut t)? {return Ok(t);}
                 let effect=match &self.program(t.ability_program-1).instructions[t.ability_pc as usize] {Instruction::Apply(effect)=>effect,_=>return Err("invalid distribution instruction".into())};
                 let pairs=self.validate_distribution(&t,&a)?;
-                if matches!(effect,Effect::DistributeDamage{..}) {
+                if matches!(effect,Effect::DistributeTokenUpgrade{..}) {
+                    self.capture_advantage_distribution(&mut t,&pairs)?;
+                } else if matches!(effect,Effect::DistributeDamage{..}) {
                     self.capture_distribution(&mut t,&pairs)?;
                     for i in 0..t.event_group.count as usize {let r=t.event_group.records[i];let will_defeat=self.in_arena(&t,r.target)&&r.amount>=self.hp(&t,r.target).saturating_sub(t.card(r.target).damage);t.event_group.damage_facts.capture(i,will_defeat)?;}
                 } else {
@@ -3653,7 +3720,8 @@ impl Engine {
     }
     /// Keep the original in-play identities, including through non-defeat exits.
     pub(super) fn mark_attack_lifecycle(&self,s:&mut State,id:CardId,defeat:bool) {
-        let tracked=|source| source!=0 && (self.card_programs(s,source).iter().any(|p|self.program(*p).trigger=="whenAttackEnds") || self.support_programs(s,source).iter().any(|p|self.program(*p).trigger=="whenAttackEnds"));
+        let tracked_program=|p:u16| {let program=self.program(p);program.trigger=="whenAttackEnds" || program.instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::attack_lifetime_contract::modifier(e)||crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)))};
+        let tracked=|source| source!=0 && (self.card_programs(s,source).iter().copied().any(tracked_program) || self.support_programs(s,source).iter().copied().any(tracked_program));
         let current=s.attack_end_captured || tracked(s.attack_source);
         let frames:[bool;MAX_DEATH_DEPTH]=std::array::from_fn(|i|i<s.death_depth as usize && (s.death_frames[i].context.attack_end_captured || tracked(s.death_frames[i].context.attack_source)));
         fn mark(source:CardId,defender:CardId,id:CardId,defeat:bool,source_gone:&mut bool,source_dead:&mut bool,defender_gone:&mut bool,defender_dead:&mut bool) {
@@ -4568,3 +4636,14 @@ mod defeat_token_creation_tests;
 #[cfg(test)]
 #[path="captured_hand_cost_tests.rs"]
 mod captured_hand_cost_tests;
+
+#[cfg(test)]
+#[path="upgrade_return_shield_tests.rs"]
+mod upgrade_return_shield_tests;
+#[cfg(test)]
+#[path="created_token_phase_keyword_runtime_tests.rs"]
+mod created_token_phase_keyword_runtime_tests;
+
+#[cfg(test)]
+#[path="distributed_advantage_tests.rs"]
+mod distributed_advantage_tests;

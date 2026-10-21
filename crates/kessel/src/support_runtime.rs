@@ -447,19 +447,26 @@ impl Engine {
 }
 
 impl Engine {
+    // Closed On Attack continuations install one typed grant after their discard
+    // resolves. The grant survives child windows through OnAttackEnd, then the
+    // shared attack finisher removes it. Departure removes the physical target
+    // immediately; a later incarnation cannot receive a captured old grant.
     pub(super) fn apply_on_attack_modifiers(&self,s:&mut State,e:&Effect)->Result<(u16,bool),String>{
-        if !crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e){return Err("attack modifiers require one reviewed +15/Overwhelm envelope".into());}
-        if !self.in_arena(s,s.source)||self.active_attack_pair(s,s.source).0!=s.source{return Ok((0,false));}
-        if s.ability_program==0||!self.on_attack_modifiers_program(s.ability_program-1)||!matches!(self.program(s.ability_program-1).instructions.get(s.ability_pc as usize),Some(Instruction::Apply(current)) if crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(current)){return Err("attack modifier origin is not an admitted chosen-hand program".into());}
+        let discard_power=crate::attack_lifetime_contract::modifier(e);
+        if !discard_power&&!crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e){return Err("attack modifiers require one complete reviewed envelope".into());}
+        if !self.is_attacking(s,s.source){return Ok((0,false));}
+        let Some(program)=s.ability_program.checked_sub(1)else{return Err("attack modifier origin is missing".into())};
+        let origin=self.program(program);
+        if !self.on_attack_modifiers_program(program)||discard_power&&!crate::attack_lifetime_contract::program(origin)||!matches!(origin.instructions.get(s.ability_pc as usize),Some(Instruction::Apply(current)) if serde_json::to_value(current).ok()==serde_json::to_value(e).ok()){return Err("attack modifier origin is not an admitted closed program".into());}
         if s.support.len as usize==MAX_SUPPORT_GRANTS{return Err("attack modifier grant capacity exceeded (32)".into());}
-        let mut keywords=[0;9];keywords[1]=1;
-        s.support.grants[s.support.len as usize]=SupportGrant{target:s.source,donor:s.source,power:15,presence:OVERWHELM,keywords,conditional_program:s.ability_program,conditional_pc:s.ability_pc,..SupportGrant::default()};s.support.len+=1;
+        let mut keywords=[0;9];if !discard_power{keywords[1]=1;}
+        s.support.grants[s.support.len as usize]=SupportGrant{target:s.source,donor:s.source,power:if discard_power{2}else{15},presence:if discard_power{0}else{OVERWHELM},keywords,conditional_program:s.ability_program,conditional_pc:s.ability_pc,..SupportGrant::default()};s.support.len+=1;
         self.check_stat_capacity(s)?;self.finish_effect_window(s)?;Ok((1,true))
     }
     fn on_attack_modifiers_program(&self,p:u16)->bool {
         let Some(catalogue)=&self.catalogue else{return false;};
         self.program(p).trigger=="onAttack"
-            && self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)))
+            && self.program(p).instructions.iter().any(|i|matches!(i,Instruction::Apply(e) if crate::ability_ir::chosen_hand_discard_contract::attack_modifiers(e)||crate::attack_lifetime_contract::modifier(e)))
             && catalogue.cards.values().any(|card|card.card.contains(&p))
     }
 }

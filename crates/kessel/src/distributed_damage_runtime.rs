@@ -77,6 +77,31 @@ impl Engine {
         else {
             return Err("missing distribution effect".into());
         };
+        if let Effect::DistributeTokenUpgrade {
+            target_resolver, ..
+        } = effect
+        {
+            let amount = self.distribution_advantage_amount(s)?;
+            if amount > 32 {
+                return Err("prepared token distribution capacity exceeded (32)".into());
+            }
+            let targets = self.distribution_advantage_targets(s, s.source, target_resolver);
+            return ordered_token_allocations(&targets, amount).map(|allocations| {
+                allocations
+                    .into_iter()
+                    .map(|pairs| Action {
+                        kind: "distribute".into(),
+                        card: None,
+                        arg: Some(json!(pairs
+                            .into_iter()
+                            .map(|(id, n)| json!([format!("c{}", id - 1), n]))
+                            .collect::<Vec<_>>())),
+                        method: None,
+                        label: format!("distribute {amount}"),
+                    })
+                    .collect()
+            });
+        }
         let (amount, max, less, empty, resolver) = match effect {
             Effect::DistributeDamage {
                 target_resolver, ..
@@ -239,3 +264,189 @@ mod tests {
 #[cfg(test)]
 #[path = "distributed_damage_tests.rs"]
 mod distributed_damage_tests;
+
+// Token creation allocates physical identities in submitted Map order. Unlike
+// damage/healing, recipient permutations are observably distinct actions.
+fn ordered_token_allocations(
+    targets: &[CardId],
+    amount: u16,
+) -> Result<Vec<Vec<(CardId, u16)>>, String> {
+    fn walk(
+        targets: &[CardId],
+        left: u16,
+        picks: &mut Vec<(CardId, u16)>,
+        out: &mut Vec<Vec<(CardId, u16)>>,
+    ) -> Result<(), String> {
+        if left == 0 {
+            if out.len() == MAX_DISTRIBUTION_ACTIONS {
+                return Err("ordered token distribution action capacity exceeded (4096)".into());
+            }
+            out.push(picks.clone());
+            return Ok(());
+        }
+        for &id in targets {
+            if picks.iter().any(|(prior, _)| *prior == id) {
+                continue;
+            }
+            for n in 1..=left {
+                picks.push((id, n));
+                walk(targets, left - n, picks, out)?;
+                picks.pop();
+            }
+        }
+        Ok(())
+    }
+    let mut out = vec![vec![]];
+    if amount > 0 {
+        walk(targets, amount, &mut vec![], &mut out)?;
+    }
+    Ok(out)
+}
+impl Engine {
+    pub(super) fn distribution_advantage_amount(&self, s: &State) -> Result<u16, String> {
+        if s.last_known_source != s.source || s.source == 0 {
+            return Err("Advantage distribution requires captured defeat power".into());
+        }
+        // Existing capture is u16 and hashing/copy/resume already retain it.
+        Ok(s.last_known_power)
+    }
+    pub(super) fn distribution_advantage_targets(
+        &self,
+        s: &State,
+        source: CardId,
+        r: &TargetResolver,
+    ) -> Vec<CardId> {
+        let controller = if s.last_known_source == source {
+            s.active
+        } else {
+            s.card(source).owner
+        };
+        let mut all = r.clone();
+        all.owner = "any".into();
+        self.matching_targets(s, source, &all)
+            .into_iter()
+            .filter(|id| s.card(*id).owner == controller && s.card(*id).damage < self.hp(s, *id))
+            .collect()
+    }
+    /// Capture one original creation event per ordered recipient, then allocate
+    /// its tokens in that event's loop order. Repeated records retain the parent
+    /// event amount while each physical token owns its own attach contingent.
+    /// No current admitted listener replaces token-creation events; such raw
+    /// registrations remain rejected. The defeat event/LKI is never rebound.
+    pub(super) fn capture_advantage_distribution(
+        &self,
+        s: &mut State,
+        pairs: &[(CardId, u16)],
+    ) -> Result<(), String> {
+        let amount = self.distribution_advantage_amount(s)?;
+        let total = pairs.iter().try_fold(0usize, |n, (_, v)| {
+            n.checked_add(*v as usize)
+                .ok_or("token allocation total overflow")
+        })?;
+        if !pairs.is_empty()
+            && (total != amount as usize
+                || pairs.iter().any(|(_, n)| *n == 0)
+                || pairs
+                    .iter()
+                    .enumerate()
+                    .any(|(i, (id, _))| pairs[..i].iter().any(|(p, _)| p == id)))
+        {
+            return Err("invalid ordered full token allocation".into());
+        }
+        if total > 32 {
+            return Err("prepared token distribution capacity exceeded (32)".into());
+        }
+        let def = self
+            .advantage_def
+            .ok_or("catalogue needs Advantage token")?;
+        if s.next_id as usize + total > MAX_CARDS {
+            return Err("card capacity exceeded generating Advantage distribution".into());
+        }
+        if pairs.iter().any(|(id, _)| {
+            !self.in_arena(s, *id)
+                || s.card(*id).owner != s.active
+                || s.card(*id).damage >= self.hp(s, *id)
+        }) {
+            return Err("token distribution recipient is not an eligible friendly unit".into());
+        }
+        let mut group = EventGroupState::default();
+        group.active = true;
+        group.initiator = s.active;
+        for &(target, n) in pairs {
+            for _ in 0..n {
+                let token = s.next_id;
+                s.next_id += 1;
+                *s.card_mut(token) = Card {
+                    present: true,
+                    def,
+                    owner: s.card(target).owner,
+                    ..Card::default()
+                };
+                group.records[group.count as usize] = PreparedEvent {
+                    target,
+                    amount: n,
+                    token,
+                    ..PreparedEvent::default()
+                };
+                group.count += 1;
+            }
+        }
+        s.event_group = group;
+        Ok(())
+    }
+}
+
+impl Engine {
+    /// GiveTokenUpgrade has one empty creation handler per recipient, not one
+    /// handler per token. Generated records retain that parent's requested count.
+    /// The pinned negative-order comparator emits those parents in reverse Map
+    /// order; its order-zero attach contingents retain generation order. The
+    /// admitted pool has no token-creation listeners/replacements: their raw
+    /// registrations are rejected, so these empty handlers need no extra State
+    /// or synthetic invocation context. The original defeat LKI remains intact.
+    pub(super) fn advantage_creation_events(
+        &self,
+        s: &State,
+    ) -> Result<(Vec<CardId>, u16), String> {
+        let records = &s.event_group.records[..s.event_group.count as usize];
+        let mut parents = Vec::new();
+        let mut at = 0;
+        while at < records.len() {
+            let first = records[at];
+            let mut end = at + 1;
+            while end < records.len() && records[end].target == first.target {
+                end += 1;
+            }
+            if first.amount == 0
+                || end - at != first.amount as usize
+                || parents.iter().any(|(id, _)| *id == first.target)
+                || records[at..end].iter().any(|r| {
+                    r.op != 0
+                        || r.amount != first.amount
+                        || r.token == 0
+                        || r.power != 0
+                        || r.hp != 0
+                        || Some(s.card(r.token).def) != self.advantage_def
+                })
+            {
+                return Err("invalid original token-creation event records".into());
+            }
+            parents.push((first.target, first.amount));
+            at = end;
+        }
+        let mut resolved = Vec::new();
+        let mut total = 0u16;
+        for (target, amount) in parents.into_iter().rev() {
+            // GiveTokenUpgrade.checkEventCondition checks its original recipient;
+            // a failed creation parent cancels every one of its attach contingents.
+            if !self.in_arena(s, target) || s.card(target).damage >= self.hp(s, target) {
+                continue;
+            }
+            total = total
+                .checked_add(amount)
+                .ok_or("token distribution result overflow")?;
+            resolved.push(target);
+        }
+        Ok((resolved, total))
+    }
+}

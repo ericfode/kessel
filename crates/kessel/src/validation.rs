@@ -1,7 +1,7 @@
 //! Fail-closed import boundary. Proofs must never silently discard unknown rules
 //! state or truncate JSON numbers into the compact representation.
 use crate::model::{MAX_CARDS, MAX_ZONE};
-use serde_json::Value;
+use serde_json::{json,Value};
 use std::{
     collections::{HashMap, HashSet},
     sync::OnceLock,
@@ -162,6 +162,8 @@ pub fn validate_state_with_catalogue(
             "roundLimitState",
             "unitEntryStateVersion",
             "inactiveUnitEntryStats",
+            "inactivePhaseKeywordStateVersion",
+            "inactiveAllocatedCards",
             "round",
             "phase",
             "initiative",
@@ -552,6 +554,7 @@ pub fn validate_state_with_catalogue(
         if actual!=expected{return Err("registrationOrder must contain every live unit and ordinary attachment exactly once".into());}
     }
     validate_arena_unit_order(v,catalogue)?;
+    inactive_allocated_rows(v,catalogue)?;
     Ok(())
 }
 
@@ -848,4 +851,70 @@ mod tests {
             .unwrap_err()
             .contains("invalid stable"));
     }
+}
+
+/// The wire inventory is an exact partition, not a hint about allocator history.
+/// Definition validation uses only the caller's selected admitted metadata.
+pub(crate) fn allocated_live_ids(v:&Value)->Result<HashSet<u16>,String> {
+    fn visit(v:&Value,next:u64,ids:&mut HashSet<u16>)->Result<(),String> {
+        if let Value::Object(o)=v {
+            if let Some(raw)=o.get("id") {
+                let text=raw.as_str().ok_or("allocated identity must be text")?;
+                let n=text.strip_prefix('c').and_then(|s|s.parse::<u64>().ok()).filter(|n|format!("c{n}")==text&&*n<next&&*n+1<MAX_CARDS as u64).ok_or("invalid allocated live identity")?;
+                if !ids.insert((n+1) as u16){return Err("duplicate allocated live identity".into());}
+            }
+            for value in o.values(){visit(value,next,ids)?;}
+        }else if let Value::Array(a)=v {for value in a {visit(value,next,ids)?;}}
+        Ok(())
+    }
+    let next=number(v,"nextCardId",(MAX_CARDS-1) as u64,"state")?;
+    // Match References' sole alias: one deployed leader in its own arena.
+    // Keep all other nested references in the traversal; no generic deduplication.
+    let mut players=v["players"].clone();
+    for seat in ["p1","p2"] {
+        let leader=players[seat]["leader"].clone();
+        let mut found=false;
+        for zone in ["ground","space"] {
+            if let Some(cards)=players[seat][zone].as_array_mut() {
+                for card in cards {
+                    if card.get("id").is_some() && card["id"]==leader["id"] {
+                        if found || leader["deployed"]!=true || card["setCode"]!=leader["setCode"] || card["name"]!=leader["name"] || card["exhausted"]!=leader["exhausted"] {
+                            return Err("invalid allocated deployed leader alias".into());
+                        }
+                        found=true;
+                        card.as_object_mut().unwrap().remove("id");
+                    }
+                }
+            }
+        }
+    }
+    let mut ids=HashSet::new();visit(&players,next,&mut ids)?;Ok(ids)
+}
+pub(crate) fn inactive_allocated_rows<'a>(v:&'a Value,catalogue:&HashMap<String,Value>)->Result<Option<&'a Vec<Value>>,String> {
+    let version=v.get("inactivePhaseKeywordStateVersion");let rows=v.get("inactiveAllocatedCards");
+    if version.is_none()&&rows.is_none(){return Ok(None);}
+    if version.and_then(Value::as_u64)!=Some(1){return Err("inactive phase keywords require inactivePhaseKeywordStateVersion 1".into());}
+    let rows=rows.and_then(Value::as_array).ok_or("inactive phase keywords require inactiveAllocatedCards array")?;
+    let next=number(v,"nextCardId",(MAX_CARDS-1) as u64,"state")?;let mut covered=allocated_live_ids(v)?;let mut previous=None;
+    if rows.len()>=MAX_CARDS{return Err("inactive allocated inventory capacity exceeded".into());}
+    for row in rows {
+        if !row.as_object().is_some_and(|o|o.len()==6&&["id","name","setCode","owner","controller","phaseKeywords"].iter().all(|k|o.contains_key(*k))){return Err("inactive allocated row requires exact physical identity and phaseKeywords fields".into());}
+        let text=row["id"].as_str().ok_or("inactive allocated physical ID missing")?;
+        let n=text.strip_prefix('c').and_then(|s|s.parse::<u64>().ok()).filter(|n|format!("c{n}")==text&&*n<next&&*n+1<MAX_CARDS as u64).ok_or("inactive allocated ID outside exact nextCardId")?;
+        if previous.is_some_and(|p|n<=p){return Err("inactive allocated IDs must be strictly ordered".into());}previous=Some(n);
+        if !covered.insert((n+1) as u16){return Err("inactive allocated row conflicts with a live/Force/Credit identity".into());}
+        if !matches!(row["owner"].as_str(),Some("p1"|"p2"))||row["controller"]!=row["owner"]{return Err("inactive allocated owner/controller must be exact and equal".into());}
+        let code=row["setCode"].as_str().ok_or("inactive allocated definition missing")?;
+        let info=catalogue.get(code).ok_or("inactive allocated definition absent from selected pool")?;
+        if row["name"]!=info["internalName"]{return Err("inactive allocated name/definition mismatch".into());}
+        if !has_type(info,"token")||!(has_type(info,"unit")||has_type(info,"upgrade")){return Err("inactive allocated card must be a reviewed native unit/upgrade token".into());}
+        let kw=row["phaseKeywords"].as_object().ok_or("inactive allocated phaseKeywords must be an object")?;
+        if !kw.is_empty() {
+            if row["phaseKeywords"]!=json!({"sentinel":1})||kw["sentinel"].as_u64()!=Some(1)||code!="TOKEN_MANDALORIAN"||!has_type(info,"unit")||info["internalName"]!="mandalorian" {return Err("inactive phase keyword requires exact native Mandalorian Sentinel".into());}
+            let history=&v["phaseHistory"];let entered=history["entered"].as_array().ok_or("inactive Sentinel requires exact current entry history")?;
+            if !matches!(history["version"].as_u64(),Some(1|2))||!entered.iter().any(|r|r["card"]==row["id"]&&r["playedBy"]==row["owner"])||entered.iter().any(|r|r["card"]==row["id"]&&r["playedBy"]!=row["owner"]){return Err("inactive Sentinel physical owner conflicts with exact entry history".into());}
+        }
+    }
+    if (1..=next as u16).any(|id|!covered.contains(&id)){return Err("inactive allocated inventory omits an allocated physical ID".into());}
+    Ok(Some(rows))
 }
